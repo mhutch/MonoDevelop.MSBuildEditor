@@ -1,0 +1,7 @@
+<AddinProject appVersion="5.0">
+	<Project platforms="Win32 Mac Linux">
+		<AddinFile>bin/Debug/MonoDevelop.MSBuildEditor.dll</AddinFile>
+		<BuildFile>MonoDevelop.MSBuildEditor.sln</BuildFile>
+		<BuildConfiguration>Debug</BuildConfiguration>
+	</Project>
+</AddinProject>
