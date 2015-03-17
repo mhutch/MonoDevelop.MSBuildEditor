@@ -29,6 +29,10 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Projects.Formats.MSBuild;
+using MonoDevelop.Core;
+using MonoDevelop.Ide.TypeSystem;
+using System.IO;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -41,11 +45,17 @@ namespace MonoDevelop.MSBuildEditor
 		readonly HashSet<string> properties = new HashSet<string> ();
 		readonly HashSet<string> imports = new HashSet<string> ();
 		public readonly DateTime TimeStampUtc = DateTime.UtcNow;
+		string ToolsVersion;
+
+		Dictionary<string,MSBuildResolveContext> resolvedImports;
+
+		MSBuildEvaluationContext importEvalCtx;
 
 		public IEnumerable<string> GetItems ()
 		{
-			foreach (var task in items.Keys)
-				yield return task;
+			return resolvedImports != null
+				? items.Keys.Concat (resolvedImports.Values.SelectMany (i => i.GetItems ())).Distinct ()
+				: items.Keys;
 		}
 
 		public IEnumerable<string> GetItemMetadata (string itemName)
@@ -59,8 +69,9 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IEnumerable<string> GetTasks ()
 		{
-			foreach (var task in tasks.Keys)
-				yield return task;
+			return resolvedImports != null
+				? tasks.Keys.Concat (resolvedImports.Values.SelectMany (i => i.GetTasks ())).Distinct ()
+				: items.Keys;
 		}
 
 		public IEnumerable<string> GetTaskParameters (string taskName)
@@ -74,17 +85,92 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IEnumerable<string> GetProperties ()
 		{
-			foreach (var property in properties)
-				yield return property;
+			return resolvedImports != null
+				? properties.Concat (resolvedImports.Values.SelectMany (i => i.GetProperties ())).Distinct ()
+				: properties;
+		}
+
+		static string GetToolsVersion (XDocument doc)
+		{
+			if (doc.RootElement != null) {
+				var att = doc.RootElement.Attributes [new XName ("ToolsVersion")];
+				if (att != null) {
+					var val = att.Value;
+					if (!string.IsNullOrEmpty (val))
+						return val;
+				}
+			}
+			return "2.0";
 		}
 
 		public static MSBuildResolveContext Create (XmlParsedDocument doc, MSBuildResolveContext previous)
 		{
 			var ctx = new MSBuildResolveContext ();
+
+			ctx.ToolsVersion = GetToolsVersion(doc.XDocument);
+			if (string.IsNullOrEmpty (ctx.ToolsVersion)) {
+				ctx.ToolsVersion = "2.0";
+			}
+
+			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion) {
+				ctx.importEvalCtx = previous.importEvalCtx;
+			} else {
+				ctx.importEvalCtx = CreateImportEvalCtx (ctx.ToolsVersion);
+			}
+
 			ctx.Populate (doc.XDocument);
-			if (doc.Errors.Count > 0)
+
+			if (previous != null && doc.Errors.Count > 0)
 				ctx.Merge (previous);
+
+			ctx.resolvedImports = new Dictionary<string, MSBuildResolveContext> ();
+			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion && previous.resolvedImports != null) {
+				ctx.ResolveImports (ctx.imports, previous);
+			} else {
+				ctx.ResolveImports (ctx.imports, null);
+			}
+
 			return ctx;
+		}
+
+		void ResolveImports (HashSet<string> imports, MSBuildResolveContext previous, string basePath = null)
+		{
+			foreach (var import in imports) {
+				string filename;
+				if (!importEvalCtx.Evaluate (import, out filename)) {
+					continue;
+				}
+
+				if (basePath != null) {
+					filename = Path.Combine (basePath, filename);
+				}
+
+				if (!File.Exists (filename)) {
+					continue;
+				}
+
+				if (previous != null && previous.ToolsVersion == ToolsVersion && previous.resolvedImports != null) {
+					MSBuildResolveContext prevImport;
+					//ignore mtimes on imports for now // && prevImport.TimeStampUtc <= File.GetLastWriteTimeUtc (filename)
+					if (previous.resolvedImports.TryGetValue (filename, out prevImport)) {
+						resolvedImports [filename] = prevImport;
+						continue;
+					}
+				}
+
+				if (resolvedImports.ContainsKey (filename)) {
+					continue;
+				}
+
+				var doc = (XmlParsedDocument) TypeSystemService.ParseFile (filename, "application/xml", File.ReadAllText (filename));
+				var ctx = new MSBuildResolveContext ();
+				if (doc.XDocument != null) {
+					ctx.Populate (doc.XDocument);
+				}
+				resolvedImports [filename] = ctx;
+				var bp = Path.GetDirectoryName (filename);
+				ResolveImports (ctx.imports, previous, bp);
+			}
 		}
 
 		void Merge (MSBuildResolveContext other)
@@ -131,14 +217,23 @@ namespace MonoDevelop.MSBuildEditor
 				return;
 
 			var name = el.Name.Name;
+
 			var msel = MSBuildElement.Get (name, parent);
-			if (msel == null || !msel.IsSpecial) {
+			if (msel == null)
+				return;
+
+			if (!msel.IsSpecial) {
 				foreach (var child in el.Nodes.OfType<XElement> ())
 					Populate (child, msel);
-				return;
 			}
 
-			switch (parent.ChildType) {
+			switch (msel.Name) {
+			case "Import":
+				var import = el.Attributes [xnProject];
+				if (import != null && !string.IsNullOrEmpty (import.Value)) {
+					imports.Add (import.Value);
+				}
+				return;
 			case "Item":
 				HashSet<string> item;
 				if (!items.TryGetValue (name, out item))
@@ -146,15 +241,7 @@ namespace MonoDevelop.MSBuildEditor
 				foreach (var metadata in el.Nodes.OfType<XElement> ())
 					if (!metadata.Name.HasPrefix)
 						item.Add (metadata.Name.Name);
-				break;
-			case "Property":
-				properties.Add (name);
-				break;
-			case "Import":
-				var import = el.Attributes [xnProject];
-				if (import != null && string.IsNullOrEmpty (import.Value))
-					imports.Add (import.Value);
-				break;
+				return;
 			case "Task":
 				HashSet<string> task;
 				if (!tasks.TryGetValue (name, out task))
@@ -162,11 +249,22 @@ namespace MonoDevelop.MSBuildEditor
 				foreach (var att in el.Attributes)
 					if (!att.Name.HasPrefix)
 						task.Add (att.Name.Name);
-				break;
-			case "Parameter":
-				//TODO: Parameters
-				break;
+				return;
+			case "Property":
+				properties.Add (name);
+				return;
 			}
+		}
+
+		static MSBuildEvaluationContext CreateImportEvalCtx (string toolsVersion)
+		{
+			var ctx = new MSBuildEvaluationContext ();
+			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
+			ctx.SetPropertyValue ("MSBuildBinPath", runtime.GetMSBuildBinPath (toolsVersion));
+			var extPath = runtime.GetMSBuildExtensionsPath ();
+			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
+			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
+			return ctx;
 		}
 	}
 }
