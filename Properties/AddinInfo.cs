@@ -9,6 +9,6 @@ using Mono.Addins.Description;
 )]
 
 [assembly:AddinName ("MonoDevelop.MSBuildEditor")]
-[assembly:AddinCategory ("MonoDevelop.MSBuildEditor")]
+[assembly:AddinCategory ("IDE extensions")]
 [assembly:AddinDescription ("MonoDevelop.MSBuildEditor")]
 [assembly:AddinAuthor ("Michael Hutchinson")]
