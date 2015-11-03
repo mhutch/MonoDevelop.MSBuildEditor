@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionModel>
-	<Runtime>
-	</Runtime>
 	<Extension path = "/MonoDevelop/Ide/TextEditorExtensions">
 		<Class id = "EnhancedMSBuildTextEditorExtension"
 		       class = "MonoDevelop.MSBuildEditor.MSBuildTextEditorExtension"
 		       mimeTypes ="application/x-msbuild"
-		       insertbefore="MSBuildTextEditorExtension" />
+		       insertbefore="MSBuildTextEditorExtension"
+		        />
 	</Extension>
 </ExtensionModel>

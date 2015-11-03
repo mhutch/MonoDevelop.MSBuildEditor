@@ -33,6 +33,8 @@ using MonoDevelop.Projects.Formats.MSBuild;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.TypeSystem;
 using System.IO;
+using System.Threading.Tasks;
+using MonoDevelop.Ide;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -103,7 +105,7 @@ namespace MonoDevelop.MSBuildEditor
 			return "2.0";
 		}
 
-		public static MSBuildResolveContext Create (XmlParsedDocument doc, MSBuildResolveContext previous)
+		public static async Task<MSBuildResolveContext> Create (XmlParsedDocument doc, MSBuildResolveContext previous)
 		{
 			var ctx = new MSBuildResolveContext ();
 
@@ -120,20 +122,20 @@ namespace MonoDevelop.MSBuildEditor
 
 			ctx.Populate (doc.XDocument);
 
-			if (previous != null && doc.Errors.Count > 0)
+			if (previous != null && doc.HasErrors)
 				ctx.Merge (previous);
 
 			ctx.resolvedImports = new Dictionary<string, MSBuildResolveContext> ();
 			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion && previous.resolvedImports != null) {
-				ctx.ResolveImports (ctx.imports, previous);
+				await ctx.ResolveImports (ctx.imports, previous);
 			} else {
-				ctx.ResolveImports (ctx.imports, null);
+				await ctx.ResolveImports (ctx.imports, null);
 			}
 
 			return ctx;
 		}
 
-		void ResolveImports (HashSet<string> imports, MSBuildResolveContext previous, string basePath = null)
+		async Task ResolveImports (HashSet<string> imports, MSBuildResolveContext previous, string basePath = null)
 		{
 			foreach (var import in imports) {
 				string filename;
@@ -162,14 +164,18 @@ namespace MonoDevelop.MSBuildEditor
 					continue;
 				}
 
-				var doc = (XmlParsedDocument) TypeSystemService.ParseFile (filename, "application/xml", File.ReadAllText (filename));
+				var parseOptions = new ParseOptions {
+					FileName = filename,
+					Content = TextFileProvider.Instance.GetReadOnlyTextEditorData (filename)
+				};
+				var doc = (XmlParsedDocument)await TypeSystemService.ParseFile (parseOptions, "application/xml");
 				var ctx = new MSBuildResolveContext ();
 				if (doc.XDocument != null) {
 					ctx.Populate (doc.XDocument);
 				}
 				resolvedImports [filename] = ctx;
 				var bp = Path.GetDirectoryName (filename);
-				ResolveImports (ctx.imports, previous, bp);
+				await ResolveImports (ctx.imports, previous, bp);
 			}
 		}
 

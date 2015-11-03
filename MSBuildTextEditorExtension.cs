@@ -33,6 +33,7 @@ using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using System.Threading.Tasks;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -162,26 +163,28 @@ namespace MonoDevelop.MSBuildEditor
 			public IEnumerable<string> BuiltinChildren;
 		}
 
-		bool inferenceQueued = false;
+		Task<MSBuildResolveContext> inferenceTask;
 		MSBuildResolveContext inferredCompletionData;
 
+		//TODO: more robust queuing and rate limiting mechanism
 		void QueueInference ()
 		{
-			var doc = this.CU as XmlParsedDocument;
-			if (doc == null || doc.XDocument == null || inferenceQueued)
+			var doc = CU as XmlParsedDocument;
+			if (doc == null || doc.XDocument == null || (inferenceTask != null && !inferenceTask.IsCompleted))
 				return;
+
 			if (inferredCompletionData != null) {
 				if ((doc.LastWriteTimeUtc - inferredCompletionData.TimeStampUtc).TotalSeconds < 5)
 					return;
 			}
-			inferenceQueued = true;
-			ThreadPool.QueueUserWorkItem (delegate {
-				try {
-					inferredCompletionData = MSBuildResolveContext.Create (doc, inferredCompletionData);
-					inferenceQueued = false;
-				} catch (Exception ex) {
-					LoggingService.LogInternalError ("Unhandled error in XML inference", ex);
+
+			inferenceTask = MSBuildResolveContext.Create (doc, inferredCompletionData);
+			inferenceTask.ContinueWith (t => {
+				if (t.IsFaulted) {
+					LoggingService.LogInternalError ("Unhandled error in XML inference", t.Exception);
 				}
+				if (!t.IsCanceled)
+					inferredCompletionData = t.Result;
 			});
 		}
 

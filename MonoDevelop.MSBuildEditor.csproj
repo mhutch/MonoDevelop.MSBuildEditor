@@ -42,6 +42,7 @@
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />
+    <AddinReference Include="MonoDevelop.SourceEditor2" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
