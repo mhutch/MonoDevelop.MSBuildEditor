@@ -147,6 +147,10 @@ namespace MonoDevelop.MSBuildEditor
 					filename = Path.Combine (basePath, filename);
 				}
 
+				if (!Platform.IsWindows) {
+					filename = filename.Replace ('\\', '/');
+				}
+
 				if (!File.Exists (filename)) {
 					continue;
 				}
