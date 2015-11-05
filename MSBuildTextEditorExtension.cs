@@ -41,20 +41,21 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		public static readonly string MSBuildMimeType = "application/x-msbuild";
 
-		protected override void GetElementCompletions (CompletionDataList list)
+		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
 		{
+			var list = new CompletionDataList ();
 			AddMiscBeginTags (list);
 
 			var path = GetCurrentPath ();
 
 			if (path.Count == 0) {
 				list.Add (new XmlCompletionData ("Project", XmlCompletionData.DataType.XmlElement));
-				return;
+				return Task.FromResult (list);
 			}
 
 			var rr = ResolveElement (path);
 			if (rr == null)
-				return;
+				return Task.FromResult (list);
 
 			foreach (var c in rr.BuiltinChildren)
 				list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
@@ -63,6 +64,8 @@ namespace MonoDevelop.MSBuildEditor
 			if (inferredChildren != null)
 				foreach (var c in inferredChildren)
 					list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
+
+			return Task.FromResult (list);
 		}
 
 		IEnumerable<string> GetInferredChildren (ResolveResult rr)
@@ -88,8 +91,8 @@ namespace MonoDevelop.MSBuildEditor
 			return null;
 		}
 
-		protected override CompletionDataList GetAttributeCompletions (IAttributedXObject attributedOb,
-			Dictionary<string, string> existingAtts)
+		protected override Task<CompletionDataList> GetAttributeCompletions (IAttributedXObject attributedOb,
+			Dictionary<string, string> existingAtts, CancellationToken token)
 		{
 			var path = GetCurrentPath ();
 
@@ -108,7 +111,7 @@ namespace MonoDevelop.MSBuildEditor
 					if (!existingAtts.ContainsKey (a))
 						list.Add (new XmlCompletionData (a, XmlCompletionData.DataType.XmlAttribute));
 
-			return list;
+			return Task.FromResult (list);
 		}
 
 		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
