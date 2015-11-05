@@ -7,4 +7,19 @@
 		       insertbefore="MSBuildTextEditorExtension"
 		        />
 	</Extension>
+
+	<Extension path = "/MonoDevelop/Core/MimeTypes">
+		<!--
+		We can't extend the existing mimetype, so re-define it.
+		This particular system will use the first thing defined, so insert it way up the list.
+		-->
+		<MimeType id="application/x-msbuild" _description="MSBuild file" baseType="application/xml" insertbefore="application/xml">
+			<File pattern="*.targets" />
+			<File pattern="*.props" />
+			<File pattern="*.csproj" />
+			<File pattern="*.fsproj" />
+			<File pattern="*.vbproj" />
+			<File pattern="*.xproj" />
+		</MimeType>
+	</Extension>
 </ExtensionModel>
