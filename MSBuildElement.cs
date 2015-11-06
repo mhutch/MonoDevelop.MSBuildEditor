@@ -2,7 +2,7 @@
 // MSBuildElements.cs
 //
 // Author:
-//       Michael Hutchinson <mhutch@xamarin.com>
+//       mhutch <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2014 Xamarin Inc.
 //

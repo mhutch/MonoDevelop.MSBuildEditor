@@ -2,7 +2,7 @@
 // MSBuildResolveContext.cs
 //
 // Author:
-//       Michael Hutchinson <mhutch@xamarin.com>
+//       mhutch <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2014 Xamarin Inc.
 //
@@ -26,15 +26,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Projects.Formats.MSBuild;
-using MonoDevelop.Core;
-using MonoDevelop.Ide.TypeSystem;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+
+using MonoDevelop.Core;
 using MonoDevelop.Ide;
+using MonoDevelop.Ide.TypeSystem;
+using MonoDevelop.Projects.Formats.MSBuild;
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -55,9 +56,12 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IEnumerable<string> GetItems ()
 		{
-			return resolvedImports != null
-				? items.Keys.Concat (resolvedImports.Values.SelectMany (i => i.GetItems ())).Distinct ()
-				: items.Keys;
+			if (resolvedImports == null)
+				return items.Keys;
+			
+			return items.Keys
+				.Concat (resolvedImports.Values.SelectMany (i => i.GetItems ()).Where (NotPrivate))
+				.Distinct ();
 		}
 
 		public IEnumerable<string> GetItemMetadata (string itemName)
@@ -87,9 +91,18 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IEnumerable<string> GetProperties ()
 		{
-			return resolvedImports != null
-				? properties.Concat (resolvedImports.Values.SelectMany (i => i.GetProperties ())).Distinct ()
-				: properties;
+			if (resolvedImports == null)
+				return properties;
+			
+			return properties
+				.Concat (resolvedImports.Values.SelectMany (i => i.GetProperties ()).Where (NotPrivate))
+				.Distinct ();
+		}
+
+		//by convention, properties and items starting with an underscore are "private"
+		static bool NotPrivate (string arg)
+		{
+			return arg [0] != '_';
 		}
 
 		static string GetToolsVersion (XDocument doc)
