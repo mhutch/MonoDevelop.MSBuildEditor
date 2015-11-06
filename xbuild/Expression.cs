@@ -307,19 +307,20 @@ namespace Microsoft.Build.BuildEngine {
 		//
 		// Property function with syntax $([Class]::Method(Parameters))
 		//
-		static MemberInvocationReference ParsePropertyFunction (string text, ref int pos)
+		static object ParsePropertyFunction (string text, ref int pos)
 		{
 			int p = text.IndexOf ("]::", pos, StringComparison.Ordinal);
-			if (p < 0)
-				throw new InvalidExpressionException (string.Format ("Invalid static method invocation syntax '{0}'", text.Substring (pos)));
+			if (p < 0) {
+				return new InvalidExpressionError (string.Format ("Invalid static method invocation syntax '{0}'", text.Substring (pos)), pos);
+			}
 
 			var type_name = text.Substring (pos + 1, p - pos - 1);
 			var type = GetTypeForStaticMethod (type_name);
 			if (type == null) {
 				if (type_name.Contains ("."))
-					throw new InvalidExpressionException (string.Format ("Invalid type '{0}' used in static method invocation", type_name));
+					return new InvalidExpressionError (string.Format ("Invalid type '{0}' used in static method invocation", type_name), pos);
 
-				throw new InvalidExpressionException (string.Format ("'{0}': Static method invocation requires full type name to be used", type_name));
+				return new InvalidExpressionError (string.Format ("'{0}': Static method invocation requires full type name to be used", type_name), pos);
 			}
 
 			pos = p + 3;
@@ -493,7 +494,7 @@ namespace Microsoft.Build.BuildEngine {
 			return null;
 		}
 
-		static MemberInvocationReference ParseInvocation (string text, ref int p, Type type, IReference instance)
+		static object ParseInvocation (string text, ref int p, Type type, IReference instance)
 		{
 			TokenKind token;
 			MemberInvocationReference mir = null;
@@ -514,7 +515,7 @@ namespace Microsoft.Build.BuildEngine {
 
 				case TokenKind.End:
 					if (mir == null || name.Length != 0)
-						throw new InvalidExpressionException (string.Format ("Invalid static method invocation syntax '{0}'", text.Substring (p)));
+					return new InvalidExpressionError (string.Format ("Invalid static method invocation syntax '{0}'", text.Substring (p)), p);
 
 					return mir;
 				default:
@@ -527,7 +528,7 @@ namespace Microsoft.Build.BuildEngine {
 
 				if (type != null) {
 					if (!IsMethodAllowed (type, name))
-						throw new InvalidExpressionException (string.Format ("The function '{0}' on type '{1}' has not been enabled for execution", name, type.FullName));
+						return new InvalidExpressionError (string.Format ("The function '{0}' on type '{1}' has not been enabled for execution", name, type.FullName), p);
 
 					type = null;
 				}

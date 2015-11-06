@@ -3,23 +3,15 @@ using System.Runtime.Serialization;
 
 namespace Microsoft.Build.BuildEngine
 {
-	[Serializable]
-	class InvalidExpressionException : Exception
+	class InvalidExpressionError
 	{
-		public InvalidExpressionException ()
-		{
-		}
+		public int Position { get; set; }
+		public string Message { get; set; }
 
-		public InvalidExpressionException (string message) : base (message)
+		public InvalidExpressionError (string message, int position)
 		{
-		}
-
-		public InvalidExpressionException (string message, Exception innerException) : base (message, innerException)
-		{
-		}
-
-		protected InvalidExpressionException (SerializationInfo info, StreamingContext context) : base (info, context)
-		{
+			Message = message;
+			Position = position;
 		}
 	}
 }
