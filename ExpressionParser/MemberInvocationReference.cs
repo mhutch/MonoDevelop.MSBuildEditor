@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Build.BuildEngine
+namespace MonoDevelop.MSBuildEditor.ExpressionParser 
 {
 	class MemberInvocationReference : IReference
 	{

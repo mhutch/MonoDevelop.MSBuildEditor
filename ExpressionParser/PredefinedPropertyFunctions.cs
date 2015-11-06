@@ -28,9 +28,8 @@
 
 using System;
 using System.IO;
-using Mono.XBuild.Utilities;
 
-namespace Microsoft.Build.BuildEngine
+namespace MonoDevelop.MSBuildEditor.ExpressionParser 
 {
 	static class PredefinedPropertyFunctions
 	{

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace Microsoft.Build.BuildEngine
+﻿namespace MonoDevelop.MSBuildEditor.ExpressionParser
 {
 	class InvalidExpressionError
 	{

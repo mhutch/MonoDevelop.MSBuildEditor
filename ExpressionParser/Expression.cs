@@ -31,11 +31,10 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
-using Mono.XBuild.Utilities;
 
-namespace Microsoft.Build.BuildEngine {
+namespace MonoDevelop.MSBuildEditor.ExpressionParser
+{
 
 	// Properties and items are processed in two ways
 	// 1. Evaluate, Project calls evaluate on all the item and property groups.

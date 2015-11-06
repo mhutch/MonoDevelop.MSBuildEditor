@@ -31,7 +31,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Mono.XBuild.Utilities {
+namespace MonoDevelop.MSBuildEditor.ExpressionParser {
 	internal static class MSBuildUtils {
 
 		public readonly static bool RunningOnMac;

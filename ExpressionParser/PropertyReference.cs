@@ -1,5 +1,5 @@
 //
-// ItemReference.cs: Represents "@(Reference)" in expression.
+// PropertyReference.cs
 //
 // Author:
 //   Marek Sieradzki (marek.sieradzki@gmail.com)
@@ -29,63 +29,25 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
-namespace Microsoft.Build.BuildEngine {
-	internal class ItemReference : IReference {
-	
-		string		itemName;
-		Expression	transform;
-		Expression	separator;
-		int		start;
-		int		length;
-		string		original_string;
+namespace MonoDevelop.MSBuildEditor.ExpressionParser {
+	class PropertyReference : IReference {
 		
-		public ItemReference (string original_string, string itemName, string transform, string separator, int start, int length)
+		readonly string	name;
+
+		public PropertyReference (string name)
 		{
-			this.itemName = itemName;
-			this.start = start;
-			this.length = length;
-			this.original_string = original_string;
-
-			// Transform and separator are never expanded for item refs
-			if (transform != null) {
-				this.transform = new Expression ();
-				this.transform.Parse (transform, ParseOptions.AllowMetadata | ParseOptions.Split);
-			}
-
-			if (separator != null) {
-				this.separator = new Expression ();
-				this.separator.Parse (separator, ParseOptions.Split);
-			}
+			this.name = name;
 		}
-
-		public string ItemName {
-			get { return itemName; }
-		}
-
-		public Expression Transform {
-			get { return transform; }
-		}
-
-		public Expression Separator {
-			get { return separator; }
-		}
-
-		public string OriginalString {
-			get { return original_string; }
-		}
-
-		public int Start {
-			get { return start; }
-		}
-
-		public int End {
-			get { return start + length - 1; }
+		
+		public string Name {
+			get { return name; }
 		}
 
 		public override string ToString ()
 		{
-			return original_string;
+			return String.Format ("$({0})", name);
 		}
 	}
 }

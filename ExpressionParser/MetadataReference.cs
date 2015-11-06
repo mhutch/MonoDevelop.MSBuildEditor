@@ -26,9 +26,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
 
-namespace Microsoft.Build.BuildEngine {
+namespace MonoDevelop.MSBuildEditor.ExpressionParser
+{
 	internal class MetadataReference : IReference {
 	
 		string		itemName;

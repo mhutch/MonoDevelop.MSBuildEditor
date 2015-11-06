@@ -33,15 +33,15 @@
     <Compile Include="MSBuildElement.cs" />
     <Compile Include="MSBuildResolveContext.cs" />
     <Compile Include="MSBuildTextEditorExtension.cs" />
-    <Compile Include="xbuild\Expression.cs" />
-    <Compile Include="xbuild\MSBuildUtils.cs" />
-    <Compile Include="xbuild\MemberInvocationReference.cs" />
-    <Compile Include="xbuild\IReference.cs" />
-    <Compile Include="xbuild\ItemReference.cs" />
-    <Compile Include="xbuild\MetadataReference.cs" />
-    <Compile Include="xbuild\PropertyReference.cs" />
-    <Compile Include="xbuild\InvalidExpressionException.cs" />
-    <Compile Include="xbuild\PredefinedPropertyFunctions.cs" />
+    <Compile Include="ExpressionParser\Expression.cs" />
+    <Compile Include="ExpressionParser\MSBuildUtils.cs" />
+    <Compile Include="ExpressionParser\MemberInvocationReference.cs" />
+    <Compile Include="ExpressionParser\IReference.cs" />
+    <Compile Include="ExpressionParser\ItemReference.cs" />
+    <Compile Include="ExpressionParser\MetadataReference.cs" />
+    <Compile Include="ExpressionParser\PropertyReference.cs" />
+    <Compile Include="ExpressionParser\InvalidExpressionError.cs" />
+    <Compile Include="ExpressionParser\PredefinedPropertyFunctions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
