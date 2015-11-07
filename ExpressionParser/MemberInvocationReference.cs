@@ -33,19 +33,15 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 {
 	class MemberInvocationReference : IReference
 	{
-		Type type;
-		readonly string name;
-
-		static readonly char[] ArgumentTrimChars = new char[] { '\"', '\'', '`' };
-		static readonly object ConversionFailed = new object ();
-
 		public MemberInvocationReference (Type type, string name)
 		{
-			this.type = type;
-			this.name = name;
+			this.Type = type;
+			this.Name = name;
 		}
 
 		public List<string> Arguments { get; set; }
 		public IReference Instance { get; internal set; }
+		public Type Type { get; internal set; }
+		public string Name { get; internal set; }
 	}
 }
