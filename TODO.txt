@@ -1,0 +1,18 @@
+﻿Proper parser
+Live errors
+Validation of missing attributes
+Metadata resolution
+Completion of properties in expressions
+Completion of items in expressions
+Completion of metadata in expressions
+Completion of property functions
+Snippets
+Pairing of props and targets
+Docs on built-ins
+Docs from MSBuild files?
+Find references
+Completion of task parameters
+File templates
+Completion of inline C#
+Go to definition on imports
+Debugger?
