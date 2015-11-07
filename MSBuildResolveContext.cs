@@ -278,14 +278,14 @@ namespace MonoDevelop.MSBuildEditor
 					Populate (child, msel);
 			}
 
-			switch (msel.Name) {
-			case "Import":
+			switch (msel.Kind) {
+			case MSBuildKind.Import:
 				var import = el.Attributes [xnProject];
 				if (import != null && !string.IsNullOrEmpty (import.Value)) {
 					imports.Add (import.Value);
 				}
 				return;
-			case "Item":
+			case MSBuildKind.Item:
 				HashSet<string> item;
 				Console.WriteLine (name);
 				if (!items.TryGetValue (name, out item))
@@ -294,7 +294,7 @@ namespace MonoDevelop.MSBuildEditor
 					if (!metadata.Name.HasPrefix)
 						item.Add (metadata.Name.Name);
 				return;
-			case "Task":
+			case MSBuildKind.Task:
 				HashSet<string> task;
 				if (!tasks.TryGetValue (name, out task))
 					tasks [name] = task = new HashSet<string> ();
@@ -304,10 +304,10 @@ namespace MonoDevelop.MSBuildEditor
 					ExtractReferences (att);
 				}
 				return;
-			case "Property":
+			case MSBuildKind.Property:
 				properties.Add (name);
 				return;
-			case "Target":
+			case MSBuildKind.Target:
 				foreach (var att in el.Attributes) {
 					switch (att.Name.Name) {
 					case "Inputs":

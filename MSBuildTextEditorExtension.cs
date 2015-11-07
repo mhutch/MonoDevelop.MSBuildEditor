@@ -72,17 +72,17 @@ namespace MonoDevelop.MSBuildEditor
 			if (inferredCompletionData == null)
 				return null;
 
-			if (rr.ElementType == "Item") {
+			if (rr.ElementType == MSBuildKind.Item) {
 				return inferredCompletionData.GetItemMetadata (rr.ElementName);
 			}
 
-			if (rr.ChildType != null) {
-				switch (rr.ChildType) {
-				case "Item":
+			if (rr.ChildType.HasValue) {
+				switch (rr.ChildType.Value) {
+				case MSBuildKind.Item:
 					return inferredCompletionData.GetItems ();
-				case "Task":
+				case MSBuildKind.Task:
 					return inferredCompletionData.GetTasks ();
-				case "Property":
+				case MSBuildKind.Property:
 					return inferredCompletionData.GetProperties ();
 				}
 			}
@@ -115,7 +115,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
 		{
-			if (inferredCompletionData == null || rr.ElementType != "Task")
+			if (inferredCompletionData == null || rr.ElementType != MSBuildKind.Task)
 				return null;
 
 			return inferredCompletionData.GetTaskParameters (rr.ElementName);
@@ -126,10 +126,11 @@ namespace MonoDevelop.MSBuildEditor
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
 			MSBuildElement el = null;
-			string elName = null, elType = null;
+			string elName = null;
+			MSBuildKind? elType = null;
 			for (int i = 0; i < path.Count; i++) {
 				//if children of parent is known to be arbitrary data, give up on completion
-				if (el != null && el.ChildType == "Data")
+				if (el != null && el.ChildType == MSBuildKind.Data)
 					return null;
 				//code completion is forgiving, all we care about best guess resolve for deepest child
 				var xel = path [i] as XElement;
@@ -142,7 +143,8 @@ namespace MonoDevelop.MSBuildEditor
 						continue;
 				}
 				el = null;
-				elName = elType = null;
+				elName = null;
+				elType = null;
 			}
 			if (el == null)
 				return null;
@@ -159,8 +161,8 @@ namespace MonoDevelop.MSBuildEditor
 		class ResolveResult
 		{
 			public string ElementName;
-			public string ElementType;
-			public string ChildType;
+			public MSBuildKind? ElementType;
+			public MSBuildKind? ChildType;
 			public IEnumerable<string> BuiltinAttributes;
 			public IEnumerable<string> BuiltinChildren;
 		}
