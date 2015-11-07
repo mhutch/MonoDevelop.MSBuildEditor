@@ -42,6 +42,22 @@
     <Compile Include="ExpressionParser\PropertyReference.cs" />
     <Compile Include="ExpressionParser\InvalidExpressionError.cs" />
     <Compile Include="ExpressionParser\PredefinedPropertyFunctions.cs" />
+    <Compile Include="Evaluation\MSBuildEvaluationContext.cs" />
+    <Compile Include="Evaluation\IntrinsicFunctions.cs" />
+    <Compile Include="Evaluation\EscapingUtilities.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionAndExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionFactorExpresion.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionFunctionExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionNotExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionOrExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionParser.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionRelationalExpression.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionTokenizer.cs" />
+    <Compile Include="Evaluation\Conditions\ExpressionEvaluationException.cs" />
+    <Compile Include="Evaluation\Conditions\ExpressionParseException.cs" />
+    <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
+    <Compile Include="Evaluation\Conditions\Token.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -55,5 +71,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Evaluation\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Utilities.v12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   </ItemGroup>
 </Project>

@@ -172,10 +172,7 @@ namespace MonoDevelop.MSBuildEditor
 		async Task ResolveImports (HashSet<string> imports, MSBuildResolveContext previous, string basePath = null)
 		{
 			foreach (var import in imports) {
-				string filename;
-				if (!importEvalCtx.Evaluate (import, out filename)) {
-					continue;
-				}
+				string filename = importEvalCtx.Evaluate (import);
 
 				if (basePath != null) {
 					filename = Path.Combine (basePath, filename);
