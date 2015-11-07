@@ -36,6 +36,7 @@ using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.Projects.Formats.MSBuild;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.MSBuildEditor.ExpressionParser;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -80,6 +81,21 @@ namespace MonoDevelop.MSBuildEditor
 				: items.Keys;
 		}
 
+		public HashSet<string> GetTask (string name)
+		{
+			if (resolvedImports != null) {
+				foreach (var import in resolvedImports.Values) {
+					var t = import.GetTask (name);
+					if (t != null)
+						return t;
+				}
+			}
+
+			HashSet<string> v;
+			tasks.TryGetValue (name, out v);
+			return v;
+		}
+
 		public IEnumerable<string> GetTaskParameters (string taskName)
 		{
 			HashSet<string> taskParameters;
@@ -93,7 +109,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			if (resolvedImports == null)
 				return properties;
-			
+
 			return properties
 				.Concat (resolvedImports.Values.SelectMany (i => i.GetProperties ()).Where (NotPrivate))
 				.Distinct ();
@@ -181,7 +197,7 @@ namespace MonoDevelop.MSBuildEditor
 					continue;
 				}
 
-				var parseOptions = new ParseOptions {
+				var parseOptions = new Ide.TypeSystem.ParseOptions {
 					FileName = filename,
 					Content = TextFileProvider.Instance.GetReadOnlyTextEditorData (filename)
 				};
@@ -239,6 +255,11 @@ namespace MonoDevelop.MSBuildEditor
 			if (el.Name.Prefix != null)
 				return;
 
+			var condition = el.Attributes.Get (new XName ("Condition"), true);
+			if (condition != null) {
+				ExtractReferences (condition);
+			}
+
 			var name = el.Name.Name;
 
 			var msel = MSBuildElement.Get (name, parent);
@@ -259,6 +280,7 @@ namespace MonoDevelop.MSBuildEditor
 				return;
 			case "Item":
 				HashSet<string> item;
+				Console.WriteLine (name);
 				if (!items.TryGetValue (name, out item))
 					items [name] = item = new HashSet<string> ();
 				foreach (var metadata in el.Nodes.OfType<XElement> ())
@@ -269,14 +291,86 @@ namespace MonoDevelop.MSBuildEditor
 				HashSet<string> task;
 				if (!tasks.TryGetValue (name, out task))
 					tasks [name] = task = new HashSet<string> ();
-				foreach (var att in el.Attributes)
+				foreach (var att in el.Attributes) {
 					if (!att.Name.HasPrefix)
 						task.Add (att.Name.Name);
+					ExtractReferences (att);
+				}
 				return;
 			case "Property":
 				properties.Add (name);
 				return;
+			case "Target":
+				foreach (var att in el.Attributes) {
+					switch (att.Name.Name) {
+					case "Inputs":
+					case "Outputs":
+					case "DependOnTargets":
+						ExtractReferences (att);
+						break;
+					}
+				}
+				return;
 			}
+		}
+
+		void ExtractReferences (XAttribute att)
+		{
+			if (!string.IsNullOrEmpty (att.Value))
+				ExtractReferences (att.Value);
+		}
+
+		void ExtractReferences (string value)
+		{
+			var expr = new Expression ();
+			//TODO: check options
+			expr.Parse (value, ExpressionParser.ParseOptions.AllowItemsMetadataAndSplit);
+
+			ExtractReferences (expr);
+		}
+
+		void ExtractReferences (Expression expr)
+		{
+			foreach (var val in expr.Collection) {
+				ExtractReferences (val);
+			}
+		}
+
+		void ExtractReferences (object val)
+		{
+			//TODO: InvalidExpressionError
+
+			var pr = val as PropertyReference;
+			if (pr != null) {
+				properties.Add (pr.Name);
+				return;
+			}
+
+			var ir = val as ItemReference;
+			if (ir != null) {
+				HashSet<string> item;
+				if (!items.TryGetValue (ir.ItemName, out item))
+					items [ir.ItemName] = item = new HashSet<string> ();
+				if (ir.Transform != null)
+					ExtractReferences (ir.Transform);
+				return;
+			}
+
+			var mr = val as MetadataReference;
+			if (mr != null) {
+				//TODO: unqualified metadata references
+				if (mr.ItemName != null) {
+					HashSet<string> item;
+					if (!items.TryGetValue (mr.ItemName, out item))
+						items [mr.ItemName] = item = new HashSet<string> ();
+					item.Add (mr.MetadataName);
+				}
+				return;
+			}
+
+			var mir = val as MemberInvocationReference;
+			if (mir != null)
+				ExtractReferences (mir.Instance);
 		}
 
 		static MSBuildEvaluationContext CreateImportEvalCtx (string toolsVersion)
