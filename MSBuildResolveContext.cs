@@ -59,10 +59,15 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			if (resolvedImports == null)
 				return items.Keys;
-			
-			return items.Keys
-				.Concat (resolvedImports.Values.SelectMany (i => i.GetItems ()).Where (NotPrivate))
-				.Distinct ();
+
+			var result = new HashSet<string> (items.Keys);
+
+			foreach (var import in resolvedImports)
+				foreach (var val in import.Value.GetItems ())
+					if (NotPrivate (val))
+						result.Add (val);
+
+			return result;
 		}
 
 		public IEnumerable<string> GetItemMetadata (string itemName)
@@ -184,11 +189,14 @@ namespace MonoDevelop.MSBuildEditor
 					continue;
 				}
 
+				var bp = Path.GetDirectoryName (filename);
+
 				if (previous != null && previous.ToolsVersion == ToolsVersion && previous.resolvedImports != null) {
 					MSBuildResolveContext prevImport;
 					//ignore mtimes on imports for now // && prevImport.TimeStampUtc <= File.GetLastWriteTimeUtc (filename)
 					if (previous.resolvedImports.TryGetValue (filename, out prevImport)) {
 						resolvedImports [filename] = prevImport;
+						await ResolveImports (prevImport.imports, previous, bp);
 						continue;
 					}
 				}
@@ -207,7 +215,6 @@ namespace MonoDevelop.MSBuildEditor
 					ctx.Populate (doc.XDocument);
 				}
 				resolvedImports [filename] = ctx;
-				var bp = Path.GetDirectoryName (filename);
 				await ResolveImports (ctx.imports, previous, bp);
 			}
 		}
