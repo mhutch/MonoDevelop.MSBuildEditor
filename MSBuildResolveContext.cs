@@ -388,4 +388,34 @@ namespace MonoDevelop.MSBuildEditor
 			return ctx;
 		}
 	}
+
+	class MetadataInfo
+	{
+		public string Name { get; private set; }
+		public string Description { get; private set; }
+		public bool WellKnown { get; private set; }
+
+		public MetadataInfo (string name, string description, bool wellKnown = false)
+		{
+			Name = name;
+			Description = description;
+			WellKnown = wellKnown;
+		}
+	}
+
+	class PropertyInfo
+	{
+		public string Name { get; private set; }
+		public string Description { get; private set; }
+		public bool Reserved { get; private set; }
+		public bool WellKnown { get; private set; }
+
+		public PropertyInfo (string name, string description, bool wellKnown = false, bool reserved = false)
+		{
+			Name = name;
+			Description = description;
+			WellKnown = wellKnown;
+			Reserved = reserved;
+		}
+	}
 }

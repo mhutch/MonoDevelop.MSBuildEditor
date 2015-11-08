@@ -58,6 +58,7 @@
     <Compile Include="Evaluation\Conditions\ExpressionParseException.cs" />
     <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
     <Compile Include="Evaluation\Conditions\Token.cs" />
+    <Compile Include="Builtins.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
