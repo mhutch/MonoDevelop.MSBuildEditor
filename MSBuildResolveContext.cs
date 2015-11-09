@@ -366,7 +366,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var pr = val as PropertyReference;
 			if (pr != null) {
-				if (!properties.ContainsKey (pr.Name)) {
+				if (!properties.ContainsKey (pr.Name) && !Builtins.Properties.ContainsKey (pr.Name)) {
 					properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
 				}
 				return;
@@ -385,7 +385,7 @@ namespace MonoDevelop.MSBuildEditor
 			var mr = val as MetadataReference;
 			if (mr != null) {
 				//TODO: unqualified metadata references
-				if (mr.ItemName != null) {
+				if (mr.ItemName != null && !Builtins.Metadata.ContainsKey (mr.MetadataName)) {
 					ItemInfo item;
 					if (!items.TryGetValue (mr.ItemName, out item))
 						items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
