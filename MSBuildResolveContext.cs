@@ -44,9 +44,9 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		static readonly XName xnProject = new XName ("Project");
 
-		readonly Dictionary<string,HashSet<string>> items = new Dictionary<string, HashSet<string>> ();
-		readonly Dictionary<string,HashSet<string>> tasks = new Dictionary<string, HashSet<string>> ();
-		readonly HashSet<string> properties = new HashSet<string> ();
+		readonly Dictionary<string,ItemInfo> items = new Dictionary<string,ItemInfo> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string,TaskInfo> tasks = new Dictionary<string,TaskInfo> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string,PropertyInfo> properties = new Dictionary<string,PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		readonly HashSet<string> imports = new HashSet<string> ();
 		public readonly DateTime TimeStampUtc = DateTime.UtcNow;
 		string ToolsVersion;
@@ -55,69 +55,76 @@ namespace MonoDevelop.MSBuildEditor
 
 		MSBuildEvaluationContext importEvalCtx;
 
-		public IEnumerable<string> GetItems ()
+		public IEnumerable<ItemInfo> GetItems ()
 		{
 			if (resolvedImports == null)
-				return items.Keys;
+				return items.Values;
 
-			var result = new HashSet<string> (items.Keys);
+			var result = new HashSet<ItemInfo> (items.Values);
 
 			foreach (var import in resolvedImports)
 				foreach (var val in import.Value.GetItems ())
-					if (NotPrivate (val))
+					if (NotPrivate (val.Name))
 						result.Add (val);
 
 			return result;
 		}
 
-		public IEnumerable<string> GetItemMetadata (string itemName)
+		public IEnumerable<MetadataInfo> GetItemMetadata (string itemName)
 		{
-			HashSet<string> metadata;
-			items.TryGetValue (itemName, out metadata);
-			if (metadata != null)
-				foreach (var m in metadata)
-					yield return m;
+			ItemInfo item;
+			if (items.TryGetValue (itemName, out item))
+				return item.Metadata.Values;
+			return new MetadataInfo [0];
 		}
 
-		public IEnumerable<string> GetTasks ()
+		public IEnumerable<TaskInfo> GetTasks ()
 		{
-			return resolvedImports != null
-				? tasks.Keys.Concat (resolvedImports.Values.SelectMany (i => i.GetTasks ())).Distinct ()
-				: items.Keys;
+			if (resolvedImports == null)
+				return tasks.Values;
+
+			var result = new HashSet<TaskInfo> (tasks.Values);
+
+			foreach (var import in resolvedImports)
+				foreach (var val in import.Value.tasks.Values)
+					result.Add (val);
+
+			return result;
 		}
 
-		public HashSet<string> GetTask (string name)
+		public TaskInfo GetTask (string name)
 		{
+			TaskInfo task;
+			if (tasks.TryGetValue (name, out task))
+				return task;
+
 			if (resolvedImports != null) {
 				foreach (var import in resolvedImports.Values) {
-					var t = import.GetTask (name);
-					if (t != null)
-						return t;
+					if (import.tasks.TryGetValue (name, out task)) {
+						return task;
+					}
 				}
 			}
 
-			HashSet<string> v;
-			tasks.TryGetValue (name, out v);
-			return v;
+			return null;
 		}
 
-		public IEnumerable<string> GetTaskParameters (string taskName)
+		public IEnumerable<PropertyInfo> GetProperties ()
 		{
-			HashSet<string> taskParameters;
-			items.TryGetValue (taskName, out taskParameters);
-			if (taskParameters != null)
-				foreach (var parameter in taskParameters)
-					yield return parameter;
-		}
+			var result = new HashSet<PropertyInfo> (Builtins.Properties.Values);
 
-		public IEnumerable<string> GetProperties ()
-		{
-			if (resolvedImports == null)
-				return properties;
+			foreach (var p in properties)
+				result.Add (p.Value);
 
-			return properties
-				.Concat (resolvedImports.Values.SelectMany (i => i.GetProperties ()).Where (NotPrivate))
-				.Distinct ();
+			if (resolvedImports != null) {
+				foreach (var import in resolvedImports) {
+					foreach (var p in import.Value.properties) {
+						result.Add (p.Value);
+					}
+				}
+			}
+
+			return result;
 		}
 
 		//by convention, properties and items starting with an underscore are "private"
@@ -156,8 +163,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			ctx.Populate (doc.XDocument);
 
-			if (previous != null && doc.HasErrors)
-				ctx.Merge (previous);
+			if (previous != null && doc.HasErrors) {
+				ctx.MergeFrom (previous);
+			}
 
 			ctx.resolvedImports = new Dictionary<string, MSBuildResolveContext> ();
 			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion && previous.resolvedImports != null) {
@@ -216,30 +224,39 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		void Merge (MSBuildResolveContext other)
+		void MergeFrom (MSBuildResolveContext fromCtx)
 		{
-			foreach (var otherItem in other.items) {
-				HashSet<string> item;
-				if (items.TryGetValue (otherItem.Key, out item)) {
-					foreach (var att in otherItem.Value)
-						item.Add (att);
+			foreach (var fromItem in fromCtx.items) {
+				ItemInfo toItem;
+				if (items.TryGetValue (fromItem.Key, out toItem)) {
+					foreach (var fromMeta in fromItem.Value.Metadata) {
+						if (toItem.Metadata.ContainsKey (fromMeta.Key)) {
+							toItem.Metadata [fromMeta.Key] = fromMeta.Value;
+						}
+					}
 				} else {
-					items [otherItem.Key] = otherItem.Value;
+					items [fromItem.Key] = fromItem.Value;
 				}
 			}
-			foreach (var otherTask in other.tasks) {
-				HashSet<string> task;
-				if (tasks.TryGetValue (otherTask.Key, out task)) {
-					foreach (var att in otherTask.Value)
-						task.Add (att);
+
+			foreach (var fromTask in fromCtx.tasks) {
+				TaskInfo toTask;
+				if (tasks.TryGetValue (fromTask.Key, out toTask)) {
+					foreach (var fromParams in fromTask.Value.Parameters) {
+						toTask.Parameters.Add (fromParams);
+					}
 				} else {
-					tasks [otherTask.Key] = otherTask.Value;
+					tasks [fromTask.Key] = fromTask.Value;
 				}
 			}
-			foreach (var prop in other.properties) {
-				properties.Add (prop);
+
+			foreach (var fromProp in fromCtx.properties) {
+				if (!properties.ContainsKey (fromProp.Key)) {
+					properties[fromProp.Key] = fromProp.Value;
+				}
 			}
-			foreach (var imp in other.imports) {
+
+			foreach (var imp in fromCtx.imports) {
 				imports.Add (imp);
 			}
 		}
@@ -283,26 +300,29 @@ namespace MonoDevelop.MSBuildEditor
 				}
 				return;
 			case MSBuildKind.Item:
-				HashSet<string> item;
-				Console.WriteLine (name);
+				ItemInfo item;
 				if (!items.TryGetValue (name, out item))
-					items [name] = item = new HashSet<string> ();
-				foreach (var metadata in el.Nodes.OfType<XElement> ())
-					if (!metadata.Name.HasPrefix)
-						item.Add (metadata.Name.Name);
+					items [name] = item = new ItemInfo (name, null);
+				foreach (var metadata in el.Nodes.OfType<XElement> ()) {
+					var metaName = metadata.Name.Name;
+					if (!metadata.Name.HasPrefix && !item.Metadata.ContainsKey ((string)metaName))
+						item.Metadata.Add ((string)metaName, new MetadataInfo ((string)metaName, null));
+				}
 				return;
 			case MSBuildKind.Task:
-				HashSet<string> task;
+				TaskInfo task;
 				if (!tasks.TryGetValue (name, out task))
-					tasks [name] = task = new HashSet<string> ();
+					tasks [name] = task = new TaskInfo (name, null);
 				foreach (var att in el.Attributes) {
 					if (!att.Name.HasPrefix)
-						task.Add (att.Name.Name);
+						task.Parameters.Add (att.Name.Name);
 					ExtractReferences (att);
 				}
 				return;
 			case MSBuildKind.Property:
-				properties.Add (name);
+				if (!properties.ContainsKey (name)) {
+					properties.Add (name, new PropertyInfo (name, null));
+				}
 				return;
 			case MSBuildKind.Target:
 				foreach (var att in el.Attributes) {
@@ -346,15 +366,17 @@ namespace MonoDevelop.MSBuildEditor
 
 			var pr = val as PropertyReference;
 			if (pr != null) {
-				properties.Add (pr.Name);
+				if (!properties.ContainsKey (pr.Name)) {
+					properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
+				}
 				return;
 			}
 
 			var ir = val as ItemReference;
 			if (ir != null) {
-				HashSet<string> item;
+				ItemInfo item;
 				if (!items.TryGetValue (ir.ItemName, out item))
-					items [ir.ItemName] = item = new HashSet<string> ();
+					items [ir.ItemName] = item = new ItemInfo (ir.ItemName, null);
 				if (ir.Transform != null)
 					ExtractReferences (ir.Transform);
 				return;
@@ -364,10 +386,12 @@ namespace MonoDevelop.MSBuildEditor
 			if (mr != null) {
 				//TODO: unqualified metadata references
 				if (mr.ItemName != null) {
-					HashSet<string> item;
+					ItemInfo item;
 					if (!items.TryGetValue (mr.ItemName, out item))
-						items [mr.ItemName] = item = new HashSet<string> ();
-					item.Add (mr.MetadataName);
+						items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
+					if (!item.Metadata.ContainsKey (mr.MetadataName)) {
+						item.Metadata.Add (mr.MetadataName, new MetadataInfo (mr.MetadataName, null));
+					}
 				}
 				return;
 			}
@@ -389,33 +413,72 @@ namespace MonoDevelop.MSBuildEditor
 		}
 	}
 
-	class MetadataInfo
+	class ItemInfo : BaseInfo
 	{
-		public string Name { get; private set; }
-		public string Description { get; private set; }
+		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
+
+		public ItemInfo (string name, string description)
+			: base (name, description)
+		{
+			Metadata = new Dictionary<string, MetadataInfo> ();
+		}
+	}
+
+	class MetadataInfo : BaseInfo
+	{
 		public bool WellKnown { get; private set; }
 
 		public MetadataInfo (string name, string description, bool wellKnown = false)
+			: base (name, description)
 		{
-			Name = name;
-			Description = description;
 			WellKnown = wellKnown;
 		}
 	}
 
-	class PropertyInfo
+	class PropertyInfo : BaseInfo
 	{
-		public string Name { get; private set; }
-		public string Description { get; private set; }
 		public bool Reserved { get; private set; }
 		public bool WellKnown { get; private set; }
 
 		public PropertyInfo (string name, string description, bool wellKnown = false, bool reserved = false)
+			: base (name, description)
+		{
+			WellKnown = wellKnown;
+			Reserved = reserved;
+		}
+	}
+
+	class BaseInfo
+	{
+		public string Name { get; private set; }
+		public string Description { get; private set; }
+
+		public BaseInfo (string name, string description)
 		{
 			Name = name;
 			Description = description;
-			WellKnown = wellKnown;
-			Reserved = reserved;
+		}
+
+		public override bool Equals (object obj)
+		{
+			var other = obj as BaseInfo;
+			return other != null && string.Equals (Name, other.Name, StringComparison.OrdinalIgnoreCase);
+		}
+
+		public override int GetHashCode ()
+		{
+			return StringComparer.OrdinalIgnoreCase.GetHashCode (Name);
+		}
+	}
+
+	class TaskInfo : BaseInfo
+	{
+		public HashSet<string> Parameters { get; internal set; }
+
+		public TaskInfo (string name, string description)
+			: base (name, description)
+		{
+			Parameters = new HashSet<string> ();
 		}
 	}
 }

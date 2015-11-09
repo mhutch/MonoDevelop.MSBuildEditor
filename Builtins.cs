@@ -23,181 +23,281 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor
 {
 
 	static class Builtins
 	{
-		public static readonly MetadataInfo [] WellKnownMetadata = {
-			new MetadataInfo (
+		public static readonly Dictionary<string, MetadataInfo> Metadata = new Dictionary<string, MSBuildEditor.MetadataInfo> {
+			{
 				"FullPath",
-				"The full path of the item",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"FullPath",
+					"The full path of the item",
+					true
+				)
+			},
+			{
 				"RootDir",
-				"The toot directory of the item",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"RootDir",
+					"The toot directory of the item",
+					true
+				)
+			},
+			{
 				"Filename",
-				"The filename of the item",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"Filename",
+					"The filename of the item",
+					true
+				)
+			},
+			{
 				"Extension",
-				"The file extension of the item",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"Extension",
+					"The file extension of the item",
+					true
+				)
+			},
+			{
 				"RelativeDir",
-				"The path specified in the Include attribute",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"RelativeDir",
+					"The path specified in the Include attribute",
+					true
+				)
+			},
+			{
 				"Directory",
-				"The directory of the item, excluding the root directory",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"Directory",
+					"The directory of the item, excluding the root directory",
+					true
+				)
+			},
+			{
 				"RecursiveDir",
-				"If the item contained a ** wildstar, the value to which it was expanded",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"RecursiveDir",
+					"If the item contained a ** wildstar, the value to which it was expanded",
+					true
+				)
+			},
+			{
 				"Identity",
-				"The value specified in the Include attribute",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"Identity",
+					"The value specified in the Include attribute",
+					true
+				)
+			},
+			{
 				"ModifiedTime",
-				"The time the the item was last modified",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"ModifiedTime",
+					"The time the the item was last modified",
+					true
+				)
+			},
+			{
 				"CreatedTime",
-				"The time the the item was created",
-				true
-			),
-			new MetadataInfo (
+				new MetadataInfo (
+					"CreatedTime",
+					"The time the the item was created",
+					true
+				)
+			},
+			{
 				"AccessedTime",
-				"The time the the item was last accessed",
-				true
-			)
+				new MetadataInfo (
+					"AccessedTime",
+					"The time the the item was last accessed",
+					true
+				)
+			}
 		};
 
-		public static readonly PropertyInfo [] PropertyInfo = {
-			new PropertyInfo (
+		public static readonly Dictionary<string,PropertyInfo> Properties = new Dictionary<string, PropertyInfo> {
+			{
 				"MSBuildBinPath",
-				"Absolute path of the bin directory where MSBuild is located. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildBinPath",
+					"Absolute path of the bin directory where MSBuild is located. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildExtensionsPath",
-				"Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.",
-				wellKnown: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildExtensionsPath",
+					"Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.",
+					wellKnown: true
+				)
+			},
+			{
 				"MSBuildExtensionsPath32",
-				"Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.",
-				wellKnown: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildExtensionsPath32",
+					"Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.",
+					wellKnown: true
+				)
+			},
+			{
 				"MSBuildExtensionsPath64",
-				"Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.",
-				wellKnown: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildExtensionsPath64",
+					"Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.",
+					wellKnown: true
+				)
+			},
+			{
 				"MSBuildLastTaskResult",
-				"True if the last task completed without errors.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildLastTaskResult",
+					"True if the last task completed without errors.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildNodeCount",
-				"The number of concurrent build nodes.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildNodeCount",
+					"The number of concurrent build nodes.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProgramFiles32",
-				"Absolute path of the 32-bit Program Files folder. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProgramFiles32",
+					"Absolute path of the 32-bit Program Files folder. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectDefaultTargets",
-				"The value of the DefaultTargets attribute in the Project element.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectDefaultTargets",
+					"The value of the DefaultTargets attribute in the Project element.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectDirectory",
-				"Directory where the project file is located. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectDirectory",
+					"Directory where the project file is located. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectDirectoryNoRoot",
-				"Directory where the project file is located, excluding drive root. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectDirectoryNoRoot",
+					"Directory where the project file is located, excluding drive root. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectFile",
-				"Name of the project file, including extension.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectFile",
+					"Name of the project file, including extension.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectFileFullPath",
-				"Full path of the project file.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectFileFullPath",
+					"Full path of the project file.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildProjectName",
-				"Name of the project file, excluding extension.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildProjectName",
+					"Name of the project file, excluding extension.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildStartupDirectory",
-				"Absolute path of the directory where MSBuild is invoked. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildStartupDirectory",
+					"Absolute path of the directory where MSBuild is invoked. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFile",
-				"Name of the current MSBuild file, including extension.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFile",
+					"Name of the current MSBuild file, including extension.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFileDirectory",
-				"Directory where the current MSBuild file is located. Includes final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFileDirectory",
+					"Directory where the current MSBuild file is located. Includes final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFileDirectoryNoRoot",
-				"Directory where the current MSBuild file is located, excluding drive root. Includes final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFileDirectoryNoRoot",
+					"Directory where the current MSBuild file is located, excluding drive root. Includes final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFileExtension",
-				"Extension of the current MSBuild file.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFileExtension",
+					"Extension of the current MSBuild file.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFileFullPath",
-				"Absolute path of the current MSBuild file is located.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFileFullPath",
+					"Absolute path of the current MSBuild file is located.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildThisFileName",
-				"Name of the current MSBuild file, excluding extension.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildThisFileName",
+					"Name of the current MSBuild file, excluding extension.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildToolsPath",
-				"Path to the current toolset, specfied by the MSBuildToolsVersion. Does not include final backslash.",
-				reserved: true
-			),
-			new PropertyInfo (
+				new PropertyInfo (
+					"MSBuildToolsPath",
+					"Path to the current toolset, specfied by the MSBuildToolsVersion. Does not include final backslash.",
+					reserved: true
+				)
+			},
+			{
 				"MSBuildToolsVersion",
-				"Version of the current toolset.",
-				reserved: true
-			),
+				new PropertyInfo (
+					"MSBuildToolsVersion",
+					"Version of the current toolset.",
+					reserved: true
+				)
+			}
 		};
 	}
 }

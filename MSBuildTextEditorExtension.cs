@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,7 @@ using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using System;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -59,18 +61,17 @@ namespace MonoDevelop.MSBuildEditor
 			foreach (var c in rr.BuiltinChildren)
 				list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
 
-			var inferredChildren = GetInferredChildren (rr);
-			if (inferredChildren != null)
-				foreach (var c in inferredChildren)
-					list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
+			foreach (var item in GetInferredChildren (rr)) {
+				list.Add (new XmlCompletionData (item.Name, item.Description, XmlCompletionData.DataType.XmlElement));
+			}
 
 			return Task.FromResult (list);
 		}
 
-		IEnumerable<string> GetInferredChildren (ResolveResult rr)
+		IEnumerable<BaseInfo> GetInferredChildren (ResolveResult rr)
 		{
 			if (inferredCompletionData == null)
-				return null;
+				return new BaseInfo[0];
 
 			if (rr.ElementType == MSBuildKind.Item) {
 				return inferredCompletionData.GetItemMetadata (rr.ElementName);
@@ -86,8 +87,7 @@ namespace MonoDevelop.MSBuildEditor
 					return inferredCompletionData.GetProperties ();
 				}
 			}
-
-			return null;
+			return new BaseInfo [0];
 		}
 
 		protected override Task<CompletionDataList> GetAttributeCompletions (IAttributedXObject attributedOb,
@@ -116,9 +116,13 @@ namespace MonoDevelop.MSBuildEditor
 		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
 		{
 			if (inferredCompletionData == null || rr.ElementType != MSBuildKind.Task)
-				return null;
+				return new string[0];
 
-			return inferredCompletionData.GetTaskParameters (rr.ElementName);
+			var task = inferredCompletionData.GetTask (rr.ElementName);
+			if (task != null)
+				return task.Parameters;
+
+			return new string[0];
 		}
 
 		static ResolveResult ResolveElement (IList<XObject> path)
