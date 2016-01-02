@@ -60,6 +60,7 @@
     <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
     <Compile Include="Evaluation\Conditions\Token.cs" />
     <Compile Include="Builtins.cs" />
+    <Compile Include="MSBuildDocumentParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

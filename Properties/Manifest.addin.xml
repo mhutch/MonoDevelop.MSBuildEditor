@@ -22,4 +22,12 @@
 			<File pattern="*.xproj" />
 		</MimeType>
 	</Extension>
+
+	<Extension path = "/MonoDevelop/TypeSystem/Parser">
+		<Parser
+			class = "MonoDevelop.MSBuildEditor.MSBuildDocumentParser"
+			mimeType = "application/x-msbuild"
+			id = "MSBuildDocumentParser"
+			insertbefore="MSBuildParser" />
+ 	</Extension>
 </ExtensionModel>
