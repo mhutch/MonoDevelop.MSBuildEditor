@@ -36,6 +36,7 @@ using System.Reflection;
 using Microsoft.Build.Utilities;
 using MonoDevelop.Projects.Formats.MSBuild.Conditions;
 using System.Globalization;
+using MonoDevelop.Projects.MSBuild;
 
 namespace MonoDevelop.Projects.Formats.MSBuild
 {

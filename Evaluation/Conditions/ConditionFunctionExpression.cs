@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using MonoDevelop.Projects.MSBuild;
 
 namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 	internal sealed class ConditionFunctionExpression : ConditionExpression {
