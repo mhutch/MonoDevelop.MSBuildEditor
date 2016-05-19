@@ -32,6 +32,7 @@ using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -147,17 +148,19 @@ namespace MonoDevelop.MSBuildEditor
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
 			MSBuildElement el = null;
-			string elName = null;
-			MSBuildKind? elType = null;
+			string elName = null, attName = null;
 			for (int i = 0; i < path.Count; i++) {
-				//if children of parent is known to be arbitrary data, give up on completion
+				var xatt = path [i] as XAttribute;
+				if (xatt != null) {
+					attName = xatt.Name.Name;
+					break;
+				}
+				//if children of parent is known to be arbitrary data, don't go into it
 				if (el != null && el.ChildType == MSBuildKind.Data)
-					return null;
+					break;
 				//code completion is forgiving, all we care about best guess resolve for deepest child
 				var xel = path [i] as XElement;
 				if (xel != null && xel.Name.Prefix == null) {
-					if (el != null)
-						elType = el.ChildType;
 					elName = xel.Name.Name;
 					el = MSBuildElement.Get (elName, el);
 					if (el != null)
@@ -165,14 +168,14 @@ namespace MonoDevelop.MSBuildEditor
 				}
 				el = null;
 				elName = null;
-				elType = null;
 			}
 			if (el == null)
 				return null;
 
 			return new ResolveResult {
+				AttributeName = attName,
 				ElementName = elName,
-				ElementType = elType,
+				ElementType = el.Kind,
 				ChildType = el.ChildType,
 				BuiltinAttributes = el.Attributes,
 				BuiltinChildren = el.Children,
@@ -181,6 +184,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		class ResolveResult
 		{
+			public string AttributeName;
 			public string ElementName;
 			public MSBuildKind? ElementType;
 			public MSBuildKind? ChildType;
@@ -194,7 +198,6 @@ namespace MonoDevelop.MSBuildEditor
 			if (doc == null)
 				return null;
 
-
 			var path = GetCurrentPath ();
 			var rr = ResolveElement (path);
 
@@ -204,7 +207,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var state = Tracker.Engine.CurrentState;
 			bool isAttribute = state is Xml.Parser.XmlAttributeValueState;
-			if (!isAttribute) {
+			if (isAttribute) {
 				//FIXME: assume all attributes accept expressions for now
 			} else if (state is Xml.Parser.XmlRootState) {
 				if (rr.ChildType != MSBuildKind.Expression)
@@ -217,6 +220,9 @@ namespace MonoDevelop.MSBuildEditor
 			int currentPosition = Editor.CaretOffset;
 			int lineStart = Editor.GetLine (Editor.CaretLine).Offset;
 			int expressionStart = currentPosition - Tracker.Engine.CurrentStateLength;
+			if (isAttribute && GetAttributeValueDelimiter (Tracker.Engine) != 0) {
+				expressionStart += 1;
+			}
 			int start = Math.Max (expressionStart, lineStart);
 			var expression = Editor.GetTextAt (start, currentPosition - start);
 
@@ -249,6 +255,17 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			return null;
+		}
+
+		//FIXME: this is fragile, need API in core
+		static char GetAttributeValueDelimiter (XmlParser parser)
+		{
+			var ctx = (IXmlParserContext)parser;
+			switch (ctx.StateTag) {
+			case 3: return '"';
+			case 2: return '\'';
+			default: return (char)0;
+			}
 		}
 
 		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
