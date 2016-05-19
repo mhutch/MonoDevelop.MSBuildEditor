@@ -25,7 +25,6 @@
 // THE SOFTWARE.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,12 +34,18 @@ using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using System;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildTextEditorExtension : BaseXmlEditorExtension
 	{
 		public static readonly string MSBuildMimeType = "application/x-msbuild";
+
+		MSBuildParsedDocument GetDocument ()
+		{
+			return (MSBuildParsedDocument)DocumentContext.ParsedDocument;
+		}
 
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
 		{
@@ -70,21 +75,22 @@ namespace MonoDevelop.MSBuildEditor
 
 		IEnumerable<BaseInfo> GetInferredChildren (ResolveResult rr)
 		{
-			if (inferredCompletionData == null)
+			var doc = GetDocument ();
+			if (doc == null)
 				return new BaseInfo[0];
 
 			if (rr.ElementType == MSBuildKind.Item) {
-				return inferredCompletionData.GetItemMetadata (rr.ElementName);
+				return doc.Context.GetItemMetadata (rr.ElementName, false);
 			}
 
 			if (rr.ChildType.HasValue) {
 				switch (rr.ChildType.Value) {
 				case MSBuildKind.Item:
-					return inferredCompletionData.GetItems ();
+					return doc.Context.GetItems ();
 				case MSBuildKind.Task:
-					return inferredCompletionData.GetTasks ();
+					return doc.Context.GetTasks ();
 				case MSBuildKind.Property:
-					return inferredCompletionData.GetProperties ();
+					return doc.Context.GetProperties (false);
 				}
 			}
 			return new BaseInfo [0];
@@ -115,14 +121,18 @@ namespace MonoDevelop.MSBuildEditor
 
 		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
 		{
-			if (inferredCompletionData == null || rr.ElementType != MSBuildKind.Task)
-				return new string[0];
+			var doc = GetDocument ();
+			if (doc == null || rr.ElementType != MSBuildKind.Task)
+				return new string [0];
 
-			var task = inferredCompletionData.GetTask (rr.ElementName);
-			if (task != null)
-				return task.Parameters;
+			var result = new HashSet<string> ();
+			foreach (var task in doc.Context.GetTask (rr.ElementName)) {
+				foreach (var p in task.Parameters) {
+					result.Add (p);
+				}
+			}
 
-			return new string[0];
+			return result;
 		}
 
 		static ResolveResult ResolveElement (IList<XObject> path)
@@ -169,37 +179,6 @@ namespace MonoDevelop.MSBuildEditor
 			public MSBuildKind? ChildType;
 			public IEnumerable<string> BuiltinAttributes;
 			public IEnumerable<string> BuiltinChildren;
-		}
-
-		Task<MSBuildResolveContext> inferenceTask;
-		MSBuildResolveContext inferredCompletionData;
-
-		//TODO: more robust queuing and rate limiting mechanism
-		void QueueInference ()
-		{
-			var doc = CU as XmlParsedDocument;
-			if (doc == null || doc.XDocument == null || (inferenceTask != null && !inferenceTask.IsCompleted))
-				return;
-
-			if (inferredCompletionData != null) {
-				if ((doc.LastWriteTimeUtc - inferredCompletionData.TimeStampUtc).TotalSeconds < 5)
-					return;
-			}
-
-			inferenceTask = MSBuildResolveContext.Create (doc, inferredCompletionData);
-			inferenceTask.ContinueWith (t => {
-				if (t.IsFaulted) {
-					LoggingService.LogInternalError ("Unhandled error in XML inference", t.Exception);
-				}
-				if (!t.IsCanceled)
-					inferredCompletionData = t.Result;
-			});
-		}
-
-		protected override void OnParsedDocumentUpdated ()
-		{
-			QueueInference ();
-			base.OnParsedDocumentUpdated ();
 		}
 	}
 }

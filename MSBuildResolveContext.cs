@@ -28,15 +28,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-
 using MonoDevelop.Core;
-using MonoDevelop.Ide;
-using MonoDevelop.Ide.TypeSystem;
+using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.Projects.Formats.MSBuild;
 using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -44,234 +39,34 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		static readonly XName xnProject = new XName ("Project");
 
-		readonly Dictionary<string,ItemInfo> items = new Dictionary<string,ItemInfo> (StringComparer.OrdinalIgnoreCase);
-		readonly Dictionary<string,TaskInfo> tasks = new Dictionary<string,TaskInfo> (StringComparer.OrdinalIgnoreCase);
-		readonly Dictionary<string,PropertyInfo> properties = new Dictionary<string,PropertyInfo> (StringComparer.OrdinalIgnoreCase);
-		readonly HashSet<string> imports = new HashSet<string> ();
-		public readonly DateTime TimeStampUtc = DateTime.UtcNow;
-		string ToolsVersion;
+		public Dictionary<string, Import> Imports { get; } = new Dictionary<string, Import> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
+		public AnnotationTable<XObject, object> Annotations { get; } = new AnnotationTable<XObject, object> ();
 
-		Dictionary<string,MSBuildResolveContext> resolvedImports;
-
-		MSBuildEvaluationContext importEvalCtx;
-
-		public IEnumerable<ItemInfo> GetItems ()
+		MSBuildResolveContext (string filename)
 		{
-			if (resolvedImports == null)
-				return items.Values;
-
-			var result = new HashSet<ItemInfo> (items.Values);
-
-			foreach (var import in resolvedImports)
-				foreach (var val in import.Value.GetItems ())
-					if (NotPrivate (val.Name))
-						result.Add (val);
-
-			return result;
+			Filename = filename;
 		}
 
-		public IEnumerable<MetadataInfo> GetItemMetadata (string itemName)
+		public string Filename { get; }
+
+		public static MSBuildResolveContext Create (string filename, XDocument doc, Func<MSBuildResolveContext, XElement, Import> resolveImport)
 		{
-			ItemInfo item;
-			if (items.TryGetValue (itemName, out item))
-				return item.Metadata.Values;
-			return new MetadataInfo [0];
-		}
-
-		public IEnumerable<TaskInfo> GetTasks ()
-		{
-			if (resolvedImports == null)
-				return tasks.Values;
-
-			var result = new HashSet<TaskInfo> (tasks.Values);
-
-			foreach (var import in resolvedImports)
-				foreach (var val in import.Value.tasks.Values)
-					result.Add (val);
-
-			return result;
-		}
-
-		public TaskInfo GetTask (string name)
-		{
-			TaskInfo task;
-			if (tasks.TryGetValue (name, out task))
-				return task;
-
-			if (resolvedImports != null) {
-				foreach (var import in resolvedImports.Values) {
-					if (import.tasks.TryGetValue (name, out task)) {
-						return task;
-					}
-				}
+			var ctx = new MSBuildResolveContext (filename);
+			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
+			if (project == null) {
+				//TODO: error
+				return ctx;
 			}
-
-			return null;
-		}
-
-		public IEnumerable<PropertyInfo> GetProperties ()
-		{
-			var result = new HashSet<PropertyInfo> (Builtins.Properties.Values);
-
-			foreach (var p in properties)
-				result.Add (p.Value);
-
-			if (resolvedImports != null) {
-				foreach (var import in resolvedImports) {
-					foreach (var p in import.Value.properties) {
-						result.Add (p.Value);
-					}
-				}
-			}
-
-			return result;
-		}
-
-		//by convention, properties and items starting with an underscore are "private"
-		static bool NotPrivate (string arg)
-		{
-			return arg [0] != '_';
-		}
-
-		static string GetToolsVersion (XDocument doc)
-		{
-			if (doc.RootElement != null) {
-				var att = doc.RootElement.Attributes [new XName ("ToolsVersion")];
-				if (att != null) {
-					var val = att.Value;
-					if (!string.IsNullOrEmpty (val))
-						return val;
-				}
-			}
-			return "2.0";
-		}
-
-		public static async Task<MSBuildResolveContext> Create (XmlParsedDocument doc, MSBuildResolveContext previous)
-		{
-			var ctx = new MSBuildResolveContext ();
-
-			ctx.ToolsVersion = GetToolsVersion(doc.XDocument);
-			if (string.IsNullOrEmpty (ctx.ToolsVersion)) {
-				ctx.ToolsVersion = "2.0";
-			}
-
-			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion) {
-				ctx.importEvalCtx = previous.importEvalCtx;
-			} else {
-				ctx.importEvalCtx = CreateImportEvalCtx (ctx.ToolsVersion);
-			}
-
-			ctx.Populate (doc.XDocument);
-
-			if (previous != null && doc.HasErrors) {
-				ctx.MergeFrom (previous);
-			}
-
-			ctx.resolvedImports = new Dictionary<string, MSBuildResolveContext> ();
-			if (previous != null && previous.ToolsVersion == ctx.ToolsVersion && previous.resolvedImports != null) {
-				await ctx.ResolveImports (ctx.imports, previous);
-			} else {
-				await ctx.ResolveImports (ctx.imports, null);
-			}
-
+			var pel = MSBuildElement.Get ("Project");
+			foreach (var el in project.Nodes.OfType<XElement> ())
+				ctx.Populate (el, pel, resolveImport);
 			return ctx;
 		}
 
-		async Task ResolveImports (HashSet<string> imports, MSBuildResolveContext previous, string basePath = null)
-		{
-			foreach (var import in imports) {
-				string filename = importEvalCtx.Evaluate (import);
-
-				if (basePath != null) {
-					filename = Path.Combine (basePath, filename);
-				}
-
-				if (!Platform.IsWindows) {
-					filename = filename.Replace ('\\', '/');
-				}
-
-				if (!File.Exists (filename)) {
-					continue;
-				}
-
-				var bp = Path.GetDirectoryName (filename);
-
-				if (previous != null && previous.ToolsVersion == ToolsVersion && previous.resolvedImports != null) {
-					MSBuildResolveContext prevImport;
-					//ignore mtimes on imports for now // && prevImport.TimeStampUtc <= File.GetLastWriteTimeUtc (filename)
-					if (previous.resolvedImports.TryGetValue (filename, out prevImport)) {
-						resolvedImports [filename] = prevImport;
-						await ResolveImports (prevImport.imports, previous, bp);
-						continue;
-					}
-				}
-
-				if (resolvedImports.ContainsKey (filename)) {
-					continue;
-				}
-
-				var parseOptions = new Ide.TypeSystem.ParseOptions {
-					FileName = filename,
-					Content = TextFileProvider.Instance.GetReadOnlyTextEditorData (filename)
-				};
-				var doc = (XmlParsedDocument)await TypeSystemService.ParseFile (parseOptions, "application/xml");
-				var ctx = new MSBuildResolveContext ();
-				if (doc.XDocument != null) {
-					ctx.Populate (doc.XDocument);
-				}
-				resolvedImports [filename] = ctx;
-				await ResolveImports (ctx.imports, previous, bp);
-			}
-		}
-
-		void MergeFrom (MSBuildResolveContext fromCtx)
-		{
-			foreach (var fromItem in fromCtx.items) {
-				ItemInfo toItem;
-				if (items.TryGetValue (fromItem.Key, out toItem)) {
-					foreach (var fromMeta in fromItem.Value.Metadata) {
-						if (toItem.Metadata.ContainsKey (fromMeta.Key)) {
-							toItem.Metadata [fromMeta.Key] = fromMeta.Value;
-						}
-					}
-				} else {
-					items [fromItem.Key] = fromItem.Value;
-				}
-			}
-
-			foreach (var fromTask in fromCtx.tasks) {
-				TaskInfo toTask;
-				if (tasks.TryGetValue (fromTask.Key, out toTask)) {
-					foreach (var fromParams in fromTask.Value.Parameters) {
-						toTask.Parameters.Add (fromParams);
-					}
-				} else {
-					tasks [fromTask.Key] = fromTask.Value;
-				}
-			}
-
-			foreach (var fromProp in fromCtx.properties) {
-				if (!properties.ContainsKey (fromProp.Key)) {
-					properties[fromProp.Key] = fromProp.Value;
-				}
-			}
-
-			foreach (var imp in fromCtx.imports) {
-				imports.Add (imp);
-			}
-		}
-
-		void Populate (XDocument doc)
-		{
-			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
-			if (project == null)
-				return;
-			var pel = MSBuildElement.Get ("Project");
-			foreach (var el in project.Nodes.OfType<XElement> ())
-				Populate (el, pel);
-		}
-
-		void Populate (XElement el, MSBuildElement parent)
+		void Populate (XElement el, MSBuildElement parent, Func<MSBuildResolveContext, XElement, Import> resolveImport)
 		{
 			if (el.Name.Prefix != null)
 				return;
@@ -289,30 +84,30 @@ namespace MonoDevelop.MSBuildEditor
 
 			if (!msel.IsSpecial) {
 				foreach (var child in el.Nodes.OfType<XElement> ())
-					Populate (child, msel);
+					Populate (child, msel, resolveImport);
 			}
 
 			switch (msel.Kind) {
 			case MSBuildKind.Import:
-				var import = el.Attributes [xnProject];
-				if (import != null && !string.IsNullOrEmpty (import.Value)) {
-					imports.Add (import.Value);
+				var import = resolveImport (this, el);
+				if (import != null) {
+					Imports [import.Filename] = import;
 				}
 				return;
 			case MSBuildKind.Item:
 				ItemInfo item;
-				if (!items.TryGetValue (name, out item))
-					items [name] = item = new ItemInfo (name, null);
+				if (!Items.TryGetValue (name, out item))
+					Items [name] = item = new ItemInfo (name, null);
 				foreach (var metadata in el.Nodes.OfType<XElement> ()) {
 					var metaName = metadata.Name.Name;
-					if (!metadata.Name.HasPrefix && !item.Metadata.ContainsKey ((string)metaName))
-						item.Metadata.Add ((string)metaName, new MetadataInfo ((string)metaName, null));
+					if (!metadata.Name.HasPrefix && !item.Metadata.ContainsKey (metaName) && !Builtins.Metadata.ContainsKey (metaName))
+						item.Metadata.Add (metaName, new MetadataInfo (metaName, null));
 				}
 				return;
 			case MSBuildKind.Task:
 				TaskInfo task;
-				if (!tasks.TryGetValue (name, out task))
-					tasks [name] = task = new TaskInfo (name, null);
+				if (!Tasks.TryGetValue (name, out task))
+					Tasks [name] = task = new TaskInfo (name, null);
 				foreach (var att in el.Attributes) {
 					if (!att.Name.HasPrefix)
 						task.Parameters.Add (att.Name.Name);
@@ -320,8 +115,8 @@ namespace MonoDevelop.MSBuildEditor
 				}
 				return;
 			case MSBuildKind.Property:
-				if (!properties.ContainsKey (name)) {
-					properties.Add (name, new PropertyInfo (name, null));
+				if (!Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
+					Properties.Add (name, new PropertyInfo (name, null));
 				}
 				return;
 			case MSBuildKind.Target:
@@ -366,8 +161,8 @@ namespace MonoDevelop.MSBuildEditor
 
 			var pr = val as PropertyReference;
 			if (pr != null) {
-				if (!properties.ContainsKey (pr.Name) && !Builtins.Properties.ContainsKey (pr.Name)) {
-					properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
+				if (!Properties.ContainsKey (pr.Name) && !Builtins.Properties.ContainsKey (pr.Name)) {
+					Properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
 				}
 				return;
 			}
@@ -375,8 +170,8 @@ namespace MonoDevelop.MSBuildEditor
 			var ir = val as ItemReference;
 			if (ir != null) {
 				ItemInfo item;
-				if (!items.TryGetValue (ir.ItemName, out item))
-					items [ir.ItemName] = item = new ItemInfo (ir.ItemName, null);
+				if (!Items.TryGetValue (ir.ItemName, out item))
+					Items [ir.ItemName] = item = new ItemInfo (ir.ItemName, null);
 				if (ir.Transform != null)
 					ExtractReferences (ir.Transform);
 				return;
@@ -387,8 +182,8 @@ namespace MonoDevelop.MSBuildEditor
 				//TODO: unqualified metadata references
 				if (mr.ItemName != null && !Builtins.Metadata.ContainsKey (mr.MetadataName)) {
 					ItemInfo item;
-					if (!items.TryGetValue (mr.ItemName, out item))
-						items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
+					if (!Items.TryGetValue (mr.ItemName, out item))
+						Items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
 					if (!item.Metadata.ContainsKey (mr.MetadataName)) {
 						item.Metadata.Add (mr.MetadataName, new MetadataInfo (mr.MetadataName, null));
 					}
@@ -401,7 +196,142 @@ namespace MonoDevelop.MSBuildEditor
 				ExtractReferences (mir.Instance);
 		}
 
-		static MSBuildEvaluationContext CreateImportEvalCtx (string toolsVersion)
+		public IEnumerable<Import> GetDescendentImports ()
+		{
+			foreach (var i in Imports) {
+				yield return i.Value;
+				if (i.Value.ResolveContext != null) {
+					foreach (var d in i.Value.ResolveContext.GetDescendentImports ()) {
+						yield return d;
+					}
+				}
+			}
+		}
+
+		public IEnumerable<MSBuildResolveContext> GetDescendentContexts ()
+		{
+			foreach (var i in GetDescendentImports ())
+				if (i.ResolveContext != null)
+					yield return i.ResolveContext;
+		}
+
+		public IEnumerable<ItemInfo> GetItems ()
+		{
+			if (Imports == null)
+				return Items.Values;
+
+			var result = new HashSet<ItemInfo> (Items.Values);
+
+			foreach (var child in GetDescendentContexts ()) {
+				foreach (var item in child.Items) {
+					if (NotPrivate (item.Key)) {
+						result.Add (item.Value);
+					}
+				}
+			}
+
+			return result;
+		}
+
+		public ItemInfo GetItem (string name)
+		{
+			return GetAllItemDefinitions (name).FirstOrDefault ();
+		}
+
+		IEnumerable<ItemInfo> GetAllItemDefinitions (string name)
+		{
+			ItemInfo item;
+			if (Items.TryGetValue (name, out item))
+				yield return item;
+
+			//collect all imports' definitions for this item
+			foreach (var child in GetDescendentContexts ()) {
+				if (child.Items.TryGetValue (name, out item)) {
+					yield return item;
+				}
+			}
+		}
+
+		public IEnumerable<MetadataInfo> GetItemMetadata (string itemName, bool includeBuiltins)
+		{
+			if (includeBuiltins) {
+				foreach (var b in Builtins.Metadata) {
+					yield return b.Value;
+				}
+			}
+
+			var metadataNames = new HashSet<string> ();
+
+			//collect known metadata for this item across all imports
+			foreach (var item in GetAllItemDefinitions (itemName)) {
+				foreach (var m in item.Metadata) {
+					if (metadataNames.Add (m.Key))
+						yield return m.Value;
+				}
+			}
+		}
+
+		public IEnumerable<TaskInfo> GetTasks ()
+		{
+			var result = new HashSet<TaskInfo> (Tasks.Values);
+
+			foreach (var child in GetDescendentContexts ()) {
+				foreach (var task in child.Tasks) {
+					if (NotPrivate (task.Key)) {
+						result.Add (task.Value);
+					}
+				}
+			}
+
+			return result;
+		}
+
+		public IEnumerable<TaskInfo> GetTask (string name)
+		{
+			TaskInfo task;
+			if (Tasks.TryGetValue (name, out task))
+				yield return task;
+			
+			foreach (var child in GetDescendentContexts ()) {
+				if (child.Tasks.TryGetValue (name, out task)) {
+					yield return task;
+				}
+			}
+		}
+
+		public IEnumerable<PropertyInfo> GetProperties (bool includeBuiltins)
+		{
+			if (includeBuiltins) {
+				foreach (var b in Builtins.Properties) {
+					yield return b.Value;
+				}
+			}
+			
+			var names = new HashSet<string> ();
+
+			foreach (var prop in Properties) {
+				names.Add (prop.Key);
+				yield return prop.Value;
+			}
+
+			foreach (var child in GetDescendentContexts ()) {
+				foreach (var prop in child.Properties) {
+					if (NotPrivate (prop.Key)) {
+						if (names.Add (prop.Key)) {
+							yield return prop.Value;
+						}
+					}
+				}
+			}
+		}
+
+		//by convention, properties and items starting with an underscore are "private"
+		static bool NotPrivate (string arg)
+		{
+			return arg [0] != '_';
+		}
+
+		public MSBuildEvaluationContext CreateImportEvalCtx (string toolsVersion, string projectPath)
 		{
 			var ctx = new MSBuildEvaluationContext ();
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
@@ -409,76 +339,9 @@ namespace MonoDevelop.MSBuildEditor
 			var extPath = runtime.GetMSBuildExtensionsPath ();
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
+			ctx.SetPropertyValue ("MSBuildProjectDirectory", Path.GetDirectoryName (projectPath));
+			ctx.SetPropertyValue ("MSBuildThisFileDirectory", Path.GetDirectoryName (Filename));
 			return ctx;
-		}
-	}
-
-	class ItemInfo : BaseInfo
-	{
-		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
-
-		public ItemInfo (string name, string description)
-			: base (name, description)
-		{
-			Metadata = new Dictionary<string, MetadataInfo> ();
-		}
-	}
-
-	class MetadataInfo : BaseInfo
-	{
-		public bool WellKnown { get; private set; }
-
-		public MetadataInfo (string name, string description, bool wellKnown = false)
-			: base (name, description)
-		{
-			WellKnown = wellKnown;
-		}
-	}
-
-	class PropertyInfo : BaseInfo
-	{
-		public bool Reserved { get; private set; }
-		public bool WellKnown { get; private set; }
-
-		public PropertyInfo (string name, string description, bool wellKnown = false, bool reserved = false)
-			: base (name, description)
-		{
-			WellKnown = wellKnown;
-			Reserved = reserved;
-		}
-	}
-
-	class BaseInfo
-	{
-		public string Name { get; private set; }
-		public string Description { get; private set; }
-
-		public BaseInfo (string name, string description)
-		{
-			Name = name;
-			Description = description;
-		}
-
-		public override bool Equals (object obj)
-		{
-			var other = obj as BaseInfo;
-			return other != null && string.Equals (Name, other.Name, StringComparison.OrdinalIgnoreCase);
-		}
-
-		public override int GetHashCode ()
-		{
-			return StringComparer.OrdinalIgnoreCase.GetHashCode (Name);
-		}
-	}
-
-	class TaskInfo : BaseInfo
-	{
-		public HashSet<string> Parameters { get; internal set; }
-
-		public TaskInfo (string name, string description)
-			: base (name, description)
-		{
-			Parameters = new HashSet<string> ();
 		}
 	}
 }

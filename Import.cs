@@ -1,10 +1,10 @@
-﻿//
-// MSBuildDocumentParser.cs
+//
+// ParsedImport.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
-// Copyright (c) 2015 Xamarin Inc.
+// Copyright (c) 2016 Xamarin Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System.Threading;
-using System.Threading.Tasks;
-
-using MonoDevelop.Ide.TypeSystem;
+using System;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	class MSBuildDocumentParser : TypeSystemParser
+	class Import
 	{
-		public override Task<ParsedDocument> Parse (ParseOptions options, CancellationToken cancellationToken = default (CancellationToken))
+		public DateTime TimeStampUtc { get; }
+		public string Filename { get; }
+		public MSBuildResolveContext ResolveContext { get; set; }
+
+		public Import (string filename, DateTime timeStampUtc)
 		{
-			return Task.Run (() => MSBuildParsedDocument.ParseInternal (options, cancellationToken), cancellationToken);
+			Filename = filename;
+			TimeStampUtc = timeStampUtc;
 		}
 	}
 }

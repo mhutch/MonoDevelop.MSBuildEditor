@@ -61,12 +61,23 @@
     <Compile Include="Evaluation\Conditions\Token.cs" />
     <Compile Include="Builtins.cs" />
     <Compile Include="MSBuildDocumentParser.cs" />
+    <Compile Include="MSBuildParsedDocument.cs" />
+    <Compile Include="AnnotationTable.cs" />
+    <Compile Include="MSBuildVisitor.cs" />
+    <Compile Include="Import.cs" />
+    <Compile Include="TaskInfo.cs" />
+    <Compile Include="BaseInfo.cs" />
+    <Compile Include="PropertyInfo.cs" />
+    <Compile Include="MetadataInfo.cs" />
+    <Compile Include="ItemInfo.cs" />
+    <Compile Include="DocumentMSBuildVisitor.cs" />
+    <Compile Include="MSBuildReferenceCollector.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="packages\MonoDevelop.Addins.0.3.2\build\net40\MonoDevelop.Addins.targets" Condition="Exists('packages\MonoDevelop.Addins.0.3.2\build\net40\MonoDevelop.Addins.targets')" />
+  <Import Project="packages\MonoDevelop.Addins.0.3.3\build\net40\MonoDevelop.Addins.targets" Condition="Exists('packages\MonoDevelop.Addins.0.3.3\build\net40\MonoDevelop.Addins.targets')" />
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />

@@ -7,7 +7,7 @@ using Mono.Addins.Description;
 	Version = "1.1"
 )]
 
-[assembly: AddinName ("MonoDevelop.MSBuildEditor")]
+[assembly: AddinName ("MSBuild Editor")]
 [assembly: AddinCategory ("IDE extensions")]
-[assembly: AddinDescription ("MonoDevelop.MSBuildEditor")]
+[assembly: AddinDescription ("Editing support for MSBuild files")]
 [assembly: AddinAuthor ("Mikayla Hutchinson")]

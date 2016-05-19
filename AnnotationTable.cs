@@ -1,10 +1,10 @@
-﻿//
-// MSBuildDocumentParser.cs
+//
+// AnnotationTable.cs
 //
 // Author:
 //       mhutch <m.j.hutchinson@gmail.com>
 //
-// Copyright (c) 2015 Xamarin Inc.
+// Copyright (c) 2016 Xamarin Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System.Threading;
-using System.Threading.Tasks;
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 using MonoDevelop.Ide.TypeSystem;
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	class MSBuildDocumentParser : TypeSystemParser
+	class AnnotationTable<T,U> where T : class
 	{
-		public override Task<ParsedDocument> Parse (ParseOptions options, CancellationToken cancellationToken = default (CancellationToken))
+		ConditionalWeakTable<T, object[]> annotations = new ConditionalWeakTable<T, object[]> ();
+
+		public U Get (T o)
 		{
-			return Task.Run (() => MSBuildParsedDocument.ParseInternal (options, cancellationToken), cancellationToken);
+			object[] values;
+			if (!annotations.TryGetValue (o, out values))
+				return default (U);
+			return values.OfType<U> ().FirstOrDefault ();
+		}
+
+		public void Add (T o, U annotation)
+		{
+			if (Equals (annotation, default (T)))
+				return;
+
+			object[] values;
+			if (!annotations.TryGetValue (o, out values)) {
+				values = new object[1];
+			} else {
+				var idx = Array.FindIndex (values, obj => obj is T);
+				if (idx > -1) {
+					values [idx] = annotation;
+					return;
+				}
+				Array.Resize (ref values, values.Length + 1);
+			}
+
+			values[values.Length - 1] = annotation;
 		}
 	}
+
 }

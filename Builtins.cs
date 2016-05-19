@@ -43,7 +43,7 @@ namespace MonoDevelop.MSBuildEditor
 				"RootDir",
 				new MetadataInfo (
 					"RootDir",
-					"The toot directory of the item",
+					"The root directory of the item",
 					true
 				)
 			},
