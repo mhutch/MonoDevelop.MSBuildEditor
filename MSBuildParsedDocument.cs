@@ -98,6 +98,10 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			string filename = importEvalCtx.Evaluate (import);
 
+			//TODO: support wildcards
+			if (filename.IndexOf ('*') != -1)
+				return null;
+
 			var basePath = Path.GetDirectoryName (ctx.Filename);
 			filename = Path.Combine (basePath, filename);
 
@@ -121,6 +125,9 @@ namespace MonoDevelop.MSBuildEditor
 			//TODO: add MSBuildThisFileDirectory etc 
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
 			string filename = EvaluateImport (ctx, import, importEvalCtx);
+			if (filename == null) {
+				return null;
+			}
 
 			var fi = new FileInfo (filename);
 
@@ -170,6 +177,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
 			string filename = EvaluateImport (ctx, importVal, importEvalCtx);
+			if (filename == null) {
+				return null;
+			}
 
 			var fi = new FileInfo (filename);
 			if (!fi.Exists) {
