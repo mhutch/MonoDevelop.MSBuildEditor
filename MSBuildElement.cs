@@ -107,6 +107,7 @@ namespace MonoDevelop.MSBuildEditor
 			{
 				"ItemMetadata", new MSBuildElement (MSBuildKind.ItemMetadata,
 					attributes: new[] { "Condition" },
+					childType: MSBuildKind.Expression,
 					isSpecial: true
 				)
 			},
@@ -154,6 +155,7 @@ namespace MonoDevelop.MSBuildEditor
 			{
 				"Property", new MSBuildElement (MSBuildKind.Property,
 					attributes: new[] { "Condition" },
+					childType: MSBuildKind.Expression,
 					isSpecial: true
 				)
 			},
@@ -224,6 +226,7 @@ namespace MonoDevelop.MSBuildEditor
 		TaskBody,
 		UsingTask,
 		When,
-		Data
+		Data,
+		Expression
 	}
 }

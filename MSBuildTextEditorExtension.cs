@@ -2,7 +2,7 @@
 // MSBuildTextEditorExtension.cs
 //
 // Authors:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (C) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
@@ -24,17 +24,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-using MonoDevelop.Core;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
-using System;
-using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -45,6 +42,16 @@ namespace MonoDevelop.MSBuildEditor
 		MSBuildParsedDocument GetDocument ()
 		{
 			return (MSBuildParsedDocument)DocumentContext.ParsedDocument;
+		}
+
+		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, char completionChar, CancellationToken token = default (CancellationToken))
+		{
+			var expressionCompletion = HandleExpressionCompletion (completionChar);
+			if (expressionCompletion != null) {
+				return Task.FromResult (expressionCompletion);
+			}
+
+			return base.HandleCodeCompletionAsync (completionContext, completionChar, token);
 		}
 
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
@@ -179,6 +186,83 @@ namespace MonoDevelop.MSBuildEditor
 			public MSBuildKind? ChildType;
 			public IEnumerable<string> BuiltinAttributes;
 			public IEnumerable<string> BuiltinChildren;
+		}
+
+		ICompletionDataList HandleExpressionCompletion (char completionChar)
+		{
+			var doc = GetDocument ();
+			if (doc == null)
+				return null;
+
+
+			var path = GetCurrentPath ();
+			var rr = ResolveElement (path);
+
+			if (rr == null || rr.ElementType == null) {
+				return null;
+			}
+
+			var state = Tracker.Engine.CurrentState;
+			bool isAttribute = state is Xml.Parser.XmlAttributeValueState;
+			if (!isAttribute) {
+				//FIXME: assume all attributes accept expressions for now
+			} else if (state is Xml.Parser.XmlRootState) {
+				if (rr.ChildType != MSBuildKind.Expression)
+					return null;
+			} else {
+				return null;
+			}
+
+			//FIXME: This is very rudimentary. We should parse the expression for real.
+			int currentPosition = Editor.CaretOffset;
+			int lineStart = Editor.GetLine (Editor.CaretLine).Offset;
+			int expressionStart = currentPosition - Tracker.Engine.CurrentStateLength;
+			int start = Math.Max (expressionStart, lineStart);
+			var expression = Editor.GetTextAt (start, currentPosition - start);
+
+			if (expression.Length < 2) {
+				return null;
+			}
+
+			//trigger on letter after $(, @(
+			if (expression.Length >= 3 && char.IsLetter (expression [expression.Length - 1]) && expression [expression.Length - 2] == '(') {
+				char c = expression [expression.Length - 3];
+				if (c == '$') {
+					return new CompletionDataList (GetPropertyExpressionCompletions (doc)) { TriggerWordLength = 1 };
+				}
+				if (c == '@') {
+					return new CompletionDataList (GetItemExpressionCompletions (doc)) { TriggerWordLength = 1 };
+				}
+				return null;
+			}
+
+			//trigger on $(, @(
+			if (expression [expression.Length - 1] == '(') {
+				char c = expression [expression.Length - 2];
+				if (c == '$') {
+					return new CompletionDataList (GetPropertyExpressionCompletions (doc));
+				}
+				if (c == '@') {
+					return new CompletionDataList (GetItemExpressionCompletions (doc));
+				}
+				return null;
+			}
+
+			return null;
+		}
+
+		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
+		{
+			foreach (var item in doc.Context.GetItems ()) {
+				yield return new CompletionData (item.Name, MonoDevelop.Ide.Gui.Stock.Class, item.Description);
+			}
+		}
+
+		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc)
+		{
+			foreach (var prop in doc.Context.GetProperties (true)) {
+				yield return new CompletionData (prop.Name, MonoDevelop.Ide.Gui.Stock.Class, prop.Description);
+			}
 		}
 	}
 }
