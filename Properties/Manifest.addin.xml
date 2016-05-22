@@ -20,6 +20,7 @@
 			<File pattern="*.fsproj" />
 			<File pattern="*.vbproj" />
 			<File pattern="*.xproj" />
+			<File pattern="*.proj" />
 		</MimeType>
 	</Extension>
 
@@ -30,4 +31,10 @@
 			id = "MSBuildDocumentParser"
 			insertbefore="MSBuildParser" />
  	</Extension>
+
+	<Extension path = "/MonoDevelop/Ide/FileTemplates">
+		<FileTemplate
+			id = "MSBuildProject"
+			file = "Templates/Project.xft.xml" />
+	</Extension>
 </ExtensionModel>

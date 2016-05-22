@@ -93,4 +93,8 @@
   <ItemGroup>
     <Reference Include="Microsoft.Build.Utilities.v12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   </ItemGroup>
+  <ItemGroup>
+    <AddinFile Include="Templates\Project.xft.xml" />
+    <AddinFile Include="Templates\Project.xml" />
+  </ItemGroup>
 </Project>

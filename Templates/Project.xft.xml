@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Template>
+	<TemplateConfiguration>
+		<_Name>MSBuild Project</_Name>
+		<Icon>md-xml-file-icon</Icon>
+		<_Category>Misc</_Category>
+		<_Description>MSBuild project, target or properties file.</_Description>
+		<DefaultFilename>Project</DefaultFilename>
+	</TemplateConfiguration>
+
+	<TemplateFiles>
+		<File DefaultExtension=".proj" src="Project.xml" />
+	</TemplateFiles>
+</Template>
