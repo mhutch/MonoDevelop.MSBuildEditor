@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\MonoDevelop.Addins.0.3.10\build\net40\MonoDevelop.Addins.props" Condition="Exists('packages\MonoDevelop.Addins.0.3.10\build\net40\MonoDevelop.Addins.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -8,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>MonoDevelop.MSBuildEditor</RootNamespace>
     <AssemblyName>MonoDevelop.MSBuildEditor</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +28,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <CreatePackage>True</CreatePackage>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -96,5 +98,5 @@
     <AddinFile Include="Templates\Project.xft.xml" />
     <AddinFile Include="Templates\Project.xml" />
   </ItemGroup>
-  <Import Project="packages\MonoDevelop.Addins.0.3.4\build\net40\MonoDevelop.Addins.targets" Condition="Exists('packages\MonoDevelop.Addins.0.3.4\build\net40\MonoDevelop.Addins.targets')" />
+  <Import Project="packages\MonoDevelop.Addins.0.3.10\build\net40\MonoDevelop.Addins.targets" Condition="Exists('packages\MonoDevelop.Addins.0.3.10\build\net40\MonoDevelop.Addins.targets')" />
 </Project>

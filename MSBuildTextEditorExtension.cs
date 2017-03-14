@@ -45,14 +45,14 @@ namespace MonoDevelop.MSBuildEditor
 			return (MSBuildParsedDocument)DocumentContext.ParsedDocument;
 		}
 
-		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, char completionChar, CancellationToken token = default (CancellationToken))
+		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token = default (CancellationToken))
 		{
-			var expressionCompletion = HandleExpressionCompletion (completionChar);
+			var expressionCompletion = HandleExpressionCompletion (completionContext, triggerInfo, token);
 			if (expressionCompletion != null) {
 				return Task.FromResult (expressionCompletion);
 			}
 
-			return base.HandleCodeCompletionAsync (completionContext, completionChar, token);
+			return base.HandleCodeCompletionAsync (completionContext, triggerInfo, token);
 		}
 
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
@@ -192,7 +192,7 @@ namespace MonoDevelop.MSBuildEditor
 			public IEnumerable<string> BuiltinChildren;
 		}
 
-		ICompletionDataList HandleExpressionCompletion (char completionChar)
+		ICompletionDataList HandleExpressionCompletion (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token)
 		{
 			var doc = GetDocument ();
 			if (doc == null)
