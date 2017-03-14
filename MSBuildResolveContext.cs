@@ -2,7 +2,7 @@
 // MSBuildResolveContext.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2014 Xamarin Inc.
 //
@@ -331,11 +331,11 @@ namespace MonoDevelop.MSBuildEditor
 			return arg [0] != '_';
 		}
 
-		public MSBuildEvaluationContext CreateImportEvalCtx (string toolsVersion, string projectPath)
+		public MSBuildEvaluationContext CreateImportEvalCtx (MSBuildToolsVersion toolsVersion, string projectPath)
 		{
 			var ctx = new MSBuildEvaluationContext ();
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
-			ctx.SetPropertyValue ("MSBuildBinPath", runtime.GetMSBuildBinPath (toolsVersion));
+			ctx.SetPropertyValue ("MSBuildBinPath", runtime.GetMSBuildBinPath (toolsVersion.ToVersionString ()));
 			var extPath = runtime.GetMSBuildExtensionsPath ();
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);

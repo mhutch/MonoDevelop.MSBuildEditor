@@ -2,7 +2,7 @@
 // MSBuildParsedDocument.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2016 Xamarin Inc.
 //
@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildParsedDocument : XmlParsedDocument
 	{
-		string toolsVersion;
+		MSBuildToolsVersion? toolsVersion;
 
 		public MSBuildResolveContext Context { get; internal set; }
 
@@ -49,19 +49,26 @@ namespace MonoDevelop.MSBuildEditor
 		{
 		}
 
-		public string ToolsVersion {
+		public MSBuildToolsVersion ToolsVersion {
 			get {
-				if (toolsVersion != null)
-					return toolsVersion;
+				if (toolsVersion.HasValue) {
+					return toolsVersion.Value;
+				}
+
 				if (XDocument.RootElement != null) {
 					var att = XDocument.RootElement.Attributes [new XName ("ToolsVersion")];
 					if (att != null) {
 						var val = att.Value;
-						if (!string.IsNullOrEmpty (val))
-							return toolsVersion = val;
+						MSBuildToolsVersion tv;
+						if (Enum.TryParse (val, out tv)) {
+							toolsVersion = tv;
+							return tv;
+						}
 					}
 				}
-				return toolsVersion = "2.0";
+
+				toolsVersion = MSBuildToolsVersion.Unknown;
+				return toolsVersion.Value;
 			}
 		}
 

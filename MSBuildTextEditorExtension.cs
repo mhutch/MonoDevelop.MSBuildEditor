@@ -33,6 +33,7 @@ using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -130,17 +131,26 @@ namespace MonoDevelop.MSBuildEditor
 		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
 		{
 			var doc = GetDocument ();
-			if (doc == null || rr.ElementType != MSBuildKind.Task)
-				return new string [0];
-
-			var result = new HashSet<string> ();
-			foreach (var task in doc.Context.GetTask (rr.ElementName)) {
-				foreach (var p in task.Parameters) {
-					result.Add (p);
-				}
+			if (doc == null) {
+				return Array.Empty<string> ();
 			}
 
-			return result;
+			//metadata as attributes
+			if (rr.ElementType == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
+				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => a.Name);
+			}
+
+			if (rr.ElementType != MSBuildKind.Task) {
+				var result = new HashSet<string> ();
+				foreach (var task in doc.Context.GetTask (rr.ElementName)) {
+					foreach (var p in task.Parameters) {
+						result.Add (p);
+					}
+				}
+				return result;
+			}
+
+			return null;
 		}
 
 		static ResolveResult ResolveElement (IList<XObject> path)

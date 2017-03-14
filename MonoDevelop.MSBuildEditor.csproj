@@ -74,6 +74,7 @@
     <Compile Include="ItemInfo.cs" />
     <Compile Include="DocumentMSBuildVisitor.cs" />
     <Compile Include="MSBuildReferenceCollector.cs" />
+    <Compile Include="MSBuildToolsVersion.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
