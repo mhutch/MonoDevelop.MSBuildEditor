@@ -2,7 +2,7 @@
 // AnnotationTable.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2016 Xamarin Inc.
 //

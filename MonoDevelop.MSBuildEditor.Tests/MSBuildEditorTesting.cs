@@ -27,9 +27,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var ctx = textEditorCompletion.GetCodeCompletionContext (sev);
 
 			if (isCtrlSpace)
-				return await textEditorCompletion.CodeCompletionCommand (ctx) as CompletionDataList;
+				return await textEditorCompletion.HandleCodeCompletionAsync (ctx, CompletionTriggerInfo.CodeCompletionCommand) as CompletionDataList;
 			else {
-				var task = textEditorCompletion.HandleCodeCompletionAsync (ctx, editorText [cursorPosition - 1]);
+				var task = textEditorCompletion.HandleCodeCompletionAsync (ctx, new CompletionTriggerInfo (CompletionTriggerReason.CharTyped, editorText [cursorPosition - 1]));
 				if (task != null) {
 					return await task as CompletionDataList;
 				}

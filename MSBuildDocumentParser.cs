@@ -1,8 +1,8 @@
-﻿//
+//
 // MSBuildDocumentParser.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2015 Xamarin Inc.
 //
@@ -28,11 +28,26 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MonoDevelop.Ide.TypeSystem;
+using System;
+using MonoDevelop.Core;
+using BF = System.Reflection.BindingFlags;
 
 namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildDocumentParser : TypeSystemParser
 	{
+		public MSBuildDocumentParser ()
+		{
+			//HACK MD should really take care of this itself
+			try {
+				var t = typeof (MonoDevelop.DotNetCore.DotNetCoreProjectExtension).Assembly.GetType ("MonoDevelop.DotNetCore.DotNetCoreSdkPaths");
+				var m = t.GetMethod ("FindMSBuildSDKsPath", BF.NonPublic | BF.Instance);
+				m.Invoke (Activator.CreateInstance (t), Array.Empty<object>());
+			} catch (Exception ex) {
+				LoggingService.LogError ("Failed to initialize MSBuild SDK paths");
+			}
+		}
+
 		public override Task<ParsedDocument> Parse (ParseOptions options, CancellationToken cancellationToken = default (CancellationToken))
 		{
 			return Task.Run (() => MSBuildParsedDocument.ParseInternal (options, cancellationToken), cancellationToken);

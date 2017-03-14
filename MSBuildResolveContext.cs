@@ -32,6 +32,8 @@ using MonoDevelop.Core;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.Projects.Formats.MSBuild;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Projects.MSBuild;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -52,7 +54,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, Func<MSBuildResolveContext, XElement, Import> resolveImport)
+		public static MSBuildResolveContext Create (string filename, XDocument doc, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
 		{
 			var ctx = new MSBuildResolveContext (filename);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
@@ -60,13 +62,45 @@ namespace MonoDevelop.MSBuildEditor
 				//TODO: error
 				return ctx;
 			}
+
+			ctx.ResolveSdks (project, resolveImport);
+
 			var pel = MSBuildElement.Get ("Project");
+
 			foreach (var el in project.Nodes.OfType<XElement> ())
 				ctx.Populate (el, pel, resolveImport);
+			
 			return ctx;
 		}
 
-		void Populate (XElement el, MSBuildElement parent, Func<MSBuildResolveContext, XElement, Import> resolveImport)
+		void ResolveSdks (XElement project, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
+		{
+			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
+			if (sdksAtt == null) {
+				return;
+			}
+
+			string sdks = sdksAtt?.Value;
+			if (string.IsNullOrEmpty (sdks)) {
+				return;
+			}
+
+			foreach (var sdkPath in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
+				var propsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.props";
+				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region);
+				if (sdkProps != null) {
+					Imports.Add (propsPath, sdkProps);
+				}
+
+				var targetsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.targets";
+				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region);
+				if (sdkTargets != null) {
+					Imports.Add (targetsPath, sdkTargets);
+				}
+			}
+		}
+
+		void Populate (XElement el, MSBuildElement parent, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
 		{
 			if (el.Name.Prefix != null)
 				return;
@@ -89,9 +123,12 @@ namespace MonoDevelop.MSBuildEditor
 
 			switch (msel.Kind) {
 			case MSBuildKind.Import:
-				var import = resolveImport (this, el);
-				if (import != null) {
-					Imports [import.Filename] = import;
+				var importAtt = el.Attributes [new XName ("Project")];
+				if (importAtt != null) {
+					var import = resolveImport (this, importAtt?.Value, importAtt.Region);
+					if (import != null) {
+						Imports [import.Filename] = import;
+					}
 				}
 				return;
 			case MSBuildKind.Item:
@@ -333,14 +370,23 @@ namespace MonoDevelop.MSBuildEditor
 
 		public MSBuildEvaluationContext CreateImportEvalCtx (MSBuildToolsVersion toolsVersion, string projectPath)
 		{
+			// MSBuildEvaluationContext can only populate these properties fron an MSBuildProject and we don't have one
+			// OTOH this isn't a full evaluation anyway. Just set up a bunch of properties commonly used for imports.
 			var ctx = new MSBuildEvaluationContext ();
+
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
 			ctx.SetPropertyValue ("MSBuildBinPath", runtime.GetMSBuildBinPath (toolsVersion.ToVersionString ()));
-			var extPath = runtime.GetMSBuildExtensionsPath ();
+			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
-			ctx.SetPropertyValue ("MSBuildProjectDirectory", Path.GetDirectoryName (projectPath));
-			ctx.SetPropertyValue ("MSBuildThisFileDirectory", Path.GetDirectoryName (Filename));
+			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
+			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (Filename) + Path.DirectorySeparatorChar));
+
+			string sdksPath = Environment.GetEnvironmentVariable ("MSBuildSDKsPath");
+			if (sdksPath != null) {
+				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, sdksPath));
+			}
+
 			return ctx;
 		}
 	}

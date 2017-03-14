@@ -36,6 +36,8 @@ using MonoDevelop.Projects.Formats.MSBuild;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Projects.MSBuild;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -56,9 +58,15 @@ namespace MonoDevelop.MSBuildEditor
 				}
 
 				if (XDocument.RootElement != null) {
-					var att = XDocument.RootElement.Attributes [new XName ("ToolsVersion")];
-					if (att != null) {
-						var val = att.Value;
+					var sdkAtt = XDocument.RootElement.Attributes [new XName ("Sdk")];
+					if (sdkAtt != null) {
+						toolsVersion = MSBuildToolsVersion.V15_0;
+						return toolsVersion.Value;
+					}
+
+					var tvAtt = XDocument.RootElement.Attributes [new XName ("ToolsVersion")];
+					if (tvAtt != null) {
+						var val = tvAtt.Value;
 						MSBuildToolsVersion tv;
 						if (Enum.TryParse (val, out tv)) {
 							toolsVersion = tv;
@@ -96,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor
 			var oldDoc = (MSBuildParsedDocument)options.OldParsedDocument;
 
 			string projectPath = options.FileName;
-			doc.Context = MSBuildResolveContext.Create (options.FileName, doc.XDocument, (ctx, el) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, el, token));
+			doc.Context = MSBuildResolveContext.Create (options.FileName, doc.XDocument, (ctx, imp, reg) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, imp, reg, token));
 
 			return doc;
 		}
@@ -110,21 +118,16 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 
 			var basePath = Path.GetDirectoryName (ctx.Filename);
-			filename = Path.Combine (basePath, filename);
 
-			if (!Platform.IsWindows) {
-				filename = filename.Replace ('\\', '/');
-			}
+			filename = MSBuildProjectService.FromMSBuildPath (basePath, filename);
 
-			return Path.GetFullPath (filename);
+			return filename;
 		}
 
-		Import ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, XElement el, CancellationToken token)
+		Import ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, CancellationToken token)
 		{
-			var importAtt = el.Attributes [new XName ("Project")];
-			string import = importAtt?.Value;
 			if (string.IsNullOrWhiteSpace (import)) {
-				Add (new Error (ErrorType.Warning, "Empty value", importAtt.Region));
+				Add (new Error (ErrorType.Warning, "Empty value", region));
 				return null;
 			}
 
@@ -140,7 +143,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			if (!fi.Exists) {
 				if (oldDoc != null)
-					Add (new Error (ErrorType.Warning, "Could not resolve import", importAtt.Region));
+					Add (new Error (ErrorType.Warning, "Could not resolve import", region));
 				return new Import (filename, DateTime.MinValue);
 			}
 
@@ -169,22 +172,21 @@ namespace MonoDevelop.MSBuildEditor
 
 			var doc = xmlParser.Nodes.GetRoot ();
 
-			import.ResolveContext = MSBuildResolveContext.Create (import.Filename, doc, (ctx, el) => ResolveNestedImport (projectPath, ctx, el, token));
+			import.ResolveContext = MSBuildResolveContext.Create (import.Filename, doc, (ctx, imp, reg) => ResolveNestedImport (projectPath, ctx, imp, reg, token));
 
 			return import;
 		}
 
-		Import ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, XElement el, CancellationToken token)
+		Import ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, CancellationToken token)
 		{
-			var importAtt = el.Attributes [new XName ("Project")];
-			string importVal = importAtt?.Value;
-			if (string.IsNullOrWhiteSpace (importVal)) {
+			if (string.IsNullOrWhiteSpace (import)) {
 				return null;
 			}
 
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
-			string filename = EvaluateImport (ctx, importVal, importEvalCtx);
-			if (filename == null) {
+			string filename = EvaluateImport (ctx, import, importEvalCtx);
+			if (string.IsNullOrEmpty (filename)) {
+				LoggingService.LogWarning ($"Could not resolve MSBuild import '{import}'");
 				return null;
 			}
 

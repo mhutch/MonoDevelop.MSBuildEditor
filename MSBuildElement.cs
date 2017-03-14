@@ -2,7 +2,7 @@
 // MSBuildElements.cs
 //
 // Author:
-//       mhutch <m.j.hutchinson@gmail.com>
+//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
 // Copyright (c) 2014 Xamarin Inc.
 //
@@ -143,7 +143,7 @@ namespace MonoDevelop.MSBuildEditor
 						"Choose", "Import", "ItemGroup", "ProjectExtensions", "PropertyGroup", "Target", "UsingTask"
 					},
 					attributes: new[] {
-						"DefaultTargets", "InitialTargets", "ToolsVersion", "TreatAsLocalProperty", "xmlns"
+						"DefaultTargets", "InitialTargets", "ToolsVersion", "TreatAsLocalProperty", "xmlns", "Sdk"
 					}
 				)
 			},

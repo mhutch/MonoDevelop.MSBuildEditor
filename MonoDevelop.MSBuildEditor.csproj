@@ -84,6 +84,7 @@
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />
     <AddinReference Include="MonoDevelop.SourceEditor2" />
+    <AddinReference Include="MonoDevelop.DotNetCore" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />
