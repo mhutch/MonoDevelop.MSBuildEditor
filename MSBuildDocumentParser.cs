@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor
 				var m = t.GetMethod ("FindMSBuildSDKsPath", BF.NonPublic | BF.Instance);
 				m.Invoke (Activator.CreateInstance (t), Array.Empty<object>());
 			} catch (Exception ex) {
-				LoggingService.LogError ("Failed to initialize MSBuild SDK paths");
+				LoggingService.LogError ("Failed to initialize MSBuild SDK paths", ex);
 			}
 		}
 
