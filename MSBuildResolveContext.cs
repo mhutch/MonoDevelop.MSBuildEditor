@@ -29,11 +29,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MonoDevelop.Core;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
-using MonoDevelop.Projects.Formats.MSBuild;
-using MonoDevelop.Xml.Dom;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.Projects.MSBuild;
+using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -54,7 +53,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
+		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
 		{
 			var ctx = new MSBuildResolveContext (filename);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
@@ -67,13 +66,32 @@ namespace MonoDevelop.MSBuildEditor
 
 			var pel = MSBuildElement.Get ("Project");
 
-			foreach (var el in project.Nodes.OfType<XElement> ())
-				ctx.Populate (el, pel, resolveImport);
-			
+			var propertiesUsedByImports = GetPropertiesUsedByImports (project);
+
+			//recursively resolve the document
+			foreach (var el in project.Elements)
+				ctx.Populate (el, pel, textDocument, propertiesUsedByImports, resolveImport);
+
 			return ctx;
 		}
 
-		void ResolveSdks (XElement project, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
+		static Dictionary<string,List<string>> GetPropertiesUsedByImports (XElement project)
+		{
+			var properties = new Dictionary<string, List<string>> ();
+			foreach (var el in project.Elements.Where (el => el.Name.Name == "Import")) {
+				var impAtt = el.Attributes.Get (new XName ("Project"), true);
+				if (impAtt != null) {
+					var expr = new Expression ();
+					expr.Parse (impAtt.Value, ParseOptions.None);
+					foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
+						properties [prop.Name] = null;
+					}
+				}
+			}
+			return properties;
+		}
+
+		void ResolveSdks (XElement project, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -87,20 +105,20 @@ namespace MonoDevelop.MSBuildEditor
 
 			foreach (var sdkPath in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
 				var propsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region);
+				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region, null);
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
 
 				var targetsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region);
+				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region, null);
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
 			}
 		}
 
-		void Populate (XElement el, MSBuildElement parent, Func<MSBuildResolveContext, string, DocumentRegion, Import> resolveImport)
+		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, Dictionary<string, List<string>> propertiesUsedByImports, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
 		{
 			if (el.Name.Prefix != null)
 				return;
@@ -118,14 +136,14 @@ namespace MonoDevelop.MSBuildEditor
 
 			if (!msel.IsSpecial) {
 				foreach (var child in el.Nodes.OfType<XElement> ())
-					Populate (child, msel, resolveImport);
+					Populate (child, msel, textDocument, propertiesUsedByImports, resolveImport);
 			}
 
 			switch (msel.Kind) {
 			case MSBuildKind.Import:
 				var importAtt = el.Attributes [new XName ("Project")];
 				if (importAtt != null) {
-					var import = resolveImport (this, importAtt?.Value, importAtt.Region);
+					var import = resolveImport (this, importAtt?.Value, importAtt.Region, propertiesUsedByImports);
 					if (import != null) {
 						Imports [import.Filename] = import;
 					}
@@ -154,6 +172,13 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildKind.Property:
 				if (!Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
 					Properties.Add (name, new PropertyInfo (name, null));
+				}
+				if (propertiesUsedByImports.TryGetValue (name, out List<string> values) && el.IsClosed && !el.IsSelfClosing) {
+					if (values == null) {
+						propertiesUsedByImports [name] = values = new List<string> ();
+					}
+					var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin);
+					values.Add (val);
 				}
 				return;
 			case MSBuildKind.Target:
@@ -372,6 +397,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			// MSBuildEvaluationContext can only populate these properties fron an MSBuildProject and we don't have one
 			// OTOH this isn't a full evaluation anyway. Just set up a bunch of properties commonly used for imports.
+			// TODO: add more commonly used properties
 			var ctx = new MSBuildEvaluationContext ();
 
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;

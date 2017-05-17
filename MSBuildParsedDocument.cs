@@ -38,6 +38,8 @@ using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Projects.MSBuild;
+using MonoDevelop.MSBuildEditor.ExpressionParser;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -80,7 +82,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		internal static ParsedDocument ParseInternal (ParseOptions options, CancellationToken token)
+		internal static ParsedDocument ParseInternal (Ide.TypeSystem.ParseOptions options, CancellationToken token)
 		{
 			var doc = new MSBuildParsedDocument (options.FileName);
 			doc.Flags |= ParsedDocumentFlags.NonSerializable;
@@ -103,14 +105,27 @@ namespace MonoDevelop.MSBuildEditor
 
 			var oldDoc = (MSBuildParsedDocument)options.OldParsedDocument;
 
+			//FIXME: unfortunately the XML parser's regions only have line+col locations, not offsets
+			//so we need to create an ITextDocument to extract tag bodies
+			//we should fix this by changing the parser to use offsets for the tag locations
+			var textDoc = TextEditorFactory.CreateNewDocument (options.Content, options.FileName, MSBuildTextEditorExtension.MSBuildMimeType);
+
 			string projectPath = options.FileName;
-			doc.Context = MSBuildResolveContext.Create (options.FileName, doc.XDocument, (ctx, imp, reg) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, imp, reg, token));
+			doc.Context = MSBuildResolveContext.Create (options.FileName, doc.XDocument, textDoc, (ctx, imp, reg, props) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, imp, reg, props, token));
 
 			return doc;
 		}
 
-		static string EvaluateImport (MSBuildResolveContext ctx, string import, MSBuildEvaluationContext importEvalCtx)
+		//FIXME: make this IEnumerable, return all valid values from all property values
+		static string EvaluateImport (MSBuildResolveContext ctx, string import, MSBuildEvaluationContext importEvalCtx, Dictionary<string, List<string>> properties)
 		{
+			//TODO: permute the known values of the properties in the import
+			foreach (var p in properties) {
+				if (p.Value != null) {
+					importEvalCtx.SetPropertyValue (p.Key, p.Value[0]);
+				}
+			}
+
 			string filename = importEvalCtx.Evaluate (import);
 
 			//TODO: support wildcards
@@ -124,17 +139,16 @@ namespace MonoDevelop.MSBuildEditor
 			return filename;
 		}
 
-		Import ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, CancellationToken token)
+		Import ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, Dictionary<string, List<string>> properties, CancellationToken token)
 		{
 			if (string.IsNullOrWhiteSpace (import)) {
 				Add (new Error (ErrorType.Warning, "Empty value", region));
 				return null;
 			}
 
-			//TODO: use property values when resolving imports
-			//TODO: add MSBuildThisFileDirectory etc 
+			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
-			string filename = EvaluateImport (ctx, import, importEvalCtx);
+			string filename = EvaluateImport (ctx, import, importEvalCtx, properties);
 			if (filename == null) {
 				return null;
 			}
@@ -161,28 +175,33 @@ namespace MonoDevelop.MSBuildEditor
 			token.ThrowIfCancellationRequested ();
 			
 			var xmlParser = new XmlParser (new XmlRootState (), true);
+			string text;
 			try {
-				string text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
+				text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
 				xmlParser.Parse (new StringReader (text));
 			} catch (Exception ex) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
+				return import;
 			}
 
 			var doc = xmlParser.Nodes.GetRoot ();
 
-			import.ResolveContext = MSBuildResolveContext.Create (import.Filename, doc, (ctx, imp, reg) => ResolveNestedImport (projectPath, ctx, imp, reg, token));
+			var textDoc = TextEditorFactory.CreateNewDocument (projectPath, MSBuildTextEditorExtension.MSBuildMimeType);
+			textDoc.Text = text;
+
+			import.ResolveContext = MSBuildResolveContext.Create (import.Filename, doc, textDoc, (ctx, imp, reg, props) => ResolveNestedImport (projectPath, ctx, imp, reg, props, token));
 
 			return import;
 		}
 
-		Import ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, CancellationToken token)
+		Import ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, Dictionary<string, List<string>> properties, CancellationToken token)
 		{
 			if (string.IsNullOrWhiteSpace (import)) {
 				return null;
 			}
 
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
-			string filename = EvaluateImport (ctx, import, importEvalCtx);
+			string filename = EvaluateImport (ctx, import, importEvalCtx, properties);
 			if (string.IsNullOrEmpty (filename)) {
 				LoggingService.LogWarning ($"Could not resolve MSBuild import '{import}'");
 				return null;

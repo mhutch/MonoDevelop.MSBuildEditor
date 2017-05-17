@@ -33,14 +33,14 @@ namespace MonoDevelop.MSBuildEditor
 	class MSBuildEvaluationContext
 	{
 		object wrapped;
-		MethodInfo evaluateMeth;
-		MethodInfo setPropMeth;
+		MethodInfo evaluateMeth, setPropMeth, getPropMeth;
 		
 		public MSBuildEvaluationContext ()
 		{
 			var type = typeof (MonoDevelop.Projects.MSBuild.MSBuildItem).Assembly.GetType ("MonoDevelop.Projects.MSBuild.MSBuildEvaluationContext", true);
 			evaluateMeth = type.GetMethod ("Evaluate", BF.Instance | BF.NonPublic | BF.Public, null, CallingConventions.Any, new [] { typeof (string) }, null );
 			setPropMeth = type.GetMethod ("SetPropertyValue", BF.Instance | BF.NonPublic | BF.Public, null, CallingConventions.Any, new [] { typeof (string), typeof (string) }, null);
+			getPropMeth = type.GetMethod ("GetPropertyValue", BF.Instance | BF.NonPublic | BF.Public, null, CallingConventions.Any, new [] { typeof (string) }, null);
 			wrapped = Activator.CreateInstance (type);
 		}
 
@@ -52,6 +52,11 @@ namespace MonoDevelop.MSBuildEditor
 		internal void SetPropertyValue (string name, string value)
 		{
 			setPropMeth.Invoke (wrapped, new [] { name, value});
+		}
+
+		internal string GetPropertyValue (string name)
+		{
+			return (string) getPropMeth.Invoke (wrapped, new [] { name });
 		}
 	}
 }
