@@ -162,9 +162,7 @@ namespace MonoDevelop.MSBuildEditor
 			
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			try {
-				bool useBom;
-				System.Text.Encoding encoding;
-				string text = Core.Text.TextFileUtility.ReadAllText (import.Filename, out useBom, out encoding);
+				string text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
 				xmlParser.Parse (new StringReader (text));
 			} catch (Exception ex) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
