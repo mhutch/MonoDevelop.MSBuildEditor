@@ -1,11 +1,11 @@
-﻿Proper parser
 Live errors
 Validation of missing attributes
 Metadata resolution
-Completion of properties in expressions
-Completion of items in expressions
-Completion of metadata in expressions
-Completion of property functions
+Completion of:
+  * properties in expressions
+  * items in expressions
+  * metadata in expressions
+  * property functions
 Snippets
 Pairing of props and targets
 Docs on built-ins
@@ -16,3 +16,14 @@ File templates
 Completion of inline C#
 Go to definition on imports
 Debugger?
+<Import Sdk=...
+Sdk resolvers
+Wildcard imports
+Unit test
+  * parser
+  * resolver
+  * IntelliSense
+  * expression parser
+Improve import resolution
+  * Brute force with all known simple values
+  * Full resolution using current conditioned state 
