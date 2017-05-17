@@ -233,6 +233,8 @@ namespace MonoDevelop.CSharpBinding.Tests
 			action ();
 		}
 		#endregion
+#pragma warning disable 67
 		public event EventHandler CaretPositionSet;
+#pragma warning restore 67
 	}
 }
