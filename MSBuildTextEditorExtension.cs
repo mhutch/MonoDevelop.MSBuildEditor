@@ -34,6 +34,7 @@ using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
 using System.Linq;
+using System.Text;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -76,10 +77,57 @@ namespace MonoDevelop.MSBuildEditor
 				list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
 
 			foreach (var item in GetInferredChildren (rr)) {
-				list.Add (new XmlCompletionData (item.Name, item.Description, XmlCompletionData.DataType.XmlElement));
+				list.Add (new MSBuildCompletionData (item, GetDocument ()));
 			}
 
 			return Task.FromResult (list);
+		}
+
+		class MSBuildCompletionData : XmlCompletionData
+		{
+			readonly MSBuildParsedDocument doc;
+			readonly BaseInfo info;
+			string description;
+
+			public MSBuildCompletionData (BaseInfo info, MSBuildParsedDocument doc)
+				: base (info.Name, info.Description, DataType.XmlElement)
+			{
+				this.info = info;
+				this.doc = doc;
+			}
+
+			public override string Description {
+				get {
+					return description ?? (description = GetDescription () ?? "");
+				}
+			}
+
+			string GetDescription ()
+			{
+				var baseDesc = base.Description;
+
+				if (doc == null || !(info is PropertyInfo prop) || prop.Reserved) {
+					return baseDesc;
+				}
+
+				var seenIn = doc.Context.GetFilesPropertySeenIn (prop.Name).ToList ();
+				if (seenIn.Count == 0) {
+					return baseDesc;
+				}
+
+				var sb = new StringBuilder ();
+				if (!string.IsNullOrEmpty (baseDesc)) {
+					sb.AppendLine (baseDesc);
+					sb.AppendLine ();
+				}
+
+				sb.AppendLine ("Seen in: ");
+				foreach (var s in seenIn) {
+					sb.AppendLine ($"    {s}");
+				}
+
+				return sb.ToString ();
+			}
 		}
 
 		IEnumerable<BaseInfo> GetInferredChildren (ResolveResult rr)

@@ -389,6 +389,22 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
+		/// <summary>
+		/// Gets the files in which the given property has been seen.
+		/// </summary>
+		public IEnumerable<string> GetFilesPropertySeenIn (string name)
+		{
+			if (Properties.ContainsKey (name)) {
+				yield return Filename;
+			}
+
+			foreach (var child in GetDescendentContexts ()) {
+				if (child.Properties.ContainsKey (name)) {
+					yield return child.Filename;
+				}
+			}
+		}
+
 		//by convention, properties and items starting with an underscore are "private"
 		static bool NotPrivate (string arg)
 		{
