@@ -36,6 +36,8 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor
 {
+	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, DocumentRegion location, Dictionary<string, List<string>> properties);
+
 	class MSBuildResolveContext
 	{
 		static readonly XName xnProject = new XName ("Project");
@@ -53,7 +55,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
+		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, ImportResolver resolveImport)
 		{
 			var ctx = new MSBuildResolveContext (filename);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
@@ -69,8 +71,9 @@ namespace MonoDevelop.MSBuildEditor
 			var propertiesUsedByImports = GetPropertiesUsedByImports (project);
 
 			//recursively resolve the document
-			foreach (var el in project.Elements)
+			foreach (var el in project.Elements) {
 				ctx.Populate (el, pel, textDocument, propertiesUsedByImports, resolveImport);
+			}
 
 			return ctx;
 		}
@@ -91,7 +94,7 @@ namespace MonoDevelop.MSBuildEditor
 			return properties;
 		}
 
-		void ResolveSdks (XElement project, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
+		void ResolveSdks (XElement project, ImportResolver resolveImport)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -105,20 +108,20 @@ namespace MonoDevelop.MSBuildEditor
 
 			foreach (var sdkPath in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
 				var propsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region, null);
+				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region, null).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
 
 				var targetsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region, null);
+				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region, null).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
 			}
 		}
 
-		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, Dictionary<string, List<string>> propertiesUsedByImports, Func<MSBuildResolveContext, string, DocumentRegion, Dictionary<string, List<string>>, Import> resolveImport)
+		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, Dictionary<string, List<string>> propertiesUsedByImports, ImportResolver resolveImport)
 		{
 			if (el.Name.Prefix != null)
 				return;
@@ -143,8 +146,7 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildKind.Import:
 				var importAtt = el.Attributes [new XName ("Project")];
 				if (importAtt != null) {
-					var import = resolveImport (this, importAtt?.Value, importAtt.Region, propertiesUsedByImports);
-					if (import != null) {
+					foreach (var import in resolveImport (this, importAtt?.Value, importAtt.Region, propertiesUsedByImports)) {
 						Imports [import.Filename] = import;
 					}
 				}
@@ -401,7 +403,9 @@ namespace MonoDevelop.MSBuildEditor
 			var ctx = new MSBuildEvaluationContext ();
 
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
-			ctx.SetPropertyValue ("MSBuildBinPath", runtime.GetMSBuildBinPath (toolsVersion.ToVersionString ()));
+			string binPath = runtime.GetMSBuildBinPath (toolsVersion.ToVersionString ());
+			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath", binPath);
 			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);

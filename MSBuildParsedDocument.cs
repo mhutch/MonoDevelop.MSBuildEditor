@@ -116,16 +116,69 @@ namespace MonoDevelop.MSBuildEditor
 			return doc;
 		}
 
-		//FIXME: make this IEnumerable, return all valid values from all property values
-		static string EvaluateImport (MSBuildResolveContext ctx, string import, MSBuildEvaluationContext importEvalCtx, Dictionary<string, List<string>> properties)
+		static IEnumerable<string> EvaluateImport (MSBuildResolveContext resolveCtx, string import, MSBuildEvaluationContext importEvalCtx, Dictionary<string, List<string>> properties)
 		{
-			//TODO: permute the known values of the properties in the import
+			//ensure each of the properties is fully evaluated
 			foreach (var p in properties) {
 				if (p.Value != null) {
-					importEvalCtx.SetPropertyValue (p.Key, p.Value[0]);
+					for (int i = 0; i < p.Value.Count; i++) {
+						var val = p.Value [i];
+						int recDepth = 0;
+						while (val.IndexOf ('$') > -1 && (recDepth++ < 10)) {
+							val = importEvalCtx.Evaluate (val);
+						}
+						p.Value [i] = val;
+					}
 				}
 			}
 
+			//set the property values on the context
+			foreach (var p in properties) {
+				if (p.Value != null) {
+					importEvalCtx.SetPropertyValue (p.Key, p.Value [0]);
+				}
+			}
+
+			//permute on properties for which we have multiple values
+			var propsToPermute = new List<Tuple<string,List<string>>> ();
+			var expr = new Expression ();
+			expr.Parse (import, ExpressionParser.ParseOptions.None);
+			foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
+				if (properties.TryGetValue (prop.Name, out List<string> values) && values != null) {
+					if (values.Count > 1) {
+						propsToPermute.Add (Tuple.Create (prop.Name, values));
+					}
+				}
+			}
+
+			if (propsToPermute.Count == 0) {
+				yield return EvaluateImport (resolveCtx, import, importEvalCtx);
+			} else {
+				foreach (var ctx in PermuteProperties (importEvalCtx, propsToPermute)) {
+					yield return EvaluateImport (resolveCtx, import, importEvalCtx);
+				}
+			}
+		}
+
+		//TODO: guard against excessive permutation
+		static IEnumerable<MSBuildEvaluationContext> PermuteProperties (MSBuildEvaluationContext evalCtx, List<Tuple<string, List<string>>> multivaluedProperties, int idx = 0)
+		{
+			var prop = multivaluedProperties[idx];
+			var name = prop.Item1;
+			foreach (var val in prop.Item2) {
+				evalCtx.SetPropertyValue (name, val);
+				if (idx + 1 == multivaluedProperties.Count) {
+					yield return evalCtx;
+				} else {
+					foreach (var permutation in PermuteProperties (evalCtx, multivaluedProperties, idx + 1)) {
+						yield return permutation;
+					}
+				}
+			}
+		}
+
+		static string EvaluateImport (MSBuildResolveContext ctx, string import, MSBuildEvaluationContext importEvalCtx)
+		{
 			string filename = importEvalCtx.Evaluate (import);
 
 			//TODO: support wildcards
@@ -139,41 +192,10 @@ namespace MonoDevelop.MSBuildEditor
 			return filename;
 		}
 
-		Import ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, Dictionary<string, List<string>> properties, CancellationToken token)
-		{
-			if (string.IsNullOrWhiteSpace (import)) {
-				Add (new Error (ErrorType.Warning, "Empty value", region));
-				return null;
-			}
-
-			//TODO: re-use these contexts instead of recreating them
-			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
-			string filename = EvaluateImport (ctx, import, importEvalCtx, properties);
-			if (filename == null) {
-				return null;
-			}
-
-			var fi = new FileInfo (filename);
-
-			if (!fi.Exists) {
-				if (oldDoc != null)
-					Add (new Error (ErrorType.Warning, "Could not resolve import", region));
-				return new Import (filename, DateTime.MinValue);
-			}
-
-			Import oldImport;
-			if (oldDoc != null && oldDoc.Context.Imports.TryGetValue (filename, out oldImport) && oldImport.TimeStampUtc == fi.LastWriteTimeUtc) {
-				//TODO: check mtimes of descendent imports too
-				return oldImport;
-			}
-
-			return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, token);
-		}
-
 		Import ParseImport (Import import, string projectPath, CancellationToken token)
 		{
 			token.ThrowIfCancellationRequested ();
-			
+
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			string text;
 			try {
@@ -194,26 +216,76 @@ namespace MonoDevelop.MSBuildEditor
 			return import;
 		}
 
-		Import ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, Dictionary<string, List<string>> properties, CancellationToken token)
+		IEnumerable<Import> ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, Dictionary<string, List<string>> properties, CancellationToken token)
 		{
 			if (string.IsNullOrWhiteSpace (import)) {
-				return null;
+				Add (new Error (ErrorType.Warning, "Empty value", region));
+				yield break;
 			}
 
+			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
-			string filename = EvaluateImport (ctx, import, importEvalCtx, properties);
-			if (string.IsNullOrEmpty (filename)) {
+
+			bool foundAny = false;
+
+			foreach (var filename in EvaluateImport (ctx, import, importEvalCtx, properties)) {
+				if (string.IsNullOrEmpty (filename)) {
+					continue;
+				}
+
+				var fi = new FileInfo (filename);
+				if (!fi.Exists) {
+					continue;
+				}
+
+				foundAny = true;
+
+				if (oldDoc != null && oldDoc.Context.Imports.TryGetValue (filename, out Import oldImport) && oldImport.TimeStampUtc == fi.LastWriteTimeUtc) {
+					//TODO: check mtimes of descendent imports too
+					yield return oldImport;
+				} else {
+					yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, token);
+				}
+			}
+
+			if (!foundAny) {
+				Add (new Error (ErrorType.Warning, "Could not resolve import", region));
+				yield return new Import (import, DateTime.MinValue);
+			}
+		}
+
+		IEnumerable<Import> ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, Dictionary<string, List<string>> properties, CancellationToken token)
+		{
+			if (string.IsNullOrWhiteSpace (import)) {
+				yield break;
+			}
+
+			//TODO: re-use these contexts instead of recreating them
+			var importEvalCtx = ctx.CreateImportEvalCtx (ToolsVersion, projectPath);
+
+			bool foundAny = false;
+
+			foreach (var filename in EvaluateImport (ctx, import, importEvalCtx, properties)) {
+				if (string.IsNullOrEmpty (filename)) {
+					continue;
+				}
+
+				var fi = new FileInfo (filename);
+				if (!fi.Exists) {
+					continue;
+				}
+
+				foundAny = true;
+
+				//TODO: guard against cyclic imports
+				yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, token);
+			}
+
+
+
+			if (!foundAny) {
 				LoggingService.LogWarning ($"Could not resolve MSBuild import '{import}'");
-				return null;
 			}
-
-			var fi = new FileInfo (filename);
-			if (!fi.Exists) {
-				return new Import (filename, DateTime.MinValue);
-			}
-
-			//TODO: guard against infinite recursion
-			return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, token);
 		}
 	}
 }
