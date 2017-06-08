@@ -29,8 +29,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="MonoDevelop.Addins" version="0.3.16" />
-    <PackageReference Include="MonoDevelop.Addins.GuiUnit" version="0.1.1" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.3.16" />
+    <PackageReference Include="MonoDevelop.Addins.GuiUnit" Version="0.1.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MSBuildEditorTesting.cs" />
