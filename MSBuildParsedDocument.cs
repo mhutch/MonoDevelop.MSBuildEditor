@@ -84,7 +84,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		MSBuildSdkResolver SdkResolver { get; set; }
+		public MSBuildSdkResolver SdkResolver { get; private set; }
 
 		internal static ParsedDocument ParseInternal (Ide.TypeSystem.ParseOptions options, CancellationToken token)
 		{

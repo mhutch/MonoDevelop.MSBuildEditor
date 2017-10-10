@@ -201,6 +201,51 @@ namespace MonoDevelop.MSBuildEditor
 			return null;
 		}
 
+		protected override Task<CompletionDataList> GetAttributeValueCompletions (IAttributedXObject attributedOb, XAttribute att, CancellationToken token)
+		{
+			var path = GetCurrentPath ();
+
+			var rr = ResolveElement (path);
+			if (rr == null) {
+				return null;
+			}
+
+			if ((rr.ElementType == MSBuildKind.Import || rr.ElementType == MSBuildKind.Project) && rr.AttributeName=="Sdk") {
+				return GetSdkCompletions (token);
+			}
+
+			return base.GetAttributeValueCompletions (attributedOb, att, token);
+		}
+
+		Task<CompletionDataList> GetSdkCompletions (CancellationToken token)
+		{
+			var list = new CompletionDataList ();
+			var doc = GetDocument ();
+			if (doc == null) {
+				return Task.FromResult (list);
+			}
+
+			var sdks = new HashSet<string> ();
+
+			var resolver = doc.SdkResolver;
+			foreach (var sdk in resolver.GetRegisteredSdks ()) {
+				if (sdks.Add (sdk.Name)) {
+					list.Add (System.IO.Path.GetFileName (sdk.Name));
+				}
+			}
+
+			//TODO: how can we find SDKs in the non-default locations?
+			return Task.Run (() => {
+				foreach (var d in System.IO.Directory.GetDirectories (resolver.DefaultSdkPath)) {
+					string name = System.IO.Path.GetFileName (d);
+					if (sdks.Add (name)) {
+						list.Add (name);
+					}
+				}
+				return list;
+			}, token);
+		}
+
 		static ResolveResult ResolveElement (IList<XObject> path)
 		{
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
