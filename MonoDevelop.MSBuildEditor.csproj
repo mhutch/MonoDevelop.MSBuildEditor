@@ -73,16 +73,19 @@
     <Compile Include="DocumentMSBuildVisitor.cs" />
     <Compile Include="MSBuildReferenceCollector.cs" />
     <Compile Include="MSBuildToolsVersion.cs" />
+    <Compile Include="MSBuildSdkResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoDevelop.Addins" Version="0.3.16" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.3.18" />
+    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />
     <AddinReference Include="MonoDevelop.SourceEditor2" />
     <AddinReference Include="MonoDevelop.DotNetCore" />
+    <AddinReference Include="MonoDevelop.AspNet" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />

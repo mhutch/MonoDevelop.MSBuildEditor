@@ -76,7 +76,7 @@ namespace MonoDevelop.MSBuildEditor
 			},
 			{
 				"Import", new MSBuildElement (MSBuildKind.Import,
-					attributes: new[] { "Condition", "Project" }
+					attributes: new[] { "Condition", "Project", "Sdk" }
 				)
 			},
 			{

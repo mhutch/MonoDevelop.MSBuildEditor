@@ -40,6 +40,8 @@ using MonoDevelop.Ide.Editor;
 using MonoDevelop.Projects.MSBuild;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
 using System.Linq;
+using MonoDevelop.Core.Assemblies;
+using Microsoft.Build.Framework;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -82,6 +84,8 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
+		MSBuildSdkResolver SdkResolver { get; set; }
+
 		internal static ParsedDocument ParseInternal (Ide.TypeSystem.ParseOptions options, CancellationToken token)
 		{
 			var doc = new MSBuildParsedDocument (options.FileName);
@@ -110,14 +114,38 @@ namespace MonoDevelop.MSBuildEditor
 			//we should fix this by changing the parser to use offsets for the tag locations
 			var textDoc = TextEditorFactory.CreateNewDocument (options.Content, options.FileName, MSBuildTextEditorExtension.MSBuildMimeType);
 
+			doc.SdkResolver = oldDoc?.SdkResolver ?? new MSBuildSdkResolver (Runtime.SystemAssemblyService.CurrentRuntime);
+
 			string projectPath = options.FileName;
-			doc.Context = MSBuildResolveContext.Create (options.FileName, doc.XDocument, textDoc, (ctx, imp, reg, props) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, imp, reg, props, token));
+			doc.Context = MSBuildResolveContext.Create (
+				options.FileName,
+				doc.XDocument,
+				textDoc,
+				doc.SdkResolver,
+				(ctx, imp, sdk, reg, sreg, props) => doc.ResolveToplevelImport (oldDoc, projectPath, ctx, imp, sdk, reg, sreg, props, token)
+			);
 
 			return doc;
 		}
 
 		static IEnumerable<string> EvaluateImport (MSBuildResolveContext resolveCtx, string import, MSBuildEvaluationContext importEvalCtx, Dictionary<string, List<string>> properties)
 		{
+			//TODO: support wildcards
+			if (import.IndexOf ('*') != -1) {
+				yield break;
+			}
+
+			//fast path for imports without properties, will generally be true for SDK imports
+			if (import.IndexOf ('$') < 0) {
+				yield return EvaluateImport (resolveCtx, import, null);
+				yield break;
+			}
+
+			if (properties == null) {
+				yield return EvaluateImport (resolveCtx, import, importEvalCtx);
+				yield break;
+			}
+
 			//ensure each of the properties is fully evaluated
 			foreach (var p in properties) {
 				if (p.Value != null) {
@@ -140,9 +168,9 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			//permute on properties for which we have multiple values
-			var propsToPermute = new List<Tuple<string,List<string>>> ();
 			var expr = new Expression ();
 			expr.Parse (import, ExpressionParser.ParseOptions.None);
+			var propsToPermute = new List<Tuple<string,List<string>>> ();
 			foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
 				if (properties.TryGetValue (prop.Name, out List<string> values) && values != null) {
 					if (values.Count > 1) {
@@ -179,17 +207,8 @@ namespace MonoDevelop.MSBuildEditor
 
 		static string EvaluateImport (MSBuildResolveContext ctx, string import, MSBuildEvaluationContext importEvalCtx)
 		{
-			string filename = importEvalCtx.Evaluate (import);
-
-			//TODO: support wildcards
-			if (filename.IndexOf ('*') != -1)
-				return null;
-
-			var basePath = Path.GetDirectoryName (ctx.Filename);
-
-			filename = MSBuildProjectService.FromMSBuildPath (basePath, filename);
-
-			return filename;
+			string filename = importEvalCtx != null ? importEvalCtx.Evaluate (import) : import;
+			return MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (ctx.Filename), filename);
 		}
 
 		Import ParseImport (Import import, string projectPath, CancellationToken token)
@@ -211,16 +230,37 @@ namespace MonoDevelop.MSBuildEditor
 			var textDoc = TextEditorFactory.CreateNewDocument (projectPath, MSBuildTextEditorExtension.MSBuildMimeType);
 			textDoc.Text = text;
 
-			import.ResolveContext = MSBuildResolveContext.Create (import.Filename, doc, textDoc, (ctx, imp, reg, props) => ResolveNestedImport (projectPath, ctx, imp, reg, props, token));
+			import.ResolveContext = MSBuildResolveContext.Create (
+				import.Filename,
+				doc,
+				textDoc,
+				SdkResolver,
+				(ctx, imp, sdk, reg, sreg, props) => ResolveNestedImport (projectPath, ctx, imp, sdk, reg, sreg, props, token)
+			);
 
 			return import;
 		}
 
-		IEnumerable<Import> ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion region, Dictionary<string, List<string>> properties, CancellationToken token)
+		IEnumerable<Import> ResolveToplevelImport (MSBuildParsedDocument oldDoc, string projectPath, MSBuildResolveContext ctx, string import, string sdk, DocumentRegion region, DocumentRegion sdkRegion, Dictionary<string, List<string>> properties, CancellationToken token)
 		{
 			if (string.IsNullOrWhiteSpace (import)) {
 				Add (new Error (ErrorType.Warning, "Empty value", region));
 				yield break;
+			}
+
+			if (sdk != null) {
+				if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
+					Add (new Error (ErrorType.Warning, "Invalid SDK reference", region));
+					yield break;
+				}
+
+				var sdkPath = SdkResolver.GetSdkPath (sdkRef, projectPath, null);
+				if (sdkPath == null) {
+					Add (new Error (ErrorType.Warning, $"Could not resolve SDK '{sdk}'", sdkRegion));
+					yield break;
+				}
+
+				import = sdkPath + "\\" + import;
 			}
 
 			//TODO: re-use these contexts instead of recreating them
@@ -254,10 +294,23 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		IEnumerable<Import> ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, DocumentRegion reg, Dictionary<string, List<string>> properties, CancellationToken token)
+		IEnumerable<Import> ResolveNestedImport (string projectPath, MSBuildResolveContext ctx, string import, string sdk, DocumentRegion region, DocumentRegion sdkRegion, Dictionary<string, List<string>> properties, CancellationToken token)
 		{
 			if (string.IsNullOrWhiteSpace (import)) {
 				yield break;
+			}
+
+			if (sdk != null) {
+				if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
+					yield break;
+				}
+
+				var sdkPath = SdkResolver.GetSdkPath (sdkRef, projectPath, null);
+				if (sdkPath == null) {
+					yield break;
+				}
+
+				import = sdkPath + "\\" + import;
 			}
 
 			//TODO: re-use these contexts instead of recreating them
@@ -280,8 +333,6 @@ namespace MonoDevelop.MSBuildEditor
 				//TODO: guard against cyclic imports
 				yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, token);
 			}
-
-
 
 			if (!foundAny) {
 				LoggingService.LogWarning ($"Could not resolve MSBuild import '{import}'");

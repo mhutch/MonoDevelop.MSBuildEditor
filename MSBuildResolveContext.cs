@@ -33,10 +33,11 @@ using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.Projects.MSBuild;
 using MonoDevelop.Xml.Dom;
+using Microsoft.Build.Framework;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, DocumentRegion location, Dictionary<string, List<string>> properties);
+	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, DocumentRegion importAttLocation, DocumentRegion sdkAttLocation, Dictionary<string, List<string>> properties);
 
 	class MSBuildResolveContext
 	{
@@ -48,16 +49,19 @@ namespace MonoDevelop.MSBuildEditor
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject, object> Annotations { get; } = new AnnotationTable<XObject, object> ();
 
-		MSBuildResolveContext (string filename)
+		public MSBuildSdkResolver SdkResolver { get; }
+
+		MSBuildResolveContext (string filename, MSBuildSdkResolver sdkResolver)
 		{
 			Filename = filename;
+			this.SdkResolver = sdkResolver;
 		}
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, ImportResolver resolveImport)
+		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, ImportResolver resolveImport)
 		{
-			var ctx = new MSBuildResolveContext (filename);
+			var ctx = new MSBuildResolveContext (filename, sdkResolver);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
 				//TODO: error
@@ -94,6 +98,24 @@ namespace MonoDevelop.MSBuildEditor
 			return properties;
 		}
 
+		string GetSdkPath (string sdk)
+		{
+			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
+				//TODO: squiggle the SDK
+				LoggingService.LogError ($"Could not parse SDK {sdk}");
+				return null;
+			}
+
+			var sdkPath = SdkResolver.GetSdkPath (sdkRef, Filename, null);
+			if (sdkPath == null) {
+				//TODO: squiggle the SDK
+				LoggingService.LogError ($"Did not find SDK {sdk}");
+				return null;
+			}
+
+			return sdkPath;
+		}
+
 		void ResolveSdks (XElement project, ImportResolver resolveImport)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
@@ -106,15 +128,21 @@ namespace MonoDevelop.MSBuildEditor
 				return;
 			}
 
-			foreach (var sdkPath in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
-				var propsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, sdksAtt.Region, null).FirstOrDefault ();
+			foreach (var sdk in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
+
+				var sdkPath = GetSdkPath (sdk);
+				if (sdkPath == null){
+					continue;
+				}
+
+				var propsPath = $"{sdkPath}\\Sdk.props";
+				var sdkProps = resolveImport (this, propsPath, null, sdksAtt.Region, DocumentRegion.Empty, null).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
 
-				var targetsPath = $"$(MSBuildSDKsPath)\\{sdkPath}\\Sdk\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, sdksAtt.Region, null).FirstOrDefault ();
+				var targetsPath = $"{sdkPath}\\Sdk.targets";
+				var sdkTargets = resolveImport (this, targetsPath, null, sdksAtt.Region, DocumentRegion.Empty, null).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
@@ -145,8 +173,9 @@ namespace MonoDevelop.MSBuildEditor
 			switch (msel.Kind) {
 			case MSBuildKind.Import:
 				var importAtt = el.Attributes [new XName ("Project")];
+				var sdkAtt = el.Attributes [new XName ("Sdk")];
 				if (importAtt != null) {
-					foreach (var import in resolveImport (this, importAtt?.Value, importAtt.Region, propertiesUsedByImports)) {
+					foreach (var import in resolveImport (this, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertiesUsedByImports)) {
 						Imports [import.Filename] = import;
 					}
 				}
@@ -419,18 +448,20 @@ namespace MonoDevelop.MSBuildEditor
 			var ctx = new MSBuildEvaluationContext ();
 
 			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
-			string binPath = runtime.GetMSBuildBinPath (toolsVersion.ToVersionString ());
+			string tvString = toolsVersion.ToVersionString ();
+			string binPath = runtime.GetMSBuildBinPath (tvString);
 			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
 			ctx.SetPropertyValue ("MSBuildToolsPath", binPath);
+			ctx.SetPropertyValue ("MSBuildToolsVersion", tvString);
 			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
 			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
 			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (Filename) + Path.DirectorySeparatorChar));
 
-			string sdksPath = Environment.GetEnvironmentVariable ("MSBuildSDKsPath");
-			if (sdksPath != null) {
-				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, sdksPath));
+			var defaultSdksPath = SdkResolver.DefaultSdkPath;
+			if (defaultSdksPath != null) {
+				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
 			}
 
 			return ctx;
