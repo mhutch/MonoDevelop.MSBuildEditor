@@ -24,6 +24,14 @@
 		</MimeType>
 	</Extension>
 
+    <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Mono" >
+        <Policies resource="MSBuildStylePolicy.xml" />
+    </Extension>
+
+    <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Default" >
+        <Policies resource="MSBuildStylePolicy.xml" />
+    </Extension>
+
 	<Extension path = "/MonoDevelop/TypeSystem/Parser">
 		<Parser
 			class = "MonoDevelop.MSBuildEditor.MSBuildDocumentParser"

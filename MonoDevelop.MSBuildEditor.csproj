@@ -77,6 +77,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
+    <EmbeddedResource Include="MSBuildStylePolicy.xml">
+      <LogicalName>MSBuildStylePolicy.xml</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoDevelop.Addins" Version="0.3.18" />

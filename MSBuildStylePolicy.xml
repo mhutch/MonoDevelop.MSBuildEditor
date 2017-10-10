@@ -1,0 +1,8 @@
+﻿<TextStylePolicy scope="application/x-msbuild">
+    <FileWidth>120</FileWidth>
+    <TabWidth>2</TabWidth>
+    <TabsToSpaces>True</TabsToSpaces>
+    <NoTabsAfterNonTabs>True</NoTabsAfterNonTabs>
+    <RemoveTrailingWhitespace>True</RemoveTrailingWhitespace>
+    <EolMarker>Native</EolMarker>
+</TextStylePolicy>
