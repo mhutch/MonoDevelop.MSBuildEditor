@@ -335,7 +335,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (!foundAny) {
-				LoggingService.LogWarning ($"Could not resolve MSBuild import '{import}'");
+				LoggingService.LogDebug ($"Could not resolve MSBuild import '{import}'");
 			}
 		}
 	}
