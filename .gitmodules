@@ -1,0 +1,3 @@
+[submodule "external/ProjFileTools"]
+	path = external/ProjFileTools
+	url = https://github.com/mhutch/ProjFileTools.git

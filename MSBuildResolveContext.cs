@@ -37,7 +37,7 @@ using Microsoft.Build.Framework;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, DocumentRegion importAttLocation, DocumentRegion sdkAttLocation, Dictionary<string, List<string>> properties);
+	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, DocumentRegion importAttLocation, DocumentRegion sdkAttLocation, PropertyValueCollector propertyVals);
 
 	class MSBuildResolveContext
 	{
@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, ImportResolver resolveImport)
+		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
 			var ctx = new MSBuildResolveContext (filename, sdkResolver);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
@@ -68,34 +68,36 @@ namespace MonoDevelop.MSBuildEditor
 				return ctx;
 			}
 
-			ctx.ResolveSdks (project, resolveImport);
+			var sdkPaths = ctx.ResolveSdks (project).ToList ();
 
 			var pel = MSBuildElement.Get ("Project");
 
-			var propertiesUsedByImports = GetPropertiesUsedByImports (project);
+			GetPropertiesUsedByImports (propVals, project);
+
+			ctx.AddSdkProps (sdkPaths, propVals, resolveImport);
 
 			//recursively resolve the document
 			foreach (var el in project.Elements) {
-				ctx.Populate (el, pel, textDocument, propertiesUsedByImports, resolveImport);
+				ctx.Populate (el, pel, textDocument, propVals, resolveImport);
 			}
+
+			ctx.AddSdkTargets (sdkPaths, propVals, resolveImport);
 
 			return ctx;
 		}
 
-		static Dictionary<string,List<string>> GetPropertiesUsedByImports (XElement project)
+		static void GetPropertiesUsedByImports (PropertyValueCollector propertyVals, XElement project)
 		{
-			var properties = new Dictionary<string, List<string>> ();
 			foreach (var el in project.Elements.Where (el => el.Name.Name == "Import")) {
 				var impAtt = el.Attributes.Get (new XName ("Project"), true);
 				if (impAtt != null) {
 					var expr = new Expression ();
 					expr.Parse (impAtt.Value, ParseOptions.None);
 					foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
-						properties [prop.Name] = null;
+						propertyVals.Mark (prop.Name);
 					}
 				}
 			}
-			return properties;
 		}
 
 		string GetSdkPath (string sdk)
@@ -116,40 +118,49 @@ namespace MonoDevelop.MSBuildEditor
 			return sdkPath;
 		}
 
-		void ResolveSdks (XElement project, ImportResolver resolveImport)
+		IEnumerable<(string,DocumentRegion)> ResolveSdks (XElement project)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
-				return;
+				yield break;
 			}
 
 			string sdks = sdksAtt?.Value;
 			if (string.IsNullOrEmpty (sdks)) {
-				return;
+				yield break;
 			}
 
 			foreach (var sdk in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
-
 				var sdkPath = GetSdkPath (sdk);
-				if (sdkPath == null){
-					continue;
+				if (sdkPath != null) {
+					yield return (sdkPath, sdksAtt.Region);
 				}
+			}
+		}
 
+		void AddSdkProps(IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		{
+			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var propsPath = $"{sdkPath}\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, null, sdksAtt.Region, DocumentRegion.Empty, null).FirstOrDefault ();
+				var sdkProps = resolveImport (this, propsPath, null, sdkLoc, DocumentRegion.Empty, propVals).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
+			}
+		}
 
+		void AddSdkTargets(IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		{
+			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var targetsPath = $"{sdkPath}\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, null, sdksAtt.Region, DocumentRegion.Empty, null).FirstOrDefault ();
+				var sdkTargets = resolveImport (this, targetsPath, null, sdkLoc, DocumentRegion.Empty, propVals).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
 			}
 		}
 
-		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, Dictionary<string, List<string>> propertiesUsedByImports, ImportResolver resolveImport)
+		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, PropertyValueCollector propertyVals, ImportResolver resolveImport)
 		{
 			if (el.Name.Prefix != null)
 				return;
@@ -167,7 +178,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			if (!msel.IsSpecial) {
 				foreach (var child in el.Nodes.OfType<XElement> ())
-					Populate (child, msel, textDocument, propertiesUsedByImports, resolveImport);
+					Populate (child, msel, textDocument, propertyVals, resolveImport);
 			}
 
 			switch (msel.Kind) {
@@ -175,7 +186,7 @@ namespace MonoDevelop.MSBuildEditor
 				var importAtt = el.Attributes [new XName ("Project")];
 				var sdkAtt = el.Attributes [new XName ("Sdk")];
 				if (importAtt != null) {
-					foreach (var import in resolveImport (this, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertiesUsedByImports)) {
+					foreach (var import in resolveImport (this, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertyVals)) {
 						Imports [import.Filename] = import;
 					}
 				}
@@ -204,13 +215,7 @@ namespace MonoDevelop.MSBuildEditor
 				if (!Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
 					Properties.Add (name, new PropertyInfo (name, null));
 				}
-				if (propertiesUsedByImports.TryGetValue (name, out List<string> values) && el.IsClosed && !el.IsSelfClosing) {
-					if (values == null) {
-						propertiesUsedByImports [name] = values = new List<string> ();
-					}
-					var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin);
-					values.Add (val);
-				}
+				propertyVals.Collect (name, el, textDocument);
 				return;
 			case MSBuildKind.Target:
 				foreach (var att in el.Attributes) {
@@ -252,30 +257,25 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			//TODO: InvalidExpressionError
 
-			var pr = val as PropertyReference;
-			if (pr != null) {
+			if (val is PropertyReference pr) {
 				if (!Properties.ContainsKey (pr.Name) && !Builtins.Properties.ContainsKey (pr.Name)) {
 					Properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
 				}
 				return;
 			}
 
-			var ir = val as ItemReference;
-			if (ir != null) {
-				ItemInfo item;
-				if (!Items.TryGetValue (ir.ItemName, out item))
+			if (val is ItemReference ir) {
+				if (!Items.TryGetValue (ir.ItemName, out ItemInfo item))
 					Items [ir.ItemName] = item = new ItemInfo (ir.ItemName, null);
 				if (ir.Transform != null)
 					ExtractReferences (ir.Transform);
 				return;
 			}
 
-			var mr = val as MetadataReference;
-			if (mr != null) {
+			if (val is MetadataReference mr) {
 				//TODO: unqualified metadata references
 				if (mr.ItemName != null && !Builtins.Metadata.ContainsKey (mr.MetadataName)) {
-					ItemInfo item;
-					if (!Items.TryGetValue (mr.ItemName, out item))
+					if (!Items.TryGetValue (mr.ItemName, out ItemInfo item))
 						Items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
 					if (!item.Metadata.ContainsKey (mr.MetadataName)) {
 						item.Metadata.Add (mr.MetadataName, new MetadataInfo (mr.MetadataName, null));
@@ -284,8 +284,7 @@ namespace MonoDevelop.MSBuildEditor
 				return;
 			}
 
-			var mir = val as MemberInvocationReference;
-			if (mir != null)
+			if (val is MemberInvocationReference mir)
 				ExtractReferences (mir.Instance);
 		}
 
@@ -333,8 +332,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		IEnumerable<ItemInfo> GetAllItemDefinitions (string name)
 		{
-			ItemInfo item;
-			if (Items.TryGetValue (name, out item))
+			if (Items.TryGetValue (name, out ItemInfo item))
 				yield return item;
 
 			//collect all imports' definitions for this item
@@ -362,6 +360,13 @@ namespace MonoDevelop.MSBuildEditor
 						yield return m.Value;
 				}
 			}
+
+			//special case some well known metadata
+			//TODO: make this a schema or something
+			if (itemName == "PackageReference") {
+				if (metadataNames.Add ("Version"))
+					yield return new MetadataInfo ("Version", "The version of the package");
+			}
 		}
 
 		public IEnumerable<TaskInfo> GetTasks ()
@@ -381,10 +386,9 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IEnumerable<TaskInfo> GetTask (string name)
 		{
-			TaskInfo task;
-			if (Tasks.TryGetValue (name, out task))
+			if (Tasks.TryGetValue (name, out TaskInfo task))
 				yield return task;
-			
+
 			foreach (var child in GetDescendentContexts ()) {
 				if (child.Tasks.TryGetValue (name, out task)) {
 					yield return task;
@@ -438,33 +442,6 @@ namespace MonoDevelop.MSBuildEditor
 		static bool NotPrivate (string arg)
 		{
 			return arg [0] != '_';
-		}
-
-		public MSBuildEvaluationContext CreateImportEvalCtx (MSBuildToolsVersion toolsVersion, string projectPath)
-		{
-			// MSBuildEvaluationContext can only populate these properties fron an MSBuildProject and we don't have one
-			// OTOH this isn't a full evaluation anyway. Just set up a bunch of properties commonly used for imports.
-			// TODO: add more commonly used properties
-			var ctx = new MSBuildEvaluationContext ();
-
-			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
-			string tvString = toolsVersion.ToVersionString ();
-			string binPath = runtime.GetMSBuildBinPath (tvString);
-			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsVersion", tvString);
-			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
-			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
-			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
-			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
-			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (Filename) + Path.DirectorySeparatorChar));
-
-			var defaultSdksPath = SdkResolver.DefaultSdkPath;
-			if (defaultSdksPath != null) {
-				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
-			}
-
-			return ctx;
 		}
 	}
 }

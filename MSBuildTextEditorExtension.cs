@@ -26,6 +26,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Ide.CodeCompletion;
@@ -33,14 +35,34 @@ using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
-using System.Linq;
-using System.Text;
+using ProjectFileTools.NuGetSearch.Contracts;
+using ProjectFileTools.NuGetSearch.Feeds;
+using ProjectFileTools.NuGetSearch.Search;
+using ProjectFileTools.NuGetSearch.Feeds.Disk;
+using ProjectFileTools.NuGetSearch.Feeds.Web;
+using ProjectFileTools.NuGetSearch.IO;
 
 namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildTextEditorExtension : BaseXmlEditorExtension
 	{
 		public static readonly string MSBuildMimeType = "application/x-msbuild";
+
+		public IPackageSearchManager PackageSearchManager { get; set; }
+
+		protected override void Initialize ()
+		{
+			base.Initialize ();
+
+			//we don't have a MEF composition here, set it up manually
+			PackageSearchManager = new PackageSearchManager (
+				new MonoDevelopPackageFeedRegistry (),
+				new PackageFeedFactorySelector (new IPackageFeedFactory [] {
+					new NuGetDiskFeedFactory (new FileSystem()),
+					new NuGetV3ServiceFeedFactory (new WebRequestFactory()),
+				})
+			);
+		}
 
 		MSBuildParsedDocument GetDocument ()
 		{
@@ -134,7 +156,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var doc = GetDocument ();
 			if (doc == null)
-				return new BaseInfo[0];
+				return new BaseInfo [0];
 
 			if (rr.ElementType == MSBuildKind.Item) {
 				return doc.Context.GetItemMetadata (rr.ElementName, false);
@@ -210,8 +232,44 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			if ((rr.ElementType == MSBuildKind.Import || rr.ElementType == MSBuildKind.Project) && rr.AttributeName=="Sdk") {
+			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;;
+			int startIdx = Editor.CaretOffset - triggerLength;
+
+			if ((rr.ElementType == MSBuildKind.Import || rr.ElementType == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
 				return GetSdkCompletions (token);
+			}
+
+			if (rr.ElementType == MSBuildKind.Item && rr.ElementName == "PackageReference") {
+				var tfm = GetDocument ().Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
+				if (rr.AttributeName == "Include") {
+					string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
+					if(string.IsNullOrWhiteSpace (name)) {
+						return null;
+					}
+					return Task.FromResult<CompletionDataList> (
+						new PackageSearchCompletionDataList (
+							name,
+							(n) => PackageSearchManager.SearchPackageNames (n.ToLower (), tfm)
+						) {
+							TriggerWordStart = startIdx,
+							TriggerWordLength = triggerLength
+						}
+					);
+				}
+				if (rr.AttributeName == "Version") {
+					var name = path.OfType<XElement> ().Last ().Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
+					if (string.IsNullOrEmpty (name)) {
+						return null;
+					}
+					return Task.FromResult<CompletionDataList> (
+						new PackageSearchCompletionDataList (
+							PackageSearchManager.SearchPackageVersions (name, tfm)
+						) {
+							TriggerWordStart = startIdx,
+							TriggerWordLength = triggerLength
+						}
+					);
+				}
 			}
 
 			return base.GetAttributeValueCompletions (attributedOb, att, token);
