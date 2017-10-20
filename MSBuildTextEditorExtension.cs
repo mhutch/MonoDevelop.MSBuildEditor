@@ -129,29 +129,30 @@ namespace MonoDevelop.MSBuildEditor
 
 			string GetDescription ()
 			{
-				var baseDesc = base.Description;
+				return AppendSeenIn (description);
+			}
 
-				if (doc == null || !(info is PropertyInfo prop) || prop.Reserved) {
-					return baseDesc;
+			string AppendSeenIn (string baseDesc)
+			{
+				if (doc == null) {
+					return description;
 				}
 
-				var seenIn = doc.Context.GetFilesPropertySeenIn (prop.Name).ToList ();
-				if (seenIn.Count == 0) {
-					return baseDesc;
-				}
+				IEnumerable<string> seenIn = doc.Context.GetFilesSeenIn (info);
+				StringBuilder sb = null;
 
-				var sb = new StringBuilder ();
-				if (!string.IsNullOrEmpty (baseDesc)) {
-					sb.AppendLine (baseDesc);
-					sb.AppendLine ();
-				}
-
-				sb.AppendLine ("Seen in: ");
 				foreach (var s in seenIn) {
+					if (sb == null) {
+						sb = new StringBuilder ();
+						if (!string.IsNullOrEmpty (baseDesc)) {
+							sb.AppendLine (baseDesc);
+						}
+						sb.AppendLine ("Seen in: ");
+						sb.AppendLine ();
+					}
 					sb.AppendLine ($"    {s}");
 				}
-
-				return sb.ToString ();
+				return sb?.ToString () ?? baseDesc;
 			}
 		}
 

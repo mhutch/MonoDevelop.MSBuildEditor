@@ -428,19 +428,32 @@ namespace MonoDevelop.MSBuildEditor
 		}
 
 		/// <summary>
-		/// Gets the files in which the given property has been seen.
+		/// Gets the files in which the given info has been seen.
 		/// </summary>
-		public IEnumerable<string> GetFilesPropertySeenIn (string name)
+		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
 		{
-			if (Properties.ContainsKey (name)) {
-				yield return Filename;
+			var files = new HashSet<string> ();
+			if (WasSeen (info)) {
+				files.Add (Filename);
 			}
 
 			foreach (var child in GetDescendentContexts ()) {
-				if (child.Properties.ContainsKey (name)) {
-					yield return child.Filename;
+				if (child.WasSeen (info)) {
+					files.Add (child.Filename);
 				}
 			}
+			return files;
+		}
+
+		bool WasSeen (BaseInfo info)
+		{
+			if (info is PropertyInfo)
+				return Properties.ContainsKey (info.Name);
+			if (info is ItemInfo)
+				return Items.ContainsKey (info.Name);
+			if (info is TaskInfo)
+				return Tasks.ContainsKey (info.Name);
+			return false;
 		}
 
 		//by convention, properties and items starting with an underscore are "private"
