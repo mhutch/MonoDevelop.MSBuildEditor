@@ -132,6 +132,7 @@
     <PackageReference Include="MonoDevelop.Addins">
       <Version>0.4.1</Version>
     </PackageReference>
+    <AddinReference Include="MonoDevelop.Refactoring" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />

@@ -41,6 +41,9 @@ using ProjectFileTools.NuGetSearch.Search;
 using ProjectFileTools.NuGetSearch.Feeds.Disk;
 using ProjectFileTools.NuGetSearch.Feeds.Web;
 using ProjectFileTools.NuGetSearch.IO;
+using MonoDevelop.Components.Commands;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -232,7 +235,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;;
+			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;
 			int startIdx = Editor.CaretOffset - triggerLength;
 
 			if ((rr.ElementType == MSBuildKind.Import || rr.ElementType == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
@@ -243,7 +246,7 @@ namespace MonoDevelop.MSBuildEditor
 				var tfm = GetDocument ().Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
 				if (rr.AttributeName == "Include") {
 					string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
-					if(string.IsNullOrWhiteSpace (name)) {
+					if (string.IsNullOrWhiteSpace (name)) {
 						return null;
 					}
 					return Task.FromResult<CompletionDataList> (
@@ -441,6 +444,55 @@ namespace MonoDevelop.MSBuildEditor
 			foreach (var prop in doc.Context.GetProperties (true)) {
 				yield return new CompletionData (prop.Name, MonoDevelop.Ide.Gui.Stock.Class, prop.Description);
 			}
+		}
+
+		Import GetImportAtLocation (DocumentLocation location)
+		{
+			var doc = GetDocument ();
+			if (doc == null) {
+				return null;
+			}
+
+			var xobj = Find (doc.XDocument, location);
+			if (xobj == null) {
+				return null;
+			}
+
+			return doc.Context.Annotations.Get<Import> (xobj);
+		}
+
+		[CommandHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
+		void GotoDefinition()
+		{
+			var import = GetImportAtLocation (Editor.CaretLocation);
+			if (import != null) {
+				//FIXME: can we open the doc with the same context i.e. as a child of this?
+				// That would improve drilldown and find refs accuracy but would run into issues
+				// when drilling down into the same child from multiple parents.
+				// We'd probably need something like the shared projects context dropdown.
+				IdeApp.Workbench.OpenDocument (import.Filename, this.DocumentContext.Project, true);
+			}
+		}
+
+		[CommandUpdateHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
+		void UpdateGotoDefinition (CommandInfo info)
+		{
+			info.Enabled = GetImportAtLocation (Editor.CaretLocation) != null;
+		}
+
+		//FIXME: binary search
+		XObject Find (XContainer container, DocumentLocation location)
+		{
+			var node = container.AllDescendentNodes.FirstOrDefault (n => n.Region.Contains (location));
+			if (node != null) {
+				if (node is IAttributedXObject attContainer) {
+					var att = attContainer.Attributes.FirstOrDefault (n => n.Region.Contains (location));
+					if (att != null) {
+						return att;
+					}
+				}
+			}
+			return node;
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuildEditor
 {
 	class DocumentMSBuildVisitor : MSBuildReferenceCollector
 	{
-		AnnotationTable<XObject, object> annotations = new AnnotationTable<XObject, object> ();
+		AnnotationTable<XObject> annotations = new AnnotationTable<XObject> ();
 		MSBuildParsedDocument doc;
 
 		protected override void VisitUnknown (XElement element)

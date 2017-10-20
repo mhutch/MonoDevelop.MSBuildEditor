@@ -28,32 +28,28 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-using MonoDevelop.Ide.TypeSystem;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor;
-
 namespace MonoDevelop.MSBuildEditor
 {
-	class AnnotationTable<T,U> where T : class
+	class AnnotationTable<T> where T : class
 	{
-		ConditionalWeakTable<T, object[]> annotations = new ConditionalWeakTable<T, object[]> ();
+		//this is optimized for a single value for each key, hence it uses object[] rather than list<object>
+		readonly ConditionalWeakTable<T, object []> annotations = new ConditionalWeakTable<T, object []> ();
 
-		public U Get (T o)
+		public U Get<U> (T o)
 		{
-			object[] values;
-			if (!annotations.TryGetValue (o, out values))
+			if (!annotations.TryGetValue (o, out object [] values))
 				return default (U);
 			return values.OfType<U> ().FirstOrDefault ();
 		}
 
-		public void Add (T o, U annotation)
+		public void Add<U> (T o, U annotation)
 		{
 			if (Equals (annotation, default (T)))
 				return;
-
-			object[] values;
-			if (!annotations.TryGetValue (o, out values)) {
-				values = new object[1];
+			
+			if (!annotations.TryGetValue (o, out object [] values)) {
+				values = new object [1];
+				annotations.Add (o, values);
 			} else {
 				var idx = Array.FindIndex (values, obj => obj is T);
 				if (idx > -1) {
@@ -63,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor
 				Array.Resize (ref values, values.Length + 1);
 			}
 
-			values[values.Length - 1] = annotation;
+			values [values.Length - 1] = annotation;
 		}
 	}
 

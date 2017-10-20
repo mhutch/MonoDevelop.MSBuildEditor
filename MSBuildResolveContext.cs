@@ -26,12 +26,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
-using MonoDevelop.Projects.MSBuild;
 using MonoDevelop.Xml.Dom;
 using Microsoft.Build.Framework;
 
@@ -47,41 +45,43 @@ namespace MonoDevelop.MSBuildEditor
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
-		public AnnotationTable<XObject, object> Annotations { get; } = new AnnotationTable<XObject, object> ();
+		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 
 		public MSBuildSdkResolver SdkResolver { get; }
+		public bool IsToplevel { get;  }
 
-		MSBuildResolveContext (string filename, MSBuildSdkResolver sdkResolver)
+		MSBuildResolveContext (string filename, bool isToplevel, MSBuildSdkResolver sdkResolver)
 		{
 			Filename = filename;
-			this.SdkResolver = sdkResolver;
+			SdkResolver = sdkResolver;
+			IsToplevel = isToplevel;
 		}
 
 		public string Filename { get; }
 
-		public static MSBuildResolveContext Create (string filename, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
+		public static MSBuildResolveContext Create (string filename, bool isToplevel, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
-			var ctx = new MSBuildResolveContext (filename, sdkResolver);
+			var ctx = new MSBuildResolveContext (filename, isToplevel, sdkResolver);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
 				//TODO: error
 				return ctx;
 			}
 
-			var sdkPaths = ctx.ResolveSdks (project).ToList ();
+			var sdks = ctx.ResolveSdks (project).ToList ();
 
 			var pel = MSBuildElement.Get ("Project");
 
 			GetPropertiesUsedByImports (propVals, project);
 
-			ctx.AddSdkProps (sdkPaths, propVals, resolveImport);
+			ctx.AddSdkProps (sdks, propVals, resolveImport);
 
 			//recursively resolve the document
 			foreach (var el in project.Elements) {
 				ctx.Populate (el, pel, textDocument, propVals, resolveImport);
 			}
 
-			ctx.AddSdkTargets (sdkPaths, propVals, resolveImport);
+			ctx.AddSdkTargets (sdks, propVals, resolveImport);
 
 			return ctx;
 		}
@@ -108,6 +108,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
+			//FIXME: filename should be the root project, not this file
 			var sdkPath = SdkResolver.GetSdkPath (sdkRef, Filename, null);
 			if (sdkPath == null) {
 				//TODO: squiggle the SDK
@@ -130,6 +131,7 @@ namespace MonoDevelop.MSBuildEditor
 				yield break;
 			}
 
+			//FIXME pin the regions down a little more
 			foreach (var sdk in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
 				var sdkPath = GetSdkPath (sdk);
 				if (sdkPath != null) {
@@ -188,6 +190,9 @@ namespace MonoDevelop.MSBuildEditor
 				if (importAtt != null) {
 					foreach (var import in resolveImport (this, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertyVals)) {
 						Imports [import.Filename] = import;
+						if (IsToplevel) {
+							Annotations.Add (importAtt, import);
+						}
 					}
 				}
 				return;

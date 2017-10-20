@@ -118,6 +118,7 @@ namespace MonoDevelop.MSBuildEditor
 			string projectPath = options.FileName;
 			doc.Context = MSBuildResolveContext.Create (
 				options.FileName,
+				true,
 				doc.XDocument,
 				textDoc,
 				doc.SdkResolver,
@@ -151,6 +152,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			import.ResolveContext = MSBuildResolveContext.Create (
 				import.Filename,
+				false,
 				doc,
 				textDoc,
 				SdkResolver,
