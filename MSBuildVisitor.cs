@@ -131,6 +131,9 @@ namespace MonoDevelop.MSBuildEditor
 				case "update":
 					ExtractReferences (att);
 					continue;
+				case "condition":
+					//already handled in VisitResolved
+					continue;
 				}
 				VisitMetadataAttribute (att, element.Name.Name, att.Name.Name);
 			}
