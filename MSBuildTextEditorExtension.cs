@@ -36,6 +36,7 @@ using MonoDevelop.Core;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.FindInFiles;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
@@ -460,7 +461,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			var xobj = Find (doc.XDocument, location);
+			var xobj = FindNodeAtLocation (doc.XDocument, location);
 			if (xobj == null) {
 				return null;
 			}
@@ -488,7 +489,7 @@ namespace MonoDevelop.MSBuildEditor
 		}
 
 		//FIXME: binary search
-		XObject Find (XContainer container, DocumentLocation location)
+		XObject FindNodeAtLocation (XContainer container, DocumentLocation location)
 		{
 			var node = container.AllDescendentNodes.FirstOrDefault (n => n.Region.Contains (location));
 			if (node != null) {
@@ -500,6 +501,65 @@ namespace MonoDevelop.MSBuildEditor
 				}
 			}
 			return node;
+		}
+
+		[CommandHandler (Refactoring.RefactoryCommands.FindReferences)]
+		void FindReferences ()
+		{
+			var path = GetCurrentPath ();
+			var rr = ResolveElement (path);
+			var doc = GetDocument ();
+
+			var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true);
+
+			var tasks = new List<Task> ();
+
+			foreach (var import in doc.Context.GetDescendentImports ()) {
+				tasks.Add (Task.Run (() => {
+					try {
+						var xmlParser = new XmlParser (new XmlRootState (), true);
+						string text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
+						xmlParser.Parse (new StringReader (text));
+						var xdoc = xmlParser.Nodes.GetRoot ();
+						var textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildMimeType);
+						textDoc.Text = text;
+						FindReferences (monitor, rr, import.Filename, xdoc, textDoc);
+					} catch (Exception ex) {
+						monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
+						LoggingService.LogError ($"Error searching MSBuild file {import.Filename}", ex);
+					}
+				}));
+			}
+
+			tasks.Add (Task.Run (() => {
+				try {
+					FindReferences (monitor, rr, doc.FileName, doc.XDocument, TextEditorFactory.CreateNewDocument (doc.Text, doc.FileName, MSBuildMimeType));
+				} catch (Exception ex) {
+					monitor.ReportError ($"Error searching file {Path.GetFileName (doc.FileName)}", ex);
+					LoggingService.LogError ($"Error searching MSBuild file {doc.FileName}", ex);
+				}
+			}));
+
+			Task.WhenAll (tasks).ContinueWith (t => monitor?.Dispose ());
+		}
+
+		void FindReferences (SearchProgressMonitor monitor, ResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
+		{
+			var collector = MSBuildReferenceCollector.Create (rr.ElementType.Value, rr.ElementName, rr.ParentName);
+			collector.Run (filename, doc, textDoc);
+			var fileProvider = new FileProvider (filename);
+			if (collector.Results.Count > 0) {
+				monitor.ReportResults (collector.Results.Select (r => new SearchResult (fileProvider, r.Offset, r.Length)));
+			}
+		}
+
+		[CommandUpdateHandler (Refactoring.RefactoryCommands.FindReferences)]
+		void UpdateFindReferences (CommandInfo info)
+		{
+			var path = GetCurrentPath ();
+			var rr = ResolveElement (path);
+
+			info.Enabled = MSBuildReferenceCollector.CanCreate (rr?.ElementType, rr?.ElementName);
 		}
 	}
 }
