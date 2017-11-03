@@ -121,20 +121,29 @@ namespace MonoDevelop.MSBuildEditor
 		protected virtual void VisitItem (XElement element)
 		{
 			foreach (var att in element.Attributes) {
+				if (att.Name.HasPrefix) {
+					continue;
+				}
 				switch (att.Name.Name) {
 				case "Include":
 				case "Exclude":
 				case "Remove":
 				case "Update":
 					ExtractReferences (att);
-					break;
+					continue;
 				}
+				VisitMetadataAttribute (att, element.Name.Name, att.Name.Name);
 			}
 		}
 
 		protected virtual void VisitMetadata (XElement element, string itemName, string metadataName)
 		{
 			ExtractReferences (element);
+		}
+
+		protected virtual void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
+		{
+			ExtractReferences (attribute);
 		}
 
 		protected virtual void VisitProperty (XElement element)

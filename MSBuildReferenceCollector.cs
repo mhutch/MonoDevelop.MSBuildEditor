@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuildEditor
 		}
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, System.StringComparison.OrdinalIgnoreCase);
-		protected bool IsMatch (XElement element) => IsMatch (element.Name.Name);
+		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
 
 		protected void AddResult(DocumentRegion region)
 		{
@@ -157,6 +157,14 @@ namespace MonoDevelop.MSBuildEditor
 				AddResult (element.Region);
 			}
 			base.VisitMetadata (element, itemName, metadataName);
+		}
+
+		protected override void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
+		{
+			if (IsMatch (attribute) && IsItemNameMatch (itemName)) {
+				AddResult (attribute.Region);
+			}
+			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
 
 		protected override void VisitMetadataReference (XObject parent, string itemName, string metadataName)

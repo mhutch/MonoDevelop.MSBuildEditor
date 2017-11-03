@@ -81,6 +81,15 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitMetadata (element, itemName, metadataName);
 		}
 
+		protected override void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
+		{
+			var item = ctx.Items [itemName];
+			if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
+				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+			}
+			base.VisitMetadataAttribute (attribute, itemName, metadataName);
+		}
+
 		protected override void VisitItemReference (XObject parent, string itemName)
 		{
 			base.VisitItemReference (parent, itemName);
