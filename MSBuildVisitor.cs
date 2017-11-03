@@ -124,11 +124,11 @@ namespace MonoDevelop.MSBuildEditor
 				if (att.Name.HasPrefix) {
 					continue;
 				}
-				switch (att.Name.Name) {
-				case "Include":
-				case "Exclude":
-				case "Remove":
-				case "Update":
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "include":
+				case "exclude":
+				case "remove":
+				case "update":
 					ExtractReferences (att);
 					continue;
 				}
@@ -154,10 +154,12 @@ namespace MonoDevelop.MSBuildEditor
 		protected virtual void VisitTarget (XElement element)
 		{
 			foreach (var att in element.Attributes) {
-				switch (att.Name.Name) {
-				case "DependsOnTargets":
-				case "BeforeTargets":
-				case "AfterTargets":
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "dependsontargets":
+				case "beforetargets":
+				case "aftertargets":
+				case "inputs":
+				case "outputs":
 					ExtractReferences (att);
 					break;
 				}
@@ -167,7 +169,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected virtual void VisitImport (XElement element)
 		{
 			foreach (var att in element.Attributes) {
-				if (att.Name.Name == "Project") {
+				if (string.Equals (att.Name.Name, "Project", StringComparison.OrdinalIgnoreCase)) {
 					ExtractReferences (att);
 				}
 			}

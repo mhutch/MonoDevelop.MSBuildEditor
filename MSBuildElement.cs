@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuildEditor
 			return result;
 		}
 
-		static readonly Dictionary<string,MSBuildElement> builtin = new Dictionary<string, MSBuildElement> {
+		static readonly Dictionary<string,MSBuildElement> builtin = new Dictionary<string, MSBuildElement> (StringComparer.OrdinalIgnoreCase) {
 			{
 				"Choose", new MSBuildElement (MSBuildKind.Choose,
 					children: new[] { "Otherwise", "When" }
