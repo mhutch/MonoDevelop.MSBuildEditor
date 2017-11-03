@@ -90,14 +90,14 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
 
-		protected override void VisitItemReference (XObject parent, string itemName)
+		protected override void VisitItemReference (string itemName, int start, int length)
 		{
-			base.VisitItemReference (parent, itemName);
+			base.VisitItemReference (itemName, start, length);
 		}
 
-		protected override void VisitMetadataReference (XObject parent, string itemName, string metadataName)
+		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
 		{
-			base.VisitMetadataReference (parent, itemName, metadataName);
+			base.VisitMetadataReference (itemName, metadataName, start, length);
 		}
 
 		protected override void VisitProperty (XElement element)
@@ -111,9 +111,9 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitProperty (element);
 		}
 
-		protected override void VisitPropertyReference (XObject parent, string propertyName)
+		protected override void VisitPropertyReference (string propertyName, int start, int length)
 		{
-			base.VisitPropertyReference (parent, propertyName);
+			base.VisitPropertyReference (propertyName, start, length);
 		}
 
 		protected override void VisitResolved (XElement element, MSBuildElement resolved)

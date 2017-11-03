@@ -44,12 +44,14 @@ namespace MonoDevelop.MSBuildEditor
 			Name = name;
 		}
 
-		protected bool IsMatch (string name) => string.Equals (name, Name, System.StringComparison.OrdinalIgnoreCase);
+		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
 
 		protected void AddResult(DocumentRegion region)
 		{
-			Results.Add ((ConvertLocation (region.Begin), ConvertLocation (region.End)));
+			var begin = ConvertLocation (region.Begin);
+			var end = ConvertLocation (region.End);
+			Results.Add ((begin, end - begin));
 		}
 
 		public static bool CanCreate (MSBuildKind? kind, string name)
@@ -95,12 +97,12 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitItem (element);
 		}
 
-		protected override void VisitItemReference (XObject parent, string itemName)
+		protected override void VisitItemReference (string itemName, int start, int length)
 		{
 			if (IsMatch (itemName)) {
-				AddResult (parent.Region);
+				Results.Add ((start, length));
 			}
-			base.VisitItemReference (parent, itemName);
+			base.VisitItemReference (itemName, start, length);
 		}
 	}
 
@@ -118,12 +120,12 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitProperty (element);
 		}
 
-		protected override void VisitPropertyReference (XObject parent, string propertyName)
+		protected override void VisitPropertyReference (string propertyName, int start, int length)
 		{
 			if (IsMatch (propertyName)) {
-				AddResult (parent.Region);
+				Results.Add ((start, length));
 			}
-			base.VisitPropertyReference (parent, propertyName);
+			base.VisitPropertyReference (propertyName, start, length);
 		}
 	}
 
@@ -167,12 +169,12 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
 
-		protected override void VisitMetadataReference (XObject parent, string itemName, string metadataName)
+		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
 		{
 			if (IsMatch (metadataName) && IsItemNameMatch (itemName)) {
-				AddResult (parent.Region);
+				Results.Add ((start, length));
 			}
-			base.VisitMetadataReference (parent, itemName, metadataName);
+			base.VisitMetadataReference (itemName, metadataName, start, length);
 		}
 
 		bool IsItemNameMatch (string name) => string.Equals (name, itemName, StringComparison.OrdinalIgnoreCase);

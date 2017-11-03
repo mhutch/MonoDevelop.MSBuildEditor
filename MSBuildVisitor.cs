@@ -178,76 +178,82 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		protected virtual void VisitItemReference (XObject parent, string itemName)
+		protected virtual void VisitItemReference (string itemName, int start, int length)
 		{
 		}
 
-		protected virtual void VisitPropertyReference (XObject parent, string propertyName)
+		protected virtual void VisitPropertyReference (string propertyName, int start, int length)
 		{
 		}
 
-		protected virtual void VisitMetadataReference (XObject parent, string itemName, string metadataName)
+		protected virtual void VisitMetadataReference (string itemName, string metadataName, int start, int length)
 		{
 		}
 
 		void ExtractReferences (XElement element)
 		{
 			if (element.IsClosed && !element.IsSelfClosing) {
-				var text = textDocument.GetTextBetween (element.Region.End, element.ClosingTag.Region.Begin);
-				ExtractReferences (element, text);
+				var begin = textDocument.LocationToOffset (element.Region.End);
+				var end = textDocument.LocationToOffset (element.ClosingTag.Region.Begin);
+				var text = textDocument.GetTextBetween (begin, end);
+				ExtractReferences (text, begin);
 			}
 		}
 
 		void ExtractReferences (XAttribute att)
 		{
-			if (!string.IsNullOrEmpty (att.Value))
-				ExtractReferences (att, att.Value);
+			if (!string.IsNullOrEmpty (att.Value)) {
+				//we don't know how much space there is around the = so work backwards from the end
+				var end = textDocument.LocationToOffset (att.Region.End);
+				var start = end - att.Value.Length - 1;
+				ExtractReferences (att.Value, start);
+			}
 		}
 
-		void ExtractReferences (XObject parent, string value)
+		void ExtractReferences (string value, int startOffset)
 		{
 			try {
 				var expr = new Expression ();
 				//TODO: check options
 				expr.Parse (value, ParseOptions.AllowItemsMetadataAndSplit);
 
-				ExtractReferences (parent, expr);
+				ExtractReferences (expr, startOffset);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild expression at {parent.Region.Begin}", ex);
+				LoggingService.LogError ($"Error parsing MSBuild expression at {startOffset}", ex);
 			}
 		}
 
-		void ExtractReferences (XObject parent, Expression expr)
+		void ExtractReferences (Expression expr, int startOffset)
 		{
 			foreach (var val in expr.Collection) {
-				ExtractReferences (parent, val);
+				ExtractReferences (val, startOffset);
 			}
 		}
 
-		void ExtractReferences (XObject parent, object val)
+		void ExtractReferences (object val, int startOffset)
 		{
 			//TODO: InvalidExpressionError
 
 			if (val is PropertyReference pr) {
-				VisitPropertyReference (parent, pr.Name);
+				VisitPropertyReference (pr.Name, startOffset + pr.Start, pr.End - pr.Start);
 				return;
 			}
 
 			if (val is ItemReference ir) {
 				if (ir.Transform != null)
-					ExtractReferences (parent, ir.Transform);
-				VisitItemReference (parent, ir.ItemName);
+					ExtractReferences (ir.Transform, startOffset + ir.Start);
+				VisitItemReference (ir.ItemName, startOffset + ir.Start, ir.End - ir.Start + 1);
 				return;
 			}
 
 			if (val is MetadataReference mr) {
 				//TODO: unqualified metadata references
-				VisitMetadataReference (parent, mr.ItemName, mr.MetadataName);
+				VisitMetadataReference (mr.ItemName, mr.MetadataName, mr.Start, mr.End - mr.Start);
 				return;
 			}
 
 			if (val is MemberInvocationReference mir) {
-				ExtractReferences (parent, mir.Instance);
+				ExtractReferences (mir.Instance, startOffset);
 			}
 		}
 	}
