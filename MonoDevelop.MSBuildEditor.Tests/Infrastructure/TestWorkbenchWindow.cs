@@ -34,7 +34,7 @@ using System.Collections.Generic;
 using Mono.Addins;
 using System.Threading.Tasks;
 
-namespace MonoDevelop.CSharpBinding
+namespace MonoDevelop.Ide.Gui
 {
 	public class TestWorkbenchWindow : IWorkbenchWindow
 	{
@@ -119,13 +119,13 @@ namespace MonoDevelop.CSharpBinding
 		{
 			throw new NotImplementedException ();
 		}
-#pragma warning disable 67
+
 		public event EventHandler DocumentChanged;
 		public event WorkbenchWindowAsyncEventHandler Closing;
 		public event WorkbenchWindowEventHandler Closed;
 		public event ActiveViewContentEventHandler ActiveViewContentChanged;
 		public event EventHandler ViewsChanged;
-#pragma warning restore 67
+
 		DocumentToolbar IWorkbenchWindow.GetToolbar (BaseViewContent targetView)
 		{
 			throw new System.NotImplementedException ();

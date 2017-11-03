@@ -27,16 +27,14 @@
 //
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.Components;
 using MonoDevelop.Core;
-using MonoDevelop.Ide.Gui;
-using MonoDevelop.Ide.Editor;
 using MonoDevelop.Core.Text;
-using System.Threading.Tasks;
+using MonoDevelop.Ide.Editor;
 
-namespace MonoDevelop.CSharpBinding.Tests
+namespace MonoDevelop.Ide.Gui
 {
 	public class TestViewContent : ViewContent
 	{
@@ -233,8 +231,6 @@ namespace MonoDevelop.CSharpBinding.Tests
 			action ();
 		}
 		#endregion
-#pragma warning disable 67
 		public event EventHandler CaretPositionSet;
-#pragma warning restore 67
 	}
 }

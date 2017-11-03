@@ -1,13 +1,13 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Core.Text;
-using MonoDevelop.CSharpBinding;
-using MonoDevelop.CSharpBinding.Tests;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.Projects;
+using MonoDevelop.Core.Assemblies;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		struct CreateEditorResult
 		{
-			public WebFormsTestingEditorExtension Extension;
+			public MSBuildTestingEditorExtension Extension;
 			public string EditorText;
 			public TestViewContent ViewContent;
 		}
@@ -87,16 +87,23 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			doc.HiddenParsedDocument = parsedDoc;
 
 			return new CreateEditorResult {
-				Extension = new WebFormsTestingEditorExtension (doc),
+				Extension = new MSBuildTestingEditorExtension (doc),
 				EditorText = editorText,
 				ViewContent = sev
 			};
 		}
 
-		public class WebFormsTestingEditorExtension : MSBuildTextEditorExtension
+		public class MSBuildTestingEditorExtension : MSBuildTextEditorExtension
 		{
-			public WebFormsTestingEditorExtension (Document doc)
+			public MSBuildTestingEditorExtension (Document doc)
 			{
+				//HACK: the PackageManagement addin doesn't declare its dependencies correctly
+				//so the addin engine doesn't load these, and we have to force-load them
+				//so that we can use them
+				var nugetAddinLocation = Path.GetDirectoryName (typeof (PackageManagement.PackageManagementServices).Assembly.Location);
+				Core.Runtime.SystemAssemblyService.LoadAssemblyFrom (Path.Combine (nugetAddinLocation, "NuGet.Configuration.dll"));
+				Core.Runtime.SystemAssemblyService.LoadAssemblyFrom (Path.Combine (nugetAddinLocation, "NuGet.Protocol.dll"));
+
 				Initialize (doc.Editor, doc);
 			}
 

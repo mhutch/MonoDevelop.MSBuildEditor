@@ -25,14 +25,9 @@
 //
 //
 
-using System;
 using System.IO;
-using System.Xml;
-using System.Collections;
-using System.Text;
 using MonoDevelop.Core;
 using MonoDevelop.Core.ProgressMonitoring;
-using MonoDevelop.Projects;
 
 namespace UnitTests
 {
@@ -45,8 +40,6 @@ namespace UnitTests
 			get {
 				if (rootDir == null) {
 					rootDir = Path.GetDirectoryName (typeof (Util).Assembly.Location);
-					rootDir = Path.Combine (Path.Combine (rootDir, ".."), "..");
-					rootDir = Path.GetFullPath (Path.Combine (rootDir, "tests"));
 				}
 				return rootDir;
 			}
@@ -70,7 +63,7 @@ namespace UnitTests
 
 		public static string GetSampleProject (params string [] projectName)
 		{
-			string srcDir = Path.Combine (Path.Combine (TestsRootDir, "test-projects"), Combine (projectName));
+			string srcDir = Path.Combine (Path.Combine (TestsRootDir, "test-projects"), Path.Combine (projectName));
 			string projDir = srcDir;
 			srcDir = Path.GetDirectoryName (srcDir);
 			string tmpDir = CreateTmpDir (Path.GetFileName (projDir));
@@ -80,7 +73,7 @@ namespace UnitTests
 
 		public static string GetSampleProjectPath (params string [] projectName)
 		{
-			return Path.Combine (Path.Combine (TestsRootDir, "test-projects"), Combine (projectName));
+			return Path.Combine (Path.Combine (TestsRootDir, "test-projects"), Path.Combine (projectName));
 		}
 
 		public static string CreateTmpDir (string hint)
@@ -98,14 +91,6 @@ namespace UnitTests
 			if (Directory.Exists (TmpDir))
 				Directory.Delete (TmpDir, true);
 			projectId = 1;
-		}
-
-		public static string GetXmlFileInfoset (params string [] path)
-		{
-			string file = Combine (path);
-			XmlDocument doc = new XmlDocument ();
-			doc.Load (file);
-			return Infoset (doc);
 		}
 
 		public static string ToWindowsEndings (string s)
@@ -139,60 +124,6 @@ namespace UnitTests
 
 			foreach (string dir in Directory.GetDirectories (src))
 				CopyDir (dir, Path.Combine (dst, Path.GetFileName (dir)));
-		}
-
-
-		public static string Infoset (XmlNode nod)
-		{
-			StringBuilder sb = new StringBuilder ();
-			GetInfoset (nod, sb);
-			return sb.ToString ();
-		}
-
-		static void GetInfoset (XmlNode nod, StringBuilder sb)
-		{
-			switch (nod.NodeType) {
-			case XmlNodeType.Document:
-				GetInfoset (((XmlDocument)nod).DocumentElement, sb);
-				break;
-			case XmlNodeType.Attribute:
-				if (nod.LocalName == "xmlns" && nod.NamespaceURI == "http://www.w3.org/2000/xmlns/") return;
-				sb.Append (" " + nod.NamespaceURI + ":" + nod.LocalName + "='" + nod.Value + "'");
-				break;
-
-			case XmlNodeType.Element:
-				XmlElement elem = (XmlElement)nod;
-				sb.Append ("<" + elem.NamespaceURI + ":" + elem.LocalName);
-
-				ArrayList ats = new ArrayList ();
-				foreach (XmlAttribute at in elem.Attributes)
-					ats.Add (at.LocalName + " " + at.NamespaceURI);
-
-				ats.Sort ();
-
-				foreach (string name in ats) {
-					string [] nn = name.Split (' ');
-					GetInfoset (elem.Attributes [nn [0], nn [1]], sb);
-				}
-
-				sb.Append (">");
-				foreach (XmlNode cn in elem.ChildNodes)
-					GetInfoset (cn, sb);
-				sb.Append ("</>");
-				break;
-
-			default:
-				sb.Append (nod.OuterXml);
-				break;
-			}
-		}
-
-		public static string Combine (params string [] paths)
-		{
-			string p = paths [0];
-			for (int n = 1; n < paths.Length; n++)
-				p = Path.Combine (p, paths [n]);
-			return p;
 		}
 	}
 }

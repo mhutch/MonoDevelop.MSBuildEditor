@@ -29,8 +29,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="MonoDevelop.Addins" Version="0.3.18" />
     <PackageReference Include="MonoDevelop.Addins.GuiUnit" Version="0.1.1" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MSBuildEditorTesting.cs" />
@@ -40,6 +40,7 @@
     <Compile Include="Infrastructure\TestWorkbenchWindow.cs" />
     <Compile Include="Infrastructure\Util.cs" />
     <Compile Include="MSBuildCompletionTests.cs" />
+    <Compile Include="Infrastructure\IdeTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuildEditor.csproj">
@@ -47,6 +48,7 @@
       <Name>MonoDevelop.MSBuildEditor</Name>
     </ProjectReference>
     <AddinReference Include="MonoDevelop.Xml" />
+    <AddinReference Include="MonoDevelop.PackageManagement" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Infrastructure\" />
