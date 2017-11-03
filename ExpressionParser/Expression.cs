@@ -248,7 +248,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 							if (dot > 0) {
 								var name = text.Substring (start, dot - start);
 								++dot;
-								var res = ParseInvocation (text, ref dot, null, new PropertyReference (name));
+								var res = ParseInvocation (text, ref dot, null, new PropertyReference (name, start, dot - start));
 								if (res != null) {
 									phase.Add (res);
 									end = dot;
@@ -264,7 +264,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 									//
 									// Simple property reference $(Foo)
 									//
-									phase.Add (new PropertyReference (name));
+									phase.Add (new PropertyReference (name, start, dot - start));
 									requires_closing_parens = false;
 								} else {
 									end = 0;
@@ -387,7 +387,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			case "system.version":
 				return typeof (Version);
 			case "microsoft.build.utilities.toollocationhelper":
-				throw new NotImplementedException (typeName);
+				return typeof (Microsoft.Build.Utilities.ToolLocationHelper);
 			case "msbuild":
 				return typeof (PredefinedPropertyFunctions);
 			case "system.environment":

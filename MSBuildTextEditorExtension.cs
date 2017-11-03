@@ -26,24 +26,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MonoDevelop.Components.Commands;
+using MonoDevelop.Core;
+using MonoDevelop.Ide;
 using MonoDevelop.Ide.CodeCompletion;
+using MonoDevelop.Ide.Editor;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
-using ProjectFileTools.NuGetSearch.Search;
 using ProjectFileTools.NuGetSearch.Feeds.Disk;
 using ProjectFileTools.NuGetSearch.Feeds.Web;
 using ProjectFileTools.NuGetSearch.IO;
-using MonoDevelop.Components.Commands;
-using MonoDevelop.Ide.Editor;
-using MonoDevelop.Ide;
+using ProjectFileTools.NuGetSearch.Search;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -313,7 +315,7 @@ namespace MonoDevelop.MSBuildEditor
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
 			MSBuildElement el = null;
-			string elName = null, attName = null;
+			string elName = null, attName = null, parentName = null;
 			for (int i = 0; i < path.Count; i++) {
 				var xatt = path [i] as XAttribute;
 				if (xatt != null) {
@@ -326,6 +328,7 @@ namespace MonoDevelop.MSBuildEditor
 				//code completion is forgiving, all we care about best guess resolve for deepest child
 				var xel = path [i] as XElement;
 				if (xel != null && xel.Name.Prefix == null) {
+					parentName = elName;
 					elName = xel.Name.Name;
 					el = MSBuildElement.Get (elName, el);
 					if (el != null)
@@ -333,6 +336,7 @@ namespace MonoDevelop.MSBuildEditor
 				}
 				el = null;
 				elName = null;
+				parentName = null;
 			}
 			if (el == null)
 				return null;
@@ -340,6 +344,7 @@ namespace MonoDevelop.MSBuildEditor
 			return new ResolveResult {
 				AttributeName = attName,
 				ElementName = elName,
+				ParentName = parentName,
 				ElementType = el.Kind,
 				ChildType = el.ChildType,
 				BuiltinAttributes = el.Attributes,
@@ -351,6 +356,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			public string AttributeName;
 			public string ElementName;
+			public string ParentName;
 			public MSBuildKind? ElementType;
 			public MSBuildKind? ChildType;
 			public IEnumerable<string> BuiltinAttributes;

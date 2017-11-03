@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuildEditor
 			{
 				"Item", new MSBuildElement (MSBuildKind.Item,
 					childType: MSBuildKind.ItemMetadata,
-					attributes: new[] { "Condition", "Exclude", "Include", "Remove" },
+					attributes: new[] { "Condition", "Exclude", "Include", "Remove", "Update" },
 					isSpecial: true
 				)
 			},

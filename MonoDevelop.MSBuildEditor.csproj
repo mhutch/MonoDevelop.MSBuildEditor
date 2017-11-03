@@ -70,7 +70,6 @@
     <Compile Include="PropertyInfo.cs" />
     <Compile Include="MetadataInfo.cs" />
     <Compile Include="ItemInfo.cs" />
-    <Compile Include="DocumentMSBuildVisitor.cs" />
     <Compile Include="MSBuildReferenceCollector.cs" />
     <Compile Include="MSBuildToolsVersion.cs" />
     <Compile Include="MSBuildSdkResolver.cs" />
@@ -110,6 +109,7 @@
     <Compile Include="MonoDevelopPackageFeedRegistry.cs" />
     <Compile Include="PackageSearchCompletionDataList.cs" />
     <Compile Include="PropertyValueCollector.cs" />
+    <Compile Include="MSBuildDocumentResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -118,21 +118,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />
     <AddinReference Include="MonoDevelop.SourceEditor2" />
     <AddinReference Include="MonoDevelop.DotNetCore" />
     <AddinReference Include="MonoDevelop.AspNet" />
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.3</Version>
-    </PackageReference>
-    <AddinReference Include="MonoDevelop.PackageManagement" />
-    <Reference Include="NuGet.Protocol" />
-    <PackageReference Include="MonoDevelop.Addins">
-      <Version>0.4.1</Version>
-    </PackageReference>
     <AddinReference Include="MonoDevelop.Refactoring" />
+    <AddinReference Include="MonoDevelop.PackageManagement" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.1" />
+    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TODO.txt" />

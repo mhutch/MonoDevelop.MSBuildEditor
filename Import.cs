@@ -31,7 +31,7 @@ namespace MonoDevelop.MSBuildEditor
 	class Import
 	{
 		public DateTime TimeStampUtc { get; }
-		public string Filename { get; }
+		public string Filename { get; private set; }
 		public MSBuildResolveContext ResolveContext { get; set; }
 
 		public Import (string filename, DateTime timeStampUtc)

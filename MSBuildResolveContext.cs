@@ -27,11 +27,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Build.Framework;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.Xml.Dom;
-using Microsoft.Build.Framework;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -46,6 +47,7 @@ namespace MonoDevelop.MSBuildEditor
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
+		public List<Error> Errors { get; }
 
 		public MSBuildSdkResolver SdkResolver { get; }
 		public bool IsToplevel { get;  }
@@ -55,6 +57,10 @@ namespace MonoDevelop.MSBuildEditor
 			Filename = filename;
 			SdkResolver = sdkResolver;
 			IsToplevel = isToplevel;
+
+			if (isToplevel) {
+				Errors = new List<Error> ();
+			}
 		}
 
 		public string Filename { get; }
@@ -76,10 +82,8 @@ namespace MonoDevelop.MSBuildEditor
 
 			ctx.AddSdkProps (sdks, propVals, resolveImport);
 
-			//recursively resolve the document
-			foreach (var el in project.Elements) {
-				ctx.Populate (el, pel, textDocument, propVals, resolveImport);
-			}
+			var resolver = new MSBuildDocumentResolver (ctx, filename, isToplevel, doc, textDocument, sdkResolver, propVals, resolveImport);
+			resolver.Run (filename, doc, textDocument);
 
 			ctx.AddSdkTargets (sdks, propVals, resolveImport);
 
@@ -92,7 +96,7 @@ namespace MonoDevelop.MSBuildEditor
 				var impAtt = el.Attributes.Get (new XName ("Project"), true);
 				if (impAtt != null) {
 					var expr = new Expression ();
-					expr.Parse (impAtt.Value, ParseOptions.None);
+					expr.Parse (impAtt.Value, ExpressionParser.ParseOptions.None);
 					foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
 						propertyVals.Mark (prop.Name);
 					}
@@ -160,137 +164,6 @@ namespace MonoDevelop.MSBuildEditor
 					Imports.Add (targetsPath, sdkTargets);
 				}
 			}
-		}
-
-		void Populate (XElement el, MSBuildElement parent, ITextDocument textDocument, PropertyValueCollector propertyVals, ImportResolver resolveImport)
-		{
-			if (el.Name.Prefix != null)
-				return;
-
-			var condition = el.Attributes.Get (new XName ("Condition"), true);
-			if (condition != null) {
-				ExtractReferences (condition);
-			}
-
-			var name = el.Name.Name;
-
-			var msel = MSBuildElement.Get (name, parent);
-			if (msel == null)
-				return;
-
-			if (!msel.IsSpecial) {
-				foreach (var child in el.Nodes.OfType<XElement> ())
-					Populate (child, msel, textDocument, propertyVals, resolveImport);
-			}
-
-			switch (msel.Kind) {
-			case MSBuildKind.Import:
-				var importAtt = el.Attributes [new XName ("Project")];
-				var sdkAtt = el.Attributes [new XName ("Sdk")];
-				if (importAtt != null) {
-					foreach (var import in resolveImport (this, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertyVals)) {
-						Imports [import.Filename] = import;
-						if (IsToplevel) {
-							Annotations.Add (importAtt, import);
-						}
-					}
-				}
-				return;
-			case MSBuildKind.Item:
-				ItemInfo item;
-				if (!Items.TryGetValue (name, out item))
-					Items [name] = item = new ItemInfo (name, null);
-				foreach (var metadata in el.Nodes.OfType<XElement> ()) {
-					var metaName = metadata.Name.Name;
-					if (!metadata.Name.HasPrefix && !item.Metadata.ContainsKey (metaName) && !Builtins.Metadata.ContainsKey (metaName))
-						item.Metadata.Add (metaName, new MetadataInfo (metaName, null));
-				}
-				return;
-			case MSBuildKind.Task:
-				TaskInfo task;
-				if (!Tasks.TryGetValue (name, out task))
-					Tasks [name] = task = new TaskInfo (name, null);
-				foreach (var att in el.Attributes) {
-					if (!att.Name.HasPrefix)
-						task.Parameters.Add (att.Name.Name);
-					ExtractReferences (att);
-				}
-				return;
-			case MSBuildKind.Property:
-				if (!Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
-					Properties.Add (name, new PropertyInfo (name, null));
-				}
-				propertyVals.Collect (name, el, textDocument);
-				return;
-			case MSBuildKind.Target:
-				foreach (var att in el.Attributes) {
-					switch (att.Name.Name) {
-					case "Inputs":
-					case "Outputs":
-					case "DependOnTargets":
-						ExtractReferences (att);
-						break;
-					}
-				}
-				return;
-			}
-		}
-
-		void ExtractReferences (XAttribute att)
-		{
-			if (!string.IsNullOrEmpty (att.Value))
-				ExtractReferences (att.Value);
-		}
-
-		void ExtractReferences (string value)
-		{
-			var expr = new Expression ();
-			//TODO: check options
-			expr.Parse (value, ExpressionParser.ParseOptions.AllowItemsMetadataAndSplit);
-
-			ExtractReferences (expr);
-		}
-
-		void ExtractReferences (Expression expr)
-		{
-			foreach (var val in expr.Collection) {
-				ExtractReferences (val);
-			}
-		}
-
-		void ExtractReferences (object val)
-		{
-			//TODO: InvalidExpressionError
-
-			if (val is PropertyReference pr) {
-				if (!Properties.ContainsKey (pr.Name) && !Builtins.Properties.ContainsKey (pr.Name)) {
-					Properties.Add (pr.Name, new PropertyInfo (pr.Name, null));
-				}
-				return;
-			}
-
-			if (val is ItemReference ir) {
-				if (!Items.TryGetValue (ir.ItemName, out ItemInfo item))
-					Items [ir.ItemName] = item = new ItemInfo (ir.ItemName, null);
-				if (ir.Transform != null)
-					ExtractReferences (ir.Transform);
-				return;
-			}
-
-			if (val is MetadataReference mr) {
-				//TODO: unqualified metadata references
-				if (mr.ItemName != null && !Builtins.Metadata.ContainsKey (mr.MetadataName)) {
-					if (!Items.TryGetValue (mr.ItemName, out ItemInfo item))
-						Items [mr.ItemName] = item = new ItemInfo (mr.ItemName, null);
-					if (!item.Metadata.ContainsKey (mr.MetadataName)) {
-						item.Metadata.Add (mr.MetadataName, new MetadataInfo (mr.MetadataName, null));
-					}
-				}
-				return;
-			}
-
-			if (val is MemberInvocationReference mir)
-				ExtractReferences (mir.Instance);
 		}
 
 		public IEnumerable<Import> GetDescendentImports ()

@@ -32,6 +32,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using MonoDevelop.Core;
 using MonoDevelop.Core.Assemblies;
+using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.Xml.Dom;
@@ -82,6 +83,7 @@ namespace MonoDevelop.MSBuildEditor
 		public IReadOnlyList<TargetFrameworkMoniker> Frameworks { get; private set; }
 
 		public MSBuildSdkResolver SdkResolver { get; private set; }
+		public ITextSource Text { get; private set; }
 
 		internal static ParsedDocument ParseInternal (ParseOptions options, CancellationToken token)
 		{
@@ -96,6 +98,8 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			doc.XDocument = xmlParser.Nodes.GetRoot ();
+
+			doc.Text = options.Content;
 
 			doc.AddRange (xmlParser.Errors);
 
@@ -126,6 +130,8 @@ namespace MonoDevelop.MSBuildEditor
 				(ctx, imp, sdk, reg, sreg, props) => doc.ResolveToplevelImport (oldDoc, projectPath, options.FileName, ctx, imp, sdk, reg, sreg, props, token)
 			);
 
+			doc.AddRange (doc.Context.Errors);
+
 			doc.Frameworks = propVals.GetFrameworks ();
 
 			return doc;
@@ -138,7 +144,7 @@ namespace MonoDevelop.MSBuildEditor
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			string text;
 			try {
-				text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
+				text = TextFileUtility.ReadAllText (import.Filename);
 				xmlParser.Parse (new StringReader (text));
 			} catch (Exception ex) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);

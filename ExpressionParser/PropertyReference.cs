@@ -31,18 +31,31 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuildEditor.ExpressionParser {
-	class PropertyReference : IReference {
-		
-		readonly string	name;
+namespace MonoDevelop.MSBuildEditor.ExpressionParser
+{
+	class PropertyReference : IReference
+	{
 
-		public PropertyReference (string name)
+		readonly string name;
+		readonly int start, length;
+
+		public PropertyReference (string name, int start, int length)
 		{
 			this.name = name;
+			this.start = start;
+			this.length = length;
 		}
-		
+
 		public string Name {
 			get { return name; }
+		}
+
+		public int Start {
+			get { return start; }
+		}
+
+		public int End {
+			get { return start + length - 1; }
 		}
 
 		public override string ToString ()
