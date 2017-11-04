@@ -223,14 +223,14 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		void ExtractReferences (Expression expr, int startOffset)
+		void ExtractReferences (Expression expr, int startOffset, ItemReference transformParent = null)
 		{
 			foreach (var val in expr.Collection) {
-				ExtractReferences (val, startOffset);
+				ExtractReferences (val, startOffset, transformParent);
 			}
 		}
 
-		void ExtractReferences (object val, int startOffset)
+		void ExtractReferences (object val, int startOffset, ItemReference transformParent = null)
 		{
 			//TODO: InvalidExpressionError
 
@@ -240,20 +240,31 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (val is ItemReference ir) {
-				if (ir.Transform != null)
-					ExtractReferences (ir.Transform, startOffset + ir.Start);
+				if (ir.Transform != null) {
+					ExtractReferences (ir.Transform, startOffset + ir.Start, ir);
+				}
 				VisitItemReference (ir.ItemName, startOffset + ir.Start, ir.End - ir.Start + 1);
 				return;
 			}
 
 			if (val is MetadataReference mr) {
-				//TODO: unqualified metadata references
-				VisitMetadataReference (mr.ItemName, mr.MetadataName, mr.Start, mr.End - mr.Start);
+				//TODO: contextual metadata references e.g. batching
+				var itemName = mr.ItemName;
+				if (string.IsNullOrEmpty (itemName)) {
+					itemName = transformParent?.ItemName;
+				}
+				VisitMetadataReference (itemName, mr.MetadataName, startOffset +  mr.Start, mr.End - mr.Start + 1);
 				return;
 			}
 
 			if (val is MemberInvocationReference mir) {
 				ExtractReferences (mir.Instance, startOffset);
+				return;
+			}
+
+			if (val is Expression expr) {
+				ExtractReferences (expr, startOffset, transformParent);
+				return;
 			}
 		}
 	}
