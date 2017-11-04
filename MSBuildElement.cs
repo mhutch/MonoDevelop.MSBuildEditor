@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public bool HasChild (string name)
 		{
-			return children != null && children.Contains (name, StringComparer.Ordinal);
+			return children != null && children.Contains (name, StringComparer.OrdinalIgnoreCase);
 		}
 
 		public static MSBuildElement Get (string name, MSBuildElement parent = null)
