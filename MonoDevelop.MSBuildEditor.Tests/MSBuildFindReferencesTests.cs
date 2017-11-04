@@ -53,6 +53,31 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			return collector.Results;
 		}
 
+		void AssertLocations (string doc, List<(int Offset, int Length)> actual, params (int Offset, int Length)[] expected)
+		{
+			if (actual.Count != expected.Length) {
+				DumpLocations ();
+				Assert.Fail ($"List has {actual.Count} items, expected {expected.Length}");
+			}
+
+			for (int i = 0; i < actual.Count; i++) {
+				var a = actual [i];
+				var e = expected [i];
+				if (a.Offset != e.Offset || a.Length != e.Length) {
+					DumpLocations ();
+					Assert.Fail ($"Position {i}: expected ({e.Offset}, {e.Length}), got ({a.Offset}, {a.Length})");
+				}
+			}
+
+			void DumpLocations ()
+			{
+				Console.WriteLine ("Locations: ");
+				foreach (var pos in actual) {
+					Console.WriteLine ($"    ({pos.Offset}, {pos.Length})='{doc.Substring (pos.Offset, pos.Length)}'");
+				}
+			}
+		}
+
 		[Test]
 		public void FindItemReferences ()
 		{
@@ -68,19 +93,83 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			var refs = FindReferences (doc, MSBuildKind.Item, "Foo", null);
 
-			Assert.AreEqual (5, refs.Count);
-
-			AssertLocation (28, 7, refs [0]);
-			AssertLocation (54, 6, refs [1]);
-			AssertLocation (107, 6, refs [2]);
-			AssertLocation (74, 6, refs [3]);
-			AssertLocation (194, 6, refs [4]);
+			AssertLocations (
+				doc, refs,
+				(29, 3),
+				(56, 3),
+				(109, 3),
+				(76, 3),
+				(196, 3)
+			);
 		}
 
-		void AssertLocation (int expectedOffset, int expectedLength, (int offset, int length) span)
+		[Test]
+		public void FindPropertyReferences ()
 		{
-			Assert.AreEqual (expectedOffset, span.offset);
-			Assert.AreEqual (expectedLength, span.length);
+			var doc = @"
+<project>
+  <propertygroup>
+    <foo condition=""'x$(Foo)'==''"">bar $(foo)</foo>
+  </propertygroup>
+  <target name='Foo' DependsOnTargets='$(Foo)'>
+    <itemgroup>
+      <foo />
+      <bar include='$(foo)' condition=""'@(Foo)'!='$(Foo)'"" somemetadata=""$(Foo)"" foo='a' />
+	  <bar><foo>$(foo)</foo></bar>
+      <foo include=""@(bar->'%(baz.foo)$(foo)')"" />
+    </itemgroup>
+  </target>
+</project>".TrimStart ();
+
+			var refs = FindReferences (doc, MSBuildKind.Property, "Foo", null);
+
+			AssertLocations (
+				doc, refs,
+				(33, 3),
+				(69, 3),
+				(52, 3),
+				(140, 3),
+				(199, 3),
+				(252, 3),
+				(229, 3),
+				(284, 3),
+				(341, 3)
+			);
+		}
+
+		[Test]
+		public void FindMetadataReferences ()
+		{
+			var doc = @"
+<project>
+  <itemgroup>
+    <bar foo=""$(foo)"" />
+    <bar>
+        <foo>baz</foo>
+    </bar>
+	<foo>
+        <foo>baz</foo>
+    </foo>
+    <foo include=""@(bar->'%(foo)')"" foo='a' />
+    <foo include=""@(bar->'%(bar.foo)')"" />
+    <foo include=""@(bar->'%(baz.foo)')"" />
+	<bar><foo>@(foo)</foo></bar>
+  </itemgroup>
+  <target name='Foo' DependsOnTargets=""@(bar->'%(Foo)')"">
+  </target>
+</project>".TrimStart ();
+
+			var refs = FindReferences (doc, MSBuildKind.ItemMetadata, "foo", "bar");
+
+			AssertLocations (
+				doc, refs,
+				(33, 3),
+				(68, 3),
+				(162, 3),
+				(213, 3),
+				(274, 3),
+				(361, 3)
+			);
 		}
 	}
 }
