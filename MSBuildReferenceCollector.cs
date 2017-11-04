@@ -47,11 +47,20 @@ namespace MonoDevelop.MSBuildEditor
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
 
-		protected void AddResult(DocumentRegion region)
+		protected void AddResult (XElement element)
 		{
-			var begin = ConvertLocation (region.Begin);
-			var end = ConvertLocation (region.End);
-			Results.Add ((begin, end - begin));
+			Results.Add ((
+				ConvertLocation (element.Region.Begin) + 1,
+				element.Name.Name.Length
+			));
+		}
+
+		protected void AddResult (XAttribute attribute)
+		{
+			Results.Add ((
+				ConvertLocation (attribute.Region.Begin),
+				attribute.Name.Name.Length
+			));
 		}
 
 		public static bool CanCreate (MSBuildKind? kind, string name)
@@ -92,7 +101,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void VisitItem (XElement element)
 		{
 			if (IsMatch (element)) {
-				AddResult (element.Region);
+				AddResult (element);
 			}
 			base.VisitItem (element);
 		}
@@ -115,7 +124,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void VisitProperty (XElement element)
 		{
 			if (IsMatch (element)) {
-				AddResult (element.Region);
+				AddResult (element);
 			}
 			base.VisitProperty (element);
 		}
@@ -138,7 +147,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void VisitTask (XElement element)
 		{
 			if (IsMatch (element)) {
-				AddResult (element.Region);
+				AddResult (element);
 			}
 			base.VisitTask (element);
 		}
@@ -156,7 +165,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void VisitMetadata (XElement element, string itemName, string metadataName)
 		{
 			if (IsMatch (element) && IsItemNameMatch (itemName)) {
-				AddResult (element.Region);
+				AddResult (element);
 			}
 			base.VisitMetadata (element, itemName, metadataName);
 		}
@@ -164,7 +173,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
 		{
 			if (IsMatch (attribute) && IsItemNameMatch (itemName)) {
-				AddResult (attribute.Region);
+				AddResult (attribute);
 			}
 			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
