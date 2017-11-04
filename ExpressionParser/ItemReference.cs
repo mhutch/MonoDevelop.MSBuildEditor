@@ -40,16 +40,18 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser {
 		int		length;
 		string		original_string;
 		
-		public ItemReference (string original_string, string itemName, string transform, string separator, int start, int length)
+		public ItemReference (string original_string, string itemName, string transform, int transformIndex, string separator, int start, int length, int absoluteIndex)
 		{
 			this.itemName = itemName;
 			this.start = start;
 			this.length = length;
 			this.original_string = original_string;
+			this.AbsoluteIndex = absoluteIndex;
 
 			// Transform and separator are never expanded for item refs
 			if (transform != null) {
 				this.transform = new Expression ();
+				this.transform.AbsoluteIndex = transformIndex;
 				this.transform.Parse (transform, ParseOptions.AllowMetadata | ParseOptions.Split);
 			}
 
@@ -82,6 +84,8 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser {
 		public int End {
 			get { return start + length - 1; }
 		}
+
+		public int AbsoluteIndex { get; }
 
 		public override string ToString ()
 		{

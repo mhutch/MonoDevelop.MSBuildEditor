@@ -35,28 +35,19 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 {
 	class PropertyReference : IReference
 	{
-
 		readonly string name;
-		readonly int start, length;
 
-		public PropertyReference (string name, int start, int length)
+		public PropertyReference (string name, int absoluteIndex)
 		{
 			this.name = name;
-			this.start = start;
-			this.length = length;
+			this.AbsoluteIndex = absoluteIndex;
 		}
 
 		public string Name {
 			get { return name; }
 		}
 
-		public int Start {
-			get { return start; }
-		}
-
-		public int End {
-			get { return start + length - 1; }
-		}
+		public int AbsoluteIndex { get; }
 
 		public override string ToString ()
 		{

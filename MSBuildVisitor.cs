@@ -235,15 +235,15 @@ namespace MonoDevelop.MSBuildEditor
 			//TODO: InvalidExpressionError
 
 			if (val is PropertyReference pr) {
-				VisitPropertyReference (pr.Name, startOffset + pr.Start, pr.End - pr.Start);
+				VisitPropertyReference (pr.Name, startOffset + pr.AbsoluteIndex, pr.Name.Length);
 				return;
 			}
 
 			if (val is ItemReference ir) {
 				if (ir.Transform != null) {
-					ExtractReferences (ir.Transform, startOffset + ir.Start, ir);
+					ExtractReferences (ir.Transform, startOffset, ir);
 				}
-				VisitItemReference (ir.ItemName, startOffset + ir.Start, ir.End - ir.Start + 1);
+				VisitItemReference (ir.ItemName, startOffset + ir.AbsoluteIndex, ir.ItemName.Length);
 				return;
 			}
 
@@ -253,7 +253,7 @@ namespace MonoDevelop.MSBuildEditor
 				if (string.IsNullOrEmpty (itemName)) {
 					itemName = transformParent?.ItemName;
 				}
-				VisitMetadataReference (itemName, mr.MetadataName, startOffset +  mr.Start, mr.End - mr.Start + 1);
+				VisitMetadataReference (itemName, mr.MetadataName, startOffset + mr.AbsoluteIndex, mr.MetadataName.Length);
 				return;
 			}
 

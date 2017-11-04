@@ -70,6 +70,8 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 		{
 		}
 
+		public int AbsoluteIndex { get; set; }
+
 		// Split: Split on ';'
 		//	   Eg. Property values don't need to be split
 		//
@@ -103,25 +105,34 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			Prepare (p3, parts.Length);
 
 			for (int i = 0; i < parts.Length; i++)
-				p1 [i] = SplitItems (parts [i], allowItems);
+				p1 [i] = SplitItems (parts [i], allowItems, AbsoluteIndex);
 
 			for (int i = 0; i < parts.Length; i++) {
 				p2 [i] = new ArrayList ();
+				int absIdx = AbsoluteIndex;
 				foreach (object o in p1 [i]) {
-					if (o is string)
-						p2 [i].AddRange (ExtractProperties ((string) o));
-					else
+					if (o is string s) {
+						p2 [i].AddRange (ExtractProperties (s, absIdx));
+						absIdx += s.Length;
+					} else if (o is ItemReference ir) {
+						absIdx = AbsoluteIndex + ir.End + 1;
 						p2 [i].Add (o);
+					} else {
+						p2 [i].Add (o);
+					}
 				}
 			}
 
 			for (int i = 0; i < parts.Length; i++) {
 				p3 [i] = new ArrayList ();
+				int absIdx = AbsoluteIndex;
 				foreach (object o in p2 [i]) {
-					if (o is string)
-						p3 [i].AddRange (SplitMetadata ((string) o));
-					else
+					if (o is string s) {
+						p3 [i].AddRange (SplitMetadata (s, absIdx));
+						absIdx += s.Length;
+					} else {
 						p3 [i].Add (o);
+					}
 				}
 			}
 
@@ -153,7 +164,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			}
 		}
 
-		ArrayList SplitItems (string text, bool allowItems)
+		ArrayList SplitItems (string text, bool allowItems, int absoluteOffset)
 		{
 			ArrayList phase1 = new ArrayList ();
 			Match m;
@@ -162,17 +173,23 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			while (m.Success) {
 				string name = null, transform = null, separator = null;
 				ItemReference ir;
-				
-				name = m.Groups [ItemRegex.GroupNumberFromName ("itemname")].Value;
-				
-				if (m.Groups [ItemRegex.GroupNumberFromName ("has_transform")].Success)
-					transform = m.Groups [ItemRegex.GroupNumberFromName ("transform")].Value;
+
+				var nameGroup = m.Groups [ItemRegex.GroupNumberFromName ("itemname")];
+				name = nameGroup.Value;
+
+				int transformIndex = 0;
+				if (m.Groups [ItemRegex.GroupNumberFromName ("has_transform")].Success) {
+					var transformGroup = m.Groups [ItemRegex.GroupNumberFromName ("transform")];
+					transform = transformGroup.Value;
+					transformIndex = transformGroup.Index;
+				}
 				
 				if (m.Groups [ItemRegex.GroupNumberFromName ("has_separator")].Success)
 					separator = m.Groups [ItemRegex.GroupNumberFromName ("separator")].Value;
 
 				ir = new ItemReference (text.Substring (m.Groups [0].Index, m.Groups [0].Length),
-						name, transform, separator, m.Groups [0].Index, m.Groups [0].Length);
+				                        name, transform, transformIndex, separator,
+				                        m.Groups [0].Index, m.Groups [0].Length, nameGroup.Index + absoluteOffset);
 				phase1.Add (ir);
 				m = m.NextMatch ();
 			}
@@ -204,7 +221,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 		//
 		// Parses property syntax
 		//
-		static List<object> ExtractProperties (string text)
+		static List<object> ExtractProperties (string text, int absoluteIndex)
 		{
 			var phase = new List<object> ();
 
@@ -248,7 +265,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 							if (dot > 0) {
 								var name = text.Substring (start, dot - start);
 								++dot;
-								var res = ParseInvocation (text, ref dot, null, new PropertyReference (name, start, dot - start));
+								var res = ParseInvocation (text, ref dot, null, new PropertyReference (name, start + absoluteIndex));
 								if (res != null) {
 									phase.Add (res);
 									end = dot;
@@ -264,7 +281,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 									//
 									// Simple property reference $(Foo)
 									//
-									phase.Add (new PropertyReference (name, start, dot - start));
+									phase.Add (new PropertyReference (name, start + absoluteIndex));
 									requires_closing_parens = false;
 								} else {
 									end = 0;
@@ -562,7 +579,7 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			return TokenKind.End;
 		}
 
-		ArrayList SplitMetadata (string text)
+		ArrayList SplitMetadata (string text, int offset)
 		{
 			ArrayList phase1 = new ArrayList ();
 			Match m;
@@ -571,14 +588,16 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 			while (m.Success) {
 				string name = null, meta = null;
 				MetadataReference mr;
-				
-				if (m.Groups [MetadataRegex.GroupNumberFromName ("name")].Success)
-					name = m.Groups [MetadataRegex.GroupNumberFromName ("name")].Value;
-				
-				meta = m.Groups [MetadataRegex.GroupNumberFromName ("meta")].Value;
+
+				var nameGroup = m.Groups [MetadataRegex.GroupNumberFromName ("name")];
+				if (nameGroup.Success)
+					name = nameGroup.Value;
+
+				var metaGroup = m.Groups [MetadataRegex.GroupNumberFromName ("meta")];
+				meta = metaGroup.Value;
 				
 				mr = new MetadataReference (text.Substring (m.Groups [0].Index, m.Groups [0].Length),
-								name, meta, m.Groups [0].Index, m.Groups [0].Length);
+				                            name, meta, m.Groups [0].Index, m.Groups [0].Length, offset + metaGroup.Index);
 				phase1.Add (mr);
 				m = m.NextMatch ();
 			}

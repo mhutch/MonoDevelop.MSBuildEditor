@@ -37,12 +37,13 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 		int length;
 		string original;
 	
-		public MetadataReference (string original, string itemName, string metadataName, int start, int length)
+		public MetadataReference (string original, string itemName, string metadataName, int start, int length, int absoluteIndex)
 		{
 			this.original = original;
 			this.itemName = itemName;
 			this.metadataName = metadataName;
 			this.start = start;
+			this.AbsoluteIndex = absoluteIndex;
 			this.length = length;
 		}
 		
@@ -65,6 +66,8 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 		public int End {
 			get { return start + length - 1; }
 		}
+
+		public int AbsoluteIndex { get; }
 
 		public override string ToString ()
 		{
