@@ -110,6 +110,7 @@
     <Compile Include="PackageSearchCompletionDataList.cs" />
     <Compile Include="PropertyValueCollector.cs" />
     <Compile Include="MSBuildDocumentResolver.cs" />
+    <Compile Include="MSBuildCommands.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
