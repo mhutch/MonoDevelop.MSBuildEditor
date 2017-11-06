@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuildEditor
 			ctx.AddSdkProps (sdks, propVals, resolveImport);
 
 			var resolver = new MSBuildDocumentResolver (ctx, filename, isToplevel, doc, textDocument, sdkResolver, propVals, resolveImport);
-			resolver.Run (filename, doc, textDocument);
+			resolver.Run (filename, textDocument, doc);
 
 			ctx.AddSdkTargets (sdks, propVals, resolveImport);
 

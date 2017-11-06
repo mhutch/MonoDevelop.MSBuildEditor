@@ -546,7 +546,7 @@ namespace MonoDevelop.MSBuildEditor
 		void FindReferences (SearchProgressMonitor monitor, ResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
 		{
 			var collector = MSBuildReferenceCollector.Create (rr.ElementType.Value, rr.ElementName, rr.ParentName);
-			collector.Run (filename, doc, textDoc);
+			collector.Run (filename, textDoc, doc);
 			var fileProvider = new FileProvider (filename);
 			if (collector.Results.Count > 0) {
 				monitor.ReportResults (collector.Results.Select (r => new SearchResult (fileProvider, r.Offset, r.Length)));

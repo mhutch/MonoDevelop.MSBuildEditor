@@ -49,11 +49,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var xdoc = xmlParser.Nodes.GetRoot ();
 
 			var collector = MSBuildReferenceCollector.Create (kind, name, parentName);
-			collector.Run (filename, xdoc, textDoc);
+			collector.Run (filename, textDoc, xdoc);
 			return collector.Results;
 		}
 
-		void AssertLocations (string doc, List<(int Offset, int Length)> actual, params (int Offset, int Length)[] expected)
+		void AssertLocations (string doc, string expectedName, List<(int Offset, int Length)> actual, params (int Offset, int Length)[] expected)
 		{
 			if (actual.Count != expected.Length) {
 				DumpLocations ();
@@ -63,17 +63,17 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < actual.Count; i++) {
 				var a = actual [i];
 				var e = expected [i];
-				if (a.Offset != e.Offset || a.Length != e.Length) {
+				if (a.Offset != e.Offset || a.Length != e.Length || !string.Equals (expectedName, doc.Substring (a.Offset, a.Length), StringComparison.OrdinalIgnoreCase)) {
 					DumpLocations ();
-					Assert.Fail ($"Position {i}: expected ({e.Offset}, {e.Length}), got ({a.Offset}, {a.Length})");
+					Assert.Fail ($"Position {i}: expected ({e.Offset}, {e.Length})='{expectedName}', got ({a.Offset}, {a.Length})='{doc.Substring (a.Offset, a.Length)}'");
 				}
 			}
 
 			void DumpLocations ()
 			{
 				Console.WriteLine ("Locations: ");
-				foreach (var pos in actual) {
-					Console.WriteLine ($"    ({pos.Offset}, {pos.Length})='{doc.Substring (pos.Offset, pos.Length)}'");
+				foreach (var r in actual) {
+					Console.WriteLine ($"    ({r.Offset}, {r.Length})='{doc.Substring (r.Offset, r.Length)}'");
 				}
 			}
 		}
@@ -87,19 +87,22 @@ namespace MonoDevelop.MSBuildEditor.Tests
     <foo />
     <bar include='@(foo)' condition=""'@(Foo)'!='$(Foo)'"" somemetadata=""@(Foo)"" foo='a' />
     <!-- check that the metadata doesn't get flagged -->
-	<bar><foo>@(foo)</foo></bar>
+    <bar><foo>@(foo)</foo></bar>
+    <baz include=""@(foo->'%(foo.bar)')"" />
   </itemgroup>
 </project>".TrimStart ();
 
 			var refs = FindReferences (doc, MSBuildKind.Item, "Foo", null);
 
 			AssertLocations (
-				doc, refs,
+				doc, "foo", refs,
 				(29, 3),
 				(56, 3),
-				(109, 3),
 				(76, 3),
-				(196, 3)
+				(109, 3),
+				(199, 3),
+				(236, 3),
+				(244, 3)
 			);
 		}
 
@@ -115,7 +118,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
     <itemgroup>
       <foo />
       <bar include='$(foo)' condition=""'@(Foo)'!='$(Foo)'"" somemetadata=""$(Foo)"" foo='a' />
-	  <bar><foo>$(foo)</foo></bar>
+      <bar><foo>$(foo)</foo></bar>
       <foo include=""@(bar->'%(baz.foo)$(foo)')"" />
     </itemgroup>
   </target>
@@ -124,16 +127,16 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var refs = FindReferences (doc, MSBuildKind.Property, "Foo", null);
 
 			AssertLocations (
-				doc, refs,
+				doc, "foo", refs,
 				(33, 3),
-				(69, 3),
 				(52, 3),
+				(69, 3),
 				(140, 3),
 				(199, 3),
-				(252, 3),
 				(229, 3),
-				(284, 3),
-				(341, 3)
+				(252, 3),
+				(287, 3),
+				(344, 3)
 			);
 		}
 
@@ -147,13 +150,13 @@ namespace MonoDevelop.MSBuildEditor.Tests
     <bar>
         <foo>baz</foo>
     </bar>
-	<foo>
+    <foo>
         <foo>baz</foo>
     </foo>
     <foo include=""@(bar->'%(foo)')"" foo='a' />
     <foo include=""@(bar->'%(bar.foo)')"" />
     <foo include=""@(bar->'%(baz.foo)')"" />
-	<bar><foo>@(foo)</foo></bar>
+    <bar><foo>@(foo)</foo></bar>
   </itemgroup>
   <target name='Foo' DependsOnTargets=""@(bar->'%(Foo)')"">
   </target>
@@ -162,13 +165,13 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var refs = FindReferences (doc, MSBuildKind.ItemMetadata, "foo", "bar");
 
 			AssertLocations (
-				doc, refs,
+				doc, "foo", refs,
 				(33, 3),
 				(68, 3),
-				(162, 3),
-				(213, 3),
-				(274, 3),
-				(361, 3)
+				(165, 3),
+				(216, 3),
+				(280, 3),
+				(367, 3)
 			);
 		}
 	}

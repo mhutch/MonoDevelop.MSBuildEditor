@@ -41,18 +41,19 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets
-			textDocument = TextEditorFactory.CreateNewReadonlyDocument (
-				documentText, fileName, MSBuildTextEditorExtension.MSBuildMimeType
-			);
+			textDocument = documentText as IReadonlyTextDocument
+				?? TextEditorFactory.CreateNewReadonlyDocument (
+					documentText, fileName, MSBuildTextEditorExtension.MSBuildMimeType
+				);
 
 			foreach (var el in doc.RootElement.Elements) {
-				Traverse (el, null);
+				Run (el, null);
 			}
 		}
 
 		protected int ConvertLocation (DocumentLocation location) => textDocument.LocationToOffset (location);
 
-		void Traverse (XElement el, MSBuildElement parent)
+		void Run (XElement el, MSBuildElement parent)
 		{
 			if (el.Name.Prefix != null) {
 				return;
@@ -88,12 +89,21 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildKind.Target:
 				VisitTarget (element);
 				break;
+			default:
+				//other node types handle this explicitly to make sure reference ordering is correct
+				ProcessCondition (element);
+				break;
 			}
 
-			foreach (var child in element.Elements) {
-				Traverse (child, resolved);
+			if (resolved.ChildType != MSBuildKind.Data) {
+				foreach (var child in element.Elements) {
+					Run (child, resolved);
+				}
 			}
+		}
 
+		void ProcessCondition (XElement element)
+		{
 			var condition = element.Attributes.Get (new XName ("Condition"), true);
 			if (condition != null) {
 				ExtractReferences (condition);
@@ -120,6 +130,9 @@ namespace MonoDevelop.MSBuildEditor
 
 		protected virtual void VisitItem (XElement element)
 		{
+			string itemName = element.Name.Name;
+			VisitItemReference (itemName, ConvertLocation (element.Region.Begin) + 1, itemName.Length);
+
 			foreach (var att in element.Attributes) {
 				if (att.Name.HasPrefix) {
 					continue;
@@ -129,29 +142,50 @@ namespace MonoDevelop.MSBuildEditor
 				case "exclude":
 				case "remove":
 				case "update":
-					ExtractReferences (att);
-					continue;
 				case "condition":
-					//already handled in VisitResolved
+					ExtractReferences (att);
 					continue;
 				}
 				VisitMetadataAttribute (att, element.Name.Name, att.Name.Name);
+			}
+
+			if (!element.IsSelfClosing && element.ClosingTag is XElement closing) {
+				VisitItemReference (itemName, ConvertLocation (closing.Region.Begin) + 1, itemName.Length);
 			}
 		}
 
 		protected virtual void VisitMetadata (XElement element, string itemName, string metadataName)
 		{
+			VisitMetadataReference (itemName, metadataName, ConvertLocation (element.Region.Begin) + 1, itemName.Length);
+
+			ProcessCondition (element);
+
 			ExtractReferences (element);
+
+			if (!element.IsSelfClosing && element.ClosingTag is XElement closing) {
+				VisitMetadataReference (itemName, metadataName, ConvertLocation (closing.Region.Begin) + 1, itemName.Length);
+			}
 		}
 
 		protected virtual void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
 		{
+			VisitMetadataReference (itemName, metadataName, ConvertLocation (attribute.Region.Begin), metadataName.Length);
+
 			ExtractReferences (attribute);
 		}
 
 		protected virtual void VisitProperty (XElement element)
 		{
+			string propertyName = element.Name.Name;
+			VisitPropertyReference (propertyName, ConvertLocation (element.Region.Begin) + 1, propertyName.Length);
+
+			ProcessCondition (element);
+
 			ExtractReferences (element);
+
+			if (!element.IsSelfClosing && element.ClosingTag is XElement closing) {
+				VisitPropertyReference (propertyName, ConvertLocation (closing.Region.Begin) + 1, propertyName.Length);
+			}
 		}
 
 		protected virtual void VisitTarget (XElement element)
@@ -163,6 +197,7 @@ namespace MonoDevelop.MSBuildEditor
 				case "aftertargets":
 				case "inputs":
 				case "outputs":
+				case "condition":
 					ExtractReferences (att);
 					break;
 				}
@@ -172,8 +207,11 @@ namespace MonoDevelop.MSBuildEditor
 		protected virtual void VisitImport (XElement element)
 		{
 			foreach (var att in element.Attributes) {
-				if (string.Equals (att.Name.Name, "Project", StringComparison.OrdinalIgnoreCase)) {
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "project":
+				case "condition:":
 					ExtractReferences (att);
+					break;
 				}
 			}
 		}
@@ -240,10 +278,10 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (val is ItemReference ir) {
+				VisitItemReference (ir.ItemName, startOffset + ir.AbsoluteIndex, ir.ItemName.Length);
 				if (ir.Transform != null) {
 					ExtractReferences (ir.Transform, startOffset, ir);
 				}
-				VisitItemReference (ir.ItemName, startOffset + ir.AbsoluteIndex, ir.ItemName.Length);
 				return;
 			}
 
@@ -253,7 +291,12 @@ namespace MonoDevelop.MSBuildEditor
 				if (string.IsNullOrEmpty (itemName)) {
 					itemName = transformParent?.ItemName;
 				}
-				VisitMetadataReference (itemName, mr.MetadataName, startOffset + mr.AbsoluteIndex, mr.MetadataName.Length);
+				if (mr.IsQualified) {
+					VisitItemReference (itemName, startOffset + mr.AbsoluteIndex - mr.ItemName.Length - 1, mr.ItemName.Length);
+					VisitMetadataReference (itemName, mr.MetadataName, startOffset + mr.AbsoluteIndex, mr.MetadataName.Length);
+				} else {
+					VisitMetadataReference (itemName, mr.MetadataName, startOffset + mr.AbsoluteIndex, mr.MetadataName.Length);
+				}
 				return;
 			}
 

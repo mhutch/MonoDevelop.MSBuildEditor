@@ -26,7 +26,6 @@
 
 using System;
 using System.Collections.Generic;
-using MonoDevelop.Ide.Editor;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor
@@ -36,7 +35,7 @@ namespace MonoDevelop.MSBuildEditor
 		public List<(int Offset,int Length)> Results { get; } = new List<(int,int)> ();
 		public string Name { get; }
 
-		public MSBuildReferenceCollector (string name)
+		protected MSBuildReferenceCollector (string name)
 		{
 			if (string.IsNullOrEmpty (name)) {
 				throw new ArgumentException ("Name cannot be null or empty", name);
@@ -98,14 +97,6 @@ namespace MonoDevelop.MSBuildEditor
 		{
 		}
 
-		protected override void VisitItem (XElement element)
-		{
-			if (IsMatch (element)) {
-				AddResult (element);
-			}
-			base.VisitItem (element);
-		}
-
 		protected override void VisitItemReference (string itemName, int start, int length)
 		{
 			if (IsMatch (itemName)) {
@@ -119,14 +110,6 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		public MSBuildPropertyReferenceCollector (string propertyName) : base (propertyName)
 		{
-		}
-
-		protected override void VisitProperty (XElement element)
-		{
-			if (IsMatch (element)) {
-				AddResult (element);
-			}
-			base.VisitProperty (element);
 		}
 
 		protected override void VisitPropertyReference (string propertyName, int start, int length)
@@ -160,22 +143,6 @@ namespace MonoDevelop.MSBuildEditor
 		public MSBuildMetadataReferenceCollector (string itemName, string metadataName) : base (metadataName)
 		{
 			this.itemName = itemName;
-		}
-
-		protected override void VisitMetadata (XElement element, string itemName, string metadataName)
-		{
-			if (IsMatch (element) && IsItemNameMatch (itemName)) {
-				AddResult (element);
-			}
-			base.VisitMetadata (element, itemName, metadataName);
-		}
-
-		protected override void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
-		{
-			if (IsMatch (attribute) && IsItemNameMatch (itemName)) {
-				AddResult (attribute);
-			}
-			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
 
 		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
