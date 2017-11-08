@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < results.Count; i++) {
 				var a = results [i];
 				var e = expected [i];
-				if (a.result.ReferenceKind != e.kind || !string.Equals (a.result.ReferenceName, e.name)) {
+				if (a.result.ReferenceKind != e.kind || !string.Equals (a.result.ReferenceName, e.name) || !string.Equals (a.result.ReferenceItemName, e.itemName)) {
 					Dump ();
 					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatNameT (e)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
 				}

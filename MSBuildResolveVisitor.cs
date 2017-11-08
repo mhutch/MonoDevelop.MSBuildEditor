@@ -132,7 +132,8 @@ namespace MonoDevelop.MSBuildEditor
 			{
 				if (IsIn (start, length)) {
 					rr.ReferenceKind = MSBuildKind.MetadataReference;
-					rr.ReferenceName = itemName;
+					rr.ReferenceName = metadataName;
+					rr.ReferenceItemName = itemName;
 					base.VisitMetadataReference (itemName, metadataName, start, length);
 				}
 			}
