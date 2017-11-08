@@ -85,27 +85,34 @@ namespace MonoDevelop.MSBuildEditor
 			return base.HandleCodeCompletionAsync (completionContext, triggerInfo, token);
 		}
 
+		MSBuildResolveResult ResolveCurrentLocation ()
+		{
+			if (Tracker == null) {
+				return null;
+			}
+			Tracker.UpdateEngine ();
+			return MSBuildResolver.Resolve(Tracker.Engine, Editor.CreateDocumentSnapshot ());
+		}
+
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
 		{
 			var list = new CompletionDataList ();
 			AddMiscBeginTags (list);
 
-			var path = GetCurrentPath ();
+			var rr = ResolveCurrentLocation ();
 
-			if (path.Count == 0) {
+			if (rr?.SchemaElement == null) {
 				list.Add (new XmlCompletionData ("Project", XmlCompletionData.DataType.XmlElement));
 				return Task.FromResult (list);
 			}
 
-			var rr = ResolveElement (path);
-			if (rr == null)
-				return Task.FromResult (list);
-
-			foreach (var c in rr.BuiltinChildren)
+			foreach (var c in rr.SchemaElement.Children) {
 				list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
+			}
 
+			var doc = GetDocument ();
 			foreach (var item in GetInferredChildren (rr)) {
-				list.Add (new MSBuildCompletionData (item, GetDocument ()));
+				list.Add (new MSBuildCompletionData (item, doc));
 			}
 
 			return Task.FromResult (list);
@@ -159,18 +166,18 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		IEnumerable<BaseInfo> GetInferredChildren (ResolveResult rr)
+		IEnumerable<BaseInfo> GetInferredChildren (MSBuildResolveResult rr)
 		{
 			var doc = GetDocument ();
 			if (doc == null)
 				return new BaseInfo [0];
 
-			if (rr.ElementType == MSBuildKind.Item) {
+			if (rr.SchemaElement.Kind == MSBuildKind.Item) {
 				return doc.Context.GetItemMetadata (rr.ElementName, false);
 			}
 
-			if (rr.ChildType.HasValue) {
-				switch (rr.ChildType.Value) {
+			if (rr.SchemaElement.ChildType.HasValue) {
+				switch (rr.SchemaElement.ChildType.Value) {
 				case MSBuildKind.Item:
 					return doc.Context.GetItems ();
 				case MSBuildKind.Task:
@@ -185,14 +192,12 @@ namespace MonoDevelop.MSBuildEditor
 		protected override Task<CompletionDataList> GetAttributeCompletions (IAttributedXObject attributedOb,
 			Dictionary<string, string> existingAtts, CancellationToken token)
 		{
-			var path = GetCurrentPath ();
-
-			var rr = ResolveElement (path);
-			if (rr == null)
+			var rr = ResolveCurrentLocation ();
+			if (rr?.SchemaElement == null)
 				return null;
 
 			var list = new CompletionDataList ();
-			foreach (var a in rr.BuiltinAttributes)
+			foreach (var a in rr.SchemaElement.Attributes)
 				if (!existingAtts.ContainsKey (a))
 					list.Add (new XmlCompletionData (a, XmlCompletionData.DataType.XmlAttribute));
 
@@ -205,7 +210,7 @@ namespace MonoDevelop.MSBuildEditor
 			return Task.FromResult (list);
 		}
 
-		IEnumerable<string> GetInferredAttributes (ResolveResult rr)
+		IEnumerable<string> GetInferredAttributes (MSBuildResolveResult rr)
 		{
 			var doc = GetDocument ();
 			if (doc == null) {
@@ -213,11 +218,11 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			//metadata as attributes
-			if (rr.ElementType == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
+			if (rr.SchemaElement.Kind == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
 				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => a.Name);
 			}
 
-			if (rr.ElementType != MSBuildKind.Task) {
+			if (rr.SchemaElement.Kind != MSBuildKind.Task) {
 				var result = new HashSet<string> ();
 				foreach (var task in doc.Context.GetTask (rr.ElementName)) {
 					foreach (var p in task.Parameters) {
@@ -232,21 +237,20 @@ namespace MonoDevelop.MSBuildEditor
 
 		protected override Task<CompletionDataList> GetAttributeValueCompletions (IAttributedXObject attributedOb, XAttribute att, CancellationToken token)
 		{
-			var path = GetCurrentPath ();
-
-			var rr = ResolveElement (path);
-			if (rr == null) {
+			var rr = ResolveCurrentLocation ();
+			if (rr?.SchemaElement == null) {
 				return null;
 			}
+			var path = GetCurrentPath ();
 
 			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;
 			int startIdx = Editor.CaretOffset - triggerLength;
 
-			if ((rr.ElementType == MSBuildKind.Import || rr.ElementType == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
+			if ((rr.SchemaElement.Kind == MSBuildKind.Import || rr.SchemaElement.Kind == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
 				return GetSdkCompletions (token);
 			}
 
-			if (rr.ElementType == MSBuildKind.Item && rr.ElementName == "PackageReference") {
+			if (rr.SchemaElement.Kind == MSBuildKind.Item && rr.ElementName == "PackageReference") {
 				var tfm = GetDocument ().Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
 				if (rr.AttributeName == "Include") {
 					string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
@@ -301,8 +305,8 @@ namespace MonoDevelop.MSBuildEditor
 
 			//TODO: how can we find SDKs in the non-default locations?
 			return Task.Run (() => {
-				foreach (var d in System.IO.Directory.GetDirectories (resolver.DefaultSdkPath)) {
-					string name = System.IO.Path.GetFileName (d);
+				foreach (var d in Directory.GetDirectories (resolver.DefaultSdkPath)) {
+					string name = Path.GetFileName (d);
 					if (sdks.Add (name)) {
 						list.Add (name);
 					}
@@ -311,78 +315,24 @@ namespace MonoDevelop.MSBuildEditor
 			}, token);
 		}
 
-		static ResolveResult ResolveElement (IList<XObject> path)
-		{
-			//need to look up element by walking how the path, since at each level, if the parent has special children,
-			//then that gives us information to identify the type of its children
-			MSBuildElement el = null;
-			string elName = null, attName = null, parentName = null;
-			for (int i = 0; i < path.Count; i++) {
-				var xatt = path [i] as XAttribute;
-				if (xatt != null) {
-					attName = xatt.Name.Name;
-					break;
-				}
-				//if children of parent is known to be arbitrary data, don't go into it
-				if (el != null && el.ChildType == MSBuildKind.Data)
-					break;
-				//code completion is forgiving, all we care about best guess resolve for deepest child
-				var xel = path [i] as XElement;
-				if (xel != null && xel.Name.Prefix == null) {
-					parentName = elName;
-					elName = xel.Name.Name;
-					el = MSBuildElement.Get (elName, el);
-					if (el != null)
-						continue;
-				}
-				el = null;
-				elName = null;
-				parentName = null;
-			}
-			if (el == null)
-				return null;
-
-			return new ResolveResult {
-				AttributeName = attName,
-				ElementName = elName,
-				ParentName = parentName,
-				ElementType = el.Kind,
-				ChildType = el.ChildType,
-				BuiltinAttributes = el.Attributes,
-				BuiltinChildren = el.Children,
-			};
-		}
-
-		class ResolveResult
-		{
-			public string AttributeName;
-			public string ElementName;
-			public string ParentName;
-			public MSBuildKind? ElementType;
-			public MSBuildKind? ChildType;
-			public IEnumerable<string> BuiltinAttributes;
-			public IEnumerable<string> BuiltinChildren;
-		}
-
 		ICompletionDataList HandleExpressionCompletion (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token)
 		{
 			var doc = GetDocument ();
 			if (doc == null)
 				return null;
 
-			var path = GetCurrentPath ();
-			var rr = ResolveElement (path);
+			var rr = ResolveCurrentLocation ();
 
-			if (rr == null || rr.ElementType == null) {
+			if (rr?.SchemaElement == null) {
 				return null;
 			}
 
 			var state = Tracker.Engine.CurrentState;
-			bool isAttribute = state is Xml.Parser.XmlAttributeValueState;
+			bool isAttribute = state is XmlAttributeValueState;
 			if (isAttribute) {
 				//FIXME: assume all attributes accept expressions for now
-			} else if (state is Xml.Parser.XmlRootState) {
-				if (rr.ChildType != MSBuildKind.Expression)
+			} else if (state is XmlRootState) {
+				if (rr.SchemaElement.ChildType != MSBuildKind.Expression)
 					return null;
 			} else {
 				return null;
@@ -443,14 +393,14 @@ namespace MonoDevelop.MSBuildEditor
 		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
 		{
 			foreach (var item in doc.Context.GetItems ()) {
-				yield return new CompletionData (item.Name, MonoDevelop.Ide.Gui.Stock.Class, item.Description);
+				yield return new CompletionData (item.Name, Ide.Gui.Stock.Class, item.Description);
 			}
 		}
 
 		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc)
 		{
 			foreach (var prop in doc.Context.GetProperties (true)) {
-				yield return new CompletionData (prop.Name, MonoDevelop.Ide.Gui.Stock.Class, prop.Description);
+				yield return new CompletionData (prop.Name, Ide.Gui.Stock.Class, prop.Description);
 			}
 		}
 
@@ -506,8 +456,7 @@ namespace MonoDevelop.MSBuildEditor
 		[CommandHandler (Refactoring.RefactoryCommands.FindReferences)]
 		void FindReferences ()
 		{
-			var path = GetCurrentPath ();
-			var rr = ResolveElement (path);
+			var rr = ResolveCurrentLocation ();
 			var doc = GetDocument ();
 
 			var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true);
@@ -543,9 +492,9 @@ namespace MonoDevelop.MSBuildEditor
 			Task.WhenAll (tasks).ContinueWith (t => monitor?.Dispose ());
 		}
 
-		void FindReferences (SearchProgressMonitor monitor, ResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
+		void FindReferences (SearchProgressMonitor monitor, MSBuildResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
 		{
-			var collector = MSBuildReferenceCollector.Create (rr.ElementType.Value, rr.ElementName, rr.ParentName);
+			var collector = MSBuildReferenceCollector.Create (rr.SchemaElement.Kind, rr.ElementName, rr.ParentName);
 			collector.Run (filename, textDoc, doc);
 			var fileProvider = new FileProvider (filename);
 			if (collector.Results.Count > 0) {
@@ -556,10 +505,8 @@ namespace MonoDevelop.MSBuildEditor
 		[CommandUpdateHandler (Refactoring.RefactoryCommands.FindReferences)]
 		void UpdateFindReferences (CommandInfo info)
 		{
-			var path = GetCurrentPath ();
-			var rr = ResolveElement (path);
-
-			info.Enabled = MSBuildReferenceCollector.CanCreate (rr?.ElementType, rr?.ElementName);
+			var rr = ResolveCurrentLocation ();
+			info.Enabled = rr?.SchemaElement != null && MSBuildReferenceCollector.CanCreate (rr.SchemaElement.Kind, rr.ElementName);
 		}
 	}
 }

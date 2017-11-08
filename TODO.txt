@@ -10,14 +10,10 @@ Snippets
 Pairing of props and targets
 Docs on built-ins
 Docs from MSBuild files?
-Find references
 Completion of task parameters
 File templates
 Completion of inline C#
-Go to definition on imports
 Debugger?
-<Import Sdk=...
-Sdk resolvers
 Wildcard imports
 Unit test
   * parser
@@ -25,5 +21,4 @@ Unit test
   * IntelliSense
   * expression parser
 Improve import resolution
-  * Brute force with all known simple values
   * Full resolution using current conditioned state 

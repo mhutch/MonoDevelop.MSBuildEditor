@@ -76,7 +76,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var sdks = ctx.ResolveSdks (project).ToList ();
 
-			var pel = MSBuildElement.Get ("Project");
+			var pel = MSBuildSchemaElement.Get ("Project");
 
 			GetPropertiesUsedByImports (propVals, project);
 

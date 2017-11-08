@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitPropertyReference (propertyName, start, length);
 		}
 
-		protected override void VisitResolved (XElement element, MSBuildElement resolved)
+		protected override void VisitResolved (XElement element, MSBuildSchemaElement resolved)
 		{
 			if (isToplevel) {
 				ValidateAttributes (element, resolved);
@@ -153,7 +153,7 @@ namespace MonoDevelop.MSBuildEditor
 			base.VisitUnknown (element);
 		}
 
-		void ValidateAttributes (XElement element, MSBuildElement kind)
+		void ValidateAttributes (XElement element, MSBuildSchemaElement kind)
 		{
 			//TODO these need special handling
 			if (kind.Kind == MSBuildKind.Item || kind.Kind == MSBuildKind.Task) {

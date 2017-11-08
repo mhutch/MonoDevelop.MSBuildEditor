@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using MonoDevelop.Core;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
@@ -37,7 +38,7 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		IReadonlyTextDocument textDocument;
 
-		public void Run (string fileName, XDocument doc, ITextSource documentText)
+		protected void SetTextDocument (string fileName, ITextSource documentText)
 		{
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets
@@ -45,21 +46,26 @@ namespace MonoDevelop.MSBuildEditor
 				?? TextEditorFactory.CreateNewReadonlyDocument (
 					documentText, fileName, MSBuildTextEditorExtension.MSBuildMimeType
 				);
+		}
+
+		protected int ConvertLocation (DocumentLocation location) => textDocument.LocationToOffset (location);
+
+		public void Run (string fileName, ITextSource documentText, XDocument doc)
+		{
+			SetTextDocument (fileName, documentText);
 
 			foreach (var el in doc.RootElement.Elements) {
 				Run (el, null);
 			}
 		}
 
-		protected int ConvertLocation (DocumentLocation location) => textDocument.LocationToOffset (location);
-
-		void Run (XElement el, MSBuildElement parent)
+		 void Run (XElement el, MSBuildSchemaElement parent)
 		{
 			if (el.Name.Prefix != null) {
 				return;
 			}
 
-			var resolved = MSBuildElement.Get (el.Name.FullName, parent);
+			var resolved = MSBuildSchemaElement.Get (el.Name.FullName, parent);
 			if (resolved == null) {
 				VisitUnknown (el);
 				return;
@@ -68,7 +74,7 @@ namespace MonoDevelop.MSBuildEditor
 			VisitResolved (el, resolved);
 		}
 
-		protected virtual void VisitResolved (XElement element, MSBuildElement resolved)
+		protected virtual void VisitResolved (XElement element, MSBuildSchemaElement resolved)
 		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Task:
