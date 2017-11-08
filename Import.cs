@@ -33,6 +33,7 @@ namespace MonoDevelop.MSBuildEditor
 		public DateTime TimeStampUtc { get; }
 		public string Filename { get; private set; }
 		public MSBuildResolveContext ResolveContext { get; set; }
+		public bool IsResolved { get { return ResolveContext != null; } }
 
 		public Import (string filename, DateTime timeStampUtc)
 		{

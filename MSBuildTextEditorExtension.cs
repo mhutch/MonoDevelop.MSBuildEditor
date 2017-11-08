@@ -464,6 +464,9 @@ namespace MonoDevelop.MSBuildEditor
 			var tasks = new List<Task> ();
 
 			foreach (var import in doc.Context.GetDescendentImports ()) {
+				if (!import.IsResolved || !File.Exists (import.Filename)) {
+					continue;
+				}
 				tasks.Add (Task.Run (() => {
 					try {
 						var xmlParser = new XmlParser (new XmlRootState (), true);
