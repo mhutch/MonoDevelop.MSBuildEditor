@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Core.Text;
@@ -7,7 +6,6 @@ using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.Projects;
-using MonoDevelop.Core.Assemblies;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -66,15 +64,13 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			string file = UnitTests.TestBase.GetTempFile (extension);
 			project.AddFile (file);
 
-			sev = new TestViewContent ();
-			sev.Project = project;
-			sev.ContentName = file;
-			sev.Text = editorText;
-			sev.CursorPosition = cursorPosition;
-
-			var tww = new TestWorkbenchWindow ();
-			tww.ViewContent = sev;
-
+			sev = new TestViewContent {
+				Project = project,
+				ContentName = file,
+				Text = editorText,
+				CursorPosition = cursorPosition
+			};
+			var tww = new TestWorkbenchWindow { ViewContent = sev };
 			var doc = new TestDocument (tww);
 			doc.Editor.FileName = sev.ContentName;
 			var parser = new MSBuildDocumentParser ();
@@ -109,11 +105,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			public CodeCompletionContext GetCodeCompletionContext (TestViewContent sev)
 			{
-				var ctx = new CodeCompletionContext ();
-				ctx.TriggerOffset = sev.CursorPosition;
-
-				int line, column;
-				sev.GetLineColumnFromPosition (ctx.TriggerOffset, out line, out column);
+				var ctx = new CodeCompletionContext { TriggerOffset = sev.CursorPosition };
+				sev.GetLineColumnFromPosition (ctx.TriggerOffset, out int line, out int column);
 				ctx.TriggerLine = line;
 				ctx.TriggerLineOffset = column - 1;
 
