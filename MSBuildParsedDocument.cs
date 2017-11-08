@@ -142,19 +142,16 @@ namespace MonoDevelop.MSBuildEditor
 			token.ThrowIfCancellationRequested ();
 
 			var xmlParser = new XmlParser (new XmlRootState (), true);
-			string text;
+			ITextDocument textDoc;
 			try {
-				text = TextFileUtility.ReadAllText (import.Filename);
-				xmlParser.Parse (new StringReader (text));
+				textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildTextEditorExtension.MSBuildMimeType);
+				xmlParser.Parse (textDoc.CreateReader ());
 			} catch (Exception ex) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
 				return import;
 			}
 
 			var doc = xmlParser.Nodes.GetRoot ();
-
-			var textDoc = TextEditorFactory.CreateNewDocument (projectPath, MSBuildTextEditorExtension.MSBuildMimeType);
-			textDoc.Text = text;
 
 			import.ResolveContext = MSBuildResolveContext.Create (
 				import.Filename,

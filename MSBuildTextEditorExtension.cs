@@ -470,11 +470,9 @@ namespace MonoDevelop.MSBuildEditor
 				tasks.Add (Task.Run (() => {
 					try {
 						var xmlParser = new XmlParser (new XmlRootState (), true);
-						string text = Core.Text.TextFileUtility.ReadAllText (import.Filename);
-						xmlParser.Parse (new StringReader (text));
-						var xdoc = xmlParser.Nodes.GetRoot ();
 						var textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildMimeType);
-						textDoc.Text = text;
+						xmlParser.Parse (textDoc.CreateReader ());
+						var xdoc = xmlParser.Nodes.GetRoot ();
 						FindReferences (monitor, rr, import.Filename, xdoc, textDoc);
 					} catch (Exception ex) {
 						monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
