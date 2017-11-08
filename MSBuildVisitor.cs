@@ -236,7 +236,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		void ExtractReferences (XElement element)
 		{
-			if (element.IsSelfClosing) {
+			if (element.IsSelfClosing || !element.IsEnded) {
 				return;
 			}
 
@@ -246,7 +246,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (element.IsClosed && element.FirstChild == null) {
 				end = textDocument.LocationToOffset (element.ClosingTag.Region.Begin);
 			} else {
-				for (end = begin; end < textDocument.Length && textDocument.GetCharAt (end) != '<'; end++) {}
+				for (end = begin; end < (textDocument.Length + 1) && textDocument.GetCharAt (end) != '<'; end++) {}
 			}
 			var text = textDocument.GetTextBetween (begin, end);
 			ExtractReferences (text, begin);
