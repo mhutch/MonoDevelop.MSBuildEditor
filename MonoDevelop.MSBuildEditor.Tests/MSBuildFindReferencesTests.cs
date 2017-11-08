@@ -48,7 +48,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			xmlParser.Parse (new StringReader (doc));
 			var xdoc = xmlParser.Nodes.GetRoot ();
 
-			var collector = MSBuildReferenceCollector.Create (kind, name, parentName);
+			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
+				ReferenceKind = kind,
+				ReferenceName = name,
+				ReferenceItemName = parentName
+			});
 			collector.Run (filename, textDoc, xdoc);
 			return collector.Results;
 		}
@@ -92,7 +96,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </itemgroup>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.Item, "Foo", null);
+			var refs = FindReferences (doc, MSBuildKind.ItemReference, "Foo", null);
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -124,7 +128,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.Property, "Foo", null);
+			var refs = FindReferences (doc, MSBuildKind.PropertyReference, "Foo", null);
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -162,7 +166,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.ItemMetadata, "foo", "bar");
+			var refs = FindReferences (doc, MSBuildKind.MetadataReference, "foo", "bar");
 
 			AssertLocations (
 				doc, "foo", refs,

@@ -494,7 +494,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		void FindReferences (SearchProgressMonitor monitor, MSBuildResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
 		{
-			var collector = MSBuildReferenceCollector.Create (rr.SchemaElement.Kind, rr.ElementName, rr.ParentName);
+			var collector = MSBuildReferenceCollector.Create (rr);
 			collector.Run (filename, textDoc, doc);
 			var fileProvider = new FileProvider (filename);
 			if (collector.Results.Count > 0) {
@@ -506,7 +506,7 @@ namespace MonoDevelop.MSBuildEditor
 		void UpdateFindReferences (CommandInfo info)
 		{
 			var rr = ResolveCurrentLocation ();
-			info.Enabled = rr?.SchemaElement != null && MSBuildReferenceCollector.CanCreate (rr.SchemaElement.Kind, rr.ElementName);
+			info.Enabled = MSBuildReferenceCollector.CanCreate (rr);
 		}
 	}
 }

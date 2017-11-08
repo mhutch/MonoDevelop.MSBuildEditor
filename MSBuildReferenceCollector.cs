@@ -62,32 +62,45 @@ namespace MonoDevelop.MSBuildEditor
 			));
 		}
 
-		public static bool CanCreate (MSBuildKind? kind, string name)
+		public static bool CanCreate (MSBuildResolveResult rr)
 		{
-			switch (kind) {
-			case MSBuildKind.Property:
-			case MSBuildKind.Item:
-			case MSBuildKind.ItemMetadata:
-			case MSBuildKind.Task:
-				return !string.IsNullOrEmpty (name);
+			if (rr == null || rr.SchemaElement == null) {
+				return false;
 			}
+
+			switch (rr.ReferenceKind) {
+			case MSBuildKind.PropertyReference:
+			case MSBuildKind.ItemReference:
+			case MSBuildKind.MetadataReference:
+				return !string.IsNullOrEmpty (rr.ReferenceName);
+			}
+
+			//FIXME: make this more precise
+			switch (rr.SchemaElement.Kind) {
+				case MSBuildKind.Task:
+				return true;
+			}
+
 			return false;
 		}
 
-		public static MSBuildReferenceCollector Create (MSBuildKind kind, string name, string parentName)
+		public static MSBuildReferenceCollector Create (MSBuildResolveResult rr)
 		{
-			switch (kind) {
-			case MSBuildKind.Property:
-				return new MSBuildPropertyReferenceCollector (name);
-			case MSBuildKind.Item:
-				return new MSBuildItemReferenceCollector (name);
-			case MSBuildKind.ItemMetadata:
-				return new MSBuildMetadataReferenceCollector (parentName, name);
-			case MSBuildKind.Task:
-				return new MSBuildTaskReferenceCollector (name);
-			default:
-				throw new ArgumentException ($"Cannot create collector for {kind}", nameof (kind));
+			switch (rr.ReferenceKind) {
+			case MSBuildKind.PropertyReference:
+				return new MSBuildPropertyReferenceCollector (rr.ReferenceName);
+			case MSBuildKind.ItemReference:
+				return new MSBuildItemReferenceCollector (rr.ReferenceName);
+			case MSBuildKind.MetadataReference:
+				return new MSBuildMetadataReferenceCollector (rr.ReferenceItemName, rr.ReferenceName);
 			}
+
+			switch (rr.SchemaElement.Kind) {
+			case MSBuildKind.Task:
+				return new MSBuildTaskReferenceCollector (rr.ElementName);
+			}
+
+			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
 		}
 	}
 
