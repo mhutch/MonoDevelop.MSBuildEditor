@@ -404,7 +404,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		Import GetImportAtLocation (DocumentLocation location)
+		IEnumerable<T> GetAnnotationsAtLocation<T> (DocumentLocation location)
 		{
 			var doc = GetDocument ();
 			if (doc == null) {
@@ -416,26 +416,51 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			return doc.Context.Annotations.Get<Import> (xobj);
+			return doc.Context.Annotations
+				.GetMany<T> (xobj)
+				.Where (a => !(a is IRegionAnnotation ra) || ra.Region.Contains (location));
 		}
 
 		[CommandHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
 		void GotoDefinition()
 		{
-			var import = GetImportAtLocation (Editor.CaretLocation);
-			if (import != null) {
+			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (Editor.CaretLocation);
+
+			var files = new List<string> ();
+			foreach (var nav in annotations) {
+				if (Directory.Exists (nav.Path)) {
+					foreach (var f in Directory.EnumerateFiles (nav.Path, "*", SearchOption.AllDirectories)) {
+						if (f.EndsWith (".targets", StringComparison.OrdinalIgnoreCase) || f.EndsWith (".props", StringComparison.OrdinalIgnoreCase))
+							files.Add (f);
+					}
+				}
+				if (File.Exists (nav.Path)) {
+					files.Add (nav.Path);
+				}
+			}
+
+
+			if (files.Count == 1) {
 				//FIXME: can we open the doc with the same context i.e. as a child of this?
 				// That would improve drilldown and find refs accuracy but would run into issues
 				// when drilling down into the same child from multiple parents.
 				// We'd probably need something like the shared projects context dropdown.
-				IdeApp.Workbench.OpenDocument (import.Filename, this.DocumentContext.Project, true);
+				IdeApp.Workbench.OpenDocument (files[0], DocumentContext.Project, true);
+				return;
+			}
+
+			using (var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true)) {
+				foreach (var file in files) {
+					var fp = new FileProvider (file);
+					monitor.ReportResult (new SearchResult (fp, 0, 0));
+				}
 			}
 		}
 
 		[CommandUpdateHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
 		void UpdateGotoDefinition (CommandInfo info)
 		{
-			info.Enabled = GetImportAtLocation (Editor.CaretLocation) != null;
+			info.Enabled = GetAnnotationsAtLocation<NavigationAnnotation> (Editor.CaretLocation).Any ();
 		}
 
 		//FIXME: binary search

@@ -112,6 +112,8 @@
     <Compile Include="MSBuildDocumentResolver.cs" />
     <Compile Include="MSBuildCommands.cs" />
     <Compile Include="MSBuildResolveVisitor.cs" />
+    <Compile Include="XmlExtensions.cs" />
+    <Compile Include="Annotations.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

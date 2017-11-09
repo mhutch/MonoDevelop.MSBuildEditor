@@ -51,17 +51,54 @@ namespace MonoDevelop.MSBuildEditor
 
 		protected override void VisitImport (XElement element)
 		{
+			base.VisitImport (element);
+
 			var importAtt = element.Attributes [new XName ("Project")];
 			var sdkAtt = element.Attributes [new XName ("Sdk")];
-			if (importAtt != null) {
-				foreach (var import in resolveImport (ctx, importAtt.Value, sdkAtt?.Value, importAtt.Region, sdkAtt?.Region ?? DocumentRegion.Empty, propertyValues)) {
-					ctx.Imports [import.Filename] = import;
-					if (isToplevel) {
-						ctx.Annotations.Add (importAtt, import);
-					}
+
+			string sdkPath = null, import = null;
+
+			if (importAtt != null && CheckValue (importAtt)) {
+				import = importAtt.Value;
+			}
+
+			if (sdkAtt != null && CheckValue (sdkAtt)) {
+				var loc = isToplevel? sdkAtt.GetValueRegion (textDocument) : sdkAtt.Region;
+				sdkPath = ctx.GetSdkPath (sdkAtt.Value, loc);
+				import = import == null? null : sdkPath + "\\" + import;
+
+				if (isToplevel) {
+					ctx.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
 				}
 			}
-			base.VisitImport (element);
+
+			if (import != null) {
+				bool wasResolved = false;
+				var loc = isToplevel ? importAtt.GetValueRegion (textDocument) : importAtt.Region;
+				foreach (var resolvedImport in resolveImport (ctx, import, propertyValues)) {
+					ctx.Imports [resolvedImport.Filename] = resolvedImport;
+					wasResolved |= resolvedImport.IsResolved;
+					if (isToplevel) {
+						ctx.Annotations.Add (importAtt, new NavigationAnnotation (resolvedImport.Filename, loc));
+					}
+				}
+				if (!wasResolved && isToplevel) {
+					ctx.Errors.Add (new Error (ErrorType.Error, "Could not resolve import", loc));
+				}
+			}
+		}
+
+		bool CheckValue (XAttribute att)
+		{
+			if (!string.IsNullOrWhiteSpace (att.Value)) {
+				return true;
+			}
+
+			if (isToplevel) {
+				ctx.Errors.Add (new Error (ErrorType.Error, "Empty value", att.Region));
+			}
+
+			return false;
 		}
 
 		protected override void VisitItem (XElement element)

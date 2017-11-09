@@ -1,10 +1,5 @@
-//
-// AnnotationTable.cs
-//
-// Author:
-//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
-//
-// Copyright (c) 2016 Xamarin Inc.
+﻿//
+// Copyright (c) 2017 Microsoft Corp.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +19,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	class AnnotationTable<T> where T : class
+	public static class XmlExtensions
 	{
-		readonly ConditionalWeakTable<T, List<object>> annotations = new ConditionalWeakTable<T, List<object>> ();
-
-		public U Get<U> (T o)
+		public static DocumentLocation GetValueStart (this XAttribute att, IReadonlyTextDocument doc)
 		{
-			if (!annotations.TryGetValue (o, out List<object> values))
-				return default (U);
-			return values.OfType<U> ().FirstOrDefault ();
+			int offset = doc.LocationToOffset (att.Region.End) - att.Value.Length - 1;
+			return doc.OffsetToLocation(offset);
 		}
 
-		public IEnumerable<U> GetMany<U> (T o)
+		public static DocumentRegion GetValueRegion (this XAttribute att, IReadonlyTextDocument doc)
 		{
-			if (!annotations.TryGetValue (o, out List<object> values))
-				return Array.Empty<U> ();
-			return values.OfType<U> ();
-		}
-
-		public void Add<U> (T o, U annotation)
-		{
-			if (Equals (annotation, default (T)))
-				return;
-			
-			if (!annotations.TryGetValue (o, out List<object> values)) {
-				values = new List<object> ();
-				annotations.Add (o, values);
-			}
-			values.Add (annotation);
+			int endOffset = doc.LocationToOffset (att.Region.End) - 1;
+			int startOffset = endOffset - att.Value.Length;
+			return new DocumentRegion (doc.OffsetToLocation (startOffset), doc.OffsetToLocation (endOffset));
 		}
 	}
-
 }

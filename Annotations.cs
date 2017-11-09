@@ -1,10 +1,10 @@
-//
-// AnnotationTable.cs
+﻿//
+// Annotations.cs
 //
 // Author:
 //       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
 //
-// Copyright (c) 2016 Xamarin Inc.
+// Copyright (c) 2017 Microsoft Corp.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +24,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using MonoDevelop.Ide.Editor;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	class AnnotationTable<T> where T : class
+	interface IRegionAnnotation
 	{
-		readonly ConditionalWeakTable<T, List<object>> annotations = new ConditionalWeakTable<T, List<object>> ();
-
-		public U Get<U> (T o)
-		{
-			if (!annotations.TryGetValue (o, out List<object> values))
-				return default (U);
-			return values.OfType<U> ().FirstOrDefault ();
-		}
-
-		public IEnumerable<U> GetMany<U> (T o)
-		{
-			if (!annotations.TryGetValue (o, out List<object> values))
-				return Array.Empty<U> ();
-			return values.OfType<U> ();
-		}
-
-		public void Add<U> (T o, U annotation)
-		{
-			if (Equals (annotation, default (T)))
-				return;
-			
-			if (!annotations.TryGetValue (o, out List<object> values)) {
-				values = new List<object> ();
-				annotations.Add (o, values);
-			}
-			values.Add (annotation);
-		}
+		DocumentRegion Region { get; }
 	}
 
+	public class NavigationAnnotation : IRegionAnnotation
+	{
+		public NavigationAnnotation (string path, DocumentRegion region)
+		{
+			Path = path;
+			Region = region;
+		}
+
+		public DocumentRegion Region { get; }
+		public string Path { get; }
+	}
 }

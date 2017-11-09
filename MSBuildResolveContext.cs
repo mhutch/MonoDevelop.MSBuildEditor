@@ -36,7 +36,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, DocumentRegion importAttLocation, DocumentRegion sdkAttLocation, PropertyValueCollector propertyVals);
+	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, PropertyValueCollector propertyVals);
 
 	class MSBuildResolveContext
 	{
@@ -74,7 +74,7 @@ namespace MonoDevelop.MSBuildEditor
 				return ctx;
 			}
 
-			var sdks = ctx.ResolveSdks (project).ToList ();
+			var sdks = ctx.ResolveSdks (project, textDocument).ToList ();
 
 			var pel = MSBuildSchemaElement.Get ("Project");
 
@@ -104,26 +104,66 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		string GetSdkPath (string sdk)
+		internal string GetSdkPath (string sdk, DocumentRegion loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
-				//TODO: squiggle the SDK
-				LoggingService.LogError ($"Could not parse SDK {sdk}");
+				string message = $"Could not parse SDK '{sdk}'";
+				LoggingService.LogError (message);
+				if (IsToplevel) {
+					AddError (message);
+				}
 				return null;
 			}
 
 			//FIXME: filename should be the root project, not this file
 			var sdkPath = SdkResolver.GetSdkPath (sdkRef, Filename, null);
 			if (sdkPath == null) {
-				//TODO: squiggle the SDK
-				LoggingService.LogError ($"Did not find SDK {sdk}");
+				string message = $"Did not find SDK '{sdk}'";
+				LoggingService.LogError (message);
+				if (IsToplevel) {
+					AddError (message);
+				}
 				return null;
 			}
 
 			return sdkPath;
+
+			void AddError (string msg) => Errors.Add (new Error (ErrorType.Error, msg, loc));
 		}
 
-		IEnumerable<(string,DocumentRegion)> ResolveSdks (XElement project)
+		IEnumerable<(string id, DocumentRegion loc)> SplitSdkValue (DocumentLocation location, string value)
+		{
+			int start = 0, end;
+			while ((end = value.IndexOf (';', start)) > -1) {
+				yield return MakeResult ();
+				start = end + 1;
+			}
+			end = value.Length;
+			yield return MakeResult ();
+
+			DocumentRegion Region (int s, int e) => new DocumentRegion (location.Line, location.Column + s, location.Line, location.Column + e);
+
+			(string id, DocumentRegion loc) MakeResult ()
+			{
+				int trimStart = start, trimEnd = end;
+				while (trimStart < trimEnd) {
+					if (!char.IsWhiteSpace (value [trimStart]))
+						break;
+					trimStart++;
+				}
+				while (trimEnd > trimStart) {
+					if (!char.IsWhiteSpace (value [trimEnd - 1]))
+						break;
+					trimEnd--;
+				}
+				if (trimEnd > trimStart) {
+					return (value.Substring (trimStart, trimEnd - trimStart), Region (trimStart,trimEnd));
+				}
+				return (null, Region (start, end));
+			}
+		}
+
+		IEnumerable<(string, DocumentRegion)> ResolveSdks (XElement project, ITextDocument doc)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -135,11 +175,21 @@ namespace MonoDevelop.MSBuildEditor
 				yield break;
 			}
 
-			//FIXME pin the regions down a little more
-			foreach (var sdk in sdks.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select (s => s.Trim ()).Where (s => s.Length > 0)) {
-				var sdkPath = GetSdkPath (sdk);
-				if (sdkPath != null) {
-					yield return (sdkPath, sdksAtt.Region);
+			DocumentLocation start = IsToplevel? sdksAtt.GetValueStart (doc) : sdksAtt.Region.Begin;
+
+			foreach (var sdk in SplitSdkValue (start, sdksAtt.Value)) {
+				if (sdk.id == null) {
+					if (IsToplevel) {
+						Errors.Add (new Error (ErrorType.Warning, "Empty value", sdk.loc));
+					}
+				} else {
+					var sdkPath = GetSdkPath (sdk.id, sdk.loc);
+					if (sdkPath != null) {
+						yield return (sdkPath, sdk.loc);
+					}
+					if (IsToplevel) {
+						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.loc));
+					}
 				}
 			}
 		}
@@ -148,7 +198,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var propsPath = $"{sdkPath}\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, null, sdkLoc, DocumentRegion.Empty, propVals).FirstOrDefault ();
+				var sdkProps = resolveImport (this, propsPath, propVals).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
@@ -159,7 +209,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var targetsPath = $"{sdkPath}\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, null, sdkLoc, DocumentRegion.Empty, propVals).FirstOrDefault ();
+				var sdkTargets = resolveImport (this, targetsPath, propVals).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
