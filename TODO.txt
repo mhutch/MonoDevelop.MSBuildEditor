@@ -7,7 +7,6 @@ Completion of:
   * metadata in expressions
   * property functions
 Snippets
-Pairing of props and targets
 Docs on built-ins
 Docs from MSBuild files?
 Completion of task parameters

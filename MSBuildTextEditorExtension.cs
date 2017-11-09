@@ -534,5 +534,33 @@ namespace MonoDevelop.MSBuildEditor
 			var rr = ResolveCurrentLocation ();
 			info.Enabled = MSBuildReferenceCollector.CanCreate (rr);
 		}
+
+		static string GetCounterpartFile (string name)
+		{
+			switch (Path.GetExtension (name.ToLower ())) {
+			case ".targets":
+				name = Path.ChangeExtension (name, ".props");
+				break;
+			case ".props":
+				name = Path.ChangeExtension (name, ".targets");
+				break;
+			default:
+				return null;
+			}
+			return File.Exists (name) ? name : null;
+		}
+
+		[CommandHandler (DesignerSupport.Commands.SwitchBetweenRelatedFiles)]
+		protected void Run ()
+		{
+			var counterpart = GetCounterpartFile (FileName);
+			IdeApp.Workbench.OpenDocument (counterpart, DocumentContext.Project, true);
+		}
+
+		[CommandUpdateHandler (DesignerSupport.Commands.SwitchBetweenRelatedFiles)]
+		protected void Update (CommandInfo info)
+		{
+			info.Enabled = GetCounterpartFile (FileName) != null;
+		}
 	}
 }
