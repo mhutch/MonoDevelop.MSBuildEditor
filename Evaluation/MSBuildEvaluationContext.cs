@@ -181,7 +181,13 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var prop = multivaluedProperties [idx];
 			var name = prop.Item1;
+			// the list may contain multiple of the same item
+			// we don't just convert it into a hashset as it needs to preserve order
+			var seen = new HashSet<string> ();
 			foreach (var val in prop.Item2) {
+				if (!seen.Add (val)) {
+					continue;
+				}
 				evalCtx.SetPropertyValue (name, val);
 				if (idx + 1 == multivaluedProperties.Count) {
 					yield return evalCtx;
