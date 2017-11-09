@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 
 using System.Collections.Generic;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Ide.Editor;
-using MonoDevelop.Xml.Parser;
 using System.Linq;
+using MonoDevelop.Ide.Editor;
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -34,6 +34,10 @@ namespace MonoDevelop.MSBuildEditor
 			int offset = parser.Position;
 
 			parser = parser.GetTreeParser ();
+
+			var nodePath = parser.Nodes.ToList ();
+			nodePath.Reverse ();
+
 
 			int i = offset;
 			while (i < document.Length && (parser.CurrentState is XmlNameState || parser.CurrentState is XmlAttributeState || parser.CurrentState is XmlAttributeValueState)) {
@@ -47,7 +51,7 @@ namespace MonoDevelop.MSBuildEditor
 			XElement el = null;
 			XAttribute att = null;
 
-			foreach (var node in parser.Nodes.Reverse ()) {
+			foreach (var node in nodePath) {
 				if (node is XAttribute xatt && xatt.Name.Prefix == null) {
 					attName = xatt.Name.Name;
 					att = xatt;
