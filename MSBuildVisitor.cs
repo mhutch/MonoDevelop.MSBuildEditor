@@ -266,8 +266,8 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			try {
 				var expr = new Expression ();
-				//TODO: check options
-				expr.Parse (value, ParseOptions.AllowItemsMetadataAndSplit);
+				//TODO: check options. currently not splitting because it messes up offsets.
+				expr.Parse (value, ParseOptions.AllowItems | ParseOptions.AllowMetadata);
 
 				ExtractReferences (expr, startOffset);
 			} catch (Exception ex) {
