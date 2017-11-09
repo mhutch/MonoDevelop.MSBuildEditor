@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.Core.Assemblies;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Xml.Dom;
@@ -87,7 +88,7 @@ namespace MonoDevelop.MSBuildEditor
 			var list = new List<TargetFrameworkMoniker> ();
 			if (TryGetValues ("TargetFrameworks", out List<string> multiFxList)) {
 				foreach (var multiFxStr in multiFxList) {
-					if (multiFxStr != null) {
+					if (multiFxStr != null && IsConstExpr (multiFxStr)) {
 						var multiFxArr = multiFxStr.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 						foreach (var fxstr in multiFxArr) {
 							var fx = NuGetFramework.ParseFolder (fxstr);
@@ -103,23 +104,39 @@ namespace MonoDevelop.MSBuildEditor
 			}
 			if (TryGetValues ("TargetFramework", out List<string> fxList)) {
 				foreach (var fxstr in fxList) {
-					var fx = NuGetFramework.ParseFolder (fxstr);
-					if (fx.IsSpecificFramework) {
-						list.Add (TargetFrameworkMoniker.Parse (fx.DotNetFrameworkName));
-						return list;
+					if (IsConstExpr (fxstr)) {
+						var fx = NuGetFramework.ParseFolder (fxstr);
+						if (fx.IsSpecificFramework) {
+							list.Add (TargetFrameworkMoniker.Parse (fx.DotNetFrameworkName));
+							return list;
+						}
 					}
 				}
 			}
+
 			if (TryGetValues ("TargetFrameworkIdentifier", out List<string> idList) && TryGetValues ("TargetFrameworkVersion", out List<string> versionList)) {
-				if (TryGetValues ("TargetFrameworkProfile", out List<string> profileList)) {
-					list.Add (new TargetFrameworkMoniker (idList [0], versionList [0], profileList[0]));
+				var id = idList.FirstOrDefault (IsConstExpr);
+				var version = versionList.FirstOrDefault (v => {
+					if (v [0] == 'v') {
+						v = v.Substring (1);
+					}
+					return IsConstExpr (v) && Version.TryParse (v, out _);
+				});
+
+				if (!string.IsNullOrEmpty (version) && !string.IsNullOrEmpty (id)) {
+					if (TryGetValues ("TargetFrameworkProfile", out List<string> profileList)) {
+						var profile = profileList.FirstOrDefault (IsConstExpr);
+						list.Add (new TargetFrameworkMoniker (id, version, profileList[0]));
+						return list;
+					}
+					list.Add (new TargetFrameworkMoniker (id, version));
 					return list;
 				}
-				list.Add (new TargetFrameworkMoniker (idList [0], versionList [0]));
-				return list;
 			}
 
 			return list;
+
+			bool IsConstExpr (string p) => p.IndexOf ('$') < 0;
 		}
 
 	}
