@@ -31,8 +31,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AddinInfo.cs" />
-    <Compile Include="MSBuildSchemaElement.cs" />
-    <Compile Include="MSBuildResolveContext.cs" />
     <Compile Include="MSBuildTextEditorExtension.cs" />
     <Compile Include="ExpressionParser\Expression.cs" />
     <Compile Include="ExpressionParser\MSBuildUtils.cs" />
@@ -59,19 +57,6 @@
     <Compile Include="Evaluation\Conditions\ExpressionParseException.cs" />
     <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
     <Compile Include="Evaluation\Conditions\Token.cs" />
-    <Compile Include="Builtins.cs" />
-    <Compile Include="MSBuildDocumentParser.cs" />
-    <Compile Include="MSBuildParsedDocument.cs" />
-    <Compile Include="AnnotationTable.cs" />
-    <Compile Include="MSBuildVisitor.cs" />
-    <Compile Include="Import.cs" />
-    <Compile Include="TaskInfo.cs" />
-    <Compile Include="BaseInfo.cs" />
-    <Compile Include="PropertyInfo.cs" />
-    <Compile Include="MetadataInfo.cs" />
-    <Compile Include="ItemInfo.cs" />
-    <Compile Include="MSBuildReferenceCollector.cs" />
-    <Compile Include="MSBuildToolsVersion.cs" />
     <Compile Include="MSBuildSdkResolver.cs" />
     <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" />
     <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
@@ -106,14 +91,29 @@
     <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" />
     <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
     <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
-    <Compile Include="MonoDevelopPackageFeedRegistry.cs" />
-    <Compile Include="PackageSearchCompletionDataList.cs" />
-    <Compile Include="PropertyValueCollector.cs" />
-    <Compile Include="MSBuildDocumentResolver.cs" />
     <Compile Include="MSBuildCommands.cs" />
-    <Compile Include="MSBuildResolveVisitor.cs" />
-    <Compile Include="XmlExtensions.cs" />
-    <Compile Include="Annotations.cs" />
+    <Compile Include="Language\Annotations.cs" />
+    <Compile Include="Language\AnnotationTable.cs" />
+    <Compile Include="Language\BaseInfo.cs" />
+    <Compile Include="Language\Import.cs" />
+    <Compile Include="Language\Builtins.cs" />
+    <Compile Include="Language\ItemInfo.cs" />
+    <Compile Include="Language\MSBuildDocumentParser.cs" />
+    <Compile Include="Language\MSBuildDocumentResolver.cs" />
+    <Compile Include="Language\MSBuildResolveContext.cs" />
+    <Compile Include="Language\MSBuildResolveVisitor.cs" />
+    <Compile Include="Language\PropertyInfo.cs" />
+    <Compile Include="Language\PropertyValueCollector.cs" />
+    <Compile Include="Language\MSBuildVisitor.cs" />
+    <Compile Include="Language\MetadataInfo.cs" />
+    <Compile Include="Language\MSBuildSchemaElement.cs" />
+    <Compile Include="Language\MSBuildToolsVersion.cs" />
+    <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
+    <Compile Include="PackageSearch\PackageSearchCompletionDataList.cs" />
+    <Compile Include="Language\MSBuildReferenceCollector.cs" />
+    <Compile Include="Language\MSBuildParsedDocument.cs" />
+    <Compile Include="Language\TaskInfo.cs" />
+    <Compile Include="Language\XmlExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -138,9 +138,6 @@
     <None Include="TODO.txt" />
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\ProjectFileTools.NuGetSearch.csproj" />
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Properties\PublishProfiles\FolderProfile.pubxml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Evaluation\" />
   </ItemGroup>
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />
