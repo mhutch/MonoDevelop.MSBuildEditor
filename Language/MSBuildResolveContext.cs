@@ -10,6 +10,7 @@ using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -26,14 +27,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<Error> Errors { get; }
-
-		public MSBuildSdkResolver SdkResolver { get; }
 		public bool IsToplevel { get;  }
 
-		MSBuildResolveContext (string filename, bool isToplevel, MSBuildSdkResolver sdkResolver)
+		MSBuildResolveContext (string filename, bool isToplevel)
 		{
 			Filename = filename;
-			SdkResolver = sdkResolver;
 			IsToplevel = isToplevel;
 
 			if (isToplevel) {
@@ -45,14 +43,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static MSBuildResolveContext Create (string filename, bool isToplevel, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
-			var ctx = new MSBuildResolveContext (filename, isToplevel, sdkResolver);
+			var ctx = new MSBuildResolveContext (filename, isToplevel);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
 				//TODO: error
 				return ctx;
 			}
 
-			var sdks = ctx.ResolveSdks (project, textDocument).ToList ();
+			var sdks = ctx.ResolveSdks (sdkResolver, project, textDocument).ToList ();
 
 			var pel = MSBuildSchemaElement.Get ("Project");
 
@@ -82,7 +80,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		internal string GetSdkPath (string sdk, DocumentRegion loc)
+		internal string GetSdkPath (MSBuildSdkResolver resolver, string sdk, DocumentRegion loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
 				string message = $"Could not parse SDK '{sdk}'";
@@ -94,7 +92,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			//FIXME: filename should be the root project, not this file
-			var sdkPath = SdkResolver.GetSdkPath (sdkRef, Filename, null);
+			var sdkPath = resolver.GetSdkPath (sdkRef, Filename, null);
 			if (sdkPath == null) {
 				string message = $"Did not find SDK '{sdk}'";
 				LoggingService.LogError (message);
@@ -141,7 +139,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		IEnumerable<(string, DocumentRegion)> ResolveSdks (XElement project, ITextDocument doc)
+		IEnumerable<(string, DocumentRegion)> ResolveSdks (MSBuildSdkResolver resolver, XElement project, ITextDocument doc)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -161,7 +159,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						Errors.Add (new Error (ErrorType.Warning, "Empty value", sdk.loc));
 					}
 				} else {
-					var sdkPath = GetSdkPath (sdk.id, sdk.loc);
+					var sdkPath = GetSdkPath (resolver, sdk.id, sdk.loc);
 					if (sdkPath != null) {
 						yield return (sdkPath, sdk.loc);
 					}
@@ -266,13 +264,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 						yield return m.Value;
 				}
 			}
-
-			//special case some well known metadata
-			//TODO: make this a schema or something
-			if (itemName == "PackageReference") {
-				if (metadataNames.Add ("Version"))
-					yield return new MetadataInfo ("Version", "The version of the package");
-			}
 		}
 
 		public IEnumerable<TaskInfo> GetTasks ()
@@ -361,6 +352,25 @@ namespace MonoDevelop.MSBuildEditor.Language
 		static bool NotPrivate (string arg)
 		{
 			return arg [0] != '_';
+		}
+
+		public IEnumerable<BaseInfo> GetInferredChildren (MSBuildResolveResult rr)
+		{
+			if (rr.SchemaElement.Kind == MSBuildKind.Item) {
+				return GetItemMetadata (rr.ElementName, false);
+			}
+
+			if (rr.SchemaElement.ChildType.HasValue) {
+				switch (rr.SchemaElement.ChildType.Value) {
+				case MSBuildKind.Item:
+					return GetItems ();
+				case MSBuildKind.Task:
+					return GetTasks ();
+				case MSBuildKind.Property:
+					return GetProperties (false);
+				}
+			}
+			return new BaseInfo [0];
 		}
 	}
 }

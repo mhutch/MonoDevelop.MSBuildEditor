@@ -4,6 +4,7 @@
 using System.Linq;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -46,7 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (sdkAtt != null && CheckValue (sdkAtt)) {
 				var loc = isToplevel? sdkAtt.GetValueRegion (textDocument) : sdkAtt.Region;
-				sdkPath = ctx.GetSdkPath (sdkAtt.Value, loc);
+				sdkPath = ctx.GetSdkPath (sdkResolver, sdkAtt.Value, loc);
 				import = import == null? null : sdkPath + "\\" + import;
 
 				if (isToplevel) {
@@ -86,8 +87,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitItem (XElement element)
 		{
 			var name = element.Name.Name;
-			ItemInfo item;
-			if (!ctx.Items.TryGetValue (name, out item))
+			if (!ctx.Items.TryGetValue (name, out ItemInfo item))
 				ctx.Items [name] = item = new ItemInfo (name, null);
 			base.VisitItem (element);
 		}
@@ -96,7 +96,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var item = ctx.Items [itemName];
 			if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName))
-				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, false));
 			base.VisitMetadata (element, itemName, metadataName);
 		}
 
@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var item = ctx.Items [itemName];
 			if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
-				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, false));
 			}
 			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var name = element.Name.Name;
 			if (!ctx.Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
-				ctx.Properties.Add (name, new PropertyInfo (name, null));
+				ctx.Properties.Add (name, new PropertyInfo (name, null, false, false));
 			}
 			propertyValues.Collect (name, element, textDocument);
 

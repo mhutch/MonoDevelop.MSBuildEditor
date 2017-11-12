@@ -4,16 +4,16 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuildEditor.Language
+namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class ItemInfo : BaseInfo
+	class TaskInfo : BaseInfo
 	{
-		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
+		public HashSet<string> Parameters { get; internal set; }
 
-		public ItemInfo (string name, string description)
+		public TaskInfo (string name, string description)
 			: base (name, description)
 		{
-			Metadata = new Dictionary<string, MetadataInfo> ();
+			Parameters = new HashSet<string> ();
 		}
 	}
 }

@@ -34,7 +34,7 @@
 
 	<Extension path = "/MonoDevelop/TypeSystem/Parser">
 		<Parser
-			class = "MonoDevelop.MSBuildEditor.MSBuildDocumentParser"
+			class = "MonoDevelop.MSBuildEditor.Language.MSBuildDocumentParser"
 			mimeType = "application/x-msbuild"
 			id = "MSBuildDocumentParser"
 			insertbefore="MSBuildParser" />

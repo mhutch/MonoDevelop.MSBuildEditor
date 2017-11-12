@@ -4,14 +4,14 @@
 
 using System;
 
-namespace MonoDevelop.MSBuildEditor.Language
+namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class BaseInfo
+	abstract class BaseInfo
 	{
 		public string Name { get; private set; }
 		public string Description { get; private set; }
 
-		public BaseInfo (string name, string description)
+		protected BaseInfo (string name, string description)
 		{
 			Name = name;
 			Description = description;

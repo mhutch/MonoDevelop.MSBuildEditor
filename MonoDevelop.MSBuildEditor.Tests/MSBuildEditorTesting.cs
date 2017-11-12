@@ -5,6 +5,7 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Ide.TypeSystem;
+using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.Projects;
 
 namespace MonoDevelop.MSBuildEditor.Tests

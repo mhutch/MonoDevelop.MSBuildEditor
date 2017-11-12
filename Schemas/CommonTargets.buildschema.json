@@ -1,0 +1,70 @@
+﻿{
+	"license": "MIT",
+	"items": {
+		"Compile": {
+			"description": "Source file to be passed to the compiler",
+			"isFile":  true
+		},
+		"EmbeddedResource": {
+			"description": "Embedded resource file to be passed to the compiler",
+			"isFile": true,
+			"metadata": {
+				"LogicalName": {
+					"description": "Resource ID, overriding the default.",
+					"required": true
+				}
+			}
+		},
+		"PackageReference": {
+			"description": "Reference to a NuGet package",
+			"metadata": {
+				"Include": {
+					"description": "The ID of the NuGet package",
+					"required":  true
+				},
+				"Version": {
+					"description": "The version of the NuGet package",
+					"required": true
+				},
+				"IncludeAssets": {
+					"description": "Assets that will be consumed by the project",
+					"defaultValue": "all",
+					"values": {
+						"compile": "Libraries from the `lib` folder",
+						"runtime": "Contents of the `runtime` folder",
+						"contentFiles": "All of the assets",
+						"build": "MSBuild targets",
+						"analyzers": "Code analyzers",
+						"native": "Contents of the `native` folder",
+						"none": "None of the assets",
+						"all": "All of the assets"
+					},
+					"valueSeparator": ","
+				},
+				"ExcludeAssets": {
+					"description": "Assets that will not be consumed by the project",
+					"defaultValue": "none",
+					"values": "%(IncludeAssets)",
+					"valueSeparator": ","
+				},
+				"PrivateAssets": {
+					"description": "Assets that will be consumed by the project but won't flow to its parent",
+					"defaultValue": "contentfiles;analyzers;build",
+					"values": "%(IncludeAssets)",
+					"valueSeparator": ","
+				}
+			}
+		}
+	},
+	"properties": {
+		"OutputType": {
+			"description": "The kind of output from the compiler, such as an executable or library",
+			"values": {
+				"Exe": "A console executable",
+				"Library": "A library",
+				"Module": "A .NET module",
+				"WinExe": "A Windows executable"
+			}
+		}
+	}
+}

@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuildEditor.Language
+namespace MonoDevelop.MSBuildEditor.Schema
 {
 
 	static class Builtins
@@ -106,7 +106,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildBinPath",
 					"Absolute path of the bin directory where MSBuild is located. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildExtensionsPath",
 					"Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.",
-					wellKnown: true
+					true, true
 				)
 			},
 			{
@@ -122,7 +122,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildExtensionsPath32",
 					"Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.",
-					wellKnown: true
+					true, true
 				)
 			},
 			{
@@ -130,7 +130,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildExtensionsPath64",
 					"Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.",
-					wellKnown: true
+					true, true
 				)
 			},
 			{
@@ -138,7 +138,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildLastTaskResult",
 					"True if the last task completed without errors.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -146,7 +146,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildNodeCount",
 					"The number of concurrent build nodes.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -154,7 +154,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProgramFiles32",
 					"Absolute path of the 32-bit Program Files folder. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -162,7 +162,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectDefaultTargets",
 					"The value of the DefaultTargets attribute in the Project element.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -170,7 +170,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectDirectory",
 					"Directory where the project file is located. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectDirectoryNoRoot",
 					"Directory where the project file is located, excluding drive root. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -186,7 +186,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectFile",
 					"Name of the project file, including extension.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -194,7 +194,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectFileFullPath",
 					"Full path of the project file.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -202,7 +202,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildProjectName",
 					"Name of the project file, excluding extension.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -210,7 +210,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildStartupDirectory",
 					"Absolute path of the directory where MSBuild is invoked. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -218,7 +218,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFile",
 					"Name of the current MSBuild file, including extension.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -226,7 +226,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFileDirectory",
 					"Directory where the current MSBuild file is located. Includes final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -234,7 +234,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFileDirectoryNoRoot",
 					"Directory where the current MSBuild file is located, excluding drive root. Includes final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -242,7 +242,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFileExtension",
 					"Extension of the current MSBuild file.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -250,7 +250,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFileFullPath",
 					"Absolute path of the current MSBuild file is located.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -258,7 +258,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildThisFileName",
 					"Name of the current MSBuild file, excluding extension.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -266,7 +266,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildToolsPath",
 					"Path to the current toolset, specfied by the MSBuildToolsVersion. Does not include final backslash.",
-					reserved: true
+					true, true
 				)
 			},
 			{
@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new PropertyInfo (
 					"MSBuildToolsVersion",
 					"Version of the current toolset.",
-					reserved: true
+					true, true
 				)
 			}
 		};

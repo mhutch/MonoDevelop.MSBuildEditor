@@ -94,26 +94,29 @@
     <Compile Include="MSBuildCommands.cs" />
     <Compile Include="Language\Annotations.cs" />
     <Compile Include="Language\AnnotationTable.cs" />
-    <Compile Include="Language\BaseInfo.cs" />
     <Compile Include="Language\Import.cs" />
-    <Compile Include="Language\Builtins.cs" />
-    <Compile Include="Language\ItemInfo.cs" />
     <Compile Include="Language\MSBuildDocumentParser.cs" />
     <Compile Include="Language\MSBuildDocumentResolver.cs" />
     <Compile Include="Language\MSBuildResolveContext.cs" />
     <Compile Include="Language\MSBuildResolveVisitor.cs" />
-    <Compile Include="Language\PropertyInfo.cs" />
     <Compile Include="Language\PropertyValueCollector.cs" />
     <Compile Include="Language\MSBuildVisitor.cs" />
-    <Compile Include="Language\MetadataInfo.cs" />
-    <Compile Include="Language\MSBuildSchemaElement.cs" />
     <Compile Include="Language\MSBuildToolsVersion.cs" />
     <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
     <Compile Include="PackageSearch\PackageSearchCompletionDataList.cs" />
     <Compile Include="Language\MSBuildReferenceCollector.cs" />
     <Compile Include="Language\MSBuildParsedDocument.cs" />
-    <Compile Include="Language\TaskInfo.cs" />
     <Compile Include="Language\XmlExtensions.cs" />
+    <Compile Include="Schema\BaseInfo.cs" />
+    <Compile Include="Schema\PropertyInfo.cs" />
+    <Compile Include="Schema\TaskInfo.cs" />
+    <Compile Include="Schema\ItemInfo.cs" />
+    <Compile Include="Schema\Builtins.cs" />
+    <Compile Include="Schema\MetadataInfo.cs" />
+    <Compile Include="MSBuildCompletionData.cs" />
+    <Compile Include="Schema\MSBuildSchemaElement.cs" />
+    <Compile Include="Schema\MSBuildSchema.cs" />
+    <Compile Include="Schema\ValueInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -142,6 +145,7 @@
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />
     <AddinFile Include="Templates\Project.xml" />
+    <AddinFile Include="Schemas\CommonTargets.buildschema.json" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Xml.Linq" />

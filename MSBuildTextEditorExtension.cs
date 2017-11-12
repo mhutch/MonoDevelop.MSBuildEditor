@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Components.Commands;
@@ -27,6 +26,7 @@ using ProjectFileTools.NuGetSearch.Feeds.Disk;
 using ProjectFileTools.NuGetSearch.Feeds.Web;
 using ProjectFileTools.NuGetSearch.IO;
 using ProjectFileTools.NuGetSearch.Search;
+using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -91,82 +91,13 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			var doc = GetDocument ();
-			foreach (var item in GetInferredChildren (rr)) {
-				list.Add (new MSBuildCompletionData (item, doc));
+			if (doc != null) {
+				foreach (var item in doc.Context.GetInferredChildren (rr)) {
+					list.Add (new MSBuildCompletionData (item, doc));
+				}
 			}
 
 			return Task.FromResult (list);
-		}
-
-		class MSBuildCompletionData : XmlCompletionData
-		{
-			readonly MSBuildParsedDocument doc;
-			readonly BaseInfo info;
-			string description;
-
-			public MSBuildCompletionData (BaseInfo info, MSBuildParsedDocument doc)
-				: base (info.Name, info.Description, DataType.XmlElement)
-			{
-				this.info = info;
-				this.doc = doc;
-			}
-
-			public override string Description {
-				get {
-					return description ?? (description = GetDescription () ?? "");
-				}
-			}
-
-			string GetDescription ()
-			{
-				return AppendSeenIn (description);
-			}
-
-			string AppendSeenIn (string baseDesc)
-			{
-				if (doc == null) {
-					return description;
-				}
-
-				IEnumerable<string> seenIn = doc.Context.GetFilesSeenIn (info);
-				StringBuilder sb = null;
-
-				foreach (var s in seenIn) {
-					if (sb == null) {
-						sb = new StringBuilder ();
-						if (!string.IsNullOrEmpty (baseDesc)) {
-							sb.AppendLine (baseDesc);
-						}
-						sb.AppendLine ("Seen in: ");
-						sb.AppendLine ();
-					}
-					sb.AppendLine ($"    {s}");
-				}
-				return sb?.ToString () ?? baseDesc;
-			}
-		}
-
-		IEnumerable<BaseInfo> GetInferredChildren (MSBuildResolveResult rr)
-		{
-			var doc = GetDocument ();
-			if (doc == null)
-				return new BaseInfo [0];
-
-			if (rr.SchemaElement.Kind == MSBuildKind.Item) {
-				return doc.Context.GetItemMetadata (rr.ElementName, false);
-			}
-
-			if (rr.SchemaElement.ChildType.HasValue) {
-				switch (rr.SchemaElement.ChildType.Value) {
-				case MSBuildKind.Item:
-					return doc.Context.GetItems ();
-				case MSBuildKind.Task:
-					return doc.Context.GetTasks ();
-				case MSBuildKind.Property:
-					return doc.Context.GetProperties (false);
-				}
-			}
-			return new BaseInfo [0];
 		}
 
 		protected override Task<CompletionDataList> GetAttributeCompletions (IAttributedXObject attributedOb,
@@ -202,7 +133,7 @@ namespace MonoDevelop.MSBuildEditor
 				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => a.Name);
 			}
 
-			if (rr.SchemaElement.Kind != MSBuildKind.Task) {
+			if (rr.SchemaElement.Kind == MSBuildKind.Task) {
 				var result = new HashSet<string> ();
 				foreach (var task in doc.Context.GetTask (rr.ElementName)) {
 					foreach (var p in task.Parameters) {
