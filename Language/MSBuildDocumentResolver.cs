@@ -20,7 +20,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 		readonly PropertyValueCollector propertyValues;
 		readonly ImportResolver resolveImport;
 
-		public MSBuildDocumentResolver (MSBuildResolveContext ctx, string filename, bool isToplevel, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
+		public MSBuildDocumentResolver (
+			MSBuildResolveContext ctx, string filename, bool isToplevel, XDocument doc,
+			ITextDocument textDocument, MSBuildSdkResolver sdkResolver,
+			PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
 			this.ctx = ctx;
 			this.filename = filename;

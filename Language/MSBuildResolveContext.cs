@@ -40,8 +40,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		public string Filename { get; }
+		public MSBuildSchema Schema { get; internal set; }
 
-		public static MSBuildResolveContext Create (string filename, bool isToplevel, XDocument doc, ITextDocument textDocument, MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals, ImportResolver resolveImport)
+		public static MSBuildResolveContext Create (
+			string filename, bool isToplevel, XDocument doc, ITextDocument textDocument,
+			MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals,
+			ImportResolver resolveImport)
 		{
 			var ctx = new MSBuildResolveContext (filename, isToplevel);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);

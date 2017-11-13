@@ -4,8 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -15,7 +16,22 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 
-		public void Load (TextReader reader)
+		public static MSBuildSchema Load (TextReader reader)
+		{
+			var schema = new MSBuildSchema ();
+			schema.LoadInternal (reader);
+			return schema;
+		}
+
+		public static MSBuildSchema LoadResource (string resourceId)
+		{
+			var asm = Assembly.GetCallingAssembly ();
+			using (var sr = new StreamReader (asm.GetManifestResourceStream (resourceId))) {
+				return Load (sr);
+			}
+		}
+
+		void LoadInternal (TextReader reader)
 		{
 			JObject doc;
 			using (var jr = new JsonTextReader (reader)) {

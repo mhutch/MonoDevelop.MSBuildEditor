@@ -117,12 +117,15 @@
     <Compile Include="Schema\MSBuildSchemaElement.cs" />
     <Compile Include="Schema\MSBuildSchema.cs" />
     <Compile Include="Schema\ValueInfo.cs" />
+    <Compile Include="Language\MonoDevelopMSBuildSchemaProvider.cs" />
+    <Compile Include="Schema\MSBuildSchemaProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
     <EmbeddedResource Include="MSBuildStylePolicy.xml">
       <LogicalName>MSBuildStylePolicy.xml</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
@@ -145,7 +148,6 @@
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />
     <AddinFile Include="Templates\Project.xml" />
-    <AddinFile Include="Schemas\CommonTargets.buildschema.json" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Xml.Linq" />

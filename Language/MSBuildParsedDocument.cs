@@ -16,6 +16,7 @@ using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -97,6 +98,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var propVals = new PropertyValueCollector (true);
 
+			var schemaProvider = new MonoDevelopMSBuildSchemaProvider ();
+
 			string projectPath = options.FileName;
 			doc.Context = MSBuildResolveContext.Create (
 				options.FileName,
@@ -105,7 +108,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				textDoc,
 				doc.SdkResolver,
 				propVals,
-				(ctx, imp, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, props, token)
+				(ctx, imp, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, props, schemaProvider, token)
 			);
 
 			doc.AddRange (doc.Context.Errors);
@@ -115,7 +118,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return doc;
 		}
 
-		Import ParseImport (Import import, string projectPath, PropertyValueCollector propVals, CancellationToken token)
+		Import ParseImport (Import import, string projectPath, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			token.ThrowIfCancellationRequested ();
 
@@ -138,13 +141,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				textDoc,
 				SdkResolver,
 				propVals,
-				(ctx, imp, props) => ResolveImport (null, projectPath, import.Filename, imp, props, token)
+				(ctx, imp, props) => ResolveImport (null, projectPath, import.Filename, imp, props, schemaProvider, token)
 			);
+
+			import.ResolveContext.Schema = schemaProvider.GetSchema (import);
 
 			return import;
 		}
 
-		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string import, PropertyValueCollector propVals, CancellationToken token)
+		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string import, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = MSBuildEvaluationContext.Create (
@@ -171,7 +176,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					yield return oldImport;
 				} else {
 					//TODO: guard against cyclic imports
-					yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, propVals, token);
+					yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, propVals, schemaProvider, token);
 				}
 			}
 
