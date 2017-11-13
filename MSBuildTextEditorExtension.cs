@@ -16,6 +16,7 @@ using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.FindInFiles;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.PackageSearch;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
@@ -26,7 +27,6 @@ using ProjectFileTools.NuGetSearch.Feeds.Disk;
 using ProjectFileTools.NuGetSearch.Feeds.Web;
 using ProjectFileTools.NuGetSearch.IO;
 using ProjectFileTools.NuGetSearch.Search;
-using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		MSBuildResolveResult ResolveCurrentLocation ()
 		{
-			if (Tracker == null) {
+			if (Tracker == null || GetDocument () == null) {
 				return null;
 			}
 			Tracker.UpdateEngine ();
@@ -80,121 +80,107 @@ namespace MonoDevelop.MSBuildEditor
 			AddMiscBeginTags (list);
 
 			var rr = ResolveCurrentLocation ();
-
-			if (rr?.SchemaElement == null) {
-				list.Add (new XmlCompletionData ("Project", XmlCompletionData.DataType.XmlElement));
-				return Task.FromResult (list);
-			}
-
-			foreach (var c in rr.SchemaElement.Children) {
-				list.Add (new XmlCompletionData (c, XmlCompletionData.DataType.XmlElement));
-			}
-
-			var doc = GetDocument ();
-			if (doc != null) {
-				foreach (var item in doc.Context.GetInferredChildren (rr)) {
-					list.Add (new MSBuildCompletionData (item, doc));
+			if (rr != null) {
+				var doc = GetDocument ();
+				foreach (var el in rr.GetElementCompletions (doc.Context.GetSchemas ())) {
+					list.Add (new MSBuildCompletionData (el, doc.Context, XmlCompletionData.DataType.XmlElement));
 				}
 			}
 
 			return Task.FromResult (list);
+		}
+
+		static Task<CompletionDataList> ToCompletionList (IEnumerable<BaseInfo> infos, MSBuildResolveContext ctx, XmlCompletionData.DataType type)
+		{
+			var data = infos.Select (i => new MSBuildCompletionData (i, ctx, type));
+			return Task.FromResult (new CompletionDataList (data));
 		}
 
 		protected override Task<CompletionDataList> GetAttributeCompletions (IAttributedXObject attributedOb,
 			Dictionary<string, string> existingAtts, CancellationToken token)
 		{
 			var rr = ResolveCurrentLocation ();
-			if (rr?.SchemaElement == null)
+			if (rr?.LanguageElement == null)
 				return null;
 
+			var doc = GetDocument ();
 			var list = new CompletionDataList ();
-			foreach (var a in rr.SchemaElement.Attributes)
-				if (!existingAtts.ContainsKey (a))
-					list.Add (new XmlCompletionData (a, XmlCompletionData.DataType.XmlAttribute));
-
-			var inferredAttributes = GetInferredAttributes (rr);
-			if (inferredAttributes != null)
-				foreach (var a in inferredAttributes)
-					if (!existingAtts.ContainsKey (a.name))
-						list.Add (new XmlCompletionData (a.name, a.desc, XmlCompletionData.DataType.XmlAttribute));
+			foreach (var att in rr.GetAttributeCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
+				list.Add (new MSBuildCompletionData (att, doc.Context, XmlCompletionData.DataType.XmlElement));
+			}
 
 			return Task.FromResult (list);
-		}
-
-		IEnumerable<(string name, string desc)> GetInferredAttributes (MSBuildResolveResult rr)
-		{
-			var doc = GetDocument ();
-			if (doc == null) {
-				return Array.Empty<(string,string)> ();
-			}
-
-			//metadata as attributes
-			if (rr.SchemaElement.Kind == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => (a.Name, a.Description));
-			}
-
-			if (rr.SchemaElement.Kind == MSBuildKind.Task) {
-				var result = new HashSet<(string,string)> ();
-				foreach (var task in doc.Context.GetTask (rr.ElementName)) {
-					foreach (var p in task.Parameters) {
-						result.Add ((p,null));
-					}
-				}
-				return result;
-			}
-
-			return null;
 		}
 
 		protected override Task<CompletionDataList> GetAttributeValueCompletions (IAttributedXObject attributedOb, XAttribute att, CancellationToken token)
 		{
 			var rr = ResolveCurrentLocation ();
-			if (rr?.SchemaElement == null) {
+			if (rr?.LanguageElement == null) {
 				return null;
 			}
-			var path = GetCurrentPath ();
+			var doc = GetDocument ();
 
 			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;
 			int startIdx = Editor.CaretOffset - triggerLength;
 
-			if ((rr.SchemaElement.Kind == MSBuildKind.Import || rr.SchemaElement.Kind == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
+			if ((rr.LanguageElement.Kind == MSBuildKind.Import || rr.LanguageElement.Kind == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
 				return GetSdkCompletions (token);
 			}
 
-			if (rr.SchemaElement.Kind == MSBuildKind.Item && rr.ElementName == "PackageReference") {
-				var tfm = GetDocument ().Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
-				if (rr.AttributeName == "Include") {
-					string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
-					if (string.IsNullOrWhiteSpace (name)) {
-						return null;
+			if (rr.LanguageElement.Kind == MSBuildKind.Item) {
+				if (rr.ElementName == "PackageReference") {
+					if (rr.AttributeName == "Include") {
+						return GetPackageNameCompletions (doc, startIdx, triggerLength);
 					}
-					return Task.FromResult<CompletionDataList> (
-						new PackageSearchCompletionDataList (
-							name,
-							(n) => PackageSearchManager.SearchPackageNames (n.ToLower (), tfm)
-						) {
-							TriggerWordStart = startIdx,
-							TriggerWordLength = triggerLength
-						}
-					);
-				}
-				if (rr.AttributeName == "Version") {
-					var name = path.OfType<XElement> ().Last ().Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
-					if (string.IsNullOrEmpty (name)) {
-						return null;
+					if (rr.AttributeName == "Include") {
+						return GetPackageVersionCompletions (doc, rr, startIdx, triggerLength);
 					}
-					return Task.FromResult<CompletionDataList> (
-						new PackageSearchCompletionDataList (
-							PackageSearchManager.SearchPackageVersions (name, tfm)
-						) {
-							TriggerWordStart = startIdx,
-							TriggerWordLength = triggerLength
-						}
-					);
 				}
 			}
 
-			return base.GetAttributeValueCompletions (attributedOb, att, token);
+			var list = new CompletionDataList ();
+			foreach (var value in rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
+				list.Add (new MSBuildCompletionData (value, doc.Context, XmlCompletionData.DataType.XmlAttributeValue));
+			}
+			return Task.FromResult (list);
+		}
+
+		string GetTargetFramework (MSBuildParsedDocument doc)
+		{
+			return doc.Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
+		}
+
+		Task<CompletionDataList> GetPackageNameCompletions (MSBuildParsedDocument doc, int startIdx, int triggerLength)
+		{
+			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
+			if (string.IsNullOrWhiteSpace (name)) {
+				return null;
+			}
+			return Task.FromResult<CompletionDataList> (
+				new PackageSearchCompletionDataList (
+					name,
+					(n) => PackageSearchManager.SearchPackageNames (n.ToLower (), GetTargetFramework (doc))
+				) {
+					TriggerWordStart = startIdx,
+					TriggerWordLength = triggerLength
+				}
+			);
+		}
+
+		Task<CompletionDataList> GetPackageVersionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
+		{
+			var name = rr.XElement.Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
+			if (string.IsNullOrEmpty (name)) {
+				return null;
+			}
+			return Task.FromResult<CompletionDataList> (
+				new PackageSearchCompletionDataList (
+					PackageSearchManager.SearchPackageVersions (name, GetTargetFramework (doc))
+				) {
+					TriggerWordStart = startIdx,
+					TriggerWordLength = triggerLength
+				}
+			);
 		}
 
 		Task<CompletionDataList> GetSdkCompletions (CancellationToken token)
@@ -210,7 +196,7 @@ namespace MonoDevelop.MSBuildEditor
 			var resolver = doc.SdkResolver;
 			foreach (var sdk in resolver.GetRegisteredSdks ()) {
 				if (sdks.Add (sdk.Name)) {
-					list.Add (System.IO.Path.GetFileName (sdk.Name));
+					list.Add (Path.GetFileName (sdk.Name));
 				}
 			}
 
@@ -234,7 +220,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var rr = ResolveCurrentLocation ();
 
-			if (rr?.SchemaElement == null) {
+			if (rr?.LanguageElement == null) {
 				return null;
 			}
 
@@ -243,7 +229,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (isAttribute) {
 				//FIXME: assume all attributes accept expressions for now
 			} else if (state is XmlRootState) {
-				if (rr.SchemaElement.ChildType != MSBuildKind.Expression)
+				if (rr.LanguageElement.ChildType != MSBuildKind.Expression)
 					return null;
 			} else {
 				return null;
@@ -303,14 +289,14 @@ namespace MonoDevelop.MSBuildEditor
 
 		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
 		{
-			foreach (var item in doc.Context.GetItems ()) {
+			foreach (var item in doc.Context.GetSchemas ().GetItems ()) {
 				yield return new CompletionData (item.Name, Ide.Gui.Stock.Class, item.Description);
 			}
 		}
 
 		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc)
 		{
-			foreach (var prop in doc.Context.GetProperties (true)) {
+			foreach (var prop in doc.Context.GetSchemas ().GetProperties (true)) {
 				yield return new CompletionData (prop.Name, Ide.Gui.Stock.Class, prop.Description);
 			}
 		}

@@ -8,12 +8,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class TaskInfo : BaseInfo
 	{
-		public HashSet<string> Parameters { get; internal set; }
+		public Dictionary<string, TaskParameterInfo> Parameters { get; internal set; }
 
 		public TaskInfo (string name, string description)
 			: base (name, description)
 		{
-			Parameters = new HashSet<string> ();
+			Parameters = new Dictionary<string, TaskParameterInfo> ();
+		}
+	}
+
+	class TaskParameterInfo : BaseInfo
+	{
+		public TaskParameterInfo (string name, string description) : base (name, description)
+		{
 		}
 	}
 }

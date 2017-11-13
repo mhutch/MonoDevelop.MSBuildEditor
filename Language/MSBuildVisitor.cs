@@ -37,13 +37,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		 void Run (XElement el, MSBuildSchemaElement parent)
+		 void Run (XElement el, MSBuildLanguageElement parent)
 		{
 			if (el.Name.Prefix != null) {
 				return;
 			}
 
-			var resolved = MSBuildSchemaElement.Get (el.Name.FullName, parent);
+			var resolved = MSBuildLanguageElement.Get (el.Name.FullName, parent);
 			if (resolved == null) {
 				VisitUnknown (el);
 				return;
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			VisitResolved (el, resolved);
 		}
 
-		protected virtual void VisitResolved (XElement element, MSBuildSchemaElement resolved)
+		protected virtual void VisitResolved (XElement element, MSBuildLanguageElement resolved)
 		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Task:

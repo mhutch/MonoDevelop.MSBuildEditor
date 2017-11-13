@@ -114,12 +114,14 @@
     <Compile Include="Schema\Builtins.cs" />
     <Compile Include="Schema\MetadataInfo.cs" />
     <Compile Include="MSBuildCompletionData.cs" />
-    <Compile Include="Schema\MSBuildSchemaElement.cs" />
+    <Compile Include="Schema\MSBuildLanguageElement.cs" />
     <Compile Include="Schema\MSBuildSchema.cs" />
     <Compile Include="Schema\ValueInfo.cs" />
     <Compile Include="Language\MonoDevelopMSBuildSchemaProvider.cs" />
     <Compile Include="Schema\MSBuildSchemaProvider.cs" />
     <Compile Include="Schema\IMSBuildSchema.cs" />
+    <Compile Include="Schema\MSBuildSchemaExtensions.cs" />
+    <Compile Include="Schema\MSBuildCompletionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -152,6 +154,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Schema\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

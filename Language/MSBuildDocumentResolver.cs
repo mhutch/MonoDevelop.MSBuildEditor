@@ -138,7 +138,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitPropertyReference (propertyName, start, length);
 		}
 
-		protected override void VisitResolved (XElement element, MSBuildSchemaElement resolved)
+		protected override void VisitResolved (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (isToplevel) {
 				ValidateAttributes (element, resolved);
@@ -165,7 +165,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitTaskParameter (XAttribute attribute, string taskName, string parameterName)
 		{
 			var task = ctx.Tasks [taskName];
-			task.Parameters.Add (parameterName);
+			if (!task.Parameters.ContainsKey (parameterName)) {
+				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null));
+			}
 
 			base.VisitTaskParameter (attribute, taskName, parameterName);
 		}
@@ -175,7 +177,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitUnknown (element);
 		}
 
-		void ValidateAttributes (XElement element, MSBuildSchemaElement kind)
+		void ValidateAttributes (XElement element, MSBuildLanguageElement kind)
 		{
 			//TODO these need special handling
 			if (kind.Kind == MSBuildKind.Item || kind.Kind == MSBuildKind.Task) {

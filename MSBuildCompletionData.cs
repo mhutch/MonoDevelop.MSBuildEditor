@@ -12,15 +12,15 @@ namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildCompletionData : XmlCompletionData
 	{
-		readonly MSBuildParsedDocument doc;
+		readonly MSBuildResolveContext ctx;
 		readonly BaseInfo info;
 		string description;
 
-		public MSBuildCompletionData (BaseInfo info, MSBuildParsedDocument doc)
-			: base (info.Name, info.Description, DataType.XmlElement)
+		public MSBuildCompletionData (BaseInfo info, MSBuildResolveContext ctx, DataType type)
+			: base (info.Name, info.Description, type)
 		{
 			this.info = info;
-			this.doc = doc;
+			this.ctx = ctx;
 		}
 
 		public override string Description {
@@ -36,11 +36,11 @@ namespace MonoDevelop.MSBuildEditor
 
 		string AppendSeenIn (string baseDesc)
 		{
-			if (doc == null) {
+			if (ctx == null) {
 				return baseDesc;
 			}
 
-			IEnumerable<string> seenIn = doc.Context.GetFilesSeenIn (info);
+			IEnumerable<string> seenIn = ctx.GetFilesSeenIn (info);
 			StringBuilder sb = null;
 
 			foreach (var s in seenIn) {

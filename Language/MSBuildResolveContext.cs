@@ -56,7 +56,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var sdks = ctx.ResolveSdks (sdkResolver, project, textDocument).ToList ();
 
-			var pel = MSBuildSchemaElement.Get ("Project");
+			var pel = MSBuildLanguageElement.Get ("Project");
 
 			GetPropertiesUsedByImports (propVals, project);
 
@@ -208,7 +208,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		IEnumerable<MSBuildResolveContext> GetThisAndDescendentContexts ()
+		public IEnumerable<MSBuildResolveContext> GetContextAndDescendents ()
 		{
 			yield return this;
 			foreach (var i in GetDescendentImports ()) {
@@ -219,7 +219,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//actual schemas, if they exist, take precedence over inferred schemas
-		IEnumerable<IMSBuildSchema> GetThisAndDescendentSchemas ()
+		public IEnumerable<IMSBuildSchema> GetSchemas ()
 		{
 			if (Schema != null) {
 				yield return Schema;
@@ -236,98 +236,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		public IEnumerable<ItemInfo> GetItems ()
-		{
-			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
-			foreach (var schema in GetThisAndDescendentSchemas ()) {
-				foreach (var item in schema.Items) {
-					if (NotPrivate (item.Key) && names.Add (item.Key)) {
-						yield return item.Value;
-					}
-				}
-			}
-		}
-
-		public ItemInfo GetItem (string name)
-		{
-			return GetAllItemDefinitions (name).FirstOrDefault ();
-		}
-
-		//collect all known definitions for this item
-		IEnumerable<ItemInfo> GetAllItemDefinitions (string name)
-		{
-			foreach (var schema in GetThisAndDescendentSchemas ()) {
-				if (schema.Items.TryGetValue (name, out ItemInfo item)) {
-					yield return item;
-				}
-			}
-		}
-
-		//collect known metadata for this item across all imports
-		public IEnumerable<MetadataInfo> GetItemMetadata (string itemName, bool includeBuiltins)
-		{
-			if (includeBuiltins) {
-				foreach (var b in Builtins.Metadata) {
-					yield return b.Value;
-				}
-			}
-
-			var names = new HashSet<string> (Builtins.Metadata.Keys, StringComparer.OrdinalIgnoreCase);
-			foreach (var item in GetAllItemDefinitions (itemName)) {
-				foreach (var m in item.Metadata) {
-					if (names.Add (m.Key)) {
-						yield return m.Value;
-					}
-				}
-			}
-		}
-
-		public IEnumerable<TaskInfo> GetTasks ()
-		{
-			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
-			foreach (var schema in GetThisAndDescendentSchemas ()) {
-				foreach (var task in schema.Tasks) {
-					if (names.Add (task.Key)) {
-						yield return task.Value;
-					}
-				}
-			}
-		}
-
-		public IEnumerable<TaskInfo> GetTask (string name)
-		{
-			foreach (var schema in GetThisAndDescendentSchemas ()) {
-				if (schema.Tasks.TryGetValue (name, out TaskInfo task)) {
-					yield return task;
-				}
-			}
-		}
-
-		public IEnumerable<PropertyInfo> GetProperties (bool includeBuiltins)
-		{
-			if (includeBuiltins) {
-				foreach (var b in Builtins.Properties) {
-					yield return b.Value;
-				}
-			}
-
-			var names = new HashSet<string> (Builtins.Properties.Keys, StringComparer.OrdinalIgnoreCase);
-			foreach (var schema in GetThisAndDescendentSchemas ()) {
-				foreach (var item in schema.Properties) {
-					if (NotPrivate (item.Key) && names.Add (item.Key)) {
-						yield return item.Value;
-					}
-				}
-			}
-		}
-
 		/// <summary>
 		/// Gets the files in which the given info has been seen.
 		/// </summary>
 		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
 		{
 			var files = new HashSet<string> ();
-			foreach (var ctx in GetThisAndDescendentContexts ()) {
+			foreach (var ctx in GetContextAndDescendents ()) {
 				if (ctx.WasSeen (info)) {
 					files.Add (ctx.Filename);
 				}
@@ -344,31 +259,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (info is TaskInfo)
 				return Tasks.ContainsKey (info.Name);
 			return false;
-		}
-
-		//by convention, properties and items starting with an underscore are "private"
-		static bool NotPrivate (string arg)
-		{
-			return arg [0] != '_';
-		}
-
-		public IEnumerable<BaseInfo> GetInferredChildren (MSBuildResolveResult rr)
-		{
-			if (rr.SchemaElement.Kind == MSBuildKind.Item) {
-				return GetItemMetadata (rr.ElementName, false);
-			}
-
-			if (rr.SchemaElement.ChildType.HasValue) {
-				switch (rr.SchemaElement.ChildType.Value) {
-				case MSBuildKind.Item:
-					return GetItems ();
-				case MSBuildKind.Task:
-					return GetTasks ();
-				case MSBuildKind.Property:
-					return GetProperties (false);
-				}
-			}
-			return new BaseInfo [0];
 		}
 	}
 }

@@ -7,9 +7,7 @@ Completion of:
   * metadata in expressions
   * property functions
 Snippets
-Docs on built-ins
-Docs from MSBuild files?
-Completion of task parameters
+Task parameters from assembly metadata
 File templates
 Completion of inline C#
 Debugger?
@@ -19,4 +17,8 @@ Unit test
   * IntelliSense
   * expression parser
 Improve import resolution
-  * Full resolution using current conditioned state 
+  * Full resolution using current conditioned state
+Flesh out the schemas
+Validate attribute values
+Validate required attributes
+Completion for multivalued attributes

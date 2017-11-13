@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static bool CanCreate (MSBuildResolveResult rr)
 		{
-			if (rr == null || rr.SchemaElement == null) {
+			if (rr == null || rr.LanguageElement == null) {
 				return false;
 			}
 
@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			//FIXME: make this more precise
-			switch (rr.SchemaElement.Kind) {
+			switch (rr.LanguageElement.Kind) {
 				case MSBuildKind.Task:
 				return true;
 			}
@@ -72,7 +72,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new MSBuildMetadataReferenceCollector (rr.ReferenceItemName, rr.ReferenceName);
 			}
 
-			switch (rr.SchemaElement.Kind) {
+			switch (rr.LanguageElement.Kind) {
 			case MSBuildKind.Task:
 				return new MSBuildTaskReferenceCollector (rr.ElementName);
 			}

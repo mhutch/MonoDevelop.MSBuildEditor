@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
-			MSBuildSchemaElement schemaEl = null;
+			MSBuildLanguageElement schemaEl = null;
 			string elName = null, attName = null, parentName = null;
 			XElement el = null;
 			XAttribute att = null;
@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					parentName = elName;
 					el = xel;
 					elName = xel.Name.Name;
-					schemaEl = MSBuildSchemaElement.Get (elName, schemaEl);
+					schemaEl = MSBuildLanguageElement.Get (elName, schemaEl);
 					if (schemaEl != null)
 						continue;
 				}
@@ -68,7 +68,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				AttributeName = attName,
 				ElementName = elName,
 				ParentName = parentName,
-				SchemaElement = schemaEl
+				LanguageElement = schemaEl,
+				XElement = el,
+				XAttribute = att
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr);
@@ -90,7 +92,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 
-			public void Run (XElement el, MSBuildSchemaElement schemaEl, IReadonlyTextDocument textDoc)
+			public void Run (XElement el, MSBuildLanguageElement schemaEl, IReadonlyTextDocument textDoc)
 			{
 				SetTextDocument (textDoc.FileName, textDoc);
 				VisitResolved (el, schemaEl); 
@@ -128,12 +130,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class MSBuildResolveResult
 	{
-		public MSBuildSchemaElement SchemaElement;
+		public MSBuildLanguageElement LanguageElement;
 		public string AttributeName;
 		public string ElementName;
 		public string ParentName;
 		public MSBuildKind? ReferenceKind;
 		public string ReferenceName;
 		public string ReferenceItemName;
+
+		public XElement XElement;
+		public XAttribute XAttribute;
 	}
 }

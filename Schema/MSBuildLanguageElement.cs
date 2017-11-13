@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	class MSBuildSchemaElement
+	class MSBuildLanguageElement
 	{
 		static readonly string[] emptyArray = new string[0];
 
@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public MSBuildKind? ChildType { get; private set; }
 		public bool IsSpecial  { get; private set; }
 
-		public MSBuildSchemaElement (
+		public MSBuildLanguageElement (
 			MSBuildKind kind, bool isSpecial = false, string[] children = null,
 			string[] attributes = null, MSBuildKind? childType = null)
 		{
@@ -36,86 +36,86 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return children != null && children.Contains (name, StringComparer.OrdinalIgnoreCase);
 		}
 
-		public static MSBuildSchemaElement Get (string name, MSBuildSchemaElement parent = null)
+		public static MSBuildLanguageElement Get (string name, MSBuildLanguageElement parent = null)
 		{
 			//if not in parent's known children, and parent has special children, then it's a special child
 			if (parent != null && parent.ChildType != null && !parent.HasChild (name))
 				name = parent.ChildType.ToString ();
-			builtin.TryGetValue (name, out MSBuildSchemaElement result);
+			builtin.TryGetValue (name, out MSBuildLanguageElement result);
 			return result;
 		}
 
-		static readonly Dictionary<string, MSBuildSchemaElement> builtin = new Dictionary<string, MSBuildSchemaElement> (StringComparer.OrdinalIgnoreCase) {
+		static readonly Dictionary<string, MSBuildLanguageElement> builtin = new Dictionary<string, MSBuildLanguageElement> (StringComparer.OrdinalIgnoreCase) {
 			{
-				"Choose", new MSBuildSchemaElement (MSBuildKind.Choose,
+				"Choose", new MSBuildLanguageElement (MSBuildKind.Choose,
 					children: new[] { "Otherwise", "When" }
 				)
 			},
 			{
-				"Import", new MSBuildSchemaElement (MSBuildKind.Import,
+				"Import", new MSBuildLanguageElement (MSBuildKind.Import,
 					attributes: new[] { "Condition", "Project", "Sdk" }
 				)
 			},
 			{
-				"ImportGroup", new MSBuildSchemaElement (MSBuildKind.ImportGroup,
+				"ImportGroup", new MSBuildLanguageElement (MSBuildKind.ImportGroup,
 					children: new[] { "Import" },
 					attributes: new[] { "Condition" }
 				)
 			},
 			{
-				"Item", new MSBuildSchemaElement (MSBuildKind.Item,
+				"Item", new MSBuildLanguageElement (MSBuildKind.Item,
 					childType: MSBuildKind.ItemMetadata,
 					attributes: new[] { "Condition", "Exclude", "Include", "Remove", "Update" },
 					isSpecial: true
 				)
 			},
 			{
-				"ItemDefinitionGroup", new MSBuildSchemaElement (MSBuildKind.ItemDefinitionGroup,
+				"ItemDefinitionGroup", new MSBuildLanguageElement (MSBuildKind.ItemDefinitionGroup,
 					childType: MSBuildKind.Item,
 					attributes: new[] { "Condition" }
 				)
 			},
 			{
-				"ItemGroup", new MSBuildSchemaElement (MSBuildKind.ItemGroup,
+				"ItemGroup", new MSBuildLanguageElement (MSBuildKind.ItemGroup,
 					childType: MSBuildKind.Item,
 					attributes: new[] { "Condition" }
 				)
 			},
 			{
-				"ItemMetadata", new MSBuildSchemaElement (MSBuildKind.ItemMetadata,
+				"ItemMetadata", new MSBuildLanguageElement (MSBuildKind.ItemMetadata,
 					attributes: new[] { "Condition" },
 					childType: MSBuildKind.Expression,
 					isSpecial: true
 				)
 			},
 			{
-				"OnError", new MSBuildSchemaElement (MSBuildKind.OnError,
+				"OnError", new MSBuildLanguageElement (MSBuildKind.OnError,
 					attributes: new[] { "Condition", "ExecuteTargets" }
 				)
 			},
 			{
-				"Otherwise", new MSBuildSchemaElement (MSBuildKind.Otherwise,
+				"Otherwise", new MSBuildLanguageElement (MSBuildKind.Otherwise,
 					children: new[] { "Choose", "ItemGroup", "PropertyGroup" }
 				)
 			},
 			{
-				"Output", new MSBuildSchemaElement (MSBuildKind.Output,
+				"Output", new MSBuildLanguageElement (MSBuildKind.Output,
 					attributes: new[] { "Condition", "ItemName", "PropertyName", "TaskParameter" }
 				)
 			},
 			{
-				"Parameter", new MSBuildSchemaElement (MSBuildKind.Parameter,
+				"Parameter", new MSBuildLanguageElement (MSBuildKind.Parameter,
 					attributes: new[] { "Output", "ParameterType", "Required" },
 					isSpecial: true
 				)
 			},
 			{
-				"ParameterGroup", new MSBuildSchemaElement (MSBuildKind.ParameterGroup,
+				"ParameterGroup", new MSBuildLanguageElement (MSBuildKind.ParameterGroup,
 					childType: MSBuildKind.Parameter
 				)
 			},
 			{
-				"Project", new MSBuildSchemaElement (MSBuildKind.Project,
+				"Project", new MSBuildLanguageElement (MSBuildKind.Project,
 					children: new[] {
 						"Choose", "Import", "ItemGroup", "ProjectExtensions", "PropertyGroup", "Target", "UsingTask"
 					},
@@ -125,25 +125,25 @@ namespace MonoDevelop.MSBuildEditor.Language
 				)
 			},
 			{
-				"ProjectExtensions", new MSBuildSchemaElement (MSBuildKind.ProjectExtensions,
+				"ProjectExtensions", new MSBuildLanguageElement (MSBuildKind.ProjectExtensions,
 					childType: MSBuildKind.Data
 				)
 			},
 			{
-				"Property", new MSBuildSchemaElement (MSBuildKind.Property,
+				"Property", new MSBuildLanguageElement (MSBuildKind.Property,
 					attributes: new[] { "Condition" },
 					childType: MSBuildKind.Expression,
 					isSpecial: true
 				)
 			},
 			{
-				"PropertyGroup", new MSBuildSchemaElement (MSBuildKind.PropertyGroup,
+				"PropertyGroup", new MSBuildLanguageElement (MSBuildKind.PropertyGroup,
 					childType: MSBuildKind.Property,
 					attributes: new[] { "Condition" }
 				)
 			},
 			{
-				"Target", new MSBuildSchemaElement (MSBuildKind.Target,
+				"Target", new MSBuildLanguageElement (MSBuildKind.Target,
 					childType: MSBuildKind.Task,
 					children: new[] { "OnError", "ItemGroup", "PropertyGroup" },
 					attributes: new[] {
@@ -153,26 +153,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 				)
 			},
 			{
-				"Task", new MSBuildSchemaElement (MSBuildKind.Task,
+				"Task", new MSBuildLanguageElement (MSBuildKind.Task,
 					children: new[] { "Output" },
 					attributes: new[] { "Condition", "ContinueOnError", "Parameter" },
 					isSpecial: true
 				)
 			},
 			{
-				"TaskBody", new MSBuildSchemaElement (MSBuildKind.TaskBody,
+				"TaskBody", new MSBuildLanguageElement (MSBuildKind.TaskBody,
 					childType: MSBuildKind.Data,
 					attributes: new[] { "Evaluate" }
 				)
 			},
 			{
-				"UsingTask", new MSBuildSchemaElement (MSBuildKind.UsingTask,
+				"UsingTask", new MSBuildLanguageElement (MSBuildKind.UsingTask,
 					children: new[] { "ParameterGroup", "TaskBody" },
 					attributes: new[] { "AssemblyFile", "AssemblyName", "Condition", "TaskFactory", "TaskName" }
 				)
 			},
 			{
-				"When", new MSBuildSchemaElement (MSBuildKind.When,
+				"When", new MSBuildLanguageElement (MSBuildKind.When,
 					children: new[] { "Choose", "ItemGroup", "PropertyGroup" },
 					attributes: new[] { "Condition" }
 				)
