@@ -31,13 +31,13 @@ namespace MonoDevelop.MSBuildEditor
 
 		string GetDescription ()
 		{
-			return AppendSeenIn (description);
+			return AppendSeenIn (base.Description);
 		}
 
 		string AppendSeenIn (string baseDesc)
 		{
 			if (doc == null) {
-				return description;
+				return baseDesc;
 			}
 
 			IEnumerable<string> seenIn = doc.Context.GetFilesSeenIn (info);
@@ -48,6 +48,7 @@ namespace MonoDevelop.MSBuildEditor
 					sb = new StringBuilder ();
 					if (!string.IsNullOrEmpty (baseDesc)) {
 						sb.AppendLine (baseDesc);
+						sb.AppendLine ();
 					}
 					sb.AppendLine ("Seen in: ");
 					sb.AppendLine ();
