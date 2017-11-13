@@ -115,29 +115,29 @@ namespace MonoDevelop.MSBuildEditor
 			var inferredAttributes = GetInferredAttributes (rr);
 			if (inferredAttributes != null)
 				foreach (var a in inferredAttributes)
-					if (!existingAtts.ContainsKey (a))
-						list.Add (new XmlCompletionData (a, XmlCompletionData.DataType.XmlAttribute));
+					if (!existingAtts.ContainsKey (a.name))
+						list.Add (new XmlCompletionData (a.name, a.desc, XmlCompletionData.DataType.XmlAttribute));
 
 			return Task.FromResult (list);
 		}
 
-		IEnumerable<string> GetInferredAttributes (MSBuildResolveResult rr)
+		IEnumerable<(string name, string desc)> GetInferredAttributes (MSBuildResolveResult rr)
 		{
 			var doc = GetDocument ();
 			if (doc == null) {
-				return Array.Empty<string> ();
+				return Array.Empty<(string,string)> ();
 			}
 
 			//metadata as attributes
 			if (rr.SchemaElement.Kind == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => a.Name);
+				return doc.Context.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown).Select (a => (a.Name, a.Description));
 			}
 
 			if (rr.SchemaElement.Kind == MSBuildKind.Task) {
-				var result = new HashSet<string> ();
+				var result = new HashSet<(string,string)> ();
 				foreach (var task in doc.Context.GetTask (rr.ElementName)) {
 					foreach (var p in task.Parameters) {
-						result.Add (p);
+						result.Add ((p,null));
 					}
 				}
 				return result;

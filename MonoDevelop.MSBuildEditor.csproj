@@ -119,6 +119,7 @@
     <Compile Include="Schema\ValueInfo.cs" />
     <Compile Include="Language\MonoDevelopMSBuildSchemaProvider.cs" />
     <Compile Include="Schema\MSBuildSchemaProvider.cs" />
+    <Compile Include="Schema\IMSBuildSchema.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

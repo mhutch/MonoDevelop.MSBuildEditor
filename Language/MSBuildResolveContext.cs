@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, PropertyValueCollector propertyVals);
 
-	class MSBuildResolveContext
+	class MSBuildResolveContext : IMSBuildSchema
 	{
 		static readonly XName xnProject = new XName ("Project");
 
@@ -208,29 +208,44 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		public IEnumerable<MSBuildResolveContext> GetDescendentContexts ()
+		IEnumerable<MSBuildResolveContext> GetThisAndDescendentContexts ()
 		{
-			foreach (var i in GetDescendentImports ())
-				if (i.ResolveContext != null)
+			yield return this;
+			foreach (var i in GetDescendentImports ()) {
+				if (i.ResolveContext != null) {
 					yield return i.ResolveContext;
+				}
+			}
+		}
+
+		//actual schemas, if they exist, take precedence over inferred schemas
+		IEnumerable<IMSBuildSchema> GetThisAndDescendentSchemas ()
+		{
+			if (Schema != null) {
+				yield return Schema;
+			}
+			foreach (var i in GetDescendentImports ()) {
+				if (i.ResolveContext?.Schema != null)
+					yield return i.ResolveContext.Schema;
+			}
+			yield return this;
+			foreach (var i in GetDescendentImports ()) {
+				if (i.ResolveContext != null) {
+					yield return i.ResolveContext;
+				}
+			}
 		}
 
 		public IEnumerable<ItemInfo> GetItems ()
 		{
-			if (Imports == null)
-				return Items.Values;
-
-			var result = new HashSet<ItemInfo> (Items.Values);
-
-			foreach (var child in GetDescendentContexts ()) {
-				foreach (var item in child.Items) {
-					if (NotPrivate (item.Key)) {
-						result.Add (item.Value);
+			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+			foreach (var schema in GetThisAndDescendentSchemas ()) {
+				foreach (var item in schema.Items) {
+					if (NotPrivate (item.Key) && names.Add (item.Key)) {
+						yield return item.Value;
 					}
 				}
 			}
-
-			return result;
 		}
 
 		public ItemInfo GetItem (string name)
@@ -238,19 +253,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetAllItemDefinitions (name).FirstOrDefault ();
 		}
 
+		//collect all known definitions for this item
 		IEnumerable<ItemInfo> GetAllItemDefinitions (string name)
 		{
-			if (Items.TryGetValue (name, out ItemInfo item))
-				yield return item;
-
-			//collect all imports' definitions for this item
-			foreach (var child in GetDescendentContexts ()) {
-				if (child.Items.TryGetValue (name, out item)) {
+			foreach (var schema in GetThisAndDescendentSchemas ()) {
+				if (schema.Items.TryGetValue (name, out ItemInfo item)) {
 					yield return item;
 				}
 			}
 		}
 
+		//collect known metadata for this item across all imports
 		public IEnumerable<MetadataInfo> GetItemMetadata (string itemName, bool includeBuiltins)
 		{
 			if (includeBuiltins) {
@@ -259,39 +272,32 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			var metadataNames = new HashSet<string> ();
-
-			//collect known metadata for this item across all imports
+			var names = new HashSet<string> (Builtins.Metadata.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var item in GetAllItemDefinitions (itemName)) {
 				foreach (var m in item.Metadata) {
-					if (metadataNames.Add (m.Key))
+					if (names.Add (m.Key)) {
 						yield return m.Value;
+					}
 				}
 			}
 		}
 
 		public IEnumerable<TaskInfo> GetTasks ()
 		{
-			var result = new HashSet<TaskInfo> (Tasks.Values);
-
-			foreach (var child in GetDescendentContexts ()) {
-				foreach (var task in child.Tasks) {
-					if (NotPrivate (task.Key)) {
-						result.Add (task.Value);
+			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+			foreach (var schema in GetThisAndDescendentSchemas ()) {
+				foreach (var task in schema.Tasks) {
+					if (names.Add (task.Key)) {
+						yield return task.Value;
 					}
 				}
 			}
-
-			return result;
 		}
 
 		public IEnumerable<TaskInfo> GetTask (string name)
 		{
-			if (Tasks.TryGetValue (name, out TaskInfo task))
-				yield return task;
-
-			foreach (var child in GetDescendentContexts ()) {
-				if (child.Tasks.TryGetValue (name, out task)) {
+			foreach (var schema in GetThisAndDescendentSchemas ()) {
+				if (schema.Tasks.TryGetValue (name, out TaskInfo task)) {
 					yield return task;
 				}
 			}
@@ -304,20 +310,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 					yield return b.Value;
 				}
 			}
-			
-			var names = new HashSet<string> ();
 
-			foreach (var prop in Properties) {
-				names.Add (prop.Key);
-				yield return prop.Value;
-			}
-
-			foreach (var child in GetDescendentContexts ()) {
-				foreach (var prop in child.Properties) {
-					if (NotPrivate (prop.Key)) {
-						if (names.Add (prop.Key)) {
-							yield return prop.Value;
-						}
+			var names = new HashSet<string> (Builtins.Properties.Keys, StringComparer.OrdinalIgnoreCase);
+			foreach (var schema in GetThisAndDescendentSchemas ()) {
+				foreach (var item in schema.Properties) {
+					if (NotPrivate (item.Key) && names.Add (item.Key)) {
+						yield return item.Value;
 					}
 				}
 			}
@@ -329,13 +327,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
 		{
 			var files = new HashSet<string> ();
-			if (WasSeen (info)) {
-				files.Add (Filename);
-			}
-
-			foreach (var child in GetDescendentContexts ()) {
-				if (child.WasSeen (info)) {
-					files.Add (child.Filename);
+			foreach (var ctx in GetThisAndDescendentContexts ()) {
+				if (ctx.WasSeen (info)) {
+					files.Add (ctx.Filename);
 				}
 			}
 			return files;

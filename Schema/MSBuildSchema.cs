@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class MSBuildSchema
+	class MSBuildSchema : IMSBuildSchema
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
