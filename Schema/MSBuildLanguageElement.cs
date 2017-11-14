@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			},
 			{
 				"Item", new MSBuildLanguageElement (MSBuildKind.Item,
-					childType: MSBuildKind.ItemMetadata,
+					childType: MSBuildKind.Metadata,
 					attributes: new[] { "Condition", "Exclude", "Include", "Remove", "Update" },
 					isSpecial: true
 				)
@@ -82,7 +82,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				)
 			},
 			{
-				"ItemMetadata", new MSBuildLanguageElement (MSBuildKind.ItemMetadata,
+				"ItemMetadata", new MSBuildLanguageElement (MSBuildKind.Metadata,
 					attributes: new[] { "Condition" },
 					childType: MSBuildKind.Expression,
 					isSpecial: true
@@ -188,7 +188,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		Item,
 		ItemDefinitionGroup,
 		ItemGroup,
-		ItemMetadata,
+		Metadata,
 		OnError,
 		Otherwise,
 		Output,

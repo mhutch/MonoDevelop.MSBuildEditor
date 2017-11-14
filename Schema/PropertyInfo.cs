@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -28,5 +29,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			DefaultValue = defaultValue;
 			ValueSeparators = valueSeparators;
 		}
+
+		public override MSBuildKind Kind => MSBuildKind.Property;
 	}
 }

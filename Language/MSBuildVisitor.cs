@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildKind.Property:
 				VisitProperty (element);
 				break;
-			case MSBuildKind.ItemMetadata:
+			case MSBuildKind.Metadata:
 				VisitMetadata (element, ((INamedXObject) element.Parent).Name.Name, element.Name.Name);
 				break;
 			case MSBuildKind.Target:

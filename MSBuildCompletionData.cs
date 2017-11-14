@@ -31,10 +31,10 @@ namespace MonoDevelop.MSBuildEditor
 
 		string GetDescription ()
 		{
-			return AppendSeenIn (base.Description);
+			return AppendSeenIn (ctx, info, base.Description);
 		}
 
-		string AppendSeenIn (string baseDesc)
+		internal static string AppendSeenIn (MSBuildResolveContext ctx, BaseInfo info, string baseDesc)
 		{
 			if (ctx == null) {
 				return baseDesc;

@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -27,5 +28,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			return StringComparer.OrdinalIgnoreCase.GetHashCode (Name);
 		}
+
+		public abstract MSBuildKind Kind { get; }
 	}
 }

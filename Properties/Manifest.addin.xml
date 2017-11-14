@@ -61,4 +61,8 @@
                 insertbefore="MonoDevelop.Debugger.DebugCommands.ExpressionEvaluator" />
         </Condition>
     </Extension>
+
+    <Extension path = "/MonoDevelop/Ide/Editor/TooltipProviders">
+        <Provider id="MSBuild" class="MonoDevelop.MSBuildEditor.MSBuildTooltipProvider" mimeType="application/x-msbuild" />
+    </Extension>
 </ExtensionModel>

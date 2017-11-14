@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					return schemas.GetTasks ();
 				case MSBuildKind.Property:
 					return schemas.GetProperties (false);
-				case MSBuildKind.ItemMetadata:
+				case MSBuildKind.Metadata:
 					return schemas.GetItemMetadata (rr.ElementName, false);
 				}
 			}
@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
-			if (rr.LanguageElement.Kind == MSBuildKind.ItemMetadata) {
+			if (rr.LanguageElement.Kind == MSBuildKind.Metadata) {
 				var metadata = schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
 				if (metadata?.Values != null) {
 					valueSeparators = metadata.ValueSeparators;
@@ -103,6 +103,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			valueSeparators = null;
 			return Array.Empty<BaseInfo> ();
+		}
+
+		public static BaseInfo GetResolvedInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		{
+			switch (rr.ReferenceKind) {
+			case MSBuildKind.ItemReference:
+				return schemas.GetItem (rr.ReferenceName);
+			case MSBuildKind.MetadataReference:
+				return schemas.GetMetadata (rr.ReferenceItemName, rr.ReferenceName, true);
+			case MSBuildKind.PropertyReference:
+				return schemas.GetProperty (rr.ReferenceName);
+			}
+			return null;
 		}
 	}
 }

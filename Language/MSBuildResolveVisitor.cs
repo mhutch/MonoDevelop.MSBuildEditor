@@ -102,6 +102,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			{
 				if (IsIn (start, length)) {
 					rr.ReferenceKind = MSBuildKind.ItemReference;
+					rr.ReferenceOffset = start;
 					rr.ReferenceName = itemName;
 					base.VisitItemReference (itemName, start, length);
 				}
@@ -111,6 +112,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			{
 				if (IsIn (start, length)) {
 					rr.ReferenceKind = MSBuildKind.PropertyReference;
+					rr.ReferenceOffset = start;
 					rr.ReferenceName = propertyName;
 					base.VisitPropertyReference (propertyName, start, length);
 				}
@@ -120,6 +122,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			{
 				if (IsIn (start, length)) {
 					rr.ReferenceKind = MSBuildKind.MetadataReference;
+					rr.ReferenceOffset = start;
 					rr.ReferenceName = metadataName;
 					rr.ReferenceItemName = itemName;
 					base.VisitMetadataReference (itemName, metadataName, start, length);
@@ -135,6 +138,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public string ElementName;
 		public string ParentName;
 		public MSBuildKind? ReferenceKind;
+		public int ReferenceOffset;
 		public string ReferenceName;
 		public string ReferenceItemName;
 

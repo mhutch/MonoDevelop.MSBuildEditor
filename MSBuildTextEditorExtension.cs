@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2014 Xamarin Inc.
+// Copyright (c) 2014 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuildEditor
 			);
 		}
 
-		MSBuildParsedDocument GetDocument ()
+		public MSBuildParsedDocument GetDocument ()
 		{
 			return (MSBuildParsedDocument)DocumentContext.ParsedDocument;
 		}
@@ -69,6 +69,15 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			return base.HandleCodeCompletionAsync (completionContext, triggerInfo, token);
+		}
+
+		internal MSBuildResolveResult ResolveAt (int offset)
+		{
+			if (Tracker == null || GetDocument () == null) {
+				return null;
+			}
+			Tracker.UpdateEngine (offset);
+			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot ());
 		}
 
 		MSBuildResolveResult ResolveCurrentLocation ()
@@ -353,7 +362,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		IEnumerable<T> GetAnnotationsAtLocation<T> (DocumentLocation location)
+		public IEnumerable<T> GetAnnotationsAtLocation<T> (DocumentLocation location)
 		{
 			var doc = GetDocument ();
 			if (doc == null) {
