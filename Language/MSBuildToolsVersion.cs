@@ -1,5 +1,5 @@
-// Copyright (c) 2016 Xamarin Inc.
-// Copyright (c) Microsoft. ALl rights reserved.
+﻿// Copyright (c) 2016 Xamarin Inc.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace MonoDevelop.MSBuildEditor.Language
