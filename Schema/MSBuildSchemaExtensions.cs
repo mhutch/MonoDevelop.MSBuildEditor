@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Items) {
-					if (NotPrivate (item.Key) && names.Add (item.Key)) {
+					if (!schema.IsPrivate (item.Key) && names.Add (item.Key)) {
 						yield return item.Value;
 					}
 				}
@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var names = new HashSet<string> (Builtins.Properties.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Properties) {
-					if (NotPrivate (item.Key) && names.Add (item.Key)) {
+					if (!schema.IsPrivate (item.Key) && names.Add (item.Key)) {
 						yield return item.Value;
 					}
 				}

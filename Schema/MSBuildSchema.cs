@@ -161,5 +161,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 			return values;
 		}
+
+		public bool IsPrivate (string name)
+		{
+			//assembly everything in a schema is public
+			return false;
+		}
 	}
 }

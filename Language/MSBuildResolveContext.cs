@@ -27,7 +27,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<Error> Errors { get; }
-		public bool IsToplevel { get;  }
+		public bool IsToplevel { get; }
 
 		MSBuildResolveContext (string filename, bool isToplevel)
 		{
@@ -127,17 +127,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			{
 				int trimStart = start, trimEnd = end;
 				while (trimStart < trimEnd) {
-					if (!char.IsWhiteSpace (value [trimStart]))
+					if (!char.IsWhiteSpace (value[trimStart]))
 						break;
 					trimStart++;
 				}
 				while (trimEnd > trimStart) {
-					if (!char.IsWhiteSpace (value [trimEnd - 1]))
+					if (!char.IsWhiteSpace (value[trimEnd - 1]))
 						break;
 					trimEnd--;
 				}
 				if (trimEnd > trimStart) {
-					return (value.Substring (trimStart, trimEnd - trimStart), Region (trimStart,trimEnd));
+					return (value.Substring (trimStart, trimEnd - trimStart), Region (trimStart, trimEnd));
 				}
 				return (null, Region (start, end));
 			}
@@ -155,14 +155,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				yield break;
 			}
 
-			DocumentLocation start = IsToplevel? sdksAtt.GetValueStart (doc) : sdksAtt.Region.Begin;
+			DocumentLocation start = IsToplevel ? sdksAtt.GetValueStart (doc) : sdksAtt.Region.Begin;
 
 			foreach (var sdk in SplitSdkValue (start, sdksAtt.Value)) {
 				if (sdk.id == null) {
 					if (IsToplevel) {
 						Errors.Add (new Error (ErrorType.Warning, "Empty value", sdk.loc));
 					}
-				} else {
+				}
+				else {
 					var sdkPath = GetSdkPath (resolver, sdk.id, sdk.loc);
 					if (sdkPath != null) {
 						yield return (sdkPath, sdk.loc);
@@ -174,7 +175,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void AddSdkProps(IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkProps (IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
 			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var propsPath = $"{sdkPath}\\Sdk.props";
@@ -185,7 +186,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void AddSdkTargets(IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkTargets (IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
 			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
 				var targetsPath = $"{sdkPath}\\Sdk.targets";
@@ -259,6 +260,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (info is TaskInfo)
 				return Tasks.ContainsKey (info.Name);
 			return false;
+		}
+
+		public bool IsPrivate (string name)
+		{
+			//properties and items are always visible from files they're used in
+			return !IsToplevel && name[0] == '_';
 		}
 	}
 }
