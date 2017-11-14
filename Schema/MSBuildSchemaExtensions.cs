@@ -131,10 +131,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		//by convention, properties and items starting with an underscore are "private"
-		static bool NotPrivate (string arg)
+		public static IEnumerable<PropertyInfo> GetAllPropertyDefinitions (this IEnumerable<IMSBuildSchema> schemas, string propertyName)
 		{
-			return arg [0] != '_';
+			foreach (var schema in schemas) {
+				if (schema.Properties.TryGetValue (propertyName, out PropertyInfo property)) {
+					yield return property;
+				}
+			}
+		}
+
+		public static PropertyInfo GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name)
+		{
+			return schemas.GetAllPropertyDefinitions (name).FirstOrDefault ();
 		}
 	}
 }

@@ -69,14 +69,39 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static IEnumerable<BaseInfo> GetAttributeValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
+		public static IReadOnlyList<BaseInfo> GetAttributeValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv, out char[] valueSeparators)
 		{
 			if (tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
 				var meta = schemas.GetMetadata (rr.ElementName, rr.AttributeName, false);
 				if (meta != null) {
+					valueSeparators = meta.ValueSeparators;
 					return meta.Values;
 				}
 			}
+
+			valueSeparators = null;
+			return Array.Empty<BaseInfo> ();
+		}
+
+		public static IReadOnlyList<BaseInfo> GetElementValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv, out char[] valueSeparators)
+		{
+			if (rr.LanguageElement.Kind == MSBuildKind.Property) {
+				var prop = schemas.GetProperty (rr.ElementName);
+				if (prop?.Values != null) {
+					valueSeparators = prop.ValueSeparators;
+					return prop.Values;
+				}
+			}
+
+			if (rr.LanguageElement.Kind == MSBuildKind.ItemMetadata) {
+				var metadata = schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
+				if (metadata?.Values != null) {
+					valueSeparators = metadata.ValueSeparators;
+					return metadata.Values;
+				}
+			}
+
+			valueSeparators = null;
 			return Array.Empty<BaseInfo> ();
 		}
 	}

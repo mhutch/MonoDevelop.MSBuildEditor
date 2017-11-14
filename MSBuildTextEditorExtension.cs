@@ -57,9 +57,15 @@ namespace MonoDevelop.MSBuildEditor
 
 		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token = default (CancellationToken))
 		{
-			var expressionCompletion = HandleExpressionCompletion (completionContext, triggerInfo, token);
-			if (expressionCompletion != null) {
-				return Task.FromResult (expressionCompletion);
+			var doc = GetDocument ();
+			if (doc != null) {
+				var rr = ResolveCurrentLocation ();
+				if (rr?.LanguageElement != null) {
+					var expressionCompletion = HandleExpressionCompletion (rr);
+					if (expressionCompletion != null) {
+						return Task.FromResult (expressionCompletion);
+					}
+				}
 			}
 
 			return base.HandleCodeCompletionAsync (completionContext, triggerInfo, token);
@@ -139,7 +145,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			var list = new CompletionDataList ();
-			foreach (var value in rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
+			foreach (var value in rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out char[] valueSeparators)) {
 				list.Add (new MSBuildCompletionData (value, doc.Context, XmlCompletionData.DataType.XmlAttributeValue));
 			}
 			return Task.FromResult (list);
@@ -212,17 +218,9 @@ namespace MonoDevelop.MSBuildEditor
 			}, token);
 		}
 
-		ICompletionDataList HandleExpressionCompletion (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token)
+		ICompletionDataList HandleExpressionCompletion (MSBuildResolveResult rr)
 		{
 			var doc = GetDocument ();
-			if (doc == null)
-				return null;
-
-			var rr = ResolveCurrentLocation ();
-
-			if (rr?.LanguageElement == null) {
-				return null;
-			}
 
 			var state = Tracker.Engine.CurrentState;
 			bool isAttribute = state is XmlAttributeValueState;
@@ -245,35 +243,89 @@ namespace MonoDevelop.MSBuildEditor
 			int start = Math.Max (expressionStart, lineStart);
 			var expression = Editor.GetTextAt (start, currentPosition - start);
 
-			if (expression.Length < 2) {
-				return null;
+			char[] valueSeparators;
+			IReadOnlyList<BaseInfo> values;
+			if (state is XmlRootState) {
+				values = rr.GetElementValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
+			} else {
+				values = rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
 			}
 
-			//trigger on letter after $(, @(
-			if (expression.Length >= 3 && char.IsLetter (expression [expression.Length - 1]) && expression [expression.Length - 2] == '(') {
-				char c = expression [expression.Length - 3];
-				if (c == '$') {
-					return new CompletionDataList (GetPropertyExpressionCompletions (doc)) { TriggerWordLength = 1 };
-				}
-				if (c == '@') {
-					return new CompletionDataList (GetItemExpressionCompletions (doc)) { TriggerWordLength = 1 };
-				}
-				return null;
-			}
+			var triggerState = GetTriggerState (expression, valueSeparators, out int triggerLength);
 
-			//trigger on $(, @(
-			if (expression [expression.Length - 1] == '(') {
-				char c = expression [expression.Length - 2];
-				if (c == '$') {
-					return new CompletionDataList (GetPropertyExpressionCompletions (doc));
+			switch (triggerState) {
+			case ExpressionTriggerState.Value: {
+					var list = new CompletionDataList { TriggerWordLength = triggerLength};
+					list.Add ("$(");
+					list.Add ("@(");
+					list.AutoSelect = false;
+					foreach (var v in values) {
+						list.Add (new MSBuildCompletionData (v, doc.Context, XmlCompletionData.DataType.XmlAttributeValue));
+					}
+					return list;
 				}
-				if (c == '@') {
-					return new CompletionDataList (GetItemExpressionCompletions (doc));
-				}
-				return null;
+			case ExpressionTriggerState.Item:
+				return new CompletionDataList (GetItemExpressionCompletions (doc)) { TriggerWordLength = triggerLength };
+			case ExpressionTriggerState.Property:
+				return new CompletionDataList (GetPropertyExpressionCompletions (doc)) { TriggerWordLength = triggerLength };
 			}
 
 			return null;
+		}
+
+		ExpressionTriggerState GetTriggerState (string expression, char[] valueSeparators, out int triggerLength)
+		{
+			triggerLength = 0;
+
+			if (expression.Length == 0) {
+				return ExpressionTriggerState.Value;
+			}
+
+			char lastChar = expression[expression.Length - 1];
+
+			if (valueSeparators != null && valueSeparators.Contains (lastChar)) {
+				return ExpressionTriggerState.Value;
+			}
+
+			//trigger on letter after $(, @(
+			if (expression.Length >= 3 && char.IsLetter (lastChar) && expression[expression.Length - 2] == '(') {
+				char c = expression[expression.Length - 3];
+				switch (c) {
+				case '$':
+					triggerLength = 1;
+					return ExpressionTriggerState.Property;
+				case '@':
+					triggerLength = 1;
+					return ExpressionTriggerState.Item;
+				case '%':
+					triggerLength = 1;
+					return ExpressionTriggerState.Metadata;
+				}
+			}
+
+			//trigger on $(, @(
+			if (expression[expression.Length - 1] == '(') {
+				char c = expression[expression.Length - 2];
+				switch (c) {
+				case '$':
+					return ExpressionTriggerState.Property;
+				case '@':
+					return ExpressionTriggerState.Item;
+				case '%':
+					return ExpressionTriggerState.Metadata;
+				}
+			}
+
+			return ExpressionTriggerState.None;
+		}
+
+		enum ExpressionTriggerState
+		{
+			None,
+			Value,
+			Item,
+			Property,
+			Metadata
 		}
 
 		//FIXME: this is fragile, need API in core
@@ -290,14 +342,14 @@ namespace MonoDevelop.MSBuildEditor
 		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
 		{
 			foreach (var item in doc.Context.GetSchemas ().GetItems ()) {
-				yield return new CompletionData (item.Name, Ide.Gui.Stock.Class, item.Description);
+				yield return new MSBuildCompletionData (item, doc.Context, XmlCompletionData.DataType.XmlAttributeValue);
 			}
 		}
 
 		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc)
 		{
 			foreach (var prop in doc.Context.GetSchemas ().GetProperties (true)) {
-				yield return new CompletionData (prop.Name, Ide.Gui.Stock.Class, prop.Description);
+				yield return new MSBuildCompletionData (prop, doc.Context, XmlCompletionData.DataType.XmlAttributeValue);
 			}
 		}
 

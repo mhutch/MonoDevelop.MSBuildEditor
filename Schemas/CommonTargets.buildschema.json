@@ -39,19 +39,19 @@
 						"none": "None of the assets",
 						"all": "All of the assets"
 					},
-					"valueSeparator": ","
+					"valueSeparators": ","
 				},
 				"ExcludeAssets": {
 					"description": "Assets that will not be consumed by the project",
 					"defaultValue": "none",
 					"values": "%(IncludeAssets)",
-					"valueSeparator": ","
+					"valueSeparators": ","
 				},
 				"PrivateAssets": {
 					"description": "Assets that will be consumed by the project but won't flow to its parent",
 					"defaultValue": "contentfiles;analyzers;build",
 					"values": "%(IncludeAssets)",
-					"valueSeparator": ","
+					"valueSeparators": ","
 				}
 			}
 		}

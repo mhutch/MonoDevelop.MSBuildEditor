@@ -10,7 +10,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public List<ValueInfo> Values { get; }
 		public string DefaultValue { get; }
-		public string ValueSeparator { get; }
+		public char[] ValueSeparators { get; }
 		public bool Reserved { get; private set; }
 		public bool WellKnown { get; private set; }
 
@@ -21,12 +21,12 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			Reserved = reserved;
 		}
 
-		public PropertyInfo (string name, string description, bool wellKnown, bool reserved, List<ValueInfo> values, string defaultValue, string valueSeparator)
+		public PropertyInfo (string name, string description, bool wellKnown, bool reserved, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
 			: this (name, description, wellKnown, reserved)
 		{
 			Values = values;
 			DefaultValue = defaultValue;
-			ValueSeparator = valueSeparator;
+			ValueSeparators = valueSeparators;
 		}
 	}
 }

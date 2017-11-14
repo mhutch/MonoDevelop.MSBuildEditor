@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			foreach (var kv in doc) {
-				switch(kv.Key) {
+				switch (kv.Key) {
 				case "properties":
 					LoadProperties ((JObject)kv.Value);
 					break;
@@ -71,14 +71,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					case "defaultValue":
 						defaultValue = (string)((JValue)pkv.Value).Value;
 						break;
-					case "valueSeparator":
+					case "valueSeparators":
 						valueSeparator = (string)((JValue)pkv.Value).Value;
 						break;
 					default:
 						throw new Exception ($"Unknown property {pkv.Key} in property {kv.Key}");
 					}
 				}
-				Properties [name] = new PropertyInfo (name, description, false, false, values, defaultValue, valueSeparator);
+				Properties[name] = new PropertyInfo (name, description, false, false, values, defaultValue, valueSeparator?.ToCharArray ());
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
 					}
 				}
-				Items [name] = new ItemInfo (name, description, isFile, metadata);
+				Items[name] = new ItemInfo (name, description, isFile, metadata);
 			}
 		}
 
@@ -113,7 +113,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var metadata = new Dictionary<string, MetadataInfo> ();
 			foreach (var kv in metaObj) {
 				var name = kv.Key;
-				string description = null, valueSeparator = null, defaultValue = null;
+				string description = null, valueSeparators = null, defaultValue = null;
 				bool required = false;
 				List<ValueInfo> values = null;
 				foreach (var mkv in (JObject)kv.Value) {
@@ -122,21 +122,21 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)((JValue)mkv.Value).Value;
 						break;
 					case "values":
-						switch(mkv.Value) {
+						switch (mkv.Value) {
 						case JValue jv:
 							var metaRef = (string)jv.Value;
-							if (!metaRef.StartsWith ("%(", StringComparison.Ordinal) || metaRef [metaRef.Length - 1] != ')')
+							if (!metaRef.StartsWith ("%(", StringComparison.Ordinal) || metaRef[metaRef.Length - 1] != ')')
 								throw new Exception ($"Metadata reference '{metaRef} on {mkv.Key} has invalid format'");
 							metaRef = metaRef.Substring (2, metaRef.Length - 3);
-							values = metadata [metaRef].Values;
+							values = metadata[metaRef].Values;
 							break;
 						case JObject jo:
-								values = GetValues (jo);
+							values = GetValues (jo);
 							break;
 						}
 						break;
-					case "valueSeparator":
-						valueSeparator = (string)((JValue)mkv.Value).Value;
+					case "valueSeparators":
+						valueSeparators = (string)((JValue)mkv.Value).Value;
 						break;
 					case "defaultValue":
 						defaultValue = (string)((JValue)mkv.Value).Value;
@@ -148,7 +148,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {mkv.Key} in metadata {kv.Key}");
 					}
 				}
-				metadata [name] = new MetadataInfo (name, description, false, required, values, defaultValue, valueSeparator);
+				metadata[name] = new MetadataInfo (name, description, false, required, values, defaultValue, valueSeparators?.ToCharArray ());
 			}
 			return metadata;
 		}
