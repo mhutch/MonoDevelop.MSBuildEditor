@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2014 Xamarin Inc.
+// Copyright (c) 2014 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -209,6 +209,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
+		IEnumerable<MSBuildResolveContext> GetDescendentContexts ()
+		{
+			foreach (var i in GetDescendentImports ()) {
+				if (i.ResolveContext != null) {
+					yield return i.ResolveContext;
+				}
+			}
+		}
+
 		public IEnumerable<MSBuildResolveContext> GetContextAndDescendents ()
 		{
 			yield return this;
@@ -238,12 +247,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		/// <summary>
-		/// Gets the files in which the given info has been seen.
+		/// Gets the files in which the given info has been seen, excluding the current one.
 		/// </summary>
 		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
 		{
 			var files = new HashSet<string> ();
-			foreach (var ctx in GetContextAndDescendents ()) {
+			foreach (var ctx in GetDescendentContexts ()) {
 				if (ctx.WasSeen (info)) {
 					files.Add (ctx.Filename);
 				}
