@@ -98,16 +98,16 @@ namespace MonoDevelop.MSBuildEditor
 			if (rr != null) {
 				var doc = GetDocument ();
 				foreach (var el in rr.GetElementCompletions (doc.Context.GetSchemas ())) {
-					list.Add (new MSBuildCompletionData (el, doc.Context, XmlCompletionData.DataType.XmlElement));
+					list.Add (new MSBuildCompletionData (el, doc.Context, rr, XmlCompletionData.DataType.XmlElement));
 				}
 			}
 
 			return Task.FromResult (list);
 		}
 
-		static Task<CompletionDataList> ToCompletionList (IEnumerable<BaseInfo> infos, MSBuildResolveContext ctx, XmlCompletionData.DataType type)
+		static Task<CompletionDataList> ToCompletionList (IEnumerable<BaseInfo> infos, MSBuildResolveContext ctx, MSBuildResolveResult rr, XmlCompletionData.DataType type)
 		{
-			var data = infos.Select (i => new MSBuildCompletionData (i, ctx, type));
+			var data = infos.Select (i => new MSBuildCompletionData (i, ctx, rr, type));
 			return Task.FromResult (new CompletionDataList (data));
 		}
 
@@ -121,7 +121,7 @@ namespace MonoDevelop.MSBuildEditor
 			var doc = GetDocument ();
 			var list = new CompletionDataList ();
 			foreach (var att in rr.GetAttributeCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
-				list.Add (new MSBuildCompletionData (att, doc.Context, XmlCompletionData.DataType.XmlElement));
+				list.Add (new MSBuildCompletionData (att, doc.Context, rr, XmlCompletionData.DataType.XmlElement));
 			}
 
 			return Task.FromResult (list);
@@ -155,7 +155,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var list = new CompletionDataList ();
 			foreach (var value in rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out char[] valueSeparators)) {
-				list.Add (new MSBuildCompletionData (value, doc.Context, XmlCompletionData.DataType.XmlAttributeValue));
+				list.Add (new MSBuildCompletionData (value, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
 			}
 			return Task.FromResult (list);
 		}
@@ -274,14 +274,14 @@ namespace MonoDevelop.MSBuildEditor
 					list.Add ("@(");
 					list.AutoSelect = false;
 					foreach (var v in values) {
-						list.Add (new MSBuildCompletionData (v, doc.Context, XmlCompletionData.DataType.XmlAttributeValue));
+						list.Add (new MSBuildCompletionData (v, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
 					}
 					return list;
 				}
 			case ExpressionTriggerState.Item:
-				return new CompletionDataList (GetItemExpressionCompletions (doc)) { TriggerWordLength = triggerLength };
+				return new CompletionDataList (GetItemExpressionCompletions (doc, rr)) { TriggerWordLength = triggerLength };
 			case ExpressionTriggerState.Property:
-				return new CompletionDataList (GetPropertyExpressionCompletions (doc)) { TriggerWordLength = triggerLength };
+				return new CompletionDataList (GetPropertyExpressionCompletions (doc, rr)) { TriggerWordLength = triggerLength };
 			}
 
 			return null;
@@ -353,17 +353,17 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc)
+		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr)
 		{
 			foreach (var item in doc.Context.GetSchemas ().GetItems ()) {
-				yield return new MSBuildCompletionData (item, doc.Context, XmlCompletionData.DataType.XmlAttributeValue);
+				yield return new MSBuildCompletionData (item, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue);
 			}
 		}
 
-		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc)
+		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr)
 		{
 			foreach (var prop in doc.Context.GetSchemas ().GetProperties (true)) {
-				yield return new MSBuildCompletionData (prop, doc.Context, XmlCompletionData.DataType.XmlAttributeValue);
+				yield return new MSBuildCompletionData (prop, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue);
 			}
 		}
 

@@ -197,6 +197,30 @@ namespace MonoDevelop.MSBuildEditor {
             }
         }
         
+        internal static string Item_Include_Parameterized {
+            get {
+                return ResourceManager.GetString("Item.Include.Parameterized", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Exclude_Parameterized {
+            get {
+                return ResourceManager.GetString("Item.Exclude.Parameterized", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Remove_Parameterized {
+            get {
+                return ResourceManager.GetString("Item.Remove.Parameterized", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Update_Parameterized {
+            get {
+                return ResourceManager.GetString("Item.Update.Parameterized", resourceCulture);
+            }
+        }
+        
         internal static string Property_Label {
             get {
                 return ResourceManager.GetString("Property.Label", resourceCulture);

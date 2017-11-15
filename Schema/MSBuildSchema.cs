@@ -90,7 +90,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			foreach (var kv in items) {
 				var name = kv.Key;
-				string description = null;
+				string description = null, includeDescription = null;
 				bool isFile = false;
 				Dictionary<string, MetadataInfo> metadata = null;
 				foreach (var ikv in (JObject)kv.Value) {
@@ -101,6 +101,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					case "isFile":
 						isFile = (bool)((JValue)ikv.Value).Value;
 						break;
+					case "includeDescription":
+						includeDescription = (string)((JValue)ikv.Value).Value;
+						break;
 					case "metadata":
 						metadata = GetMetadata ((JObject)ikv.Value);
 						break;
@@ -108,7 +111,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
 					}
 				}
-				Items[name] = new ItemInfo (name, description, isFile, metadata);
+				Items[name] = new ItemInfo (name, description, includeDescription, isFile, metadata);
 			}
 		}
 

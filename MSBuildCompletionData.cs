@@ -13,14 +13,16 @@ namespace MonoDevelop.MSBuildEditor
 	class MSBuildCompletionData : XmlCompletionData
 	{
 		readonly MSBuildResolveContext ctx;
+		readonly MSBuildResolveResult rr;
 		readonly BaseInfo info;
 		string description;
 
-		public MSBuildCompletionData (BaseInfo info, MSBuildResolveContext ctx, DataType type)
+		public MSBuildCompletionData (BaseInfo info, MSBuildResolveContext ctx, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, info.Description, type)
 		{
 			this.info = info;
 			this.ctx = ctx;
+			this.rr = rr;
 		}
 
 		public override string Description {
@@ -31,7 +33,8 @@ namespace MonoDevelop.MSBuildEditor
 
 		string GetDescription ()
 		{
-			return AppendSeenIn (ctx, info, base.Description);
+			var desc = DescriptionFormatter.GetDescription (info, ctx, rr);
+			return AppendSeenIn (ctx, info, desc);
 		}
 
 		internal static string AppendSeenIn (MSBuildResolveContext ctx, BaseInfo info, string baseDesc)

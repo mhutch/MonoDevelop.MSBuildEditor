@@ -96,6 +96,19 @@
 		<value>Optional expression. Used to identify or order system and user elements</value>
 	</data>
 
+	<data name="Item.Include.Parameterized">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to include in this item list</value>
+	</data>
+	<data name="Item.Exclude.Parameterized">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to exclude from the Include list</value>
+	</data>
+	<data name="Item.Remove.Parameterized">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to remove from the existing list contents</value>
+	</data>
+	<data name="Item.Update.Parameterized">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to be updated with the metadata from contained in this xml element</value>
+	</data>
+
 	<data name="Property.Label">
 		<value>Optional expression. Used to identify or order system and user elements</value>
 	</data>

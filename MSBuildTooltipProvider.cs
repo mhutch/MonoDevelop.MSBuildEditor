@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuildEditor
 				var msbuildCtx = ext.GetDocument ().Context;
 				var info = rr.GetResolvedInfo (msbuildCtx.GetSchemas ());
 				if (info != null) {
-					var item = new InfoItem { Info = info, Context = msbuildCtx };
+					var item = new InfoItem { Info = info, Context = msbuildCtx, ResultResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
 				}
 			}
@@ -54,10 +54,12 @@ namespace MonoDevelop.MSBuildEditor
 					return null;
 				}
 
+				var desc = DescriptionFormatter.GetDescription (infoItem.Info, infoItem.Context, infoItem.ResultResult);
+
 				var window = new TooltipInformationWindow ();
 				var ti = new TooltipInformation {
 					SignatureMarkup = nameMarkup,
-					SummaryMarkup = GLib.Markup.EscapeText (infoItem.Info.Description),
+					SummaryMarkup = GLib.Markup.EscapeText (desc),
 					FooterMarkup = MSBuildCompletionData.AppendSeenIn (infoItem.Context, infoItem.Info, null)
 				};
 				window.AddOverload (ti);
@@ -143,8 +145,8 @@ namespace MonoDevelop.MSBuildEditor
 		class InfoItem
 		{
 			public BaseInfo Info;
+			public MSBuildResolveResult ResultResult;
 			public MSBuildResolveContext Context;
 		}
-
     }
 }
