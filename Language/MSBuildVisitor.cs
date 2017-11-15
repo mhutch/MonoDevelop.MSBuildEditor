@@ -141,14 +141,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected virtual void VisitMetadata (XElement element, string itemName, string metadataName)
 		{
-			VisitMetadataReference (itemName, metadataName, ConvertLocation (element.Region.Begin) + 1, itemName.Length);
+			VisitMetadataReference (itemName, metadataName, ConvertLocation (element.Region.Begin) + 1, metadataName.Length);
 
 			ProcessCondition (element);
 
 			ExtractReferences (element);
 
 			if (!element.IsSelfClosing && element.ClosingTag is XElement closing) {
-				VisitMetadataReference (itemName, metadataName, ConvertLocation (closing.Region.Begin) + 1, itemName.Length);
+				VisitMetadataReference (itemName, metadataName, ConvertLocation (closing.Region.Begin) + 1, metadataName.Length);
 			}
 		}
 
