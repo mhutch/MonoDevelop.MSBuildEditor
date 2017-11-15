@@ -111,11 +111,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				foreach (var att in element.Attributes) {
 					var attStart = ConvertLocation (att.Region.Begin);
-					if (IsIn (attStart, att.Name.Name.Length) && !resolved.IsAbstract) {
-						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-						rr.ReferenceOffset = attStart;
-						rr.ReferenceName = att.Name.Name;
-						return;
+					if (IsIn (attStart, att.Name.Name.Length)) {
+						var rat = resolved.GetAttribute (att.Name.Name);
+						if (!rat.IsAbstract) {
+							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+							rr.ReferenceOffset = attStart;
+							rr.ReferenceName = att.Name.Name;
+							return;
+						}
 					}
 				}
 
