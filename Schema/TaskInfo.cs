@@ -16,9 +16,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			Parameters = new Dictionary<string, TaskParameterInfo> ();
 		}
-
-		public override MSBuildKind Kind => MSBuildKind.Task;
-
 	}
 
 	class TaskParameterInfo : BaseInfo
@@ -26,7 +23,5 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public TaskParameterInfo (string name, string description) : base (name, description)
 		{
 		}
-
-		public override MSBuildKind Kind => MSBuildKind.TaskParameter;
 	}
 }

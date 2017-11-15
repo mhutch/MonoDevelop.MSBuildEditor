@@ -49,9 +49,14 @@ namespace MonoDevelop.MSBuildEditor
 		public override Window CreateTooltipWindow (TextEditor editor, DocumentContext ctx, TooltipItem item, int offset, Xwt.ModifierKeys modifierState)
 		{
 			if (item.Item is InfoItem infoItem) {
+				var nameMarkup = GetNameMarkup (infoItem.Info);
+				if (nameMarkup == null) {
+					return null;
+				}
+
 				var window = new TooltipInformationWindow ();
 				var ti = new TooltipInformation {
-					SignatureMarkup = GetNameMarkup (infoItem.Info),
+					SignatureMarkup = nameMarkup,
 					SummaryMarkup = GLib.Markup.EscapeText (infoItem.Info.Description),
 					FooterMarkup = MSBuildCompletionData.AppendSeenIn (infoItem.Context, infoItem.Info, null)
 				};
@@ -86,10 +91,40 @@ namespace MonoDevelop.MSBuildEditor
 			var color = SyntaxHighlightingService.GetColorFromScope (theme, "entity.name.tag.xml", EditorThemeColors.Foreground);
 
 			var sb = new StringBuilder ();
-			sb.Append (info.Kind.ToString ().ToLower ());
+			var kindLabel = GetKindLabel (info);
+			if (kindLabel == null) {
+				return null;
+			}
+			sb.Append (kindLabel);
 			sb.Append (" ");
 			sb.AppendFormat ("<span foreground=\"{0}\">{1}</span>", color.ToPangoString (), GLib.Markup.EscapeText (info.Name));
 			return sb.ToString ();
+		}
+
+		static string GetKindLabel (BaseInfo info)
+		{
+			switch (info) {
+			case MSBuildLanguageElement el:
+				if (!el.IsAbstract)
+					return "keyword";
+				break;
+			case MSBuildLanguageAttribute att:
+				if (!att.IsAbstract) {
+					return "keyword";
+				}
+				break;
+			case ItemInfo item:
+				return "item";
+			case PropertyInfo prop:
+				return "property";
+			case MetadataInfo meta:
+				return "metadata";
+			case TaskInfo task:
+				return "task";
+			case ValueInfo value:
+				return "value";
+			}
+			return null;
 		}
 
 		static EditorTheme GetColorTheme ()

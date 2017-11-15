@@ -31,6 +31,7 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.Language;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Parser;
 using NUnit.Framework;
 

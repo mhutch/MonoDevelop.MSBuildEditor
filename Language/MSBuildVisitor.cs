@@ -8,6 +8,7 @@ using MonoDevelop.Core;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.ExpressionParser;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -79,7 +80,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				break;
 			}
 
-			if (resolved.ChildType != MSBuildKind.Data) {
+			if (resolved.ValueKind == MSBuildValueKind.Nothing) {
 				foreach (var child in element.Elements) {
 					Run (child, resolved);
 				}

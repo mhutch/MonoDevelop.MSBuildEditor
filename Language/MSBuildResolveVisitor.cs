@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -41,7 +42,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 
 				//if children of parent is known to be arbitrary data, don't go into it
-				if (schemaEl != null && schemaEl.ChildType == MSBuildKind.Data) {
+				if (schemaEl != null && schemaEl.ValueKind == MSBuildValueKind.Data) {
 					break;
 				}
 				

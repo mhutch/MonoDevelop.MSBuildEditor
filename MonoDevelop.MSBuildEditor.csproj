@@ -123,6 +123,12 @@
     <Compile Include="Schema\MSBuildSchemaExtensions.cs" />
     <Compile Include="Schema\MSBuildCompletionExtensions.cs" />
     <Compile Include="MSBuildTooltipProvider.cs" />
+    <Compile Include="Schema\MSBuildLanguageAttribute.cs" />
+    <Compile Include="Schema\MSBuildKind.cs" />
+    <Compile Include="Schema\MSBuildValueKind.cs" />
+    <Compile Include="ElementDescriptions.Designer.cs">
+      <DependentUpon>ElementDescriptions.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -130,6 +136,10 @@
       <LogicalName>MSBuildStylePolicy.xml</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
+    <EmbeddedResource Include="ElementDescriptions.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
@@ -145,7 +155,6 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TODO.txt" />
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\ProjectFileTools.NuGetSearch.csproj" />
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Properties\PublishProfiles\FolderProfile.pubxml" />
   </ItemGroup>

@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Ide;
 using MonoDevelop.MSBuildEditor.Language;
+using MonoDevelop.MSBuildEditor.Schema;
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuildEditor.Tests

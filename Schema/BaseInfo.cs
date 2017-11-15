@@ -3,14 +3,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
 	abstract class BaseInfo
 	{
-		public string Name { get; private set; }
-		public string Description { get; private set; }
+		public string Name { get; }
+		public string Description { get; }
 
 		protected BaseInfo (string name, string description)
 		{
@@ -28,7 +27,5 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			return StringComparer.OrdinalIgnoreCase.GetHashCode (Name);
 		}
-
-		public abstract MSBuildKind Kind { get; }
 	}
 }

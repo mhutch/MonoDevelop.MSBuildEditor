@@ -187,7 +187,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//TODO: check required attributes
 			//TODO: validate attribute expressions
 			foreach (var att in element.Attributes) {
-				var valid = kind.Attributes.Any (a => att.Name.FullName == a);
+				var valid = kind.Attributes.Any (a => string.Equals (att.Name.FullName, a.Name, System.StringComparison.OrdinalIgnoreCase));
 				if (!valid) {
 					ctx.Errors.Add (new Error (ErrorType.Error, $"Unknown attribute '{att.Name.FullName}'", att.Region));
 				}

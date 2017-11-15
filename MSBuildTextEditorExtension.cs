@@ -233,12 +233,17 @@ namespace MonoDevelop.MSBuildEditor
 
 			var state = Tracker.Engine.CurrentState;
 			bool isAttribute = state is XmlAttributeValueState;
-			if (isAttribute) {
-				//FIXME: assume all attributes accept expressions for now
-			} else if (state is XmlRootState) {
-				if (rr.LanguageElement.ChildType != MSBuildKind.Expression)
-					return null;
-			} else {
+			if (!isAttribute && !(state is XmlRootState)) {
+				return null;
+			}
+
+			switch (rr.LanguageElement.ValueKind) {
+			case MSBuildValueKind.ConditionExpression:
+			case MSBuildValueKind.ItemExpression:
+			case MSBuildValueKind.PropertyExpression:
+			case MSBuildValueKind.MetadataExpression:
+				break;
+			default:
 				return null;
 			}
 
