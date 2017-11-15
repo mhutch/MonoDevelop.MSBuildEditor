@@ -163,12 +163,27 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public static BaseInfo GetResolvedInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
 		{
 			switch (rr.ReferenceKind) {
-			case MSBuildKind.ItemReference:
+			case MSBuildReferenceKind.Item:
 				return schemas.GetItem (rr.ReferenceName);
-			case MSBuildKind.MetadataReference:
+			case MSBuildReferenceKind.Metadata:
 				return schemas.GetMetadata (rr.ReferenceItemName, rr.ReferenceName, true);
-			case MSBuildKind.PropertyReference:
+			case MSBuildReferenceKind.Property:
 				return schemas.GetProperty (rr.ReferenceName);
+			case MSBuildReferenceKind.Task:
+				return schemas.GetTask (rr.ReferenceName);
+			case MSBuildReferenceKind.Keyword:
+				var attName = rr.AttributeName;
+				if (attName != null) {
+					var att = rr.LanguageElement.GetAttribute (attName);
+					if (att != null && !att.IsAbstract) {
+						return att;
+					}
+				} else {
+					if (!rr.LanguageElement.IsAbstract) {
+						return rr.LanguageElement;
+					}
+				}
+				break;
 			}
 			return null;
 		}

@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			.SelectAtMarkers (doc, "hello.csproj", (ctx) => MSBuildResolver.Resolve (ctx.parser, ctx.document))
 			.ToList ();
 
-		void AssertReferences (string doc, params (MSBuildKind kind, string name, string itemName)[] expected)
+		void AssertReferences (string doc, params (MSBuildReferenceKind kind, string name, string itemName)[] expected)
 		{
 			var results = Resolve (doc);
 
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			string FormatName (string name, string itemName) => itemName == null ? name : itemName + '.' + name;
 			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.ReferenceName, rr.ReferenceItemName);
-			string FormatNameT ((MSBuildKind kind, string name, string itemName) rr) => FormatName (rr.name, rr.itemName);
+			string FormatNameT ((MSBuildReferenceKind kind, string name, string itemName) rr) => FormatName (rr.name, rr.itemName);
 		}
 
 		[Test]
@@ -86,11 +86,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildKind.ItemReference, "foo", null),
-				(MSBuildKind.ItemReference, "foo", null),
-				(MSBuildKind.ItemReference, "foo", null),
-				(MSBuildKind.ItemReference, "foo", null),
-				(MSBuildKind.ItemReference, "foo", null)
+				(MSBuildReferenceKind.Item, "foo", null),
+				(MSBuildReferenceKind.Item, "foo", null),
+				(MSBuildReferenceKind.Item, "foo", null),
+				(MSBuildReferenceKind.Item, "foo", null),
+				(MSBuildReferenceKind.Item, "foo", null)
 			);
 		}
 
@@ -114,12 +114,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildKind.PropertyReference, "foo", null),
-				(MSBuildKind.PropertyReference, "Foo", null),
-				(MSBuildKind.PropertyReference, "foo", null),
-				(MSBuildKind.PropertyReference, "Foo", null),
-				(MSBuildKind.PropertyReference, "foo", null),
-				(MSBuildKind.PropertyReference, "foo", null)
+				(MSBuildReferenceKind.Property, "foo", null),
+				(MSBuildReferenceKind.Property, "Foo", null),
+				(MSBuildReferenceKind.Property, "foo", null),
+				(MSBuildReferenceKind.Property, "Foo", null),
+				(MSBuildReferenceKind.Property, "foo", null),
+				(MSBuildReferenceKind.Property, "foo", null)
 			);
 		}
 
@@ -147,10 +147,30 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildKind.MetadataReference, "foo", "bar"),
-				(MSBuildKind.MetadataReference, "foo", "bar"),
-				(MSBuildKind.MetadataReference, "foo", "bar"),
-				(MSBuildKind.MetadataReference, "Foo", "bar")
+				(MSBuildReferenceKind.Metadata, "foo", "bar"),
+				(MSBuildReferenceKind.Metadata, "foo", "bar"),
+				(MSBuildReferenceKind.Metadata, "foo", "bar"),
+				(MSBuildReferenceKind.Metadata, "Foo", "bar")
+			);
+		}
+
+		[Test]
+		public void KeywordResolution ()
+		{
+			var doc = @"
+<proj|ect>
+  <itemgroup>
+    <foo includ|e=""bar"" />
+  </itemgroup>
+  <target name='Foo' DependsOnT|argets=""@(bar->'%(Foo)')"">
+  </target>
+</project>".TrimStart ();
+
+			AssertReferences (
+				doc,
+				(MSBuildReferenceKind.Keyword, "project", null),
+				(MSBuildReferenceKind.Keyword, "include", null),
+				(MSBuildReferenceKind.Keyword, "DependsOnTargets", null)
 			);
 		}
 	}

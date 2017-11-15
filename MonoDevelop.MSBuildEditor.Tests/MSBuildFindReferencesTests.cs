@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	[TestFixture]
 	public class MSBuildFindReferencesTests : IdeTestBase
 	{
-		List<(int Offset, int Length)> FindReferences (string doc, MSBuildKind kind, string name, string parentName)
+		List<(int Offset, int Length)> FindReferences (string doc, MSBuildReferenceKind kind, string name, string parentName)
 		{
 			string filename = "test.csproj";
 
@@ -98,7 +98,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </itemgroup>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.ItemReference, "Foo", null);
+			var refs = FindReferences (doc, MSBuildReferenceKind.Item, "Foo", null);
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -130,7 +130,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.PropertyReference, "Foo", null);
+			var refs = FindReferences (doc, MSBuildReferenceKind.Property, "Foo", null);
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -168,7 +168,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildKind.MetadataReference, "foo", "bar");
+			var refs = FindReferences (doc, MSBuildReferenceKind.Metadata, "foo", "bar");
 
 			AssertLocations (
 				doc, "foo", refs,
