@@ -141,9 +141,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			};
 
 			parameter.attributes = new [] {
-				new MSBuildLanguageAttribute ("Output", ElementDescriptions.Parameter_Output, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("Output", ElementDescriptions.Parameter_Output, MSBuildValueKind.BoolLiteral),
 				new MSBuildLanguageAttribute ("ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
-				new MSBuildLanguageAttribute ("Required", ElementDescriptions.Parameter_Required, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("Required", ElementDescriptions.Parameter_Required, MSBuildValueKind.BoolLiteral),
 			};
 
 			project.attributes = new [] {
@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				new MSBuildLanguageAttribute ("Inputs", ElementDescriptions.Target_Inputs, MSBuildValueKind.TargetList),
 				new MSBuildLanguageAttribute ("Outputs", ElementDescriptions.Target_Outputs, MSBuildValueKind.TargetList),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Target_Condition, MSBuildValueKind.ConditionExpression),
-				new MSBuildLanguageAttribute ("KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildValueKind.BoolExpression),
 				new MSBuildLanguageAttribute ("Returns", ElementDescriptions.Target_Returns, MSBuildValueKind.ItemExpression),
 				new MSBuildLanguageAttribute ("BeforeTargets", ElementDescriptions.Target_BeforeTargets, MSBuildValueKind.TargetList),
 				new MSBuildLanguageAttribute ("AfterTargets", ElementDescriptions.Target_AfterTargets, MSBuildValueKind.TargetList),
@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			};
 
 			taskBody.attributes = new [] {
-				new MSBuildLanguageAttribute ("Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildValueKind.BoolExpression),
 			};
 
 			output.attributes = new [] {
@@ -229,7 +229,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			task.attributes = new [] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Task_Condition, MSBuildValueKind.ConditionExpression),
-				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.BoolExpression),
 				new MSBuildLanguageAttribute ("Architecture", ElementDescriptions.Task_Architecture, MSBuildValueKind.TaskArchitecture),
 				new MSBuildLanguageAttribute ("Runtime", ElementDescriptions.Task_Runtime, MSBuildValueKind.TaskRuntime),
 				taskParameterAtt

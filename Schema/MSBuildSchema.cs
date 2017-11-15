@@ -59,11 +59,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in properties) {
 				var name = kv.Key;
 				string description = null, valueSeparator = null, defaultValue = null;
+				var kind = MSBuildValueKind.PropertyExpression;
 				List<ValueInfo> values = null;
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
 					case "description":
 						description = (string)pkv.Value;
+						break;
+					case "kind":
+						kind = ParseValueKind ((string)((JValue)pkv.Value).Value) ?? kind;
 						break;
 					case "values":
 						values = GetValues ((JObject)pkv.Value);
@@ -78,7 +82,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {pkv.Key} in property {kv.Key}");
 					}
 				}
-				Properties[name] = new PropertyInfo (name, description, false, false, values, defaultValue, valueSeparator?.ToCharArray ());
+				Properties[name] = new PropertyInfo (name, description, false, false, kind, values, defaultValue, valueSeparator?.ToCharArray ());
 			}
 		}
 
@@ -108,6 +112,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
+		static MSBuildValueKind? ParseValueKind (string valueKind)
+		{
+			//use explicit names instead of the enum to reduce breakable surface area
+			switch (valueKind.ToLower ()) {
+			case "bool": return MSBuildValueKind.BoolExpression;
+			case "targetframeworkversion": return MSBuildValueKind.TargetFrameworkVersion;
+			case "importance": return MSBuildValueKind.Importance;
+			default:
+				//accept unknown values in case we run into newer schema formats
+				return null;
+			}
+		}
+
 		Dictionary<string, MetadataInfo> GetMetadata (JObject metaObj)
 		{
 			var metadata = new Dictionary<string, MetadataInfo> ();
@@ -115,11 +132,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				var name = kv.Key;
 				string description = null, valueSeparators = null, defaultValue = null;
 				bool required = false;
+				MSBuildValueKind kind = MSBuildValueKind.MetadataExpression;
 				List<ValueInfo> values = null;
 				foreach (var mkv in (JObject)kv.Value) {
 					switch (mkv.Key) {
 					case "description":
 						description = (string)((JValue)mkv.Value).Value;
+						break;
+					case "kind":
+						kind = ParseValueKind ((string)((JValue)mkv.Value).Value) ?? kind;
 						break;
 					case "values":
 						switch (mkv.Value) {
@@ -148,7 +169,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {mkv.Key} in metadata {kv.Key}");
 					}
 				}
-				metadata[name] = new MetadataInfo (name, description, false, required, values, defaultValue, valueSeparators?.ToCharArray ());
+				metadata[name] = new MetadataInfo (name, description, false, required, kind, values, defaultValue, valueSeparators?.ToCharArray ());
 			}
 			return metadata;
 		}

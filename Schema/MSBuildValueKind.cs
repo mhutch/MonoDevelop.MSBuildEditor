@@ -9,7 +9,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		Nothing,
 		Data,
-		Bool,
+		BoolLiteral,
+		BoolExpression,
 		TargetList,
 		TaskParameterName,
 		TaskParameterType,
@@ -33,6 +34,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TaskFactory,
 		TaskArchitecture,
 		TaskRuntime,
-		SdkVersion
+		SdkVersion,
+		TargetFrameworkVersion,
+		Importance
 	}
 }

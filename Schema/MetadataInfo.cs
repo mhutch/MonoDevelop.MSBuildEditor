@@ -13,6 +13,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public char[] ValueSeparators { get; }
 		public bool WellKnown { get; }
 		public bool Required { get; }
+		public MSBuildValueKind? ValueKind { get; }
 
 		public MetadataInfo (string name, string description, bool wellKnown)
 			: base (name, description)
@@ -20,13 +21,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			WellKnown = wellKnown;
 		}
 
-		public MetadataInfo (string name, string description, bool wellKnown, bool required, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
+		public MetadataInfo (string name, string description, bool wellKnown, bool required, MSBuildValueKind? valueKind, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
 			: this (name, description, wellKnown)
 		{
 			Values = values;
 			DefaultValue = defaultValue;
 			ValueSeparators = valueSeparators;
 			Required = required;
+			ValueKind = valueKind;
 		}
     }
 }

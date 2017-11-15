@@ -13,6 +13,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public char[] ValueSeparators { get; }
 		public bool Reserved { get; }
 		public bool WellKnown { get; }
+		public MSBuildValueKind? ValueKind { get; }
 
 		public PropertyInfo (string name, string description, bool wellKnown, bool reserved)
 			: base (name, description)
@@ -21,12 +22,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			Reserved = reserved;
 		}
 
-		public PropertyInfo (string name, string description, bool wellKnown, bool reserved, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
+		public PropertyInfo (string name, string description, bool wellKnown, bool reserved, MSBuildValueKind? valueKind, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
 			: this (name, description, wellKnown, reserved)
 		{
 			Values = values;
 			DefaultValue = defaultValue;
 			ValueSeparators = valueSeparators;
+			ValueKind = valueKind;
 		}
     }
 }
