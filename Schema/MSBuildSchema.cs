@@ -74,7 +74,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						kind = ParseValueKind ((string)((JValue)pkv.Value).Value) ?? kind;
 						break;
 					case "values":
-						values = GetValues ((JObject)pkv.Value);
+						if (pkv.Value is JObject valuesObj) {
+							values = GetValues ((JObject)pkv.Value);
+						} else {
+							values = GetValues ((JArray)pkv.Value);
+						}
 						break;
 					case "defaultValue":
 						defaultValue = (string)((JValue)pkv.Value).Value;
@@ -186,6 +190,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var values = new List<ValueInfo> ();
 			foreach (var ikv in value) {
 				values.Add (new ValueInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
+			}
+			return values;
+		}
+
+		List<ValueInfo> GetValues (JArray arr)
+		{
+			var values = new List<ValueInfo> ();
+			foreach (var val in arr) {
+				values.Add (new ValueInfo ((string)((JValue)val).Value, null));
 			}
 			return values;
 		}
