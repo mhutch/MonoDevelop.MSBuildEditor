@@ -58,6 +58,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			foreach (var kv in properties) {
 				var name = kv.Key;
+				if (kv.Value is JValue val) {
+					Properties [name] = new PropertyInfo (name, (string)val.Value, false, false);
+					continue;
+				}
 				string description = null, valueSeparator = null, defaultValue = null;
 				var kind = MSBuildValueKind.PropertyExpression;
 				List<ValueInfo> values = null;
