@@ -12,6 +12,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		BoolLiteral,
 		BoolExpression,
 		TargetList,
+		TargetListExpression,
 		TaskParameterName,
 		TaskParameterType,
 		PropertyName,
@@ -36,6 +37,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TaskRuntime,
 		SdkVersion,
 		TargetFrameworkVersion,
-		Importance
+		Importance,
+		FileExpression,
+		GuidExpression,
+		IntegerExpression,
+		Version,
+		Folder,
+		FolderList,
+		RuntimeIDList,
+		RuntimeID,
+		TargetFramework,
+		TargetFrameworkList,
+		Url,
+		SuffixedVersion
+
 	}
 }

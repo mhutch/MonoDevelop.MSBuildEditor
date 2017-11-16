@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using MonoDevelop.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -130,8 +131,25 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case "bool": return MSBuildValueKind.BoolExpression;
 			case "targetframeworkversion": return MSBuildValueKind.TargetFrameworkVersion;
 			case "importance": return MSBuildValueKind.Importance;
+			case "file": return MSBuildValueKind.FileExpression;
+			case "guid": return MSBuildValueKind.GuidExpression;
+			case "int": return MSBuildValueKind.IntegerExpression;
+			case "targetlist": return MSBuildValueKind.TargetListExpression;
+			case "itemname": return MSBuildValueKind.ItemName;
+			case "version": return MSBuildValueKind.Version;
+			case "folder": return MSBuildValueKind.Folder;
+			case "folderlist": return MSBuildValueKind.FolderList;
+			case "runtimeidlist": return MSBuildValueKind.RuntimeIDList;
+			case "runtimeid": return MSBuildValueKind.RuntimeID;
+			case "targetframework": return MSBuildValueKind.TargetFramework;
+			case "targetframeworklist": return MSBuildValueKind.TargetFrameworkList;
+			case "url": return MSBuildValueKind.Url;
+			case "suffixedversion": return MSBuildValueKind.SuffixedVersion;
 			default:
 				//accept unknown values in case we run into newer schema formats
+				LoggingService.LogDebug ($"Unknown value kind '{valueKind}'");
+				return null;
+			}
 		}
 
 		MetadataInfo GetMetadataReference (string desc, Dictionary<string, MetadataInfo> parent, string parentName)
