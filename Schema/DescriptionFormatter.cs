@@ -13,27 +13,31 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return info.Description;
 			}
 
+			//construct a customized version of the include/exclude/etc attribute if appropriate
 			if (info is MSBuildLanguageAttribute att) {
-				string paramDesc = null;
 				switch (att.Name.ToLower ()) {
-				case "include":
-					paramDesc = ElementDescriptions.Item_Include_Parameterized;
-					break;
-				case "exclude":
-					paramDesc = ElementDescriptions.Item_Exclude_Parameterized;
-					break;
-				case "remove":
-					paramDesc = ElementDescriptions.Item_Remove_Parameterized;
-					break;
-				case "update":
-					paramDesc = ElementDescriptions.Item_Update_Parameterized;
-					break;
-				}
-				if (paramDesc != null) {
+				case "Include":
+				case "Exclude":
+				case "Remove":
+				case "Update":
 					var item = ctx.GetSchemas ().GetItem (rr.ElementName);
 					if (item != null && !string.IsNullOrEmpty (item.IncludeDescription)) {
-						return string.Format (paramDesc, item.IncludeDescription);
+						switch (item.ItemKind) {
+						case MSBuildItemKind.File:
+						case MSBuildItemKind.Folder:
+							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
+						case MSBuildItemKind.SingleFile:
+						case MSBuildItemKind.SingleString:
+							return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
+						default:
+							return GetDesc ($"Item.{att.Name}.Parameterized");
+						}
 					}
+					string GetDesc (string id) => string.Format (
+						ElementDescriptions.ResourceManager.GetString (id, ElementDescriptions.Culture),
+						item.IncludeDescription);
+
+					break;
 				}
 			}
 

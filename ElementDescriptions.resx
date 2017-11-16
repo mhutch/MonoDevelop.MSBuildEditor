@@ -96,17 +96,41 @@
 		<value>Optional expression. Used to identify or order system and user elements</value>
 	</data>
 
+	<data name="Item.Include.ParameterizedFiles">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to include in this item list</value>
+	</data>
+	<data name="Item.Exclude.ParameterizedFiles">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to exclude from the Include list</value>
+	</data>
+	<data name="Item.Remove.ParameterizedFiles">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to remove from the existing list contents</value>
+	</data>
+	<data name="Item.Update.ParameterizedFiles">
+		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to be updated with the metadata from contained in this xml element</value>
+	</data>
 	<data name="Item.Include.Parameterized">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to include in this item list</value>
+		<value>Semi-colon separated list of {0} or other item references to include in this item list</value>
 	</data>
 	<data name="Item.Exclude.Parameterized">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to exclude from the Include list</value>
+		<value>Semi-colon separated list of {0} or other item references to exclude from the Include list</value>
 	</data>
 	<data name="Item.Remove.Parameterized">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to remove from the existing list contents</value>
+		<value>Semi-colon separated list of {0} or other item references to remove from the existing list contents</value>
 	</data>
 	<data name="Item.Update.Parameterized">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item names to be updated with the metadata from contained in this xml element</value>
+		<value>Semi-colon separated list of {0} or other item references to be updated with the metadata from contained in this xml element</value>
+	</data>
+		<data name="Item.Include.ParameterizedSingle">
+		<value>Single {0} to include in this item list</value>
+	</data>
+	<data name="Item.Exclude.ParameterizedSingle">
+		<value>A {0} to exclude from the Include list</value>
+	</data>
+	<data name="Item.Remove.ParameterizedSingle">
+		<value>A {0} to remove from the existing list contents</value>
+	</data>
+	<data name="Item.Update.ParameterizedSingle">
+		<value>A {0} to be updated with the metadata from contained in this xml element</value>
 	</data>
 
 	<data name="Property.Label">

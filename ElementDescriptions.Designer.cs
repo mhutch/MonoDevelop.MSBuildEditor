@@ -197,6 +197,30 @@ namespace MonoDevelop.MSBuildEditor {
             }
         }
         
+        internal static string Item_Include_ParameterizedFiles {
+            get {
+                return ResourceManager.GetString("Item.Include.ParameterizedFiles", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Exclude_ParameterizedFiles {
+            get {
+                return ResourceManager.GetString("Item.Exclude.ParameterizedFiles", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Remove_ParameterizedFiles {
+            get {
+                return ResourceManager.GetString("Item.Remove.ParameterizedFiles", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Update_ParameterizedFiles {
+            get {
+                return ResourceManager.GetString("Item.Update.ParameterizedFiles", resourceCulture);
+            }
+        }
+        
         internal static string Item_Include_Parameterized {
             get {
                 return ResourceManager.GetString("Item.Include.Parameterized", resourceCulture);
@@ -218,6 +242,30 @@ namespace MonoDevelop.MSBuildEditor {
         internal static string Item_Update_Parameterized {
             get {
                 return ResourceManager.GetString("Item.Update.Parameterized", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Include_ParameterizedSingle {
+            get {
+                return ResourceManager.GetString("Item.Include.ParameterizedSingle", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Exclude_ParameterizedSingle {
+            get {
+                return ResourceManager.GetString("Item.Exclude.ParameterizedSingle", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Remove_ParameterizedSingle {
+            get {
+                return ResourceManager.GetString("Item.Remove.ParameterizedSingle", resourceCulture);
+            }
+        }
+        
+        internal static string Item_Update_ParameterizedSingle {
+            get {
+                return ResourceManager.GetString("Item.Update.ParameterizedSingle", resourceCulture);
             }
         }
         
