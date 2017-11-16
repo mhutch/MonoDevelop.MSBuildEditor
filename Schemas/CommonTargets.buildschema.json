@@ -1,70 +1,1130 @@
 ﻿{
-	"license": "MIT",
-	"items": {
-		"Compile": {
-			"description": "Source file to be passed to the compiler",
-			"isFile":  true
-		},
-		"EmbeddedResource": {
-			"description": "Embedded resource file to be passed to the compiler",
-			"isFile": true,
-			"metadata": {
-				"LogicalName": {
-					"description": "Resource ID, overriding the default.",
-					"required": true
-				}
-			}
-		},
-		"PackageReference": {
-			"description": "Reference to a NuGet package",
-			"metadata": {
-				"Include": {
-					"description": "The ID of the NuGet package",
-					"required":  true
-				},
-				"Version": {
-					"description": "The version of the NuGet package",
-					"required": true
-				},
-				"IncludeAssets": {
-					"description": "Assets that will be consumed by the project",
-					"defaultValue": "all",
-					"values": {
-						"compile": "Libraries from the `lib` folder",
-						"runtime": "Contents of the `runtime` folder",
-						"contentFiles": "All of the assets",
-						"build": "MSBuild targets",
-						"analyzers": "Code analyzers",
-						"native": "Contents of the `native` folder",
-						"none": "None of the assets",
-						"all": "All of the assets"
-					},
-					"valueSeparators": ","
-				},
-				"ExcludeAssets": {
-					"description": "Assets that will not be consumed by the project",
-					"defaultValue": "none",
-					"values": "%(IncludeAssets)",
-					"valueSeparators": ","
-				},
-				"PrivateAssets": {
-					"description": "Assets that will be consumed by the project but won't flow to its parent",
-					"defaultValue": "contentfiles;analyzers;build",
-					"values": "%(IncludeAssets)",
-					"valueSeparators": ","
-				}
-			}
-		}
-	},
-	"properties": {
-		"OutputType": {
-			"description": "The kind of output from the compiler, such as an executable or library",
-			"values": {
-				"Exe": "A console executable",
-				"Library": "A library",
-				"Module": "A .NET module",
-				"WinExe": "A Windows executable"
-			}
-		}
-	}
+    "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+    "items": {
+        "Reference": {
+            "description": "Reference to an assembly",
+            "includeDescription": "assembly names or filenames",
+            "kind": "file",
+            "metadata": {
+                "HintPath": {
+                    "description": "Relative or absolute path to the assembly.",
+                    "kind": "file"
+                },
+                "Name": "Friendly display name.",
+                "FusionName": "Fusion name of the assembly.",
+                "SpecificVersion": {
+                    "description": "Whether only the version in the fusion name should be referenced.",
+                    "kind": "bool"
+                },
+                "Aliases": "Aliases for the reference.",
+                "Private": {
+                    "description": "Whether the reference should be copied to the output folder.",
+                    "kind": "bool"
+                },
+                "EmbedInteropTypes": {
+                    "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only.",
+                    "kind": "bool"
+                },
+                "RequiredTargetFramework": {
+                    "description": "The minimum required target framework version in order to use this assembly as a reference.",
+                    "kind": "TargetFrameworkVersion"
+                }
+            }
+        },
+        "SDKReference": {
+            "description": "Reference to an extension SDK",
+            "includeDescription": "name and version monikers representing extension SDKs",
+            "metadata": {
+                "Name": "Friendly display name (optional)."
+            }
+        },
+        "COMReference": {
+            "kind": "file",
+            "description": "Reference to a COM component",
+            "includeDescription": "COM component names",
+            "metadata": {
+                "Name": "Friendly display name (optional).",
+                "Guid": {
+                    "description": "GUID in the form {00000000-0000-0000-0000-000000000000}",
+                    "kind": "guid"
+                },
+                "VersionMajor": {
+                    "description": "Major part of the version number",
+                    "kind": "int"
+                },
+                "VersionMinor": {
+                    "description": "Minor part of the version number",
+                    "kind": "int"
+                },
+                "Lcid": "Locale ID",
+                "WrapperTool": "Wrapper tool, such as tlbimp",
+                "Isolated": {
+                    "description": "Whether it is isolated",
+                    "kind": "bool"
+                },
+                "EmbedInteropTypes": {
+                    "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only (optional)",
+                    "kind": "bool"
+                }
+            }
+        },
+        "COMFileReference": {
+            "kind": "file",
+            "metadata": {
+                "WrapperTool": ""
+            }
+        },
+        "PackageReference": {
+            "description": "Reference to a NuGet package",
+            "includeDescription": "NuGet package IDs",
+            "kind": "nugetid",
+            "metadata": {
+                "Version": {
+                    "description": "The version of the NuGet package dependency"
+                },
+                "IncludeAssets": {
+                    "description": "Assets that will be consumed by the project",
+                    "defaultValue": "all",
+                    "values": {
+                        "compile": "Libraries from the `lib` folder",
+                        "runtime": "Contents of the `runtime` folder",
+                        "contentFiles": "All of the assets",
+                        "build": "MSBuild targets",
+                        "analyzers": "Code analyzers",
+                        "native": "Contents of the `native` folder",
+                        "none": "None of the assets",
+                        "all": "All of the assets"
+                    },
+                    "valueSeparators": ","
+                },
+                "ExcludeAssets": {
+                    "description": "Assets that will not be consumed by the project",
+                    "defaultValue": "none",
+                    "values": "%(IncludeAssets)",
+                    "valueSeparators": ","
+                },
+                "PrivateAssets": {
+                    "description": "Assets that will be consumed by the project but won't flow to its parent",
+                    "defaultValue": "contentfiles,analyzers,build",
+                    "values": "%(IncludeAssets)",
+                    "valueSeparators": ","
+                }
+            }
+        },
+        "DotNetCliToolReference": {
+            "description": "The CLI tool that the user wants restored in the context of the project",
+            "includeDescription": "tool NuGet package IDs",
+            "kind": "nugetid",
+            "metadata": {
+                "IncludeAssets": "%(PackageReference.IncludeAssets)",
+                "ExcludeAssets": "%(PackageReference.IncludeAssets)",
+                "PrivateAssets": "%(PackageReference.IncludeAssets)",
+                "Version": "%(PackageReference.Version)"
+            }
+        },
+        "Xdcmake": {
+            "metadata": {
+                "SuppressStartupBanner": "",
+                "AdditionalDocumentFile": "",
+                "DocumentLibraryDependencies": ""
+            }
+        },
+        "Bscmake": {
+            "metadata": {
+                "PreserveSBR": "",
+                "AdditionalOptions": "",
+                "OutputFile": ""
+            }
+        },
+        "ClCompile": {
+            "kind": "file",
+            "metadata": {
+                "PrecompiledHeader": "",
+                "OutputFile": "",
+                "AdditionalIncludeDirectories": "",
+                "AdditionalUsingDirectories": "",
+                "CompileAsManaged": "",
+                "ErrorReporting": "",
+                "WarningLevel": "",
+                "MinimalRebuild": "",
+                "DebugInformationFormat": "",
+                "PreprocessorDefinitions": "",
+                "Optimization": "",
+                "BasicRuntimeChecks": "",
+                "RuntimeLibrary": "",
+                "FunctionLevelLinking": "",
+                "FloatingPointModel ": "",
+                "IntrinsicFunctions": "",
+                "PrecompiledHeaderFile": "",
+                "MultiProcessorCompilation": "",
+                "UseUnicodeForAssemblerListing": "",
+                "UndefinePreprocessorDefinitions": "",
+                "StringPooling": "",
+                "BrowseInformation": "",
+                "FloatingPointExceptions": "",
+                "CreateHotpatchableImage": "",
+                "RuntimeTypeInfo": "",
+                "OpenMPSupport": "",
+                "CallingConvention": "",
+                "DisableSpecificWarnings": "",
+                "ForcedIncludeFiles": "",
+                "ForcedUsingFiles": "",
+                "ShowIncludes": "",
+                "UseFullPaths": "",
+                "OmitDefaultLibName": "",
+                "TreatSpecificWarningsAsErrors": ""
+            }
+        },
+        "ClInclude": {
+            "kind": "file",
+            "metadata": {
+                "AdditionalIncludeDirectories": ""
+            }
+        },
+        "Midl": {
+            "kind": "file",
+            "metadata": {
+                "IncludeAssets": "",
+                "MkTypLibCompatible": "",
+                "ValidateAllParameters": "",
+                "PreprocessorDefinitions": "",
+                "TypeLibraryName": "",
+                "ErrorCheckRefPointers": "",
+                "ErrorCheckStubData": "",
+                "ErrorCheckBounds": "",
+                "HeaderFileName": "",
+                "ErrorCheckEnumRange": "",
+                "ErrorCheckAllocations": "",
+                "WarnAsError": "",
+                "GenerateTypeLibrary": "",
+                "AdditionalIncludeDirectories": "",
+                "IgnoreStandardIncludePath": "",
+                "SuppressStartupBanner": "",
+                "DefaultCharType": "",
+                "TargetEnvironment": "",
+                "GenerateStublessProxies": "",
+                "SuppressCompilerWarnings": "",
+                "ApplicationConfigurationMode": "",
+                "LocaleID": "",
+                "OutputDirectory": "",
+                "DllDataFileName": "",
+                "InterfaceIdentifierFileName": "",
+                "ProxyFileName": "",
+                "GenerateClientFiles": "",
+                "GenerateServerFiles": "",
+                "ClientStubFile": "",
+                "ServerStubFile": "",
+                "TypeLibFormat": "",
+                "CPreprocessOptions": "",
+                "UndefinePreprocessorDefinitions": "",
+                "EnableErrorChecks": "",
+                "RedirectOutputAndErrors": "",
+                "AdditionalOptions": "",
+                "StructMemberAlignment": ""
+            }
+        },
+        "ResourceCompile": {
+            "metadata": {
+                "Culture": "",
+                "PreprocessorDefinitions": "",
+                "AdditionalIncludeDirectories": ""
+            }
+        },
+        "PreLinkEvent": {
+            "metadata": {
+                "Message": "",
+                "Command": ""
+            }
+        },
+        "CustomBuildStep": {
+            "metadata": {
+                "Outputs": "",
+                "Message": "",
+                "Inputs": "",
+                "Command": ""
+            }
+        },
+        "Manifest": {
+            "kind": "file",
+            "metadata": {
+                "AssemblyIdentity": "",
+                "AdditionalManifestFiles": "",
+                "InputResourceManifests": "",
+                "EnableDPIAwareness": "",
+                "TypeLibraryFile": "",
+                "OutputManifestFile": "",
+                "SuppressStartupBanner": "",
+                "VerboseOutput": "",
+                "ResourceOutputFileName": "",
+                "GenerateCatalogFiles": "",
+                "DependencyInformationFile": "",
+                "ManifestFromManagedAssembly": "",
+                "SuppressDependencyElement": "",
+                "GenerateCategoryTags": "",
+                "RegistrarScriptFile": "",
+                "ComponentFileName": "",
+                "ReplacementsFile": "",
+                "UpdateFileHashesSearchPath": "",
+                "AdditionalOptions": "",
+                "OutputResourceManifests": ""
+            }
+        },
+        "ProjectConfiguration": {
+            "metadata": {
+                "Configuration": "",
+                "Platform": ""
+            }
+        },
+        "ProjectCapability": {
+            "description": "Project Capability that may activate design-time components in an IDE",
+            "includeDescription": "capability IDs"
+        },
+        "NativeReference": {
+            "description": "Reference to a native manifest file, or to a file that contains a native manifest",
+            "includeDescription": "reference names",
+            "kind": "file",
+            "metadata": {
+                "Name": "Base name of manifest file",
+                "HintPath": "Relative path to manifest file"
+            }
+        },
+        "ProjectReference": {
+            "description": "Reference to another project",
+            "includeDescription": "project file paths",
+            "kind": "file",
+            "metadata": {
+                "Name": "Friendly display name (optional)",
+                "Project": {
+                    "description": "Project GUID, in the form {00000000-0000-0000-0000-000000000000}",
+                    "kind": "guid"
+                },
+                "ReferenceOutputAssembly": {
+                    "description": "Boolean specifying whether the outputs of the project referenced should be passed to the compiler.",
+                    "kind": "bool",
+                    "defaultValue": "true"
+                },
+                "SpecificVersion": {
+                    "description": "Whether the exact version of the assembly should be used.",
+                    "kind": "bool",
+                    "defaultValue": "true"
+                },
+                "Targets": {
+                    "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of $(ProjectReferenceBuildTargets) whose default is blank, indicating the default targets.",
+                    "kind": "targetlist"
+                },
+                "OutputItemType": {
+                    "description": "Item type to emit target outputs into. Default is blank. If the Reference metadata is set to `true` (default) then target outputs will become references for the compiler.",
+                    "kind": "itemname"
+                },
+                "Package": "",
+                "EmbedInteropTypes": {
+                    "kind": "bool"
+                },
+                "IncludeAssets": {
+                    "description": "Assets to include from this reference",
+                    "values": "%(PackageReference.IncludeAssets)"
+                },
+                "ExcludeAssets": {
+                    "description": "Assets to exclude from this reference",
+                    "values": "%(PackageReference.IncludeAssets)"
+                },
+                "PrivateAssets": {
+                    "description": "Assets that are private in this reference",
+                    "values": "%(PackageReference.IncludeAssets)"
+                }
+            }
+        },
+        "Compile": {
+            "description": "Source files to be passed to the compiler",
+            "includeDescription": "source files",
+            "kind": "file",
+            "metadata": {
+                "SubType": "",
+                "DependentUpon": "A filename under which this should be grouped in the IDE",
+                "AutoGen": {
+                    "description": "Whether file was generated from another file",
+                    "kind": "bool"
+                },
+                "DesignTime": "",
+                "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)",
+                "DesignTimeSharedInput": "",
+                "Visible": {
+                    "description": "Display in user interface",
+                    "kind": "bool",
+                    "defaultValue": "true"
+                },
+                "CopyToOutputDirectory": {
+                    "description": "Whether to copy the file to the output directory",
+                    "values": {
+                        "Never": "Do not copy the file",
+                        "Always": "Always copy the file",
+                        "PreservNewest": "Copy the file if it is newer than the existing copy"
+                    },
+                    "defaultValue": "Never"
+                },
+                "VBMyExtensionTemplateID": ""
+            }
+        },
+        "EmbeddedResource": {
+            "description": "Resources to be embedded in the generated assembly",
+            "includeDescription": "resource files",
+            "kind": "file",
+            "metadata": {
+                "LogicalName": "Overrides the default resource ID",
+                "Generator": "Name of any file generator that is run on this item",
+                "LastGenOutput": "File that was created by any file generator that was run on this item",
+                "CustomToolNamespace": "Namespace into which any file generator that is run on this item should create code",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)"
+            }
+        },
+        "Content": {
+            "description": "Files that are not compiled, but may be embedded or published",
+            "includeDescription": "content files",
+            "kind": "file",
+            "metadata": {
+                "Generator": "%(EmbeddedResource.Generator)",
+                "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
+                "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
+                "CopyToPublishDirectory": {
+                    "description": "Whether to copy the file to the publish directory",
+                    "values": {
+                        "Never": "Do not copy the file",
+                        "Always": "Always copy the file",
+                        "PreservNewest": "Copy the file if it is newer than the existing copy"
+                    },
+                    "defaultValue": "Never"
+                },
+                "Group": "",
+                "IsAssembly": "",
+                "PublishState": {
+                    "values": {
+                        "Default": "",
+                        "Included": "",
+                        "Excluded": "",
+                        "DataFile": "",
+                        "Prerequisite": ""
+                    },
+                    "defaultValue": "Default"
+                }
+            }
+        },
+        "Page": {
+            "description": "XAML files that are converted to binary and compiled into the assembly",
+            "includeDescription": "XAML files",
+            "kind": "file",
+            "metadata": {
+                "Generator": "%(EmbeddedResource.Generator)",
+                "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
+                "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
+                "Group": "%(Content.Group)"
+            }
+        },
+        "Resource": {
+            "description": "File that is compiled into the assembly",
+            "includeDescription": "resource files",
+            "kind": "file",
+            "metadata": {
+                "Generator": "%(EmbeddedResource.Generator)",
+                "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
+                "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
+                "Group": "%(Content.Group)"
+            }
+        },
+        "ApplicationDefinition": {
+            "description": "XAML file that contains the application definition, only one can be defined",
+            "includeDescription": "application definition",
+            "kind": "singlefile",
+            "metadata": {
+                "Generator": "%(EmbeddedResource.Generator)",
+                "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
+                "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
+                "Group": "%(Content.Group)"
+            }
+        },
+        "None": {
+            "description": "Files that should have no role in the build process",
+            "kind": "file",
+            "metadata": {
+                "Generator": "%(EmbeddedResource.Generator)",
+                "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
+                "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
+                "DependentUpon": "%(Compile.DependentUpon)",
+                "Link": "%(Compile.Link)",
+                "Visible": "%(Compile.Visible)",
+                "SubType": "%(Compile.SubType)",
+                "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)"
+            }
+        },
+        "BaseApplicationManifest": {
+            "description": "The base application manifest for the build. Contains ClickOnce security information.",
+            "kind": "singlefile"
+        },
+        "Folder": {
+            "description": "Folder on disk.",
+            "includeDescription": "folders",
+            "kind": "folder"
+        },
+        "Import": {
+            "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler.",
+            "kind": "file"
+        },
+        "WebReferences": {
+            "description": "Name of Web References folder to display in user interface",
+            "kind": "singlestring"
+        },
+        "WebReferenceUrl": {
+            "description": "Represents a reference to a web service",
+            "includeDescription": "web service urls",
+            "kind": "url",
+            "metadata": {
+                "UrlBehavior": "",
+                "RelPath": "",
+                "UpdateFromURL": "",
+                "ServiceLocationURL": "",
+                "CachedDynamicPropName": "",
+                "CachedAppSettingsObjectName": "",
+                "CachedSettingsPropName": ""
+            }
+        },
+        "FileAssociation": {
+            "kind": "string",
+            "metadata": {
+                "Visible": "%(Compile.Visible)",
+                "DefaultIcon": "",
+                "Description": "",
+                "Progid": ""
+            }
+        },
+        "BootstrapperFile": {
+            "kind": "singlefile",
+            "metadata": {
+                "Visible": "%(Compile.Visible)",
+                "ProductName": "",
+                "Install": ""
+            }
+        },
+        "PublishFile": {
+            "kind": "file",
+            "metadata": {
+                "Visible": "%(Compile.Visible)",
+                "Group": "%(Content.Group)",
+                "PublishState": "%(Content.PublishState)",
+                "IncludeHash": {
+                    "kind": "bool"
+                },
+                "IsAssembly": {
+                    "kind": "bool"
+                }
+            }
+        },
+        "TargetPlatform": {
+            "description": "Target platform in the form of \"[Identifier], Version=[Version]\", for example, \"Windows, Version=8.0\""
+        },
+        "Analyzer": {
+            "description": "An assembly containing diagnostic analyzers",
+            "includeDescription": "relative or absolute assembly paths",
+            "kind": "file"
+        },
+        "CodeAnalysisDependentAssemblyPaths": {
+            "description": "Additional reference assembly paths to pass to the Code Analysis command line tool.",
+            "includeDescription": "fully qualified paths to directories containing reference assemblies to be used by Code Analysis",
+            "kind": "folder"
+        },
+        "CodeAnalysisDictionary": {
+            "description": "Code Analysis custom dictionaries.",
+            "includeDescription": "Code Analysis custom dictionaries",
+            "kind": "folder"
+        },
+        "CodeAnalysisImport": {
+            "description": "Code Analysis projects (*.fxcop) or reports to import.",
+            "includeDescription": "Code Analysis projects or reports",
+            "kind": "file"
+        }
+    },
+    "properties": {
+        "VisualStudioVersion": "The version of Visual Studio into which this project is loaded",
+        "MinimumVisualStudioVersion": "The minimum version of Visual Studio required to open this project",
+        "AdditionalFileItemNames": "",
+        "AllowUnsafeBlocks": "",
+        "AppConfigForCompiler": "",
+        "ApplicationIcon": "",
+        "ApplicationRevision": "",
+        "ApplicationVersion": {
+            "kind": "version"
+        },
+        "AppDesignerFolder": "Name of folder for Application Designer",
+        "AspNetConfiguration": "",
+        "AssemblyKeyContainerName": "",
+        "AssemblyKeyProviderName": "",
+        "AssemblyName": "Name of output assembly",
+        "AssemblyOriginatorKeyFile": "",
+        "AssemblyOriginatorKeyFileType": "",
+        "AssemblyOriginatorKeyMode": "",
+        "AssemblyType": "",
+        "AutoGenerateBindingRedirects": "Indicates whether BindingRedirect elements should be automatically generated for referenced assemblies.",
+        "AutorunEnabled": {
+            "kind": "bool"
+        },
+        "BaseAddress": "",
+        "BootstrapperComponentsLocation": {
+            "values": {
+                "HomeSite": "",
+                "Relative": "",
+                "Absolute": ""
+            }
+        },
+        "BootstrapperComponentsUrl": "",
+        "BootstrapperEnabled": {
+            "kind": "bool"
+        },
+        "CharacterSet": "",
+        "CheckForOverflowUnderflow": "",
+        "CLRSupport": "",
+        "UseDebugLibraries": {
+            "kind": "bool"
+        },
+        "CodePage": "",
+        "Configuration": "",
+        "ConfigurationName": "",
+        "ConfigurationOverrideFile": "",
+        "CreateDesktopShortcut": {
+            "kind": "bool"
+        },
+        "CreateWebPageOnPublish": {
+            "kind": "bool"
+        },
+        "CurrentSolutionConfigurationContents": "",
+        "DebugSecurityZoneURL": "",
+        "DebugSymbols": {
+            "description": "Whether to emit debug symbols",
+            "kind": "bool"
+        },
+        "DebugType": {
+            "description": "What kind of debug information to emit",
+            "values": {
+                "none": "No debug information",
+                "pdbonly": "Emit Windows-only PDB debug symbols",
+                "portable": "Emit portable PDB debug symbols",
+                "full": "Emit Windows-only PDB debug symbols"
+            }
+        },
+        "DefaultClientScript": "",
+        "DefaultHTMLPageLayout": "",
+        "DefaultTargetSchema": "",
+        "DefineConstants": "",
+        "DefineDebug": {
+            "description": "Whether DEBUG is defined",
+            "kind": "bool"
+        },
+        "DefineTrace": {
+            "description": "Whether TRACE is defined",
+            "kind": "bool"
+        },
+        "DelaySign": "",
+        "DisableLangXtns": "",
+        "DisallowUrlActivation": {
+            "kind": "bool"
+        },
+        "CodeAnalysisAdditionalOptions": "Additional options to pass to the Code Analysis command line tool.",
+        "CodeAnalysisApplyLogFileXsl": {
+            "description": "Indicates whether to apply the XSL style sheet specified in `$(CodeAnalysisLogFileXsl)` to the Code Analysis report. This report is specified in `$(CodeAnalysisLogFile)`. The default is false.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisConsoleXsl": "Path to the XSL style sheet that will be applied to the Code Analysis console output. The default is an empty string (''), which causes Code Analysis to use its default console output.",
+        "CodeAnalysisCulture": "Culture to use for Code Analysis spelling rules, for example, 'en-US' or 'en-AU'. The default is the current user interface language for the operating system.",
+        "CodeAnalysisFailOnMissingRules": {
+            "description": "Indicates whether Code Analysis should fail if a rule or rule set is missing.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisForceOutput": {
+            "description": "Indicates whether Code Analysis generates a report file, even when there are no active warnings or errors.",
+            "defaultValue": "true",
+            "kind": "bool"
+        },
+        "CodeAnalysisGenerateSuccessFile": {
+            "description": "Indicates whether Code Analysis generates a '$(CodeAnalysisInputAssembly).lastcodeanalysissucceeded' file in the output folder when no build-breaking errors occur.",
+            "defaultValue": "true",
+            "kind": "bool"
+        },
+        "CodeAnalysisIgnoreBuiltInRules": {
+            "description": "Indicates whether Code Analysis will ignore the default rule directories when searching for rules.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisIgnoreBuiltInRuleSets": {
+            "description": "Indicates whether Code Analysis will ignore the default rule set directories when searching for rule sets.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisIgnoreInvalidTargets": {
+            "description": "Indicates whether Code Analysis should silently fail when analyzing invalid assemblies, such as those without managed code.",
+            "kind": "bool",
+            "defaultValue": "true"
+        },
+        "CodeAnalysisIgnoreGeneratedCode": {
+            "description": "Indicates whether Code Analysis should fail silently when it analyzes invalid assemblies, such as those without managed code.",
+            "kind": "bool",
+            "defaultValue": "true"
+        },
+        "CodeAnalysisInputAssembly": {
+            "description": "Path to the assembly to be analyzed by Code Analysis.",
+            "kind": "file",
+            "defaultValue": "$(OutDir)$(TargetName)$(TargetExt)"
+        },
+        "CodeAnalysisLogFile": {
+            "description": "Path to the output file for the Code Analysis report.",
+            "kind": "file",
+            "defaultValue": "$(CodeAnalysisInputAssembly).CodeAnalysisLog.xml"
+        },
+        "CodeAnalysisLogFileXsl": {
+            "description": "Path to the XSL style sheet to reference in the Code Analysis output report. This report is specified in $(CodeAnalysisLogFile).",
+            "kind": "file",
+            "defaultValue": ""
+        },
+        "CodeAnalysisModuleSuppressionsFile": {
+            "description": "Name of the file, without the path, where Code Analysis project-level suppressions are stored.",
+            "kind": "file",
+            "defaultValue": "GlobalSuppressions$(DefaultLanguageSourceExtension)"
+        },
+        "CodeAnalysisOverrideRuleVisibilities": {
+            "description": "Indicates whether to run all overridable Code Analysis rules against all targets. This will cause specific rules, such as those within the Design and Naming categories, to run against both public and internal APIs, instead of only public APIs.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisOutputToConsole": {
+            "description": "Indicates whether to output Code Analysis warnings and errors to the console.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisVerbose": {
+            "description": "Indicates whether to output verbose Code Analysis diagnostic info to the console.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisPath": {
+            "description": "Path to the Code Analysis installation folder.",
+            "defaultValue": "$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\FxCop",
+            "kind": "file"
+        },
+        "CodeAnalysisPlatformPath": {
+            "description": "Path to the .NET Framework folder that contains platform assemblies, such as mscorlib.dll and System.dll.",
+            "kind": "folder",
+            "defaultValue": ""
+        },
+        "CodeAnalysisProject": {
+            "description": "Path to the Code Analysis project (*.fxcop) to load.",
+            "defaultValue": "true"
+        },
+        "CodeAnalysisQuiet": {
+            "description": "Indicates whether to suppress all Code Analysis console output other than errors and warnings. This applies when $(CodeAnalysisOutputToConsole) is true.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisRuleAssemblies": {
+            "description": "Semicolon-separated list of paths either to Code Analysis rule assemblies or to folders that contain Code Analysis rule assemblies. The paths are in the form '[+|-][!][file|folder]', where '+' enables all rules in rule assembly, '-' disables all rules in rule assembly, and '!' causes all rules in rule assembly to be treated as errors. For example '+D:\\Projects\\Rules\\NamingRules.dll;+!D:\\Projects\\Rules\\SecurityRules.dll'.",
+            "defaultValue": "$(CodeAnalysisPath)\\Rules"
+        },
+        "CodeAnalysisRuleDirectories": "Semicolon-separated list of directories in which to search for rules when resolving a rule set. The default is '$(CodeAnalysisPath)\\Rules' unless the CodeAnalysisIgnoreBuiltInRules property is set to true.",
+        "CodeAnalysisRules": "Semicolon-separated list of Code Analysis rules. The rules are in the form '[+|-][!]Category#CheckId', where '+' enables the rule, '-' disables the rule, and '!' causes the rule to be treated as an error. For example, '-Microsoft.Naming#CA1700;+!Microsoft.Naming#CA1701'. The default is an empty string ('') which enables all rules.",
+        "CodeAnalysisRuleSet": {
+            "description": "A .ruleset file which contains a list of rules to run during analysis. The string can be a full path, a path relative to the project file, or a file name. If a file name is specified, the CodeAnalysisRuleSetDirectories property will be searched to find the file.",
+            "defaultValue": ""
+        },
+        "CodeAnalysisRuleSetDirectories": "Semicolon-separated list of directories in which to search for rule sets. The default is '$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\Rule Sets' unless the CodeAnalysisIgnoreBuiltInRuleSets property is set to true.",
+        "CodeAnalysisSaveMessagesToReport": {
+            "description": "Comma-separated list of the type of warnings and errors to save to the output report file.",
+            "kind": "bool",
+            "values": [
+                "Active",
+                "Excluded",
+                "Absent"
+            ],
+            "valueSeparators": ",",
+            "defaultValue": "Active"
+        },
+        "CodeAnalysisSearchGlobalAssemblyCache": {
+            "description": "Indicates whether Code Analysis should search the Global Assembly Cache (GAC) for missing references that are encountered during analysis.",
+            "defaultValue": "true",
+            "kind": "bool"
+        },
+        "CodeAnalysisSummary": {
+            "description": "Indicates whether to output a Code Analysis summary to the console after analysis.",
+            "defaultValue": "false",
+            "kind": "bool"
+        },
+        "CodeAnalysisTimeout": {
+            "description": "The time, in seconds, that Code Analysis should wait for analysis of a single item to complete before it aborts analysis. Specify 0 to cause Code Analysis to wait indefinitely.",
+            "defaultValue": "120",
+            "kind": "int"
+        },
+        "CodeAnalysisTreatWarningsAsErrors": {
+            "description": "Indicates whether to treat all Code Analysis warnings as errors.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisUpdateProject": {
+            "description": "Indicates whether to update the Code Analysis project (*.fxcop) specified in $(CodeAnalysisProject). This applies when there are changes during analysis.",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "CodeAnalysisUseTypeNameInSuppression": {
+            "description": "Indicates whether to include the name of the rule when Code Analysis emits a suppression.",
+            "kind": "bool",
+            "defaultValue": "true"
+        },
+        "ConfigurationType": "",
+        "DeployDirSuffix": "",
+        "DisableFastUpToDateCheck": {
+            "description": "Whether Visual Studio should do its own faster up-to-date check before Building, rather than invoke MSBuild to do a possibly more accurate one. You would set this to false if you have a heavily customized build process and builds in Visual Studio are not occurring when they should.",
+            "kind": "bool"
+        },
+        "DocumentationFile": "",
+        "EnableASPDebugging": "",
+        "EnableASPXDebugging": "",
+        "EnableSQLServerDebugging": "",
+        "EnableSecurityDebugging": "",
+        "EnableUnmanagedDebugging": "",
+        "ErrorLog": "",
+        "ErrorReport": "",
+        "EmbedManifest": "",
+        "ErrorReportUrl": "",
+        "ExcludeDeploymentUrl": {
+            "kind": "bool"
+        },
+        "ExcludedPermissions": "",
+        "FallbackCulture": "",
+        "FileAlignment": "",
+        "FileUpgradeFlags": "",
+        "FormFactorID": "",
+        "FrameworkPathOverride": {
+            "description": "Sets the /sdkpath switch for a VB project to the specified value"
+        },
+        "GenerateManifests": "",
+        "GenerateLibraryLayout": {
+            "kind": "bool"
+        },
+        "GeneratePackageOnBuild": {
+            "description": "Value indicating whether a NuGet package will be generated when the project is built",
+            "kind": "bool"
+        },
+        "DisableXbfGeneration": {
+            "kind": "bool"
+        },
+        "SuppressXamlWarnings": "",
+        "XamlRootsLog": "",
+        "XamlSavedStateFilePath": "",
+        "GenerateSerializationAssemblies": "",
+        "HostInBrowser": {
+            "kind": "bool"
+        },
+        "IgnoreImportLibrary": {
+            "kind": "bool"
+        },
+        "Install": "",
+        "InstallFrom": {
+            "values": [
+                "Web",
+                "Unc",
+                "Disk"
+            ]
+        },
+        "InstallUrl": "",
+        "IsCodeSharingProject": {
+            "kind": "bool"
+        },
+        "IsWebBootstrapper": "",
+        "JCPA": "",
+        "Keyword": "",
+        "LangVersion": "",
+        "VBRuntime": "",
+        "Prefer32Bit": "",
+        "HighEntropyVA": "",
+        "LinkIncremental": "",
+        "ManifestCertificateThumbprint": "",
+        "ManifestKeyFile": "",
+        "MapFileExtensions": "",
+        "MinimumRequiredVersion": {
+            "kind": "version"
+        },
+        "MyType": "",
+        "MSBuildAllProjects": "",
+        "MSBuildTreatWarningsAsErrors": {
+            "description": "Indicates whether to treat all warnings as errors when building a project.",
+            "kind": "bool"
+        },
+        "MSBuildWarningsAsMessages": {
+            "description": "Indicates a semicolon delimited list of warnings to treat as low importance messages when building a project."
+        },
+        "MSBuildWarningsAsErrors": {
+            "description": "Indicates a semicolon delimited list of warnings to treat as errors when building a project."
+        },
+        "NoConfig": "",
+        "NoStandardLibraries": "",
+        "NoStdLib": {
+            "description": "Whether to disable automatic referencing of standard libraries such as mscorlib",
+            "kind": "bool",
+            "defaultValue": "false"
+        },
+        "NoWarn": "Comma separated list of disabled warnings",
+        "OldToolsVersion": "",
+        "OutDir": "",
+        "TargetExt": "",
+        "TargetName": "",
+        "OpenBrowserOnPublish": {
+            "kind": "bool"
+        },
+        "Optimize": {
+            "description": "Whether the compiler should optimize the output",
+            "kind": "bool"
+        },
+        "OptionCompare": {
+            "description": "VB.NET Compare setting",
+            "values": [
+                "Text",
+                "Binary"
+            ]
+        },
+        "OptionExplicit": {
+            "description": "VB.NET Option Explicit be setting",
+            "values": [
+                "On",
+                "Off"
+            ]
+        },
+        "OptionStrict": {
+            "description": "VB.NET Option Strict be setting",
+            "values": [
+                "On",
+                "Off"
+            ]
+        },
+        "OptionInfer": {
+            "description": "VB.NET Option Infer setting",
+            "values": [
+                "On",
+                "Off"
+            ]
+        },
+        "OSVersion": "",
+        "OutputPath": {
+            "description": "Path to output folder, with trailing slash",
+            "kind": "folder"
+        },
+        "OutputType": {
+            "description": "The type of output from the compiler, such as an executable or library",
+            "values": {
+                "Exe": "A console executable",
+                "Library": "A library",
+                "Module": "A .NET module",
+                "WinExe": "A Windows executable"
+            }
+        },
+        "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names.",
+        "Platform": "",
+        "PlatformName": "",
+        "PlatformFamilyName": "",
+        "PlatformID": "",
+        "PlatformTarget": "",
+        "PlatformToolset": "",
+        "PostBuildEvent": "Command line to be run at the end of build",
+        "PreBuildEvent": "Command line to be run at the start of build",
+        "PreserveCompilationContext": {
+            "description": "Value indicating whether reference assemblies can be used in dynamic compilation",
+            "kind": "bool"
+        },
+        "ProductName": "",
+        "ProductVersion": "",
+        "ProjectGuid": "",
+        "ProjectType": "",
+        "ProjectTypeGuids": "",
+        "PublisherName": "",
+        "PublishUrl": "",
+        "RecursePath": "",
+        "ReferencePath": {
+            "description": "Semi-colon separated list of folders to search during reference resolution",
+            "kind": "folderlist"
+        },
+        "RegisterForComInterop": "",
+        "RemoteDebugEnabled": "",
+        "RemoteDebugMachine": "",
+        "RemoveIntegerChecks": "",
+        "ReportAnalyzer": "",
+        "RepositoryType": "The type of the repository where the project is stored (e.g. git)",
+        "RepositoryUrl": {
+            "description": "The URL for the repository where the project is stored",
+            "kind": "url"
+        },
+        "ResponseFile": "",
+        "RootNamespace": "",
+        "RuntimeIdentifier": {
+            "description": "Runtime identifier supported by the project (e.g. win10-x64)",
+            "kind": "runtimeid"
+        },
+        "RuntimeIdentifiers": {
+            "description": "Semi-colon separated list of runtime identifiers supported by the project (e.g. win10-x64;osx.10.11-x64;ubuntu.16.04-x64)",
+            "kind": "runtimeidlist"
+        },
+        "SccProjectName": "",
+        "SccLocalPath": "",
+        "SccProvider": "",
+        "RunCodeAnalysis": {
+            "description": "Indicates whether to run Code Analysis during the build.",
+            "kind": "bool"
+        },
+        "RunPostBuildEvent": "",
+        "SchemaVersion": "",
+        "SecureScoping": "",
+        "SignAssembly": "",
+        "SignManifests": "",
+        "SolutionDir": "",
+        "SolutionExt": "",
+        "SolutionFileName": "",
+        "SolutionName": "",
+        "SolutionPath": "",
+        "StartAction": "",
+        "StartArguments": "",
+        "StartPage": "",
+        "StartProgram": "",
+        "StartURL": "",
+        "StartWithIE": "",
+        "StartWorkingDirectory": "",
+        "StartupObject": "Type that contains the main entry point",
+        "SuiteName": "",
+        "SupportUrl": "",
+        "TargetFrameworkProfile": "",
+        "TargetCulture": "",
+        "TargetFramework": {
+            "description": "Framework that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0)",
+            "kind": "targetframework"
+        },
+        "TargetFrameworks": {
+            "description": "Semi-colon separated list of frameworks that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0;net461)",
+            "kind": "targetframeworklist"
+        },
+        "TargetFrameworkVersion": "",
+        "TargetPlatformIdentifier": "",
+        "TargetPlatformVersion": "",
+        "TargetZone": "",
+        "TreatWarningsAsErrors": "",
+        "TrustUrlParameters": "",
+        "TypeComplianceDiagnostics": "",
+        "UICulture": "",
+        "UpgradeBackupLocation": "",
+        "UpdateEnabled": {
+            "kind": "bool"
+        },
+        "UpdateInterval": "",
+        "UpdateIntervalUnits": {
+            "values": [
+                "Hours",
+                "Days",
+                "Weeks"
+            ]
+        },
+        "UpdateMode": {
+            "values": [
+                "Foreground",
+                "Background"
+            ]
+        },
+        "UpdatePeriodically": {
+            "kind": "bool"
+        },
+        "UpdateRequired": {
+            "kind": "bool"
+        },
+        "UpdateUrl": {
+            "kind": "url"
+        },
+        "UseAppConfigForCompiler": {
+            "kind": "bool"
+        },
+        "UseApplicationTrust": "",
+        "UseOfMfc": "",
+        "UseOfAtl": "",
+        "UseVSHostingProcess": "",
+        "UTF8Output": "",
+        "VCTargetsPath": "",
+        "VSTO_TrustAssembliesLocation": "",
+        "WarningLevel": {
+            "description": "What level of warnings the compiler should emit, between 0 and 4 inclusive",
+            "kind": "int"
+        },
+        "WarningsAsErrors": "Comma separated list of warning numbers to treat as errors",
+        "WebPage": "",
+        "Win32ResourceFile": "",
+        "WholeProgramOptimization": "",
+        "AssemblyTitle": "Description for the assembly manifest",
+        "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
+        "Authors": "A comma-separated list of NuGet packages authors",
+        "Company": "Company name for the assembly manifest",
+        "Copyright": "Copyright details for the NuGet package",
+        "Description": "A long description of the NuGet package for UI display",
+        "FileVersion": {
+            "description": "Numeric value of the version for the assembly manifest in the format major.minor.build.revision (e.g. 2.4.0.1)",
+            "kind": "version"
+        },
+        "InformationalVersion": "Product version of the assembly for UI display (e.g. 1.0 Beta)",
+        "NeutralLanguage": {
+            "description": "The locale ID for the NuGet package",
+            "kind": "lcid"
+        },
+        "PackageIconUrl": {
+            "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
+            "kind": "url"
+        },
+        "PackageId": "The case-insensitive NuGet package identifier, which must be unique across nuget.org or whatever gallery the NuGet package will reside in. IDs may not contain spaces or characters that are not valid for a URL, and generally follow .NET namespace rules.",
+        "Title": "A human-friendly title of the package, typically used in UI displays as on nuget.org and the Package Manager in Visual Studio. If not specified, the package ID is used instead.",
+        "PackageLicenseUrl": {
+            "description": "The URL for the NuGet package's license, often shown in UI displays as well as nuget.org",
+            "kind": "url"
+        },
+        "PackageProjectUrl": {
+            "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
+            "kind": "url"
+        },
+        "PackageReleaseNotes": "A description of the changes made in this release of the NuGet package, often used in UI like the Updates tab of the Visual Studio Package Manager in place of the package description",
+        "PackageRequireLicenseAcceptance": {
+            "description": "Value indicating whether the client must prompt the consumer to accept the NuGet package license before installing the package",
+            "kind": "bool"
+        },
+        "PackageTags": "A space-delimited list of tags and keywords that describe the NuGet package and aid discoverability of NuGet packages through search and filtering mechanisms",
+        "PackageVersion": {
+            "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1). Version numbers may include a pre-release suffix (e.g. 1.0.1-beta)",
+            "kind": "suffixedversion"
+        },
+        "Product": "Product name information for the assembly manifest",
+        "Version": {
+            "description": "Numeric value of the version in the format major.minor.patch (e.g. 2.4.0)",
+            "kind": "version"
+        },
+        "VersionPrefix": "When Version is not specified, VersionPrefix represents the first fragment of the version string (e.g. 1.0.0). The syntax is VersionPrefix[-VersionSuffix].",
+        "VersionSuffix": "When Version is not specified, VersionSuffix represents the second fragment of the version string (e.g. beta). The syntax is VersionPrefix[-VersionSuffix]."
+    }
 }
