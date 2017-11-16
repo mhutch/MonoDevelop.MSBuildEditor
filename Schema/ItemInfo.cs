@@ -9,21 +9,22 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	class ItemInfo : BaseInfo
 	{
 		public ItemInfo (string name, string description)
-			: this (name, description, null, false, null)
+			: this (name, description, null, MSBuildItemKind.Unknown, null)
 		{
 			
 		}
 
-		public ItemInfo (string name, string description, string includeDescription, bool isFile, Dictionary<string, MetadataInfo> metadata)
+		public ItemInfo (string name, string description, string includeDescription, MSBuildItemKind kind, Dictionary<string, MetadataInfo> metadata)
 			: base (name, description)
 		{
-			IsFile = isFile;
+			ItemKind = kind;
 			Metadata = metadata ?? new Dictionary<string, MetadataInfo> ();
 			IncludeDescription = includeDescription;
 		}
 
 		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
-		public bool IsFile { get; }
+
+		public MSBuildItemKind ItemKind { get; }
 
 		public string IncludeDescription { get; }
     }

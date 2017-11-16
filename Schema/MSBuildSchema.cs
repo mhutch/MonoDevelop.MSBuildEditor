@@ -100,15 +100,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in items) {
 				var name = kv.Key;
 				string description = null, includeDescription = null;
-				bool isFile = false;
+				var kind = MSBuildItemKind.Unknown;
 				Dictionary<string, MetadataInfo> metadata = null;
 				foreach (var ikv in (JObject)kv.Value) {
 					switch (ikv.Key) {
 					case "description":
 						description = (string)((JValue)ikv.Value).Value;
 						break;
-					case "isFile":
-						isFile = (bool)((JValue)ikv.Value).Value;
+					case "kind":
+						kind = ParseItemKind ((string)((JValue)ikv.Value).Value) ?? kind;
 						break;
 					case "includeDescription":
 						includeDescription = (string)((JValue)ikv.Value).Value;
@@ -120,7 +120,25 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
 					}
 				}
-				Items[name] = new ItemInfo (name, description, includeDescription, isFile, metadata);
+				Items[name] = new ItemInfo (name, description, includeDescription, kind, metadata);
+			}
+		}
+
+		static MSBuildItemKind? ParseItemKind (string itemKind)
+		{
+			//use explicit names instead of the enum to reduce breakable surface area
+			switch (itemKind.ToLower ()) {
+			case "file": return MSBuildItemKind.File;
+			case "singlefile": return MSBuildItemKind.SingleFile;
+			case "string": return MSBuildItemKind.String;
+			case "singlestring": return MSBuildItemKind.SingleString;
+			case "folder": return MSBuildItemKind.Folder;
+			case "nugetid": return MSBuildItemKind.NuGetPackageID;
+			case "url": return MSBuildItemKind.Url;
+			default:
+				//accept unknown values in case we run into newer schema formats
+				LoggingService.LogDebug ($"Unknown item kind '{itemKind}'");
+				return null;
 			}
 		}
 
