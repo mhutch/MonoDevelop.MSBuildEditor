@@ -113,7 +113,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						includeDescription = (string)((JValue)ikv.Value).Value;
 						break;
 					case "metadata":
-						metadata = GetMetadata ((JObject)ikv.Value);
+						metadata = GetMetadata (name, (JObject)ikv.Value);
 						break;
 					default:
 						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
@@ -132,15 +132,48 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case "importance": return MSBuildValueKind.Importance;
 			default:
 				//accept unknown values in case we run into newer schema formats
-				return null;
-			}
 		}
 
-		Dictionary<string, MetadataInfo> GetMetadata (JObject metaObj)
+		MetadataInfo GetMetadataReference (string desc, Dictionary<string, MetadataInfo> parent, string parentName)
+		{
+			if (!desc.StartsWith ("%(", StringComparison.Ordinal) || !desc.EndsWith (")", StringComparison.Ordinal)) {
+				return null;
+			}
+			var split = desc.Substring (2, desc.Length - 3).Split ('.');
+			if (split.Length == 1 && parent != null && parent.TryGetValue (split[0], out MetadataInfo sibling)) {
+				return sibling;
+			}
+			if (split.Length == 2 && Items.TryGetValue (split[0], out ItemInfo item) && item.Metadata.TryGetValue (split [1], out MetadataInfo cousin)) {
+				return cousin;
+			}
+			throw new Exception ($"Invalid metadata reference {desc} in item {parentName}");
+		}
+
+		MetadataInfo WithNewName (MetadataInfo meta, string name)
+		{
+			return new MetadataInfo (
+				name, meta.Description, meta.WellKnown, meta.Required,
+				meta.ValueKind, meta.Values, meta.DefaultValue, meta.ValueSeparators);
+		}
+
+		Dictionary<string, MetadataInfo> GetMetadata (string itemName, JObject metaObj)
 		{
 			var metadata = new Dictionary<string, MetadataInfo> ();
 			foreach (var kv in metaObj) {
 				var name = kv.Key;
+
+				//simple version, just a description string
+				if (kv.Value is JValue value) {
+					var desc = ((string)value.Value).Trim ();
+					var reference = GetMetadataReference (desc, metadata, itemName);
+					if (reference != null) {
+						metadata [name] = WithNewName (reference, name);
+					} else {
+						metadata [name] = new MetadataInfo (name, desc, false);
+					}
+					continue;
+				}
+
 				string description = null, valueSeparators = null, defaultValue = null;
 				bool required = false;
 				MSBuildValueKind kind = MSBuildValueKind.MetadataExpression;
@@ -156,11 +189,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					case "values":
 						switch (mkv.Value) {
 						case JValue jv:
-							var metaRef = (string)jv.Value;
-							if (!metaRef.StartsWith ("%(", StringComparison.Ordinal) || metaRef[metaRef.Length - 1] != ')')
-								throw new Exception ($"Metadata reference '{metaRef} on {mkv.Key} has invalid format'");
-							metaRef = metaRef.Substring (2, metaRef.Length - 3);
-							values = metadata[metaRef].Values;
+							var metaRef = GetMetadataReference ((string)jv.Value, metadata, itemName);
+							if (metaRef == null) {
+								throw new Exception ("Invalid metadata reference");
+							}
+							values = metaRef.Values;
 							break;
 						case JObject jo:
 							values = GetValues (jo);
