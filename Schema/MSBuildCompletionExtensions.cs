@@ -54,6 +54,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				yield break;
 			}
 
+			if (rr.LanguageElement.Children == null) {
+				yield break;
+			}
+
 			foreach (var c in rr.LanguageElement.Children) {
 				if (c.IsAbstract) {
 					var abstractChildren = GetAbstractChildren (schemas, rr.LanguageElement.AbstractChild.Kind, rr.ElementName);

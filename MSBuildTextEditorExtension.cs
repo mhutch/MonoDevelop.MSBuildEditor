@@ -61,8 +61,8 @@ namespace MonoDevelop.MSBuildEditor
 			if (doc != null) {
 				var rr = ResolveCurrentLocation ();
 				if (rr?.LanguageElement != null) {
-					var expressionCompletion = HandleExpressionCompletion (rr);
-					if (expressionCompletion != null) {
+					var expressionCompletion = HandleExpressionCompletion (rr, triggerInfo);
+					if (expressionCompletion != null && expressionCompletion.Count > 0) {
 						return Task.FromResult (expressionCompletion);
 					}
 				}
@@ -147,7 +147,7 @@ namespace MonoDevelop.MSBuildEditor
 					if (rr.AttributeName == "Include") {
 						return GetPackageNameCompletions (doc, startIdx, triggerLength);
 					}
-					if (rr.AttributeName == "Include") {
+					if (rr.AttributeName == "Version") {
 						return GetPackageVersionCompletions (doc, rr, startIdx, triggerLength);
 					}
 				}
@@ -227,13 +227,16 @@ namespace MonoDevelop.MSBuildEditor
 			}, token);
 		}
 
-		ICompletionDataList HandleExpressionCompletion (MSBuildResolveResult rr)
+		ICompletionDataList HandleExpressionCompletion (MSBuildResolveResult rr, CompletionTriggerInfo triggerInfo)
 		{
 			var doc = GetDocument ();
 
+			//FIXME fragile, should expose this properly somehow
+			const int ROOT_STATE_FREE = 0;
+
 			var state = Tracker.Engine.CurrentState;
 			bool isAttribute = state is XmlAttributeValueState;
-			if (!isAttribute && !(state is XmlRootState)) {
+			if (!(isAttribute || (state is XmlRootState && ((IXmlParserContext)Tracker.Engine).StateTag == ROOT_STATE_FREE))) {
 				return null;
 			}
 
@@ -265,7 +268,7 @@ namespace MonoDevelop.MSBuildEditor
 				values = rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
 			}
 
-			var triggerState = GetTriggerState (expression, valueSeparators, out int triggerLength);
+			var triggerState = GetTriggerState (triggerInfo, expression, valueSeparators, out int triggerLength);
 
 			switch (triggerState) {
 			case ExpressionTriggerState.Value: {
@@ -287,11 +290,16 @@ namespace MonoDevelop.MSBuildEditor
 			return null;
 		}
 
-		ExpressionTriggerState GetTriggerState (string expression, char[] valueSeparators, out int triggerLength)
+		ExpressionTriggerState GetTriggerState (CompletionTriggerInfo triggerInfo, string expression, char[] valueSeparators, out int triggerLength)
 		{
 			triggerLength = 0;
 
 			if (expression.Length == 0) {
+				return ExpressionTriggerState.Value;
+			}
+
+			if (expression.Length == 1 && triggerInfo.CompletionTriggerReason == CompletionTriggerReason.CharTyped) {
+				triggerLength = 1;
 				return ExpressionTriggerState.Value;
 			}
 
