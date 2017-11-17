@@ -44,5 +44,34 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			return info.Description;
 		}
+
+		public static (string kind, string name) GetTitle (BaseInfo info, MSBuildResolveResult rr)
+		{
+			switch (info) {
+			case MSBuildLanguageElement el:
+				if (!el.IsAbstract)
+					return ("keyword", info.Name);
+				break;
+			case MSBuildLanguageAttribute att:
+				if (!att.IsAbstract) {
+					return ("keyword", info.Name);
+				}
+				break;
+			case ItemInfo item:
+				return ("item", info.Name);
+			case PropertyInfo prop:
+				return ("property", info.Name);
+			case MetadataInfo meta:
+				return (
+					"metadata",
+					rr.ReferenceItemName != null ? $"{rr.ReferenceItemName}.{info.Name}" : info.Name
+				);
+			case TaskInfo task:
+				return ("task", info.Name);
+			case ValueInfo value:
+				return ("value", info.Name);
+			}
+			return (null, null);
+		}
 	}
 }

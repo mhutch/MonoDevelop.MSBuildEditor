@@ -2,18 +2,18 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Components;
+using MonoDevelop.Core;
+using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.Editor.Highlighting;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.Schema;
-using System.Linq;
-using System.Collections.Generic;
-using MonoDevelop.Ide.CodeCompletion;
-using System.Text;
-using MonoDevelop.Ide.Editor.Highlighting;
-using MonoDevelop.Core;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuildEditor
 		public override Window CreateTooltipWindow (TextEditor editor, DocumentContext ctx, TooltipItem item, int offset, Xwt.ModifierKeys modifierState)
 		{
 			if (item.Item is InfoItem infoItem) {
-				var nameMarkup = GetNameMarkup (infoItem.Info);
+				var nameMarkup = GetNameMarkup (infoItem);
 				if (nameMarkup == null) {
 					return null;
 				}
@@ -87,46 +87,15 @@ namespace MonoDevelop.MSBuildEditor
 			return null;
 		}
 
-		static string GetNameMarkup (BaseInfo info)
+		static string GetNameMarkup (InfoItem info)
 		{
 			var theme = GetColorTheme ();
 			var color = SyntaxHighlightingService.GetColorFromScope (theme, "entity.name.tag.xml", EditorThemeColors.Foreground);
-
-			var sb = new StringBuilder ();
-			var kindLabel = GetKindLabel (info);
-			if (kindLabel == null) {
+			var label = DescriptionFormatter.GetTitle (info.Info, info.ResultResult);
+			if (label.kind == null) {
 				return null;
 			}
-			sb.Append (kindLabel);
-			sb.Append (" ");
-			sb.AppendFormat ("<span foreground=\"{0}\">{1}</span>", color.ToPangoString (), GLib.Markup.EscapeText (info.Name));
-			return sb.ToString ();
-		}
-
-		static string GetKindLabel (BaseInfo info)
-		{
-			switch (info) {
-			case MSBuildLanguageElement el:
-				if (!el.IsAbstract)
-					return "keyword";
-				break;
-			case MSBuildLanguageAttribute att:
-				if (!att.IsAbstract) {
-					return "keyword";
-				}
-				break;
-			case ItemInfo item:
-				return "item";
-			case PropertyInfo prop:
-				return "property";
-			case MetadataInfo meta:
-				return "metadata";
-			case TaskInfo task:
-				return "task";
-			case ValueInfo value:
-				return "value";
-			}
-			return null;
+			return $"{label.kind} <span foreground=\"{color.ToPangoString ()}\">{GLib.Markup.EscapeText (label.name)}</span>";
 		}
 
 		static EditorTheme GetColorTheme ()
