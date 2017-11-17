@@ -73,8 +73,11 @@ namespace MonoDevelop.MSBuildEditor
 				var sb = new StringBuilder ();
 				int i = 0;
 				foreach (var location in annotations) {
-					sb.AppendLine (location.Path);
-					if (++i == 5) {
+					if (++i > 1) {
+						sb.AppendLine ();
+					}
+					sb.Append (location.Path);
+					if (i == 5) {
 						sb.AppendLine ("...");
 						break;
 					}
