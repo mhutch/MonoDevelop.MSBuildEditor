@@ -69,7 +69,6 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (item.Item is IEnumerable<NavigationAnnotation> annotations) {
-				var window = new TooltipPopoverWindow ();
 				var sb = new StringBuilder ();
 				int i = 0;
 				foreach (var location in annotations) {
@@ -82,12 +81,20 @@ namespace MonoDevelop.MSBuildEditor
 						break;
 					}
 				}
-				window.Text = sb.ToString ();
-				window.ShowArrow = false;
-				return window;
+				return new LabelTooltipWindow (GLib.Markup.EscapeText (sb.ToString ()));
 			}
 
 			return null;
+		}
+
+		public override void GetRequiredPosition (TextEditor editor, Window tipWindow, out int requiredWidth, out double xalign)
+		{
+			if ((Gtk.Window)tipWindow is LabelTooltipWindow labelWin) {
+				requiredWidth = labelWin.SetMaxWidth ((int)(labelWin.Screen.Width * 0.4));
+				xalign = 0.5;
+			} else {
+				base.GetRequiredPosition (editor, tipWindow, out requiredWidth, out xalign);
+			}
 		}
 
 		static string GetNameMarkup (InfoItem info)
