@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuildEditor.Language;
+using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -115,6 +116,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					new ValueInfo ("normal", null),
 					new ValueInfo ("low", null),
 				};
+			case MSBuildValueKind.TargetFramework:
+				var frameworkNames = new List<BaseInfo> ();
+				var provider = DefaultFrameworkNameProvider.Instance;
+				foreach (var fx in provider.GetCompatibleCandidates ()) {
+					if (fx.IsSpecificFramework && fx.Version.Major != int.MaxValue) {
+						frameworkNames.Add (new ValueInfo (
+							fx.GetShortFolderName (),
+							fx.GetDotNetFrameworkName (provider)
+						));
+					}
+				}
+				return frameworkNames;
 			}
 			return null;
 		}
