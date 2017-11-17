@@ -130,7 +130,6 @@
       <DependentUpon>ElementDescriptions.resx</DependentUpon>
     </Compile>
     <Compile Include="Schema\DescriptionFormatter.cs" />
-    <Compile Include="Schema\MSBuildItemKind.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

@@ -4,11 +4,11 @@
         "Reference": {
             "description": "Reference to an assembly",
             "includeDescription": "assembly names or filenames",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "HintPath": {
                     "description": "Relative or absolute path to the assembly.",
-                    "kind": "file"
+                    "kind": "file-list"
                 },
                 "Name": "Friendly display name.",
                 "FusionName": "Fusion name of the assembly.",
@@ -39,7 +39,7 @@
             }
         },
         "COMReference": {
-            "kind": "file",
+            "kind": "file-list",
             "description": "Reference to a COM component",
             "includeDescription": "COM component names",
             "metadata": {
@@ -56,7 +56,10 @@
                     "description": "Minor part of the version number",
                     "kind": "int"
                 },
-                "Lcid": "Locale ID",
+                "Lcid": {
+                    "description": "Locale ID",
+                    "kind" : "lcid"
+                },
                 "WrapperTool": "Wrapper tool, such as tlbimp",
                 "Isolated": {
                     "description": "Whether it is isolated",
@@ -69,7 +72,7 @@
             }
         },
         "COMFileReference": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "WrapperTool": ""
             }
@@ -137,7 +140,7 @@
             }
         },
         "ClCompile": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "PrecompiledHeader": "",
                 "OutputFile": "",
@@ -176,13 +179,13 @@
             }
         },
         "ClInclude": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "AdditionalIncludeDirectories": ""
             }
         },
         "Midl": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "IncludeAssets": "",
                 "MkTypLibCompatible": "",
@@ -245,7 +248,7 @@
             }
         },
         "Manifest": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "AssemblyIdentity": "",
                 "AdditionalManifestFiles": "",
@@ -282,7 +285,7 @@
         "NativeReference": {
             "description": "Reference to a native manifest file, or to a file that contains a native manifest",
             "includeDescription": "reference names",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Name": "Base name of manifest file",
                 "HintPath": "Relative path to manifest file"
@@ -291,7 +294,7 @@
         "ProjectReference": {
             "description": "Reference to another project",
             "includeDescription": "project file paths",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Name": "Friendly display name (optional)",
                 "Project": {
@@ -310,7 +313,7 @@
                 },
                 "Targets": {
                     "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of $(ProjectReferenceBuildTargets) whose default is blank, indicating the default targets.",
-                    "kind": "targetlist"
+                    "kind": "targetname-list"
                 },
                 "OutputItemType": {
                     "description": "Item type to emit target outputs into. Default is blank. If the Reference metadata is set to `true` (default) then target outputs will become references for the compiler.",
@@ -337,7 +340,7 @@
         "Compile": {
             "description": "Source files to be passed to the compiler",
             "includeDescription": "source files",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "SubType": "",
                 "DependentUpon": "A filename under which this should be grouped in the IDE",
@@ -368,7 +371,7 @@
         "EmbeddedResource": {
             "description": "Resources to be embedded in the generated assembly",
             "includeDescription": "resource files",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "LogicalName": "Overrides the default resource ID",
                 "Generator": "Name of any file generator that is run on this item",
@@ -384,7 +387,7 @@
         "Content": {
             "description": "Files that are not compiled, but may be embedded or published",
             "includeDescription": "content files",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Generator": "%(EmbeddedResource.Generator)",
                 "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
@@ -420,7 +423,7 @@
         "Page": {
             "description": "XAML files that are converted to binary and compiled into the assembly",
             "includeDescription": "XAML files",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Generator": "%(EmbeddedResource.Generator)",
                 "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
@@ -436,7 +439,7 @@
         "Resource": {
             "description": "File that is compiled into the assembly",
             "includeDescription": "resource files",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Generator": "%(EmbeddedResource.Generator)",
                 "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
@@ -452,7 +455,7 @@
         "ApplicationDefinition": {
             "description": "XAML file that contains the application definition, only one can be defined",
             "includeDescription": "application definition",
-            "kind": "singlefile",
+            "kind": "file",
             "metadata": {
                 "Generator": "%(EmbeddedResource.Generator)",
                 "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
@@ -467,7 +470,7 @@
         },
         "None": {
             "description": "Files that should have no role in the build process",
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Generator": "%(EmbeddedResource.Generator)",
                 "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
@@ -481,20 +484,20 @@
         },
         "BaseApplicationManifest": {
             "description": "The base application manifest for the build. Contains ClickOnce security information.",
-            "kind": "singlefile"
+            "kind": "file"
         },
         "Folder": {
             "description": "Folder on disk.",
             "includeDescription": "folders",
-            "kind": "folder"
+            "kind": "folder-list"
         },
         "Import": {
             "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler.",
-            "kind": "file"
+            "kind": "file-list"
         },
         "WebReferences": {
             "description": "Name of Web References folder to display in user interface",
-            "kind": "singlestring"
+            "kind": "string"
         },
         "WebReferenceUrl": {
             "description": "Represents a reference to a web service",
@@ -520,7 +523,7 @@
             }
         },
         "BootstrapperFile": {
-            "kind": "singlefile",
+            "kind": "file",
             "metadata": {
                 "Visible": "%(Compile.Visible)",
                 "ProductName": "",
@@ -528,7 +531,7 @@
             }
         },
         "PublishFile": {
-            "kind": "file",
+            "kind": "file-list",
             "metadata": {
                 "Visible": "%(Compile.Visible)",
                 "Group": "%(Content.Group)",
@@ -547,22 +550,22 @@
         "Analyzer": {
             "description": "An assembly containing diagnostic analyzers",
             "includeDescription": "relative or absolute assembly paths",
-            "kind": "file"
+            "kind": "file-list"
         },
         "CodeAnalysisDependentAssemblyPaths": {
             "description": "Additional reference assembly paths to pass to the Code Analysis command line tool.",
             "includeDescription": "fully qualified paths to directories containing reference assemblies to be used by Code Analysis",
-            "kind": "folder"
+            "kind": "folder-list"
         },
         "CodeAnalysisDictionary": {
             "description": "Code Analysis custom dictionaries.",
             "includeDescription": "Code Analysis custom dictionaries",
-            "kind": "folder"
+            "kind": "folder-list"
         },
         "CodeAnalysisImport": {
             "description": "Code Analysis projects (*.fxcop) or reports to import.",
             "includeDescription": "Code Analysis projects or reports",
-            "kind": "file"
+            "kind": "file-list"
         }
     },
     "properties": {
@@ -694,22 +697,22 @@
         },
         "CodeAnalysisInputAssembly": {
             "description": "Path to the assembly to be analyzed by Code Analysis.",
-            "kind": "file",
+            "kind": "file-list",
             "defaultValue": "$(OutDir)$(TargetName)$(TargetExt)"
         },
         "CodeAnalysisLogFile": {
             "description": "Path to the output file for the Code Analysis report.",
-            "kind": "file",
+            "kind": "file-list",
             "defaultValue": "$(CodeAnalysisInputAssembly).CodeAnalysisLog.xml"
         },
         "CodeAnalysisLogFileXsl": {
             "description": "Path to the XSL style sheet to reference in the Code Analysis output report. This report is specified in $(CodeAnalysisLogFile).",
-            "kind": "file",
+            "kind": "file-list",
             "defaultValue": ""
         },
         "CodeAnalysisModuleSuppressionsFile": {
             "description": "Name of the file, without the path, where Code Analysis project-level suppressions are stored.",
-            "kind": "file",
+            "kind": "file-list",
             "defaultValue": "GlobalSuppressions$(DefaultLanguageSourceExtension)"
         },
         "CodeAnalysisOverrideRuleVisibilities": {
@@ -730,11 +733,11 @@
         "CodeAnalysisPath": {
             "description": "Path to the Code Analysis installation folder.",
             "defaultValue": "$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\FxCop",
-            "kind": "file"
+            "kind": "file-list"
         },
         "CodeAnalysisPlatformPath": {
             "description": "Path to the .NET Framework folder that contains platform assemblies, such as mscorlib.dll and System.dll.",
-            "kind": "folder",
+            "kind": "folder-list",
             "defaultValue": ""
         },
         "CodeAnalysisProject": {
@@ -934,7 +937,7 @@
         "OSVersion": "",
         "OutputPath": {
             "description": "Path to output folder, with trailing slash",
-            "kind": "folder"
+            "kind": "folder-list"
         },
         "OutputType": {
             "description": "The type of output from the compiler, such as an executable or library",
@@ -960,15 +963,19 @@
         },
         "ProductName": "",
         "ProductVersion": "",
-        "ProjectGuid": "",
+        "ProjectGuid": {
+            "kind" : "guid"
+        },
         "ProjectType": "",
-        "ProjectTypeGuids": "",
+        "ProjectTypeGuids":  {
+            "kind" : "guid-list"
+        },
         "PublisherName": "",
         "PublishUrl": "",
         "RecursePath": "",
         "ReferencePath": {
             "description": "Semi-colon separated list of folders to search during reference resolution",
-            "kind": "folderlist"
+            "kind": "folder-list"
         },
         "RegisterForComInterop": "",
         "RemoteDebugEnabled": "",
@@ -988,7 +995,7 @@
         },
         "RuntimeIdentifiers": {
             "description": "Semi-colon separated list of runtime identifiers supported by the project (e.g. win10-x64;osx.10.11-x64;ubuntu.16.04-x64)",
-            "kind": "runtimeidlist"
+            "kind": "runtimeid-list"
         },
         "SccProjectName": "",
         "SccLocalPath": "",
@@ -1017,7 +1024,9 @@
         "StartupObject": "Type that contains the main entry point",
         "SuiteName": "",
         "SupportUrl": "",
-        "TargetFrameworkProfile": "",
+        "TargetFrameworkProfile": {
+            "kind" : "targetframeworkprofile"
+        },
         "TargetCulture": "",
         "TargetFramework": {
             "description": "Framework that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0)",
@@ -1025,21 +1034,29 @@
         },
         "TargetFrameworks": {
             "description": "Semi-colon separated list of frameworks that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0;net461)",
-            "kind": "targetframeworklist"
+            "kind": "targetframework-list"
         },
-        "TargetFrameworkVersion": "",
-        "TargetPlatformIdentifier": "",
+        "TargetFrameworkVersion":  {
+            "kind" : "targetframeworkversion"
+        },
+        "TargetPlatformIdentifier":  {
+            "kind" : "targetframeworkidentofier"
+        },
         "TargetPlatformVersion": "",
         "TargetZone": "",
         "TreatWarningsAsErrors": "",
         "TrustUrlParameters": "",
         "TypeComplianceDiagnostics": "",
-        "UICulture": "",
+        "UICulture":  {
+            "kind" : "lcid"
+        },
         "UpgradeBackupLocation": "",
         "UpdateEnabled": {
             "kind": "bool"
         },
-        "UpdateInterval": "",
+        "UpdateInterval":  {
+            "kind" : "int"
+        },
         "UpdateIntervalUnits": {
             "values": [
                 "Hours",

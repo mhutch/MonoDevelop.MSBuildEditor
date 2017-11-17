@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					continue;
 				}
 				string description = null, valueSeparator = null, defaultValue = null;
-				var kind = MSBuildValueKind.PropertyExpression;
+				var kind = MSBuildValueKind.Unknown;
 				List<ValueInfo> values = null;
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
@@ -72,7 +72,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)pkv.Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)pkv.Value).Value) ?? kind;
+						kind = ParseValueKind ((string)((JValue)pkv.Value).Value);
 						break;
 					case "values":
 						if (pkv.Value is JObject valuesObj) {
@@ -100,7 +100,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in items) {
 				var name = kv.Key;
 				string description = null, includeDescription = null;
-				var kind = MSBuildItemKind.Unknown;
+				var kind = MSBuildValueKind.Unknown;
 				Dictionary<string, MetadataInfo> metadata = null;
 				foreach (var ikv in (JObject)kv.Value) {
 					switch (ikv.Key) {
@@ -108,7 +108,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)((JValue)ikv.Value).Value;
 						break;
 					case "kind":
-						kind = ParseItemKind ((string)((JValue)ikv.Value).Value) ?? kind;
+						kind = ParseValueKind ((string)((JValue)ikv.Value).Value);
 						break;
 					case "includeDescription":
 						includeDescription = (string)((JValue)ikv.Value).Value;
@@ -124,50 +124,62 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		static MSBuildItemKind? ParseItemKind (string itemKind)
+		static MSBuildValueKind ParseValueKind (string valueKind)
 		{
-			//use explicit names instead of the enum to reduce breakable surface area
-			switch (itemKind.ToLower ()) {
-			case "file": return MSBuildItemKind.File;
-			case "singlefile": return MSBuildItemKind.SingleFile;
-			case "string": return MSBuildItemKind.String;
-			case "singlestring": return MSBuildItemKind.SingleString;
-			case "folder": return MSBuildItemKind.Folder;
-			case "nugetid": return MSBuildItemKind.NuGetPackageID;
-			case "url": return MSBuildItemKind.Url;
-			default:
-				//accept unknown values in case we run into newer schema formats
-				LoggingService.LogDebug ($"Unknown item kind '{itemKind}'");
-				return null;
-			}
-		}
+			var split = valueKind.Split ('-');
 
-		static MSBuildValueKind? ParseValueKind (string valueKind)
-		{
-			//use explicit names instead of the enum to reduce breakable surface area
-			switch (valueKind.ToLower ()) {
-			case "bool": return MSBuildValueKind.BoolExpression;
-			case "targetframeworkversion": return MSBuildValueKind.TargetFrameworkVersion;
-			case "importance": return MSBuildValueKind.Importance;
-			case "file": return MSBuildValueKind.FileExpression;
-			case "guid": return MSBuildValueKind.GuidExpression;
-			case "int": return MSBuildValueKind.IntegerExpression;
-			case "targetlist": return MSBuildValueKind.TargetListExpression;
-			case "itemname": return MSBuildValueKind.ItemName;
-			case "version": return MSBuildValueKind.Version;
-			case "folder": return MSBuildValueKind.Folder;
-			case "folderlist": return MSBuildValueKind.FolderList;
-			case "runtimeidlist": return MSBuildValueKind.RuntimeIDList;
-			case "runtimeid": return MSBuildValueKind.RuntimeID;
-			case "targetframework": return MSBuildValueKind.TargetFramework;
-			case "targetframeworklist": return MSBuildValueKind.TargetFrameworkList;
-			case "url": return MSBuildValueKind.Url;
-			case "suffixedversion": return MSBuildValueKind.SuffixedVersion;
-			default:
+			if (!Enum.TryParse (split [0], true, out MSBuildValueKind result)) {
 				//accept unknown values in case we run into newer schema formats
 				LoggingService.LogDebug ($"Unknown value kind '{valueKind}'");
-				return null;
+				return MSBuildValueKind.Unknown;
 			}
+
+			//whitelist permitted values
+			switch (result) {
+			case MSBuildValueKind.Data:
+			case MSBuildValueKind.Bool:
+			case MSBuildValueKind.Int:
+			case MSBuildValueKind.String:
+			case MSBuildValueKind.Guid:
+			case MSBuildValueKind.Url:
+			case MSBuildValueKind.Version:
+			case MSBuildValueKind.SuffixedVersion:
+			case MSBuildValueKind.Lcid:
+			case MSBuildValueKind.TargetName:
+			case MSBuildValueKind.ItemName:
+			case MSBuildValueKind.PropertyName:
+			case MSBuildValueKind.Sdk:
+			case MSBuildValueKind.SdkVersion:
+			case MSBuildValueKind.Label:
+			case MSBuildValueKind.Importance:
+			case MSBuildValueKind.RuntimeID:
+			case MSBuildValueKind.TargetFramework:
+			case MSBuildValueKind.TargetFrameworkVersion:
+			case MSBuildValueKind.TargetFrameworkIdentifier:
+			case MSBuildValueKind.TargetFrameworkProfile:
+			case MSBuildValueKind.NuGetID:
+			case MSBuildValueKind.NuGetVersion:
+			case MSBuildValueKind.ProjectFile:
+			case MSBuildValueKind.File:
+			case MSBuildValueKind.Folder:
+			case MSBuildValueKind.FileOrFolder:
+				break;
+			default:
+				LoggingService.LogDebug ($"Value '{result}' not permitted in schema");
+				return MSBuildValueKind.Unknown;
+			}
+
+			for (int i = 1; i < split.Length; i++) {
+				switch (split[i]) {
+				case "list":
+					result = result.List ();
+					continue;
+				default:
+					LoggingService.LogDebug ($"Unknown value suffix '{split [i]}'");
+					continue;
+				}
+			}
+			return result;
 		}
 
 		MetadataInfo GetMetadataReference (string desc, Dictionary<string, MetadataInfo> parent, string parentName)
@@ -212,7 +224,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 				string description = null, valueSeparators = null, defaultValue = null;
 				bool required = false;
-				MSBuildValueKind kind = MSBuildValueKind.MetadataExpression;
+				MSBuildValueKind kind = MSBuildValueKind.Unknown;
 				List<ValueInfo> values = null;
 				foreach (var mkv in (JObject)kv.Value) {
 					switch (mkv.Key) {
@@ -220,7 +232,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)((JValue)mkv.Value).Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)mkv.Value).Value) ?? kind;
+						kind = ParseValueKind ((string)((JValue)mkv.Value).Value);
 						break;
 					case "values":
 						switch (mkv.Value) {

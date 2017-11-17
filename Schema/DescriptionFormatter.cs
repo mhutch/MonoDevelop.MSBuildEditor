@@ -23,13 +23,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					var item = ctx.GetSchemas ().GetItem (rr.ElementName);
 					if (item != null && !string.IsNullOrEmpty (item.IncludeDescription)) {
 						switch (item.ItemKind) {
-						case MSBuildItemKind.File:
-						case MSBuildItemKind.Folder:
+						case MSBuildValueKind.File:
+						case MSBuildValueKind.Folder:
+						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
-						case MSBuildItemKind.SingleFile:
-						case MSBuildItemKind.SingleString:
-							return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
-						default:
+							default:
+							if (item.ItemKind.AllowLists ()) {
+								return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
+							}
 							return GetDesc ($"Item.{att.Name}.Parameterized");
 						}
 					}

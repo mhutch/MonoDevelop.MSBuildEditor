@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (rr.LanguageElement.Kind == MSBuildKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-				foreach (var item in schemas.GetItemMetadata (rr.ElementName, false).Where (a => !a.WellKnown)) {
+				foreach (var item in schemas.GetItemMetadata (rr.ElementName, false)) {
 					yield return item;
 				}
 			}
@@ -90,8 +90,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind)
 		{
 			switch (kind) {
-			case MSBuildValueKind.BoolLiteral:
-			case MSBuildValueKind.BoolExpression:
+			case MSBuildValueKind.Bool:
 				return new BaseInfo [] {
 					new ValueInfo ("True", null),
 					new ValueInfo ("False", null),
@@ -122,7 +121,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static IReadOnlyList<BaseInfo> GetAttributeValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv, out char[] valueSeparators)
 		{
-			MSBuildValueKind? valueKind = null;
+			MSBuildValueKind valueKind = MSBuildValueKind.Unknown;
 
 			if (tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
 				var meta = schemas.GetMetadata (rr.ElementName, rr.AttributeName, false);
@@ -138,12 +137,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				valueKind = att.ValueKind;
 			}
 
-			if (valueKind.HasValue) {
-				var vals = GetValueCompletions (valueKind.Value);
-				if (vals != null) {
-					valueSeparators = null;
-					return vals;
-				}
+			var vals = GetValueCompletions (valueKind);
+			if (vals != null) {
+				valueSeparators = null;
+				return vals;
 			}
 
 			valueSeparators = null;

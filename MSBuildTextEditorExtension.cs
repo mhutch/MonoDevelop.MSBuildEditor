@@ -240,14 +240,31 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			switch (rr.LanguageElement.ValueKind) {
-			case MSBuildValueKind.ConditionExpression:
-			case MSBuildValueKind.ItemExpression:
-			case MSBuildValueKind.PropertyExpression:
-			case MSBuildValueKind.MetadataExpression:
-				break;
-			default:
-				return null;
+			MSBuildValueKind valueKind = MSBuildValueKind.Nothing;
+			char [] valueSeparators = null;
+
+			if (isAttribute) {
+				var att = rr.LanguageElement.GetAttribute (rr.AttributeName);
+				valueKind = att.ValueKind;
+				if (att.IsAbstract) {
+					if (rr.LanguageElement.Kind == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
+						var meta = doc.Context.GetSchemas ().GetItemMetadata (rr.ElementName, false).FirstOrDefault ();
+						valueKind = meta?.ValueKind ?? valueKind;
+						valueSeparators = meta?.ValueSeparators;
+					} else if (rr.LanguageElement.Kind != MSBuildKind.Task) {
+						return null;
+					}
+				}
+			} else {
+				switch (rr.LanguageElement.ValueKind) {
+				//FIXME: make this more accurate
+				case MSBuildValueKind.Nothing:
+				case MSBuildValueKind.Bool:
+				case MSBuildValueKind.Data:
+				case MSBuildValueKind.ToolsVersion:
+				case MSBuildValueKind.Xmlns:
+					return null;
+				}
 			}
 
 			//FIXME: This is very rudimentary. We should parse the expression for real.
@@ -260,7 +277,6 @@ namespace MonoDevelop.MSBuildEditor
 			int start = Math.Max (expressionStart, lineStart);
 			var expression = Editor.GetTextAt (start, currentPosition - start);
 
-			char[] valueSeparators;
 			IReadOnlyList<BaseInfo> values;
 			if (state is XmlRootState) {
 				values = rr.GetElementValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
