@@ -26,7 +26,8 @@ namespace MonoDevelop.MSBuildEditor
 				return Task.FromResult<TooltipItem> (null);
 			}
 
-			var annotations = ext.GetAnnotationsAtLocation<NavigationAnnotation> (editor.CaretLocation);
+			var loc = editor.OffsetToLocation (offset);
+			var annotations = ext.GetAnnotationsAtLocation<NavigationAnnotation> (loc);
 			if (annotations != null && annotations.Any ()) {
 				var first = annotations.First ();
 				int start = editor.LocationToOffset (first.Region.Begin);
