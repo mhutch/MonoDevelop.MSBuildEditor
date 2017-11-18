@@ -131,10 +131,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			item.AbstractAttribute = itemMetadataAtt;
 
 			item.attributes = new [] {
-				new MSBuildLanguageAttribute ("Exclude", ElementDescriptions.Item_Exclude, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("Include", ElementDescriptions.Item_Include, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("Remove", ElementDescriptions.Item_Remove, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("Update", ElementDescriptions.Item_Update, MSBuildValueKind.Unknown),
+				new MSBuildLanguageAttribute ("Exclude", ElementDescriptions.Item_Exclude, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute ("Include", ElementDescriptions.Item_Include, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute ("Remove", ElementDescriptions.Item_Remove, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute ("Update", ElementDescriptions.Item_Update, MSBuildValueKind.MatchItem),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Item_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Item_Label, MSBuildValueKind.Label),
 				itemMetadataAtt

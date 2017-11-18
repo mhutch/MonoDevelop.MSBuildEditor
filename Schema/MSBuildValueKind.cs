@@ -11,6 +11,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		Unknown,
 
+		//used to flag attributes where the value type
+		//matches the item value type, such as Include
+		MatchItem,
+
 		/// Must be empty
 		Nothing,
 

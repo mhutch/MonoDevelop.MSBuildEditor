@@ -209,7 +209,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			var info = rr.GetAttributeOrElementInfo (doc.Context.GetSchemas ());
+			var info = rr.GetElementOrAttributeValueInfo (doc.Context.GetSchemas ());
 			if (info == null) {
 				return null;
 			}

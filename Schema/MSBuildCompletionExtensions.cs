@@ -160,7 +160,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static VariableInfo GetAttributeOrElementInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		public static VariableInfo GetElementOrAttributeValueInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
 		{
 			if (rr.LanguageElement == null) {
 				return null;
@@ -178,6 +178,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new InvalidOperationException ($"Unsupported abstract attribute kind {att.AbstractKind}");
 					}
 				}
+
+				if (att.ValueKind == MSBuildValueKind.MatchItem) {
+					var item = schemas.GetItem (rr.ElementName);
+					return new MSBuildLanguageAttribute (
+						att.Name, att.Description, item.ValueKind, att.Required, att.AbstractKind
+					);
+				}
+
 				return att;
 			}
 
@@ -185,7 +193,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				switch (rr.LanguageElement.Kind) {
 				case MSBuildKind.Item:
 				case MSBuildKind.ItemDefinition:
-					return schemas.GetItem (rr.ElementName);
+					//item doesn't have any value completions
+					return null;
 				case MSBuildKind.Metadata:
 					return schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
 				case MSBuildKind.Property:
