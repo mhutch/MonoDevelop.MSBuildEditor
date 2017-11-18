@@ -16,10 +16,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			//construct a customized version of the include/exclude/etc attribute if appropriate
 			if (info is MSBuildLanguageAttribute att) {
 				switch (att.Name.ToLower ()) {
-				case "Include":
-				case "Exclude":
-				case "Remove":
-				case "Update":
+				case "include":
+				case "exclude":
+				case "remove":
+				case "update":
 					var item = ctx.GetSchemas ().GetItem (rr.ElementName);
 					if (item != null && !string.IsNullOrEmpty (item.IncludeDescription)) {
 						switch (item.ValueKind) {
@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
 							default:
-							if (item.ValueKind.AllowLists ()) {
+							if (!item.ValueKind.AllowLists ()) {
 								return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
 							}
 							return GetDesc ($"Item.{att.Name}.Parameterized");
