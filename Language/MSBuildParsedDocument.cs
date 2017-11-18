@@ -108,7 +108,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				textDoc,
 				doc.SdkResolver,
 				propVals,
-				(ctx, imp, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, props, schemaProvider, token)
+				(ctx, imp, sdk, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, sdk, props, schemaProvider, token)
 			);
 
 			doc.AddRange (doc.Context.Errors);
@@ -141,7 +141,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				textDoc,
 				SdkResolver,
 				propVals,
-				(ctx, imp, props) => ResolveImport (null, projectPath, import.Filename, imp, props, schemaProvider, token)
+				(ctx, imp, sdk, props) => ResolveImport (null, projectPath, import.Filename, imp, sdk, props, schemaProvider, token)
 			);
 
 			import.ResolveContext.Schema = schemaProvider.GetSchema (import);
@@ -149,7 +149,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return import;
 		}
 
-		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string import, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string import, string sdk, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = MSBuildEvaluationContext.Create (
@@ -176,7 +176,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					yield return oldImport;
 				} else {
 					//TODO: guard against cyclic imports
-					yield return ParseImport (new Import (filename, fi.LastWriteTimeUtc), projectPath, propVals, schemaProvider, token);
+					yield return ParseImport (new Import (filename, sdk, fi.LastWriteTimeUtc), projectPath, propVals, schemaProvider, token);
 				}
 			}
 
@@ -184,7 +184,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (oldDoc == null && failedImports.Add (import)) {
 					LoggingService.LogDebug ($"Could not resolve MSBuild import '{import}'");
 				}
-				yield return new Import (import, DateTime.MinValue);
+				yield return new Import (import, sdk, DateTime.MinValue);
 			}
 		}
 

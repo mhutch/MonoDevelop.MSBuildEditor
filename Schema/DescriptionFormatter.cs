@@ -25,6 +25,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						switch (item.ValueKind) {
 						case MSBuildValueKind.File:
 						case MSBuildValueKind.Folder:
+						case MSBuildValueKind.FolderWithSlash:
 						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
 							default:

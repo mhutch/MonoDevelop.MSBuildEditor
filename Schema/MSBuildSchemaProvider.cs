@@ -10,11 +10,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public virtual MSBuildSchema GetSchema (Import import)
 		{
-			var isCommonTargets = string.Equals (Path.GetFileName (import.Filename), "Microsoft.Common.targets", System.StringComparison.OrdinalIgnoreCase);
-			if (isCommonTargets) {
-				return MSBuildSchema.LoadResource ("MonoDevelop.MSBuildEditor.Schemas.CommonTargets.buildschema.json");
-			}
-
 			if (import.IsResolved) {
 				string filename = import.Filename + ".buildschema.json";
 				if (File.Exists (filename)) {
@@ -23,7 +18,40 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 				}
 			}
+
+			var resourceId = GetResourceForBuiltin (import.Filename, import.Sdk);
+			if (resourceId != null) {
+				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuildEditor.Schemas.{resourceId}.json");
+			}
+
 			return null;
+		}
+
+		static string GetResourceForBuiltin (string filepath, string sdkId)
+		{
+			switch (Path.GetFileName (filepath).ToLower ()) {
+			case "microsoft.common.targets":
+				return "CommonTargets";
+			case "microsoft.codeanalysis.targets":
+				return "CodeAnalysis";
+			case "microsoft.visualbasic.currentversion.targets":
+				return "VisualBasic";
+			case "microsoft.csharp.currentversion.targets":
+				return "CSharp";
+			case "microsoft.cpp.targets":
+				return "Cpp";
+			case "nuget.build.tasks.pack.targets":
+				return "NuGetPack";
+			case "sdk.targets":
+				switch (sdkId) {
+				case "microsoft.net.sdk":
+					return "NetSdk";
+				}
+				break;
+			}
+			return null;
+
+
 		}
 	}
 }

@@ -162,7 +162,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildValueKind.ProjectFile:
 			case MSBuildValueKind.File:
 			case MSBuildValueKind.Folder:
+			case MSBuildValueKind.FolderWithSlash:
 			case MSBuildValueKind.FileOrFolder:
+			case MSBuildValueKind.Extension:
+			case MSBuildValueKind.Configuration:
+			case MSBuildValueKind.Platform:
 				break;
 			default:
 				LoggingService.LogDebug ($"Value '{result}' not permitted in schema");

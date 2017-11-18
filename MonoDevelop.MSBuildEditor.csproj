@@ -161,6 +161,12 @@
   <ItemGroup>
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\ProjectFileTools.NuGetSearch.csproj" />
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Schemas\VisualBasic.buildschema.json" />
+    <None Include="Schemas\CodeAnalysis.buildschema.json" />
+    <None Include="Schemas\Cpp.buildschema.json" />
+    <None Include="Schemas\CSharp.buildschema.json" />
+    <None Include="Schemas\NetSdk.buildschema.json" />
+    <None Include="Schemas\NuGetPack.buildschema.json" />
   </ItemGroup>
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />

@@ -15,7 +15,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, PropertyValueCollector propertyVals);
+	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, PropertyValueCollector propertyVals);
 
 	class MSBuildResolveContext : IMSBuildSchema
 	{
@@ -143,7 +143,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		IEnumerable<(string, DocumentRegion)> ResolveSdks (MSBuildSdkResolver resolver, XElement project, ITextDocument doc)
+		IEnumerable<(string id, string path, DocumentRegion)> ResolveSdks (MSBuildSdkResolver resolver, XElement project, ITextDocument doc)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -166,7 +166,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				else {
 					var sdkPath = GetSdkPath (resolver, sdk.id, sdk.loc);
 					if (sdkPath != null) {
-						yield return (sdkPath, sdk.loc);
+						yield return (sdk.id, sdkPath, sdk.loc);
 					}
 					if (IsToplevel) {
 						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.loc));
@@ -175,22 +175,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void AddSdkProps (IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkProps (IEnumerable<(string id, string path, DocumentRegion loc)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
-			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
-				var propsPath = $"{sdkPath}\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, propVals).FirstOrDefault ();
+			foreach (var sdk in sdkPaths) {
+				var propsPath = $"{sdk.path}\\Sdk.props";
+				var sdkProps = resolveImport (this, propsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
 			}
 		}
 
-		void AddSdkTargets (IEnumerable<(string, DocumentRegion)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkTargets (IEnumerable<(string id, string path, DocumentRegion loc)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
-			foreach (var (sdkPath, sdkLoc) in sdkPaths) {
-				var targetsPath = $"{sdkPath}\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, propVals).FirstOrDefault ();
+			foreach (var sdk in sdkPaths) {
+				var targetsPath = $"{sdk.path}\\Sdk.targets";
+				var sdkTargets = resolveImport (this, targetsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}

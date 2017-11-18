@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (import != null) {
 				bool wasResolved = false;
 				var loc = isToplevel ? importAtt.GetValueRegion (textDocument) : importAtt.Region;
-				foreach (var resolvedImport in resolveImport (ctx, import, propertyValues)) {
+				foreach (var resolvedImport in resolveImport (ctx, import, null, propertyValues)) {
 					ctx.Imports [resolvedImport.Filename] = resolvedImport;
 					wasResolved |= resolvedImport.IsResolved;
 					if (isToplevel) {

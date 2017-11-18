@@ -55,6 +55,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		Condition,
 
+		Configuration,
+		Platform,
+
 		RuntimeID,
 		TargetFramework,
 		TargetFrameworkIdentifier,
@@ -64,7 +67,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		ProjectFile,
 		File,
 		Folder,
+		FolderWithSlash,
 		FileOrFolder,
+		Extension,
 
 		NuGetID,
 		NuGetVersion,
