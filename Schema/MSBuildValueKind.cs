@@ -89,7 +89,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool AllowLists (this MSBuildValueKind value)
 		{
-			return (value & MSBuildValueKind.List) != 0;
+			return (value & MSBuildValueKind.List) != 0 || value == MSBuildValueKind.Unknown;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

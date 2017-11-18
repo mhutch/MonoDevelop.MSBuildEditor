@@ -116,7 +116,7 @@
     <Compile Include="MSBuildCompletionData.cs" />
     <Compile Include="Schema\MSBuildLanguageElement.cs" />
     <Compile Include="Schema\MSBuildSchema.cs" />
-    <Compile Include="Schema\ValueInfo.cs" />
+    <Compile Include="Schema\ConstantInfo.cs" />
     <Compile Include="Language\MonoDevelopMSBuildSchemaProvider.cs" />
     <Compile Include="Schema\MSBuildSchemaProvider.cs" />
     <Compile Include="Schema\IMSBuildSchema.cs" />
@@ -131,6 +131,7 @@
     </Compile>
     <Compile Include="Schema\DescriptionFormatter.cs" />
     <Compile Include="LabelTooltipWindow.cs" />
+    <Compile Include="Language\ExpressionCompletion.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

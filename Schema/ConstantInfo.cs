@@ -3,9 +3,9 @@
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class ValueInfo : BaseInfo
+	class ConstantInfo : BaseInfo
 	{
-		public ValueInfo (string name, string description) : base (name, description)
+		public ConstantInfo (string name, string description) : base (name, description)
 		{
 		}
 	}

@@ -3,6 +3,7 @@
 
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -19,6 +20,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			int endOffset = doc.LocationToOffset (att.Region.End) - 1;
 			int startOffset = endOffset - att.Value.Length;
 			return new DocumentRegion (doc.OffsetToLocation (startOffset), doc.OffsetToLocation (endOffset));
+		}
+
+		//FIXME: this is fragile, need API in core
+		public static char GetAttributeValueDelimiter (this XmlParser parser)
+		{
+			var ctx = (IXmlParserContext)parser;
+			switch (ctx.StateTag) {
+			case 3: return '"';
+			case 2: return '\'';
+			default: return (char)0;
+			}
 		}
 	}
 }

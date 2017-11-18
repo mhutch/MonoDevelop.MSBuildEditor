@@ -127,7 +127,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				new MSBuildLanguageAttribute ("MinimumVersion", ElementDescriptions.Import_MinimumVersion, MSBuildValueKind.SdkVersion),
 			};
 
-			var itemMetadataAtt = new MSBuildLanguageAttribute ("Metadata", ElementDescriptions.Metadata, MSBuildValueKind.Unknown, isAbstract: true);
+			var itemMetadataAtt = new MSBuildLanguageAttribute ("Metadata", ElementDescriptions.Metadata, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Metadata);
 			item.AbstractAttribute = itemMetadataAtt;
 
 			item.attributes = new [] {
@@ -224,7 +224,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				new MSBuildLanguageAttribute ("PropertyName", ElementDescriptions.Output_PropertyName, MSBuildValueKind.PropertyName),
 			};
 
-			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, isAbstract: true);
+			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.TaskParameter);
 			task.AbstractAttribute = taskParameterAtt;
 
 			task.attributes = new [] {

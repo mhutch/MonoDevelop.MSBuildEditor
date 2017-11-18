@@ -6,6 +6,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	enum MSBuildKind
 	{
+		Unknown,
 		Choose,
 		Import,
 		ImportGroup,

@@ -5,18 +5,19 @@ using System;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class MSBuildLanguageAttribute : BaseInfo
+	class MSBuildLanguageAttribute : VariableInfo
 	{
-		public MSBuildLanguageAttribute (string name, string description, MSBuildValueKind valueKind, bool required = false, bool isAbstract = false)
-			: base (name, description)
+		public MSBuildLanguageAttribute (
+			string name, string description, MSBuildValueKind valueKind,
+			bool required = false, MSBuildKind? abstractKind = null)
+			: base (name, description, valueKind)
 		{
-			ValueKind = valueKind;
 			Required = required;
-			IsAbstract = isAbstract;
+			AbstractKind = abstractKind;
 		}
 
-		public MSBuildValueKind ValueKind { get; }
+		public MSBuildKind? AbstractKind { get; }
 		public bool Required { get; }
-		public bool IsAbstract { get; }
+		public bool IsAbstract => AbstractKind.HasValue;
     }
 }

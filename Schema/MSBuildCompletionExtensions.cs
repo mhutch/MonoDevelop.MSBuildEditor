@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (rr.LanguageElement.Kind == MSBuildKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-				foreach (var item in schemas.GetItemMetadata (rr.ElementName, false)) {
+				foreach (var item in schemas.GetMetadata (rr.ElementName, false)) {
 					yield return item;
 				}
 			}
@@ -43,7 +43,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildKind.Property:
 				return schemas.GetProperties (false);
 			case MSBuildKind.Metadata:
-				return schemas.GetItemMetadata (elementName, false);
+				return schemas.GetMetadata (elementName, false);
 			}
 			return null;
 		}
@@ -83,45 +83,45 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildKind.Property:
 				return schemas.GetProperties (false);
 			case MSBuildKind.Metadata:
-				return schemas.GetItemMetadata (elementName, false);
+				return schemas.GetMetadata (elementName, false);
 			}
 			return null;
 		}
 
-		static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind)
+		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind)
 		{
-			switch (kind) {
+			switch (kind.GetDatatype ()) {
 			case MSBuildValueKind.Bool:
 				return new BaseInfo [] {
-					new ValueInfo ("True", null),
-					new ValueInfo ("False", null),
+					new ConstantInfo ("True", null),
+					new ConstantInfo ("False", null),
 				};
 			case MSBuildValueKind.TaskArchitecture:
 				return new BaseInfo [] {
-					new ValueInfo ("*", null),
-					new ValueInfo ("CurrentArchitecture", null),
-					new ValueInfo ("x86", null),
-					new ValueInfo ("x64", null),
+					new ConstantInfo ("*", null),
+					new ConstantInfo ("CurrentArchitecture", null),
+					new ConstantInfo ("x86", null),
+					new ConstantInfo ("x64", null),
 				};
 			case MSBuildValueKind.TaskRuntime:
 				return new BaseInfo [] {
-					new ValueInfo ("*", null),
-					new ValueInfo ("CurrentRuntime", null),
-					new ValueInfo ("CLR2", null),
-					new ValueInfo ("CLR4", null),
+					new ConstantInfo ("*", null),
+					new ConstantInfo ("CurrentRuntime", null),
+					new ConstantInfo ("CLR2", null),
+					new ConstantInfo ("CLR4", null),
 				};
 			case MSBuildValueKind.Importance:
 				return new BaseInfo [] {
-					new ValueInfo ("high", null),
-					new ValueInfo ("normal", null),
-					new ValueInfo ("low", null),
+					new ConstantInfo ("high", null),
+					new ConstantInfo ("normal", null),
+					new ConstantInfo ("low", null),
 				};
 			case MSBuildValueKind.TargetFramework:
 				var frameworkNames = new List<BaseInfo> ();
 				var provider = DefaultFrameworkNameProvider.Instance;
 				foreach (var fx in provider.GetCompatibleCandidates ()) {
 					if (fx.IsSpecificFramework && fx.Version.Major != int.MaxValue) {
-						frameworkNames.Add (new ValueInfo (
+						frameworkNames.Add (new ConstantInfo (
 							fx.GetShortFolderName (),
 							fx.GetDotNetFrameworkName (provider)
 						));
@@ -132,67 +132,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static IReadOnlyList<BaseInfo> GetAttributeValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv, out char[] valueSeparators)
-		{
-			MSBuildValueKind valueKind = MSBuildValueKind.Unknown;
-
-			if (tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-				var meta = schemas.GetMetadata (rr.ElementName, rr.AttributeName, false);
-				if (meta != null) {
-					valueSeparators = meta.ValueSeparators;
-					return meta.Values;
-				}
-				valueKind = meta.ValueKind;
-			}
-
-			var att = rr.LanguageElement.GetAttribute (rr.AttributeName);
-			if (att != null && !att.IsAbstract) {
-				valueKind = att.ValueKind;
-			}
-
-			var vals = GetValueCompletions (valueKind);
-			if (vals != null) {
-				valueSeparators = null;
-				return vals;
-			}
-
-			valueSeparators = null;
-			return Array.Empty<BaseInfo> ();
-		}
-
-		public static IReadOnlyList<BaseInfo> GetElementValueCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv, out char[] valueSeparators)
-		{
-			MSBuildValueKind? valueKind = null;
-
-			if (rr.LanguageElement.Kind == MSBuildKind.Property) {
-				var prop = schemas.GetProperty (rr.ElementName);
-				if (prop?.Values != null) {
-					valueSeparators = prop.ValueSeparators;
-					return prop.Values;
-				}
-				valueKind = prop.ValueKind;
-			}
-
-			if (rr.LanguageElement.Kind == MSBuildKind.Metadata) {
-				var metadata = schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
-				if (metadata?.Values != null) {
-					valueSeparators = metadata.ValueSeparators;
-					return metadata.Values;
-				}
-				valueKind = metadata.ValueKind;
-			}
-
-			var vals = GetValueCompletions (valueKind ?? rr.LanguageElement.ValueKind);
-			if (vals != null) {
-				valueSeparators = null;
-				return vals;
-			}
-
-			valueSeparators = null;
-			return Array.Empty<BaseInfo> ();
-		}
-
-		public static BaseInfo GetResolvedInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
@@ -217,6 +157,46 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				break;
 			}
+			return null;
+		}
+
+		public static VariableInfo GetAttributeOrElementInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		{
+			if (rr.LanguageElement == null) {
+				return null;
+			}
+
+			if (rr.AttributeName != null) {
+				var att = rr.LanguageElement.GetAttribute (rr.AttributeName);
+				if (att.IsAbstract) {
+					switch (att.AbstractKind.Value) {
+					case MSBuildKind.TaskParameter:
+						return schemas.GetTaskParameter (rr.ElementName, rr.AttributeName);
+					case MSBuildKind.Metadata:
+						return schemas.GetMetadata (rr.ElementName, rr.AttributeName, false);
+					default:
+						throw new InvalidOperationException ($"Unsupported abstract attribute kind {att.AbstractKind}");
+					}
+				}
+				return att;
+			}
+
+			if (rr.LanguageElement.IsAbstract) {
+				switch (rr.LanguageElement.Kind) {
+				case MSBuildKind.Item:
+				case MSBuildKind.ItemDefinition:
+					return schemas.GetItem (rr.ElementName);
+				case MSBuildKind.Metadata:
+					return schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
+				case MSBuildKind.Property:
+					return schemas.GetProperty (rr.ElementName);
+				case MSBuildKind.TaskParameter:
+					return schemas.GetTaskParameter (rr.ElementName, rr.AttributeName);
+				default:
+					throw new InvalidOperationException ($"Unsupported abstract element kind {rr.LanguageElement.Kind}");
+				}
+			}
+
 			return null;
 		}
 	}

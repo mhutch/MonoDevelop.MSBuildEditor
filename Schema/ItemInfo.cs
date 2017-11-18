@@ -6,26 +6,21 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class ItemInfo : BaseInfo
+	class ItemInfo : VariableInfo
 	{
-		public ItemInfo (string name, string description)
-			: this (name, description, null, MSBuildValueKind.Unknown, null)
+		public ItemInfo (
+			string name, string description, string includeDescription = null,
+			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+			Dictionary<string, MetadataInfo> metadata = null)
+			: base (name, description, valueKind)
 		{
-			
-		}
-
-		public ItemInfo (string name, string description, string includeDescription, MSBuildValueKind kind, Dictionary<string, MetadataInfo> metadata)
-			: base (name, description)
-		{
-			ItemKind = kind;
 			Metadata = metadata ?? new Dictionary<string, MetadataInfo> ();
 			IncludeDescription = includeDescription;
 		}
 
 		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
 
-		public MSBuildValueKind ItemKind { get; }
-
+		//custom description for the kinds of items in the include
 		public string IncludeDescription { get; }
     }
 }

@@ -38,12 +38,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		//collect known metadata for this item across all imports
-		public static IEnumerable<MetadataInfo> GetItemMetadata (this IEnumerable<IMSBuildSchema> schemas, string itemName, bool includeBuiltins)
+		public static IEnumerable<MetadataInfo> GetMetadata (this IEnumerable<IMSBuildSchema> schemas, string itemName, bool includeBuiltins)
 		{
 			if (includeBuiltins) {
 				foreach (var b in Builtins.Metadata) {
 					yield return b.Value;
 				}
+			}
+
+			if (itemName == null) {
+				yield break;
 			}
 
 			var names = new HashSet<string> (Builtins.Metadata.Keys, StringComparer.OrdinalIgnoreCase);
@@ -111,6 +115,21 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 				}
 			}
+		}
+
+		public static IEnumerable<TaskParameterInfo> GetAllTaskParameterDefinitions (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
+		{
+			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+			foreach (var task in schemas.GetAllTaskDefinitions (taskName)) {
+				if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo parameter)) {
+					yield return parameter;
+				}
+			}
+		}
+
+		public static TaskParameterInfo GetTaskParameter (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
+		{
+			return schemas.GetAllTaskParameterDefinitions (taskName, parameterName).FirstOrDefault ();
 		}
 
 		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeBuiltins)

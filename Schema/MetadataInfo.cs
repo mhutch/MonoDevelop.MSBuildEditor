@@ -6,29 +6,20 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class MetadataInfo : BaseInfo
+	class MetadataInfo : VariableInfo
 	{
-		public List<ValueInfo> Values { get; }
-		public string DefaultValue { get; }
-		public char[] ValueSeparators { get; }
 		public bool WellKnown { get; }
 		public bool Required { get; }
-		public MSBuildValueKind ValueKind { get; }
 
-		public MetadataInfo (string name, string description, bool wellKnown)
-			: base (name, description)
+		public MetadataInfo (
+			string name, string description, bool wellKnown,
+		    bool required = false,
+			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
+			: base (name, description, valueKind, values, defaultValue, valueSeparators)
 		{
-			WellKnown = wellKnown;
-		}
-
-		public MetadataInfo (string name, string description, bool wellKnown, bool required, MSBuildValueKind valueKind, List<ValueInfo> values, string defaultValue, char[] valueSeparators)
-			: this (name, description, wellKnown)
-		{
-			Values = values;
-			DefaultValue = defaultValue;
-			ValueSeparators = valueSeparators;
 			Required = required;
-			ValueKind = valueKind;
+			WellKnown = wellKnown;
 		}
     }
 }

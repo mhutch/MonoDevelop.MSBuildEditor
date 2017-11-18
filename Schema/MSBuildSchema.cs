@@ -65,7 +65,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				string description = null, valueSeparator = null, defaultValue = null;
 				var kind = MSBuildValueKind.Unknown;
-				List<ValueInfo> values = null;
+				List<ConstantInfo> values = null;
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
 					case "description":
@@ -225,7 +225,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				string description = null, valueSeparators = null, defaultValue = null;
 				bool required = false;
 				MSBuildValueKind kind = MSBuildValueKind.Unknown;
-				List<ValueInfo> values = null;
+				List<ConstantInfo> values = null;
 				foreach (var mkv in (JObject)kv.Value) {
 					switch (mkv.Key) {
 					case "description":
@@ -266,20 +266,20 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return metadata;
 		}
 
-		List<ValueInfo> GetValues (JObject value)
+		List<ConstantInfo> GetValues (JObject value)
 		{
-			var values = new List<ValueInfo> ();
+			var values = new List<ConstantInfo> ();
 			foreach (var ikv in value) {
-				values.Add (new ValueInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
+				values.Add (new ConstantInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
 			}
 			return values;
 		}
 
-		List<ValueInfo> GetValues (JArray arr)
+		List<ConstantInfo> GetValues (JArray arr)
 		{
-			var values = new List<ValueInfo> ();
+			var values = new List<ConstantInfo> ();
 			foreach (var val in arr) {
-				values.Add (new ValueInfo ((string)((JValue)val).Value, null));
+				values.Add (new ConstantInfo ((string)((JValue)val).Value, null));
 			}
 			return values;
 		}

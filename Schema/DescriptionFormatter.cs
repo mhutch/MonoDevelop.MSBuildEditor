@@ -22,13 +22,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				case "Update":
 					var item = ctx.GetSchemas ().GetItem (rr.ElementName);
 					if (item != null && !string.IsNullOrEmpty (item.IncludeDescription)) {
-						switch (item.ItemKind) {
+						switch (item.ValueKind) {
 						case MSBuildValueKind.File:
 						case MSBuildValueKind.Folder:
 						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
 							default:
-							if (item.ItemKind.AllowLists ()) {
+							if (item.ValueKind.AllowLists ()) {
 								return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
 							}
 							return GetDesc ($"Item.{att.Name}.Parameterized");
@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				);
 			case TaskInfo task:
 				return ("task", info.Name);
-			case ValueInfo value:
+			case ConstantInfo value:
 				return ("value", info.Name);
 			}
 			return (null, null);

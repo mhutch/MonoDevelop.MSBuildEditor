@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuildEditor
 			var rr = ext.ResolveAt (offset);
 			if (rr != null) {
 				var msbuildCtx = ext.GetDocument ().Context;
-				var info = rr.GetResolvedInfo (msbuildCtx.GetSchemas ());
+				var info = rr.GetResolvedReference (msbuildCtx.GetSchemas ());
 				if (info != null) {
 					var item = new InfoItem { Info = info, Context = msbuildCtx, ResultResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));

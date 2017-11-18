@@ -61,9 +61,9 @@ namespace MonoDevelop.MSBuildEditor
 			if (doc != null) {
 				var rr = ResolveCurrentLocation ();
 				if (rr?.LanguageElement != null) {
-					var expressionCompletion = HandleExpressionCompletion (rr, triggerInfo);
-					if (expressionCompletion != null && expressionCompletion.Count > 0) {
-						return Task.FromResult (expressionCompletion);
+					var expressionCompletion = HandleExpressionCompletion (rr, token);
+					if (expressionCompletion != null) {
+						return expressionCompletion;
 					}
 				}
 			}
@@ -127,51 +127,18 @@ namespace MonoDevelop.MSBuildEditor
 			return Task.FromResult (list);
 		}
 
-		protected override Task<CompletionDataList> GetAttributeValueCompletions (IAttributedXObject attributedOb, XAttribute att, CancellationToken token)
-		{
-			var rr = ResolveCurrentLocation ();
-			if (rr?.LanguageElement == null) {
-				return null;
-			}
-			var doc = GetDocument ();
-
-			int triggerLength = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.Length;
-			int startIdx = Editor.CaretOffset - triggerLength;
-
-			if ((rr.LanguageElement.Kind == MSBuildKind.Import || rr.LanguageElement.Kind == MSBuildKind.Project) && rr.AttributeName == "Sdk") {
-				return GetSdkCompletions (token);
-			}
-
-			if (rr.LanguageElement.Kind == MSBuildKind.Item) {
-				if (rr.ElementName == "PackageReference") {
-					if (rr.AttributeName == "Include") {
-						return GetPackageNameCompletions (doc, startIdx, triggerLength);
-					}
-					if (rr.AttributeName == "Version") {
-						return GetPackageVersionCompletions (doc, rr, startIdx, triggerLength);
-					}
-				}
-			}
-
-			var list = new CompletionDataList ();
-			foreach (var value in rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out char[] valueSeparators)) {
-				list.Add (new MSBuildCompletionData (value, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
-			}
-			return Task.FromResult (list);
-		}
-
 		string GetTargetFramework (MSBuildParsedDocument doc)
 		{
 			return doc.Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
 		}
 
-		Task<CompletionDataList> GetPackageNameCompletions (MSBuildParsedDocument doc, int startIdx, int triggerLength)
+		Task<ICompletionDataList> GetPackageNameCompletions (MSBuildParsedDocument doc, int startIdx, int triggerLength)
 		{
 			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
 			if (string.IsNullOrWhiteSpace (name)) {
 				return null;
 			}
-			return Task.FromResult<CompletionDataList> (
+			return Task.FromResult<ICompletionDataList> (
 				new PackageSearchCompletionDataList (
 					name,
 					(n) => PackageSearchManager.SearchPackageNames (n.ToLower (), GetTargetFramework (doc))
@@ -182,13 +149,13 @@ namespace MonoDevelop.MSBuildEditor
 			);
 		}
 
-		Task<CompletionDataList> GetPackageVersionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
+		Task<ICompletionDataList> GetPackageVersionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
 		{
 			var name = rr.XElement.Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
 			if (string.IsNullOrEmpty (name)) {
 				return null;
 			}
-			return Task.FromResult<CompletionDataList> (
+			return Task.FromResult<ICompletionDataList> (
 				new PackageSearchCompletionDataList (
 					PackageSearchManager.SearchPackageVersions (name, GetTargetFramework (doc))
 				) {
@@ -198,12 +165,12 @@ namespace MonoDevelop.MSBuildEditor
 			);
 		}
 
-		Task<CompletionDataList> GetSdkCompletions (CancellationToken token)
+		Task<ICompletionDataList> GetSdkCompletions (int triggerLength, CancellationToken token)
 		{
-			var list = new CompletionDataList ();
+			var list = new CompletionDataList { TriggerWordLength = triggerLength };
 			var doc = GetDocument ();
 			if (doc == null) {
-				return Task.FromResult (list);
+				return null;
 			}
 
 			var sdks = new HashSet<string> ();
@@ -216,7 +183,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			//TODO: how can we find SDKs in the non-default locations?
-			return Task.Run (() => {
+			return Task.Run<ICompletionDataList> (() => {
 				foreach (var d in Directory.GetDirectories (resolver.DefaultSdkPath)) {
 					string name = Path.GetFileName (d);
 					if (sdks.Add (name)) {
@@ -227,168 +194,74 @@ namespace MonoDevelop.MSBuildEditor
 			}, token);
 		}
 
-		ICompletionDataList HandleExpressionCompletion (MSBuildResolveResult rr, CompletionTriggerInfo triggerInfo)
+		Task<ICompletionDataList> HandleExpressionCompletion (MSBuildResolveResult rr, CancellationToken token)
 		{
 			var doc = GetDocument ();
 
-			//FIXME fragile, should expose this properly somehow
-			const int ROOT_STATE_FREE = 0;
-
-			var state = Tracker.Engine.CurrentState;
-			bool isAttribute = state is XmlAttributeValueState;
-			if (!(isAttribute || (state is XmlRootState && ((IXmlParserContext)Tracker.Engine).StateTag == ROOT_STATE_FREE))) {
+			if (!ExpressionCompletion.IsPossibleExpressionCompletionContext (Tracker.Engine)) {
 				return null;
 			}
 
-			MSBuildValueKind valueKind = MSBuildValueKind.Nothing;
-			char [] valueSeparators = null;
+			string expression = GetAttributeOrElementTextToCaret ();
 
-			if (isAttribute) {
-				var att = rr.LanguageElement.GetAttribute (rr.AttributeName);
-				valueKind = att.ValueKind;
-				if (att.IsAbstract) {
-					if (rr.LanguageElement.Kind == MSBuildKind.Item && doc.ToolsVersion.IsAtLeast (MSBuildToolsVersion.V15_0)) {
-						var meta = doc.Context.GetSchemas ().GetItemMetadata (rr.ElementName, false).FirstOrDefault ();
-						valueKind = meta?.ValueKind ?? valueKind;
-						valueSeparators = meta?.ValueSeparators;
-					} else if (rr.LanguageElement.Kind != MSBuildKind.Task) {
-						return null;
-					}
-				}
-			} else {
-				switch (rr.LanguageElement.ValueKind) {
-				//FIXME: make this more accurate
-				case MSBuildValueKind.Nothing:
-				case MSBuildValueKind.Bool:
-				case MSBuildValueKind.Data:
-				case MSBuildValueKind.ToolsVersion:
-				case MSBuildValueKind.Xmlns:
-					return null;
-				}
+			var triggerState = ExpressionCompletion.GetTriggerState (expression, out int triggerLength);
+			if (triggerState == ExpressionCompletion.TriggerState.None) {
+				return null;
 			}
 
-			//FIXME: This is very rudimentary. We should parse the expression for real.
+			var info = rr.GetAttributeOrElementInfo (doc.Context.GetSchemas ());
+			if (info == null) {
+				return null;
+			}
+
+			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, info)) {
+				return null;
+			}
+
+			bool allowExpressions = info.ValueKind.AllowExpressions ();
+
+			switch (info.ValueKind.GetDatatype ()) {
+			case MSBuildValueKind.NuGetID:
+				return GetPackageNameCompletions (doc, Editor.CaretOffset - triggerLength, triggerLength);
+			case MSBuildValueKind.NuGetVersion:
+				return GetPackageVersionCompletions (doc, rr, Editor.CaretOffset - triggerLength, triggerLength);
+			case MSBuildValueKind.Sdk:
+				return GetSdkCompletions (triggerLength, token);
+			}
+
+			var list = new CompletionDataList { TriggerWordLength = triggerLength };
+			list.AutoSelect = false;
+
+			//TODO: better metadata support
+
+			var cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, info.ValueKind, doc.Context.GetSchemas ());
+			foreach (var ci in cinfos) {
+				list.Add (new MSBuildCompletionData (ci, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
+			}
+
+			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
+				list.Add ("$(", "md-variable", "Property value reference");
+				list.Add ("@(", "md-variable", "Item list reference");
+			}
+
+			if (list.Count > 0) {
+				return Task.FromResult<ICompletionDataList> (list);
+			}
+			return null;
+		}
+
+		//FIXME: move this down to XML layer
+		string GetAttributeOrElementTextToCaret ()
+		{
 			int currentPosition = Editor.CaretOffset;
 			int lineStart = Editor.GetLine (Editor.CaretLine).Offset;
 			int expressionStart = currentPosition - Tracker.Engine.CurrentStateLength;
-			if (isAttribute && GetAttributeValueDelimiter (Tracker.Engine) != 0) {
+			if (Tracker.Engine.CurrentState is XmlAttributeState && Tracker.Engine.GetAttributeValueDelimiter () != 0) {
 				expressionStart += 1;
 			}
 			int start = Math.Max (expressionStart, lineStart);
 			var expression = Editor.GetTextAt (start, currentPosition - start);
-
-			IReadOnlyList<BaseInfo> values;
-			if (state is XmlRootState) {
-				values = rr.GetElementValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
-			} else {
-				values = rr.GetAttributeValueCompletions (doc.Context.GetSchemas (), doc.ToolsVersion, out valueSeparators);
-			}
-
-			var triggerState = GetTriggerState (triggerInfo, expression, valueSeparators, out int triggerLength);
-
-			switch (triggerState) {
-			case ExpressionTriggerState.Value: {
-					var list = new CompletionDataList { TriggerWordLength = triggerLength};
-					list.Add ("$(");
-					list.Add ("@(");
-					list.AutoSelect = false;
-					foreach (var v in values) {
-						list.Add (new MSBuildCompletionData (v, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
-					}
-					return list;
-				}
-			case ExpressionTriggerState.Item:
-				return new CompletionDataList (GetItemExpressionCompletions (doc, rr)) { TriggerWordLength = triggerLength };
-			case ExpressionTriggerState.Property:
-				return new CompletionDataList (GetPropertyExpressionCompletions (doc, rr)) { TriggerWordLength = triggerLength };
-			}
-
-			return null;
-		}
-
-		ExpressionTriggerState GetTriggerState (CompletionTriggerInfo triggerInfo, string expression, char[] valueSeparators, out int triggerLength)
-		{
-			triggerLength = 0;
-
-			if (expression.Length == 0) {
-				return ExpressionTriggerState.Value;
-			}
-
-			if (expression.Length == 1 && triggerInfo.CompletionTriggerReason == CompletionTriggerReason.CharTyped) {
-				triggerLength = 1;
-				return ExpressionTriggerState.Value;
-			}
-
-			char lastChar = expression[expression.Length - 1];
-
-			if (valueSeparators != null && valueSeparators.Contains (lastChar)) {
-				return ExpressionTriggerState.Value;
-			}
-
-			//trigger on letter after $(, @(
-			if (expression.Length >= 3 && char.IsLetter (lastChar) && expression[expression.Length - 2] == '(') {
-				char c = expression[expression.Length - 3];
-				switch (c) {
-				case '$':
-					triggerLength = 1;
-					return ExpressionTriggerState.Property;
-				case '@':
-					triggerLength = 1;
-					return ExpressionTriggerState.Item;
-				case '%':
-					triggerLength = 1;
-					return ExpressionTriggerState.Metadata;
-				}
-			}
-
-			//trigger on $(, @(
-			if (expression[expression.Length - 1] == '(') {
-				char c = expression[expression.Length - 2];
-				switch (c) {
-				case '$':
-					return ExpressionTriggerState.Property;
-				case '@':
-					return ExpressionTriggerState.Item;
-				case '%':
-					return ExpressionTriggerState.Metadata;
-				}
-			}
-
-			return ExpressionTriggerState.None;
-		}
-
-		enum ExpressionTriggerState
-		{
-			None,
-			Value,
-			Item,
-			Property,
-			Metadata
-		}
-
-		//FIXME: this is fragile, need API in core
-		static char GetAttributeValueDelimiter (XmlParser parser)
-		{
-			var ctx = (IXmlParserContext)parser;
-			switch (ctx.StateTag) {
-			case 3: return '"';
-			case 2: return '\'';
-			default: return (char)0;
-			}
-		}
-
-		IEnumerable<CompletionData> GetItemExpressionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr)
-		{
-			foreach (var item in doc.Context.GetSchemas ().GetItems ()) {
-				yield return new MSBuildCompletionData (item, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue);
-			}
-		}
-
-		IEnumerable<CompletionData> GetPropertyExpressionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr)
-		{
-			foreach (var prop in doc.Context.GetSchemas ().GetProperties (true)) {
-				yield return new MSBuildCompletionData (prop, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue);
-			}
+			return expression;
 		}
 
 		public IEnumerable<T> GetAnnotationsAtLocation<T> (DocumentLocation location)

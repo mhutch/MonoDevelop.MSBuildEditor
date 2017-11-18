@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 	}
 
-	class TaskParameterInfo : BaseInfo
+	class TaskParameterInfo : VariableInfo
 	{
 		public TaskParameterInfo (string name, string description) : base (name, description)
 		{
