@@ -256,7 +256,7 @@ namespace MonoDevelop.MSBuildEditor
 			int currentPosition = Editor.CaretOffset;
 			int lineStart = Editor.GetLine (Editor.CaretLine).Offset;
 			int expressionStart = currentPosition - Tracker.Engine.CurrentStateLength;
-			if (Tracker.Engine.CurrentState is XmlAttributeState && Tracker.Engine.GetAttributeValueDelimiter () != 0) {
+			if (Tracker.Engine.CurrentState is XmlAttributeValueState && Tracker.Engine.GetAttributeValueDelimiter () != 0) {
 				expressionStart += 1;
 			}
 			int start = Math.Max (expressionStart, lineStart);
