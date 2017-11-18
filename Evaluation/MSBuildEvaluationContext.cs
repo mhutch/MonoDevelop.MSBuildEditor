@@ -56,12 +56,16 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			string binPath = runtime.GetMSBuildBinPath (tvString);
 			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
 			ctx.SetPropertyValue ("MSBuildToolsPath", binPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath32", binPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath64", binPath);
+			ctx.SetPropertyValue ("RoslynTargetsPath", $"{binPath}\\Roslyn");
 			ctx.SetPropertyValue ("MSBuildToolsVersion", tvString);
 			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
 			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
 			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath) + Path.DirectorySeparatorChar));
+			ctx.SetPropertyValue ("VisualStudioVersion", "15.0");
 
 			var defaultSdksPath = sdkResolver.DefaultSdkPath;
 			if (defaultSdksPath != null) {
