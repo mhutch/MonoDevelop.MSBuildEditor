@@ -240,8 +240,8 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
-				list.Add ("$(", "md-variable", "Property value reference");
-				list.Add ("@(", "md-variable", "Item list reference");
+				list.Add (new CompletionDataWithSkipCharAndRetrigger ("$(", "md-variable", "Property value reference", "$(|)", ')'));
+				list.Add (new CompletionDataWithSkipCharAndRetrigger ("@(", "md-variable", "Item list reference", "$(|)", ')'));
 			}
 
 			if (list.Count > 0) {
