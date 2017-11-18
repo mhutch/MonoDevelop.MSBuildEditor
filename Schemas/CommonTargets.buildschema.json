@@ -83,7 +83,8 @@
             "kind": "nugetid",
             "metadata": {
                 "Version": {
-                    "description": "The version of the NuGet package dependency"
+                    "description": "The version of the NuGet package dependency",
+                    "kind": "nugetversion"
                 },
                 "IncludeAssets": {
                     "description": "Assets that will be consumed by the project",
