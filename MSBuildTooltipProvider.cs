@@ -22,7 +22,8 @@ namespace MonoDevelop.MSBuildEditor
         public override Task<TooltipItem> GetItem(TextEditor editor, DocumentContext ctx, int offset, CancellationToken token = default(CancellationToken))
         {
 			var ext = editor.GetContent<MSBuildTextEditorExtension> ();
-			if (ext == null) {
+			MSBuildParsedDocument doc;
+			if (ext == null || (doc = ext.GetDocument ()) == null) {
 				return Task.FromResult<TooltipItem> (null);
 			}
 
@@ -37,10 +38,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			var rr = ext.ResolveAt (offset);
 			if (rr != null) {
-				var msbuildCtx = ext.GetDocument ().Context;
-				var info = rr.GetResolvedReference (msbuildCtx.GetSchemas ());
+				var info = rr.GetResolvedReference (doc.Context.GetSchemas ());
 				if (info != null) {
-					var item = new InfoItem { Info = info, Context = msbuildCtx, ResultResult = rr };
+					var item = new InfoItem { Info = info, Doc = doc, ResultResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
 				}
 			}
@@ -55,13 +55,15 @@ namespace MonoDevelop.MSBuildEditor
 					return null;
 				}
 
-				var desc = DescriptionFormatter.GetDescription (infoItem.Info, infoItem.Context, infoItem.ResultResult);
+				var desc = DescriptionFormatter.GetDescription (infoItem.Info, infoItem.Doc.Context, infoItem.ResultResult);
 
 				var window = new TooltipInformationWindow ();
 				var ti = new TooltipInformation {
 					SignatureMarkup = nameMarkup,
 					SummaryMarkup = GLib.Markup.EscapeText (desc),
-					FooterMarkup = MSBuildCompletionData.AppendSeenIn (infoItem.Context, infoItem.Info, null)
+					FooterMarkup = MSBuildCompletionData.AppendSeenInMarkup (
+						infoItem.Doc.Context, infoItem.Doc.RuntimeInformation, infoItem.Info,
+						null, GetColor ("entity.name.tag.xml"))
 				};
 				window.AddOverload (ti);
 				window.ShowArrow = true;
@@ -100,13 +102,20 @@ namespace MonoDevelop.MSBuildEditor
 
 		static string GetNameMarkup (InfoItem info)
 		{
-			var theme = GetColorTheme ();
-			var color = SyntaxHighlightingService.GetColorFromScope (theme, "entity.name.tag.xml", EditorThemeColors.Foreground);
+			var color = GetColor ("keyword");
 			var label = DescriptionFormatter.GetTitle (info.Info, info.ResultResult);
 			if (label.kind == null) {
 				return null;
 			}
-			return $"{label.kind} <span foreground=\"{color.ToPangoString ()}\">{GLib.Markup.EscapeText (label.name)}</span>";
+			return $"{label.kind} <span foreground=\"{color}\">{GLib.Markup.EscapeText (label.name)}</span>";
+		}
+
+		internal static string GetColor (string id)
+		{
+			var theme = GetColorTheme ();
+			var color = SyntaxHighlightingService.GetColorFromScope (theme, id, EditorThemeColors.Foreground);
+			return color.ToPangoString ();
+
 		}
 
 		static EditorTheme GetColorTheme ()
@@ -126,7 +135,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			public BaseInfo Info;
 			public MSBuildResolveResult ResultResult;
-			public MSBuildResolveContext Context;
+			public MSBuildParsedDocument Doc;
 		}
     }
 }

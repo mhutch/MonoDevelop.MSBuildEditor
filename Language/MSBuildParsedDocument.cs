@@ -62,6 +62,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public IReadOnlyList<TargetFrameworkMoniker> Frameworks { get; private set; }
 
 		public MSBuildSdkResolver SdkResolver { get; private set; }
+		public MSBuildRuntimeInformation RuntimeInformation { get; private set; }
 		public ITextSource Text { get; private set; }
 
 		internal static ParsedDocument ParseInternal (ParseOptions options, CancellationToken token)
@@ -94,7 +95,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//we should fix this by changing the parser to use offsets for the tag locations
 			var textDoc = TextEditorFactory.CreateNewDocument (options.Content, options.FileName, MSBuildTextEditorExtension.MSBuildMimeType);
 
-			doc.SdkResolver = oldDoc?.SdkResolver ?? new MSBuildSdkResolver (Runtime.SystemAssemblyService.CurrentRuntime);
+			var runtime = Runtime.SystemAssemblyService.CurrentRuntime;
+			doc.SdkResolver = oldDoc?.SdkResolver ?? new MSBuildSdkResolver (runtime);
+			doc.RuntimeInformation = oldDoc?.RuntimeInformation ?? new MSBuildRuntimeInformation (runtime, MSBuildToolsVersion.Unknown, doc.SdkResolver);
 
 			var propVals = new PropertyValueCollector (true);
 
@@ -149,11 +152,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return import;
 		}
 
-		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string import, string sdk, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		IEnumerable<Import> ResolveImport (MSBuildParsedDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = MSBuildEvaluationContext.Create (
-				ToolsVersion, Runtime.SystemAssemblyService.DefaultRuntime, SdkResolver, projectPath, thisFilePath
+				ToolsVersion, RuntimeInformation, projectPath, thisFilePath
 			);
 
 			bool foundAny = false;

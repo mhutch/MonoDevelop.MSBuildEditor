@@ -134,6 +134,8 @@
     <Compile Include="Language\ExpressionCompletion.cs" />
     <Compile Include="CompletionDataWithSuffixAndRecommit.cs" />
     <Compile Include="Schema\TargetInfo.cs" />
+    <Compile Include="Language\IRuntimeInformation.cs" />
+    <Compile Include="MSBuildRuntimeInformation.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

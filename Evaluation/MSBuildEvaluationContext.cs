@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			return (string)getPropMeth.Invoke (wrapped, new [] { name });
 		}
 
-		public static MSBuildEvaluationContext Create (MSBuildToolsVersion toolsVersion, TargetRuntime runtime, MSBuildSdkResolver sdkResolver, string projectPath, string thisFilePath)
+		public static MSBuildEvaluationContext Create (MSBuildToolsVersion toolsVersion, IRuntimeInformation runtime, string projectPath, string thisFilePath)
 		{
 			// MSBuildEvaluationContext can only populate these properties from an MSBuildProject and we don't have one
 			// OTOH this isn't a full evaluation anyway. Just set up a bunch of properties commonly used for imports.
@@ -53,29 +53,28 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			var ctx = new MSBuildEvaluationContext ();
 
 			string tvString = toolsVersion.ToVersionString ();
-			string binPath = runtime.GetMSBuildBinPath (tvString);
+			string binPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetBinPath ());
+			string toolsPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetToolsPath ());
+			var extPaths = runtime.GetExtensionsPaths ();
 			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath32", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath64", binPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath", toolsPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath32", toolsPath);
+			ctx.SetPropertyValue ("MSBuildToolsPath64", toolsPath);
 			ctx.SetPropertyValue ("RoslynTargetsPath", $"{binPath}\\Roslyn");
 			ctx.SetPropertyValue ("MSBuildToolsVersion", tvString);
-			var extPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetMSBuildExtensionsPath ());
+			var extPath = MSBuildProjectService.ToMSBuildPath (null, extPaths.First());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
 			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
 			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath) + Path.DirectorySeparatorChar));
 			ctx.SetPropertyValue ("VisualStudioVersion", "15.0");
 
-			var defaultSdksPath = sdkResolver.DefaultSdkPath;
+			var defaultSdksPath = runtime.GetSdksPath ();
 			if (defaultSdksPath != null) {
 				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
 			}
 
-			ctx.extensionPaths = new List<string> { extPath };
-			if (Platform.IsMac) {
-				ctx.extensionPaths.Add ("/Library/Frameworks/Mono.framework/External/xbuild");
-			}
+			ctx.extensionPaths = new List<string> (extPaths);
 
 			return ctx;
 		}
