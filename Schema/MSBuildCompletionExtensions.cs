@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind)
+		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas)
 		{
 			switch (kind) {
 			case MSBuildValueKind.Bool:
@@ -137,6 +137,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					new ConstantInfo ("true", "Equivalent to `ErrorAndStop`"),
 
 				};
+			case MSBuildValueKind.ToolsVersion:
+				return new BaseInfo [] {
+					new ConstantInfo ("2.0", "MSBuild 2.0, included in .NET Framework 2.0"),
+					new ConstantInfo ("3.5", "MSBuild 3.5, included in .NET Framework 3.5"),
+					new ConstantInfo ("4.0", "MSBuild 4.0, included in .NET Framework 4.0"),
+					new ConstantInfo ("12.0", "MSBuild 12.0, included in Visual Studio 2013"),
+					new ConstantInfo ("14.0", "MSBuild 14.0, included in Visual Studio 2015"),
+					new ConstantInfo ("15.0", "MSBuild 15.0, included in Visual Studio 2017"),
+				};
+			case MSBuildValueKind.PropertyName:
+				return schemas.GetProperties (true).ToList ();
+			case MSBuildValueKind.ItemName:
+				return schemas.GetItems ().ToList ();
 			case MSBuildValueKind.TargetFramework:
 				var frameworkNames = new List<BaseInfo> ();
 				var provider = DefaultFrameworkNameProvider.Instance;

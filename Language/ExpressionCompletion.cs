@@ -117,7 +117,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind, schemas);
 			case TriggerState.Item:
 				return schemas.GetItems ();
 			case TriggerState.Metadata:
