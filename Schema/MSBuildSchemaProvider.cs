@@ -21,7 +21,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			var resourceId = GetResourceForBuiltin (import.Filename, import.Sdk);
 			if (resourceId != null) {
-				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuildEditor.Schemas.{resourceId}.json");
+				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuildEditor.Schemas.{resourceId}.buildschema.json");
 			}
 
 			return null;
@@ -50,8 +50,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				break;
 			}
 			return null;
-
-
 		}
 	}
 }
