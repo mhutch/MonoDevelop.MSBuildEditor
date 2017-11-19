@@ -553,11 +553,7 @@
         },
         "Install": "",
         "InstallFrom": {
-            "values": [
-                "Web",
-                "Unc",
-                "Disk"
-            ]
+            "values": [ "Web", "Unc", "Disk" ]
         },
         "InstallUrl": "",
         "IsCodeSharingProject": {
@@ -565,8 +561,14 @@
         },
         "IsWebBootstrapper": "",
         "Keyword": "",
-        "Prefer32Bit": "",
-        "HighEntropyVA": "",
+        "Prefer32Bit": {
+            "description": "Mark the executable as preferring to run on a 32-bit runtime when on a 64-bit OS",
+            "kind": "bool",
+            "default": "false"
+        },
+        "HighEntropyVA": {
+            "description": "Mark the executable as able to run with Address Space Layout Randomization (ASLR) enable"
+        },
         "ManifestCertificateThumbprint": "",
         "ManifestKeyFile": "",
         "MapFileExtensions": "",
@@ -614,7 +616,18 @@
         "PlatformName": "",
         "PlatformFamilyName": "",
         "PlatformID": "",
-        "PlatformTarget": "",
+        "PlatformTarget": {
+            "description": "The platform that the executable targets",
+            "values": {
+                "anycpu": "Runs on a 64-bit runtime if available, else 32-bit",
+                "anycpu32bitpreferred": "Runs on a 32-bit runtime if available, else 64-bit",
+                "ARM": "Only runs on ARM processors",
+                "x64": "Only runs on a 64-bit runtime on x86 processors",
+                "x86": "Only runs on a 32-bit runtime on x86 processors",
+                "Itanium": "Only runs on Itanium processors",
+            },
+            "default": "anycpu"
+        },
         "PlatformToolset": "",
         "PostBuildEvent": "Command line to be run at the end of build",
         "PreBuildEvent": "Command line to be run at the start of build",
@@ -767,7 +780,8 @@
         },
         "WarningsAsErrors": "Comma separated list of warning numbers to treat as errors",
         "WebPage": "",
-        "Win32ResourceFile": "",
+        "Win32ResourceFile": "A Win32 resource file to embed into the compiler output",
+        "Win32Manifest": "A Win32 resource file to embed into the compiler output",
         "TargetPath" : {
             "description": "Absolute path of the project's primary output",
             "kind" : "file"
@@ -843,6 +857,10 @@
         "MSBuildAllProjects": {
             "description" : "List of all project files. Targets can use this as an input to trigger rebuilds when these files change, and targets and props files can add themselves to be included in this behavior.",
             "kind" : "file-list"
+        },
+        "ExternalConsole": {
+            "description" : "Whether to close the external console after running a console application in the IDE",
+            "kind" : "bool"
         }
     }
 }
