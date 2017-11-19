@@ -35,10 +35,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public void Collect (string name, XElement el, ITextDocument textDocument)
 		{
 			if (props.TryGetValue (name, out List<string> values) && el.IsClosed && !el.IsSelfClosing && el.Region.End < el.ClosingTag.Region.Begin) {
+				var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin).Trim ();
+				if (string.IsNullOrEmpty (val)) {
+					return;
+				}
 				if (values == null) {
 					props [name] = values = new List<string> ();
 				}
-				var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin);
 				values.Add (val);
 			}
 		}
