@@ -90,7 +90,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind)
 		{
-			switch (kind.GetDatatype ()) {
+			switch (kind) {
 			case MSBuildValueKind.Bool:
 				return new BaseInfo [] {
 					new ConstantInfo ("True", null),
@@ -228,6 +228,64 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			return null;
+		}
+
+		public static MSBuildValueKind InferValueKindIfUnknown (VariableInfo variable)
+		{
+			if (variable.ValueKind != MSBuildValueKind.Unknown) {
+				return variable.ValueKind;
+			}
+
+			if (variable is PropertyInfo) {
+				if (StartsWith ("Enable")
+				    || StartsWith ("Disable")
+				    || StartsWith ("Require")
+				    || StartsWith ("Use")
+				    || StartsWith ("Allow")
+				    || EndsWith ("Enabled")
+				    || EndsWith ("Disabled")
+				    || EndsWith ("Required"))
+				{
+					return MSBuildValueKind.Bool;
+				}
+				if (EndsWith ("DependsOn")) {
+					return MSBuildValueKind.TargetName.List ();
+				}
+				if (EndsWith ("Path")) {
+					return MSBuildValueKind.FileOrFolder;
+				}
+				if (EndsWith ("Directory")
+				    || EndsWith ("Dir"))
+				{
+					return MSBuildValueKind.Folder;
+				}
+				if (EndsWith ("File")) {
+					return MSBuildValueKind.File;
+				}
+				if (EndsWith ("FileName")) {
+					return MSBuildValueKind.Filename;
+				}
+				if (EndsWith ("Url")) {
+					return MSBuildValueKind.Url;
+				}
+				if (EndsWith ("Ext")) {
+					return MSBuildValueKind.Extension;
+				}
+				if (EndsWith ("Guid")) {
+					return MSBuildValueKind.Extension;
+				}
+				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
+					return MSBuildValueKind.Folder.List ();
+				}
+				if (EndsWith ("Files")) {
+					return MSBuildValueKind.Folder.List ();
+				}
+			}
+
+			return MSBuildValueKind.Unknown;
+
+			bool StartsWith (string prefix) => variable.Name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase);
+			bool EndsWith (string suffix) => variable.Name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		}
 	}
 }

@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	static class ValueKindExtensions
 	{
 		[MethodImpl (MethodImplOptions.AggressiveInlining)]
-		public static MSBuildValueKind GetDatatype (this MSBuildValueKind value)
+		public static MSBuildValueKind GetScalarType (this MSBuildValueKind value)
 		{
 			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal);
 		}

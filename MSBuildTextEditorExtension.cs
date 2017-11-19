@@ -214,13 +214,17 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, info)) {
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+
+			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, info.ValueSeparators, kind)) {
 				return null;
 			}
 
-			bool allowExpressions = info.ValueKind.AllowExpressions ();
+			kind = kind.GetScalarType ();
 
-			switch (info.ValueKind.GetDatatype ()) {
+			bool allowExpressions = kind.AllowExpressions ();
+
+			switch (kind) {
 			case MSBuildValueKind.NuGetID:
 				return GetPackageNameCompletions (doc, Editor.CaretOffset - triggerLength, triggerLength);
 			case MSBuildValueKind.NuGetVersion:
@@ -234,7 +238,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			//TODO: better metadata support
 
-			var cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, info.ValueKind, doc.Context.GetSchemas ());
+			var cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas ());
 			foreach (var ci in cinfos) {
 				list.Add (new MSBuildCompletionData (ci, doc.Context, rr, XmlCompletionData.DataType.XmlAttributeValue));
 			}

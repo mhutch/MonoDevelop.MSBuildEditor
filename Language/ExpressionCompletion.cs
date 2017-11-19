@@ -23,22 +23,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
-		public static bool ValidateListPermitted (ref TriggerState triggerState, VariableInfo info)
+		public static bool ValidateListPermitted (ref TriggerState triggerState, char[] valueSeparators, MSBuildValueKind kind)
 		{
 			if (triggerState != TriggerState.CommaValue && triggerState != TriggerState.SemicolonValue) {
 				return true;
 			}
 
-			if (info.ValueSeparators != null) {
+			if (valueSeparators != null) {
 				char ch = triggerState == TriggerState.CommaValue ? ',' : ';';
-				if (info.ValueSeparators.Contains (ch)) {
+				if (valueSeparators.Contains (ch)) {
 					triggerState = TriggerState.Value;
 					return true;
 				}
 				return false;
 			}
 
-			if (triggerState == TriggerState.SemicolonValue && info.ValueKind.AllowLists ()) {
+			if (triggerState == TriggerState.SemicolonValue && kind.AllowLists ()) {
 				triggerState = TriggerState.Value;
 				return true;
 			}
@@ -113,11 +113,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Metadata,
 		}
 
-		public static IEnumerable<BaseInfo> GetCompletionInfos (TriggerState trigger, MSBuildValueKind valueKind, IEnumerable<IMSBuildSchema> schemas)
+		public static IEnumerable<BaseInfo> GetCompletionInfos (TriggerState trigger, MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas)
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (valueKind);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind);
 			case TriggerState.Item:
 				return schemas.GetItems ();
 			case TriggerState.Metadata:
