@@ -161,6 +161,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildValueKind.TargetFrameworkVersion:
 			case MSBuildValueKind.TargetFrameworkIdentifier:
 			case MSBuildValueKind.TargetFrameworkProfile:
+			case MSBuildValueKind.TargetFrameworkMoniker:
 			case MSBuildValueKind.NuGetID:
 			case MSBuildValueKind.NuGetVersion:
 			case MSBuildValueKind.ProjectFile:
