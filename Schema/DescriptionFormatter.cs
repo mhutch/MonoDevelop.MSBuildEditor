@@ -62,6 +62,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("item", info.Name);
 			case PropertyInfo prop:
 				return ("property", info.Name);
+			case TargetInfo prop:
+				return ("target", info.Name);
 			case MetadataInfo meta:
 				return (
 					"metadata",

@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		/// Contains arbitrary data
 		Data,
 
-		/// basic data types
+		// basic data types
 		Bool,
 		Int,
 		String,
@@ -33,12 +33,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		Lcid,
 		DateTime,
 
-		/// references to abstract types
+		// references to abstract types
 		TargetName,
 		ItemName,
 		PropertyName,
-		TaskName,
 
+		//task stuff
+		TaskName,
 		TaskAssemblyName,
 		TaskAssemblyFile,
 		TaskFactory,

@@ -163,5 +163,17 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			return schemas.GetAllPropertyDefinitions (name).FirstOrDefault ();
 		}
+
+		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas)
+		{
+			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+			foreach (var schema in schemas) {
+				foreach (var target in schema.Targets) {
+					if (!schema.IsPrivate (target.Key) && names.Add (target.Key)) {
+						yield return target.Value;
+					}
+				}
+			}
+		}
 	}
 }

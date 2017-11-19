@@ -25,6 +25,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<Error> Errors { get; }
 		public bool IsToplevel { get; }
@@ -268,6 +269,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return Items.ContainsKey (info.Name);
 			if (info is TaskInfo)
 				return Tasks.ContainsKey (info.Name);
+			if (info is TargetInfo)
+				return Targets.ContainsKey (info.Name);
 			return false;
 		}
 

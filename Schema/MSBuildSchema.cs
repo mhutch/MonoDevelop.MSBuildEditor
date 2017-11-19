@@ -16,6 +16,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 
 		public static MSBuildSchema Load (TextReader reader)
 		{
@@ -46,6 +47,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					break;
 				case "items":
 					LoadItems ((JObject)kv.Value);
+					break;
+				case "targets":
+					LoadTargets ((JObject)kv.Value);
 					break;
 				case "license":
 					break;
@@ -292,6 +296,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			//assembly everything in a schema is public
 			return false;
+		}
+
+		void LoadTargets (JObject items)
+		{
+			foreach (var kv in items) {
+				var name = kv.Key;
+				var desc = (string) ((JValue)kv.Value).Value;
+				Targets.Add (name, new TargetInfo (name, desc));
+			}
 		}
 	}
 }

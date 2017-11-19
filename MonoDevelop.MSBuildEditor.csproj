@@ -133,6 +133,7 @@
     <Compile Include="LabelTooltipWindow.cs" />
     <Compile Include="Language\ExpressionCompletion.cs" />
     <Compile Include="CompletionDataWithSuffixAndRecommit.cs" />
+    <Compile Include="Schema\TargetInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

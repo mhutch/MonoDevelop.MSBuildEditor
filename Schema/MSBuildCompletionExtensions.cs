@@ -146,6 +146,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					new ConstantInfo ("14.0", "MSBuild 14.0, included in Visual Studio 2015"),
 					new ConstantInfo ("15.0", "MSBuild 15.0, included in Visual Studio 2017"),
 				};
+			case MSBuildValueKind.TargetName:
+				return schemas.GetTargets ().ToList ();
 			case MSBuildValueKind.PropertyName:
 				return schemas.GetProperties (true).ToList ();
 			case MSBuildValueKind.ItemName:

@@ -10,6 +10,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		Dictionary<string, PropertyInfo> Properties { get; }
 		Dictionary<string, ItemInfo> Items { get; }
 		Dictionary<string, TaskInfo> Tasks { get; }
+		Dictionary<string, TargetInfo> Targets { get; }
 
 		bool IsPrivate (string name);
 	}

@@ -149,14 +149,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitTarget (XElement element)
 		{
+			var name = element.Attributes.Get (new XName ("name"), true)?.Value;
+			if (name != null && !ctx.Targets.TryGetValue (name, out TargetInfo target)) {
+				ctx.Targets [name] = target = new TargetInfo (name, null);
+			}
 			base.VisitTarget (element);
 		}
 
 		protected override void VisitTask (XElement element)
 		{
 			var name = element.Name.Name;
-			TaskInfo task;
-			if (!ctx.Tasks.TryGetValue (name, out task)) {
+			if (!ctx.Tasks.TryGetValue (name, out TaskInfo task)) {
 				ctx.Tasks [name] = task = new TaskInfo (name, null);
 			}
 			base.VisitTask (element);
