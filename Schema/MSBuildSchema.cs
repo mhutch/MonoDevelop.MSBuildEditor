@@ -81,7 +81,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 							values = GetValues ((JArray)pkv.Value);
 						}
 						break;
-					case "defaultValue":
+					case "default":
 						defaultValue = (string)((JValue)pkv.Value).Value;
 						break;
 					case "valueSeparators":
@@ -255,7 +255,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					case "valueSeparators":
 						valueSeparators = (string)((JValue)mkv.Value).Value;
 						break;
-					case "defaultValue":
+					case "default":
 						defaultValue = (string)((JValue)mkv.Value).Value;
 						break;
 					case "required":

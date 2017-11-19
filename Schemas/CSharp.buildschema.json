@@ -3,5 +3,21 @@
     "items": {
     },
     "properties": {
+        "LangVersion": {
+            "description": "The version of the C# language the compiler should accept",
+            "values": {
+                "default": "All language versions that the compiler supports",
+                "latest": "All language versions that the compiler supports",
+                "ISO-1": "C# 1.0/1.1, as specified in ISO/IEC 23270:2003",
+                "ISO-2": "C# 2.0, as specified in ISO/IEC 23270:2006",
+                "3": "C# 3.0",
+                "4": "C# 4.0",
+                "5": "C# 5.0",
+                "6": "C# 6.0",
+                "7": "C# 7.0",
+                "7.1": "C# 7.1",
+                "7.2": "C# 7.2"
+            }
+        }
     }
 }

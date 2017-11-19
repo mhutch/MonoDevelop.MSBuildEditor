@@ -11,7 +11,7 @@
                 "PrivateAssets": "%(PackageReference.IncludeAssets)",
                 "Version": "%(PackageReference.Version)"
             }
-        },
+        }
     },
     "properties": {
         "AssemblyTitle": "Description for the assembly manifest",
@@ -19,22 +19,22 @@
         "EnableDefaultItems": {
             "description": "Whether to include items in the project directory by wildcard",
             "kind": "bool",
-            "defaultValue": "true",
+            "default": "true"
         },
         "EnableDefaultCompileItems": {
             "description": "Whether to include source files in the project directory by wildcard",
             "kind": "bool",
-            "defaultValue": "true",
+            "default": "true"
         },
         "EnableDefaultEmbeddedResourceItems": {
             "description": "Whether to include embedded resources in the project directory by wildcard",
             "kind": "bool",
-            "defaultValue": "true",
+            "default": "true"
         },
         "EnableDefaultNoneItems" : {
             "description": "Whether to include none items in the project directory by wildcard",
             "kind": "bool",
-            "defaultValue": "true",
+            "default": "true"
         },
         "DefaultItemExcludes": {
             "description": "Files to omit from wildcard item includes",
@@ -43,12 +43,12 @@
         "DisableImplicitFrameworkReferences": {
             "description": "Disable implicit inclusion of framework references",
             "kind": "bool",
-            "defaultValue": "false",
+            "default": "false"
         },
         "SetLinkMetadataAutomatically": {
             "description": "Whether to automatically set Link metadata on items outside the project folder",
             "kind": "bool",
-            "defaultValue": "true",
-        },
+            "default": "true"
+        }
     }
 }

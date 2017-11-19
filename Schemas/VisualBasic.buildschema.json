@@ -12,33 +12,35 @@
             "kind": "bool"
         },
         "OptionCompare": {
-            "description": "VB.NET Compare setting",
+            "description": "Compare setting",
             "values": [
                 "Text",
                 "Binary"
             ]
         },
         "OptionExplicit": {
-            "description": "VB.NET Option Explicit setting",
+            "description": "Option Explicit setting",
             "values": [
                 "On",
                 "Off"
             ]
         },
         "OptionStrict": {
-            "description": "VB.NET Option Strict setting",
+            "description": "Option Strict setting",
             "values": [
                 "On",
                 "Off"
             ]
         },
         "OptionInfer": {
-            "description": "VB.NET Option Infer setting",
+            "description": "Option Infer setting",
             "values": [
                 "On",
                 "Off"
             ]
         },
-        "VBRuntime": ""
+        "VBRuntime": "",
+        "LangVersion": "",
+        "MyType": ""
     }
 }

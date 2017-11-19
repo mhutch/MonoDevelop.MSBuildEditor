@@ -7,26 +7,26 @@
             "kind": "file-list",
             "metadata": {
                 "HintPath": {
-                    "description": "Relative or absolute path to the assembly.",
+                    "description": "Relative or absolute path to the assembly",
                     "kind": "file-list"
                 },
-                "Name": "Friendly display name.",
-                "FusionName": "Fusion name of the assembly.",
+                "Name": "Friendly display name",
+                "FusionName": "Fusion name of the assembly",
                 "SpecificVersion": {
-                    "description": "Whether only the version in the fusion name should be referenced.",
+                    "description": "Whether only the version in the fusion name should be referenced",
                     "kind": "bool"
                 },
-                "Aliases": "Aliases for the reference.",
+                "Aliases": "Aliases for the reference",
                 "Private": {
-                    "description": "Whether the reference should be copied to the output folder.",
+                    "description": "Whether the reference should be copied to the output folder",
                     "kind": "bool"
                 },
                 "EmbedInteropTypes": {
-                    "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only.",
+                    "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only",
                     "kind": "bool"
                 },
                 "RequiredTargetFramework": {
-                    "description": "The minimum required target framework version in order to use this assembly as a reference.",
+                    "description": "The minimum required target framework version in order to use this assembly as a reference",
                     "kind": "TargetFrameworkVersion"
                 }
             }
@@ -35,7 +35,7 @@
             "description": "Reference to a Windows 8.1 extension SDK",
             "includeDescription": "SDK name and version monikers",
             "metadata": {
-                "Name": "Friendly display name (optional)."
+                "Name": "Friendly display name (optional)"
             }
         },
         "COMReference": {
@@ -43,7 +43,7 @@
             "description": "Reference to a COM component",
             "includeDescription": "COM component names",
             "metadata": {
-                "Name": "Friendly display name (optional).",
+                "Name": "Friendly display name (optional)",
                 "Guid": {
                     "description": "GUID in the form {00000000-0000-0000-0000-000000000000}",
                     "kind": "guid"
@@ -88,7 +88,7 @@
                 },
                 "IncludeAssets": {
                     "description": "Assets that will be consumed by the project",
-                    "defaultValue": "all",
+                    "default": "all",
                     "values": {
                         "compile": "Libraries from the `lib` folder",
                         "runtime": "Contents of the `runtime` folder",
@@ -103,13 +103,13 @@
                 },
                 "ExcludeAssets": {
                     "description": "Assets that will not be consumed by the project",
-                    "defaultValue": "none",
+                    "default": "none",
                     "values": "%(IncludeAssets)",
                     "valueSeparators": ","
                 },
                 "PrivateAssets": {
                     "description": "Assets that will be consumed by the project but won't flow to its parent",
-                    "defaultValue": "contentfiles,analyzers,build",
+                    "default": "contentfiles,analyzers,build",
                     "values": "%(IncludeAssets)",
                     "valueSeparators": ","
                 }
@@ -121,12 +121,12 @@
                 "Configuration": {
                     "description" : "The configuration part of the project configuration",
                     "kind": "configuration",
-                    "required": "true"
+                    "required": true
                 },
                 "Platform":  {
                     "description" : "The platform part of the project configuration",
                     "kind": "platform",
-                    "required": "true"
+                    "required": true
                 }
             }
         },
@@ -148,20 +148,20 @@
             "includeDescription": "project file paths",
             "kind": "file-list",
             "metadata": {
-                "Name": "Friendly display name (optional)",
+                "Name": "Friendly display name",
                 "Project": {
                     "description": "Project GUID, in the form {00000000-0000-0000-0000-000000000000}",
                     "kind": "guid"
                 },
                 "ReferenceOutputAssembly": {
-                    "description": "Boolean specifying whether the outputs of the project referenced should be passed to the compiler.",
+                    "description": "Whether the outputs of the project referenced should be passed to the compiler",
                     "kind": "bool",
-                    "defaultValue": "true"
+                    "default": "true"
                 },
                 "SpecificVersion": {
-                    "description": "Whether the exact version of the assembly should be used.",
+                    "description": "Whether the exact version of the assembly should be used",
                     "kind": "bool",
-                    "defaultValue": "true"
+                    "default": "true"
                 },
                 "Targets": {
                     "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of $(ProjectReferenceBuildTargets) whose default is blank, indicating the default targets.",
@@ -206,7 +206,7 @@
                 "Visible": {
                     "description": "Display in user interface",
                     "kind": "bool",
-                    "defaultValue": "true"
+                    "default": "true"
                 },
                 "CopyToOutputDirectory": {
                     "description": "Whether to copy the file to the output directory",
@@ -215,7 +215,7 @@
                         "Always": "Always copy the file",
                         "PreservNewest": "Copy the file if it is newer than the existing copy"
                     },
-                    "defaultValue": "Never"
+                    "default": "Never"
                 },
                 "VBMyExtensionTemplateID": ""
             }
@@ -256,19 +256,13 @@
                         "Always": "Always copy the file",
                         "PreservNewest": "Copy the file if it is newer than the existing copy"
                     },
-                    "defaultValue": "Never"
+                    "default": "Never"
                 },
                 "Group": "",
                 "IsAssembly": "",
                 "PublishState": {
-                    "values": {
-                        "Default": "",
-                        "Included": "",
-                        "Excluded": "",
-                        "DataFile": "",
-                        "Prerequisite": ""
-                    },
-                    "defaultValue": "Default"
+                    "values": [ "Default", "Included", "Excluded", "DataFile", "Prerequisite" ],
+                    "default": "Default"
                 }
             }
         },
@@ -344,7 +338,7 @@
             "kind": "folder-list"
         },
         "Import": {
-            "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler.",
+            "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler",
             "kind": "file-list"
         },
         "WebReferences": {
@@ -404,19 +398,8 @@
             "includeDescription": "relative or absolute assembly paths",
             "kind": "file-list"
         },
-        "CodeAnalysisDependentAssemblyPaths": {
-            "description": "Additional reference assembly paths to pass to the Code Analysis command line tool.",
-            "includeDescription": "fully qualified paths to directories containing reference assemblies to be used by Code Analysis",
-            "kind": "folder-list"
-        },
-        "CodeAnalysisDictionary": {
-            "description": "Code Analysis custom dictionaries.",
-            "includeDescription": "Code Analysis custom dictionaries",
-            "kind": "folder-list"
-        },
-        "CodeAnalysisImport": {
-            "description": "Code Analysis projects (*.fxcop) or reports to import.",
-            "includeDescription": "Code Analysis projects or reports",
+        "FileWrites": {
+            "description": "Files to track for incremental clean",
             "kind": "file-list"
         }
     },
@@ -425,8 +408,8 @@
         "MinimumVisualStudioVersion": "The minimum version of Visual Studio required to open this project",
         "AdditionalFileItemNames": "",
         "AllowUnsafeBlocks": {
-            "description: ""Whether to allow unsafe code",
-            "kind" : "bool"
+            "description": "Whether to allow unsafe code",
+            "kind": "bool"
         },
         "AppConfigForCompiler": "",
         "ApplicationIcon": "",
@@ -436,33 +419,26 @@
         },
         "AppDesignerFolder": "Name of folder for Application Designer",
         "AspNetConfiguration": "",
-        "AssemblyKeyContainerName": "",
-        "AssemblyKeyProviderName": "",
         "AssemblyName": "Name of output assembly",
-        "AssemblyOriginatorKeyFile": "",
-        "AssemblyOriginatorKeyFileType": "",
-        "AssemblyOriginatorKeyMode": "",
-        "AssemblyType": "",
+        "AssemblyOriginatorKeyFile": {
+            "description": "The file that contains the key used to sign the assembly",
+            "kind": "file"
+        },
         "AutoGenerateBindingRedirects": "Indicates whether BindingRedirect elements should be automatically generated for referenced assemblies.",
         "AutorunEnabled": {
             "kind": "bool"
         },
         "BaseAddress": "",
         "BootstrapperComponentsLocation": {
-            "values": {
-                "HomeSite": "",
-                "Relative": "",
-                "Absolute": ""
-            }
+            "values": [ "HomeSite", "Relative", "Absolute" ]
         },
         "BootstrapperComponentsUrl": "",
         "BootstrapperEnabled": {
             "kind": "bool"
         },
-        "CharacterSet": "",
-        "CheckForOverflowUnderflow": "",
-        "CLRSupport": "",
-        "UseDebugLibraries": {
+        "CheckForOverflowUnderflow": {
+            "description": "Whether the compiler should check for integer overflow and underflow",
+            "default": "false",
             "kind": "bool"
         },
         "CodePage": "The codepage the compiler should use when reading source files",
@@ -503,10 +479,12 @@
         "DefaultTargetSchema": "",
         "DefineConstants": {
             "description": "Conditional compiler defines",
-            "string-list": "bool"
+            "kind": "string-list"
         },
-        "DelaySign": "",
-        "DisableLangXtns": "",
+        "DelaySign": {
+            "description":  "Reserve space for a signature so the assembly can be signed later",
+            "kind": "bool"
+        },
         "DisallowUrlActivation": {
             "kind": "bool"
         },
@@ -543,7 +521,10 @@
         },
         "ExcludedPermissions": "",
         "FallbackCulture": "",
-        "FileAlignment": "",
+        "FileAlignment": {
+            "description" : "Override the boundary on which the compiler aligns sections of the output assembly",
+            "values": [ "512", "1024", "2048", "4096", "8192" ]
+        },
         "FileUpgradeFlags": "",
         "FormFactorID": "",
         "FrameworkPathOverride": {
@@ -583,36 +564,20 @@
             "kind": "bool"
         },
         "IsWebBootstrapper": "",
-        "JCPA": "",
         "Keyword": "",
-        "LangVersion": "",
         "Prefer32Bit": "",
         "HighEntropyVA": "",
-        "LinkIncremental": "",
         "ManifestCertificateThumbprint": "",
         "ManifestKeyFile": "",
         "MapFileExtensions": "",
         "MinimumRequiredVersion": {
             "kind": "version"
         },
-        "MyType": "",
-        "MSBuildAllProjects": "",
-        "MSBuildTreatWarningsAsErrors": {
-            "description": "Indicates whether to treat all warnings as errors when building a project.",
-            "kind": "bool"
-        },
-        "MSBuildWarningsAsMessages": {
-            "description": "Indicates a semicolon delimited list of warnings to treat as low importance messages when building a project."
-        },
-        "MSBuildWarningsAsErrors": {
-            "description": "Indicates a semicolon delimited list of warnings to treat as errors when building a project."
-        },
         "NoConfig": "",
-        "NoStandardLibraries": "",
         "NoStdLib": {
             "description": "Whether to disable automatic referencing of standard libraries such as mscorlib",
             "kind": "bool",
-            "defaultValue": "false"
+            "default": "false"
         },
         "NoWarn": "Comma separated list of disabled warnings",
         "OldToolsVersion": "",
@@ -641,11 +606,11 @@
                 "WinExe": "A Windows executable"
             }
         },
-        "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names.",
+        "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names",
         "Platform": {
             "description": "The platform that is being used to build the project, for example \"AnyCPU\" or \"x86\"",
             "kind" : "configuration"
-        },,
+        },
         "PlatformName": "",
         "PlatformFamilyName": "",
         "PlatformID": "",
@@ -699,7 +664,7 @@
         "SccLocalPath": "",
         "SccProvider": "",
         "RunCodeAnalysis": {
-            "description": "Indicates whether to run Code Analysis during the build.",
+            "description": "Indicates whether to run Code Analysis during the build",
             "kind": "bool"
         },
         "RunPostBuildEvent": "",
@@ -720,27 +685,38 @@
         "StartupObject": "Type that contains the main entry point",
         "SuiteName": "",
         "SupportUrl": "",
-        "TargetFrameworkProfile": {
-            "kind" : "targetframeworkprofile"
-        },
         "TargetCulture": "",
         "TargetFramework": {
-            "description": "Framework that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0)",
+            "description": "Short moniker of the framework that this project targets, e.g. `netstandard2.0`",
             "kind": "targetframework"
         },
         "TargetFrameworks": {
-            "description": "Semi-colon separated list of frameworks that this project targets. Must be a Target Framework Moniker (e.g. netcoreapp1.0;net461)",
+            "description": "List of short monikers for the frameworks that this project targets, for example `netstandard2.0;net461)`",
             "kind": "targetframework-list"
         },
+        "TargetFrameworkIdentifier":  {
+            "description": "The identity of framework that this project targets, for example `.NETFramework`",
+            "kind" : "targetframeworkidentfier"
+        },
         "TargetFrameworkVersion":  {
+            "description": "The version of the framework that this project targets, for example `v4.0`",
             "kind" : "targetframeworkversion"
         },
-        "TargetPlatformIdentifier":  {
-            "kind" : "targetframeworkidentofier"
+        "TargetFrameworkProfile": {
+            "description": "The profile of the framework that this project targets, for example `Profile259`",
+            "kind" : "targetframeworkprofile"
         },
+        "TargetFrameworkMoniker": {
+            "description": "The full moniker for of the framework that this project targets, combining the identifier, version and profile",
+            "kind" : "targetframeworkmoniker"
+        },
+        "TargetPlatformIdentifier": "",
         "TargetPlatformVersion": "",
         "TargetZone": "",
-        "TreatWarningsAsErrors": "",
+        "TreatWarningsAsErrors": {
+            "description": "Whether to treat warnings as errors",
+            "kind": "bool"
+        },
         "TrustUrlParameters": "",
         "TypeComplianceDiagnostics": "",
         "UICulture":  {
@@ -780,7 +756,10 @@
         },
         "UseApplicationTrust": "",
         "UseVSHostingProcess": "",
-        "UTF8Output": "",
+        "UTF8Output": {
+            "description": "Whether the compile should use UTF8 encoding for its console output",
+            "kind" : "bool"
+        },
         "VSTO_TrustAssembliesLocation": "",
         "WarningLevel": {
             "description": "What level of warnings the compiler should emit, between 0 and 4 inclusive",
@@ -834,16 +813,36 @@
             "kind" : "string"
         },
         "SolutionExt": {
-            "description" : "The extension of the solution file.",
+            "description" : "The extension of the solution file",
             "kind" : "string"
         },
         "SolutionFileName": {
-            "description" : "Name of the solution file, formed by appending the extension to the base name.",
+            "description" : "Name of the solution file, formed by appending the extension to the base name",
             "kind" : "string"
         },
         "SolutionPath": {
             "description" : "Absolute path of the solution file",
             "kind" : "file"
+        },
+        "DefaultLanguageSourceExtension": {
+            "description" : "The default extension for source files",
+            "kind" : "extension"
+        },
+        "BaseOutputPath": {
+            "description" : "The base directory for build outputs. The build outputs will be in a configuration-specific subdirectory.",
+            "kind" : "folder"
+        },
+        "BaseIntermediateOutputPath": {
+            "description" : "The base directory for intermediate build outputs. The build output will be in a configuration-specific subdirectory.",
+            "kind" : "folder"
+        },
+        "IntermediateOutputPath": {
+            "description" : "The configuration-specific directory in which intermediate build outputs are stored",
+            "kind" : "folder"
+        },
+        "MSBuildAllProjects": {
+            "description" : "List of all project files. Targets can use this as an input to trigger rebuilds when these files change, and targets and props files can add themselves to be included in this behavior.",
+            "kind" : "file-list"
         }
     }
 }

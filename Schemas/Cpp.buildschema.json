@@ -153,6 +153,13 @@
         "UseOfMfc": "",
         "UseOfAtl": "",
         "VCTargetsPath": "",
-        "WholeProgramOptimization": ""
+        "WholeProgramOptimization": "",
+        "LinkIncremental": "",
+        "CLRSupport": "",
+        "CharacterSet": "",
+        "NoStandardLibraries": "",
+        "UseDebugLibraries": {
+            "kind": "bool"
+        }
     }
 }
