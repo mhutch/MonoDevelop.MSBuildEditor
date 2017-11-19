@@ -15,6 +15,40 @@
     },
     "properties": {
         "AssemblyTitle": "Description for the assembly manifest",
-        "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0"
+        "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
+        "EnableDefaultItems": {
+            "description": "Whether to include items in the project directory by wildcard",
+            "kind": "bool",
+            "defaultValue": "true",
+        },
+        "EnableDefaultCompileItems": {
+            "description": "Whether to include source files in the project directory by wildcard",
+            "kind": "bool",
+            "defaultValue": "true",
+        },
+        "EnableDefaultEmbeddedResourceItems": {
+            "description": "Whether to include embedded resources in the project directory by wildcard",
+            "kind": "bool",
+            "defaultValue": "true",
+        },
+        "EnableDefaultNoneItems" : {
+            "description": "Whether to include none items in the project directory by wildcard",
+            "kind": "bool",
+            "defaultValue": "true",
+        },
+        "DefaultItemExcludes": {
+            "description": "Files to omit from wildcard item includes",
+            "kind": "file-list"
+        },
+        "DisableImplicitFrameworkReferences": {
+            "description": "Disable implicit inclusion of framework references",
+            "kind": "bool",
+            "defaultValue": "false",
+        },
+        "SetLinkMetadataAutomatically": {
+            "description": "Whether to automatically set Link metadata on items outside the project folder",
+            "kind": "bool",
+            "defaultValue": "true",
+        },
     }
 }

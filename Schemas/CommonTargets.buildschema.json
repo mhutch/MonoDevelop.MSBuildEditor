@@ -32,8 +32,8 @@
             }
         },
         "SDKReference": {
-            "description": "Reference to an extension SDK",
-            "includeDescription": "name and version monikers representing extension SDKs",
+            "description": "Reference to a Windows 8.1 extension SDK",
+            "includeDescription": "SDK name and version monikers",
             "metadata": {
                 "Name": "Friendly display name (optional)."
             }
@@ -116,9 +116,18 @@
             }
         },
         "ProjectConfiguration": {
+            "description" : "Defines a Configuration|Platform combination that may be used to build this project",
             "metadata": {
-                "Configuration": "",
-                "Platform": ""
+                "Configuration": {
+                    "description" : "The configuration part of the project configuration",
+                    "kind": "configuration",
+                    "required": "true"
+                },
+                "Platform":  {
+                    "description" : "The platform part of the project configuration",
+                    "kind": "platform",
+                    "required": "true"
+                }
             }
         },
         "ProjectCapability": {
@@ -330,7 +339,7 @@
             "kind": "file"
         },
         "Folder": {
-            "description": "Folder on disk.",
+            "description": "Folder on disk to display in the IDE",
             "includeDescription": "folders",
             "kind": "folder-list"
         },
@@ -415,7 +424,10 @@
         "VisualStudioVersion": "The version of Visual Studio into which this project is loaded",
         "MinimumVisualStudioVersion": "The minimum version of Visual Studio required to open this project",
         "AdditionalFileItemNames": "",
-        "AllowUnsafeBlocks": "",
+        "AllowUnsafeBlocks": {
+            "description: ""Whether to allow unsafe code",
+            "kind" : "bool"
+        },
         "AppConfigForCompiler": "",
         "ApplicationIcon": "",
         "ApplicationRevision": "",
@@ -453,8 +465,15 @@
         "UseDebugLibraries": {
             "kind": "bool"
         },
-        "CodePage": "",
-        "Configuration": "",
+        "CodePage": "The codepage the compiler should use when reading source files",
+        "ConsolePause" : {
+            "description": "Whether the IDE should keep the console open after executing a console application",
+            "kind" : "bool"
+        },
+         "Configuration": {
+            "description": "The configuration that is being used to build the project, for example \"Debug\" or \"Release\"",
+            "kind" : "configuration"
+        },
         "ConfigurationName": "",
         "ConfigurationOverrideFile": "",
         "CreateDesktopShortcut": {
@@ -467,7 +486,8 @@
         "DebugSecurityZoneURL": "",
         "DebugSymbols": {
             "description": "Whether to emit debug symbols",
-            "kind": "bool"
+            "kind": "bool",
+            "default": "false"
         },
         "DebugType": {
             "description": "What kind of debug information to emit",
@@ -481,14 +501,9 @@
         "DefaultClientScript": "",
         "DefaultHTMLPageLayout": "",
         "DefaultTargetSchema": "",
-        "DefineConstants": "",
-        "DefineDebug": {
-            "description": "Whether DEBUG is defined",
-            "kind": "bool"
-        },
-        "DefineTrace": {
-            "description": "Whether TRACE is defined",
-            "kind": "bool"
+        "DefineConstants": {
+            "description": "Conditional compiler defines",
+            "string-list": "bool"
         },
         "DelaySign": "",
         "DisableLangXtns": "",
@@ -501,14 +516,26 @@
             "description": "Whether Visual Studio should do its own faster up-to-date check before Building, rather than invoke MSBuild to do a possibly more accurate one. You would set this to false if you have a heavily customized build process and builds in Visual Studio are not occurring when they should.",
             "kind": "bool"
         },
-        "DocumentationFile": "",
+        "DocumentationFile": {
+            "description": "Filename for the xml documentation file",
+            "kind": "string"
+        },
         "EnableASPDebugging": "",
         "EnableASPXDebugging": "",
         "EnableSQLServerDebugging": "",
         "EnableSecurityDebugging": "",
         "EnableUnmanagedDebugging": "",
         "ErrorLog": "",
-        "ErrorReport": "",
+        "ErrorReport": {
+            "description" : "Reporting behavior for internal compiler errors",
+            "values" : {
+                "prompt" : "Open a dialog asking whether you want to report the internal compiler error",
+                "queue" : "Queue the internal compiler error reports and prompt you later",
+                "send" : "Automatically report the internal compiler error to Microsoft",
+                "none" : "Do not report internal compiler error"
+            },
+            "default" : "none"
+        },
         "EmbedManifest": "",
         "ErrorReportUrl": "",
         "ExcludeDeploymentUrl": {
@@ -520,7 +547,7 @@
         "FileUpgradeFlags": "",
         "FormFactorID": "",
         "FrameworkPathOverride": {
-            "description": "Sets the /sdkpath switch for a VB project to the specified value"
+            "description": "Overrides the path to the target framework"
         },
         "GenerateManifests": "",
         "GenerateLibraryLayout": {
@@ -589,9 +616,10 @@
         },
         "NoWarn": "Comma separated list of disabled warnings",
         "OldToolsVersion": "",
-        "OutDir": "",
-        "TargetExt": "",
-        "TargetName": "",
+        "OutDir": {
+            "description": "The output directory",
+            "kind" : "folder"
+        },
         "OpenBrowserOnPublish": {
             "kind": "bool"
         },
@@ -658,7 +686,7 @@
             "kind": "url"
         },
         "ResponseFile": "",
-        "RootNamespace": "",
+        "RootNamespace": "The root namespace to use for new files",
         "RuntimeIdentifier": {
             "description": "Runtime identifier supported by the project (e.g. win10-x64)",
             "kind": "runtimeid"
@@ -677,13 +705,11 @@
         "RunPostBuildEvent": "",
         "SchemaVersion": "",
         "SecureScoping": "",
-        "SignAssembly": "",
+        "SignAssembly": {
+            "description" : "Whether to sign the assembly",
+            "kind": "bool"
+        },
         "SignManifests": "",
-        "SolutionDir": "",
-        "SolutionExt": "",
-        "SolutionFileName": "",
-        "SolutionName": "",
-        "SolutionPath": "",
         "StartAction": "",
         "StartArguments": "",
         "StartPage": "",
@@ -762,6 +788,62 @@
         },
         "WarningsAsErrors": "Comma separated list of warning numbers to treat as errors",
         "WebPage": "",
-        "Win32ResourceFile": ""
+        "Win32ResourceFile": "",
+        "TargetPath" : {
+            "description": "Absolute path of the project's primary output",
+            "kind" : "file"
+        },
+        "TargetName" : {
+            "description": "Base name of the project's primary output",
+            "kind" : "string"
+        },
+        "TargetExt" : {
+            "description": "File extension of the project's primary output",
+            "kind" : "extension"
+        },
+        "TargetDir" : {
+            "description": "Directory path of the project's primary output",
+            "kind" : "folderwithslash"
+        },
+        "ProjectDir" : {
+            "description": "Directory containing the root project",
+            "kind" : "folderwithslash"
+        },
+        "ProjectName" : {
+            "description": "Name of the project, formed by appending the extension to the base name",
+            "kind" : "string"
+        },
+        "ProjectExt" : {
+            "description": "File extension of the project",
+            "kind" : "extension"
+        },
+        "ProjectName" : {
+            "description": "Base name of the project",
+            "kind" : "string"
+        },
+        "ProjectPath" : {
+            "description": "Absolute path of the project",
+            "kind" : "file"
+        },
+        "SolutionDir": {
+            "description" : "The directory containing the solution file",
+            "kind" : "folderwithslash"
+        },
+        "SolutionName": {
+            "description" : "Base name of the solution file, without its extension",
+            "kind" : "string"
+        },
+        "SolutionExt": {
+            "description" : "The extension of the solution file.",
+            "kind" : "string"
+        },
+        "SolutionFileName": {
+            "description" : "Name of the solution file, formed by appending the extension to the base name.",
+            "kind" : "string"
+        },
+        "SolutionPath": {
+            "description" : "Absolute path of the solution file",
+            "kind" : "file"
+        }
     }
 }
