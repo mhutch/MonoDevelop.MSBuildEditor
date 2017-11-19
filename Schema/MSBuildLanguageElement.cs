@@ -149,7 +149,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			project.attributes = new [] {
 				new MSBuildLanguageAttribute ("DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildValueKind.TargetName.List ().Literal ()),
 				new MSBuildLanguageAttribute ("InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildValueKind.TargetName.List ().Literal ()),
-				new MSBuildLanguageAttribute ("ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildValueKind.ToolsVersion),
+				new MSBuildLanguageAttribute ("ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal ()),
 				new MSBuildLanguageAttribute ("TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.List ().Literal ()),
 				new MSBuildLanguageAttribute ("xmlns", ElementDescriptions.Project_xmlns, MSBuildValueKind.Xmlns.Literal ()),
 				new MSBuildLanguageAttribute ("Sdk", ElementDescriptions.Project_Sdk, MSBuildValueKind.SdkWithVersion.List().Literal ()),
