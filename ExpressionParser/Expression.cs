@@ -346,9 +346,11 @@ namespace MonoDevelop.MSBuildEditor.ExpressionParser
 		//
 		// Property function with syntax $(Registry:Call)
 		//
-		static void ParseRegistryFunction (string text, int pos)
+		static int ParseRegistryFunction (string text, int pos)
 		{
-			throw new NotImplementedException ("Registry function");
+			//ignore
+			var end = text.IndexOf (')', pos) + 1;
+			return end > 0 ? end : text.Length;
 		}
 
 		static Type GetTypeForStaticMethod (string typeName)
