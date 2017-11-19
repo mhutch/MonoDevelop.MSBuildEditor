@@ -97,9 +97,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitMetadata (XElement element, string itemName, string metadataName)
 		{
-			var item = ctx.Items [itemName];
-			if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName))
-				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
 			base.VisitMetadata (element, itemName, metadataName);
 		}
 
@@ -114,20 +111,27 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitItemReference (string itemName, int start, int length)
 		{
+			var name = itemName;
+			if (!ctx.Items.ContainsKey (name)) {
+				ctx.Items.Add (name, new ItemInfo (name, null));
+			}
 			base.VisitItemReference (itemName, start, length);
 		}
 
 		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
 		{
+			if (itemName != null && ctx.Items.TryGetValue (itemName, out ItemInfo item)) {
+				if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
+					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+				}
+			}
+
 			base.VisitMetadataReference (itemName, metadataName, start, length);
 		}
 
 		protected override void VisitProperty (XElement element)
 		{
 			var name = element.Name.Name;
-			if (!ctx.Properties.ContainsKey (name) && !Builtins.Properties.ContainsKey (name)) {
-				ctx.Properties.Add (name, new PropertyInfo (name, null));
-			}
 			propertyValues.Collect (name, element, textDocument);
 
 			base.VisitProperty (element);
@@ -135,6 +139,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitPropertyReference (string propertyName, int start, int length)
 		{
+			if (!ctx.Properties.ContainsKey (propertyName) && !Builtins.Properties.ContainsKey (propertyName)) {
+				ctx.Properties.Add (propertyName, new PropertyInfo (propertyName, null));
+			}
+
 			base.VisitPropertyReference (propertyName, start, length);
 		}
 
