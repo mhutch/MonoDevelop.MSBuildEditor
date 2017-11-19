@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in properties) {
 				var name = kv.Key;
 				if (kv.Value is JValue val) {
-					Properties [name] = new PropertyInfo (name, (string)val.Value, false, false);
+					Properties [name] = new PropertyInfo (name, (string)val.Value);
 					continue;
 				}
 				string description = null, valueSeparator = null, defaultValue = null;
@@ -91,7 +91,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {pkv.Key} in property {kv.Key}");
 					}
 				}
-				Properties[name] = new PropertyInfo (name, description, false, false, kind, values, defaultValue, valueSeparator?.ToCharArray ());
+				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue, valueSeparator?.ToCharArray ());
 			}
 		}
 
@@ -204,7 +204,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		MetadataInfo WithNewName (MetadataInfo meta, string name)
 		{
 			return new MetadataInfo (
-				name, meta.Description, meta.WellKnown, meta.Required,
+				name, meta.Description, meta.Reserved, meta.Required,
 				meta.ValueKind, meta.Values, meta.DefaultValue, meta.ValueSeparators);
 		}
 
@@ -221,7 +221,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					if (reference != null) {
 						metadata [name] = WithNewName (reference, name);
 					} else {
-						metadata [name] = new MetadataInfo (name, desc, false);
+						metadata [name] = new MetadataInfo (name, desc);
 					}
 					continue;
 				}

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
+	//FIXME: should there be flags for directories with/without/dontcare trailing slashes? absolute/relative paths?
 	[Flags]
 	enum MSBuildValueKind
 	{
@@ -30,6 +31,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		Version,
 		SuffixedVersion,
 		Lcid,
+		DateTime,
 
 		/// references to abstract types
 		TargetName,
@@ -45,13 +47,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TaskParameterName,
 		TaskParameterType,
 
+		//things related to SDKs
 		Sdk,
 		SdkVersion,
 		SdkWithVersion,
+
+		//fundamental builtin stuff
 		ToolsVersion,
 		Xmlns,
 		Label,
 		Importance,
+		HostOS,
+		HostRuntime,
+		ContinueOnError,
 
 		Condition,
 
@@ -70,6 +78,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		FolderWithSlash,
 		FileOrFolder,
 		Extension,
+		Filename,
 
 		NuGetID,
 		NuGetVersion,

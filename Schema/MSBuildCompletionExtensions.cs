@@ -98,23 +98,44 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				};
 			case MSBuildValueKind.TaskArchitecture:
 				return new BaseInfo [] {
-					new ConstantInfo ("*", null),
-					new ConstantInfo ("CurrentArchitecture", null),
-					new ConstantInfo ("x86", null),
-					new ConstantInfo ("x64", null),
+					new ConstantInfo ("*", "Any architecture"),
+					new ConstantInfo ("CurrentArchitecture", "The architecture on which MSBuild is running"),
+					new ConstantInfo ("x86", "The 32-bit x86 architecture"),
+					new ConstantInfo ("x64", "The 64-bit x64 architecture"),
 				};
 			case MSBuildValueKind.TaskRuntime:
 				return new BaseInfo [] {
-					new ConstantInfo ("*", null),
-					new ConstantInfo ("CurrentRuntime", null),
-					new ConstantInfo ("CLR2", null),
-					new ConstantInfo ("CLR4", null),
+					new ConstantInfo ("*", "Any runtime"),
+					new ConstantInfo ("CurrentRuntime", "The runtime on which MSBuild is running"),
+					new ConstantInfo ("CLR2", "The .NET 2.0 runtime"),
+					new ConstantInfo ("CLR4", "The .NET 4.0 runtime"),
 				};
 			case MSBuildValueKind.Importance:
 				return new BaseInfo [] {
-					new ConstantInfo ("high", null),
-					new ConstantInfo ("normal", null),
-					new ConstantInfo ("low", null),
+					new ConstantInfo ("high", "High importance, only displayed for all log verbosity settings"),
+					new ConstantInfo ("normal", "Normal importance"),
+					new ConstantInfo ("low", "Low importance, only displayed for highly verbose log settings")
+				};
+			case MSBuildValueKind.HostOS:
+				return new BaseInfo [] {
+					new ConstantInfo ("Windows_NT", "Running on Windows"),
+					new ConstantInfo ("Unix", "Running on Unix")
+					// deliberately ignoring Mac as it doesn't actually work
+				};
+			case MSBuildValueKind.HostRuntime:
+				return new BaseInfo [] {
+					new ConstantInfo ("Mono", "Running on Mono"),
+					new ConstantInfo ("Core", "Running on .NET Core"),
+					new ConstantInfo ("Full", "Running on .NET Framework")
+				};
+			case MSBuildValueKind.ContinueOnError:
+				return new BaseInfo [] {
+					new ConstantInfo ("WarnAndContinue", "When the task outputs errors, convert them to warnings, and continue executing other tasks and targets"),
+					new ConstantInfo ("true", "Equivalent to `WarnAndContinue`"),
+					new ConstantInfo ("ErrorAndContinue", "When the task outputs errors, continue executing other tasks and targets"),
+					new ConstantInfo ("ErrorAndStop", "When the task outputs errors, do not execute further tasks and targets"),
+					new ConstantInfo ("true", "Equivalent to `ErrorAndStop`"),
+
 				};
 			case MSBuildValueKind.TargetFramework:
 				var frameworkNames = new List<BaseInfo> ();

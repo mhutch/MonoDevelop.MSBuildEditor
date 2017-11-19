@@ -229,7 +229,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			task.attributes = new [] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Task_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
 				new MSBuildLanguageAttribute ("Architecture", ElementDescriptions.Task_Architecture, MSBuildValueKind.TaskArchitecture),
 				new MSBuildLanguageAttribute ("Runtime", ElementDescriptions.Task_Runtime, MSBuildValueKind.TaskRuntime),
 				taskParameterAtt

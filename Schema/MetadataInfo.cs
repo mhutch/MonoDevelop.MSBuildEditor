@@ -8,18 +8,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class MetadataInfo : VariableInfo
 	{
-		public bool WellKnown { get; }
+		public bool Reserved { get; }
 		public bool Required { get; }
 
 		public MetadataInfo (
-			string name, string description, bool wellKnown,
-		    bool required = false,
+			string name, string description,
+			bool reserved = false, bool required = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
 			: base (name, description, valueKind, values, defaultValue, valueSeparators)
 		{
 			Required = required;
-			WellKnown = wellKnown;
+			Reserved = reserved;
 		}
     }
 }

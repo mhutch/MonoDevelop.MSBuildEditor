@@ -9,15 +9,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	class PropertyInfo : VariableInfo
 	{
 		public bool Reserved { get; }
-		public bool WellKnown { get; }
 
 		public PropertyInfo (
-			string name, string description, bool wellKnown, bool reserved,
+			string name, string description, bool reserved = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			List<ConstantInfo> values = null, string defaultValue = null, char[] valueSeparators = null)
 			: base (name, description, valueKind, values, defaultValue, valueSeparators)
 		{
-			WellKnown = wellKnown;
 			Reserved = reserved;
 		}
     }
