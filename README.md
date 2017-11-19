@@ -48,8 +48,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Snippets
 * Task parameters from assembly metadata
 * File templates
-* Implement wildcard imports and make sure nuget targets are picked up
-* Fix whatever is stopping the C# core targets getting imported
 * Add more unit tests
 * Use a real expression parser for expression intellisense
 * Improve logic for figuring out context of unqualified metadata

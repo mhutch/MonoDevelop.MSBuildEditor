@@ -159,32 +159,90 @@ namespace MonoDevelop.MSBuildEditor.Language
 			bool foundAny = false;
 
 			//the ToList is necessary because nested parses can alter the list between this yielding values 
-			foreach (var filename in importEvalCtx.EvaluatePathWithPermutation (import, Path.GetDirectoryName (thisFilePath), propVals).ToList ()) {
+			foreach (var filename in importEvalCtx.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath), propVals).ToList ()) {
 				if (string.IsNullOrEmpty (filename)) {
 					continue;
 				}
 
-				var fi = new FileInfo (filename);
-				if (!fi.Exists) {
+				//wildcards
+				var wildcardIdx = filename.IndexOf ('*');
+				//arbitrary limit to skip improbably short values from bad evaluation
+				const int MIN_WILDCARD_STAR_IDX = 15;
+				const int MIN_WILDCARD_PATTERN_IDX = 10;
+				if (wildcardIdx > MIN_WILDCARD_STAR_IDX) {
+					var lastSlash = filename.LastIndexOf (Path.DirectorySeparatorChar);
+					if (lastSlash < MIN_WILDCARD_PATTERN_IDX) {
+						continue;
+					}
+					if (lastSlash > wildcardIdx) {
+						continue;
+					}
+
+					string [] files;
+					try {
+						var dir = filename.Substring (0, lastSlash);
+						if (!Directory.Exists (dir)) {
+							continue;
+						}
+
+						//finding the folder's enough for this to "count" as resolved even if there aren't any files in it
+						foundAny = true;
+
+						var pattern = filename.Substring (lastSlash + 1);
+
+						files = Directory.GetFiles (dir, pattern);
+					} catch (Exception ex) {
+						LoggingService.LogError ($"Error evaluating wildcard in import candidate '{filename}'", ex);
+						continue;
+					}
+
+					foreach (var f in files) {
+						Console.WriteLine (f);
+						Import wildImport;
+						try {
+							wildImport = GetCachedOrParse (f, File.GetLastWriteTimeUtc (f));
+						} catch (Exception ex) {
+							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
+							continue;
+						}
+						yield return wildImport;
+					}
+					continue;
+				}
+
+				Import import;
+				try {
+					var fi = new FileInfo (filename);
+					if (!fi.Exists) {
+						continue;
+					}
+					import = GetCachedOrParse (filename, fi.LastWriteTimeUtc);
+				} catch (Exception ex) {
+					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
 				}
 
 				foundAny = true;
-
-				if (oldDoc != null && oldDoc.Context.Imports.TryGetValue (filename, out Import oldImport) && oldImport.TimeStampUtc == fi.LastWriteTimeUtc) {
-					//TODO: check mtimes of descendent imports too
-					yield return oldImport;
-				} else {
-					//TODO: guard against cyclic imports
-					yield return ParseImport (new Import (filename, sdk, fi.LastWriteTimeUtc), projectPath, propVals, schemaProvider, token);
-				}
+				yield return import;
+				continue;
 			}
 
 			if (!foundAny) {
-				if (oldDoc == null && failedImports.Add (import)) {
-					LoggingService.LogDebug ($"Could not resolve MSBuild import '{import}'");
+				if (oldDoc == null && failedImports.Add (importExpr)) {
+					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExpr}'");
 				}
-				yield return new Import (import, sdk, DateTime.MinValue);
+				yield return new Import (importExpr, sdk, DateTime.MinValue);
+			}
+
+			Import GetCachedOrParse (string filename, DateTime mtimeUtc)
+			{
+				if (oldDoc != null && oldDoc.Context.Imports.TryGetValue (filename, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
+					//TODO: check mtimes of descendent imports too
+					return oldImport;
+				} else {
+					//TODO: guard against cyclic imports
+					return ParseImport (new Import (filename, sdk, mtimeUtc), projectPath, propVals, schemaProvider, token);
+				}
 			}
 		}
 

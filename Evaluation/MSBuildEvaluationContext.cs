@@ -88,13 +88,10 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			return MSBuildProjectService.FromMSBuildPath (basePath, filename);
 		}
 
-		internal IEnumerable<string> EvaluatePathWithPermutation(string path, string basePath, PropertyValueCollector propVals)
+		// FIXME: need to make this more efficient. can we ignore results where a property was simply not found?
+		// can we tokenize it and check each level of the path exists before drilling down?
+		internal IEnumerable<string> EvaluatePathWithPermutation (string path, string basePath, PropertyValueCollector propVals)
 		{
-			//TODO: support wildcards
-			if (path.IndexOf ('*') != -1) {
-				yield break;
-			}
-
 			//fast path for imports without properties, will generally be true for SDK imports
 			if (path.IndexOf ('$') < 0) {
 				yield return EvaluatePath (path, basePath);
