@@ -232,7 +232,13 @@ namespace MonoDevelop.MSBuildEditor
 
 			//TODO: better metadata support
 
-			var cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas ());
+			IEnumerable<BaseInfo> cinfos;
+			if (info.Values != null && info.Values.Count > 0) {
+				cinfos = info.Values;
+			} else {
+				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas ());
+			}
+
 			foreach (var ci in cinfos) {
 				list.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
 			}
