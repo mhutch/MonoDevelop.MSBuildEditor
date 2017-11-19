@@ -220,9 +220,9 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			kind = kind.GetScalarType ();
-
 			bool allowExpressions = kind.AllowExpressions ();
+
+			kind = kind.GetScalarType ();
 
 			switch (kind) {
 			case MSBuildValueKind.NuGetID:
