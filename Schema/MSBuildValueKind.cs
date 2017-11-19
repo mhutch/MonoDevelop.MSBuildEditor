@@ -72,6 +72,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TargetFrameworkIdentifier,
 		TargetFrameworkVersion,
 		TargetFrameworkProfile,
+		TargetFrameworkMoniker,
 
 		ProjectFile,
 		File,

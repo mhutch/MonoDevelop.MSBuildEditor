@@ -47,5 +47,8 @@
         },
         "VersionPrefix": "When Version is not specified, VersionPrefix represents the first fragment of the version string (e.g. 1.0.0). The syntax is VersionPrefix[-VersionSuffix].",
         "VersionSuffix": "When Version is not specified, VersionSuffix represents the second fragment of the version string (e.g. beta). The syntax is VersionPrefix[-VersionSuffix]."
+    },
+    "targets": {
+        "Pack": "Pack the project's outputs into a NuGet package"
     }
 }

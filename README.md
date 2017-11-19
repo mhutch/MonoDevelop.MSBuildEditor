@@ -61,11 +61,11 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Completion for filenames
 * Completion for metadata and property functions in expressions
 * Implement completion for the many item and value types
-* Infer property value types from names (e.g. DisableFoo=bool,ThingPath=path)
-* Treat *DependsOn properties as target lists
 * Completion of inline C#
 * show type and default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
 * tooltips should show whether metadata/property is reserved
 * completion for condition comparisions based on values compared
 * better targetframework completions
+* go to definition on targets
+* tooltips on values

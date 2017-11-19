@@ -709,7 +709,7 @@
         },
         "TargetFrameworkIdentifier":  {
             "description": "The identity of framework that this project targets, for example `.NETFramework`",
-            "kind" : "targetframeworkidentfier"
+            "kind" : "targetframeworkidentifier"
         },
         "TargetFrameworkVersion":  {
             "description": "The version of the framework that this project targets, for example `v4.0`",
@@ -862,5 +862,48 @@
             "description" : "Whether to close the external console after running a console application in the IDE",
             "kind" : "bool"
         }
+    },
+    "targets": {
+        "Build": "Builds the project",
+        "Cleans": "Deletes the project's intermediate and final outputs",
+        "Rebuild": "Cleans and then rebuilds the project",
+        "Restore": "Restores NuGet packages required to build the project",
+        "Publish": "Prepares the project's outputs for distribution and copies them to the publish folder",
+        "ResolveReferences": "Resolves the assembly and project references",
+        "ResolveAssemblyReferences": "Resolves assembly references to assemblies and satellite files",
+        "ResolveProjectReferences": "Builds referenced projects and resolves their outputs",
+        "AssignLinkMetadata": "Assigns default values for the `Link` metadata on several item types",
+        "AssignProjectConfiguration": "Assigns configurations to project references based on the solutiom configuration mappings",
+        "GetTargetPath": "Called by a referencing project to determine the path to the project's output",
+        "PrepareResources": "Prepares resources for the Compile step",
+        "AssignTargetPaths": "Assigns `TargetPath` metadata on several item types",
+        "ResGen": "Compiles resx resource files",
+        "Compile": "Resolves references and compiles the assembly",
+        "CoreCompile": "Invokes the compiler to compile the assembly",
+        "GenerateTargetFrameworkMonikerAttribute": "Injects a source file containing the TargetFrameworkMonikerAttribute",
+        "CreateSatelliteAssemblies": "Creates satellite assemblies for the cultures in the resources",
+        "ComputeIntermediateSatelliteAssemblies": "Determines the paths for the satellite assemblies to be created",
+        "PrepareForRun": "Copies updated build outputs to the output directory",
+        "CopyFilesToOutputDirectory": "Copies updated assemblies and other outputs to the output directory",
+        "GetCopyToOutputDirectoryItems": "Gets items to be copied to the output directory from this project and its immediate references",
+        "GetCopyToPublishDirectoryItems": "Gets items to be copied to the publish directory from this project and its immediate references",
+        "IncrementalClean": "Deletes any files produced by a prior build that are not in the FileWrites items for the current build",
+        "CleanReferencedProjects": "Call the Clean target on referenced projects",
+        "CleanPublishFolder": "Delete the contents of the publish folder",
+    
+        "BeforeCompile" : "Runs before the Compile target. Can be safely overridden in project files.",
+        "AfterCompile" : "Runs after the Compile target. Can be safely overridden in project files.",
+        "BeforeBuild" : "Runs before the Build target. Can be safely overridden in project files.",
+        "AfterBuild" : "Runs after the Build target. Can be safely overridden in project files.",
+        "BeforeRebuild" : "Runs before the Rebuild target. Can be safely overridden in project files.",
+        "AfterRebuild" : "Runs after the Rebuild target. Can be safely overridden in project files.",
+        "BeforeClean" : "Runs before the Clean target. Can be safely overridden in project files.",
+        "AfterClean" : "Runs after the Clean target. Can be safely overridden in project files.",
+        "BeforePublish" : "Runs before the Publish target. Can be safely overridden in project files.",
+        "AfterPublish" : "Runs after the Publish target. Can be safely overridden in project files.",
+        "BeforeResolveReferences" : "Runs before the ResolveReferences target. Can be safely overridden in project files.",
+        "AfterResolveReferences" : "after before the ResolveReferences target. Can be safely overridden in project files.",
+        "BeforeResGen" : "Runs before the ResGen target. Can be safely overridden in project files.",
+        "AfterResGen" : "Runs after the ResGen target. Can be safely overridden in project files.",
     }
 }
