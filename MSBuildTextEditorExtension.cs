@@ -213,6 +213,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			kind = kind.GetScalarType ();
 
+			var list = new CompletionDataList { TriggerWordLength = triggerLength };
+			list.AutoSelect = false;
+
 			switch (kind) {
 			case MSBuildValueKind.NuGetID:
 				return GetPackageNameCompletions (doc, Editor.CaretOffset - triggerLength, triggerLength);
@@ -220,11 +223,10 @@ namespace MonoDevelop.MSBuildEditor
 				return GetPackageVersionCompletions (doc, rr, Editor.CaretOffset - triggerLength, triggerLength);
 			case MSBuildValueKind.Sdk:
 				return GetSdkCompletions (triggerLength, token);
+			case MSBuildValueKind.Guid:
+				list.Add (new GenerateGuidCompletionData ());
+				break;
 			}
-
-			var list = new CompletionDataList { TriggerWordLength = triggerLength };
-			list.AutoSelect = false;
-
 			//TODO: better metadata support
 
 			IEnumerable<BaseInfo> cinfos;
