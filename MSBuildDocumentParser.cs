@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using MonoDevelop.Ide.TypeSystem;
 
-namespace MonoDevelop.MSBuildEditor.Language
+namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildDocumentParser : TypeSystemParser
 	{

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MonoDevelop.MSBuildEditor {
+namespace MonoDevelop.MSBuildEditor.Schema {
     using System;
     using System.Reflection;
     
@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuildEditor {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("MonoDevelop.MSBuildEditor.ElementDescriptions", typeof(ElementDescriptions).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("MonoDevelop.MSBuildEditor.Schema.ElementDescriptions", typeof(ElementDescriptions).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

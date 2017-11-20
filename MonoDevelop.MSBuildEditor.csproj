@@ -95,7 +95,6 @@
     <Compile Include="Language\Annotations.cs" />
     <Compile Include="Language\AnnotationTable.cs" />
     <Compile Include="Language\Import.cs" />
-    <Compile Include="Language\MSBuildDocumentParser.cs" />
     <Compile Include="Language\MSBuildDocumentResolver.cs" />
     <Compile Include="Language\MSBuildResolveContext.cs" />
     <Compile Include="Language\MSBuildResolveVisitor.cs" />
@@ -105,7 +104,6 @@
     <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
     <Compile Include="PackageSearch\PackageSearchCompletionDataList.cs" />
     <Compile Include="Language\MSBuildReferenceCollector.cs" />
-    <Compile Include="Language\MSBuildParsedDocument.cs" />
     <Compile Include="Language\XmlExtensions.cs" />
     <Compile Include="Schema\BaseInfo.cs" />
     <Compile Include="Schema\PropertyInfo.cs" />
@@ -117,7 +115,6 @@
     <Compile Include="Schema\MSBuildLanguageElement.cs" />
     <Compile Include="Schema\MSBuildSchema.cs" />
     <Compile Include="Schema\ConstantInfo.cs" />
-    <Compile Include="Language\MonoDevelopMSBuildSchemaProvider.cs" />
     <Compile Include="Schema\MSBuildSchemaProvider.cs" />
     <Compile Include="Schema\IMSBuildSchema.cs" />
     <Compile Include="Schema\MSBuildSchemaExtensions.cs" />
@@ -126,9 +123,6 @@
     <Compile Include="Schema\MSBuildLanguageAttribute.cs" />
     <Compile Include="Schema\MSBuildKind.cs" />
     <Compile Include="Schema\MSBuildValueKind.cs" />
-    <Compile Include="ElementDescriptions.Designer.cs">
-      <DependentUpon>ElementDescriptions.resx</DependentUpon>
-    </Compile>
     <Compile Include="Schema\DescriptionFormatter.cs" />
     <Compile Include="LabelTooltipWindow.cs" />
     <Compile Include="Language\ExpressionCompletion.cs" />
@@ -139,6 +133,12 @@
     <Compile Include="DescriptionMarkupFormatter.cs" />
     <Compile Include="PackageSearch\PackageSearchCompletionData.cs" />
     <Compile Include="GenerateGuidCompletionData.cs" />
+    <Compile Include="Schema\ElementDescriptions.Designer.cs">
+      <DependentUpon>ElementDescriptions.resx</DependentUpon>
+    </Compile>
+    <Compile Include="MSBuildParsedDocument.cs" />
+    <Compile Include="MSBuildDocumentParser.cs" />
+    <Compile Include="MonoDevelopMSBuildSchemaProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
@@ -146,16 +146,16 @@
       <LogicalName>MSBuildStylePolicy.xml</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
-    <EmbeddedResource Include="ElementDescriptions.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="Schemas\VisualBasic.buildschema.json" />
     <EmbeddedResource Include="Schemas\CodeAnalysis.buildschema.json" />
     <EmbeddedResource Include="Schemas\Cpp.buildschema.json" />
     <EmbeddedResource Include="Schemas\CSharp.buildschema.json" />
     <EmbeddedResource Include="Schemas\NetSdk.buildschema.json" />
     <EmbeddedResource Include="Schemas\NuGetPack.buildschema.json" />
+    <EmbeddedResource Include="Schema\ElementDescriptions.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
@@ -165,10 +165,10 @@
     <AddinReference Include="MonoDevelop.AspNet" />
     <AddinReference Include="MonoDevelop.Refactoring" />
     <AddinReference Include="MonoDevelop.PackageManagement" />
-    <PackageReference Include="System.Net.Http" Version="4.3.3" />
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.1" />
     <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\ProjectFileTools.NuGetSearch.csproj" />

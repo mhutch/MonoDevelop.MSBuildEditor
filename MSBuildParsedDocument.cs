@@ -17,8 +17,9 @@ using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuildEditor.Schema;
+using MonoDevelop.MSBuildEditor.Language;
 
-namespace MonoDevelop.MSBuildEditor.Language
+namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildParsedDocument : XmlParsedDocument
 	{
