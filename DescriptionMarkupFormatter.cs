@@ -68,8 +68,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			List<(string prefix, string subst)> prefixes = null;
 
+			int count = 0;
 			foreach (var s in seenIn) {
-				if (sb == null) {
+				if (count++ == 0) {
 					sb = new StringBuilder ();
 					prefixes = GetPrefixes (runtimeInfo);
 					if (!string.IsNullOrEmpty (baseDesc)) {
@@ -80,6 +81,11 @@ namespace MonoDevelop.MSBuildEditor
 				}
 				sb.AppendLine ();
 				sb.Append ("  ");
+
+				if (count == 4) {
+					sb.Append ("...");
+					break;
+				}
 
 				//factor out some common prefixes into variables
 				//we do this instead of using the original string, as the result is simpler
