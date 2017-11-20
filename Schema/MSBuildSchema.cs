@@ -105,7 +105,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				var name = kv.Key;
 				string description = null, includeDescription = null;
 				var kind = MSBuildValueKind.Unknown;
-				Dictionary<string, MetadataInfo> metadata = null;
+				JObject metadata = null;
 				foreach (var ikv in (JObject)kv.Value) {
 					switch (ikv.Key) {
 					case "description":
@@ -118,13 +118,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						includeDescription = (string)((JValue)ikv.Value).Value;
 						break;
 					case "metadata":
-						metadata = GetMetadata (name, (JObject)ikv.Value);
+						metadata = (JObject)ikv.Value;
 						break;
 					default:
 						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
 					}
 				}
-				Items[name] = new ItemInfo (name, description, includeDescription, kind, metadata);
+				var item = new ItemInfo (name, description, includeDescription, kind);
+				AddMetadata (item, metadata);
+				Items [name] = item;
 			}
 		}
 
@@ -191,42 +193,41 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return result;
 		}
 
-		MetadataInfo GetMetadataReference (string desc, Dictionary<string, MetadataInfo> parent, string parentName)
+		MetadataInfo GetMetadataReference (string desc, ItemInfo parent)
 		{
 			if (!desc.StartsWith ("%(", StringComparison.Ordinal) || !desc.EndsWith (")", StringComparison.Ordinal)) {
 				return null;
 			}
 			var split = desc.Substring (2, desc.Length - 3).Split ('.');
-			if (split.Length == 1 && parent != null && parent.TryGetValue (split[0], out MetadataInfo sibling)) {
+			if (split.Length == 1 && parent != null && parent.Metadata.TryGetValue (split[0], out MetadataInfo sibling)) {
 				return sibling;
 			}
 			if (split.Length == 2 && Items.TryGetValue (split[0], out ItemInfo item) && item.Metadata.TryGetValue (split [1], out MetadataInfo cousin)) {
 				return cousin;
 			}
-			throw new Exception ($"Invalid metadata reference {desc} in item {parentName}");
+			throw new Exception ($"Invalid metadata reference {desc} in item {parent.Name}");
 		}
 
-		MetadataInfo WithNewName (MetadataInfo meta, string name)
+		MetadataInfo WithNewName (MetadataInfo meta, string name, ItemInfo item)
 		{
 			return new MetadataInfo (
 				name, meta.Description, meta.Reserved, meta.Required,
-				meta.ValueKind, meta.Values, meta.DefaultValue, meta.ValueSeparators);
+				meta.ValueKind, item, meta.Values, meta.DefaultValue, meta.ValueSeparators);
 		}
 
-		Dictionary<string, MetadataInfo> GetMetadata (string itemName, JObject metaObj)
+		void AddMetadata (ItemInfo item, JObject metaObj)
 		{
-			var metadata = new Dictionary<string, MetadataInfo> ();
 			foreach (var kv in metaObj) {
 				var name = kv.Key;
 
 				//simple version, just a description string
 				if (kv.Value is JValue value) {
 					var desc = ((string)value.Value).Trim ();
-					var reference = GetMetadataReference (desc, metadata, itemName);
+					var reference = GetMetadataReference (desc, item);
 					if (reference != null) {
-						metadata [name] = WithNewName (reference, name);
+						item.Metadata.Add (name, WithNewName (reference, name, item));
 					} else {
-						metadata [name] = new MetadataInfo (name, desc);
+						item.Metadata.Add (name, new MetadataInfo (name, desc));
 					}
 					continue;
 				}
@@ -246,7 +247,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					case "values":
 						switch (mkv.Value) {
 						case JValue jv:
-							var metaRef = GetMetadataReference ((string)jv.Value, metadata, itemName);
+							var metaRef = GetMetadataReference ((string)jv.Value, item);
 							if (metaRef == null) {
 								throw new Exception ("Invalid metadata reference");
 							}
@@ -270,9 +271,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {mkv.Key} in metadata {kv.Key}");
 					}
 				}
-				metadata[name] = new MetadataInfo (name, description, false, required, kind, values, defaultValue, valueSeparators?.ToCharArray ());
+				item.Metadata.Add (
+					name,
+					new MetadataInfo (
+						name, description, false, required, kind, item,
+						values, defaultValue, valueSeparators?.ToCharArray ()
+					)
+				);
 			}
-			return metadata;
 		}
 
 		List<ConstantInfo> GetValues (JObject value)

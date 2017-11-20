@@ -9,7 +9,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public static string GetDescription (BaseInfo info, MSBuildResolveContext ctx, MSBuildResolveResult rr)
 		{
-			if (ctx == null || rr == null) {
+			if (ctx == null) {
 				return info.Description;
 			}
 
@@ -46,7 +46,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return info.Description;
 		}
 
-		public static (string kind, string name) GetTitle (BaseInfo info, MSBuildResolveResult rr)
+		public static (string kind, string name) GetTitle (BaseInfo info)
 		{
 			switch (info) {
 			case MSBuildLanguageElement el:
@@ -61,13 +61,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case ItemInfo item:
 				return ("item", info.Name);
 			case PropertyInfo prop:
-				return ("property", info.Name);
+				return (prop.Reserved? "reserved property" : "property", info.Name);
 			case TargetInfo prop:
 				return ("target", info.Name);
 			case MetadataInfo meta:
 				return (
-					"metadata",
-					rr.ReferenceItemName != null ? $"{rr.ReferenceItemName}.{info.Name}" : info.Name
+					meta.Reserved ? "reserved metadata" : "metadata",
+					meta.Item != null ? $"{meta.Item.Name}.{info.Name}" : info.Name
 				);
 			case TaskInfo task:
 				return ("task", info.Name);

@@ -1,23 +1,20 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Components;
-using MonoDevelop.Core;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Editor;
-using MonoDevelop.Ide.Editor.Highlighting;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor
 {
-	public class MSBuildTooltipProvider : TooltipProvider
+	class MSBuildTooltipProvider : TooltipProvider
 	{
         public override Task<TooltipItem> GetItem(TextEditor editor, DocumentContext ctx, int offset, CancellationToken token = default(CancellationToken))
         {
@@ -40,31 +37,39 @@ namespace MonoDevelop.MSBuildEditor
 			if (rr != null) {
 				var info = rr.GetResolvedReference (doc.Context.GetSchemas ());
 				if (info != null) {
-					var item = new InfoItem { Info = info, Doc = doc, ResultResult = rr };
+					var item = new InfoItem { Info = info, Doc = doc, ResolveResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
 				}
 			}
 			return Task.FromResult<TooltipItem> (null);
         }
 
+		public static TooltipInformation CreateTooltipInformation (MSBuildParsedDocument doc, BaseInfo info, MSBuildResolveResult rr)
+		{
+			var formatter = new DescriptionMarkupFormatter (doc.Context, doc.RuntimeInformation);
+			var nameMarkup = formatter.GetNameMarkup (info);
+			if (nameMarkup == null) {
+				return null;
+			}
+
+			var desc = DescriptionFormatter.GetDescription (info, doc.Context, rr);
+
+			return new TooltipInformation {
+				SignatureMarkup = nameMarkup,
+				SummaryMarkup = GLib.Markup.EscapeText (desc),
+				FooterMarkup = formatter.GetSeenInMarkup (info)
+			};
+		}
+
 		public override Window CreateTooltipWindow (TextEditor editor, DocumentContext ctx, TooltipItem item, int offset, Xwt.ModifierKeys modifierState)
 		{
 			if (item.Item is InfoItem infoItem) {
-				var nameMarkup = GetNameMarkup (infoItem);
-				if (nameMarkup == null) {
+				var ti = CreateTooltipInformation (infoItem.Doc, infoItem.Info, infoItem.ResolveResult);
+				if (ti == null) {
 					return null;
 				}
 
-				var desc = DescriptionFormatter.GetDescription (infoItem.Info, infoItem.Doc.Context, infoItem.ResultResult);
-
 				var window = new TooltipInformationWindow ();
-				var ti = new TooltipInformation {
-					SignatureMarkup = nameMarkup,
-					SummaryMarkup = GLib.Markup.EscapeText (desc),
-					FooterMarkup = MSBuildCompletionData.AppendSeenInMarkup (
-						infoItem.Doc.Context, infoItem.Doc.RuntimeInformation, infoItem.Info,
-						null, GetColor ("entity.name.tag.xml"))
-				};
 				window.AddOverload (ti);
 				window.ShowArrow = true;
 				window.RepositionWindow ();
@@ -100,41 +105,10 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		static string GetNameMarkup (InfoItem info)
-		{
-			var color = GetColor ("keyword");
-			var label = DescriptionFormatter.GetTitle (info.Info, info.ResultResult);
-			if (label.kind == null) {
-				return null;
-			}
-			return $"{label.kind} <span foreground=\"{color}\">{GLib.Markup.EscapeText (label.name)}</span>";
-		}
-
-		internal static string GetColor (string id)
-		{
-			var theme = GetColorTheme ();
-			var color = SyntaxHighlightingService.GetColorFromScope (theme, id, EditorThemeColors.Foreground);
-			return color.ToPangoString ();
-
-		}
-
-		static EditorTheme GetColorTheme ()
-		{
-			try {
-				var theme = SyntaxHighlightingService.GetEditorTheme (Ide.IdeApp.Preferences.ColorScheme);
-				if (theme.FitsIdeTheme (Ide.IdeApp.Preferences.UserInterfaceTheme))
-					return theme;
-				return Ide.IdeApp.Preferences.UserInterfaceTheme.GetDefaultColorStyle ();
-			} catch (Exception e) {
-				LoggingService.LogError ("Error getting color theme", e);
-				return SyntaxHighlightingService.DefaultColorStyle;
-			}
-		}
-
 		class InfoItem
 		{
 			public BaseInfo Info;
-			public MSBuildResolveResult ResultResult;
+			public MSBuildResolveResult ResolveResult;
 			public MSBuildParsedDocument Doc;
 		}
     }

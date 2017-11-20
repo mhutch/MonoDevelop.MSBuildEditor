@@ -15,11 +15,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			string name, string description,
 			bool reserved = false, bool required = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+			ItemInfo item = null,
 			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
 			: base (name, description, valueKind, values, defaultValue, valueSeparators)
 		{
+			Item = item;
 			Required = required;
 			Reserved = reserved;
 		}
+
+		public ItemInfo Item { get; internal set; }
     }
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language

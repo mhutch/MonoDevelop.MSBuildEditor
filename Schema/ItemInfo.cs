@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			IncludeDescription = includeDescription;
 		}
 
-		public Dictionary<string,MetadataInfo> Metadata { get; private set; }
+		public Dictionary<string,MetadataInfo> Metadata { get; }
 
 		//custom description for the kinds of items in the include
 		public string IncludeDescription { get; }

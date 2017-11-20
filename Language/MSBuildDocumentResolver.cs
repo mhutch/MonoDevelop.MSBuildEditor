@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var item = ctx.Items [itemName];
 			if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
-				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 			}
 			base.VisitMetadataAttribute (attribute, itemName, metadataName);
 		}
@@ -122,7 +122,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			if (itemName != null && ctx.Items.TryGetValue (itemName, out ItemInfo item)) {
 				if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
-					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null));
+					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 				}
 			}
 

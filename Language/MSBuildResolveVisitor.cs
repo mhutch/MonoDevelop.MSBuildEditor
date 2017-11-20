@@ -184,6 +184,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		Metadata,
 		Task,
 		TaskParameter,
-		Keyword
+		Keyword,
+		Target
 	}
 }
