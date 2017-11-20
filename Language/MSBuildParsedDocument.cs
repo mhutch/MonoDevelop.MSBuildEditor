@@ -200,7 +200,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 
 					foreach (var f in files) {
-						Console.WriteLine (f);
 						Import wildImport;
 						try {
 							wildImport = GetCachedOrParse (f, File.GetLastWriteTimeUtc (f));
