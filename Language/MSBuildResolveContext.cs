@@ -254,14 +254,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var files = new HashSet<string> ();
 			foreach (var ctx in GetDescendentContexts ()) {
-				if (ctx.WasSeen (info)) {
+				if (ctx.ContainsInfo (info)) {
 					files.Add (ctx.Filename);
 				}
 			}
 			return files;
 		}
 
-		bool WasSeen (BaseInfo info)
+		public bool ContainsInfo (BaseInfo info)
 		{
 			if (info is PropertyInfo)
 				return Properties.ContainsKey (info.Name);

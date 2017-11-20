@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -48,8 +49,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Property:
 			case MSBuildReferenceKind.Item:
-			case MSBuildReferenceKind.Metadata:
 			case MSBuildReferenceKind.Task:
+			case MSBuildReferenceKind.Metadata:
 				return !string.IsNullOrEmpty (rr.ReferenceName);
 			}
 
@@ -70,6 +71,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
+		}
+
+		public static bool ShouldSearchReference (MSBuildResolveContext ctx, MSBuildResolveResult rr)
+		{
+			switch (rr.ReferenceKind) {
+			case MSBuildReferenceKind.Property:
+				return Builtins.Properties.ContainsKey (rr.ReferenceName)
+					|| ctx.Properties.ContainsKey (rr.ReferenceName);
+			case MSBuildReferenceKind.Item:
+				return ctx.Items.ContainsKey (rr.ReferenceName);
+			case MSBuildReferenceKind.Task:
+				return ctx.Items.ContainsKey (rr.ReferenceName);
+			case MSBuildReferenceKind.Metadata:
+				return Builtins.Metadata.ContainsKey (rr.ReferenceName)
+					|| rr.ReferenceItemName == null
+					|| (ctx.Items.TryGetValue (rr.ReferenceItemName, out ItemInfo item) && item.Metadata.ContainsKey (rr.ReferenceName));
+			case MSBuildReferenceKind.Target:
+				return ctx.Targets.ContainsKey (rr.ReferenceName);
+			}
+			return true;
 		}
 	}
 

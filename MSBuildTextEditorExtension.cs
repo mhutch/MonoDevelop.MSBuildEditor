@@ -356,6 +356,10 @@ namespace MonoDevelop.MSBuildEditor
 				if (!import.IsResolved || !File.Exists (import.Filename)) {
 					continue;
 				}
+				//avoid searching a reference if the item has not been seen in it
+				if (!MSBuildReferenceCollector.ShouldSearchReference (import.ResolveContext, rr)) {
+					continue;
+				}
 				tasks.Add (Task.Run (() => {
 					try {
 						var xmlParser = new XmlParser (new XmlRootState (), true);
