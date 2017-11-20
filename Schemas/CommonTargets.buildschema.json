@@ -213,7 +213,7 @@
                     "values": {
                         "Never": "Do not copy the file",
                         "Always": "Always copy the file",
-                        "PreservNewest": "Copy the file if it is newer than the existing copy"
+                        "PreserveNewest": "Copy the file if it is newer than the existing copy"
                     },
                     "default": "Never"
                 },
