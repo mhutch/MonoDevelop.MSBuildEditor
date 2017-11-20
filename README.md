@@ -67,3 +67,5 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * go to definition on targets
 * tooltips on values
 * parameter info tooltip when completing values
+* go to package page on nugets
+* prettier package tooltips
