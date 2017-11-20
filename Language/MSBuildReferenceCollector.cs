@@ -129,7 +129,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
 		{
-			if (IsMatch (metadataName) && IsItemNameMatch (itemName)) {
+			if (IsMatch (metadataName) && (this.itemName == null || IsItemNameMatch (itemName))) {
 				Results.Add ((start, length));
 			}
 			base.VisitMetadataReference (itemName, metadataName, start, length);
