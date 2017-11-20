@@ -43,6 +43,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
+			if (info.Description == null) {
+				if (info is PropertyInfo prop && info.Name.EndsWith ("DependsOn", System.StringComparison.OrdinalIgnoreCase)) {
+					var targetName = info.Name.Substring (0, info.Name.Length - "DependsOn".Length);
+					return $"The targets that the {targetName} target depends on";
+				}
+			}
+
 			return info.Description;
 		}
 
