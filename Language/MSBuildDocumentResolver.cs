@@ -176,24 +176,18 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitUnknownElement (XElement element)
 		{
+			if (isToplevel) {
+				ctx.Errors.Add (new Error (ErrorType.Error, $"Unknown element '{element.Name.FullName}'", element.Region));
+			}
 			base.VisitUnknownElement (element);
 		}
 
-		void ValidateAttributes (XElement element, MSBuildLanguageElement kind)
+		protected override void VisitUnknownAttribute (XElement element, XAttribute attribute)
 		{
-			//TODO these need special handling
-			if (kind.Kind == MSBuildKind.Item || kind.Kind == MSBuildKind.Task) {
-				return;
+			if (isToplevel) {
+				ctx.Errors.Add (new Error (ErrorType.Error, $"Unknown attribute '{attribute.Name.FullName}'", attribute.Region));
 			}
-
-			//TODO: check required attributes
-			//TODO: validate attribute expressions
-			foreach (var att in element.Attributes) {
-				var valid = kind.Attributes.Any (a => string.Equals (att.Name.FullName, a.Name, System.StringComparison.OrdinalIgnoreCase));
-				if (!valid) {
-					ctx.Errors.Add (new Error (ErrorType.Error, $"Unknown attribute '{att.Name.FullName}'", att.Region));
-				}
-			}
+			base.VisitUnknownAttribute (element, attribute);
 		}
 	}
 }
