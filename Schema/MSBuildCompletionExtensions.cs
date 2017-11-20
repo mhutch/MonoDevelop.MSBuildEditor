@@ -269,6 +269,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				if (EndsWith ("Path")) {
 					return MSBuildValueKind.FileOrFolder;
 				}
+				if (EndsWith ("Paths")) {
+					return MSBuildValueKind.FileOrFolder.List ();
+				}
 				if (EndsWith ("Directory")
 				    || EndsWith ("Dir"))
 				{
@@ -287,13 +290,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					return MSBuildValueKind.Extension;
 				}
 				if (EndsWith ("Guid")) {
-					return MSBuildValueKind.Extension;
+					return MSBuildValueKind.Guid;
 				}
 				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
 					return MSBuildValueKind.Folder.List ();
 				}
 				if (EndsWith ("Files")) {
-					return MSBuildValueKind.Folder.List ();
+					return MSBuildValueKind.File.List ();
 				}
 			}
 
