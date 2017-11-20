@@ -125,7 +125,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 				}
 				var item = new ItemInfo (name, description, includeDescription, kind);
-				AddMetadata (item, metadata);
+				if (metadata != null) {
+					AddMetadata (item, metadata);
+				}
 				Items [name] = item;
 			}
 		}
