@@ -132,6 +132,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (string.IsNullOrWhiteSpace (name)) {
 				return null;
 			}
+
 			return Task.FromResult<ICompletionDataList> (
 				new PackageNameSearchCompletionDataList (name, PackageSearchManager, GetTargetFramework (doc)) {
 					TriggerWordStart = startIdx,
@@ -198,6 +199,15 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
+			if (triggerState == ExpressionCompletion.TriggerState.QuoteValue) {
+				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc.Context.GetSchemas ());
+				var l = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
+				foreach (var ci in conditionCompletions) {
+					l.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
+				}
+				return l.Count == 0? null : Task.FromResult<ICompletionDataList> (l);
+			}
+
 			var info = rr.GetElementOrAttributeValueInfo (doc.Context.GetSchemas ());
 			if (info == null) {
 				return null;
@@ -213,8 +223,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			kind = kind.GetScalarType ();
 
-			var list = new CompletionDataList { TriggerWordLength = triggerLength };
-			list.AutoSelect = false;
+			var list = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
 
 			switch (kind) {
 			case MSBuildValueKind.NuGetID:

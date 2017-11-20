@@ -62,7 +62,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Completion of inline C#
 * show type and default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
-* completion for condition comparisions based on values compared
 * better targetframework completions
 * go to definition on targets
 * tooltips on values

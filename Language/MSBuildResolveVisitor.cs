@@ -30,12 +30,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
 			MSBuildLanguageElement languageElement = null;
+			MSBuildLanguageAttribute languageAttribute = null;
 			XElement el = null;
 			XAttribute att = null;
 
 			foreach (var node in nodePath) {
 				if (node is XAttribute xatt && xatt.Name.Prefix == null) {
 					att = xatt;
+					languageAttribute = languageElement?.GetAttribute (att.Name.Name);
 					break;
 				}
 
@@ -61,6 +63,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var rr = new MSBuildResolveResult {
 				LanguageElement = languageElement,
+				LanguageAttribute = languageAttribute,
 				XElement = el,
 				XAttribute = att
 			};
@@ -164,6 +167,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public XAttribute XAttribute;
 
 		public MSBuildLanguageElement LanguageElement;
+		public MSBuildLanguageAttribute LanguageAttribute;
 
 		public string AttributeName => XAttribute?.Name.Name;
 		public string ElementName => XElement?.Name.Name;
@@ -185,6 +189,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		Task,
 		TaskParameter,
 		Keyword,
-		Target
+		Target,
+		Value
 	}
 }

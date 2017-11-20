@@ -2,11 +2,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using MonoDevelop.Xml.Parser;
-using MonoDevelop.MSBuildEditor.Schema;
-using System.Linq;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using MonoDevelop.MSBuildEditor.ExpressionParser;
+using MonoDevelop.MSBuildEditor.Schema;
+using MonoDevelop.Projects.Formats.MSBuild.Conditions;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -99,7 +101,28 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
+			// trigger on '
+			if (lastChar == '\'' && OddQuotes (expression)) {
+				return TriggerState.QuoteValue;
+			}
+
+			//trigger on letter after '
+			if (expression.Length >= 2 && expression [expression.Length - 2] == '\'' && char.IsLetter (lastChar) && OddQuotes (expression)) {
+				return TriggerState.QuoteValue;
+			}
+
 			return TriggerState.None;
+		}
+
+		static bool OddQuotes (string s)
+		{
+			bool odd = false;
+			foreach (char c in s) {
+				if (c == '\'') {
+					odd = !odd;
+				}
+			}
+			return odd;
 		}
 
 		public enum TriggerState
@@ -111,6 +134,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Item,
 			Property,
 			Metadata,
+			QuoteValue
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (TriggerState trigger, MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas)
@@ -126,6 +150,115 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return schemas.GetProperties (true);
 			}
 			throw new InvalidOperationException ();
+		}
+
+		public static IEnumerable<BaseInfo> GetConditionValueCompletion (MSBuildResolveResult rr, string expression, IEnumerable<IMSBuildSchema> schemas)
+		{
+			if (rr.LanguageAttribute == null || rr.LanguageAttribute.ValueKind != MSBuildValueKind.Condition) {
+				yield break;
+			}
+
+			var tokens = new List<Token> ();
+			var tokenizer = new ConditionTokenizer ();
+			tokenizer.Tokenize (expression);
+			while (tokenizer.Token.Type != TokenType.EOF) {
+				tokens.Add (tokenizer.Token);
+				tokenizer.GetNextToken ();
+			}
+
+			if (tokens.Count < 3) {
+				yield break;
+			}
+
+			//check we're starting a value
+			var last = tokens [tokens.Count - 1];
+			if (last.Type != TokenType.Apostrophe && (last.Type != TokenType.String || last.Value.Length > 0)) {
+				yield break;
+			}
+
+			//check it was preceded by a comparision
+			var penultimate = tokens [tokens.Count - 2];
+			switch (penultimate.Type) {
+			case TokenType.Equal:
+			case TokenType.NotEqual:
+			case TokenType.Less:
+			case TokenType.LessOrEqual:
+			case TokenType.Greater:
+			case TokenType.GreaterOrEqual:
+				break;
+			default:
+				yield break;
+			}
+
+			var variables = ReadPrecedingComparandVariables (tokens, tokens.Count - 3, schemas);
+
+			foreach (var variable in variables) {
+				if (variable != null) {
+					IEnumerable<BaseInfo> cinfos;
+					if (variable.Values != null && variable.Values.Count > 0) {
+						cinfos = variable.Values;
+					} else {
+						cinfos = MSBuildCompletionExtensions.GetValueCompletions (variable.ValueKind, schemas);
+					}
+					if (cinfos != null) {
+						foreach (var ci in cinfos) {
+							yield return ci;
+						}
+					}
+					continue;
+
+				}
+			}
+		}
+
+		//TODO: unqualified metadata
+		static IEnumerable<VariableInfo> ReadPrecedingComparandVariables (List<Token> tokens, int index, IEnumerable<IMSBuildSchema> schemas)
+		{
+			var expr = tokens [index];
+			if (expr.Type == TokenType.String) {
+				var parser = new Expression ();
+				parser.Parse (expr.ToString (), ParseOptions.AllowItems | ParseOptions.AllowMetadata);
+				foreach (var val in parser.Collection) {
+					if (val is PropertyReference pr) {
+						var info = schemas.GetProperty (pr.Name);
+						if (info != null) {
+							yield return info;
+						}
+					}
+					else if (val is MetadataReference mr && !string.IsNullOrEmpty (mr.ItemName)) {
+						foreach (var m in schemas.GetMetadata (mr.ItemName, true)) {
+							yield return m;
+						}
+					}
+				}
+			}
+
+			if (expr.Type == TokenType.RightParen && index - 3 >= 0) {
+				if (Readback (1, TokenType.String)) {
+					if (Readback (2, TokenType.LeftParen)){
+						if (Readback (3, TokenType.Property)) {
+							var info = schemas.GetProperty (ValueBack (1));
+							if (info != null) {
+								yield return info;
+							}
+							yield break;
+						}
+						if (Readback (3, TokenType.Metadata)) {
+							//TODO: handle unqualified metadata
+							yield break;
+						}
+					}
+					if (index - 4 >= 0 && Readback (2, TokenType.Dot) && Readback (3, TokenType.String) && Readback (4, TokenType.LeftParen) && Readback (5, TokenType.Metadata)) {
+						var info = schemas.GetMetadata (ValueBack (3), ValueBack (1), true);
+						if (info != null) {
+							yield return info;
+						}
+					}
+				}
+			}
+
+			bool Readback (int i, TokenType type) => tokens [index - i].Type == type;
+			string ValueBack (int i) => tokens [index - i].Value;
 		}
 	}
 }
