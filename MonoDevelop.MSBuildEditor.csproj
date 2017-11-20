@@ -137,6 +137,7 @@
     <Compile Include="Language\IRuntimeInformation.cs" />
     <Compile Include="MSBuildRuntimeInformation.cs" />
     <Compile Include="DescriptionMarkupFormatter.cs" />
+    <Compile Include="PackageSearch\PackageSearchCompletionData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

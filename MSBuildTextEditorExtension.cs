@@ -133,10 +133,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			return Task.FromResult<ICompletionDataList> (
-				new PackageSearchCompletionDataList (
-					name,
-					(n) => PackageSearchManager.SearchPackageNames (n.ToLower (), GetTargetFramework (doc))
-				) {
+				new PackageNameSearchCompletionDataList (name, PackageSearchManager, GetTargetFramework (doc)) {
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}
@@ -150,9 +147,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			return Task.FromResult<ICompletionDataList> (
-				new PackageSearchCompletionDataList (
-					PackageSearchManager.SearchPackageVersions (name, GetTargetFramework (doc))
-				) {
+				new PackageVersionSearchCompletionDataList (PackageSearchManager, GetTargetFramework (doc), name){
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}
@@ -239,8 +234,10 @@ namespace MonoDevelop.MSBuildEditor
 				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas ());
 			}
 
-			foreach (var ci in cinfos) {
-				list.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
+			if (cinfos != null) {
+				foreach (var ci in cinfos) {
+					list.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
+				}
 			}
 
 			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
