@@ -4,3 +4,4 @@ obj
 packages
 *.suo
 .DS_Store
+.vs
