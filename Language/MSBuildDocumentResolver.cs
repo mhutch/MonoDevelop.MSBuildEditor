@@ -35,9 +35,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			this.resolveImport = resolveImport;
 		}
 
-		protected override void VisitImport (XElement element)
+		protected override void VisitImport (XElement element, MSBuildLanguageElement resolved)
 		{
-			base.VisitImport (element);
+			base.VisitImport (element, resolved);
 
 			var importAtt = element.Attributes [new XName ("Project")];
 			var sdkAtt = element.Attributes [new XName ("Sdk")];
@@ -87,17 +87,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return false;
 		}
 
-		protected override void VisitItem (XElement element)
+		protected override void VisitItem (XElement element, MSBuildLanguageElement resolved)
 		{
 			var name = element.Name.Name;
 			if (!ctx.Items.TryGetValue (name, out ItemInfo item))
 				ctx.Items [name] = item = new ItemInfo (name, null);
-			base.VisitItem (element);
+			base.VisitItem (element, resolved);
 		}
 
-		protected override void VisitMetadata (XElement element, string itemName, string metadataName)
+		protected override void VisitMetadata (XElement element, MSBuildLanguageElement resolved, string itemName, string metadataName)
 		{
-			base.VisitMetadata (element, itemName, metadataName);
+			base.VisitMetadata (element, resolved, itemName, metadataName);
 		}
 
 		protected override void VisitMetadataAttribute (XAttribute attribute, string itemName, string metadataName)
@@ -129,12 +129,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitMetadataReference (itemName, metadataName, start, length);
 		}
 
-		protected override void VisitProperty (XElement element)
+		protected override void VisitProperty (XElement element, MSBuildLanguageElement resolved)
 		{
 			var name = element.Name.Name;
 			propertyValues.Collect (name, element, textDocument);
 
-			base.VisitProperty (element);
+			base.VisitProperty (element, resolved);
 		}
 
 		protected override void VisitPropertyReference (string propertyName, int start, int length)
@@ -146,31 +146,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitPropertyReference (propertyName, start, length);
 		}
 
-		protected override void VisitResolved (XElement element, MSBuildLanguageElement resolved)
-		{
-			if (isToplevel) {
-				ValidateAttributes (element, resolved);
-			}
-
-			base.VisitResolved (element, resolved);
-		}
-
-		protected override void VisitTarget (XElement element)
+		protected override void VisitTarget (XElement element, MSBuildLanguageElement resolved)
 		{
 			var name = element.Attributes.Get (new XName ("name"), true)?.Value;
 			if (name != null && !ctx.Targets.TryGetValue (name, out TargetInfo target)) {
 				ctx.Targets [name] = target = new TargetInfo (name, null);
 			}
-			base.VisitTarget (element);
+			base.VisitTarget (element, resolved);
 		}
 
-		protected override void VisitTask (XElement element)
+		protected override void VisitTask (XElement element, MSBuildLanguageElement resolved)
 		{
 			var name = element.Name.Name;
 			if (!ctx.Tasks.TryGetValue (name, out TaskInfo task)) {
 				ctx.Tasks [name] = task = new TaskInfo (name, null);
 			}
-			base.VisitTask (element);
+			base.VisitTask (element, resolved);
 		}
 
 		protected override void VisitTaskParameter (XAttribute attribute, string taskName, string parameterName)
@@ -183,9 +174,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitTaskParameter (attribute, taskName, parameterName);
 		}
 
-		protected override void VisitUnknown (XElement element)
+		protected override void VisitUnknownElement (XElement element)
 		{
-			base.VisitUnknown (element);
+			base.VisitUnknownElement (element);
 		}
 
 		void ValidateAttributes (XElement element, MSBuildLanguageElement kind)

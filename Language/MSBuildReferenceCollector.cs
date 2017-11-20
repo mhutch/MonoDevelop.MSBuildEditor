@@ -130,12 +130,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 		}
 
-		protected override void VisitTask (XElement element)
+		protected override void VisitTask (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (IsMatch (element)) {
 				AddResult (element);
 			}
-			base.VisitTask (element);
+			base.VisitTask (element, resolved);
 		}
 	}
 

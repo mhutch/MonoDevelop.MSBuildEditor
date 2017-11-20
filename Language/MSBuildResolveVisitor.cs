@@ -87,10 +87,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			public void Run (XElement el, MSBuildLanguageElement schemaEl, IReadonlyTextDocument textDoc)
 			{
 				SetTextDocument (textDoc.FileName, textDoc);
-				VisitResolved (el, schemaEl); 
+				VisitResolvedElement (el, schemaEl);
 			}
 
-			protected override void VisitResolved (XElement element, MSBuildLanguageElement resolved)
+			protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 			{
 				var start = ConvertLocation (element.Region.Begin);
 				bool inName = IsIn (start, element.Name.Name.Length);
@@ -122,7 +122,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 
-				base.VisitResolved (element, resolved);
+				base.VisitResolvedElement (element, resolved);
 			}
 
 			protected override void VisitItemReference (string itemName, int start, int length)

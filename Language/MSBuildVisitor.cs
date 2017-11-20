@@ -3,7 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using MonoDevelop.Core;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
@@ -38,45 +37,43 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		 void Run (XElement el, MSBuildLanguageElement parent)
+		void Run (XElement el, MSBuildLanguageElement parent)
 		{
-			if (el.Name.Prefix != null) {
-				return;
+			if (el.Name.Prefix == null) {
+				var resolved = MSBuildLanguageElement.Get (el.Name.FullName, parent);
+				if (resolved != null) {
+					VisitResolvedElement (el, resolved);
+					return;
+				}
 			}
 
-			var resolved = MSBuildLanguageElement.Get (el.Name.FullName, parent);
-			if (resolved == null) {
-				VisitUnknown (el);
-				return;
-			}
-
-			VisitResolved (el, resolved);
+			VisitUnknownElement (el);
 		}
 
-		protected virtual void VisitResolved (XElement element, MSBuildLanguageElement resolved)
+		protected virtual void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Task:
-				VisitTask (element);
+				VisitTask (element, resolved);
 				break;
 			case MSBuildKind.Import:
-				VisitImport (element);
+				VisitImport (element, resolved);
 				break;
 			case MSBuildKind.Item:
-				VisitItem (element);
+				VisitItem (element, resolved);
 				break;
 			case MSBuildKind.Property:
-				VisitProperty (element);
+				VisitProperty (element, resolved);
 				break;
 			case MSBuildKind.Metadata:
-				VisitMetadata (element, ((INamedXObject) element.Parent).Name.Name, element.Name.Name);
+				VisitMetadata (element, resolved, ((INamedXObject) element.Parent).Name.Name, element.Name.Name);
 				break;
 			case MSBuildKind.Target:
-				VisitTarget (element);
+				VisitTarget (element, resolved);
 				break;
 			default:
 				//other node types handle this explicitly to make sure reference ordering is correct
-				ProcessCondition (element);
+				ResolveAttributes (element, resolved);
 				break;
 			}
 
@@ -87,25 +84,51 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void ProcessCondition (XElement element)
-		{
-			var condition = element.Attributes.Get (new XName ("Condition"), true);
-			if (condition != null) {
-				ExtractReferences (condition);
-			}
-		}
-
-		protected virtual void VisitUnknown (XElement element)
-		{
-		}
-
-		protected virtual void VisitTask (XElement element)
+		void ResolveAttributes (XElement element, MSBuildLanguageElement resolved)
 		{
 			foreach (var att in element.Attributes) {
-				if (!att.Name.HasPrefix) {
-					VisitTaskParameter (att, element.Name.Name, att.Name.Name);
+				var resolvedAtt = resolved.GetAttribute (att.Name.FullName);
+				if (resolvedAtt != null) {
+					VisitResolvedAttribute (element, att, resolved, resolvedAtt);
+					continue;
+				}
+				VisitUnknownAttribute (element, att);
+			}
+		}
+
+		protected virtual void VisitResolvedAttribute (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		{
+			if (resolvedAttribute.IsAbstract) {
+				switch (resolvedAttribute.AbstractKind) {
+				case MSBuildKind.Metadata:
+					VisitMetadataAttribute (attribute, element.Name.Name, attribute.Name.Name);
+					return;
+				case MSBuildKind.TaskParameter:
+					VisitTaskParameter (attribute, element.Name.Name, attribute.Name.Name);
+					return;
+				default:
+					throw new Exception ($"Unhandled abstract attribute kind {resolvedAttribute.AbstractKind}");
 				}
 			}
+
+			if (resolvedAttribute.ValueKind.AllowExpressions ()) {
+				ExtractReferences (attribute);
+			}
+		}
+
+		protected virtual void VisitUnknownElement (XElement element)
+		{
+		}
+
+		protected virtual void VisitUnknownAttribute (XElement element, XAttribute attribute)
+		{
+		}
+
+		protected virtual void VisitTask (XElement element, MSBuildLanguageElement resolved)
+		{
+			ResolveAttributes (element, resolved);
 		}
 
 		protected virtual void VisitTaskParameter (XAttribute attribute, string taskName, string parameterName)
@@ -113,37 +136,23 @@ namespace MonoDevelop.MSBuildEditor.Language
 			ExtractReferences (attribute);
 		}
 
-		protected virtual void VisitItem (XElement element)
+		protected virtual void VisitItem (XElement element, MSBuildLanguageElement resolved)
 		{
 			string itemName = element.Name.Name;
 			VisitItemReference (itemName, ConvertLocation (element.Region.Begin) + 1, itemName.Length);
 
-			foreach (var att in element.Attributes) {
-				if (att.Name.HasPrefix) {
-					continue;
-				}
-				switch (att.Name.Name.ToLowerInvariant ()) {
-				case "include":
-				case "exclude":
-				case "remove":
-				case "update":
-				case "condition":
-					ExtractReferences (att);
-					continue;
-				}
-				VisitMetadataAttribute (att, element.Name.Name, att.Name.Name);
-			}
+			ResolveAttributes (element, resolved);
 
 			if (!element.IsSelfClosing && element.ClosingTag is XElement closing) {
 				VisitItemReference (itemName, ConvertLocation (closing.Region.Begin) + 1, itemName.Length);
 			}
 		}
 
-		protected virtual void VisitMetadata (XElement element, string itemName, string metadataName)
+		protected virtual void VisitMetadata (XElement element, MSBuildLanguageElement resolved, string itemName, string metadataName)
 		{
 			VisitMetadataReference (itemName, metadataName, ConvertLocation (element.Region.Begin) + 1, metadataName.Length);
 
-			ProcessCondition (element);
+			ResolveAttributes (element, resolved);
 
 			ExtractReferences (element);
 
@@ -159,12 +168,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			ExtractReferences (attribute);
 		}
 
-		protected virtual void VisitProperty (XElement element)
+		protected virtual void VisitProperty (XElement element, MSBuildLanguageElement resolved)
 		{
 			string propertyName = element.Name.Name;
 			VisitPropertyReference (propertyName, ConvertLocation (element.Region.Begin) + 1, propertyName.Length);
 
-			ProcessCondition (element);
+			ResolveAttributes (element, resolved);
 
 			ExtractReferences (element);
 
@@ -173,32 +182,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		protected virtual void VisitTarget (XElement element)
+		protected virtual void VisitTarget (XElement element, MSBuildLanguageElement resolved)
 		{
-			foreach (var att in element.Attributes) {
-				switch (att.Name.Name.ToLowerInvariant ()) {
-				case "dependsontargets":
-				case "beforetargets":
-				case "aftertargets":
-				case "inputs":
-				case "outputs":
-				case "condition":
-					ExtractReferences (att);
-					break;
-				}
-			}
+			ResolveAttributes (element, resolved);
 		}
 
-		protected virtual void VisitImport (XElement element)
+		protected virtual void VisitImport (XElement element, MSBuildLanguageElement resolved)
 		{
-			foreach (var att in element.Attributes) {
-				switch (att.Name.Name.ToLowerInvariant ()) {
-				case "project":
-				case "condition:":
-					ExtractReferences (att);
-					break;
-				}
-			}
+			ResolveAttributes (element, resolved);
 		}
 
 		protected virtual void VisitItemReference (string itemName, int start, int length)
