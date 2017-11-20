@@ -65,7 +65,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		internal bool TryGetValues (string name, out List<string> values)
 		{
-			return props.TryGetValue (name, out values) && values != null;
+			return props.TryGetValue (name, out values) && values != null && values.Count > 0;
 		}
 
 		public List<TargetFrameworkMoniker> GetFrameworks ()
@@ -111,8 +111,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (!string.IsNullOrEmpty (version) && !string.IsNullOrEmpty (id)) {
 					if (TryGetValues ("TargetFrameworkProfile", out List<string> profileList)) {
 						var profile = profileList.FirstOrDefault (IsConstExpr);
-						list.Add (new TargetFrameworkMoniker (id, version, profileList[0]));
-						return list;
+						if (profile != null) {
+							list.Add (new TargetFrameworkMoniker (id, version, profileList[0]));
+							return list;
+						}
 					}
 					list.Add (new TargetFrameworkMoniker (id, version));
 					return list;

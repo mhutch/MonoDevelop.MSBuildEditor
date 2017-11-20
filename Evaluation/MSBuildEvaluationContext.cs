@@ -116,7 +116,13 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 							if (val != null && val.IndexOf ('$') < 0) {
 								SetPropertyValue (p.Key, val);
 							}
-							p.Value [i] = val;
+							if (string.IsNullOrEmpty (val)) {
+								p.Value.RemoveAt (i);
+								i--;
+							}
+							else {
+								p.Value [i] = val;
+							}
 						} catch (Exception ex) {
 							LoggingService.LogError ($"Error evaluating property {p.Key}={val}", ex);
 						}
@@ -126,7 +132,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 
 			//TODO: use a new context instead of altering this one?
 			foreach (var p in propVals) {
-				if (p.Value != null) {
+				if (p.Value != null && p.Value.Count > 0) {
 					SetPropertyValue (p.Key, p.Value [0]);
 				}
 			}
@@ -164,7 +170,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			// we don't just convert it into a hashset as it needs to preserve order
 			var seen = new HashSet<string> ();
 			foreach (var val in prop.Item2) {
-				if (!seen.Add (val)) {
+				if (!seen.Add (val) || string.IsNullOrEmpty (val)) {
 					continue;
 				}
 				evalCtx.SetPropertyValue (name, val);
