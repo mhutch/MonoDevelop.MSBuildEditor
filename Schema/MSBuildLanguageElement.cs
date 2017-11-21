@@ -243,14 +243,4 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			};
 		}
 	}
-	/*  VALIDATION TODO
-
-no elements are allowed under Target after an OnError element-->
-choose - when must come before otherwise
-project must have target, import or sdkatt
-usingtask may have at most one ParameterGroup and Task child
-usingtask must have assemblyname or assemblyfile
-import should only have version and minversion if it has sdk
-task output should have item or property name
-	 * */
 }

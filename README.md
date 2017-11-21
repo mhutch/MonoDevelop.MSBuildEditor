@@ -68,3 +68,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * parameter info tooltip when completing values
 * go to package page on nugets
 * prettier package tooltips
+* filter disallowed attributes and elements from completion
