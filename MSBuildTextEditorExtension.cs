@@ -235,6 +235,16 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildValueKind.Guid:
 				list.Add (new GenerateGuidCompletionData ());
 				break;
+			case MSBuildValueKind.Lcid:
+				foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
+					string name = culture.Name;
+					string id = culture.LCID.ToString ();
+					string display = culture.DisplayName;
+					//insert multiple versions for matching on both the name and the number
+					list.Add (new CompletionData (id, null, display));
+					list.Add (new CompletionData (display, null, id, id));
+				}
+				break;
 			}
 			//TODO: better metadata support
 
