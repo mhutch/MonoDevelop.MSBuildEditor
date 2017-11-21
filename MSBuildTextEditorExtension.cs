@@ -223,6 +223,10 @@ namespace MonoDevelop.MSBuildEditor
 
 			kind = kind.GetScalarType ();
 
+			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
+				return null;
+			}
+
 			var list = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
 
 			switch (kind) {
