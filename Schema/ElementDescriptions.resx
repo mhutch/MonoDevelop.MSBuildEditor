@@ -95,6 +95,15 @@
 	<data name="Item.Label">
 		<value>Optional expression. Used to identify or order system and user elements</value>
 	</data>
+	<data name="Item.KeepDuplicates">
+		<value>Whether to add items even if they match the identity and metadata of an existing item</value>
+	</data>
+	<data name="Item.KeepMetadata">
+		<value>Metadata from source items to keep on target items</value>
+	</data>
+	<data name="Item.RemoveMetadata">
+		<value>Metadata from source items to omit from target items</value>
+	</data>
 
 	<data name="Item.Include.ParameterizedFiles">
 		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to include in this item list</value>

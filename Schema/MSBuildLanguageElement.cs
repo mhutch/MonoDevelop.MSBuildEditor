@@ -137,6 +137,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				new MSBuildLanguageAttribute ("Update", ElementDescriptions.Item_Update, MSBuildValueKind.MatchItem),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Item_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Item_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute ("KeepMetadata", ElementDescriptions.Item_KeepMetadata, MSBuildValueKind.MetadataName.List ()),
+				new MSBuildLanguageAttribute ("RemoveMetadata", ElementDescriptions.Item_RemoveMetadata, MSBuildValueKind.MetadataName.List ()),
+				new MSBuildLanguageAttribute ("KeepDuplicates", ElementDescriptions.Item_KeepDuplicates, MSBuildValueKind.Bool),
 				itemMetadataAtt
 			};
 

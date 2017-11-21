@@ -37,6 +37,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TargetName,
 		ItemName,
 		PropertyName,
+		MetadataName,
 
 		//task stuff
 		TaskName,

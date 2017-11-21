@@ -197,6 +197,24 @@ namespace MonoDevelop.MSBuildEditor.Schema {
             }
         }
         
+        internal static string Item_KeepDuplicates {
+            get {
+                return ResourceManager.GetString("Item.KeepDuplicates", resourceCulture);
+            }
+        }
+        
+        internal static string Item_KeepMetadata {
+            get {
+                return ResourceManager.GetString("Item.KeepMetadata", resourceCulture);
+            }
+        }
+        
+        internal static string Item_RemoveMetadata {
+            get {
+                return ResourceManager.GetString("Item.RemoveMetadata", resourceCulture);
+            }
+        }
+        
         internal static string Item_Include_ParameterizedFiles {
             get {
                 return ResourceManager.GetString("Item.Include.ParameterizedFiles", resourceCulture);
