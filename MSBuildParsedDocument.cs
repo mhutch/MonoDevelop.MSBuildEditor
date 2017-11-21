@@ -115,6 +115,10 @@ namespace MonoDevelop.MSBuildEditor
 				(ctx, imp, sdk, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, sdk, props, schemaProvider, token)
 			);
 
+			//this has to run in a second pass so that it runs after all the schemas are loaded
+			var validator = new MSBuildDocumentValidator (doc.Context, doc.FileName, textDoc);
+			validator.Run (doc.FileName, textDoc, doc.XDocument);
+
 			doc.AddRange (doc.Context.Errors);
 
 			doc.Frameworks = propVals.GetFrameworks ();

@@ -30,9 +30,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 	}
 
-	abstract class VariableInfo : BaseInfo
+	abstract class ValueInfo : BaseInfo
 	{
-		protected VariableInfo (
+		protected ValueInfo (
 			string name, string description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
 			: base (name, description)

@@ -175,5 +175,72 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 		}
+
+		public static IEnumerable<TargetInfo> GetAllTargetDefinitions (this IEnumerable<IMSBuildSchema> schemas, string targetName)
+		{
+			foreach (var schema in schemas) {
+				if (schema.Targets.TryGetValue (targetName, out TargetInfo target)) {
+					yield return target;
+				}
+			}
+		}
+
+		public static TargetInfo GetTarget (this IEnumerable<IMSBuildSchema> schemas, string targetName)
+		{
+			return schemas.GetAllTargetDefinitions (targetName).FirstOrDefault ();
+		}
+
+		public static ValueInfo GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildLanguageAttribute attribute, string elementName, string attributeName)
+		{
+			if (attribute.IsAbstract) {
+				switch (attribute.AbstractKind.Value) {
+				case MSBuildKind.TaskParameter:
+					return schemas.GetTaskParameter (elementName, attributeName);
+				case MSBuildKind.Metadata:
+					return schemas.GetMetadata (elementName, attributeName, false);
+				default:
+					throw new InvalidOperationException ($"Unsupported abstract attribute kind {attribute.AbstractKind}");
+				}
+			}
+
+			if (attribute.ValueKind == MSBuildValueKind.MatchItem) {
+				var item = schemas.GetItem (elementName);
+				return new MSBuildLanguageAttribute (
+					attribute.Name, attribute.Description, item.ValueKind, attribute.Required, attribute.AbstractKind
+				);
+			}
+
+			return attribute;
+		}
+
+		public static ValueInfo GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildLanguageElement element, string parentName, string elementName, bool omitEmpty = false)
+		{
+			if (element.IsAbstract) {
+				switch (element.Kind) {
+				case MSBuildKind.Item:
+				case MSBuildKind.ItemDefinition:
+					if (omitEmpty) {
+						return null;
+					}
+					return schemas.GetItem (elementName);
+				case MSBuildKind.Metadata:
+					return schemas.GetMetadata (parentName, elementName, false);
+				case MSBuildKind.Property:
+					return schemas.GetProperty (elementName);
+				case MSBuildKind.Parameter:
+					if (omitEmpty) {
+						return null;
+					}
+					return new TaskParameterInfo (elementName, null);
+				default:
+					throw new InvalidOperationException ($"Unsupported abstract element kind {element.Kind}");
+				}
+			}
+
+			if (omitEmpty && (element.ValueKind == MSBuildValueKind.Nothing || element.ValueKind == MSBuildValueKind.Data)) {
+				return null;
+			}
+			return element;
+		}
 	}
 }

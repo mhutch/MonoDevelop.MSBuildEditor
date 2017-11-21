@@ -12,9 +12,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		protected MSBuildResolveContext Context { get; }
 		protected string Filename { get; }
+		protected ITextDocument Document { get; }
 
 		readonly bool isToplevel;
-		readonly ITextDocument textDocument;
 		readonly MSBuildSdkResolver sdkResolver;
 		readonly PropertyValueCollector propertyValues;
 		readonly ImportResolver resolveImport;
@@ -27,7 +27,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			this.Context = ctx;
 			this.Filename = filename;
 			this.isToplevel = isToplevel;
-			this.textDocument = textDocument;
+			this.Document = textDocument;
 			this.sdkResolver = sdkResolver;
 			this.propertyValues = propertyValues;
 			this.resolveImport = resolveImport;
@@ -47,7 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = isToplevel? sdkAtt.GetValueRegion (textDocument) : sdkAtt.Region;
+				var loc = isToplevel? sdkAtt.GetValueRegion (Document) : sdkAtt.Region;
 				sdkPath = Context.GetSdkPath (sdkResolver, sdkAtt.Value, loc);
 				import = import == null? null : sdkPath + "\\" + import;
 
@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (import != null) {
 				bool wasResolved = false;
-				var loc = isToplevel ? importAtt.GetValueRegion (textDocument) : importAtt.Region;
+				var loc = isToplevel ? importAtt.GetValueRegion (Document) : importAtt.Region;
 				foreach (var resolvedImport in resolveImport (Context, import, null, propertyValues)) {
 					Context.Imports [resolvedImport.Filename] = resolvedImport;
 					wasResolved |= resolvedImport.IsResolved;
@@ -67,17 +67,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 				if (!wasResolved && isToplevel) {
-					AddError ("Could not resolve import", loc);
+					Context.Errors.Add (new Error (ErrorType.Error, "Could not resolve import", loc));
 				}
 			}
 		}
-
-		protected void AddError (ErrorType errorType, string message, DocumentRegion region)
-			=> Context.Errors.Add(new Error (errorType, message, region));
-
-		protected void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
-
-		protected void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
 
 		protected override void VisitItem (XElement element, MSBuildLanguageElement resolved)
 		{
@@ -124,7 +117,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitProperty (XElement element, MSBuildLanguageElement resolved)
 		{
 			var name = element.Name.Name;
-			propertyValues.Collect (name, element, textDocument);
+			propertyValues.Collect (name, element, Document);
 
 			base.VisitProperty (element, resolved);
 		}

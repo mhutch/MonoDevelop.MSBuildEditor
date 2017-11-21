@@ -212,7 +212,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//TODO: unqualified metadata
-		static IEnumerable<VariableInfo> ReadPrecedingComparandVariables (List<Token> tokens, int index, IEnumerable<IMSBuildSchema> schemas)
+		static IEnumerable<ValueInfo> ReadPrecedingComparandVariables (List<Token> tokens, int index, IEnumerable<IMSBuildSchema> schemas)
 		{
 			var expr = tokens [index];
 			if (expr.Type == TokenType.String) {

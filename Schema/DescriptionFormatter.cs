@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
@@ -82,6 +83,25 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("value", info.Name);
 			}
 			return (null, null);
+		}
+
+		public static string GetTitleCaseKindName (ValueInfo info)
+		{
+			switch (info) {
+			case MSBuildLanguageElement el:
+				return $"Element '{info.Name}'";
+			case MSBuildLanguageAttribute att:
+				return $"Attribute '{info.Name}'";
+			case ItemInfo item:
+				return $"Item '{info.Name}'";
+			case PropertyInfo prop:
+				return $"Property '{info.Name}'";
+			case MetadataInfo meta:
+				return $"Metadata '{info.Name}'";
+			case TaskParameterInfo tpi:
+				return $"Parameter '{info.Name}'";
+			}
+			throw new Exception ($"Unhandled type {info.GetType ()}");
 		}
 	}
 }

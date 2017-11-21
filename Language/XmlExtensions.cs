@@ -11,10 +11,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	public static class XmlExtensions
 	{
+		public static int GetValueStartOffset (this XAttribute att, IReadonlyTextDocument doc)
+		{
+			return doc.LocationToOffset (att.Region.End) - att.Value.Length - 1;
+		}
+
 		public static DocumentLocation GetValueStart (this XAttribute att, IReadonlyTextDocument doc)
 		{
-			int offset = doc.LocationToOffset (att.Region.End) - att.Value.Length - 1;
-			return doc.OffsetToLocation(offset);
+			return doc.OffsetToLocation (GetValueStartOffset (att, doc));
 		}
 
 		public static DocumentRegion GetValueRegion (this XAttribute att, IReadonlyTextDocument doc)

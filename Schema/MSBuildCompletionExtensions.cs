@@ -90,62 +90,12 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas)
 		{
-			switch (kind) {
-			case MSBuildValueKind.Bool:
-				return new BaseInfo [] {
-					new ConstantInfo ("True", null),
-					new ConstantInfo ("False", null),
-				};
-			case MSBuildValueKind.TaskArchitecture:
-				return new BaseInfo [] {
-					new ConstantInfo ("*", "Any architecture"),
-					new ConstantInfo ("CurrentArchitecture", "The architecture on which MSBuild is running"),
-					new ConstantInfo ("x86", "The 32-bit x86 architecture"),
-					new ConstantInfo ("x64", "The 64-bit x64 architecture"),
-				};
-			case MSBuildValueKind.TaskRuntime:
-				return new BaseInfo [] {
-					new ConstantInfo ("*", "Any runtime"),
-					new ConstantInfo ("CurrentRuntime", "The runtime on which MSBuild is running"),
-					new ConstantInfo ("CLR2", "The .NET 2.0 runtime"),
-					new ConstantInfo ("CLR4", "The .NET 4.0 runtime"),
-				};
-			case MSBuildValueKind.Importance:
-				return new BaseInfo [] {
-					new ConstantInfo ("high", "High importance, only displayed for all log verbosity settings"),
-					new ConstantInfo ("normal", "Normal importance"),
-					new ConstantInfo ("low", "Low importance, only displayed for highly verbose log settings")
-				};
-			case MSBuildValueKind.HostOS:
-				return new BaseInfo [] {
-					new ConstantInfo ("Windows_NT", "Running on Windows"),
-					new ConstantInfo ("Unix", "Running on Unix")
-					// deliberately ignoring Mac as it doesn't actually work
-				};
-			case MSBuildValueKind.HostRuntime:
-				return new BaseInfo [] {
-					new ConstantInfo ("Mono", "Running on Mono"),
-					new ConstantInfo ("Core", "Running on .NET Core"),
-					new ConstantInfo ("Full", "Running on .NET Framework")
-				};
-			case MSBuildValueKind.ContinueOnError:
-				return new BaseInfo [] {
-					new ConstantInfo ("WarnAndContinue", "When the task outputs errors, convert them to warnings, and continue executing other tasks and targets"),
-					new ConstantInfo ("true", "Equivalent to `WarnAndContinue`"),
-					new ConstantInfo ("ErrorAndContinue", "When the task outputs errors, continue executing other tasks and targets"),
-					new ConstantInfo ("ErrorAndStop", "When the task outputs errors, do not execute further tasks and targets"),
-					new ConstantInfo ("true", "Equivalent to `ErrorAndStop`"),
+			var simple = kind.GetSimpleValues (true);
+			if (simple != null) {
+				return simple;
+			}
 
-				};
-			case MSBuildValueKind.ToolsVersion:
-				return new BaseInfo [] {
-					new ConstantInfo ("2.0", "MSBuild 2.0, included in .NET Framework 2.0"),
-					new ConstantInfo ("3.5", "MSBuild 3.5, included in .NET Framework 3.5"),
-					new ConstantInfo ("4.0", "MSBuild 4.0, included in .NET Framework 4.0"),
-					new ConstantInfo ("12.0", "MSBuild 12.0, included in Visual Studio 2013"),
-					new ConstantInfo ("14.0", "MSBuild 14.0, included in Visual Studio 2015"),
-					new ConstantInfo ("15.0", "MSBuild 15.0, included in Visual Studio 2017"),
-				};
+			switch (kind) {
 			case MSBuildValueKind.TargetName:
 				return schemas.GetTargets ().ToList ();
 			case MSBuildValueKind.PropertyName:
@@ -196,62 +146,26 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static VariableInfo GetElementOrAttributeValueInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		public static ValueInfo GetElementOrAttributeValueInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
 		{
 			if (rr.LanguageElement == null) {
 				return null;
 			}
 
 			if (rr.AttributeName != null) {
-				var att = rr.LanguageElement.GetAttribute (rr.AttributeName);
-				if (att.IsAbstract) {
-					switch (att.AbstractKind.Value) {
-					case MSBuildKind.TaskParameter:
-						return schemas.GetTaskParameter (rr.ElementName, rr.AttributeName);
-					case MSBuildKind.Metadata:
-						return schemas.GetMetadata (rr.ElementName, rr.AttributeName, false);
-					default:
-						throw new InvalidOperationException ($"Unsupported abstract attribute kind {att.AbstractKind}");
-					}
-				}
-
-				if (att.ValueKind == MSBuildValueKind.MatchItem) {
-					var item = schemas.GetItem (rr.ElementName);
-					return new MSBuildLanguageAttribute (
-						att.Name, att.Description, item.ValueKind, att.Required, att.AbstractKind
-					);
-				}
-
-				return att;
+				return schemas.GetAttributeInfo (rr.LanguageAttribute, rr.ElementName, rr.AttributeName);
 			}
 
-			if (rr.LanguageElement.IsAbstract) {
-				switch (rr.LanguageElement.Kind) {
-				case MSBuildKind.Item:
-				case MSBuildKind.ItemDefinition:
-					//item doesn't have any value completions
-					return null;
-				case MSBuildKind.Metadata:
-					return schemas.GetMetadata (rr.ParentName, rr.ElementName, false);
-				case MSBuildKind.Property:
-					return schemas.GetProperty (rr.ElementName);
-				case MSBuildKind.TaskParameter:
-					return schemas.GetTaskParameter (rr.ElementName, rr.AttributeName);
-				default:
-					throw new InvalidOperationException ($"Unsupported abstract element kind {rr.LanguageElement.Kind}");
-				}
-			}
-
-			return null;
+			return schemas.GetElementInfo (rr.LanguageElement, rr.ParentName, rr.ElementName);
 		}
 
-		public static MSBuildValueKind InferValueKindIfUnknown (VariableInfo variable)
+		public static MSBuildValueKind InferValueKindIfUnknown (ValueInfo variable)
 		{
 			if (variable.ValueKind != MSBuildValueKind.Unknown) {
 				return variable.ValueKind;
 			}
 
-			if (variable is PropertyInfo) {
+			if (variable is PropertyInfo || variable is MetadataInfo) {
 				if (StartsWith ("Enable")
 				    || StartsWith ("Disable")
 				    || StartsWith ("Require")

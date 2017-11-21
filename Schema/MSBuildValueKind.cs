@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -91,38 +90,5 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		/// Disallow expressions
 		Literal = 1 << 30
-	}
-
-	static class ValueKindExtensions
-	{
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
-		public static MSBuildValueKind GetScalarType (this MSBuildValueKind value)
-		{
-			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal);
-		}
-
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
-		public static bool AllowExpressions (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.Literal) == 0;
-		}
-
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
-		public static bool AllowLists (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.List) != 0 || value == MSBuildValueKind.Unknown;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static MSBuildValueKind List (this MSBuildValueKind value)
-		{
-			return value | MSBuildValueKind.List;
-		}
-
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
-		public static MSBuildValueKind Literal (this MSBuildValueKind value)
-		{
-			return value | MSBuildValueKind.Literal;
-		}
 	}
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class ItemInfo : VariableInfo
+	class ItemInfo : ValueInfo
 	{
 		public ItemInfo (
 			string name, string description, string includeDescription = null,

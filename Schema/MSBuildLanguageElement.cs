@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class MSBuildLanguageElement : BaseInfo
+	class MSBuildLanguageElement : ValueInfo
 	{
 		static readonly string[] emptyArray = new string[0];
 
@@ -18,16 +18,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public IEnumerable<MSBuildLanguageElement> Children { get { return children; } }
 		public IEnumerable<MSBuildLanguageAttribute> Attributes { get { return attributes; } }
 		public MSBuildKind Kind { get; }
-		public MSBuildValueKind ValueKind { get; }
 		public bool IsAbstract { get; }
 		public MSBuildLanguageElement AbstractChild { get; private set; }
 		public MSBuildLanguageAttribute AbstractAttribute { get; private set; }		
 
 		MSBuildLanguageElement (string name, string description, MSBuildKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
-			: base (name, description)
+			: base (name, description, valueKind)
 		{
 			Kind = kind;
-			ValueKind = valueKind;
 			IsAbstract = isAbstract;
 		}
 

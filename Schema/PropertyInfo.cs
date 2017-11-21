@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class PropertyInfo : VariableInfo
+	class PropertyInfo : ValueInfo
 	{
 		public bool Reserved { get; }
 

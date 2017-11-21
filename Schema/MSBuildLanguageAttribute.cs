@@ -5,7 +5,7 @@ using System;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
-	class MSBuildLanguageAttribute : VariableInfo
+	class MSBuildLanguageAttribute : ValueInfo
 	{
 		public MSBuildLanguageAttribute (
 			string name, string description, MSBuildValueKind valueKind,

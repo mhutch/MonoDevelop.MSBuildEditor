@@ -16,7 +16,6 @@ namespace MonoDevelop.MSBuildEditor
 		readonly MSBuildParsedDocument doc;
 		readonly MSBuildResolveResult rr;
 		readonly BaseInfo info;
-		string description;
 
 		public MSBuildCompletionData (BaseInfo info, MSBuildParsedDocument doc, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, info.Description, type)

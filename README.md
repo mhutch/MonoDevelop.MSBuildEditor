@@ -52,10 +52,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Use a real expression parser for expression intellisense
 * Improve logic for figuring out context of unqualified metadata
 * In addition to brute forcing imports, resolve using full conditioned state
-* Validate expression/metadata values against schema
 * Write a json schema for the schema
-* Validate required attributes
-* Squiggle redundant values
 * Completion for filenames
 * Completion for metadata and property functions in expressions
 * Implement completion for the many item and value types
@@ -68,4 +65,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * parameter info tooltip when completing values
 * go to package page on nugets
 * prettier package tooltips
-* filter disallowed attributes and elements from completion
+* filter disallowed and existing attributes and elements from completion
+* improve validation (comma lists, more value kinds)
+* property comparand validation
