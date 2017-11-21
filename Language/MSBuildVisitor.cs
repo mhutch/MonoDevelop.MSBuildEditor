@@ -31,10 +31,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public void Run (string fileName, ITextSource documentText, XDocument doc)
 		{
 			SetTextDocument (fileName, documentText);
-
-			foreach (var el in doc.RootElement.Elements) {
-				Run (el, null);
-			}
+			Run (doc.RootElement, null);
 		}
 
 		void Run (XElement el, MSBuildLanguageElement parent)
