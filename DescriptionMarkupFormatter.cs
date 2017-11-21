@@ -77,13 +77,13 @@ namespace MonoDevelop.MSBuildEditor
 						sb.AppendLine (baseDesc);
 						sb.AppendLine ();
 					}
-					sb.Append ("<i>Seen in:</i>");
+					sb.Append ("Seen in:");
 				}
 				sb.AppendLine ();
-				sb.Append ("  ");
 
-				if (count == 4) {
-					sb.Append ("...");
+				if (count == 5) {
+					sb.Append ("[more in Find References]");
+					sb.AppendLine ();
 					break;
 				}
 
@@ -92,13 +92,39 @@ namespace MonoDevelop.MSBuildEditor
 				//and easier to understand
 				var replacement = GetLongestReplacement (s, prefixes);
 				if (!replacement.HasValue) {
+					sb.Append ("<i>");
 					sb.Append (Escape (s));
+					sb.Append ("</i>");
 					continue;
 				}
+				sb.Append ("<i>");
 				sb.Append ($"<span foreground=\"{GetColor(varColorID)}\">{Escape (replacement.Value.subst)}</span>");
 				sb.Append (Escape (s.Substring (replacement.Value.prefix.Length)));
+				sb.Append ("</i>");
 			}
 			return sb?.ToString () ?? baseDesc;
+		}
+
+		internal static string GetNavigationMarkup (List<NavigationAnnotation> navs)
+		{
+			if (navs.Count == 1) {
+				return $"<b>Resolved Path:</b> {GLib.Markup.EscapeText (navs[0].Path)}";
+			}
+
+			var sb = new StringBuilder ();
+			sb.AppendLine ("<b>Resolved Paths:</b>");
+			int i = 0;
+			foreach (var location in navs) {
+				if (++i > 1) {
+					sb.AppendLine ();
+				}
+				sb.Append (Escape (location.Path));
+				if (i == 5) {
+					sb.Append ("[more in Go to Definition]");
+					break;
+				}
+			}
+			return sb.ToString ();
 		}
 
 		static string Escape (string s) => GLib.Markup.EscapeText (s);

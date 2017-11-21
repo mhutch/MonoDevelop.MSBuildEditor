@@ -77,19 +77,9 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (item.Item is IEnumerable<NavigationAnnotation> annotations) {
-				var sb = new StringBuilder ();
-				int i = 0;
-				foreach (var location in annotations) {
-					if (++i > 1) {
-						sb.AppendLine ();
-					}
-					sb.Append (location.Path);
-					if (i == 5) {
-						sb.AppendLine ("...");
-						break;
-					}
-				}
-				return new LabelTooltipWindow (GLib.Markup.EscapeText (sb.ToString ()));
+				var navs = annotations.ToList ();
+				var markup = DescriptionMarkupFormatter.GetNavigationMarkup (navs);
+				return new LabelTooltipWindow (markup);
 			}
 
 			return null;

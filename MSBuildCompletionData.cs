@@ -26,19 +26,6 @@ namespace MonoDevelop.MSBuildEditor
 			this.rr = rr;
 		}
 
-		public override string Description {
-			get {
-				return description ?? (description = GetDescription () ?? "");
-			}
-		}
-
-		string GetDescription ()
-		{
-			var formatter = new DescriptionMarkupFormatter (doc.Context, doc.RuntimeInformation);
-			var desc = DescriptionFormatter.GetDescription (info, doc.Context, rr);
-			return formatter.AppendSeenInMarkup (info, desc);
-		}
-
 		public override Task<TooltipInformation> CreateTooltipInformation (bool smartWrap, CancellationToken cancelToken)
 		{
 			return Task.FromResult (MSBuildTooltipProvider.CreateTooltipInformation (doc, info, rr));
