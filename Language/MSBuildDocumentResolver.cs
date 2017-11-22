@@ -12,7 +12,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		protected MSBuildResolveContext Context { get; }
 		protected string Filename { get; }
-		protected ITextDocument Document { get; }
 
 		readonly bool isToplevel;
 		readonly MSBuildSdkResolver sdkResolver;
@@ -21,13 +20,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public MSBuildDocumentResolver (
 			MSBuildResolveContext ctx, string filename, bool isToplevel,
-			ITextDocument textDocument, MSBuildSdkResolver sdkResolver,
+			MSBuildSdkResolver sdkResolver,
 			PropertyValueCollector propertyValues, ImportResolver resolveImport)
 		{
 			this.Context = ctx;
 			this.Filename = filename;
 			this.isToplevel = isToplevel;
-			this.Document = textDocument;
 			this.sdkResolver = sdkResolver;
 			this.propertyValues = propertyValues;
 			this.resolveImport = resolveImport;

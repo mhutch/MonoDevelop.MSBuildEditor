@@ -45,6 +45,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return new DocumentRegion (r.BeginLine, r.BeginColumn + 1, r.BeginLine, r.BeginColumn + 1 + element.Name.FullName.Length);
 		}
 
+		public static int GetNameStartOffset (this XElement element, IReadonlyTextDocument doc)
+		{
+			return doc.LocationToOffset (element.Region.Begin) + 1;
+		}
+
 		public static DocumentRegion GetNameRegion (this XAttribute attribute)
 		{
 			var r = attribute.Region;

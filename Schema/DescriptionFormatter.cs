@@ -85,7 +85,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return (null, null);
 		}
 
-		public static string GetTitleCaseKindName (ValueInfo info)
+		public static string GetTitleCaseKindName (this ValueInfo info)
 		{
 			switch (info) {
 			case MSBuildLanguageElement el:

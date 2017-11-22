@@ -141,7 +141,7 @@
     <Compile Include="MonoDevelopMSBuildSchemaProvider.cs" />
     <Compile Include="Language\MSBuildDocumentResolver.cs" />
     <Compile Include="Schema\ValueKindExtensions.cs" />
-    <Compile Include="LcidCompletionData.cs" />
+    <Compile Include="Language\MSBuildResolvingVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

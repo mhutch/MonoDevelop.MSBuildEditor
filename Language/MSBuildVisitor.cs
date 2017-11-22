@@ -14,19 +14,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	abstract class MSBuildVisitor
 	{
-		IReadonlyTextDocument textDocument;
+		protected IReadonlyTextDocument Document { get; private set; }
 
 		protected void SetTextDocument (string fileName, ITextSource documentText)
 		{
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets
-			textDocument = documentText as IReadonlyTextDocument
+			Document = documentText as IReadonlyTextDocument
 				?? TextEditorFactory.CreateNewReadonlyDocument (
 					documentText, fileName, MSBuildTextEditorExtension.MSBuildMimeType
 				);
 		}
 
-		protected int ConvertLocation (DocumentLocation location) => textDocument.LocationToOffset (location);
+		protected int ConvertLocation (DocumentLocation location) => Document.LocationToOffset (location);
 
 		public void Run (string fileName, ITextSource documentText, XDocument doc)
 		{
@@ -207,15 +207,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var begin = textDocument.LocationToOffset (element.Region.End);
+			var begin = Document.LocationToOffset (element.Region.End);
 			int end;
 
 			if (element.IsClosed && element.FirstChild == null) {
-				end = textDocument.LocationToOffset (element.ClosingTag.Region.Begin);
+				end = Document.LocationToOffset (element.ClosingTag.Region.Begin);
 			} else {
-				for (end = begin; end < (textDocument.Length + 1) && textDocument.GetCharAt (end) != '<'; end++) {}
+				for (end = begin; end < (Document.Length + 1) && Document.GetCharAt (end) != '<'; end++) {}
 			}
-			var text = textDocument.GetTextBetween (begin, end);
+			var text = Document.GetTextBetween (begin, end);
 			ExtractReferences (text, begin);
 		}
 
@@ -223,7 +223,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			if (!string.IsNullOrEmpty (att.Value)) {
 				//we don't know how much space there is around the = so work backwards from the end
-				var end = textDocument.LocationToOffset (att.Region.End);
+				var end = Document.LocationToOffset (att.Region.End);
 				var start = end - att.Value.Length - 1;
 				ExtractReferences (att.Value, start);
 			}

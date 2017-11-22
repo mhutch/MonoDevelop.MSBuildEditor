@@ -12,21 +12,17 @@ using System.Globalization;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	class MSBuildDocumentValidator : MSBuildVisitor
+	class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
-		readonly MSBuildResolveContext context;
 		readonly string filename;
-		readonly ITextDocument document;
 
-		public MSBuildDocumentValidator (MSBuildResolveContext context, string filename, ITextDocument document)
+		public MSBuildDocumentValidator (MSBuildResolveContext context, string filename) : base (context)
 		{
-			this.context = context;
 			this.filename = filename;
-			this.document = document;
 		}
 
-		void AddError (ErrorType errorType, string message, DocumentRegion region) => context.Errors.Add (new Error (errorType, message, region));
-		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (document.OffsetToLocation (offset), document.OffsetToLocation (offset + length));
+		void AddError (ErrorType errorType, string message, DocumentRegion region) => Context.Errors.Add (new Error (errorType, message, region));
+		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (Document.OffsetToLocation (offset), Document.OffsetToLocation (offset + length));
 		void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
 		void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, GetRegion (offset, length));
 		void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
@@ -82,31 +78,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				break;
 			}
 
-			ValidateElementValue (element, resolved);
-
 			base.VisitResolvedElement (element, resolved);
-		}
-
-		void ValidateElementValue (XElement element, MSBuildLanguageElement resolved)
-		{
-			if (element.FirstChild != null || resolved.ValueKind == MSBuildValueKind.Data || resolved.ValueKind == MSBuildValueKind.Nothing) {
-				return;
-			}
-
-			if (element.IsSelfClosing || !(element.ClosingTag is XClosingTag closing)) {
-				return;
-			}
-
-			var begin = document.LocationToOffset (element.Region.End);
-			int end = document.LocationToOffset (element.ClosingTag.Region.Begin);
-			var value = document.GetTextBetween (begin, end);
-
-			var info = context.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
-			if (info == null) {
-				return;
-			}
-
-			ValidateValue (info, value, begin);
 		}
 
 		void ValidateProjectHasTarget (XElement element)
@@ -266,36 +238,33 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				return;
 			}
-
-			var info = context.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, attribute.Name.Name);
-
-			ValidateValue (info, attribute.Value, attribute.GetValueStartOffset (document));
 		}
 
-		void ValidateValue (ValueInfo info, string value, int startOffset)
+		protected override void VisitValue (ValueInfo info, string value, int offset)
 		{
 			if (info.DefaultValue != null && string.Equals (info.DefaultValue, value)) {
-				AddWarning ($"{Name()} has default value", startOffset, value.Length);
+				AddWarning ($"{info.GetTitleCaseKindName ()} has default value", offset, value.Length);
 			}
 
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			base.VisitValue (info, value, offset);
+		}
+
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, Expression expression, int offset, int length)
+		{
+			base.VisitValueExpression (info, kind, expression, offset, length);
+
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowLists () || info.ValueSeparators?.Length > 0;
-			kind = kind.GetScalarType ();
 
-			//TODO: comma-separated lists
-			var expr = new Expression ();
-			expr.Parse (value, ExpressionParser.ParseOptions.AllowItemsMetadataAndSplit);
-
-			for (int i = 0; i < expr.Collection.Count; i++) {
-				var val = expr.Collection [i];
+			for (int i = 0; i < expression.Collection.Count; i++) {
+				var val = expression.Collection [i];
 				if (val is InvalidExpressionError err) {
-					var errOffset = startOffset+ err.Position;
+					var errOffset = offset+ err.Position;
 					AddError (
 						$"Invalid expression: {err.Message}",
 						new DocumentRegion (
-							document.OffsetToLocation (errOffset),
-							document.OffsetToLocation (errOffset + (value.Length - err.Position))
+							Document.OffsetToLocation (errOffset),
+							Document.OffsetToLocation (errOffset + (length - err.Position))
 						)
 					);
 					return;
@@ -306,16 +275,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 							AddValueError ($"{Name()} does not allow lists");
 							return;
 						}
-						continue;
-					}
-					//it's a pure value if the items before & ahead of it are list boundaries or ';'
-					var isPureLiteralValue =
-						(i == 0 || (expr.Collection [i - 1] is string prev && prev == ";")) &&
-						(i + 1 == expr.Collection.Count || (expr.Collection [i + 1] is string next && next == ";"));
-						 
-					if (isPureLiteralValue) {
-						//FIXME: figure out the value offset
-						ValidateValue (s, startOffset, kind, info.Values);
 						continue;
 					}
 				}
@@ -334,13 +293,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 				//TODO: can we validate property/metadata/items refs?
 			}
 
-			void AddValueError (string e) => AddError (e, startOffset, value.Length);
+			void AddValueError (string e) => AddError (e, offset, length);
 			string Name () => DescriptionFormatter.GetTitleCaseKindName (info);
 		}
 
-		void ValidateValue (string value, int offset, MSBuildValueKind kind, List<ConstantInfo> knownValues)
+		protected override void VisitExpressionLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset, int length)
 		{
-			IReadOnlyList<ConstantInfo> knownVals = knownValues ?? kind.GetSimpleValues (false);
+			IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
+
 			if (knownVals != null && knownVals.Count != 0) {
 				foreach (var kv in knownVals) {
 					if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
@@ -377,17 +337,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case MSBuildValueKind.TargetName:
-				if (context.GetSchemas ().GetTarget (value) == null) {
+				if (Context.GetSchemas ().GetTarget (value) == null) {
 					AddWarning ("Target is not defined");
 				}
 				break;
 			case MSBuildValueKind.PropertyName:
-				if (context.GetSchemas ().GetProperty (value) == null) {
+				if (Context.GetSchemas ().GetProperty (value) == null) {
 					AddWarning ("Unknown property name");
 				}
 				break;
 			case MSBuildValueKind.ItemName:
-				if (context.GetSchemas ().GetItem (value) == null) {
+				if (Context.GetSchemas ().GetItem (value) == null) {
 					AddWarning ("Unknown item name");
 				}
 				break;

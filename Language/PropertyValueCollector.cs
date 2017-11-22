@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public IEnumerable<List<string>> Values => props.Values;
 
-		public void Collect (string name, XElement el, ITextDocument textDocument)
+		public void Collect (string name, XElement el, IReadonlyTextDocument textDocument)
 		{
 			if (props.TryGetValue (name, out List<string> values) && el.IsClosed && !el.IsSelfClosing && el.Region.End < el.ClosingTag.Region.Begin) {
 				var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin).Trim ();
