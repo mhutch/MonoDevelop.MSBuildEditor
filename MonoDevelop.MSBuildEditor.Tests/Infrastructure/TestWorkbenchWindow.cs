@@ -120,11 +120,13 @@ namespace MonoDevelop.Ide.Gui
 			throw new NotImplementedException ();
 		}
 
+		#pragma warning disable 67
 		public event EventHandler DocumentChanged;
 		public event WorkbenchWindowAsyncEventHandler Closing;
 		public event WorkbenchWindowEventHandler Closed;
 		public event ActiveViewContentEventHandler ActiveViewContentChanged;
 		public event EventHandler ViewsChanged;
+		#pragma warning restore 67
 
 		DocumentToolbar IWorkbenchWindow.GetToolbar (BaseViewContent targetView)
 		{

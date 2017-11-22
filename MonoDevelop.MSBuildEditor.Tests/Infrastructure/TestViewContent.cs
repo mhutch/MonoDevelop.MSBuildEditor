@@ -231,6 +231,5 @@ namespace MonoDevelop.Ide.Gui
 			action ();
 		}
 		#endregion
-		public event EventHandler CaretPositionSet;
 	}
 }
