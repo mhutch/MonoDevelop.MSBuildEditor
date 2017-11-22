@@ -97,7 +97,7 @@
     <Compile Include="Language\Import.cs" />
     <Compile Include="Language\MSBuildDocumentValidator.cs" />
     <Compile Include="Language\MSBuildResolveContext.cs" />
-    <Compile Include="Language\MSBuildResolveVisitor.cs" />
+    <Compile Include="Language\MSBuildResolver.cs" />
     <Compile Include="Language\PropertyValueCollector.cs" />
     <Compile Include="Language\MSBuildVisitor.cs" />
     <Compile Include="Language\MSBuildToolsVersion.cs" />
@@ -126,7 +126,7 @@
     <Compile Include="Schema\DescriptionFormatter.cs" />
     <Compile Include="LabelTooltipWindow.cs" />
     <Compile Include="Language\ExpressionCompletion.cs" />
-    <Compile Include="CompletionDataWithSuffixAndRecommit.cs" />
+    <Compile Include="CompletionDataWithSuffixAndRetrigger.cs" />
     <Compile Include="Schema\TargetInfo.cs" />
     <Compile Include="Language\IRuntimeInformation.cs" />
     <Compile Include="MSBuildRuntimeInformation.cs" />
