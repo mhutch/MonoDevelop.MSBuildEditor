@@ -163,7 +163,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 			}
 
-			protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			protected override void VisitValueExpression (
+				XElement element, XAttribute attribute,
+				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				switch (node.Find (offset)) {
 				case ExpressionItem ei:

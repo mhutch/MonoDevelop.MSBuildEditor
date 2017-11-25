@@ -234,7 +234,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		protected override void VisitValue (ValueInfo info, string value, int offset)
+		protected override void VisitValue (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, string value, int offset)
 		{
 			if (info.DefaultValue != null && string.Equals (info.DefaultValue, value)) {
 				AddWarning ($"{info.GetTitleCaseKindName ()} has default value", offset, value.Length);
@@ -246,10 +249,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var options = kind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
 
 			var node = ExpressionParser.Parse (value, options, offset);
-			VisitValueExpression (info, kind, node);
+			VisitValueExpression (element, attribute, resolvedElement, resolvedAttribute, info, kind, node);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			var scalarKind = kind.GetScalarType ();
 

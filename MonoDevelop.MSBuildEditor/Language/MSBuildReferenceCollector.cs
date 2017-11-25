@@ -75,7 +75,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -107,7 +110,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -159,7 +165,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -191,7 +200,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
 				return;

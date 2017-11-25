@@ -35,16 +35,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			VisitValue (info, value, begin);
+			VisitValue (element, null, resolved, null, info, value, begin);
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		protected override void VisitResolvedAttribute (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
-			VisitAttributeValue (element, attribute, resolvedAttribute);
+			VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute);
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
-		void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute)
+		void VisitAttributeValue (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
 				return;
@@ -52,24 +56,36 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var info = Context.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, attribute.Name.Name);
 
-			VisitValue (info, attribute.Value, attribute.GetValueStartOffset (Document));
+			VisitValue (
+				element, attribute, resolvedElement, resolvedAttribute,
+				info, attribute.Value, attribute.GetValueStartOffset (Document));
 		}
 
-		protected virtual void VisitValue (ValueInfo info, string value, int offset)
+		protected virtual void VisitValue (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, string value, int offset)
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
 			if (!kind.AllowExpressions ()) {
-				VisitValueExpression (info, kind, new ExpressionLiteral (offset, value));
+				VisitValueExpression (
+					element, attribute, resolvedElement, resolvedAttribute,
+					info, kind, new ExpressionLiteral (offset, value));
 				return;
 			}
 
 			var expression = ExpressionParser.Parse (value, kind.GetExpressionOptions (), offset);
 
-			VisitValueExpression (info, kind, expression);
+			VisitValueExpression (
+				element, attribute, resolvedElement, resolvedAttribute,
+				info, kind, expression);
 		}
 
-		protected virtual void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		protected virtual void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 		}
 	}
