@@ -20,9 +20,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			VisitElementValue (element, resolved);
-
 			base.VisitResolvedElement (element, resolved);
+
+			VisitElementValue (element, resolved);
 		}
 
 		void VisitElementValue (XElement element, MSBuildLanguageElement resolved)
