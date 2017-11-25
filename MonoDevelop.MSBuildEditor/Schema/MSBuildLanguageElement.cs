@@ -12,8 +12,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		static readonly string[] emptyArray = new string[0];
 
-		MSBuildLanguageElement [] children;
-		MSBuildLanguageAttribute[] attributes;
+		MSBuildLanguageElement [] children = Array.Empty<MSBuildLanguageElement> ();
+		MSBuildLanguageAttribute[] attributes = Array.Empty<MSBuildLanguageAttribute> ();
 
 		public IEnumerable<MSBuildLanguageElement> Children { get { return children; } }
 		public IEnumerable<MSBuildLanguageAttribute> Attributes { get { return attributes; } }

@@ -95,7 +95,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void ValidateOnErrorOnlyFollowedByOnError (XElement element)
 		{
-			if (!element.NextSiblingElement ().NameEquals ("OnError", true)) {
+			var nextSibling = element.NextSiblingElement ();
+			if (nextSibling != null && !nextSibling.NameEquals ("OnError", true)) {
 				AddError (
 					$"OnError may only be followed by other OnError elements",
 					element.NextSiblingElement ().GetNameRegion ());
@@ -253,7 +254,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var scalarKind = kind.GetScalarType ();
 
 			bool allowExpressions = kind.AllowExpressions ();
-			bool allowLists = !kind.AllowLists ();
+			bool allowLists = kind.AllowLists ();
 
 			//it's a pure literal if it's just a literal or a literal entry in a list
 			switch (node) {
@@ -267,7 +268,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						}
 					}
 				}
-				if (allowLists) {
+				if (!allowLists) {
 					AddListWarning (list.Nodes [0].End, 1);
 				}
 				break;
