@@ -84,7 +84,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			XElement element, XAttribute attribute,
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
-			VisitAttributeValue (element, attribute, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (Document));
+			if (attribute.Value != null) {
+				VisitAttributeValue (element, attribute, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (Document));
+			}
 		}
 
 		protected virtual void VisitUnknownElement (XElement element)

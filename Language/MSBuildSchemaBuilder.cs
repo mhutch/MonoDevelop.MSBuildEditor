@@ -114,7 +114,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (resolved.Kind == MSBuildKind.Property) {
 				var name = element.Name.Name;
 				propertyValues.Collect (name, value);
-
 			}
 			ExtractReferences (value, offset);
 			base.VisitElementValue (element, resolved, value, offset);
