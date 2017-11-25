@@ -49,7 +49,7 @@
     <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
     <Compile Include="Evaluation\Conditions\Token.cs" />
     <Compile Include="MSBuildSdkResolver.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" Link="ProjectFileTools.NuGetSearch\SemanticVersion.cs"  />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" Link="ProjectFileTools.NuGetSearch\SemanticVersion.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" />
@@ -133,8 +133,8 @@
     <Compile Include="Language\MSBuildSchemaBuilder.cs" />
     <Compile Include="Schema\ValueKindExtensions.cs" />
     <Compile Include="Language\MSBuildResolvingVisitor.cs" />
-    <Compile Include="ExpressionParser\ExpressionNode.cs" />
-    <Compile Include="ExpressionParser\ExpressionParser.cs" />
+    <Compile Include="Language\ExpressionParser.cs" />
+    <Compile Include="Language\ExpressionNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
