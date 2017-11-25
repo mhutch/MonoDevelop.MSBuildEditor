@@ -116,7 +116,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				propertyValues.Collect (name, value);
 			}
 			ExtractReferences (value, offset);
-			base.VisitElementValue (element, resolved, value, offset);
+		}
+
+		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
+		{
+			ExtractReferences (value, offset);
 		}
 
 		void CollectItem (string itemName)
