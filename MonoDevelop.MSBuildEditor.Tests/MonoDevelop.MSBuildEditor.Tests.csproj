@@ -44,6 +44,7 @@
     <Compile Include="MSBuildFindReferencesTests.cs" />
     <Compile Include="MSBuildResolverTests.cs" />
     <Compile Include="MSBuildTestHelpers.cs" />
+    <Compile Include="MSBuildExpressionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuildEditor.csproj">

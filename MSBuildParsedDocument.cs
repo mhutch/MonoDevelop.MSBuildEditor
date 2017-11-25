@@ -116,8 +116,8 @@ namespace MonoDevelop.MSBuildEditor
 			);
 
 			//this has to run in a second pass so that it runs after all the schemas are loaded
-			var validator = new MSBuildDocumentValidator (doc.Context, doc.FileName);
-			validator.Run (doc.FileName, textDoc, doc.XDocument);
+			var validator = new MSBuildDocumentValidator ();
+			validator.Run (doc.XDocument, doc.FileName, textDoc, doc.Context);
 
 			doc.AddRange (doc.Context.Errors);
 

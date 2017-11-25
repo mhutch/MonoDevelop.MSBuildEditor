@@ -8,9 +8,9 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	abstract class MSBuildReferenceCollector : MSBuildVisitor
+	abstract class MSBuildReferenceCollector : MSBuildResolvingVisitor
 	{
-		public List<(int Offset,int Length)> Results { get; } = new List<(int,int)> ();
+		public List<(int Offset, int Length)> Results { get; } = new List<(int, int)> ();
 		public string Name { get; }
 
 		protected MSBuildReferenceCollector (string name)
@@ -23,22 +23,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
-
-		protected void AddResult (XElement element)
-		{
-			Results.Add ((
-				ConvertLocation (element.Region.Begin) + 1,
-				element.Name.Name.Length
-			));
-		}
-
-		protected void AddResult (XAttribute attribute)
-		{
-			Results.Add ((
-				ConvertLocation (attribute.Region.Begin),
-				attribute.Name.Name.Length
-			));
-		}
+		protected void AddResult (XElement el) => Results.Add ((el.GetNameStartOffset (Document), el.Name.Name.Length));
+		protected void AddResult (XAttribute att) => Results.Add ((ConvertLocation (att.Region.Begin), att.Name.Name.Length));
 
 		public static bool CanCreate (MSBuildResolveResult rr)
 		{
@@ -76,46 +62,72 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class MSBuildItemReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildItemReferenceCollector (string itemName) : base (itemName)
+		public MSBuildItemReferenceCollector (string itemName) : base (itemName) {}
+
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
+			}
+			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitItemReference (string itemName, int start, int length)
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
-			if (IsMatch (itemName)) {
-				Results.Add ((start, length));
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionItem ei:
+					if (IsMatch (ei.Name)) {
+						Results.Add ((ei.NameOffset, ei.Name.Length));
+					}
+					break;
+				case ExpressionMetadata em:
+					if (em.IsQualified && IsMatch (em.ItemName)) {
+						Results.Add ((em.ItemNameOffset, em.ItemName.Length));
+					}
+					break;
+				}
 			}
-			base.VisitItemReference (itemName, start, length);
 		}
 	}
 
 	class MSBuildPropertyReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildPropertyReferenceCollector (string propertyName) : base (propertyName)
+		public MSBuildPropertyReferenceCollector (string propertyName) : base (propertyName) {}
+
+
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			if ((resolved.Kind == MSBuildKind.Property) && IsMatch (element.Name.Name)) {
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
+			}
+			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitPropertyReference (string propertyName, int start, int length)
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
-			if (IsMatch (propertyName)) {
-				Results.Add ((start, length));
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionProperty ep:
+					if (IsMatch (ep.Name)) {
+						Results.Add ((ep.NameOffset, ep.Name.Length));
+					}
+					break;
+				}
 			}
-			base.VisitPropertyReference (propertyName, start, length);
 		}
 	}
 
 	class MSBuildTaskReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTaskReferenceCollector (string taskName) : base (taskName)
-		{
-		}
+		public MSBuildTaskReferenceCollector (string taskName) : base (taskName) {}
 
-		protected override void VisitTask (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (IsMatch (element)) {
-				AddResult (element);
+			if ((resolved.Kind == MSBuildKind.Task || resolved.Kind == MSBuildKind.UsingTask) && IsMatch (element.Name.Name)) {
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
 			}
-			base.VisitTask (element, resolved);
+			base.VisitResolvedElement (element, resolved);
 		}
 	}
 
@@ -128,14 +140,52 @@ namespace MonoDevelop.MSBuildEditor.Language
 			this.itemName = itemName;
 		}
 
-		protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (IsMatch (metadataName) && (this.itemName == null || IsItemNameMatch (itemName))) {
-				Results.Add ((start, length));
+			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement ().Name.Name)) {
+				AddResult (element);
 			}
-			base.VisitMetadataReference (itemName, metadataName, start, length);
+			base.VisitResolvedElement (element, resolved);
+		}
+
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		{
+			if (resolvedAttribute.AbstractKind == MSBuildKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
+				AddResult (attribute);
+			}
+			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+		}
+
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionMetadata em:
+					var iname = em.GetItemName ();
+					if (iname != null && IsItemNameMatch (iname) && IsMatch (em.MetadataName)) {
+						Results.Add ((em.MetadataNameOffset, em.MetadataName.Length));
+					}
+					break;
+				}
+			}
 		}
 
 		bool IsItemNameMatch (string name) => string.Equals (name, itemName, StringComparison.OrdinalIgnoreCase);
+	}
+
+	class MSBuildTargetDefinitionCollector : MSBuildReferenceCollector
+	{
+		public MSBuildTargetDefinitionCollector (string targetName) : base (targetName) {}
+
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
+			if (resolved.Kind == MSBuildKind.Target) {
+				var nameAtt = element.Attributes.Get (new XName (Name), true);
+				if (nameAtt != null && IsMatch (nameAtt.Value)) {
+					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length));
+				}
+			}
+			base.VisitResolvedElement (element, resolved);
+		}
 	}
 }

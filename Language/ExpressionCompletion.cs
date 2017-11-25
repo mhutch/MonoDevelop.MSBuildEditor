@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Projects.Formats.MSBuild.Conditions;
 using MonoDevelop.Xml.Parser;
@@ -213,19 +211,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var expr = tokens [index];
 			if (expr.Type == TokenType.String) {
-				var parser = new Expression ();
-				parser.Parse (expr.ToString (), ParseOptions.AllowItems | ParseOptions.AllowMetadata);
-				foreach (var val in parser.Collection) {
-					if (val is PropertyReference pr) {
-						var info = schemas.GetProperty (pr.Name);
-						if (info != null) {
-							yield return info;
+				var expression = ExpressionParser.Parse (expr.ToString (), ExpressionOptions.ItemsAndMetadata);
+				foreach (var n in expression.WithAllDescendants ()) {
+					switch (n) {
+					case ExpressionProperty ep:
+						var pinfo = schemas.GetProperty (ep.Name);
+						if (pinfo != null) {
+							yield return pinfo;
 						}
-					}
-					else if (val is MetadataReference mr && !string.IsNullOrEmpty (mr.ItemName)) {
-						foreach (var m in schemas.GetMetadata (mr.ItemName, true)) {
-							yield return m;
+						break;
+					case ExpressionMetadata em:
+						var itemName = em.GetItemName ();
+						if (itemName != null) {
+							var minfo = schemas.GetMetadata (itemName, em.MetadataName, true);
+							if (minfo != null) {
+								yield return minfo;
+							}
 						}
+						break;
 					}
 				}
 			}

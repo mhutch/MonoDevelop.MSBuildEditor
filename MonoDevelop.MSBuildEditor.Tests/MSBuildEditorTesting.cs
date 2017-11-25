@@ -1,11 +1,13 @@
-﻿using System.IO;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Gui;
 using MonoDevelop.Ide.TypeSystem;
-using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.Projects;
 
 namespace MonoDevelop.MSBuildEditor.Tests

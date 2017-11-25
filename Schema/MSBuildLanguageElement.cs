@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return AbstractAttribute;
 		}
 
-		static readonly Dictionary<string, MSBuildLanguageElement> builtin = new Dictionary<string, MSBuildLanguageElement> ();
+		static readonly Dictionary<string, MSBuildLanguageElement> builtin = new Dictionary<string, MSBuildLanguageElement> (StringComparer.OrdinalIgnoreCase);
 
 		static MSBuildLanguageElement AddBuiltin (string name, string description, MSBuildKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
 		{
@@ -225,7 +225,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				new MSBuildLanguageAttribute ("PropertyName", ElementDescriptions.Output_PropertyName, MSBuildValueKind.PropertyName),
 			};
 
-			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.TaskParameter);
+			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Parameter);
 			task.AbstractAttribute = taskParameterAtt;
 
 			task.attributes = new [] {

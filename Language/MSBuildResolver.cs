@@ -11,12 +11,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	static class MSBuildResolver
 	{
-		public static MSBuildResolveResult Resolve (XmlParser parser, IReadonlyTextDocument document)
+		public static MSBuildResolveResult Resolve (XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext context)
 		{
 			int offset = parser.Position;
 
 			//clones and connects nodes to their parents
 			parser = parser.GetTreeParser ();
+
+			var nodePath = parser.Nodes.ToList ();
+			nodePath.Reverse ();
 
 			//capture incomplete names, attributes and element values
 			int i = offset;
@@ -29,9 +32,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 					parser.Push (document.GetCharAt (i++));
 				}
 			}
-
-			var nodePath = parser.Nodes.ToList ();
-			nodePath.Reverse ();
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
@@ -75,9 +75,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr);
-			rv.Run (el, languageElement, document);
+			rv.Run (el, languageElement, document.FileName, document, context);
 
 			return rr;
+
 			bool InNameOrAttributeState () =>
 				parser.CurrentState is XmlNameState
 				|| parser.CurrentState is XmlAttributeState
@@ -89,7 +90,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				|| parser.CurrentState is XmlClosingTagState;
 		}
 
-		class MSBuildResolveVisitor : MSBuildVisitor
+		class MSBuildResolveVisitor : MSBuildResolvingVisitor
 		{
 			int offset;
 			readonly MSBuildResolveResult rr;
@@ -102,75 +103,91 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 
-			public void Run (XElement el, MSBuildLanguageElement schemaEl, IReadonlyTextDocument textDoc)
-			{
-				SetTextDocument (textDoc.FileName, textDoc);
-				VisitResolvedElement (el, schemaEl);
-			}
-
 			protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 			{
-				var start = ConvertLocation (element.Region.Begin);
+				var start = ConvertLocation (element.Region.Begin) + 1;
 				bool inName = IsIn (start, element.Name.Name.Length);
 				if (inName) {
-					if (!resolved.IsAbstract) {
-						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-						rr.ReferenceOffset = start;
-						rr.ReferenceName = element.Name.Name;
+					rr.ReferenceOffset = start;
+					rr.ReferenceName = element.Name.Name;
+					switch (resolved.Kind) {
+					case MSBuildKind.Item:
+					case MSBuildKind.ItemDefinition:
+						rr.ReferenceKind = MSBuildReferenceKind.Item;
 						return;
-					}
-					if (resolved.Kind == MSBuildKind.Task) {
+					case MSBuildKind.Metadata:
+						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+						rr.ReferenceItemName = element.ParentElement ().Name.Name;
+						return;
+					case MSBuildKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
-						rr.ReferenceOffset = start;
-						rr.ReferenceName = element.Name.Name;
 						return;
-					}
-				}
-
-				foreach (var att in element.Attributes) {
-					var attStart = ConvertLocation (att.Region.Begin);
-					if (IsIn (attStart, att.Name.Name.Length)) {
-						var rat = resolved.GetAttribute (att.Name.Name);
-						if (!rat.IsAbstract) {
-							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-							rr.ReferenceOffset = attStart;
-							rr.ReferenceName = att.Name.Name;
-							return;
-						}
+					case MSBuildKind.Parameter:
+						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+						return;
+					case MSBuildKind.Property:
+						rr.ReferenceKind = MSBuildReferenceKind.Property;
+						return;
+					default:
+						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+						return;
 					}
 				}
 
 				base.VisitResolvedElement (element, resolved);
 			}
 
-			protected override void VisitItemReference (string itemName, int start, int length)
+			protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
-				if (IsIn (start, length)) {
+				var start = ConvertLocation (attribute.Region.Begin);
+				bool inName = IsIn (start, attribute.Name.Name.Length);
+
+				if (inName) {
+					rr.ReferenceOffset = start;
+					rr.ReferenceName = attribute.Name.Name;
+					switch (resolvedAttribute.AbstractKind) {
+					case MSBuildKind.Metadata:
+						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+						rr.ReferenceItemName = element.Name.Name;
+						break;
+					case MSBuildKind.Parameter:
+						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+						break;
+					default:
+						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+						break;
+					}
+					return;
+				}
+
+				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+			}
+
+			protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			{
+				switch (node.Find (offset)) {
+				case ExpressionItem ei:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
-					rr.ReferenceOffset = start;
-					rr.ReferenceName = itemName;
-					base.VisitItemReference (itemName, start, length);
-				}
-			}
-
-			protected override void VisitPropertyReference (string propertyName, int start, int length)
-			{
-				if (IsIn (start, length)) {
+					rr.ReferenceOffset = ei.NameOffset;
+					rr.ReferenceName = ei.Name;
+					break;
+				case ExpressionProperty ep:
 					rr.ReferenceKind = MSBuildReferenceKind.Property;
-					rr.ReferenceOffset = start;
-					rr.ReferenceName = propertyName;
-					base.VisitPropertyReference (propertyName, start, length);
-				}
-			}
-
-			protected override void VisitMetadataReference (string itemName, string metadataName, int start, int length)
-			{
-				if (IsIn (start, length)) {
-					rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-					rr.ReferenceOffset = start;
-					rr.ReferenceName = metadataName;
-					rr.ReferenceItemName = itemName;
-					base.VisitMetadataReference (itemName, metadataName, start, length);
+					rr.ReferenceOffset = ep.NameOffset;
+					rr.ReferenceName = ep.Name;
+					break;
+				case ExpressionMetadata em:
+					if (em.ItemName == null || offset >= em.MetadataNameOffset) {
+						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+						rr.ReferenceOffset = em.MetadataNameOffset;
+						rr.ReferenceName = em.MetadataName;
+						rr.ReferenceItemName = em.GetItemName ();
+					} else {
+						rr.ReferenceKind = MSBuildReferenceKind.Item;
+						rr.ReferenceOffset = em.ItemNameOffset;
+						rr.ReferenceName = em.ItemName;
+					}
+					break;
 				}
 			}
 		}

@@ -73,20 +73,22 @@ namespace MonoDevelop.MSBuildEditor
 
 		internal MSBuildResolveResult ResolveAt (int offset)
 		{
-			if (Tracker == null || GetDocument () == null) {
+			var doc = GetDocument ();
+			if (Tracker == null || doc == null) {
 				return null;
 			}
 			Tracker.UpdateEngine (offset);
-			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot ());
+			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc.Context);
 		}
 
 		MSBuildResolveResult ResolveCurrentLocation ()
 		{
-			if (Tracker == null || GetDocument () == null) {
+			var doc = GetDocument ();
+			if (Tracker == null || doc == null) {
 				return null;
 			}
 			Tracker.UpdateEngine ();
-			return MSBuildResolver.Resolve(Tracker.Engine, Editor.CreateDocumentSnapshot ());
+			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc.Context);
 		}
 
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
@@ -384,7 +386,7 @@ namespace MonoDevelop.MSBuildEditor
 						var textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildMimeType);
 						xmlParser.Parse (textDoc.CreateReader ());
 						var xdoc = xmlParser.Nodes.GetRoot ();
-						FindReferences (monitor, rr, import.Filename, xdoc, textDoc);
+						FindReferences (monitor, rr, import.Filename, xdoc, textDoc, doc.Context);
 					} catch (Exception ex) {
 						monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
 						LoggingService.LogError ($"Error searching MSBuild file {import.Filename}", ex);
@@ -394,7 +396,8 @@ namespace MonoDevelop.MSBuildEditor
 
 			tasks.Add (Task.Run (() => {
 				try {
-					FindReferences (monitor, rr, doc.FileName, doc.XDocument, TextEditorFactory.CreateNewDocument (doc.Text, doc.FileName, MSBuildMimeType));
+					var textDoc = TextEditorFactory.CreateNewDocument (doc.Text, doc.FileName, MSBuildMimeType);
+					FindReferences (monitor, rr, doc.FileName, doc.XDocument, textDoc, doc.Context);
 				} catch (Exception ex) {
 					monitor.ReportError ($"Error searching file {Path.GetFileName (doc.FileName)}", ex);
 					LoggingService.LogError ($"Error searching MSBuild file {doc.FileName}", ex);
@@ -404,10 +407,10 @@ namespace MonoDevelop.MSBuildEditor
 			Task.WhenAll (tasks).ContinueWith (t => monitor?.Dispose ());
 		}
 
-		void FindReferences (SearchProgressMonitor monitor, MSBuildResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc)
+		static void FindReferences (SearchProgressMonitor monitor, MSBuildResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc, MSBuildResolveContext context)
 		{
 			var collector = MSBuildReferenceCollector.Create (rr);
-			collector.Run (filename, textDoc, doc);
+			collector.Run (doc, filename, textDoc, context);
 			var fileProvider = new FileProvider (filename);
 			if (collector.Results.Count > 0) {
 				monitor.ReportResults (collector.Results.Select (r => new SearchResult (fileProvider, r.Offset, r.Length)));

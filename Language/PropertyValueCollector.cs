@@ -32,17 +32,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public IEnumerable<List<string>> Values => props.Values;
 
-		public void Collect (string name, XElement el, IReadonlyTextDocument textDocument)
+		public void Collect (string name, string value)
 		{
-			if (props.TryGetValue (name, out List<string> values) && el.IsClosed && !el.IsSelfClosing && el.Region.End < el.ClosingTag.Region.Begin) {
-				var val = textDocument.GetTextBetween (el.Region.End, el.ClosingTag.Region.Begin).Trim ();
-				if (string.IsNullOrEmpty (val)) {
-					return;
-				}
+			if (string.IsNullOrEmpty (value)) {
+				return;
+			}
+			if (props.TryGetValue (name, out List<string> values)) {
 				if (values == null) {
 					props [name] = values = new List<string> ();
 				}
-				values.Add (val);
+				values.Add (value);
 			}
 		}
 

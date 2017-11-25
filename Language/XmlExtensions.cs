@@ -89,5 +89,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			return !obj.Name.HasPrefix && string.Equals (obj.Name.Name, name, comparison);
 		}
+
+		public static XElement ParentElement (this XElement element)
+		{
+			return (element.Parent as XElement);
+		}
 	}
 }

@@ -29,6 +29,5 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TaskBody,
 		UsingTask,
 		When,
-		TaskParameter,
 	}
 }

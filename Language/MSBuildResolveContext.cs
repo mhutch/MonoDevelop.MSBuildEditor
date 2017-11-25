@@ -9,7 +9,6 @@ using Microsoft.Build.Framework;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -63,8 +62,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ctx.AddSdkProps (sdks, propVals, resolveImport);
 
-			var resolver = new MSBuildDocumentResolver (ctx, filename, isToplevel, sdkResolver, propVals, resolveImport);
-			resolver.Run (filename, textDocument, doc);
+			var resolver = new MSBuildSchemaBuilder (isToplevel, sdkResolver, propVals, resolveImport);
+			resolver.Run (doc, filename, textDocument, ctx);
 
 			ctx.AddSdkTargets (sdks, propVals, resolveImport);
 
@@ -76,9 +75,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			foreach (var el in project.Elements.Where (el => el.Name.Name == "Import")) {
 				var impAtt = el.Attributes.Get (new XName ("Project"), true);
 				if (impAtt != null) {
-					var expr = new Expression ();
-					expr.Parse (impAtt.Value, ExpressionParser.ParseOptions.None);
-					foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
+					var expr = ExpressionParser.Parse (impAtt.Value, ExpressionOptions.None);
+					foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
 						propertyVals.Mark (prop.Name);
 					}
 				}

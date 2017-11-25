@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -108,6 +109,23 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				};
 			}
 			return null;
+		}
+
+		public static ExpressionOptions GetExpressionOptions (this MSBuildValueKind kind)
+		{
+			var options = ExpressionOptions.Items;
+
+			if (kind.AllowLists ()) {
+				options |= ExpressionOptions.Lists;
+			}
+			if (kind.AllowCommaLists ()) {
+				options |= ExpressionOptions.CommaLists;
+			}
+
+			//FIXME: need more context to figure out whether to allow metadata. say yes for now.
+			options |= ExpressionOptions.Metadata;
+
+			return options;
 		}
 	}
 }

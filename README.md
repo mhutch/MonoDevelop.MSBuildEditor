@@ -32,9 +32,13 @@ Targets can provide a schema 'sidecar', which has the same name as the targets f
 
 The extension includes built-in schemas for `Microsoft.Common.targets` and other common targets.
 
+### Validation
+
+The editor validates your document against the MSBuild language and schema, and shows these errors and warnings as you type.
+
 ### Documentation
 
-The extension includes documentation tooltips for the MSBuild language and many common items, properties and metadata
+The extension includes documentation tooltips for the MSBuild language and many common items, properties and metadata.
 
 ### Formatting Style
 
@@ -49,7 +53,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Task parameters from assembly metadata
 * File templates
 * Add more unit tests
-* Use a real expression parser for expression intellisense
 * Improve logic for figuring out context of unqualified metadata
 * In addition to brute forcing imports, resolve using full conditioned state
 * Write a json schema for the schema
@@ -68,3 +71,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * filter disallowed and existing attributes and elements from completion
 * improve validation (comma lists, more value kinds)
 * property comparand validation
+* validate metadata refs are valid in context
+* use new expression parser for triggering intellisense
+* support property functions in new expression parser

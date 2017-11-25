@@ -1,28 +1,5 @@
-﻿//
-// MSBuildFindReferencesTests.cs
-//
-// Author:
-//       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
-//
-// Copyright (c) 2017 Microsoft Corp.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +8,6 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.Language;
-using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Parser;
 using NUnit.Framework;
 
@@ -50,12 +26,17 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			xmlParser.Parse (new StringReader (doc));
 			var xdoc = xmlParser.Nodes.GetRoot ();
 
+
+			var ctx = MSBuildTestHelpers.CreateEmptyContext ();
+			var sb = new MSBuildSchemaBuilder (true, null, null, null);
+			sb.Run (xdoc, filename, textDoc, ctx);
+
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
 				ReferenceName = name,
 				ReferenceItemName = parentName
 			});
-			collector.Run (filename, textDoc, xdoc);
+			collector.Run (xdoc, filename, textDoc, ctx);
 			return collector.Results;
 		}
 
@@ -67,19 +48,19 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			}
 
 			for (int i = 0; i < actual.Count; i++) {
-				var a = actual [i];
-				var e = expected [i];
-				if (a.Offset != e.Offset || a.Length != e.Length || !string.Equals (expectedName, doc.Substring (a.Offset, a.Length), StringComparison.OrdinalIgnoreCase)) {
+				var (offset, length) = actual [i];
+				var (expecteOffset, expectedLength) = expected [i];
+				if (offset != expecteOffset || length != expectedLength || !string.Equals (expectedName, doc.Substring (offset, length), StringComparison.OrdinalIgnoreCase)) {
 					DumpLocations ();
-					Assert.Fail ($"Position {i}: expected ({e.Offset}, {e.Length})='{expectedName}', got ({a.Offset}, {a.Length})='{doc.Substring (a.Offset, a.Length)}'");
+					Assert.Fail ($"Position {i}: expected ({expecteOffset}, {expectedLength})='{expectedName}', got ({offset}, {length})='{doc.Substring (offset, length)}'");
 				}
 			}
 
 			void DumpLocations ()
 			{
 				Console.WriteLine ("Locations: ");
-				foreach (var r in actual) {
-					Console.WriteLine ($"    ({r.Offset}, {r.Length})='{doc.Substring (r.Offset, r.Length)}'");
+				foreach (var (offset, length) in actual) {
+					Console.WriteLine ($"    ({offset}, {length})='{doc.Substring (offset, length)}'");
 				}
 			}
 		}

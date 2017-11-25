@@ -24,11 +24,12 @@ using System.Collections.Generic;
 using System.Text;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
-	public static class MSBuildTestHelpers
+	static class MSBuildTestHelpers
 	{
 		const char defaultMarker = '|';
 
@@ -48,11 +49,20 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			return indices;
 		}
 
-		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (string doc, string filename, Func<(XmlParser parser, IReadonlyTextDocument document, int offset), T> selector, char marker = defaultMarker)
+		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (
+			string doc, string filename,
+			Func<(XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext ctx, int offset), T> selector,
+			char marker = defaultMarker)
 		{
 			var indices = new Queue<int> (GetMarkedIndices (ref doc, marker));
 
 			var textDoc = TextEditorFactory.CreateNewDocument (new StringTextSource (doc), filename, MSBuildTextEditorExtension.MSBuildMimeType);
+
+			var treeParser = new XmlParser (new XmlRootState (), true);
+			treeParser.Parse (textDoc.CreateReader ());
+			var sb = new MSBuildSchemaBuilder (true, null, null, null);
+			var ctx = CreateEmptyContext ();
+			sb.Run (treeParser.Nodes.GetRoot (), filename, textDoc, ctx);
 
 			var parser = new XmlParser (new XmlRootState (), false);
 
@@ -63,7 +73,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					continue;
 				}
 
-				yield return (i, selector ((parser, textDoc, i)));
+				yield return (i, selector ((parser, textDoc, ctx, i)));
 
 				if (indices.Count == 0) {
 					break;
@@ -71,5 +81,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				nextIndex = indices.Dequeue ();
 			}
 		}
-	}
+
+		internal static MSBuildResolveContext CreateEmptyContext ()
+		{
+			return MSBuildResolveContext.Create (null, true, new Xml.Dom.XDocument (), null, null, null, null);
+		}
+    }
 }

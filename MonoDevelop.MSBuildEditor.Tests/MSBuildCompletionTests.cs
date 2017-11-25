@@ -14,7 +14,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.IsNotNull (provider);
 			Assert.IsNotNull (provider.Find ("PropertyGroup"));
 			Assert.IsNotNull (provider.Find ("Choose"));
-			Assert.AreEqual (10, provider.Count);
+			Assert.AreEqual (12, provider.Count);
 		}
 
 		[Test]
@@ -45,9 +45,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var provider = await MSBuildEditorTesting.CreateProvider (@"
 <Project><ItemGroup><Foo Bar=""a"" /><Foo $", ".csproj", true);
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Bar=\"|\""));
-			Assert.IsNotNull (provider.Find ("Include=\"|\""));
-			Assert.AreEqual (6, provider.Count);
+			Assert.IsNotNull (provider.Find ("Bar"));
+			Assert.IsNotNull (provider.Find ("Include"));
+			Assert.AreEqual (10, provider.Count);
 		}
 	}
 }

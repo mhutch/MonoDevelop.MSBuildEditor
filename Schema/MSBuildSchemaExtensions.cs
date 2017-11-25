@@ -194,7 +194,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
-				case MSBuildKind.TaskParameter:
+				case MSBuildKind.Parameter:
 					return schemas.GetTaskParameter (elementName, attributeName);
 				case MSBuildKind.Metadata:
 					return schemas.GetMetadata (elementName, attributeName, false);

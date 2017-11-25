@@ -8,8 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using MonoDevelop.Core;
-using MonoDevelop.Core.Assemblies;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.Projects.MSBuild;
 using BF = System.Reflection.BindingFlags;
@@ -138,10 +136,9 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			}
 
 			//permute on properties for which we have multiple values
-			var expr = new Expression ();
-			expr.Parse (path, ParseOptions.None);
+			var expr = ExpressionParser.Parse (path, ExpressionOptions.None);
 			var propsToPermute = new List<(string, List<string>)> ();
-			foreach (var prop in expr.Collection.OfType<PropertyReference> ()) {
+			foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
 				if (propVals.TryGetValues (prop.Name, out List<string> values) && values != null) {
 					if (values.Count > 1) {
 						propsToPermute.Add ((prop.Name, values));

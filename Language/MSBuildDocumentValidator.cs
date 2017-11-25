@@ -5,22 +5,15 @@ using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
-using MonoDevelop.MSBuildEditor.ExpressionParser;
 using System.Collections.Generic;
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
 	class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
-		readonly string filename;
-
-		public MSBuildDocumentValidator (MSBuildResolveContext context, string filename) : base (context)
-		{
-			this.filename = filename;
-		}
-
 		void AddError (ErrorType errorType, string message, DocumentRegion region) => Context.Errors.Add (new Error (errorType, message, region));
 		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (Document.OffsetToLocation (offset), Document.OffsetToLocation (offset + length));
 		void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
@@ -54,7 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			switch (resolved.Kind) {
 			case MSBuildKind.Project:
-				if (!filename.EndsWith (".props", System.StringComparison.OrdinalIgnoreCase)) {
+				if (!Filename.EndsWith (".props", System.StringComparison.OrdinalIgnoreCase)) {
 					ValidateProjectHasTarget (element);
 				}
 				break;
@@ -246,58 +239,80 @@ namespace MonoDevelop.MSBuildEditor.Language
 				AddWarning ($"{info.GetTitleCaseKindName ()} has default value", offset, value.Length);
 			}
 
-			base.VisitValue (info, value, offset);
+			// we skip calling base, and instead parse the expression with more options enabled
+			// so that we can warn if the user is doing something likely invalid
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var options = kind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
+
+			var node = ExpressionParser.Parse (value, options, offset);
+			VisitValueExpression (info, kind, node);
 		}
 
-		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, Expression expression, int offset, int length)
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
-			base.VisitValueExpression (info, kind, expression, offset, length);
+			var scalarKind = kind.GetScalarType ();
 
 			bool allowExpressions = kind.AllowExpressions ();
-			bool allowLists = kind.AllowLists () || info.ValueSeparators?.Length > 0;
+			bool allowLists = !kind.AllowLists ();
 
-			for (int i = 0; i < expression.Collection.Count; i++) {
-				var val = expression.Collection [i];
-				if (val is InvalidExpressionError err) {
-					var errOffset = offset+ err.Position;
-					AddError (
-						$"Invalid expression: {err.Message}",
-						new DocumentRegion (
-							Document.OffsetToLocation (errOffset),
-							Document.OffsetToLocation (errOffset + (length - err.Position))
-						)
-					);
-					return;
-				}
-				if (val is string s) {
-					if (s == ";") {
-						if (!allowLists) {
-							AddValueError ($"{Name()} does not allow lists");
-							return;
+			//it's a pure literal if it's just a literal or a literal entry in a list
+			switch (node) {
+			case ExpressionList list:
+				foreach (var c in list.Nodes) {
+					if (c is ExpressionLiteral l) {
+						VisitPureLiteral (info, kind, l.Value, l.Offset, l.Length);
+					} else {
+						if (!allowExpressions) {
+							AddExpressionWarning (c);
 						}
-						continue;
 					}
 				}
-				if (!allowExpressions) {
-					AddValueError ($"{Name()} does not allow expressions");
+				if (allowLists) {
+					AddListWarning (list.Nodes [0].End, 1);
 				}
-
+				break;
+			case ExpressionLiteral lit:
+				VisitPureLiteral (info, kind, lit.Value, lit.Offset, lit.Length);
+				break;
+			case ExpressionItem item:
 				//items are implicitly lists
-				if (val is ItemReference ir) {
-					if (!allowLists) {
-						AddValueError ($"{Name ()} does not allow lists");
-						return;
-					}
+				if (!allowLists) {
+					AddListWarning (item.Offset, item.Length);
 				}
-
-				//TODO: can we validate property/metadata/items refs?
+				goto default;
+			default:
+				if (!allowExpressions) {
+					AddExpressionWarning (node);
+				}
+				break;
 			}
 
-			void AddValueError (string e) => AddError (e, offset, length);
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionError err:
+					AddError (
+						$"Invalid expression: {err.Kind}",
+						new DocumentRegion (
+							Document.OffsetToLocation (err.Offset),
+							Document.OffsetToLocation (err.Offset + Math.Max (1, err.Length))
+						)
+					);
+					break;
+					//TODO: can we validate property/metadata/items refs?
+					//maybe warn if they're not used anywhere outside of this expression?
+				case ExpressionMetadata meta:
+				case ExpressionProperty prop:
+				case ExpressionItem item:
+					break;
+				}
+			}
+
 			string Name () => DescriptionFormatter.GetTitleCaseKindName (info);
+			void AddExpressionWarning (ExpressionNode n) => AddWarning ($"{Name ()} does not expect expressions", n.Offset, n.Length);
+			void AddListWarning (int start, int length) => AddWarning ($"{Name ()} does not expect lists", start, length);
 		}
 
-		protected override void VisitExpressionLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset, int length)
+		void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset, int length)
 		{
 			IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
 

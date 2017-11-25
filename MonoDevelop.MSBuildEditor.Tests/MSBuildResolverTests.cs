@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Ide;
 using MonoDevelop.MSBuildEditor.Language;
-using MonoDevelop.MSBuildEditor.Schema;
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuildEditor.Tests
@@ -36,9 +35,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	[TestFixture]
 	public class MSBuildResolverTests : IdeTestBase
 	{
-		List<(int offset, MSBuildResolveResult result)> Resolve (string doc) => MSBuildTestHelpers
-			.SelectAtMarkers (doc, "hello.csproj", (ctx) => MSBuildResolver.Resolve (ctx.parser, ctx.document))
-			.ToList ();
+		List<(int offset, MSBuildResolveResult result)> Resolve (string doc)
+		{
+			return MSBuildTestHelpers
+				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.document, state.ctx))
+				.ToList ();
+		}
 
 		void AssertReferences (string doc, params (MSBuildReferenceKind kind, string name, string itemName)[] expected)
 		{
