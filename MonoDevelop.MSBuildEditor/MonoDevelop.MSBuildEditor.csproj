@@ -49,39 +49,39 @@
     <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
     <Compile Include="Evaluation\Conditions\Token.cs" />
     <Compile Include="MSBuildSdkResolver.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\FileSystem.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
-    <Compile Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" Link="ProjectFileTools.NuGetSearch\SemanticVersion.cs"  />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" Link="ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" Link="ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\FileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\FileSystem.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
     <Compile Include="MSBuildCommands.cs" />
     <Compile Include="Language\Annotations.cs" />
     <Compile Include="Language\AnnotationTable.cs" />
@@ -165,10 +165,6 @@
     <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
     <PackageReference Include="System.Net.Http" Version="4.3.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\ProjectFileTools.NuGetSearch.csproj" />
-    <None Include="external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Properties\PublishProfiles\FolderProfile.pubxml" />
   </ItemGroup>
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />
