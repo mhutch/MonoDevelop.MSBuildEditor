@@ -275,12 +275,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case ExpressionLiteral lit:
 				VisitPureLiteral (info, kind, lit.Value, lit.Offset, lit.Length);
 				break;
-			case ExpressionItem item:
-				//items are implicitly lists
-				if (!allowLists) {
-					AddListWarning (item.Offset, item.Length);
-				}
-				goto default;
 			default:
 				if (!allowExpressions) {
 					AddExpressionWarning (node);
