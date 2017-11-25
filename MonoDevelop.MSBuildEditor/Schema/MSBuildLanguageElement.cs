@@ -112,6 +112,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			item.AbstractChild = metadata;
 			target.AbstractChild = task;
 			itemDefinitionGroup.AbstractChild = itemDefinition;
+			itemDefinition.AbstractChild = metadata;
 			propertyGroup.AbstractChild = property;
 			itemGroup.AbstractChild = item;
 			parameterGroup.AbstractChild = parameter;
