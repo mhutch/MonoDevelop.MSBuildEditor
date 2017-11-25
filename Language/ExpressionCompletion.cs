@@ -25,27 +25,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
-		public static bool ValidateListPermitted (ref TriggerState triggerState, char[] valueSeparators, MSBuildValueKind kind)
+		public static bool ValidateListPermitted (ref TriggerState triggerState, MSBuildValueKind kind)
 		{
-			if (triggerState != TriggerState.CommaValue && triggerState != TriggerState.SemicolonValue) {
-				return true;
-			}
-
-			if (valueSeparators != null) {
-				char ch = triggerState == TriggerState.CommaValue ? ',' : ';';
-				if (valueSeparators.Contains (ch)) {
+			switch (triggerState) {
+			case TriggerState.CommaValue:
+				if (kind.AllowCommaLists ()) {
 					triggerState = TriggerState.Value;
 					return true;
 				}
 				return false;
-			}
-
-			if (triggerState == TriggerState.SemicolonValue && kind.AllowLists ()) {
-				triggerState = TriggerState.Value;
+			case TriggerState.SemicolonValue:
+				if (kind.AllowLists ()) {
+					triggerState = TriggerState.Value;
+					return true;
+				}
+				return false;
+			default:
 				return true;
 			}
-
-			return false;
 		}
 
 		//FIXME: This is very rudimentary. We should parse the expression for real.

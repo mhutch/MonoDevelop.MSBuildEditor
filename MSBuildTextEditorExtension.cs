@@ -215,7 +215,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
-			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, info.ValueSeparators, kind)) {
+			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, kind)) {
 				return null;
 			}
 

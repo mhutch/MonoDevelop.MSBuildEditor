@@ -161,20 +161,35 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static MSBuildValueKind InferValueKindIfUnknown (ValueInfo variable)
 		{
+			var kind = InferUnknownKind (variable);
+
+			if (variable.ValueSeparators != null) {
+				if (variable.ValueSeparators.Contains (';')) {
+					kind |= MSBuildValueKind.List;
+				}
+				if (variable.ValueSeparators.Contains (',')) {
+					kind |= MSBuildValueKind.CommaList;
+				}
+			}
+
+			return kind;
+		}
+
+		static MSBuildValueKind InferUnknownKind (ValueInfo variable)
+		{
 			if (variable.ValueKind != MSBuildValueKind.Unknown) {
 				return variable.ValueKind;
 			}
 
 			if (variable is PropertyInfo || variable is MetadataInfo) {
 				if (StartsWith ("Enable")
-				    || StartsWith ("Disable")
-				    || StartsWith ("Require")
-				    || StartsWith ("Use")
-				    || StartsWith ("Allow")
-				    || EndsWith ("Enabled")
-				    || EndsWith ("Disabled")
-				    || EndsWith ("Required"))
-				{
+					|| StartsWith ("Disable")
+					|| StartsWith ("Require")
+					|| StartsWith ("Use")
+					|| StartsWith ("Allow")
+					|| EndsWith ("Enabled")
+					|| EndsWith ("Disabled")
+					|| EndsWith ("Required")) {
 					return MSBuildValueKind.Bool;
 				}
 				if (EndsWith ("DependsOn")) {
@@ -187,8 +202,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					return MSBuildValueKind.FileOrFolder.List ();
 				}
 				if (EndsWith ("Directory")
-				    || EndsWith ("Dir"))
-				{
+					|| EndsWith ("Dir")) {
 					return MSBuildValueKind.Folder;
 				}
 				if (EndsWith ("File")) {

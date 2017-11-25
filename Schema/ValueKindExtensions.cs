@@ -27,6 +27,12 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		[MethodImpl (MethodImplOptions.AggressiveInlining)]
+		public static bool AllowCommaLists (this MSBuildValueKind value)
+		{
+			return (value & MSBuildValueKind.CommaList) != 0 || value == MSBuildValueKind.Unknown;
+		}
+
+		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static MSBuildValueKind List (this MSBuildValueKind value)
 		{
 			return value | MSBuildValueKind.List;

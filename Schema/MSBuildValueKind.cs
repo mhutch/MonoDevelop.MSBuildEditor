@@ -86,7 +86,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		NuGetVersion,
 
 		/// Allow multiple semicolon separated values
-		List = 1 << 29,
+		List = 1 << 28,
+
+		/// Allow multiple comma separated values
+		CommaList = 1 << 29,
 
 		/// Disallow expressions
 		Literal = 1 << 30
