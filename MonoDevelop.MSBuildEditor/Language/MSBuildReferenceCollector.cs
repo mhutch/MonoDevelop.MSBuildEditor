@@ -37,6 +37,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.Item:
 			case MSBuildReferenceKind.Task:
 			case MSBuildReferenceKind.Metadata:
+			case MSBuildReferenceKind.Target:
 				return !string.IsNullOrEmpty (rr.ReferenceName);
 			}
 
@@ -54,6 +55,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new MSBuildMetadataReferenceCollector (rr.ReferenceItemName, rr.ReferenceName);
 			case MSBuildReferenceKind.Task:
 				return new MSBuildTaskReferenceCollector (rr.ReferenceName);
+			case MSBuildReferenceKind.Target:
+				return new MSBuildTargetReferenceCollector (rr.ReferenceName);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
@@ -171,6 +174,51 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		bool IsItemNameMatch (string name) => string.Equals (name, itemName, StringComparison.OrdinalIgnoreCase);
+	}
+
+	class MSBuildTargetReferenceCollector : MSBuildReferenceCollector
+	{
+		public MSBuildTargetReferenceCollector (string targetName) : base (targetName) { }
+
+		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
+			if (resolved.Kind == MSBuildKind.Target) {
+				var nameAtt = element.Attributes.Get (new XName (Name), true);
+				if (nameAtt != null && IsMatch (nameAtt.Value)) {
+					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length));
+				}
+			}
+			base.VisitResolvedElement (element, resolved);
+		}
+
+		protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
+				return;
+			}
+
+			switch (node) {
+			case ExpressionList list:
+				foreach (var c in list.Nodes) {
+					if (c is ExpressionLiteral l) {
+						CheckMatch (l);
+						break;
+					}
+				}
+				break;
+			case ExpressionLiteral lit:
+				CheckMatch (lit);
+				break;
+			}
+		}
+
+		void CheckMatch (ExpressionLiteral node)
+		{
+			//FIXME: get rid of this trim
+			if (IsMatch (node.Value.Trim ())) {
+				Results.Add ((node.Offset, node.Length));
+			}
+		}
 	}
 
 	class MSBuildTargetDefinitionCollector : MSBuildReferenceCollector

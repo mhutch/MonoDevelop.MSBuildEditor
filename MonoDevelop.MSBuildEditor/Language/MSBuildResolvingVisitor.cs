@@ -60,6 +60,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
 			if (!kind.AllowExpressions ()) {
+				VisitValueExpression (info, kind, new ExpressionLiteral (offset, value));
 				return;
 			}
 
