@@ -116,12 +116,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var name = element.Name.Name;
 				propertyValues.Collect (name, value);
 			}
-			ExtractReferences (value, offset);
+			ExtractReferences (resolved.ValueKind, value, offset);
 		}
 
 		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
 		{
-			ExtractReferences (value, offset);
+			ExtractReferences (resolvedAttribute.ValueKind, value, offset);
 		}
 
 		void CollectItem (string itemName)
@@ -170,7 +170,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void ExtractReferences (string value, int startOffset)
+		void ExtractReferences (MSBuildValueKind kind, string value, int startOffset)
 		{
 			try {
 				var expression = ExpressionParser.Parse (value, ExpressionOptions.ItemsMetadataAndLists, startOffset);
@@ -186,6 +186,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 						var itemName = meta.GetItemName ();
 						if(itemName != null) {
 							CollectMetadata (itemName, meta.MetadataName);
+						}
+						break;
+					case ExpressionLiteral literal:
+						if (literal.IsPure) {
+							switch (kind) {
+							case MSBuildValueKind.ItemName:
+								CollectItem (literal.Value);
+								break;
+							case MSBuildValueKind.TargetName:
+								CollectTarget (literal.Value);
+								break;
+							case MSBuildValueKind.PropertyName:
+								CollectProperty (literal.Value);
+								break;
+							}
 						}
 						break;
 					}
