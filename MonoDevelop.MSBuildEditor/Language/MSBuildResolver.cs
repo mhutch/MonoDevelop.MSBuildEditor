@@ -163,6 +163,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 			}
 
+			protected override void VisitValue(ValueInfo info, string value, int offset)
+			{
+				var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+				var options = kind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
+
+				var node = ExpressionParser.Parse (value, options, offset);
+				VisitValueExpression (info, kind, node);
+			}
+
 			protected override void VisitValueExpression (ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				switch (node.Find (offset)) {
@@ -188,6 +197,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceName = em.ItemName;
 					}
 					break;
+				case ExpressionLiteral lit:
+					if (lit.Parent == null || lit.Parent is ExpressionList) {
+						VisitPureLiteral (kind.GetScalarType (), lit);
+					}
+					break;
+				}
+			}
+
+			void VisitPureLiteral (MSBuildValueKind kind, ExpressionLiteral node)
+			{
+				rr.ReferenceOffset = node.Offset;
+				rr.ReferenceName = node.Value;
+
+				if (kind == MSBuildValueKind.TargetName) {
+					rr.ReferenceKind = MSBuildReferenceKind.Target;
 				}
 			}
 		}

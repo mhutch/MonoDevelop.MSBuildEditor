@@ -129,6 +129,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return schemas.GetProperty (rr.ReferenceName);
 			case MSBuildReferenceKind.Task:
 				return schemas.GetTask (rr.ReferenceName);
+			case MSBuildReferenceKind.Target:
+				return schemas.GetTarget (rr.ReferenceName);
 			case MSBuildReferenceKind.Keyword:
 				var attName = rr.AttributeName;
 				if (attName != null) {

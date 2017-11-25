@@ -77,3 +77,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * avoid importing the same targets file more than once,
   for example when multivalued language imports cause
   multiple imports of common targets
+* cmd-click navigation
+* highlight matching identifiers
+* navigate to files
