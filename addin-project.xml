@@ -1,7 +1,0 @@
-<AddinProject appVersion="6.0">
-	<Project platforms="Win32 Mac Linux">
-		<AddinFile>bin/Release/MonoDevelop.MSBuildEditor.dll</AddinFile>
-		<BuildFile>MonoDevelop.MSBuildEditor.sln</BuildFile>
-		<BuildConfiguration>Release</BuildConfiguration>
-	</Project>
-</AddinProject>
