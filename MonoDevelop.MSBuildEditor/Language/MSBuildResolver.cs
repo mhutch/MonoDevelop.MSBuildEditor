@@ -192,7 +192,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionLiteral lit:
-					if (lit.Parent == null || lit.Parent is ExpressionList) {
+					if (lit.IsPure) {
 						VisitPureLiteral (kind.GetScalarType (), lit);
 					}
 					break;

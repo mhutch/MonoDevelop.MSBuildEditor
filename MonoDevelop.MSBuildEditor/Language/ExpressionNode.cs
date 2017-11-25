@@ -47,10 +47,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class ExpressionLiteral : ExpressionNode
 	{
 		public string Value { get; }
+		public bool IsPure { get; }
 
-		public ExpressionLiteral (int offset, string value) : base (offset, value.Length)
+		public ExpressionLiteral (int offset, string value, bool isPure) : base (offset, value.Length)
 		{
 			Value = value;
+			IsPure = isPure;
 		}
 	}
 
@@ -175,7 +177,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 			}
-			if (node is ExpressionItem item && item.HasTransform) {
+			else if (node is ExpressionItem item && item.HasTransform) {
 				foreach (var n in item.Transform.WithAllDescendants ()) {
 					yield return n;
 				}

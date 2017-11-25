@@ -274,34 +274,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowLists ();
 
-			//it's a pure literal if it's just a literal or a literal entry in a list
-			switch (node) {
-			case ExpressionList list:
-				foreach (var c in list.Nodes) {
-					if (c is ExpressionLiteral l) {
-						VisitPureLiteral (info, kind, l.Value, l.Offset, l.Length);
-					} else {
-						if (!allowExpressions) {
-							AddExpressionWarning (c);
-						}
-					}
-				}
-				if (!allowLists) {
-					AddListWarning (list.Nodes [0].End, 1);
-				}
-				break;
-			case ExpressionLiteral lit:
-				VisitPureLiteral (info, kind, lit.Value, lit.Offset, lit.Length);
-				break;
-			default:
-				if (!allowExpressions) {
-					AddExpressionWarning (node);
-				}
-				break;
-			}
-
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
+				case ExpressionList list:
+					if (!allowLists) {
+						AddListWarning (list.Nodes [0].End, 1);
+					}
+					break;
 				case ExpressionError err:
 					AddError (
 						err.Kind.GetMessage (info),
@@ -311,16 +290,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 						)
 					);
 					break;
-					//TODO: can we validate property/metadata/items refs?
-					//maybe warn if they're not used anywhere outside of this expression?
 				case ExpressionMetadata meta:
 				case ExpressionProperty prop:
 				case ExpressionItem item:
+					if (!allowExpressions) {
+						AddExpressionWarning (node);
+					}
+					//TODO: can we validate property/metadata/items refs?
+					//maybe warn if they're not used anywhere outside of this expression?
+					break;
+				case ExpressionLiteral lit:
+					VisitPureLiteral (info, kind, lit.Value, lit.Offset, lit.Length);
 					break;
 				}
 			}
 
-			string Name () => DescriptionFormatter.GetTitleCaseKindName (info);
+			string Name () => info.GetTitleCaseKindName ();
 			void AddExpressionWarning (ExpressionNode n) => AddWarning ($"{Name ()} does not expect expressions", n.Offset, n.Length);
 			void AddListWarning (int start, int length) => AddWarning ($"{Name ()} does not expect lists", start, length);
 		}

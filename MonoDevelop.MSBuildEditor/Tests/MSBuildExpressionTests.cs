@@ -124,11 +124,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc$(Foo)cde@(baritem)510",
 				 new Expression (
 					0, 25,
-					new ExpressionLiteral (0, "abc"),
+					new ExpressionLiteral (0, "abc", false),
 					new ExpressionProperty (3, 6, "Foo"),
-					new ExpressionLiteral (9, "cde"),
+					new ExpressionLiteral (9, "cde", false),
 					new ExpressionItem (12, 10, "baritem"),
-					new ExpressionLiteral (22, "510")
+					new ExpressionLiteral (22, "510", false)
 				),
 				ExpressionOptions.Items
 			);
@@ -141,14 +141,14 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc;$(Foo)cde;@(baritem);stuff",
 				 new ExpressionList (
 					0, 30,
-					new ExpressionLiteral (0, "abc"),
+					new ExpressionLiteral (0, "abc", true),
 					new Expression (
 						4, 9,
 						new ExpressionProperty (4, 6, "Foo"),
-						new ExpressionLiteral (10, "cde")
+						new ExpressionLiteral (10, "cde", false)
 					),
 					new ExpressionItem (14, 10, "baritem"),
-					new ExpressionLiteral (25, "stuff")
+					new ExpressionLiteral (25, "stuff", true)
 				),
 				ExpressionOptions.ItemsAndLists
 			);
@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc;$(Foo)",
 				 new Expression (
 					0, 10,
-					new ExpressionLiteral (0, "abc;"),
+					new ExpressionLiteral (0, "abc;", false),
 					new ExpressionProperty (4, 6, "Foo")
 				)
 			);
@@ -200,7 +200,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				}
 				break;
 			case ExpressionLiteral literal:
-				Assert.AreEqual (((ExpressionLiteral)expected).Value, literal.Value);
+				var expectedLit = (ExpressionLiteral)expected;
+				Assert.AreEqual (expectedLit.Value, literal.Value);
+				Assert.AreEqual (expectedLit.IsPure, literal.IsPure);
 				break;
 			case ExpressionProperty prop:
 				Assert.AreEqual (((ExpressionProperty)expected).Name, prop.Name);

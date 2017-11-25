@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				if (options.HasFlag (ExpressionOptions.Lists)) {
 					if (c == ';' || (c == ',' && options.HasFlag (ExpressionOptions.CommaLists))) {
-						CaptureLiteral (offset);
+						CaptureLiteral (offset, nodes.Count == 0);
 						if (splitList == null) {
 							splitList = new List<ExpressionNode> ();
 						}
@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					continue;
 				}
 
-				CaptureLiteral (possibleLiteralEndOffset);
+				CaptureLiteral (possibleLiteralEndOffset, false);
 				lastNodeEnd = offset + 1;
 
 				nodes.Add (node);
@@ -69,14 +69,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			CaptureLiteral (endOffset + 1);
+			CaptureLiteral (endOffset + 1, nodes.Count == 0);
 			return CreateResult (endOffset);
 
-			void CaptureLiteral (int toOffset)
+			void CaptureLiteral (int toOffset, bool isPure)
 			{
 				if (toOffset > lastNodeEnd) {
 					string s = buffer.Substring (lastNodeEnd, toOffset - lastNodeEnd);
-					nodes.Add (new ExpressionLiteral (baseOffset + lastNodeEnd, s));
+					nodes.Add (new ExpressionLiteral (baseOffset + lastNodeEnd, s, isPure));
 				}
 			}
 
@@ -158,7 +158,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ExpressionNode transform;
 			if (endAposOffset == 0) {
-				transform = new ExpressionLiteral (offset, "");
+				transform = new ExpressionLiteral (offset, "", true);
 			} else {
 				//FIXME: disallow items in the transform
 				transform = Parse (buffer, offset, endAposOffset - 1, ExpressionOptions.Metadata, baseOffset);
