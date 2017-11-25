@@ -195,13 +195,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void ValidateItemAttributes (XElement element)
 		{
+			bool isInTarget = IsInTarget (element, MSBuildKind.Item);
 			bool hasInclude = false, hasUpdate = false, hasRemove = false;
 			foreach (var att in element.Attributes) {
 				hasInclude |= att.NameEquals ("Include", true);
 				hasUpdate |= att.NameEquals ("Update", true);
 				hasRemove |= att.NameEquals ("Remove", true);
 				if (att.NameEquals ("KeepMetadata", true) || att.NameEquals ("RemoveMetadata", true) || att.NameEquals ("KeepDuplicates", true)) {
-					if (!(element.Parent?.Parent is XElement t && t.NameEquals ("Target", true))) {
+					if (!isInTarget) {
 						AddError (
 							$"{att.Name.Name} is only valid within a target",
 							att.GetNameRegion ());
@@ -209,11 +210,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			if (!hasInclude && !hasRemove && !hasUpdate) {
+			if (!hasInclude && !hasRemove && !hasUpdate && !isInTarget) {
 				AddError (
 					$"Items must have Include, Update or Remove attributes",
 					element.GetNameRegion ());
 			}
+		}
+
+		static bool IsInTarget (XElement element, MSBuildKind kind)
+		{
+			switch (kind) {
+			case MSBuildKind.ItemGroup:
+			case MSBuildKind.PropertyGroup:
+				return string.Equals (element.ParentElement ()?.Name.Name, "Target", StringComparison.OrdinalIgnoreCase);
+			case MSBuildKind.Metadata:
+			case MSBuildKind.Property:
+				return string.Equals (element.ParentElement ()?.ParentElement()?.Name.Name, "Target", StringComparison.OrdinalIgnoreCase);
+			}
+			return false;
 		}
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
@@ -257,8 +271,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
-			var scalarKind = kind.GetScalarType ();
-
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowLists ();
 
