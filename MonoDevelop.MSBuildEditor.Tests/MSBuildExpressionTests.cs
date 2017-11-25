@@ -52,6 +52,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(a->", ExpressionErrorKind.ExpectingApos)]
 		[TestCase ("@(a->  ", ExpressionErrorKind.ExpectingApos)]
 		[TestCase ("@(a->.", ExpressionErrorKind.ExpectingApos)]
+		[TestCase ("@(a->'f", ExpressionErrorKind.ExpectingApos)]
+		[TestCase ("@(a->''", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("@(a->''d", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("@(a->'' ", ExpressionErrorKind.ExpectingRightParen)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);

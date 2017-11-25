@@ -74,3 +74,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * validate metadata refs are valid in context
 * use new expression parser for triggering intellisense
 * support property functions in new expression parser
+* avoid importing the same targets file more than once,
+  for example when multivalued language imports cause
+  multiple imports of common targets

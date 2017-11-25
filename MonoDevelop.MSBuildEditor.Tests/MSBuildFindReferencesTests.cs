@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 
 			var ctx = MSBuildTestHelpers.CreateEmptyContext ();
-			var sb = new MSBuildSchemaBuilder (true, null, null, null);
+			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null);
 			sb.Run (xdoc, filename, textDoc, ctx);
 
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
