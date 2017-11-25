@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -209,6 +210,42 @@ namespace MonoDevelop.MSBuildEditor.Language
 				break;
 			}
 			return node;
+		}
+
+		public static string GetMessage (this ExpressionErrorKind errorKind, ValueInfo info)
+		{
+			switch (errorKind) {
+			case ExpressionErrorKind.MetadataDisallowed:
+				return $"{Name()} does not allow metadata";
+			case ExpressionErrorKind.EmptyListEntry:
+				return $"Empty list value";
+			case ExpressionErrorKind.ExpectingLeftParen:
+				return $"Expecting '('";
+			case ExpressionErrorKind.ExpectingItemName:
+				return $"Expecting item name";
+			case ExpressionErrorKind.ExpectingRightParen:
+				return $"Expecting ')'";
+			case ExpressionErrorKind.ExpectingRightParenOrPeriod:
+				return $"Expecting ')' or '.'";
+			case ExpressionErrorKind.ExpectingPropertyName:
+				return $"Expecting property name";
+			case ExpressionErrorKind.ExpectingMetadataName:
+				return $"Expecting metadata name";
+			case ExpressionErrorKind.ExpectingMetadataOrItemName:
+				return $"Expecting metadata or item name";
+			case ExpressionErrorKind.ExpectingRightAngleBracket:
+				return $"Expecting '>'";
+			case ExpressionErrorKind.ExpectingApos:
+				return $"Expecting single quote";
+			case ExpressionErrorKind.ExpectingRightParenOrDash:
+				return $"Expecting '-' or ')'";
+			case ExpressionErrorKind.ItemsDisallowed:
+				return $"{Name()} does not allow metadata";
+			default:
+				return $"Invalid expression: {errorKind}";
+			}
+
+			string Name () => DescriptionFormatter.GetTitleCaseKindName (info);
 		}
 	}
 }

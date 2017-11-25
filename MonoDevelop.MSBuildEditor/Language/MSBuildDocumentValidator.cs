@@ -292,7 +292,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionError err:
 					AddError (
-						$"Invalid expression: {err.Kind}",
+						err.Kind.GetMessage (info),
 						new DocumentRegion (
 							Document.OffsetToLocation (err.Offset),
 							Document.OffsetToLocation (err.Offset + Math.Max (1, err.Length))
