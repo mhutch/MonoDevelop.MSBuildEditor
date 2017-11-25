@@ -232,7 +232,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			return MSBuildValueKind.Unknown;
 
-			bool StartsWith (string prefix) => variable.Name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase);
+			bool StartsWith (string prefix) => variable.Name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
+			                                           && variable.Name.Length > prefix.Length
+			                                           && char.IsUpper (variable.Name[prefix.Length]);
 			bool EndsWith (string suffix) => variable.Name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		}
 	}
