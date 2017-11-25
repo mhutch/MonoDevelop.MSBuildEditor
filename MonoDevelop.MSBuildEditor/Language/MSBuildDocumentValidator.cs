@@ -220,12 +220,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 		static bool IsInTarget (XElement element, MSBuildKind kind)
 		{
 			switch (kind) {
+			case MSBuildKind.Metadata:
+				element = element?.ParentElement ();
+				goto case MSBuildKind.Item;
+			case MSBuildKind.Property:
+			case MSBuildKind.Item:
+				element = element?.ParentElement ();
+				goto case MSBuildKind.ItemGroup;
 			case MSBuildKind.ItemGroup:
 			case MSBuildKind.PropertyGroup:
-				return string.Equals (element.ParentElement ()?.Name.Name, "Target", StringComparison.OrdinalIgnoreCase);
-			case MSBuildKind.Metadata:
-			case MSBuildKind.Property:
-				return string.Equals (element.ParentElement ()?.ParentElement()?.Name.Name, "Target", StringComparison.OrdinalIgnoreCase);
+				var name = element?.ParentElement ()?.Name.Name;
+				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
 			}
 			return false;
 		}
