@@ -104,7 +104,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 				if (!wasResolved && isToplevel) {
-					Context.Errors.Add (new Error (ErrorType.Error, "Could not resolve import", loc));
+					ErrorType type = element.Attributes.Get (new XName ("Condition"), true) == null ? ErrorType.Error : ErrorType.Warning;
+					Context.Errors.Add (new Error (type, "Could not resolve import", loc));
 				}
 			}
 		}
