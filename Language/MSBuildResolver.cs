@@ -18,13 +18,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//clones and connects nodes to their parents
 			parser = parser.GetTreeParser ();
 
+			//capture incomplete names, attributes and element values
+			int i = offset;
+			if (parser.CurrentState is XmlRootState && parser.Nodes.Peek () is XElement unclosedEl) {
+				while (i < document.Length && InRootOrClosingTagState () && !unclosedEl.IsClosed) {
+					parser.Push (document.GetCharAt (i++));
+				}
+			} else {
+				while (i < document.Length && InNameOrAttributeState ()) {
+					parser.Push (document.GetCharAt (i++));
+				}
+			}
+
 			var nodePath = parser.Nodes.ToList ();
 			nodePath.Reverse ();
-
-			int i = offset;
-			while (i < document.Length && (parser.CurrentState is XmlNameState || parser.CurrentState is XmlAttributeState || parser.CurrentState is XmlAttributeValueState)) {
-				parser.Push (document.GetCharAt (i++));
-			}
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
@@ -71,6 +78,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 			rv.Run (el, languageElement, document);
 
 			return rr;
+			bool InNameOrAttributeState () =>
+				parser.CurrentState is XmlNameState
+				|| parser.CurrentState is XmlAttributeState
+				|| parser.CurrentState is XmlAttributeValueState;
+
+			bool InRootOrClosingTagState () =>
+				parser.CurrentState is XmlRootState
+				|| parser.CurrentState is XmlNameState
+				|| parser.CurrentState is XmlClosingTagState;
 		}
 
 		class MSBuildResolveVisitor : MSBuildVisitor
