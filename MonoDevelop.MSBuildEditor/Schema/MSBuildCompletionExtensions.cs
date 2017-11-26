@@ -13,15 +13,22 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public static IEnumerable<BaseInfo> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
 		{
-			bool filterTargetOnlyItemAttributes = false;
+			bool isInTarget = false;
 			if (rr.LanguageElement.Kind == MSBuildKind.Item) {
-				filterTargetOnlyItemAttributes = !rr.LanguageElement.IsInTarget (rr.XElement);
+				isInTarget = rr.LanguageElement.IsInTarget (rr.XElement);
 			}
+
 			foreach (var att in rr.LanguageElement.Attributes) {
 				if (!att.IsAbstract) {
-					if (filterTargetOnlyItemAttributes) {
-						if (att.Name == "KeepMetadata" || att.Name == "RemoveMetadata" || att.Name == "KeepDuplicates") {
-							continue;
+					if (rr.LanguageElement.Kind == MSBuildKind.Item) {
+						if (isInTarget) {
+							if (att.Name == "Update") {
+								continue;
+							}
+						} else {
+							if (att.Name == "KeepMetadata" || att.Name == "RemoveMetadata" || att.Name == "KeepDuplicates") {
+								continue;
+							}
 						}
 					}
 					yield return att;

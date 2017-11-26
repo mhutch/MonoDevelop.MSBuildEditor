@@ -79,4 +79,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * trim whitespace on literals in expressions
 * when editing target file should use its own schemas
 * package ID tooltips
-* hide excludemetadata etc from completion in non-target contexts
+* project kind completion

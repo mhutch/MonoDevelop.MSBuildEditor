@@ -200,8 +200,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 			bool hasInclude = false, hasUpdate = false, hasRemove = false;
 			foreach (var att in element.Attributes) {
 				hasInclude |= att.NameEquals ("Include", true);
-				hasUpdate |= att.NameEquals ("Update", true);
 				hasRemove |= att.NameEquals ("Remove", true);
+				if (att.NameEquals ("Update", true)) {
+					hasUpdate = true;
+					if (isInTarget) {
+						AddError (
+							$"{att.Name.Name} is only valid outside of a target",
+							att.GetNameRegion ());
+					}
+				}
 				if (att.NameEquals ("KeepMetadata", true) || att.NameEquals ("RemoveMetadata", true) || att.NameEquals ("KeepDuplicates", true)) {
 					if (!isInTarget) {
 						AddError (
@@ -213,7 +220,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (!hasInclude && !hasRemove && !hasUpdate && !isInTarget) {
 				AddError (
-					$"Items must have Include, Update or Remove attributes",
+					$"Items outside of targets must have Include, Update or Remove attributes",
 					element.GetNameRegion ());
 			}
 		}
