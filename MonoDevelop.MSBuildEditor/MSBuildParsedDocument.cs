@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuildEditor
 					if (tvAtt != null) {
 						var val = tvAtt.Value;
 						MSBuildToolsVersion tv;
-						if (Enum.TryParse (val, out tv)) {
+						if (MSBuildToolsVersionExtensions.TryParse (val, out tv)) {
 							toolsVersion = tv;
 							return tv;
 						}

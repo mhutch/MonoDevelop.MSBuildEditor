@@ -42,6 +42,33 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
+		public static bool TryParse (string versionString, out MSBuildToolsVersion version)
+		{
+			switch (versionString) {
+			case "2.0":
+				version = MSBuildToolsVersion.V2_0;
+				return true;
+			case "3.5":
+				version = MSBuildToolsVersion.V3_5;
+				return true;
+			case "4.0":
+				version = MSBuildToolsVersion.V4_0;
+				return true;
+			case "12.0":
+				version = MSBuildToolsVersion.V12_0;
+				return true;
+			case "14.0":
+				version = MSBuildToolsVersion.V14_0;
+				return true;
+			case "15.0":
+				version = MSBuildToolsVersion.V15_0;
+				return true;
+			default:
+				version = MSBuildToolsVersion.Unknown;
+				return true;
+			}
+		}
+
 		public static bool IsAtLeast (this MSBuildToolsVersion version, MSBuildToolsVersion other)
 		{
 			if (version == MSBuildToolsVersion.Unknown) {
