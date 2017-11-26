@@ -117,7 +117,9 @@ namespace MonoDevelop.MSBuildEditor
 			var doc = GetDocument ();
 			var list = new CompletionDataList ();
 			foreach (var att in rr.GetAttributeCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
-				list.Add (new MSBuildCompletionData (att, doc, rr, XmlCompletionData.DataType.XmlAttribute));
+				if (!existingAtts.ContainsKey (att.Name)) {
+					list.Add (new MSBuildCompletionData (att, doc, rr, XmlCompletionData.DataType.XmlAttribute));
+				}
 			}
 
 			return Task.FromResult (list);
