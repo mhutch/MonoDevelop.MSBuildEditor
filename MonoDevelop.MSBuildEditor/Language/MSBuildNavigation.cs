@@ -7,6 +7,8 @@ using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
+using System.IO;
+using System;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -18,7 +20,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return false;
 			}
 			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location, ctx);
-			return (annotations != null && annotations.Any ()) || rr.ReferenceKind == MSBuildReferenceKind.Target;
+			if (annotations != null && annotations.Any ()) {
+				return true;
+			}
+
+			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
+				return true;
+			}
+
+			return false;
 		}
 
 		public static MSBuildNavigationResult GetNavigation (
@@ -112,18 +122,43 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
-				if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
-					return;
-				}
-
 				foreach (var n in node.WithAllDescendants ()) {
 					if (n is ExpressionLiteral lit && lit.IsPure) {
-						Navigations.Add (new MSBuildNavigationResult (
-							MSBuildReferenceKind.Target, lit.Value, lit.Offset, lit.Length
-						));
+						var r = GetNavigationFromValue (kind, lit.Value, lit.Offset, Filename);
+						if (r != null) {
+							Navigations.Add (r);
+						}
 					}
 				}
 			}
+		}
+
+		static MSBuildNavigationResult GetNavigationFromValue (MSBuildValueKind kind, string value, int offset, string filename)
+		{
+			switch (kind.GetScalarType ()) {
+			case MSBuildValueKind.TargetName:
+				return new MSBuildNavigationResult (
+					MSBuildReferenceKind.Target, value, offset, value.Length
+				);
+			case MSBuildValueKind.File:
+			case MSBuildValueKind.FileOrFolder:
+			case MSBuildValueKind.ProjectFile:
+			case MSBuildValueKind.TaskAssemblyFile:
+				try {
+					var path = Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (
+						Path.GetDirectoryName (filename), value
+					);
+					if (File.Exists (path)) {
+						return new MSBuildNavigationResult (
+							new [] { path }, offset, value.Length
+						);
+					}
+				} catch (Exception ex) {
+					Core.LoggingService.LogError ($"Error checking path for file '{value}'", ex);
+				}
+				break;
+			}
+			return null;
 		}
 	}
 

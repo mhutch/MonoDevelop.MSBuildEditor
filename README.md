@@ -75,7 +75,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
   for example when multivalued language imports cause
   multiple imports of common targets
 * highlight matching identifiers
-* navigate to files
 * trim whitespace on literals in expressions
 * when editing target file should use its own schemas
 * package ID tooltips
