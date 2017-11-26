@@ -22,16 +22,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 			for (int offset = startOffset; offset <= endOffset; offset++) {
 				char c = buffer [offset];
 
-				if (options.HasFlag (ExpressionOptions.Lists)) {
-					if (c == ';' || (c == ',' && options.HasFlag (ExpressionOptions.CommaLists))) {
-						CaptureLiteral (offset, nodes.Count == 0);
-						if (splitList == null) {
-							splitList = new List<ExpressionNode> ();
-						}
-						FlushNodesToSplitList (offset);
-						lastNodeEnd = offset + 1;
-						continue;
+				if ((options.HasFlag (ExpressionOptions.Lists) && c == ';') || (c == ',' && options.HasFlag (ExpressionOptions.CommaLists))) {
+					CaptureLiteral (offset, nodes.Count == 0);
+					if (splitList == null) {
+						splitList = new List<ExpressionNode> ();
 					}
+					FlushNodesToSplitList (offset);
+					lastNodeEnd = offset + 1;
+					continue;
 				}
 
 				int possibleLiteralEndOffset = offset;

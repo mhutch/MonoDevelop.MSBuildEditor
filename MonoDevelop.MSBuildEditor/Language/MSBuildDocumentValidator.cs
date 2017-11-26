@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			bool allowExpressions = kind.AllowExpressions ();
-			bool allowLists = kind.AllowLists ();
+			bool allowLists = kind.AllowListsOrCommaLists ();
 
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
