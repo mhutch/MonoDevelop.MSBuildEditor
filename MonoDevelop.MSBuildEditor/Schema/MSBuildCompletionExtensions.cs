@@ -33,6 +33,24 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
+		public static bool IsInTarget (this MSBuildLanguageElement resolvedElement, Xml.Dom.XElement element)
+		{
+			switch (resolvedElement.Kind) {
+			case MSBuildKind.Metadata:
+				element = element?.ParentElement ();
+				goto case MSBuildKind.Item;
+			case MSBuildKind.Property:
+			case MSBuildKind.Item:
+				element = element?.ParentElement ();
+				goto case MSBuildKind.ItemGroup;
+			case MSBuildKind.ItemGroup:
+			case MSBuildKind.PropertyGroup:
+				var name = element?.ParentElement ()?.Name.Name;
+				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
+			}
+			return false;
+		}
+
 		static IEnumerable<BaseInfo> GetAbstractAttributes (this IEnumerable<IMSBuildSchema> schemas, MSBuildKind kind, string elementName)
 		{
 			switch (kind) {

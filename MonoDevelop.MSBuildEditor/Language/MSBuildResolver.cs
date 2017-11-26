@@ -13,6 +13,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	static class MSBuildResolver
 	{
+		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
+
 		public static MSBuildResolveResult Resolve (XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext context)
 		{
 			int offset = parser.Position;
@@ -33,6 +35,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 				while (i < document.Length && InNameOrAttributeState ()) {
 					parser.Push (document.GetCharAt (i++));
 				}
+			}
+
+			//if lastnode is incomplete, it won't get connected
+			//HACK: the only way to reconnect it is reflection
+			if (nodePath.Count > 1 && nodePath[nodePath.Count-1].Parent == null) {
+				var parent = nodePath [nodePath.Count - 2];
+				var lastNode = nodePath [nodePath.Count - 1];
+				ParentProp.SetValue (lastNode, parent);
 			}
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,

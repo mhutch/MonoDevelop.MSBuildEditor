@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ValidateImportOnlyHasVersionIfHasSdk (element);
 				break;
 			case MSBuildKind.Item:
-				ValidateItemAttributes (element);
+				ValidateItemAttributes (resolved, element);
 				break;
 			}
 
@@ -194,9 +194,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void ValidateItemAttributes (XElement element)
+		void ValidateItemAttributes (MSBuildLanguageElement resolved, XElement element)
 		{
-			bool isInTarget = IsInTarget (element, MSBuildKind.Item);
+			bool isInTarget = resolved.IsInTarget (element);
 			bool hasInclude = false, hasUpdate = false, hasRemove = false;
 			foreach (var att in element.Attributes) {
 				hasInclude |= att.NameEquals ("Include", true);
@@ -216,24 +216,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 					$"Items must have Include, Update or Remove attributes",
 					element.GetNameRegion ());
 			}
-		}
-
-		static bool IsInTarget (XElement element, MSBuildKind kind)
-		{
-			switch (kind) {
-			case MSBuildKind.Metadata:
-				element = element?.ParentElement ();
-				goto case MSBuildKind.Item;
-			case MSBuildKind.Property:
-			case MSBuildKind.Item:
-				element = element?.ParentElement ();
-				goto case MSBuildKind.ItemGroup;
-			case MSBuildKind.ItemGroup:
-			case MSBuildKind.PropertyGroup:
-				var name = element?.ParentElement ()?.Name.Name;
-				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
-			}
-			return false;
 		}
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
