@@ -644,7 +644,7 @@
         "ProjectType": "",
         "ProjectTypeGuids":  {
             "description" : "A list of GUIDs that activate design-time capabilities in an IDE",
-            "kind" : "guid-list"
+            "kind" : "projectkindguid-list-const"
         },
         "PublisherName": "",
         "PublishUrl": "",

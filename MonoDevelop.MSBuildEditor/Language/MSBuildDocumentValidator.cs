@@ -313,6 +313,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 			switch (kind) {
 			case MSBuildValueKind.Guid:
+			case MSBuildValueKind.ProjectKindGuid:
 				if (!Guid.TryParseExact (value, "B", out _)) {
 					AddError ("Invalid GUID value");
 				}

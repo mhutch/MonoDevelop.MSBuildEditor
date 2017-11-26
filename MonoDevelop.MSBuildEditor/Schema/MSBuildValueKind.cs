@@ -85,6 +85,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		NuGetID,
 		NuGetVersion,
 
+		ProjectKindGuid,
+
 		/// Allow multiple semicolon separated values
 		List = 1 << 28,
 

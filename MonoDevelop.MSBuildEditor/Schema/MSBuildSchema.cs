@@ -176,6 +176,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildValueKind.Extension:
 			case MSBuildValueKind.Configuration:
 			case MSBuildValueKind.Platform:
+			case MSBuildValueKind.ProjectKindGuid:
 				break;
 			default:
 				LoggingService.LogDebug ($"Value '{result}' not permitted in schema");
@@ -186,6 +187,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				switch (split[i]) {
 				case "list":
 					result = result.List ();
+					continue;
+				case "const":
+					result = result.Literal ();
 					continue;
 				default:
 					LoggingService.LogDebug ($"Unknown value suffix '{split [i]}'");
