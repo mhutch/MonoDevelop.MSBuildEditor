@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.Schema;
@@ -193,19 +195,31 @@ namespace MonoDevelop.MSBuildEditor.Language
 					break;
 				case ExpressionLiteral lit:
 					if (lit.IsPure) {
-						VisitPureLiteral (kind.GetScalarType (), lit);
+						VisitPureLiteral (info, kind.GetScalarType (), lit);
 					}
 					break;
 				}
 			}
 
-			void VisitPureLiteral (MSBuildValueKind kind, ExpressionLiteral node)
+			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionLiteral node)
 			{
 				rr.ReferenceOffset = node.Offset;
 				rr.ReferenceName = node.Value;
 
 				if (kind == MSBuildValueKind.TargetName) {
 					rr.ReferenceKind = MSBuildReferenceKind.Target;
+				}
+
+				IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
+
+				if (knownVals != null && knownVals.Count != 0) {
+					foreach (var kv in knownVals) {
+						if (string.Equals (kv.Name, node.Value, StringComparison.OrdinalIgnoreCase)) {
+							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
+							rr.ReferenceValue = kv;
+							return;
+						}
+					}
 				}
 			}
 		}
@@ -227,6 +241,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public int ReferenceOffset;
 		public string ReferenceName;
 		public string ReferenceItemName;
+		public ConstantInfo ReferenceValue;
 
 	}
 
@@ -240,6 +255,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 		TaskParameter,
 		Keyword,
 		Target,
-		Value
+		KnownValue
 	}
 }

@@ -144,6 +144,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 				}
 				break;
+			case MSBuildReferenceKind.KnownValue:
+				return rr.ReferenceValue;
 			}
 			return null;
 		}
