@@ -288,8 +288,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionError err:
+					var msg = err.Kind.GetMessage (info, out bool isWarning);
 					AddError (
-						err.Kind.GetMessage (info),
+						isWarning? ErrorType.Warning : ErrorType.Error,
+						msg,
 						err.Offset,
 						Math.Max (1, err.Length)
 					);

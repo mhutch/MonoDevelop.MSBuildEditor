@@ -63,7 +63,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * show type and default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
 * better targetframework completions
-* tooltips on values
 * parameter info tooltip when completing values
 * go to package page on nugets
 * prettier package tooltips
@@ -79,4 +78,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * highlight matching identifiers
 * navigate to files
 * trim whitespace on literals in expressions
-* targets files should load their own schemas
+* when editing target file should use its own schemas
+* package ID tooltips
+* hide excludemetadata etc from completion in non-target contexts

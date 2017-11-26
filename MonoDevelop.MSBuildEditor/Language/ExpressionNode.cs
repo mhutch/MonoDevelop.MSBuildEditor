@@ -214,12 +214,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return node;
 		}
 
-		public static string GetMessage (this ExpressionErrorKind errorKind, ValueInfo info)
+		public static string GetMessage (this ExpressionErrorKind errorKind, ValueInfo info, out bool isWarning)
 		{
+			isWarning = false;
 			switch (errorKind) {
 			case ExpressionErrorKind.MetadataDisallowed:
 				return $"{Name()} does not allow metadata";
 			case ExpressionErrorKind.EmptyListEntry:
+				isWarning = false;
 				return $"Empty list value";
 			case ExpressionErrorKind.ExpectingLeftParen:
 				return $"Expecting '('";
