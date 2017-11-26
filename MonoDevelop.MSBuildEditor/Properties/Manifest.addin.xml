@@ -4,8 +4,10 @@
 		<Class id = "EnhancedMSBuildTextEditorExtension"
 		       class = "MonoDevelop.MSBuildEditor.MSBuildTextEditorExtension"
 		       mimeTypes ="application/x-msbuild"
-		       insertbefore="MSBuildTextEditorExtension"
-		        />
+		       insertbefore="MSBuildTextEditorExtension" />
+        <Class id = "MSBuildNavigationExtension"
+               class = "MonoDevelop.MSBuildEditor.MSBuildNavigationExtension"
+               mimeTypes ="application/x-msbuild" />
 	</Extension>
 
 	<Extension path = "/MonoDevelop/Core/MimeTypes">

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -93,6 +94,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static XElement ParentElement (this XElement element)
 		{
 			return (element.Parent as XElement);
+		}
+
+		//FIXME: binary search
+		public static XObject FindNodeAtLocation (this XContainer container, DocumentLocation location)
+		{
+			var node = container.AllDescendentNodes.FirstOrDefault (n => n.Region.Contains (location));
+			if (node != null) {
+				if (node is IAttributedXObject attContainer) {
+					var att = attContainer.Attributes.FirstOrDefault (n => n.Region.Contains (location));
+					if (att != null) {
+						return att;
+					}
+				}
+			}
+			return node;
 		}
 	}
 }

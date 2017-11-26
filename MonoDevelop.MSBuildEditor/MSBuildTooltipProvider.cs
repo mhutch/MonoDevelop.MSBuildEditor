@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			var loc = editor.OffsetToLocation (offset);
-			var annotations = ext.GetAnnotationsAtLocation<NavigationAnnotation> (loc);
+			var annotations = MSBuildNavigation.GetAnnotationsAtLocation<NavigationAnnotation> (doc.XDocument, loc, doc.Context);
 			if (annotations != null && annotations.Any ()) {
 				var first = annotations.First ();
 				int start = editor.LocationToOffset (first.Region.Begin);

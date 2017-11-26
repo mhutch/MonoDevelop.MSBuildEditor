@@ -240,7 +240,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (resolved.Kind == MSBuildKind.Target) {
-				var nameAtt = element.Attributes.Get (new XName (Name), true);
+				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
 					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length));
 				}

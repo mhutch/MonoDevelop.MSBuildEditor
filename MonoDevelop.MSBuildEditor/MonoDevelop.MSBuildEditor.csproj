@@ -135,6 +135,8 @@
     <Compile Include="Language\MSBuildResolvingVisitor.cs" />
     <Compile Include="Language\ExpressionParser.cs" />
     <Compile Include="Language\ExpressionNode.cs" />
+    <Compile Include="MSBuildNavigationExtension.cs" />
+    <Compile Include="Language\MSBuildNavigation.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

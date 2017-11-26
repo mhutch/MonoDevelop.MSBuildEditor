@@ -63,7 +63,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * show type and default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
 * better targetframework completions
-* go to definition on targets
 * tooltips on values
 * parameter info tooltip when completing values
 * go to package page on nugets
@@ -73,10 +72,11 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * property comparand validation
 * validate metadata refs are valid in context
 * use new expression parser for triggering intellisense
-* support property functions in new expression parser
+* support property functions, item functions in new expression parser
 * avoid importing the same targets file more than once,
   for example when multivalued language imports cause
   multiple imports of common targets
-* cmd-click navigation
 * highlight matching identifiers
 * navigate to files
+* trim whitespace on literals in expressions
+* targets files should load their own schemas

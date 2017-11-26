@@ -292,78 +292,21 @@ namespace MonoDevelop.MSBuildEditor
 			return expression;
 		}
 
-		public IEnumerable<T> GetAnnotationsAtLocation<T> (DocumentLocation location)
-		{
-			var doc = GetDocument ();
-			if (doc == null) {
-				return null;
-			}
-
-			var xobj = FindNodeAtLocation (doc.XDocument, location);
-			if (xobj == null) {
-				return null;
-			}
-
-			return doc.Context.Annotations
-				.GetMany<T> (xobj)
-				.Where (a => !(a is IRegionAnnotation ra) || ra.Region.Contains (location));
-		}
-
 		[CommandHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
-		void GotoDefinition()
+		void GotoDefinition ()
 		{
-			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (Editor.CaretLocation);
-
-			var files = new List<string> ();
-			foreach (var nav in annotations) {
-				if (Directory.Exists (nav.Path)) {
-					foreach (var f in Directory.EnumerateFiles (nav.Path, "*", SearchOption.AllDirectories)) {
-						if (f.EndsWith (".targets", StringComparison.OrdinalIgnoreCase) || f.EndsWith (".props", StringComparison.OrdinalIgnoreCase))
-							files.Add (f);
-					}
-				}
-				if (File.Exists (nav.Path)) {
-					files.Add (nav.Path);
-				}
-			}
-
-
-			if (files.Count == 1) {
-				//FIXME: can we open the doc with the same context i.e. as a child of this?
-				// That would improve drilldown and find refs accuracy but would run into issues
-				// when drilling down into the same child from multiple parents.
-				// We'd probably need something like the shared projects context dropdown.
-				IdeApp.Workbench.OpenDocument (files[0], DocumentContext.Project, true);
-				return;
-			}
-
-			using (var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true)) {
-				foreach (var file in files) {
-					var fp = new FileProvider (file);
-					monitor.ReportResult (new SearchResult (fp, 0, 0));
-				}
-			}
+			var rr = ResolveCurrentLocation ();
+			var doc = GetDocument ();
+			var result = MSBuildNavigation.GetNavigation (doc.XDocument, Editor.CaretLocation, rr, doc.Context, doc.Text);
+			MSBuildNavigationExtension.Navigate (result, doc);
 		}
 
 		[CommandUpdateHandler (Refactoring.RefactoryCommands.GotoDeclaration)]
 		void UpdateGotoDefinition (CommandInfo info)
 		{
-			info.Enabled = GetAnnotationsAtLocation<NavigationAnnotation> (Editor.CaretLocation).Any ();
-		}
-
-		//FIXME: binary search
-		XObject FindNodeAtLocation (XContainer container, DocumentLocation location)
-		{
-			var node = container.AllDescendentNodes.FirstOrDefault (n => n.Region.Contains (location));
-			if (node != null) {
-				if (node is IAttributedXObject attContainer) {
-					var att = attContainer.Attributes.FirstOrDefault (n => n.Region.Contains (location));
-					if (att != null) {
-						return att;
-					}
-				}
-			}
-			return node;
+			var rr = ResolveCurrentLocation ();
+			var doc = GetDocument ();
+			info.Enabled = rr != null && MSBuildNavigation.CanNavigate (doc.XDocument, Editor.CaretLocation, rr, doc.Context);
 		}
 
 		[CommandHandler (Refactoring.RefactoryCommands.FindReferences)]
@@ -371,50 +314,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var rr = ResolveCurrentLocation ();
 			var doc = GetDocument ();
-
-			var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true);
-
-			var tasks = new List<Task> ();
-
-			foreach (var import in doc.Context.GetDescendentImports ()) {
-				if (!import.IsResolved || !File.Exists (import.Filename)) {
-					continue;
-				}
-				tasks.Add (Task.Run (() => {
-					try {
-						var xmlParser = new XmlParser (new XmlRootState (), true);
-						var textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildMimeType);
-						xmlParser.Parse (textDoc.CreateReader ());
-						var xdoc = xmlParser.Nodes.GetRoot ();
-						FindReferences (monitor, rr, import.Filename, xdoc, textDoc, doc.Context);
-					} catch (Exception ex) {
-						monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
-						LoggingService.LogError ($"Error searching MSBuild file {import.Filename}", ex);
-					}
-				}));
-			}
-
-			tasks.Add (Task.Run (() => {
-				try {
-					var textDoc = TextEditorFactory.CreateNewDocument (doc.Text, doc.FileName, MSBuildMimeType);
-					FindReferences (monitor, rr, doc.FileName, doc.XDocument, textDoc, doc.Context);
-				} catch (Exception ex) {
-					monitor.ReportError ($"Error searching file {Path.GetFileName (doc.FileName)}", ex);
-					LoggingService.LogError ($"Error searching MSBuild file {doc.FileName}", ex);
-				}
-			}));
-
-			Task.WhenAll (tasks).ContinueWith (t => monitor?.Dispose ());
-		}
-
-		static void FindReferences (SearchProgressMonitor monitor, MSBuildResolveResult rr, string filename, XDocument doc, IReadonlyTextDocument textDoc, MSBuildResolveContext context)
-		{
-			var collector = MSBuildReferenceCollector.Create (rr);
-			collector.Run (doc, filename, textDoc, context);
-			var fileProvider = new FileProvider (filename);
-			if (collector.Results.Count > 0) {
-				monitor.ReportResults (collector.Results.Select (r => new SearchResult (fileProvider, r.Offset, r.Length)));
-			}
+			MSBuildNavigationExtension.FindReferences (() => MSBuildReferenceCollector.Create (rr), doc);
 		}
 
 		[CommandUpdateHandler (Refactoring.RefactoryCommands.FindReferences)]
