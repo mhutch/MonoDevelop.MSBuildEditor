@@ -67,7 +67,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * go to package page on nugets
 * prettier package tooltips
 * filter disallowed and existing attributes and elements from completion
-* improve validation (comma lists, more value kinds)
 * property comparand validation
 * validate metadata refs are valid in context
 * use new expression parser for triggering intellisense
