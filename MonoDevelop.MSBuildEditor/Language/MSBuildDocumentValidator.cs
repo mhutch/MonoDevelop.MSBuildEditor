@@ -15,11 +15,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
 		void AddError (ErrorType errorType, string message, DocumentRegion region) => Context.Errors.Add (new Error (errorType, message, region));
+		void AddError (ErrorType errorType, string message, int offset, int length) => Context.Errors.Add (new Error (errorType, message, GetRegion (offset, length)));
 		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (Document.OffsetToLocation (offset), Document.OffsetToLocation (offset + length));
 		void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
-		void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, GetRegion (offset, length));
+		void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, offset, length);
 		void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
-		void AddWarning (string message, int offset, int length) => AddError (ErrorType.Warning, message, GetRegion (offset, length));
+		void AddWarning (string message, int offset, int length) => AddError (ErrorType.Warning, message, offset, length);
 
 
 		protected override void VisitUnknownElement (XElement element)
@@ -289,10 +290,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case ExpressionError err:
 					AddError (
 						err.Kind.GetMessage (info),
-						new DocumentRegion (
-							Document.OffsetToLocation (err.Offset),
-							Document.OffsetToLocation (err.Offset + Math.Max (1, err.Length))
-						)
+						err.Offset,
+						Math.Max (1, err.Length)
 					);
 					break;
 				case ExpressionMetadata meta:
