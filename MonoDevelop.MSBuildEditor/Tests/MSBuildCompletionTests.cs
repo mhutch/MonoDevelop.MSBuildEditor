@@ -47,7 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.IsNotNull (provider);
 			Assert.IsNotNull (provider.Find ("Bar"));
 			Assert.IsNotNull (provider.Find ("Include"));
-			Assert.AreEqual (10, provider.Count);
+			Assert.AreEqual (7, provider.Count);
 		}
 	}
 }
