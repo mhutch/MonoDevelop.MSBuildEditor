@@ -49,33 +49,32 @@ There is a formatting policy for MSBuild files, allowing you to customize the fo
 The following feature are not yet implemented. Please contact Mikayla if you are interested in helping out.
 
 * Port to Visual Studio
-* expression highlighting
 * Snippets
-* Task parameters from assembly metadata
-* File templates
 * Add more unit tests
 * Improve logic for figuring out context of unqualified metadata
 * In addition to brute forcing imports, resolve using full conditioned state
 * Write a json schema for the schema
-* Completion for filenames
 * Completion for metadata and property functions in expressions
-* Implement completion for the many item and value types
+* Implement completion for more item and value types
 * Completion of inline C#
 * show type and default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
-* better targetframework completions
 * parameter info tooltip when completing values
-* go to package page on nugets
+* go to package page command on nugets
 * prettier package tooltips
 * filter disallowed and existing attributes and elements from completion
 * property comparand validation
 * validate metadata refs are valid in context
 * use new expression parser for triggering intellisense
-* support property functions, item functions in new expression parser
 * avoid importing the same targets file more than once,
   for example when multivalued language imports cause
   multiple imports of common targets
-* trim whitespace on literals in expressions
-* when editing target file should use its own schemas
 * project kind completion
-* add the random well known property
+
+* better targetframework completions
+* expression highlighting
+* trim whitespace on literals in expressions
+* go to definition to open files
+* Task parameters from assembly metadata
+* Completion for filenames
+* support property functions, item functions in new expression parser

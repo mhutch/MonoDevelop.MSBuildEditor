@@ -9,12 +9,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	class MonoDevelopMSBuildSchemaProvider : MSBuildSchemaProvider
 	{
-		public override MSBuildSchema GetSchema (Import import)
-		{
+		public override MSBuildSchema GetSchema(string path, string sdk)
+        {
 			try {
-				return base.GetSchema (import);
+				return base.GetSchema(path, sdk);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Failed to load schema for '${import.Filename}'", ex);
+				LoggingService.LogError ($"Failed to load schema for '${path}'", ex);
 			}
 			return null;
 		}

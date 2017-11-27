@@ -120,6 +120,12 @@ namespace MonoDevelop.MSBuildEditor
 				(ctx, imp, sdk, props) => doc.ResolveImport (oldDoc, projectPath, options.FileName, imp, sdk, props, schemaProvider, token)
 			);
 
+			if (oldDoc != null) {
+				doc.Context.Schema = oldDoc.Context.Schema;
+			} else {
+				doc.Context.Schema = schemaProvider.GetSchema(options.FileName, null);
+			}
+
 			//this has to run in a second pass so that it runs after all the schemas are loaded
 			var validator = new MSBuildDocumentValidator ();
 			validator.Run (doc.XDocument, doc.FileName, textDoc, doc.Context);
@@ -157,7 +163,7 @@ namespace MonoDevelop.MSBuildEditor
 				(ctx, imp, sdk, props) => ResolveImport (null, projectPath, import.Filename, imp, sdk, props, schemaProvider, token)
 			);
 
-			import.ResolveContext.Schema = schemaProvider.GetSchema (import);
+			import.ResolveContext.Schema = schemaProvider.GetSchema(import.Filename, import.Sdk);
 
 			return import;
 		}

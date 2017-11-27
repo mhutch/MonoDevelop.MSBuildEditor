@@ -2,24 +2,21 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.IO;
-using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class MSBuildSchemaProvider
 	{
-		public virtual MSBuildSchema GetSchema (Import import)
+		public virtual MSBuildSchema GetSchema (string path, string sdk)
 		{
-			if (import.IsResolved) {
-				string filename = import.Filename + ".buildschema.json";
-				if (File.Exists (filename)) {
-					using (var reader = File.OpenText (filename)) {
-						return MSBuildSchema.Load (reader);
-					}
+			string filename = path + ".buildschema.json";
+			if (File.Exists (filename)) {
+				using (var reader = File.OpenText (filename)) {
+					return MSBuildSchema.Load (reader);
 				}
 			}
 
-			var resourceId = GetResourceForBuiltin (import.Filename, import.Sdk);
+			var resourceId = GetResourceForBuiltin (path, sdk);
 			if (resourceId != null) {
 				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuildEditor.Schemas.{resourceId}.buildschema.json");
 			}
