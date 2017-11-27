@@ -221,7 +221,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case ExpressionErrorKind.MetadataDisallowed:
 				return $"{Name()} does not allow metadata";
 			case ExpressionErrorKind.EmptyListEntry:
-				isWarning = false;
+				isWarning = true;
 				return $"Empty list value";
 			case ExpressionErrorKind.ExpectingLeftParen:
 				return $"Expecting '('";
