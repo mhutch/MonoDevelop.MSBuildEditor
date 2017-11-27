@@ -197,7 +197,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (triggerState == ExpressionCompletion.TriggerState.QuoteValue) {
-				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc.Context.GetSchemas ());
+				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc.Context.GetSchemas (), doc.Frameworks);
 				var l = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
 				foreach (var ci in conditionCompletions) {
 					l.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
@@ -253,7 +253,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (info.Values != null && info.Values.Count > 0) {
 				cinfos = info.Values;
 			} else {
-				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas ());
+				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas (), doc.Frameworks);
 			}
 
 			if (cinfos != null) {

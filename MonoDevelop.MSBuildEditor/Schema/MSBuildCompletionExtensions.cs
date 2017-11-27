@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuildEditor.Language;
-using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -123,7 +122,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return null;
 		}
 
-		public static IReadOnlyList<BaseInfo> GetValueCompletions (MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas)
+		public static IReadOnlyList<BaseInfo> GetValueCompletions (
+			MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas,
+			IReadOnlyList<FrameworkReference> tfms)
 		{
 			var simple = kind.GetSimpleValues (true);
 			if (simple != null) {
@@ -138,22 +139,22 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildValueKind.ItemName:
 				return schemas.GetItems ().ToList ();
 			case MSBuildValueKind.TargetFramework:
-				var frameworkNames = new List<BaseInfo> ();
-				var provider = DefaultFrameworkNameProvider.Instance;
-				foreach (var fx in provider.GetCompatibleCandidates ()) {
-					if (fx.IsSpecificFramework && fx.Version.Major != int.MaxValue) {
-						frameworkNames.Add (new ConstantInfo (
-							fx.GetShortFolderName (),
-							fx.GetDotNetFrameworkName (provider)
-						));
-					}
-				}
-				return frameworkNames;
+				return FrameworkInfoProvider.Instance.GetFrameworksWithShortNames ().ToList ();
+			case MSBuildValueKind.TargetFrameworkIdentifier:
+				return FrameworkInfoProvider.Instance.GetFrameworkIdentifiers ().ToList ();
+			case MSBuildValueKind.TargetFrameworkVersion:
+				return tfms.SelectMany (
+					tfm => FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Identifier)
+				).ToList ();
+			case MSBuildValueKind.TargetFrameworkProfile:
+				return tfms.SelectMany (
+					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
+				).ToList ();
 			}
 			return null;
 		}
 
-		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, IReadOnlyList<FrameworkReference> tfms)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
@@ -181,6 +182,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				break;
 			case MSBuildReferenceKind.KnownValue:
 				return rr.ReferenceValue;
+			case MSBuildReferenceKind.TargetFramework:
+				var fx = (FrameworkReference)rr.ReferenceObject;
+				return FrameworkInfoProvider.Instance.GetBestInfo (fx, tfms);
 			}
 			return null;
 		}

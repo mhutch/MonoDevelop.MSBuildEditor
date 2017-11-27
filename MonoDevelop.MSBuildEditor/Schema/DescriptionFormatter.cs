@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						case MSBuildValueKind.FolderWithSlash:
 						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
-							default:
+						default:
 							if (!item.ValueKind.AllowLists ()) {
 								return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
 							}
@@ -45,9 +45,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (info.Description == null) {
-				if (info is PropertyInfo prop && info.Name.EndsWith ("DependsOn", System.StringComparison.OrdinalIgnoreCase)) {
-					var targetName = info.Name.Substring (0, info.Name.Length - "DependsOn".Length);
-					return $"The targets that the {targetName} target depends on";
+				switch (info) {
+				case PropertyInfo prop:
+					if (info.Name.EndsWith ("DependsOn", StringComparison.OrdinalIgnoreCase)) {
+						var targetName = info.Name.Substring (0, info.Name.Length - "DependsOn".Length);
+						return $"The targets that the {targetName} target depends on";
+					}
+					break;
+				case FrameworkInfo fxi:
+					return FrameworkInfoProvider.GetDescription (fxi.Reference);
 				}
 			}
 
@@ -81,6 +87,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("task", info.Name);
 			case ConstantInfo value:
 				return ("value", info.Name);
+			case FrameworkInfo fxi:
+				return ("framework", fxi.Reference.GetMoniker ());
 			}
 			return (null, null);
 		}

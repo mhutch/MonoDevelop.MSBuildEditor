@@ -46,7 +46,7 @@ namespace MonoDevelop.MSBuildEditor
 					};
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
 				}
-				var info = rr.GetResolvedReference (doc.Context.GetSchemas ());
+				var info = rr.GetResolvedReference (doc.Context.GetSchemas (), doc.Frameworks);
 				if (info != null) {
 					var item = new InfoItem { Info = info, Doc = doc, ResolveResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));

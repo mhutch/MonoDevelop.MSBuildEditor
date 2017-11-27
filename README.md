@@ -71,7 +71,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
   multiple imports of common targets
 * project kind completion
 
-* better targetframework completions
 * expression highlighting
 * trim whitespace on literals in expressions
 * go to definition to open files

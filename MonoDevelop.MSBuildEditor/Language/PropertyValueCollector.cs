@@ -5,10 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using MonoDevelop.Core.Assemblies;
-using MonoDevelop.Ide.Editor;
-using MonoDevelop.Xml.Dom;
-using NuGet.Frameworks;
+using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -67,17 +64,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return props.TryGetValue (name, out values) && values != null && values.Count > 0;
 		}
 
-		public List<TargetFrameworkMoniker> GetFrameworks ()
+		public List<FrameworkReference> GetFrameworks ()
 		{
-			var list = new List<TargetFrameworkMoniker> ();
+			var list = new List<FrameworkReference> ();
 			if (TryGetValues ("TargetFrameworks", out List<string> multiFxList)) {
 				foreach (var multiFxStr in multiFxList) {
 					if (multiFxStr != null && IsConstExpr (multiFxStr)) {
 						var multiFxArr = multiFxStr.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 						foreach (var fxstr in multiFxArr) {
-							var fx = NuGetFramework.ParseFolder (fxstr);
-							if (fx.IsSpecificFramework) {
-								list.Add (TargetFrameworkMoniker.Parse (fx.DotNetFrameworkName));
+							var fx = FrameworkReference.FromShortName (fxstr);
+							if (fx != null) {
+								list.Add (fx);
 							}
 						}
 					}
@@ -89,10 +86,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (TryGetValues ("TargetFramework", out List<string> fxList)) {
 				foreach (var fxstr in fxList) {
 					if (IsConstExpr (fxstr)) {
-						var fx = NuGetFramework.ParseFolder (fxstr);
-						if (fx.IsSpecificFramework) {
-							list.Add (TargetFrameworkMoniker.Parse (fx.DotNetFrameworkName));
-							return list;
+						var fx = FrameworkReference.FromShortName (fxstr);
+						if (fx != null) {
+							list.Add (fx);
 						}
 					}
 				}
@@ -111,11 +107,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (TryGetValues ("TargetFrameworkProfile", out List<string> profileList)) {
 						var profile = profileList.FirstOrDefault (IsConstExpr);
 						if (profile != null) {
-							list.Add (new TargetFrameworkMoniker (id, version, profileList[0]));
+							list.Add (new FrameworkReference (id, version, null, profileList[0]));
 							return list;
 						}
 					}
-					list.Add (new TargetFrameworkMoniker (id, version));
+					list.Add (new FrameworkReference (id, version, null, null));
 					return list;
 				}
 			}

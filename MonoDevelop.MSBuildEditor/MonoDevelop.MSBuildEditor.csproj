@@ -139,6 +139,7 @@
     <Compile Include="Language\MSBuildNavigation.cs" />
     <Compile Include="PackageSearch\PackageSearchHelpers.cs" />
     <Compile Include="MSBuildHighlightUsagesExtension.cs" />
+    <Compile Include="Schema\FrameworkInfoProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

@@ -15,7 +15,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
 
-		public static MSBuildResolveResult Resolve (XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext context)
+		public static MSBuildResolveResult Resolve (
+			XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext context)
 		{
 			int offset = parser.Position;
 
@@ -149,7 +150,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				base.VisitResolvedElement (element, resolved);
 			}
 
-			protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+			protected override void VisitResolvedAttribute (
+				XElement element, XAttribute attribute,
+				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
 				var start = ConvertLocation (attribute.Region.Begin);
 				bool inName = IsIn (start, attribute.Name.Name.Length);
@@ -216,13 +219,28 @@ namespace MonoDevelop.MSBuildEditor.Language
 				rr.ReferenceOffset = node.Offset;
 				rr.ReferenceName = node.Value;
 
-				if (kind == MSBuildValueKind.TargetName) {
+				switch (kind) {
+				case MSBuildValueKind.TargetName:
 					rr.ReferenceKind = MSBuildReferenceKind.Target;
 					return;
-				}
-
-				if (kind == MSBuildValueKind.NuGetID) {
+				case MSBuildValueKind.NuGetID:
 					rr.ReferenceKind = MSBuildReferenceKind.NuGetID;
+					return;
+				case MSBuildValueKind.TargetFramework:
+					rr.ReferenceObject = new FrameworkReference (null, null, node.Value, null);
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					return;
+				case MSBuildValueKind.TargetFrameworkIdentifier:
+					rr.ReferenceObject = new FrameworkReference (node.Value, null, null, null);
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					return;
+				case MSBuildValueKind.TargetFrameworkVersion:
+					rr.ReferenceObject = new FrameworkReference (null, node.Value, null, null);
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					return;
+				case MSBuildValueKind.TargetFrameworkProfile:
+					rr.ReferenceObject = new FrameworkReference (null, null, null, node.Value);
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				}
 
@@ -256,6 +274,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public MSBuildReferenceKind ReferenceKind;
 		public int ReferenceOffset;
 		public string ReferenceName;
+		public object ReferenceObject;
 		public string ReferenceItemName;
 		public ConstantInfo ReferenceValue;
 
@@ -272,6 +291,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		Keyword,
 		Target,
 		KnownValue,
-		NuGetID
+		NuGetID,
+		TargetFramework
 	}
 }

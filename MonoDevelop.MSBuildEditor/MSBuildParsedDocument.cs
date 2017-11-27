@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		public IReadOnlyList<TargetFrameworkMoniker> Frameworks { get; private set; }
+		public IReadOnlyList<FrameworkReference> Frameworks { get; private set; }
 
 		public string GetTargetFramework ()
 		{
