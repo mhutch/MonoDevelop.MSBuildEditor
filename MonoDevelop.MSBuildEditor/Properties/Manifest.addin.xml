@@ -8,6 +8,9 @@
         <Class id = "MSBuildNavigationExtension"
                class = "MonoDevelop.MSBuildEditor.MSBuildNavigationExtension"
                mimeTypes ="application/x-msbuild" />
+        <Class id = "MSBuildNavigationExtension"
+               class = "MonoDevelop.MSBuildEditor.MSBuildHighlightUsagesExtension"
+               mimeTypes ="application/x-msbuild" />
 	</Extension>
 
 	<Extension path = "/MonoDevelop/Core/MimeTypes">

@@ -9,11 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Components.Commands;
-using MonoDevelop.Core;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Editor;
-using MonoDevelop.Ide.FindInFiles;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.PackageSearch;
 using MonoDevelop.MSBuildEditor.Schema;
@@ -81,7 +79,7 @@ namespace MonoDevelop.MSBuildEditor
 			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc.Context);
 		}
 
-		MSBuildResolveResult ResolveCurrentLocation ()
+		internal MSBuildResolveResult ResolveCurrentLocation ()
 		{
 			var doc = GetDocument ();
 			if (Tracker == null || doc == null) {
