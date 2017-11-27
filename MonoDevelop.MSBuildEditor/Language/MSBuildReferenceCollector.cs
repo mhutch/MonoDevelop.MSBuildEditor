@@ -8,9 +8,16 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
+	enum ReferenceUsage
+	{
+		Declaration,
+		Read,
+		Write
+	}
+
 	abstract class MSBuildReferenceCollector : MSBuildResolvingVisitor
 	{
-		public List<(int Offset, int Length)> Results { get; } = new List<(int, int)> ();
+		public List<(int Offset, int Length, ReferenceUsage Usage)> Results { get; } = new List<(int, int, ReferenceUsage)> ();
 		public string Name { get; }
 
 		protected MSBuildReferenceCollector (string name)
@@ -23,8 +30,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
-		protected void AddResult (XElement el) => Results.Add ((el.GetNameStartOffset (Document), el.Name.Name.Length));
-		protected void AddResult (XAttribute att) => Results.Add ((ConvertLocation (att.Region.Begin), att.Name.Name.Length));
+		protected void AddResult (XElement el, ReferenceUsage usage) => Results.Add ((el.GetNameStartOffset (Document), el.Name.Name.Length, usage));
+		protected void AddResult (XAttribute att, ReferenceUsage usage) => Results.Add ((ConvertLocation (att.Region.Begin), att.Name.Name.Length, usage));
 
 		public static bool CanCreate (MSBuildResolveResult rr)
 		{
@@ -70,7 +77,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -84,12 +91,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionItem ei:
 					if (IsMatch (ei.Name)) {
-						Results.Add ((ei.NameOffset, ei.Name.Length));
+						Results.Add ((ei.NameOffset, ei.Name.Length, ReferenceUsage.Read));
 					}
 					break;
 				case ExpressionMetadata em:
 					if (em.IsQualified && IsMatch (em.ItemName)) {
-						Results.Add ((em.ItemNameOffset, em.ItemName.Length));
+						Results.Add ((em.ItemNameOffset, em.ItemName.Length, ReferenceUsage.Read));
 					}
 					break;
 				}
@@ -105,7 +112,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Property) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -119,7 +126,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionProperty ep:
 					if (IsMatch (ep.Name)) {
-						Results.Add ((ep.NameOffset, ep.Name.Length));
+						Results.Add ((ep.NameOffset, ep.Name.Length, ReferenceUsage.Read));
 					}
 					break;
 				}
@@ -134,7 +141,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Task || resolved.Kind == MSBuildKind.UsingTask) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length));
+				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Declaration));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -152,7 +159,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement ().Name.Name)) {
-				AddResult (element);
+				AddResult (element, ReferenceUsage.Write);
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -160,7 +167,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (resolvedAttribute.AbstractKind == MSBuildKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
-				AddResult (attribute);
+				AddResult (attribute, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -175,7 +182,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case ExpressionMetadata em:
 					var iname = em.GetItemName ();
 					if (iname != null && IsItemNameMatch (iname) && IsMatch (em.MetadataName)) {
-						Results.Add ((em.MetadataNameOffset, em.MetadataName.Length));
+						Results.Add ((em.MetadataNameOffset, em.MetadataName.Length, ReferenceUsage.Read));
 					}
 					break;
 				}
@@ -194,7 +201,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (resolved.Kind == MSBuildKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName (Name), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length));
+					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length, ReferenceUsage.Declaration));
 				}
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -228,7 +235,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			//FIXME: get rid of this trim
 			if (IsMatch (node.Value.Trim ())) {
-				Results.Add ((node.Offset, node.Length));
+				Results.Add ((node.Offset, node.Length, ReferenceUsage.Read));
 			}
 		}
 	}
@@ -242,7 +249,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (resolved.Kind == MSBuildKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length));
+					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length, ReferenceUsage.Declaration));
 				}
 			}
 			base.VisitResolvedElement (element, resolved);

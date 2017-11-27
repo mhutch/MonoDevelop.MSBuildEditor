@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	[TestFixture]
 	public class MSBuildFindReferencesTests : IdeTestBase
 	{
-		List<(int Offset, int Length)> FindReferences (string doc, MSBuildReferenceKind kind, string name, string parentName)
+		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string doc, MSBuildReferenceKind kind, string name, string parentName)
 		{
 			string filename = "test.csproj";
 
@@ -40,7 +40,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			return collector.Results;
 		}
 
-		void AssertLocations (string doc, string expectedName, List<(int Offset, int Length)> actual, params (int Offset, int Length)[] expected)
+		void AssertLocations (
+			string doc, string expectedName,
+			List<(int Offset, int Length, ReferenceUsage Usage)> actual,
+			params (int Offset, int Length, ReferenceUsage Usage)[] expected)
 		{
 			if (actual.Count != expected.Length) {
 				DumpLocations ();
@@ -48,18 +51,18 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			}
 
 			for (int i = 0; i < actual.Count; i++) {
-				var (offset, length) = actual [i];
-				var (expecteOffset, expectedLength) = expected [i];
-				if (offset != expecteOffset || length != expectedLength || !string.Equals (expectedName, doc.Substring (offset, length), StringComparison.OrdinalIgnoreCase)) {
+				var (offset, length, usage) = actual [i];
+				var (expectedOffset, expectedLength, expectedUsage) = expected [i];
+				if (offset != expectedOffset || length != expectedLength || usage != expectedUsage || !string.Equals (expectedName, doc.Substring (offset, length), StringComparison.OrdinalIgnoreCase)) {
 					DumpLocations ();
-					Assert.Fail ($"Position {i}: expected ({expecteOffset}, {expectedLength})='{expectedName}', got ({offset}, {length})='{doc.Substring (offset, length)}'");
+					Assert.Fail ($"Position {i}: expected ({expectedOffset}, {expectedLength})='{expectedName}' ({expectedUsage}), got ({offset}, {length})='{doc.Substring (offset, length)}' ({usage})");
 				}
 			}
 
 			void DumpLocations ()
 			{
 				Console.WriteLine ("Locations: ");
-				foreach (var (offset, length) in actual) {
+				foreach (var (offset, length, usage) in actual) {
 					Console.WriteLine ($"    ({offset}, {length})='{doc.Substring (offset, length)}'");
 				}
 			}
@@ -83,13 +86,13 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertLocations (
 				doc, "foo", refs,
-				(29, 3),
-				(56, 3),
-				(76, 3),
-				(109, 3),
-				(199, 3),
-				(236, 3),
-				(244, 3)
+				(29, 3, ReferenceUsage.Write),
+				(56, 3, ReferenceUsage.Read),
+				(76, 3, ReferenceUsage.Read),
+				(109, 3, ReferenceUsage.Read),
+				(199, 3, ReferenceUsage.Read),
+				(236, 3, ReferenceUsage.Read),
+				(244, 3, ReferenceUsage.Read)
 			);
 		}
 
@@ -115,15 +118,15 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertLocations (
 				doc, "foo", refs,
-				(33, 3),
-				(52, 3),
-				(69, 3),
-				(140, 3),
-				(199, 3),
-				(229, 3),
-				(252, 3),
-				(287, 3),
-				(344, 3)
+				(33, 3, ReferenceUsage.Write),
+				(52, 3, ReferenceUsage.Read),
+				(69, 3, ReferenceUsage.Read),
+				(140, 3, ReferenceUsage.Read),
+				(199, 3, ReferenceUsage.Read),
+				(229, 3, ReferenceUsage.Read),
+				(252, 3, ReferenceUsage.Read),
+				(287, 3, ReferenceUsage.Read),
+				(344, 3, ReferenceUsage.Read)
 			);
 		}
 
@@ -153,12 +156,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertLocations (
 				doc, "foo", refs,
-				(33, 3),
-				(68, 3),
-				(165, 3),
-				(216, 3),
-				(280, 3),
-				(367, 3)
+				(33, 3, ReferenceUsage.Write),
+				(68, 3, ReferenceUsage.Write),
+				(165, 3, ReferenceUsage.Read),
+				(216, 3, ReferenceUsage.Read),
+				(280, 3, ReferenceUsage.Write),
+				(367, 3, ReferenceUsage.Read)
 			);
 		}
 	}

@@ -23,9 +23,24 @@ namespace MonoDevelop.MSBuildEditor
 			//FIXME: it should be possible to run this async, all the args are immutable
 			collector.Run (doc.XDocument, doc.FileName, doc.Text, doc.Context);
 
-			//FIXME ReferenceUsageType = ReferenceUsageType
 			return Task.FromResult (
-				collector.Results.Select (r => new MemberReference (r, doc.FileName, r.Offset, r.Length))
+				collector.Results.Select (r => {
+					var usage = ReferenceUsageType.Unknown;
+					switch (r.Usage) {
+					case ReferenceUsage.Write:
+						usage = ReferenceUsageType.Write;
+						break;
+					case ReferenceUsage.Declaration:
+						usage = ReferenceUsageType.Declaration;
+						break;
+					case ReferenceUsage.Read:
+						usage = ReferenceUsageType.Read;
+						break;
+					}
+					return new MemberReference (r, doc.FileName, r.Offset, r.Length) {
+						ReferenceUsageType = usage
+					};
+				})
 			);
 		}
 

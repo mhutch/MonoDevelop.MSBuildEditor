@@ -49,6 +49,7 @@ There is a formatting policy for MSBuild files, allowing you to customize the fo
 The following feature are not yet implemented. Please contact Mikayla if you are interested in helping out.
 
 * Port to Visual Studio
+* expression highlighting
 * Snippets
 * Task parameters from assembly metadata
 * File templates
@@ -74,7 +75,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * avoid importing the same targets file more than once,
   for example when multivalued language imports cause
   multiple imports of common targets
-* highlight matching identifiers
 * trim whitespace on literals in expressions
 * when editing target file should use its own schemas
 * project kind completion
+* add the random well known property
