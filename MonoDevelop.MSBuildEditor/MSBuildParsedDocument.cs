@@ -62,6 +62,11 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IReadOnlyList<TargetFrameworkMoniker> Frameworks { get; private set; }
 
+		public string GetTargetFramework ()
+		{
+			return Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
+		}
+
 		public MSBuildSdkResolver SdkResolver { get; private set; }
 		public MSBuildRuntimeInformation RuntimeInformation { get; private set; }
 		public ITextSource Text { get; private set; }

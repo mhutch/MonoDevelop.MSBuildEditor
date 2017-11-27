@@ -125,11 +125,6 @@ namespace MonoDevelop.MSBuildEditor
 			return Task.FromResult (list);
 		}
 
-		string GetTargetFramework (MSBuildParsedDocument doc)
-		{
-			return doc.Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
-		}
-
 		Task<ICompletionDataList> GetPackageNameCompletions (MSBuildParsedDocument doc, int startIdx, int triggerLength)
 		{
 			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
@@ -138,7 +133,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			return Task.FromResult<ICompletionDataList> (
-				new PackageNameSearchCompletionDataList (name, PackageSearchManager, GetTargetFramework (doc)) {
+				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFramework ()) {
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}
@@ -152,7 +147,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			return Task.FromResult<ICompletionDataList> (
-				new PackageVersionSearchCompletionDataList (PackageSearchManager, GetTargetFramework (doc), name){
+				new PackageVersionSearchCompletionDataList (PackageSearchManager, doc.GetTargetFramework (), name){
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}

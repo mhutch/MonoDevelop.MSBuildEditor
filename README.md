@@ -77,5 +77,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * highlight matching identifiers
 * trim whitespace on literals in expressions
 * when editing target file should use its own schemas
-* package ID tooltips
 * project kind completion

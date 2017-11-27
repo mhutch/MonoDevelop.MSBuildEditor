@@ -218,6 +218,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				if (kind == MSBuildValueKind.TargetName) {
 					rr.ReferenceKind = MSBuildReferenceKind.Target;
+					return;
+				}
+
+				if (kind == MSBuildValueKind.NuGetID) {
+					rr.ReferenceKind = MSBuildReferenceKind.NuGetID;
+					return;
 				}
 
 				IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
@@ -265,6 +271,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		TaskParameter,
 		Keyword,
 		Target,
-		KnownValue
+		KnownValue,
+		NuGetID
 	}
 }

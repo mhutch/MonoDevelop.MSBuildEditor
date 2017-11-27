@@ -31,52 +31,9 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 
 		public override Task<TooltipInformation> CreateTooltipInformation (bool smartWrap, CancellationToken cancelToken)
 		{
-			var search = manager.SearchPackageInfo (packageId, packageVersion, tfm);
-
-			if (search.RemainingFeeds.Count == 0) {
-				return Task.FromResult (CreateInfo (search.Results));
-			}
-
-			var tcs = new TaskCompletionSource<TooltipInformation> ();
-
-			//making sure we actually unregister the eventhandler is kinda tricky
-			//it could be already completed, or it could complete after we check but before we register
-			EventHandler handleSearchUpdated = null;
-
-			cancelToken.Register (() => {
-				search.Cancel ();
-				if (tcs.TrySetCanceled ()) {
-					search.Updated -= handleSearchUpdated;
-				}
-			});
-
-			handleSearchUpdated = (s, a) => {
-				if (!cancelToken.IsCancellationRequested && search.RemainingFeeds.Count == 0) {
-					if (tcs.TrySetResult (CreateInfo (search.Results))) {
-						search.Updated -= handleSearchUpdated;
-					}
-				}
-			};
-			search.Updated += handleSearchUpdated;
-
-			if (search.RemainingFeeds.Count == 0) {
-				handleSearchUpdated (search, EventArgs.Empty);
-			}
-
-			return tcs.Task;
-		}
-
-		TooltipInformation CreateInfo (IReadOnlyList<IPackageInfo> results)
-		{
-			var result = results.FirstOrDefault ();
-			if (result == null) {
-				return null;
-			}
-
-			return new TooltipInformation {
-				SignatureMarkup = $"{result.Id} {result.Version}",
-				SummaryMarkup = $"{result.Description}"
-			};
+			return manager.SearchPackageInfo (packageId, packageVersion, tfm, cancelToken).ContinueWith (
+				t => PackageSearchHelpers.CreateTooltipInformation (t.Result),
+				TaskContinuationOptions.ExecuteSynchronously);
 		}
 	}
 }
