@@ -11,28 +11,32 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	abstract class MSBuildVisitor
 	{
-		protected MSBuildResolveContext Context { get; private set; }
+		protected MSBuildDocument Document { get; private set; }
 		protected string Filename { get; private set; }
-		protected IReadonlyTextDocument Document { get; private set; }
+		protected IReadonlyTextDocument TextDocument { get; private set; }
 
-		protected int ConvertLocation (DocumentLocation location) => Document.LocationToOffset (location);
+		protected int ConvertLocation (DocumentLocation location) => TextDocument.LocationToOffset (location);
 
-		public void Run (XDocument xDocument, string filename, ITextSource document, MSBuildResolveContext context)
+		public void Run (MSBuildRootDocument doc)
 		{
-			Run (xDocument.RootElement, null, filename, document, context);
-
+			Run (doc.XDocument, doc.Filename, doc.Text, doc);
 		}
 
-		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource document, MSBuildResolveContext context)
+		public void Run (XDocument xDocument, string filename, ITextSource textDocument, MSBuildDocument doc)
+		{
+			Run (xDocument.RootElement, null, filename, textDocument, doc);
+		}
+
+		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource textDocument, MSBuildDocument document)
 		{
 			Filename = filename;
-			Context = context;
+			Document = document;
 
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets
-			Document = document as IReadonlyTextDocument
+			TextDocument = textDocument as IReadonlyTextDocument
 				?? TextEditorFactory.CreateNewReadonlyDocument (
-					document, filename, MSBuildTextEditorExtension.MSBuildMimeType
+					textDocument, filename, MSBuildTextEditorExtension.MSBuildMimeType
 				);
 
 			if (resolvedElement != null) {
@@ -85,7 +89,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (attribute.Value != null) {
-				VisitAttributeValue (element, attribute, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (Document));
+				VisitAttributeValue (element, attribute, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (TextDocument));
 			}
 		}
 
@@ -103,15 +107,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var begin = Document.LocationToOffset (element.Region.End);
+			var begin = TextDocument.LocationToOffset (element.Region.End);
 			int end;
 
 			if (element.IsClosed && element.FirstChild == null) {
-				end = Document.LocationToOffset (element.ClosingTag.Region.Begin);
+				end = TextDocument.LocationToOffset (element.ClosingTag.Region.Begin);
 			} else {
-				for (end = begin; end < (Document.Length + 1) && Document.GetCharAt (end) != '<'; end++) { }
+				for (end = begin; end < (TextDocument.Length + 1) && TextDocument.GetCharAt (end) != '<'; end++) { }
 			}
-			var text = Document.GetTextBetween (begin, end);
+			var text = TextDocument.GetTextBetween (begin, end);
 
 			VisitElementValue (element, resolved, text, begin);
 		}

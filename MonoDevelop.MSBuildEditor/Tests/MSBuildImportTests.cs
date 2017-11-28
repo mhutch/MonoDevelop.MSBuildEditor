@@ -2,35 +2,33 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using NUnit.Framework;
-using MonoDevelop.MSBuildEditor.Language;
-using MonoDevelop.Ide.Editor;
-using MonoDevelop.Xml.Parser;
-using MonoDevelop.Core.Text;
 using System.Linq;
-using MonoDevelop.MSBuildEditor.Schema;
 using System.Threading;
+using MonoDevelop.Core.Text;
+using MonoDevelop.MSBuildEditor.Language;
+using MonoDevelop.MSBuildEditor.Schema;
+using NUnit.Framework;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
 	[TestFixture]
 	public class MSBuildSchemaTests
 	{
-		static MSBuildResolveContext BuildContext (string filename, string doc)
+		static MSBuildDocument BuildDocument (string filename, string doc)
 		{
 			doc = doc.Trim ();
 
 			var parsedDoc = (MSBuildParsedDocument) MSBuildParsedDocument.ParseInternal (new Ide.TypeSystem.ParseOptions {
 				Content = new StringTextSource (doc),
-				FileName = "filename"
+				FileName = filename
 			}, CancellationToken.None);
 
-			return parsedDoc.Context;
+			return parsedDoc.Document;
 		}
 
-		bool HasImported (MSBuildResolveContext ctx, string filename)
+		bool HasImported (MSBuildDocument doc, string filename)
 		{
-			return ctx
+			return doc
 				.GetDescendentImports ()
 				.FirstOrDefault (i => i.Filename.EndsWith (filename, StringComparison.OrdinalIgnoreCase))
 				?.IsResolved ?? false;
@@ -39,7 +37,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[Test]
 		public void TestSdkStyle ()
 		{
-			var ctx = BuildContext ("hello.csproj", @"
+			var doc = BuildDocument ("hello.csproj", @"
 <Project Sdk=""Microsoft.Net.Sdk"">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -47,16 +45,16 @@ namespace MonoDevelop.MSBuildEditor.Tests
 </Project>
 			");
 
-			Assert.IsTrue (HasImported (ctx, "Microsoft.Common.targets"));
+			Assert.IsTrue (HasImported (doc, "Microsoft.Common.targets"));
 
 			//these come via a multivalued import
-			Assert.IsTrue (HasImported (ctx, "Microsoft.CSharp.CurrentVersion.targets"));
-			Assert.IsTrue (HasImported (ctx, "Microsoft.CSharp.CrossTargeting.targets"));
+			Assert.IsTrue (HasImported (doc, "Microsoft.CSharp.CurrentVersion.targets"));
+			Assert.IsTrue (HasImported (doc, "Microsoft.CSharp.CrossTargeting.targets"));
 
 			//this comes via a wildcard
-			Assert.IsTrue (HasImported (ctx, "Microsoft.NuGet.targets"));
+			Assert.IsTrue (HasImported (doc, "Microsoft.NuGet.targets"));
 
-			var packageRefItem = ctx.GetSchemas ().GetItem ("PackageReference");
+			var packageRefItem = doc.GetSchemas ().GetItem ("PackageReference");
 			Assert.NotNull (packageRefItem);
 			Assert.NotNull (packageRefItem.Description);
 		}

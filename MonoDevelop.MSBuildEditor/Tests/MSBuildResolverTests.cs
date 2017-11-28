@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		List<(int offset, MSBuildResolveResult result)> Resolve (string doc)
 		{
 			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.document, state.ctx))
+				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.textDoc, state.doc))
 				.ToList ();
 		}
 

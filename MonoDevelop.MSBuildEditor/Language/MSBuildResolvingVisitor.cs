@@ -26,11 +26,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var begin = Document.LocationToOffset (element.Region.End);
-			int end = Document.LocationToOffset (element.ClosingTag.Region.Begin);
-			var value = Document.GetTextBetween (begin, end);
+			var begin = TextDocument.LocationToOffset (element.Region.End);
+			int end = TextDocument.LocationToOffset (element.ClosingTag.Region.Begin);
+			var value = TextDocument.GetTextBetween (begin, end);
 
-			var info = Context.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
+			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
 			if (info == null) {
 				return;
 			}
@@ -54,11 +54,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var info = Context.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, attribute.Name.Name);
+			var info = Document.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, attribute.Name.Name);
 
 			VisitValue (
 				element, attribute, resolvedElement, resolvedAttribute,
-				info, attribute.Value, attribute.GetValueStartOffset (Document));
+				info, attribute.Value, attribute.GetValueStartOffset (TextDocument));
 		}
 
 		protected virtual void VisitValue (

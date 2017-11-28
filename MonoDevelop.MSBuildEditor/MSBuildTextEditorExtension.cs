@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Xamarin Inc.
+﻿// Copyright (c) 2014 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -48,9 +48,9 @@ namespace MonoDevelop.MSBuildEditor
 			);
 		}
 
-		public MSBuildParsedDocument GetDocument ()
+		public MSBuildRootDocument GetDocument ()
 		{
-			return (MSBuildParsedDocument)DocumentContext.ParsedDocument;
+			return ((MSBuildParsedDocument)DocumentContext.ParsedDocument).Document;
 		}
 
 		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token = default (CancellationToken))
@@ -76,7 +76,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			Tracker.UpdateEngine (offset);
-			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc.Context);
+			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc);
 		}
 
 		internal MSBuildResolveResult ResolveCurrentLocation ()
@@ -86,7 +86,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			Tracker.UpdateEngine ();
-			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc.Context);
+			return MSBuildResolver.Resolve (Tracker.Engine, Editor.CreateDocumentSnapshot (), doc);
 		}
 
 		protected override Task<CompletionDataList> GetElementCompletions (CancellationToken token)
@@ -97,7 +97,7 @@ namespace MonoDevelop.MSBuildEditor
 			var rr = ResolveCurrentLocation ();
 			if (rr != null) {
 				var doc = GetDocument ();
-				foreach (var el in rr.GetElementCompletions (doc.Context.GetSchemas ())) {
+				foreach (var el in rr.GetElementCompletions (doc)) {
 					list.Add (new MSBuildCompletionData (el, doc, rr, XmlCompletionData.DataType.XmlElement));
 				}
 			}
@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var doc = GetDocument ();
 			var list = new CompletionDataList ();
-			foreach (var att in rr.GetAttributeCompletions (doc.Context.GetSchemas (), doc.ToolsVersion)) {
+			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
 					list.Add (new MSBuildCompletionData (att, doc, rr, XmlCompletionData.DataType.XmlAttribute));
 				}
@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuildEditor
 			return Task.FromResult (list);
 		}
 
-		Task<ICompletionDataList> GetPackageNameCompletions (MSBuildParsedDocument doc, int startIdx, int triggerLength)
+		Task<ICompletionDataList> GetPackageNameCompletions (MSBuildRootDocument doc, int startIdx, int triggerLength)
 		{
 			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
 			if (string.IsNullOrWhiteSpace (name)) {
@@ -138,7 +138,7 @@ namespace MonoDevelop.MSBuildEditor
 			);
 		}
 
-		Task<ICompletionDataList> GetPackageVersionCompletions (MSBuildParsedDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
+		Task<ICompletionDataList> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
 		{
 			var name = rr.XElement.Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
 			if (string.IsNullOrEmpty (name)) {
@@ -162,8 +162,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			var sdks = new HashSet<string> ();
 
-			var resolver = doc.SdkResolver;
-			foreach (var sdk in resolver.GetRegisteredSdks ()) {
+			foreach (var sdk in doc.RuntimeInformation.GetRegisteredSdks ()) {
 				if (sdks.Add (sdk.Name)) {
 					list.Add (Path.GetFileName (sdk.Name));
 				}
@@ -171,7 +170,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			//TODO: how can we find SDKs in the non-default locations?
 			return Task.Run<ICompletionDataList> (() => {
-				foreach (var d in Directory.GetDirectories (resolver.DefaultSdkPath)) {
+				foreach (var d in Directory.GetDirectories (doc.RuntimeInformation.GetSdksPath ())) {
 					string name = Path.GetFileName (d);
 					if (sdks.Add (name)) {
 						list.Add (name);
@@ -197,7 +196,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (triggerState == ExpressionCompletion.TriggerState.QuoteValue) {
-				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc.Context.GetSchemas (), doc.Frameworks);
+				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc);
 				var l = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
 				foreach (var ci in conditionCompletions) {
 					l.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
@@ -205,7 +204,7 @@ namespace MonoDevelop.MSBuildEditor
 				return l.Count == 0? null : Task.FromResult<ICompletionDataList> (l);
 			}
 
-			var info = rr.GetElementOrAttributeValueInfo (doc.Context.GetSchemas ());
+			var info = rr.GetElementOrAttributeValueInfo (doc);
 			if (info == null) {
 				return null;
 			}
@@ -253,7 +252,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (info.Values != null && info.Values.Count > 0) {
 				cinfos = info.Values;
 			} else {
-				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc.Context.GetSchemas (), doc.Frameworks);
+				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc);
 			}
 
 			if (cinfos != null) {
@@ -292,7 +291,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var rr = ResolveCurrentLocation ();
 			var doc = GetDocument ();
-			var result = MSBuildNavigation.GetNavigation (doc.XDocument, Editor.CaretLocation, rr, doc.Context, doc.Text);
+			var result = MSBuildNavigation.GetNavigation (doc, Editor.CaretLocation, rr);
 			MSBuildNavigationExtension.Navigate (result, doc);
 		}
 
@@ -301,7 +300,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var rr = ResolveCurrentLocation ();
 			var doc = GetDocument ();
-			info.Enabled = rr != null && MSBuildNavigation.CanNavigate (doc.XDocument, Editor.CaretLocation, rr, doc.Context);
+			info.Enabled = rr != null && MSBuildNavigation.CanNavigate (doc, Editor.CaretLocation, rr);
 		}
 
 		[CommandHandler (Refactoring.RefactoryCommands.FindReferences)]

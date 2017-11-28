@@ -14,9 +14,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
-		void AddError (ErrorType errorType, string message, DocumentRegion region) => Context.Errors.Add (new Error (errorType, message, region));
-		void AddError (ErrorType errorType, string message, int offset, int length) => Context.Errors.Add (new Error (errorType, message, GetRegion (offset, length)));
-		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (Document.OffsetToLocation (offset), Document.OffsetToLocation (offset + length));
+		void AddError (ErrorType errorType, string message, DocumentRegion region) => Document.Errors.Add (new Error (errorType, message, region));
+		void AddError (ErrorType errorType, string message, int offset, int length) => Document.Errors.Add (new Error (errorType, message, GetRegion (offset, length)));
+		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (TextDocument.OffsetToLocation (offset), TextDocument.OffsetToLocation (offset + length));
 		void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
 		void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, offset, length);
 		void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
@@ -346,17 +346,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case MSBuildValueKind.TargetName:
-				if (Context.GetSchemas ().GetTarget (value) == null) {
+				if (Document.GetSchemas ().GetTarget (value) == null) {
 					AddWarning ("Target is not defined");
 				}
 				break;
 			case MSBuildValueKind.PropertyName:
-				if (Context.GetSchemas ().GetProperty (value) == null) {
+				if (Document.GetSchemas ().GetProperty (value) == null) {
 					AddWarning ("Unknown property name");
 				}
 				break;
 			case MSBuildValueKind.ItemName:
-				if (Context.GetSchemas ().GetItem (value) == null) {
+				if (Document.GetSchemas ().GetItem (value) == null) {
 					AddWarning ("Unknown item name");
 				}
 				break;

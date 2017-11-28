@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
-		protected void AddResult (XElement el, ReferenceUsage usage) => Results.Add ((el.GetNameStartOffset (Document), el.Name.Name.Length, usage));
+		protected void AddResult (XElement el, ReferenceUsage usage) => Results.Add ((el.GetNameStartOffset (TextDocument), el.Name.Name.Length, usage));
 		protected void AddResult (XAttribute att, ReferenceUsage usage) => Results.Add ((ConvertLocation (att.Region.Begin), att.Name.Name.Length, usage));
 
 		public static bool CanCreate (MSBuildResolveResult rr)
@@ -77,7 +77,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Write));
+				Results.Add ((element.GetNameStartOffset (TextDocument), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -112,7 +112,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Property) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Write));
+				Results.Add ((element.GetNameStartOffset (TextDocument), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -141,7 +141,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Task || resolved.Kind == MSBuildKind.UsingTask) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (Document), element.Name.Name.Length, ReferenceUsage.Declaration));
+				Results.Add ((element.GetNameStartOffset (TextDocument), element.Name.Name.Length, ReferenceUsage.Declaration));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -201,7 +201,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (resolved.Kind == MSBuildKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName (Name), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length, ReferenceUsage.Declaration));
+					Results.Add ((nameAtt.GetValueStartOffset (TextDocument), Name.Length, ReferenceUsage.Declaration));
 				}
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -249,7 +249,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (resolved.Kind == MSBuildKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueStartOffset (Document), Name.Length, ReferenceUsage.Declaration));
+					Results.Add ((nameAtt.GetValueStartOffset (TextDocument), Name.Length, ReferenceUsage.Declaration));
 				}
 			}
 			base.VisitResolvedElement (element, resolved);

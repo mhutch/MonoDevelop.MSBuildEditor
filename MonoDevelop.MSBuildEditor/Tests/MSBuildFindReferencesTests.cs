@@ -16,27 +16,27 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	[TestFixture]
 	public class MSBuildFindReferencesTests : IdeTestBase
 	{
-		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string doc, MSBuildReferenceKind kind, string name, string parentName)
+		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, string name, string parentName)
 		{
 			string filename = "test.csproj";
 
-			var textDoc = TextEditorFactory.CreateNewDocument (new StringTextSource (doc), filename, MSBuildTextEditorExtension.MSBuildMimeType);
+			var textDoc = TextEditorFactory.CreateNewDocument (new StringTextSource (docString), filename, MSBuildTextEditorExtension.MSBuildMimeType);
 
 			var xmlParser = new XmlParser (new XmlRootState (), true);
-			xmlParser.Parse (new StringReader (doc));
+			xmlParser.Parse (new StringReader (docString));
 			var xdoc = xmlParser.Nodes.GetRoot ();
 
 
-			var ctx = MSBuildTestHelpers.CreateEmptyContext ();
+			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
 			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null);
-			sb.Run (xdoc, filename, textDoc, ctx);
+			sb.Run (xdoc, filename, textDoc, doc);
 
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
 				ReferenceName = name,
 				ReferenceItemName = parentName
 			});
-			collector.Run (xdoc, filename, textDoc, ctx);
+			collector.Run (xdoc, filename, textDoc, doc);
 			return collector.Results;
 		}
 

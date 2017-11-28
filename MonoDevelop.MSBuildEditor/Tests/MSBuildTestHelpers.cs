@@ -33,47 +33,47 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	{
 		const char defaultMarker = '|';
 
-		public static List<int> GetMarkedIndices (ref string doc, char marker = defaultMarker)
+		public static List<int> GetMarkedIndices (ref string docString, char marker = defaultMarker)
 		{
 			var indices = new List<int> ();
 			var docBuilder = new StringBuilder ();
-			for (int i = 0; i < doc.Length; i++) {
-				var ch = doc [i];
+			for (int i = 0; i < docString.Length; i++) {
+				var ch = docString [i];
 				if (ch == marker) {
 					indices.Add (i - indices.Count);
 				} else {
 					docBuilder.Append (ch);
 				}
 			}
-			doc = docBuilder.ToString ();
+			docString = docBuilder.ToString ();
 			return indices;
 		}
 
 		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (
-			string doc, string filename,
-			Func<(XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext ctx, int offset), T> selector,
+			string docString, string filename,
+			Func<(XmlParser parser, IReadonlyTextDocument textDoc, MSBuildDocument doc, int offset), T> selector,
 			char marker = defaultMarker)
 		{
-			var indices = new Queue<int> (GetMarkedIndices (ref doc, marker));
+			var indices = new Queue<int> (GetMarkedIndices (ref docString, marker));
 
-			var textDoc = TextEditorFactory.CreateNewDocument (new StringTextSource (doc), filename, MSBuildTextEditorExtension.MSBuildMimeType);
+			var textDoc = TextEditorFactory.CreateNewDocument (new StringTextSource (docString), filename, MSBuildTextEditorExtension.MSBuildMimeType);
 
 			var treeParser = new XmlParser (new XmlRootState (), true);
 			treeParser.Parse (textDoc.CreateReader ());
 			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null);
-			var ctx = CreateEmptyContext ();
-			sb.Run (treeParser.Nodes.GetRoot (), filename, textDoc, ctx);
+			var doc = CreateEmptyDocument ();
+			sb.Run (treeParser.Nodes.GetRoot (), filename, textDoc, doc);
 
 			var parser = new XmlParser (new XmlRootState (), false);
 
 			var nextIndex = indices.Dequeue ();
-			for (int i = 0; i < doc.Length; i++) {
-				parser.Push (doc [i]);
+			for (int i = 0; i < docString.Length; i++) {
+				parser.Push (docString [i]);
 				if (i != nextIndex) {
 					continue;
 				}
 
-				yield return (i, selector ((parser, textDoc, ctx, i)));
+				yield return (i, selector ((parser, textDoc, doc, i)));
 
 				if (indices.Count == 0) {
 					break;
@@ -82,9 +82,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			}
 		}
 
-		internal static MSBuildResolveContext CreateEmptyContext ()
+		internal static MSBuildDocument CreateEmptyDocument ()
 		{
-			return MSBuildResolveContext.Create (null, true, new Xml.Dom.XDocument (), null, null, null, null);
+			return new MSBuildDocument (null, false);
 		}
     }
 }

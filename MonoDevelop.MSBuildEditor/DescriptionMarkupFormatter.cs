@@ -17,14 +17,12 @@ namespace MonoDevelop.MSBuildEditor
 		const string keywordColorId = "keyword";
 
 		EditorTheme theme;
-		MSBuildResolveContext ctx;
-		IRuntimeInformation runtimeInfo;
+		MSBuildRootDocument doc;
 
-		public DescriptionMarkupFormatter (MSBuildResolveContext ctx, IRuntimeInformation runtimeInfo)
+		public DescriptionMarkupFormatter (MSBuildRootDocument doc)
 		{
 			theme = GetColorTheme();
-			this.ctx = ctx;
-			this.runtimeInfo = runtimeInfo;
+			this.doc = doc;
 		}
 
 		string GetColor (string id)
@@ -63,7 +61,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string AppendSeenInMarkup (BaseInfo info, string baseDesc)
 		{
-			IEnumerable<string> seenIn = ctx.GetFilesSeenIn (info);
+			IEnumerable<string> seenIn = doc.GetFilesSeenIn (info);
 			StringBuilder sb = null;
 
 			List<(string prefix, string subst)> prefixes = null;
@@ -72,7 +70,7 @@ namespace MonoDevelop.MSBuildEditor
 			foreach (var s in seenIn) {
 				if (count++ == 0) {
 					sb = new StringBuilder ();
-					prefixes = GetPrefixes (runtimeInfo);
+					prefixes = GetPrefixes (doc.RuntimeInformation);
 					if (!string.IsNullOrEmpty (baseDesc)) {
 						sb.AppendLine (baseDesc);
 						sb.AppendLine ();

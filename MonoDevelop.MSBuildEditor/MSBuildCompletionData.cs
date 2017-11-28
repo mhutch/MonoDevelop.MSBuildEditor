@@ -13,11 +13,11 @@ namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildCompletionData : XmlCompletionData
 	{
-		readonly MSBuildParsedDocument doc;
+		readonly MSBuildRootDocument doc;
 		readonly MSBuildResolveResult rr;
 		readonly BaseInfo info;
 
-		public MSBuildCompletionData (BaseInfo info, MSBuildParsedDocument doc, MSBuildResolveResult rr, DataType type)
+		public MSBuildCompletionData (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, info.Description, type)
 		{
 			this.info = info;

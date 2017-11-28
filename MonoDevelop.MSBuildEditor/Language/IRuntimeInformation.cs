@@ -5,11 +5,14 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	public interface IRuntimeInformation
+	interface IRuntimeInformation
 	{
 		string GetBinPath ();
 		string GetToolsPath ();
 		IEnumerable<string> GetExtensionsPaths ();
 		string GetSdksPath ();
+		List<MSBuildSdkResolver.SdkInfo> GetRegisteredSdks ();
+		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
+
 	}
 }

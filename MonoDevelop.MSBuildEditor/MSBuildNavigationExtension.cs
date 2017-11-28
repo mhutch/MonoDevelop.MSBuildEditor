@@ -22,26 +22,23 @@ namespace MonoDevelop.MSBuildEditor
 	{
 		protected override Task<IEnumerable<NavigationSegment>> RequestLinksAsync (int offset, int length, CancellationToken token)
 		{
-			var doc = DocumentContext.ParsedDocument as MSBuildParsedDocument;
+			var doc = (DocumentContext.ParsedDocument as MSBuildParsedDocument)?.Document;
 			if (doc == null) {
 				return Task.FromResult (Enumerable.Empty<NavigationSegment> ());
 			}
 			return Task.Run (
-				() => CreateNavigationSegments (
-					doc,
-					MSBuildNavigation.ResolveAll (doc.XDocument, doc.FileName, doc.Text, doc.Context)
-				)
+				() => CreateNavigationSegments (doc, MSBuildNavigation.ResolveAll (doc))
 			);
 		}
 
-		static IEnumerable<NavigationSegment> CreateNavigationSegments (MSBuildParsedDocument doc, List<MSBuildNavigationResult> results)
+		static IEnumerable<NavigationSegment> CreateNavigationSegments (MSBuildRootDocument doc, List<MSBuildNavigationResult> results)
 		{
 			foreach (var result in results) {
 				yield return new NavigationSegment (result.Offset, result.Length, () => Navigate (result, doc));
 			}
 		}
 
-		public static void Navigate (MSBuildNavigationResult result, MSBuildParsedDocument doc)
+		public static void Navigate (MSBuildNavigationResult result, MSBuildRootDocument doc)
 		{
 			try {
 				switch (result.Kind) {
@@ -89,13 +86,13 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		public static void FindReferences (Func<MSBuildReferenceCollector> createCollector, MSBuildParsedDocument doc)
+		public static void FindReferences (Func<MSBuildReferenceCollector> createCollector, MSBuildRootDocument doc)
 		{
 			var monitor = IdeApp.Workbench.ProgressMonitors.GetSearchProgressMonitor (true, true);
 
 			var tasks = new List<Task> ();
 
-			foreach (var import in doc.Context.GetDescendentImports ()) {
+			foreach (var import in doc.GetDescendentImports ()) {
 				if (!import.IsResolved || !File.Exists (import.Filename)) {
 					continue;
 				}
@@ -105,7 +102,7 @@ namespace MonoDevelop.MSBuildEditor
 						var textDoc = TextEditorFactory.CreateNewDocument (import.Filename, MSBuildTextEditorExtension.MSBuildMimeType);
 						xmlParser.Parse (textDoc.CreateReader ());
 						var xdoc = xmlParser.Nodes.GetRoot ();
-						FindReferences (createCollector (), monitor, import.Filename, xdoc, textDoc, doc.Context);
+						FindReferences (createCollector (), monitor, import.Filename, xdoc, textDoc, doc);
 					} catch (Exception ex) {
 						monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
 						LoggingService.LogError ($"Error searching MSBuild file {import.Filename}", ex);
@@ -115,11 +112,11 @@ namespace MonoDevelop.MSBuildEditor
 
 			tasks.Add (Task.Run (() => {
 				try {
-					var textDoc = TextEditorFactory.CreateNewDocument (doc.Text, doc.FileName, MSBuildTextEditorExtension.MSBuildMimeType);
-					FindReferences (createCollector(), monitor, doc.FileName, doc.XDocument, textDoc, doc.Context);
+					var textDoc = TextEditorFactory.CreateNewDocument (doc.Text, doc.Filename, MSBuildTextEditorExtension.MSBuildMimeType);
+					FindReferences (createCollector(), monitor, doc.Filename, doc.XDocument, textDoc, doc);
 				} catch (Exception ex) {
-					monitor.ReportError ($"Error searching file {Path.GetFileName (doc.FileName)}", ex);
-					LoggingService.LogError ($"Error searching MSBuild file {doc.FileName}", ex);
+					monitor.ReportError ($"Error searching file {Path.GetFileName (doc.Filename)}", ex);
+					LoggingService.LogError ($"Error searching MSBuild file {doc.Filename}", ex);
 				}
 			}));
 
@@ -129,9 +126,9 @@ namespace MonoDevelop.MSBuildEditor
 		static void FindReferences (
 			MSBuildReferenceCollector collector,
 			SearchProgressMonitor monitor,
-			string filename, XDocument doc, IReadonlyTextDocument textDoc, MSBuildResolveContext context)
+			string filename, XDocument xDocument, IReadonlyTextDocument textDocument, MSBuildDocument doc)
 		{
-			collector.Run (doc, filename, textDoc, context);
+			collector.Run (xDocument, filename, textDocument, doc);
 			var fileProvider = new FileProvider (filename);
 			if (collector.Results.Count > 0) {
 				monitor.ReportResults (collector.Results.Select (r => new SearchResult (fileProvider, r.Offset, r.Length)));

@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
 
 		public static MSBuildResolveResult Resolve (
-			XmlParser parser, IReadonlyTextDocument document, MSBuildResolveContext context)
+			XmlParser parser, IReadonlyTextDocument document, MSBuildDocument context)
 		{
 			int offset = parser.Position;
 

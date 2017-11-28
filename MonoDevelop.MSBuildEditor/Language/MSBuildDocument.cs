@@ -14,9 +14,9 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	delegate IEnumerable<Import> ImportResolver (MSBuildResolveContext resolveContext, string import, string sdk, PropertyValueCollector propertyVals);
+	delegate IEnumerable<Import> ImportResolver (string import, string sdk, PropertyValueCollector propertyVals);
 
-	class MSBuildResolveContext : IMSBuildSchema
+	class MSBuildDocument : IMSBuildSchema
 	{
 		static readonly XName xnProject = new XName ("Project");
 
@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public List<Error> Errors { get; }
 		public bool IsToplevel { get; }
 
-		MSBuildResolveContext (string filename, bool isToplevel)
+		public MSBuildDocument (string filename, bool isToplevel)
 		{
 			Filename = filename;
 			IsToplevel = isToplevel;
@@ -42,32 +42,29 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public string Filename { get; }
 		public MSBuildSchema Schema { get; internal set; }
 
-		public static MSBuildResolveContext Create (
-			string filename, bool isToplevel, XDocument doc, ITextDocument textDocument,
-			MSBuildSdkResolver sdkResolver, PropertyValueCollector propVals,
+		public void Build (
+			XDocument doc, ITextDocument textDocument,
+			IRuntimeInformation runtime, PropertyValueCollector propVals,
 			ImportResolver resolveImport)
 		{
-			var ctx = new MSBuildResolveContext (filename, isToplevel);
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
 				//TODO: error
-				return ctx;
+				return;
 			}
 
-			var sdks = ctx.ResolveSdks (sdkResolver, project, textDocument).ToList ();
+			var sdks = ResolveSdks (runtime, project, textDocument).ToList ();
 
 			var pel = MSBuildLanguageElement.Get ("Project");
 
 			GetPropertiesUsedByImports (propVals, project);
 
-			ctx.AddSdkProps (sdks, propVals, resolveImport);
+			AddSdkProps (sdks, propVals, resolveImport);
 
-			var resolver = new MSBuildSchemaBuilder (isToplevel, sdkResolver, propVals, resolveImport);
-			resolver.Run (doc, filename, textDocument, ctx);
+			var resolver = new MSBuildSchemaBuilder (IsToplevel, runtime, propVals, resolveImport);
+			resolver.Run (doc, Filename, textDocument, this);
 
-			ctx.AddSdkTargets (sdks, propVals, resolveImport);
-
-			return ctx;
+			AddSdkTargets (sdks, propVals, resolveImport);
 		}
 
 		static void GetPropertiesUsedByImports (PropertyValueCollector propertyVals, XElement project)
@@ -83,7 +80,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		internal string GetSdkPath (MSBuildSdkResolver resolver, string sdk, DocumentRegion loc)
+		internal string GetSdkPath (IRuntimeInformation runtime, string sdk, DocumentRegion loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
 				string message = $"Could not parse SDK '{sdk}'";
@@ -95,7 +92,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			//FIXME: filename should be the root project, not this file
-			var sdkPath = resolver.GetSdkPath (sdkRef, Filename, null);
+			var sdkPath = runtime.GetSdkPath (sdkRef, Filename, null);
 			if (sdkPath == null) {
 				string message = $"Did not find SDK '{sdk}'";
 				LoggingService.LogError (message);
@@ -142,7 +139,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		IEnumerable<(string id, string path, DocumentRegion)> ResolveSdks (MSBuildSdkResolver resolver, XElement project, ITextDocument doc)
+		IEnumerable<(string id, string path, DocumentRegion)> ResolveSdks (IRuntimeInformation runtime, XElement project, ITextDocument doc)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -163,7 +160,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 				else {
-					var sdkPath = GetSdkPath (resolver, sdk.id, sdk.loc);
+					var sdkPath = GetSdkPath (runtime, sdk.id, sdk.loc);
 					if (sdkPath != null) {
 						yield return (sdk.id, sdkPath, sdk.loc);
 					}
@@ -178,7 +175,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var sdk in sdkPaths) {
 				var propsPath = $"{sdk.path}\\Sdk.props";
-				var sdkProps = resolveImport (this, propsPath, sdk.id, propVals).FirstOrDefault ();
+				var sdkProps = resolveImport (propsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (propsPath, sdkProps);
 				}
@@ -189,7 +186,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var sdk in sdkPaths) {
 				var targetsPath = $"{sdk.path}\\Sdk.targets";
-				var sdkTargets = resolveImport (this, targetsPath, sdk.id, propVals).FirstOrDefault ();
+				var sdkTargets = resolveImport (targetsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (targetsPath, sdkTargets);
 				}
@@ -200,29 +197,29 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var i in Imports) {
 				yield return i.Value;
-				if (i.Value.ResolveContext != null) {
-					foreach (var d in i.Value.ResolveContext.GetDescendentImports ()) {
+				if (i.Value.Document != null) {
+					foreach (var d in i.Value.Document.GetDescendentImports ()) {
 						yield return d;
 					}
 				}
 			}
 		}
 
-		IEnumerable<MSBuildResolveContext> GetDescendentContexts ()
+		IEnumerable<MSBuildDocument> GetDescendentDocuments ()
 		{
 			foreach (var i in GetDescendentImports ()) {
-				if (i.ResolveContext != null) {
-					yield return i.ResolveContext;
+				if (i.Document != null) {
+					yield return i.Document;
 				}
 			}
 		}
 
-		public IEnumerable<MSBuildResolveContext> GetContextAndDescendents ()
+		public IEnumerable<MSBuildDocument> GetSelfAndDescendents ()
 		{
 			yield return this;
 			foreach (var i in GetDescendentImports ()) {
-				if (i.ResolveContext != null) {
-					yield return i.ResolveContext;
+				if (i.Document != null) {
+					yield return i.Document;
 				}
 			}
 		}
@@ -234,13 +231,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 				yield return Schema;
 			}
 			foreach (var i in GetDescendentImports ()) {
-				if (i.ResolveContext?.Schema != null)
-					yield return i.ResolveContext.Schema;
+				if (i.Document?.Schema != null)
+					yield return i.Document.Schema;
 			}
 			yield return this;
 			foreach (var i in GetDescendentImports ()) {
-				if (i.ResolveContext != null) {
-					yield return i.ResolveContext;
+				if (i.Document != null) {
+					yield return i.Document;
 				}
 			}
 		}
@@ -251,9 +248,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
 		{
 			var files = new HashSet<string> ();
-			foreach (var ctx in GetDescendentContexts ()) {
-				if (ctx.ContainsInfo (info)) {
-					files.Add (ctx.Filename);
+			foreach (var doc in GetDescendentDocuments ()) {
+				if (doc.ContainsInfo (info)) {
+					files.Add (doc.Filename);
 				}
 			}
 			return files;

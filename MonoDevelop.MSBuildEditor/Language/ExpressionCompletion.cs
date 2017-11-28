@@ -134,26 +134,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (
 			TriggerState trigger, MSBuildValueKind kind,
-			IEnumerable<IMSBuildSchema> schemas,
-			IReadOnlyList<FrameworkReference> tfms)
+			MSBuildRootDocument doc)
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind, schemas, tfms);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc);
 			case TriggerState.Item:
-				return schemas.GetItems ();
+				return doc.GetItems ();
 			case TriggerState.Metadata:
-				return schemas.GetMetadata (null, true);
+				return doc.GetMetadata (null, true);
 			case TriggerState.Property:
-				return schemas.GetProperties (true);
+				return doc.GetProperties (true);
 			}
 			throw new InvalidOperationException ();
 		}
 
 		public static IEnumerable<BaseInfo> GetConditionValueCompletion (
 			MSBuildResolveResult rr, string expression,
-			IEnumerable<IMSBuildSchema> schemas,
-			IReadOnlyList<FrameworkReference> tfms)
+			MSBuildRootDocument doc)
 		{
 			if (rr.LanguageAttribute == null || rr.LanguageAttribute.ValueKind != MSBuildValueKind.Condition) {
 				yield break;
@@ -191,7 +189,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				yield break;
 			}
 
-			var variables = ReadPrecedingComparandVariables (tokens, tokens.Count - 3, schemas);
+			var variables = ReadPrecedingComparandVariables (tokens, tokens.Count - 3, doc);
 
 			foreach (var variable in variables) {
 				if (variable != null) {
@@ -199,7 +197,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (variable.Values != null && variable.Values.Count > 0) {
 						cinfos = variable.Values;
 					} else {
-						cinfos = MSBuildCompletionExtensions.GetValueCompletions (variable.ValueKind, schemas, tfms);
+						cinfos = MSBuildCompletionExtensions.GetValueCompletions (variable.ValueKind, doc);
 					}
 					if (cinfos != null) {
 						foreach (var ci in cinfos) {

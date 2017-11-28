@@ -17,16 +17,16 @@ namespace MonoDevelop.MSBuildEditor
 {
 	class MSBuildTooltipProvider : TooltipProvider
 	{
-        public override Task<TooltipItem> GetItem(TextEditor editor, DocumentContext ctx, int offset, CancellationToken token = default(CancellationToken))
+		public override Task<TooltipItem> GetItem(TextEditor editor, DocumentContext ctx, int offset, CancellationToken token = default(CancellationToken))
         {
 			var ext = editor.GetContent<MSBuildTextEditorExtension> ();
-			MSBuildParsedDocument doc;
+			MSBuildRootDocument doc;
 			if (ext == null || (doc = ext.GetDocument ()) == null) {
 				return Task.FromResult<TooltipItem> (null);
 			}
 
 			var loc = editor.OffsetToLocation (offset);
-			var annotations = MSBuildNavigation.GetAnnotationsAtLocation<NavigationAnnotation> (doc.XDocument, loc, doc.Context);
+			var annotations = MSBuildNavigation.GetAnnotationsAtLocation<NavigationAnnotation> (doc, loc);
 			if (annotations != null && annotations.Any ()) {
 				var first = annotations.First ();
 				int start = editor.LocationToOffset (first.Region.Begin);
@@ -46,7 +46,7 @@ namespace MonoDevelop.MSBuildEditor
 					};
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
 				}
-				var info = rr.GetResolvedReference (doc.Context.GetSchemas (), doc.Frameworks);
+				var info = rr.GetResolvedReference (doc);
 				if (info != null) {
 					var item = new InfoItem { Info = info, Doc = doc, ResolveResult = rr };
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
@@ -55,15 +55,15 @@ namespace MonoDevelop.MSBuildEditor
 			return Task.FromResult<TooltipItem> (null);
         }
 
-		public static TooltipInformation CreateTooltipInformation (MSBuildParsedDocument doc, BaseInfo info, MSBuildResolveResult rr)
+		public static TooltipInformation CreateTooltipInformation (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
 		{
-			var formatter = new DescriptionMarkupFormatter (doc.Context, doc.RuntimeInformation);
+			var formatter = new DescriptionMarkupFormatter (doc);
 			var nameMarkup = formatter.GetNameMarkup (info);
 			if (nameMarkup == null) {
 				return null;
 			}
 
-			var desc = DescriptionFormatter.GetDescription (info, doc.Context, rr);
+			var desc = DescriptionFormatter.GetDescription (info, doc, rr);
 
 			return new TooltipInformation {
 				SignatureMarkup = nameMarkup,
@@ -171,7 +171,7 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			public BaseInfo Info;
 			public MSBuildResolveResult ResolveResult;
-			public MSBuildParsedDocument Doc;
+			public MSBuildRootDocument Doc;
 			public Task<IReadOnlyList<IPackageInfo>> Packages;
 		}
     }

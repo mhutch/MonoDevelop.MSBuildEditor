@@ -12,16 +12,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class MSBuildSchemaBuilder : MSBuildVisitor
 	{
 		readonly bool isToplevel;
-		readonly MSBuildSdkResolver sdkResolver;
+		readonly IRuntimeInformation runtime;
 		readonly PropertyValueCollector propertyValues;
 		readonly ImportResolver resolveImport;
 
 		public MSBuildSchemaBuilder (
-			bool isToplevel, MSBuildSdkResolver sdkResolver,
+			bool isToplevel, IRuntimeInformation runtime,
 			PropertyValueCollector propertyValues, ImportResolver resolveImport)
 		{
 			this.isToplevel = isToplevel;
-			this.sdkResolver = sdkResolver;
+			this.runtime = runtime;
 			this.propertyValues = propertyValues;
 			this.resolveImport = resolveImport;
 		}
@@ -84,28 +84,28 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = isToplevel? sdkAtt.GetValueRegion (Document) : sdkAtt.Region;
-				sdkPath = Context.GetSdkPath (sdkResolver, sdkAtt.Value, loc);
+				var loc = isToplevel? sdkAtt.GetValueRegion (TextDocument) : sdkAtt.Region;
+				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
 				import = import == null? null : sdkPath + "\\" + import;
 
 				if (isToplevel) {
-					Context.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
+					Document.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
 				}
 			}
 
 			if (import != null) {
 				bool wasResolved = false;
-				var loc = isToplevel ? importAtt.GetValueRegion (Document) : importAtt.Region;
-				foreach (var resolvedImport in resolveImport (Context, import, null, propertyValues)) {
-					Context.Imports [resolvedImport.Filename] = resolvedImport;
+				var loc = isToplevel ? importAtt.GetValueRegion (TextDocument) : importAtt.Region;
+				foreach (var resolvedImport in resolveImport (import, null, propertyValues)) {
+					Document.Imports [resolvedImport.Filename] = resolvedImport;
 					wasResolved |= resolvedImport.IsResolved;
 					if (isToplevel) {
-						Context.Annotations.Add (importAtt, new NavigationAnnotation (resolvedImport.Filename, loc));
+						Document.Annotations.Add (importAtt, new NavigationAnnotation (resolvedImport.Filename, loc));
 					}
 				}
 				if (!wasResolved && isToplevel) {
 					ErrorType type = element.Attributes.Get (new XName ("Condition"), true) == null ? ErrorType.Error : ErrorType.Warning;
-					Context.Errors.Add (new Error (type, "Could not resolve import", loc));
+					Document.Errors.Add (new Error (type, "Could not resolve import", loc));
 				}
 			}
 		}
@@ -127,28 +127,28 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void CollectItem (string itemName)
 		{
 			var name = itemName;
-			if (!Context.Items.ContainsKey (name)) {
-				Context.Items.Add (name, new ItemInfo (name, null));
+			if (!Document.Items.ContainsKey (name)) {
+				Document.Items.Add (name, new ItemInfo (name, null));
 			}
 		}
 
 		void CollectProperty (string propertyName)
 		{
-			if (!Context.Properties.ContainsKey (propertyName) && !Builtins.Properties.ContainsKey (propertyName)) {
-				Context.Properties.Add (propertyName, new PropertyInfo (propertyName, null));
+			if (!Document.Properties.ContainsKey (propertyName) && !Builtins.Properties.ContainsKey (propertyName)) {
+				Document.Properties.Add (propertyName, new PropertyInfo (propertyName, null));
 			}
 		}
 
 		void CollectTarget (string name)
 		{
-			if (name != null && !Context.Targets.TryGetValue (name, out TargetInfo target)) {
-				Context.Targets [name] = target = new TargetInfo (name, null);
+			if (name != null && !Document.Targets.TryGetValue (name, out TargetInfo target)) {
+				Document.Targets [name] = target = new TargetInfo (name, null);
 			}
 		}
 
 		void CollectMetadata (string itemName, string metadataName)
 		{
-			if (itemName != null && Context.Items.TryGetValue (itemName, out ItemInfo item)) {
+			if (itemName != null && Document.Items.TryGetValue (itemName, out ItemInfo item)) {
 				if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
 					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 				}
@@ -157,14 +157,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void CollectTask (string name)
 		{
-			if (!Context.Tasks.TryGetValue (name, out TaskInfo task)) {
-				Context.Tasks [name] = task = new TaskInfo (name, null);
+			if (!Document.Tasks.TryGetValue (name, out TaskInfo task)) {
+				Document.Tasks [name] = task = new TaskInfo (name, null);
 			}
 		}
 
 		void CollectTaskParameter (string taskName, string parameterName)
 		{
-			var task = Context.Tasks [taskName];
+			var task = Document.Tasks [taskName];
 			if (!task.Parameters.ContainsKey (parameterName)) {
 				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null));
 			}

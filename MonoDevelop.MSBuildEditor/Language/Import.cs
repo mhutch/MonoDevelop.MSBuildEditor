@@ -11,8 +11,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public string Filename { get; private set; }
 		public string Sdk { get; }
 		public DateTime TimeStampUtc { get; }
-		public MSBuildResolveContext ResolveContext { get; set; }
-		public bool IsResolved { get { return ResolveContext != null; } }
+		public MSBuildDocument Document { get; set; }
+		public bool IsResolved { get { return Document != null; } }
 
 		public Import (string filename, string sdk, DateTime timeStampUtc)
 		{

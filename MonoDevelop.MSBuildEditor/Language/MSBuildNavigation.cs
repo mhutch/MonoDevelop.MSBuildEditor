@@ -14,12 +14,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	static class MSBuildNavigation
 	{
-		public static bool CanNavigate (XDocument doc, DocumentLocation location, MSBuildResolveResult rr, MSBuildResolveContext ctx)
+		public static bool CanNavigate (MSBuildRootDocument doc, DocumentLocation location, MSBuildResolveResult rr)
 		{
 			if (rr == null) {
 				return false;
 			}
-			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location, ctx);
+			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location);
 			if (annotations != null && annotations.Any ()) {
 				return true;
 			}
@@ -32,8 +32,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		public static MSBuildNavigationResult GetNavigation (
-			XDocument doc, DocumentLocation location, MSBuildResolveResult rr,
-			MSBuildResolveContext ctx, ITextSource textDoc)
+			MSBuildRootDocument doc, DocumentLocation location, MSBuildResolveResult rr)
 		{
 			if (rr == null) {
 				return null;
@@ -41,12 +40,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets
-			var textDocument = textDoc as IReadonlyTextDocument
+			var textDocument = doc.Text as IReadonlyTextDocument
 				?? TextEditorFactory.CreateNewReadonlyDocument (
-					textDoc, ctx.Filename, MSBuildTextEditorExtension.MSBuildMimeType
+					doc.Text, doc.Filename, MSBuildTextEditorExtension.MSBuildMimeType
 				);
 
-			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location, ctx);
+			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location);
 			var firstAnnotation = annotations.FirstOrDefault ();
 			if (firstAnnotation != null) {
 				var beginOffset = textDocument.LocationToOffset (firstAnnotation.Region.Begin);
@@ -63,21 +62,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return null;
 		}
 
-		public static IEnumerable<T> GetAnnotationsAtLocation<T> (XDocument doc, DocumentLocation location, MSBuildResolveContext ctx)
+		public static IEnumerable<T> GetAnnotationsAtLocation<T> (MSBuildRootDocument doc, DocumentLocation location)
 		{
-			var xobj = doc.FindNodeAtLocation (location);
+			var xobj = doc.XDocument.FindNodeAtLocation (location);
 			if (xobj == null) {
 				return null;
 			}
-			return ctx.Annotations
+			return doc.Annotations
 				.GetMany<T> (xobj)
 				.Where (a => !(a is IRegionAnnotation ra) || ra.Region.Contains (location));
 		}
 
-		public static List<MSBuildNavigationResult> ResolveAll (XDocument doc, string filename, ITextSource textDoc, MSBuildResolveContext ctx)
+		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc)
 		{
 			var visitor = new MSBuildNavigationVisitor ();
-			visitor.Run (doc, filename, textDoc, ctx);
+			visitor.Run (doc);
 			return visitor.Navigations;
 		}
 
@@ -106,7 +105,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				void CaptureAnnotations ()
 				{
-					var annotations = Context.Annotations.GetMany<NavigationAnnotation> (attribute);
+					var annotations = Document.Annotations.GetMany<NavigationAnnotation> (attribute);
 					if (annotations != null) {
 						foreach (var group in annotations.GroupBy (a => a.Region.Begin)) {
 							var first = group.First ();

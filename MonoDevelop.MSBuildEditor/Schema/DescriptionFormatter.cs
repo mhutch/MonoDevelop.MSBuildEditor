@@ -8,9 +8,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	static class DescriptionFormatter
 	{
-		public static string GetDescription (BaseInfo info, MSBuildResolveContext ctx, MSBuildResolveResult rr)
+		public static string GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
 		{
-			if (ctx == null) {
+			if (doc == null) {
 				return info.Description;
 			}
 
@@ -21,7 +21,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				case "exclude":
 				case "remove":
 				case "update":
-					var item = ctx.GetSchemas ().GetItem (rr.ElementName);
+					var item = doc.GetSchemas ().GetItem (rr.ElementName);
 					if (item != null && !string.IsNullOrEmpty (item.IncludeDescription)) {
 						switch (item.ValueKind) {
 						case MSBuildValueKind.File:

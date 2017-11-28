@@ -14,10 +14,10 @@ namespace MonoDevelop.MSBuildEditor
 		MSBuildSdkResolver sdkResolver;
 		string tvString;
 
-		public MSBuildRuntimeInformation (TargetRuntime target, MSBuildToolsVersion tv, MSBuildSdkResolver sdkResolver)
+		public MSBuildRuntimeInformation (TargetRuntime target, MSBuildToolsVersion tv)
 		{
 			this.target = target;
-			this.sdkResolver = sdkResolver;
+			this.sdkResolver = new MSBuildSdkResolver (target);
 			this.tvString = tv.ToVersionString ();
 		}
 
@@ -35,5 +35,9 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string GetSdksPath () => sdkResolver.DefaultSdkPath;
 
+		public List<MSBuildSdkResolver.SdkInfo> GetRegisteredSdks () => sdkResolver.GetRegisteredSdks ();
+
+		public string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath)
+			=> sdkResolver.GetSdkPath (sdk, projectFile, solutionPath);
 	}
 }

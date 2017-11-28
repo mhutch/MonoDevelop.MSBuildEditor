@@ -123,8 +123,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		public static IReadOnlyList<BaseInfo> GetValueCompletions (
-			MSBuildValueKind kind, IEnumerable<IMSBuildSchema> schemas,
-			IReadOnlyList<FrameworkReference> tfms)
+			MSBuildValueKind kind, MSBuildRootDocument doc)
 		{
 			var simple = kind.GetSimpleValues (true);
 			if (simple != null) {
@@ -133,40 +132,40 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			switch (kind) {
 			case MSBuildValueKind.TargetName:
-				return schemas.GetTargets ().ToList ();
+				return doc.GetTargets ().ToList ();
 			case MSBuildValueKind.PropertyName:
-				return schemas.GetProperties (true).ToList ();
+				return doc.GetProperties (true).ToList ();
 			case MSBuildValueKind.ItemName:
-				return schemas.GetItems ().ToList ();
+				return doc.GetItems ().ToList ();
 			case MSBuildValueKind.TargetFramework:
 				return FrameworkInfoProvider.Instance.GetFrameworksWithShortNames ().ToList ();
 			case MSBuildValueKind.TargetFrameworkIdentifier:
 				return FrameworkInfoProvider.Instance.GetFrameworkIdentifiers ().ToList ();
 			case MSBuildValueKind.TargetFrameworkVersion:
-				return tfms.SelectMany (
+				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Identifier)
 				).ToList ();
 			case MSBuildValueKind.TargetFrameworkProfile:
-				return tfms.SelectMany (
+				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
 				).ToList ();
 			}
 			return null;
 		}
 
-		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, IReadOnlyList<FrameworkReference> tfms)
+		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, MSBuildRootDocument doc)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
-				return schemas.GetItem (rr.ReferenceName);
+				return doc.GetItem (rr.ReferenceName);
 			case MSBuildReferenceKind.Metadata:
-				return schemas.GetMetadata (rr.ReferenceItemName, rr.ReferenceName, true);
+				return doc.GetMetadata (rr.ReferenceItemName, rr.ReferenceName, true);
 			case MSBuildReferenceKind.Property:
-				return schemas.GetProperty (rr.ReferenceName);
+				return doc.GetProperty (rr.ReferenceName);
 			case MSBuildReferenceKind.Task:
-				return schemas.GetTask (rr.ReferenceName);
+				return doc.GetTask (rr.ReferenceName);
 			case MSBuildReferenceKind.Target:
-				return schemas.GetTarget (rr.ReferenceName);
+				return doc.GetTarget (rr.ReferenceName);
 			case MSBuildReferenceKind.Keyword:
 				var attName = rr.AttributeName;
 				if (attName != null) {
@@ -184,7 +183,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return rr.ReferenceValue;
 			case MSBuildReferenceKind.TargetFramework:
 				var fx = (FrameworkReference)rr.ReferenceObject;
-				return FrameworkInfoProvider.Instance.GetBestInfo (fx, tfms);
+				return FrameworkInfoProvider.Instance.GetBestInfo (fx, doc.Frameworks);
 			}
 			return null;
 		}

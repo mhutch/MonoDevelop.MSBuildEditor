@@ -87,7 +87,7 @@
     <Compile Include="Language\AnnotationTable.cs" />
     <Compile Include="Language\Import.cs" />
     <Compile Include="Language\MSBuildDocumentValidator.cs" />
-    <Compile Include="Language\MSBuildResolveContext.cs" />
+    <Compile Include="Language\MSBuildDocument.cs" />
     <Compile Include="Language\MSBuildResolver.cs" />
     <Compile Include="Language\PropertyValueCollector.cs" />
     <Compile Include="Language\MSBuildVisitor.cs" />
@@ -140,6 +140,7 @@
     <Compile Include="PackageSearch\PackageSearchHelpers.cs" />
     <Compile Include="MSBuildHighlightUsagesExtension.cs" />
     <Compile Include="Schema\FrameworkInfoProvider.cs" />
+    <Compile Include="Language\MSBuildRootDocument.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

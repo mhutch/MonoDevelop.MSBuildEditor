@@ -20,8 +20,8 @@ namespace MonoDevelop.MSBuildEditor
 			var doc = ext.GetDocument ();
 			var collector = MSBuildReferenceCollector.Create (resolveResult);
 
-			//FIXME: it should be possible to run this async, all the args are immutable
-			collector.Run (doc.XDocument, doc.FileName, doc.Text, doc.Context);
+			//FIXME: it should be possible to run this async, the doc is immutable
+			collector.Run (doc);
 
 			return Task.FromResult (
 				collector.Results.Select (r => {
@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuildEditor
 						usage = ReferenceUsageType.Read;
 						break;
 					}
-					return new MemberReference (r, doc.FileName, r.Offset, r.Length) {
+					return new MemberReference (r, doc.Filename, r.Offset, r.Length) {
 						ReferenceUsageType = usage
 					};
 				})
