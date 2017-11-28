@@ -177,7 +177,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var propsPath = $"{sdk.path}\\Sdk.props";
 				var sdkProps = resolveImport (propsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkProps != null) {
-					Imports.Add (propsPath, sdkProps);
+					Imports.Add (sdkProps.Filename, sdkProps);
 				}
 			}
 		}
@@ -188,7 +188,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var targetsPath = $"{sdk.path}\\Sdk.targets";
 				var sdkTargets = resolveImport (targetsPath, sdk.id, propVals).FirstOrDefault ();
 				if (sdkTargets != null) {
-					Imports.Add (targetsPath, sdkTargets);
+					Imports.Add (sdkTargets.Filename, sdkTargets);
 				}
 			}
 		}
