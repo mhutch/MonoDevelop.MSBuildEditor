@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MonoDevelop.MSBuildEditor.Language;
 
@@ -149,8 +150,35 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
 				).ToList ();
+			case MSBuildValueKind.File:
+			case MSBuildValueKind.ProjectFile:
+				return GetPathCompletions (doc.Filename, true, false);
+			case MSBuildValueKind.FileOrFolder:
+				return GetPathCompletions (doc.Filename, true, true);
+			case MSBuildValueKind.Folder:
+			case MSBuildValueKind.FolderWithSlash:
+				return GetPathCompletions (doc.Filename, false, true);
 			}
 			return null;
+		}
+
+		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, bool includeFiles, bool includeFolders)
+		{
+			var baseFolder = Path.GetDirectoryName (projectPath);
+			string [] entries;
+			if (includeFiles && includeFolders) {
+				entries = Directory.GetFileSystemEntries (baseFolder);
+			} else if (includeFolders) {
+				entries = Directory.GetDirectories (baseFolder);
+			} else {
+				entries = Directory.GetFiles (baseFolder);
+			}
+			var infos = new List<BaseInfo> ();
+			foreach (var e in entries) {
+				var name = Path.GetFileName (e);
+				infos.Add (new ConstantInfo (name, e));
+			}
+			return infos;
 		}
 
 		public static BaseInfo GetResolvedReference (this MSBuildResolveResult rr, MSBuildRootDocument doc)
