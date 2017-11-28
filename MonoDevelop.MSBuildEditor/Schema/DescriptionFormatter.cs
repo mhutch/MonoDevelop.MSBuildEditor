@@ -87,6 +87,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("task", info.Name);
 			case ConstantInfo value:
 				return ("value", info.Name);
+			case FileOrFolderInfo value:
+				return (value.IsFolder? "folder" : "file", info.Name);
 			case FrameworkInfo fxi:
 				return ("framework", fxi.Reference.GetMoniker ());
 			}

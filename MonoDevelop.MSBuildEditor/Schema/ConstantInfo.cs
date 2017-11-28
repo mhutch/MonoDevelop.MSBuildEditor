@@ -9,4 +9,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 		}
 	}
+
+	class FileOrFolderInfo : BaseInfo
+	{
+		public bool IsFolder { get; }
+
+		public FileOrFolderInfo (string name, bool isDirectory, string description) : base (name, description)
+		{
+			IsFolder = isDirectory;
+		}
+	}
 }

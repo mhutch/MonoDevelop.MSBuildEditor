@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Ide.CodeCompletion;
+using MonoDevelop.Ide.Gui;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Completion;
@@ -23,6 +24,10 @@ namespace MonoDevelop.MSBuildEditor
 			this.info = info;
 			this.doc = doc;
 			this.rr = rr;
+
+			if (info is FileOrFolderInfo f) {
+				Icon = f.IsFolder? Stock.ClosedFolder : Stock.GenericFile;
+			}
 		}
 
 		public override Task<TooltipInformation> CreateTooltipInformation (bool smartWrap, CancellationToken cancelToken)

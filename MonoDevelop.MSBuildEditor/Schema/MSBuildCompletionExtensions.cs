@@ -204,16 +204,17 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				completionBasePath = Path.GetFullPath (Path.Combine (projectBaseDir, completionBasePath));
 			}
 
-			string [] entries;
-			if (includeFiles) {
-				entries = Directory.GetFileSystemEntries (completionBasePath);
-			} else {
-				entries = Directory.GetDirectories (completionBasePath);
-			}
 			var infos = new List<BaseInfo> ();
-			foreach (var e in entries) {
+			foreach (var e in Directory.GetDirectories (completionBasePath)) {
 				var name = Path.GetFileName (e);
-				infos.Add (new ConstantInfo (name, e));
+				infos.Add (new FileOrFolderInfo (name, true, e));
+			}
+
+			if (includeFiles) {
+				foreach (var e in Directory.GetFiles (completionBasePath)) {
+					var name = Path.GetFileName (e);
+					infos.Add (new FileOrFolderInfo (name, false, e));
+				}
 			}
 			return infos;
 		}
