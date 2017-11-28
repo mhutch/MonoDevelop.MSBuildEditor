@@ -190,7 +190,11 @@ namespace MonoDevelop.MSBuildEditor
 
 			string expression = GetAttributeOrElementTextToCaret ();
 
-			var triggerState = ExpressionCompletion.GetTriggerState (expression, out int triggerLength);
+			var triggerState = ExpressionCompletion.GetTriggerState (
+				expression,
+				out int triggerLength,
+				out ExpressionNode triggerExpression);
+
 			if (triggerState == ExpressionCompletion.TriggerState.None) {
 				return null;
 			}

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Projects.Formats.MSBuild.Conditions;
 using MonoDevelop.Xml.Parser;
@@ -44,56 +45,85 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//FIXME: This is very rudimentary. We should parse the expression for real.
-		public static TriggerState GetTriggerState (string expression, out int triggerLength)
+		public static TriggerState GetTriggerState (string expression, out int triggerLength, out ExpressionNode triggerExpression)
 		{
 			triggerLength = 0;
 
 			if (expression.Length == 0) {
+				triggerExpression = new ExpressionLiteral (0, "", true);
 				return TriggerState.Value;
 			}
 
 			if (expression.Length == 1) {
+				triggerExpression = new ExpressionLiteral (0, expression, true);
 				triggerLength = 1;
 				return TriggerState.Value;
 			}
 
-			char lastChar = expression [expression.Length - 1];
+			const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
+			triggerExpression = ExpressionParser.Parse (expression, options);
 
-			if (lastChar == ',') {
-				return TriggerState.CommaValue;
-			}
-
-			if (lastChar == ';') {
-				return TriggerState.SemicolonValue;
-			}
-
-			//trigger on letter after $(, @(
-			if (expression.Length >= 3 && char.IsLetter (lastChar) && expression [expression.Length - 2] == '(') {
-				char c = expression [expression.Length - 3];
-				switch (c) {
-				case '$':
-					triggerLength = 1;
-					return TriggerState.Property;
-				case '@':
-					triggerLength = 1;
-					return TriggerState.Item;
-				case '%':
-					triggerLength = 1;
-					return TriggerState.Metadata;
+			if (triggerExpression is ExpressionList el) {
+				//the last list entry is the thing that triggered it
+				triggerExpression = el.Nodes.Last ();
+				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
+					return LastChar () == ','? TriggerState.CommaValue : TriggerState.SemicolonValue;
+				}
+				if (triggerExpression is ExpressionLiteral l) {
+					if (l.Length == 1) {
+						triggerLength = 1;
+						return PenultimateChar () == ',' ? TriggerState.CommaValue : TriggerState.SemicolonValue;
+					}
 				}
 			}
 
-			//trigger on $(, @(
-			if (expression [expression.Length - 1] == '(') {
-				char c = expression [expression.Length - 2];
-				switch (c) {
-				case '$':
-					return TriggerState.Property;
-				case '@':
-					return TriggerState.Item;
-				case '%':
-					return TriggerState.Metadata;
+			var lastNode = triggerExpression;
+			if (lastNode is Expression expr) {
+				lastNode = expr.Nodes.Last ();
+			}
+
+			if (lastNode is IncompleteExpressionError iee && iee.WasEOF) {
+				switch (iee.IncompleteNode) {
+				case ExpressionItem i:
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash && i.Name.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.Item;
+					}
+					break;
+				case ExpressionProperty p:
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen && p.Name.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.Property;
+					}
+					break;
+				case ExpressionMetadata m:
+					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
+						return TriggerState.Metadata;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && m.ItemName.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.MetadataOrItem;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen && m.MetadataName.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.Metadata;
+					}
+					break;
 				}
+				return TriggerState.None;
+			}
+
+			if (lastNode is ExpressionError err) {
+				switch (err.Kind) {
+				case ExpressionErrorKind.ExpectingPropertyName:
+					return TriggerState.Property;
+				case ExpressionErrorKind.ExpectingItemName:
+					return TriggerState.Item;
+				case ExpressionErrorKind.ExpectingMetadataOrItemName:
+					return TriggerState.MetadataOrItem;
+				}
+				return TriggerState.None;
+			}
 			}
 
 			// trigger on '
@@ -107,6 +137,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			return TriggerState.None;
+			char LastChar () => expression [expression.Length - 1];
+			char PenultimateChar () => expression [expression.Length - 2];
+			bool IsPossiblePathSegment (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
 		}
 
 		static bool OddQuotes (string s)
@@ -129,7 +162,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Item,
 			Property,
 			Metadata,
-			QuoteValue
+			QuoteValue,
+			MetadataOrItem
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (
@@ -145,6 +179,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return doc.GetMetadata (null, true);
 			case TriggerState.Property:
 				return doc.GetProperties (true);
+			case TriggerState.MetadataOrItem:
+				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			}
 			throw new InvalidOperationException ();
 		}

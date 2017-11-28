@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -133,7 +134,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			ConsumeWhitespace (ref offset);
 
 			if (offset > endOffset || buffer [offset] != '-') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingRightParenOrDash);
+				return new IncompleteExpressionError (
+					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParenOrDash,
+					new ExpressionItem (baseOffset + start, offset - start + 1, name)
+				);
 			}
 
 			offset++;
@@ -211,16 +215,29 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			offset++;
+
+			if (offset <= endOffset && buffer [offset] == '[') {
+				return ParsePropertyFunction (start, buffer, ref offset, endOffset, baseOffset);
+			}
+
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingPropertyName);
 			}
 
 			if (offset > endOffset || buffer [offset] != ')') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingRightParen);
+				return new IncompleteExpressionError (
+					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParen,
+					new ExpressionProperty (baseOffset + start, offset - start + 1, name)
+				);
 			}
 
 			return new ExpressionProperty (baseOffset + start, offset - start + 1, name);
+		}
+
+		static ExpressionNode ParsePropertyFunction (int start, string buffer, ref int offset, int endOffset, int baseOffset)
+		{
+			throw new NotImplementedException ();
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)
@@ -243,17 +260,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			if (offset > endOffset || buffer [offset] != '.') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingRightParenOrPeriod);
+				return new IncompleteExpressionError (
+					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParenOrPeriod,
+					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null)
+				);
 			}
 
 			offset++;
 			string metadataName = ReadName (buffer, ref offset, endOffset);
 			if (metadataName == null) {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataName);
+				return new IncompleteExpressionError (
+					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMetadataName,
+					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null)
+				);
 			}
 
 			if (offset > endOffset || buffer [offset] != ')') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingRightParen);
+				return new IncompleteExpressionError (
+					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParen,
+					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, metadataName)
+				);
 			}
 
 			return new ExpressionMetadata (baseOffset + start, offset - start + 1, name, metadataName);

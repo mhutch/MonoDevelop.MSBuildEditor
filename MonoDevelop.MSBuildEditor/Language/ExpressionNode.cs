@@ -129,9 +129,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Kind = kind;
 		}
 
-		public ExpressionError (int offset, ExpressionErrorKind kind) : base (offset, 1)
+		public ExpressionError (int offset, ExpressionErrorKind kind) : this (offset, 1, kind)
 		{
-			Kind = kind;
+		}
+	}
+
+	class IncompleteExpressionError : ExpressionError
+	{
+		public ExpressionNode IncompleteNode { get; }
+		public bool WasEOF => Length == 0;
+
+		public IncompleteExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode)
+			: base (offset, wasEOF? 0 : 1, kind)
+		{
+			IncompleteNode = incompleteNode;
 		}
 	}
 
