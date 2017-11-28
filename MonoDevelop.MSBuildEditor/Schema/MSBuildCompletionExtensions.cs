@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.MSBuildEditor.Language;
+using System.Text;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -187,11 +189,28 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				basePath = lit.Value.Substring (0, lit.Value.Length - 1 - triggerLength);
 				//FIXME handle encoding
 				basePath = basePath.Replace ('\\', Path.DirectorySeparatorChar);
-			} else {
-				//TODO: expression evaluation
+				return GetPathCompletions (doc.Filename, basePath, includeFiles);
+			}
+
+			if (!(triggerExpression is Expression expr)) {
 				return null;
 			}
 
+			//FIXME evaluate directly without the MSBuildEvaluationContext
+			var sb = new StringBuilder ();
+			foreach (var node in expr.Nodes) {
+				if (node is ExpressionLiteral l) {
+					sb.Append (l.Value);
+				} else if (node is ExpressionProperty p) {
+					sb.Append ($"$({p.Name})");
+				} else {
+					return null;
+				}
+			}
+			var evalCtx = MSBuildEvaluationContext.Create (
+				doc.ToolsVersion, doc.RuntimeInformation, doc.Filename, doc.Filename
+			);
+			basePath = evalCtx.EvaluatePath (sb.ToString (), null);
 			return GetPathCompletions (doc.Filename, basePath, includeFiles);
 		}
 

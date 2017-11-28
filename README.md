@@ -70,10 +70,11 @@ The following feature are not yet implemented. Please contact Mikayla if you are
   for example when multivalued language imports cause
   multiple imports of common targets
 * project kind completion
+* Include.Project filename completion should be relative to SDK, if any
+* support encoding all over
 
 * expression highlighting
 * trim whitespace on literals in expressions
 * go to definition to open files
 * Task parameters from assembly metadata
-* Completion for filenames
 * support property functions, item functions in new expression parser
