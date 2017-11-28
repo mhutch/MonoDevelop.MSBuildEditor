@@ -229,34 +229,37 @@ namespace MonoDevelop.MSBuildEditor
 
 			var list = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
 
-			switch (kind) {
-			case MSBuildValueKind.NuGetID:
-				return GetPackageNameCompletions (doc, Editor.CaretOffset - triggerLength, triggerLength);
-			case MSBuildValueKind.NuGetVersion:
-				return GetPackageVersionCompletions (doc, rr, Editor.CaretOffset - triggerLength, triggerLength);
-			case MSBuildValueKind.Sdk:
-				return GetSdkCompletions (triggerLength, token);
-			case MSBuildValueKind.Guid:
-				list.Add (new GenerateGuidCompletionData ());
-				break;
-			case MSBuildValueKind.Lcid:
-				foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
-					string name = culture.Name;
-					string id = culture.LCID.ToString ();
-					string display = culture.DisplayName;
-					//insert multiple versions for matching on both the name and the number
-					list.Add (new CompletionData (id, null, display));
-					list.Add (new CompletionData (display, null, id, id));
+			if (triggerState == ExpressionCompletion.TriggerState.Value) {
+				switch (kind) {
+				case MSBuildValueKind.NuGetID:
+					return GetPackageNameCompletions (doc, Editor.CaretOffset - triggerLength, triggerLength);
+				case MSBuildValueKind.NuGetVersion:
+					return GetPackageVersionCompletions (doc, rr, Editor.CaretOffset - triggerLength, triggerLength);
+				case MSBuildValueKind.Sdk:
+					return GetSdkCompletions (triggerLength, token);
+				case MSBuildValueKind.Guid:
+					list.Add (new GenerateGuidCompletionData ());
+					break;
+				case MSBuildValueKind.Lcid:
+					foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
+						string name = culture.Name;
+						string id = culture.LCID.ToString ();
+						string display = culture.DisplayName;
+						//insert multiple versions for matching on both the name and the number
+						list.Add (new CompletionData (id, null, display));
+						list.Add (new CompletionData (display, null, id, id));
+					}
+					break;
 				}
-				break;
 			}
+
 			//TODO: better metadata support
 
 			IEnumerable<BaseInfo> cinfos;
-			if (info.Values != null && info.Values.Count > 0) {
+			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
 				cinfos = info.Values;
 			} else {
-				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, doc);
+				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, triggerExpression, triggerLength, doc);
 			}
 
 			if (cinfos != null) {

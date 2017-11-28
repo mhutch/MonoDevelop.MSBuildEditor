@@ -150,28 +150,65 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
 				).ToList ();
-			case MSBuildValueKind.File:
-			case MSBuildValueKind.ProjectFile:
-				return GetPathCompletions (doc.Filename, true, false);
-			case MSBuildValueKind.FileOrFolder:
-				return GetPathCompletions (doc.Filename, true, true);
-			case MSBuildValueKind.Folder:
-			case MSBuildValueKind.FolderWithSlash:
-				return GetPathCompletions (doc.Filename, false, true);
 			}
+
+			var fileCompletions = GetFilenameCompletions (kind, doc, null, 0);
+			if (fileCompletions != null) {
+				return fileCompletions;
+			}
+
 			return null;
 		}
 
-		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, bool includeFiles, bool includeFolders)
+		public static IReadOnlyList<BaseInfo> GetFilenameCompletions (
+			MSBuildValueKind kind, MSBuildRootDocument doc,
+			ExpressionNode triggerExpression, int triggerLength)
 		{
-			var baseFolder = Path.GetDirectoryName (projectPath);
-			string [] entries;
-			if (includeFiles && includeFolders) {
-				entries = Directory.GetFileSystemEntries (baseFolder);
-			} else if (includeFolders) {
-				entries = Directory.GetDirectories (baseFolder);
+			bool includeFiles = false;
+			switch (kind) {
+			case MSBuildValueKind.File:
+			case MSBuildValueKind.ProjectFile:
+				includeFiles = true;
+				break;
+			case MSBuildValueKind.FileOrFolder:
+				includeFiles = true;
+				break;
+			case MSBuildValueKind.Folder:
+			case MSBuildValueKind.FolderWithSlash:
+				break;
+			default:
+				return null;
+			}
+
+			string basePath;
+			if (triggerExpression == null) {
+				basePath = null;
+			} else if (triggerExpression is ExpressionLiteral lit) {
+				basePath = lit.Value.Substring (0, lit.Value.Length - 1 - triggerLength);
+				//FIXME handle encoding
+				basePath = basePath.Replace ('\\', Path.DirectorySeparatorChar);
 			} else {
-				entries = Directory.GetFiles (baseFolder);
+				//TODO: expression evaluation
+				return null;
+			}
+
+			return GetPathCompletions (doc.Filename, basePath, includeFiles);
+		}
+
+		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, string completionBasePath, bool includeFiles)
+		{
+			var projectBaseDir = Path.GetDirectoryName (projectPath);
+			if (completionBasePath == null) {
+				completionBasePath = projectBaseDir;
+			} else {
+				completionBasePath = Path.GetFullPath (Path.Combine (projectBaseDir, completionBasePath));
+			}
+
+			string [] entries;
+			if (includeFiles) {
+				entries = Directory.GetFileSystemEntries (completionBasePath);
+			} else {
+				entries = Directory.GetDirectories (completionBasePath);
 			}
 			var infos = new List<BaseInfo> ();
 			foreach (var e in entries) {

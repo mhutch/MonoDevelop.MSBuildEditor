@@ -82,6 +82,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				lastNode = expr.Nodes.Last ();
 			}
 
+			if (lastNode is ExpressionLiteral lit) {
+				if (LastChar () == '\\') {
+					return TriggerState.DirectorySeparator;
+				}
+
+				if (lit.Value.Length >= 2 && PenultimateChar () == '\\' && IsPossiblePathSegment (LastChar ())) {
+					triggerLength = 1;
+					return TriggerState.DirectorySeparator;
+				}
+			}
+
 			if (lastNode is IncompleteExpressionError iee && iee.WasEOF) {
 				switch (iee.IncompleteNode) {
 				case ExpressionItem i:
@@ -124,19 +135,18 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				return TriggerState.None;
 			}
-			}
 
 			// trigger on '
-			if (lastChar == '\'' && OddQuotes (expression)) {
+			if (LastChar () == '\'' && OddQuotes (expression)) {
 				return TriggerState.QuoteValue;
 			}
 
 			//trigger on letter after '
-			if (expression.Length >= 2 && expression [expression.Length - 2] == '\'' && char.IsLetter (lastChar) && OddQuotes (expression)) {
+			if (expression.Length >= 2 && PenultimateChar () == '\'' && char.IsLetter (LastChar ()) && OddQuotes (expression)) {
 				return TriggerState.QuoteValue;
 			}
-
 			return TriggerState.None;
+
 			char LastChar () => expression [expression.Length - 1];
 			char PenultimateChar () => expression [expression.Length - 2];
 			bool IsPossiblePathSegment (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
@@ -163,11 +173,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Property,
 			Metadata,
 			QuoteValue,
+			DirectorySeparator,
 			MetadataOrItem
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (
 			TriggerState trigger, MSBuildValueKind kind,
+			ExpressionNode triggerExpression, int triggerLength,
 			MSBuildRootDocument doc)
 		{
 			switch (trigger) {
@@ -181,6 +193,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return doc.GetProperties (true);
 			case TriggerState.MetadataOrItem:
 				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
+			case TriggerState.DirectorySeparator:
+				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength);;
 			}
 			throw new InvalidOperationException ();
 		}
