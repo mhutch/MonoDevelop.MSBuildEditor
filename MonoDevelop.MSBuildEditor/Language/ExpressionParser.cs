@@ -237,7 +237,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParsePropertyFunction (int start, string buffer, ref int offset, int endOffset, int baseOffset)
 		{
-			throw new NotImplementedException ();
+			return new ExpressionError (baseOffset + offset, ExpressionErrorKind.PropertyFunctionsNotSupported);
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)

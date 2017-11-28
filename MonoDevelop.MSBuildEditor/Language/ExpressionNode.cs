@@ -161,7 +161,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingApos,
 		ExpectingRightParenOrDash,
 		ItemsDisallowed,
-	}
+		PropertyFunctionsNotSupported,
+    }
 
 	[Flags]
 	enum ExpressionOptions
