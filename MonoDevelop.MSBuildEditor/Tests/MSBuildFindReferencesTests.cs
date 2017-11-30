@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	[TestFixture]
 	public class MSBuildFindReferencesTests : IdeTestBase
 	{
-		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, string name, string parentName)
+		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference)
 		{
 			string filename = "test.csproj";
 
@@ -33,8 +33,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
-				ReferenceName = name,
-				ReferenceItemName = parentName
+				Reference = reference,
 			});
 			collector.Run (xdoc, filename, textDoc, doc);
 			return collector.Results;
@@ -82,7 +81,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </itemgroup>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildReferenceKind.Item, "Foo", null);
+			var refs = FindReferences (doc, MSBuildReferenceKind.Item, "Foo");
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -114,7 +113,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildReferenceKind.Property, "Foo", null);
+			var refs = FindReferences (doc, MSBuildReferenceKind.Property, "Foo");
 
 			AssertLocations (
 				doc, "foo", refs,
@@ -152,7 +151,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildReferenceKind.Metadata, "foo", "bar");
+			var refs = FindReferences (doc, MSBuildReferenceKind.Metadata, Tuple.Create ("foo", "bar"));
 
 			AssertLocations (
 				doc, "foo", refs,

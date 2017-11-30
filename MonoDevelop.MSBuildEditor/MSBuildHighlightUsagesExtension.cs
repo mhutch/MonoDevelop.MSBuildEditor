@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuildEditor
 
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Metadata:
-				if (rr.ReferenceItemName != null) {
+				if (((string)rr.Reference).IndexOf ('.') > 0) {
 					return Task.FromResult (rr);
 				}
 				break;

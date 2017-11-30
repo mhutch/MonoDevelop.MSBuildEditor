@@ -122,7 +122,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				bool inName = IsIn (start, element.Name.Name.Length);
 				if (inName) {
 					rr.ReferenceOffset = start;
-					rr.ReferenceName = element.Name.Name;
+					rr.Reference = element.Name.Name;
+					rr.ReferenceLength = element.Name.Name.Length;
 					switch (resolved.Kind) {
 					case MSBuildKind.Item:
 					case MSBuildKind.ItemDefinition:
@@ -130,7 +131,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						return;
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.ReferenceItemName = element.ParentElement ().Name.Name;
+						rr.Reference = Tuple.Create (element.ParentElement ().Name.Name, element.Name.Name);
 						return;
 					case MSBuildKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
@@ -159,11 +160,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				if (inName) {
 					rr.ReferenceOffset = start;
-					rr.ReferenceName = attribute.Name.Name;
+					rr.ReferenceLength = attribute.Name.Name.Length;
+					rr.Reference = attribute.Name.Name;
 					switch (resolvedAttribute.AbstractKind) {
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.ReferenceItemName = element.Name.Name;
+						rr.Reference = Tuple.Create (element.Name.Name, attribute.Name.Name);
 						break;
 					case MSBuildKind.Parameter:
 						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
@@ -187,23 +189,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case ExpressionItem ei:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					rr.ReferenceOffset = ei.NameOffset;
-					rr.ReferenceName = ei.Name;
+					rr.ReferenceLength = ei.Name.Length;
+					rr.Reference = ei.Name;
 					break;
 				case ExpressionProperty ep:
 					rr.ReferenceKind = MSBuildReferenceKind.Property;
 					rr.ReferenceOffset = ep.NameOffset;
-					rr.ReferenceName = ep.Name;
+					rr.Reference = ep.Name;
+					rr.ReferenceLength = ep.Name.Length;
 					break;
 				case ExpressionMetadata em:
 					if (em.ItemName == null || offset >= em.MetadataNameOffset) {
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.ReferenceOffset = em.MetadataNameOffset;
-						rr.ReferenceName = em.MetadataName;
-						rr.ReferenceItemName = em.GetItemName ();
+						rr.Reference = Tuple.Create (em.GetItemName (), em.MetadataName);
+						rr.ReferenceLength = em.MetadataName.Length;
 					} else {
 						rr.ReferenceKind = MSBuildReferenceKind.Item;
 						rr.ReferenceOffset = em.ItemNameOffset;
-						rr.ReferenceName = em.ItemName;
+						rr.Reference = em.ItemName;
+						rr.ReferenceLength = em.ItemName.Length;
 					}
 					break;
 				case ExpressionLiteral lit:
@@ -217,7 +222,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionLiteral node)
 			{
 				rr.ReferenceOffset = node.Offset;
-				rr.ReferenceName = node.Value;
+				rr.ReferenceLength = node.Value.Length;
+				rr.Reference = node.Value;
 
 				switch (kind) {
 				case MSBuildValueKind.TargetName:
@@ -227,19 +233,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 					rr.ReferenceKind = MSBuildReferenceKind.NuGetID;
 					return;
 				case MSBuildValueKind.TargetFramework:
-					rr.ReferenceObject = new FrameworkReference (null, null, node.Value, null);
+					rr.Reference = new FrameworkReference (null, null, node.Value, null);
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				case MSBuildValueKind.TargetFrameworkIdentifier:
-					rr.ReferenceObject = new FrameworkReference (node.Value, null, null, null);
+					rr.Reference = new FrameworkReference (node.Value, null, null, null);
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				case MSBuildValueKind.TargetFrameworkVersion:
-					rr.ReferenceObject = new FrameworkReference (null, node.Value, null, null);
+					rr.Reference = new FrameworkReference (null, node.Value, null, null);
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				case MSBuildValueKind.TargetFrameworkProfile:
-					rr.ReferenceObject = new FrameworkReference (null, null, null, node.Value);
+					rr.Reference = new FrameworkReference (null, null, null, node.Value);
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				}
@@ -250,7 +256,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, node.Value, StringComparison.OrdinalIgnoreCase)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
-							rr.ReferenceValue = kv;
+							rr.Reference = kv;
 							return;
 						}
 					}
@@ -273,11 +279,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public MSBuildReferenceKind ReferenceKind;
 		public int ReferenceOffset;
-		public string ReferenceName;
-		public object ReferenceObject;
-		public string ReferenceItemName;
-		public ConstantInfo ReferenceValue;
-
+		public int ReferenceLength;
+		public object Reference;
 	}
 
 	enum MSBuildReferenceKind

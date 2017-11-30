@@ -242,15 +242,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
-				return doc.GetItem (rr.ReferenceName);
+				return doc.GetItem ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
-				return doc.GetMetadata (rr.ReferenceItemName, rr.ReferenceName, true);
+				var meta = (Tuple<string, string>)rr.Reference;
+				return doc.GetMetadata (meta.Item1, meta.Item2, true);
 			case MSBuildReferenceKind.Property:
-				return doc.GetProperty (rr.ReferenceName);
+				return doc.GetProperty ((string)rr.Reference);
 			case MSBuildReferenceKind.Task:
-				return doc.GetTask (rr.ReferenceName);
+				return doc.GetTask ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:
-				return doc.GetTarget (rr.ReferenceName);
+				return doc.GetTarget ((string)rr.Reference);
 			case MSBuildReferenceKind.Keyword:
 				var attName = rr.AttributeName;
 				if (attName != null) {
@@ -265,9 +266,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				break;
 			case MSBuildReferenceKind.KnownValue:
-				return rr.ReferenceValue;
+				return (ValueInfo)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:
-				var fx = (FrameworkReference)rr.ReferenceObject;
+				var fx = (FrameworkReference)rr.Reference;
 				return FrameworkInfoProvider.Instance.GetBestInfo (fx, doc.Frameworks);
 			}
 			return null;

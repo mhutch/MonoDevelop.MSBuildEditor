@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.Ide;
@@ -42,7 +43,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				.ToList ();
 		}
 
-		void AssertReferences (string doc, params (MSBuildReferenceKind kind, string name, string itemName)[] expected)
+		void AssertReferences (string doc, params (MSBuildReferenceKind kind, object reference)[] expected)
 		{
 			var results = Resolve (doc);
 
@@ -54,9 +55,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < results.Count; i++) {
 				var a = results [i];
 				var e = expected [i];
-				if (a.result.ReferenceKind != e.kind || !string.Equals (a.result.ReferenceName, e.name) || !string.Equals (a.result.ReferenceItemName, e.itemName)) {
+				if (a.result.ReferenceKind != e.kind || e.reference.Equals (a.result.Reference)) {
 					Dump ();
-					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatNameT (e)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
+					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
 				}
 			}
 
@@ -67,9 +68,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				}
 			}
 
-			string FormatName (string name, string itemName) => itemName == null ? name : itemName + '.' + name;
-			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.ReferenceName, rr.ReferenceItemName);
-			string FormatNameT ((MSBuildReferenceKind kind, string name, string itemName) rr) => FormatName (rr.name, rr.itemName);
+			string FormatName (object reference) => reference is Tuple<string,string> t? $"{t.Item1}.{t.Item2}" : (string)reference;
+			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.Reference);
 		}
 
 		[Test]
@@ -88,11 +88,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Item, "foo", null),
-				(MSBuildReferenceKind.Item, "foo", null),
-				(MSBuildReferenceKind.Item, "foo", null),
-				(MSBuildReferenceKind.Item, "foo", null),
-				(MSBuildReferenceKind.Item, "foo", null)
+				(MSBuildReferenceKind.Item, "foo"),
+				(MSBuildReferenceKind.Item, "foo"),
+				(MSBuildReferenceKind.Item, "foo"),
+				(MSBuildReferenceKind.Item, "foo"),
+				(MSBuildReferenceKind.Item, "foo")
 			);
 		}
 
@@ -116,12 +116,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Property, "foo", null),
-				(MSBuildReferenceKind.Property, "Foo", null),
-				(MSBuildReferenceKind.Property, "foo", null),
-				(MSBuildReferenceKind.Property, "Foo", null),
-				(MSBuildReferenceKind.Property, "foo", null),
-				(MSBuildReferenceKind.Property, "foo", null)
+				(MSBuildReferenceKind.Property, "foo"),
+				(MSBuildReferenceKind.Property, "Foo"),
+				(MSBuildReferenceKind.Property, "foo"),
+				(MSBuildReferenceKind.Property, "Foo"),
+				(MSBuildReferenceKind.Property, "foo"),
+				(MSBuildReferenceKind.Property, "foo")
 			);
 		}
 
@@ -149,10 +149,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Metadata, "foo", "bar"),
-				(MSBuildReferenceKind.Metadata, "foo", "bar"),
-				(MSBuildReferenceKind.Metadata, "foo", "bar"),
-				(MSBuildReferenceKind.Metadata, "Foo", "bar")
+				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
+				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
+				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
+				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("Foo", "bar")))
 			);
 		}
 
@@ -170,9 +170,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Keyword, "project", null),
-				(MSBuildReferenceKind.Keyword, "include", null),
-				(MSBuildReferenceKind.Keyword, "DependsOnTargets", null)
+				(MSBuildReferenceKind.Keyword, "project"),
+				(MSBuildReferenceKind.Keyword, "include"),
+				(MSBuildReferenceKind.Keyword, "DependsOnTargets")
 			);
 		}
 	}

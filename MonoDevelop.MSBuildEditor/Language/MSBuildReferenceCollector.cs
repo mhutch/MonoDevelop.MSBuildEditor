@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.Task:
 			case MSBuildReferenceKind.Metadata:
 			case MSBuildReferenceKind.Target:
-				return !string.IsNullOrEmpty (rr.ReferenceName);
+				return rr.Reference != null;
 			}
 
 			return false;
@@ -55,15 +55,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Property:
-				return new MSBuildPropertyReferenceCollector (rr.ReferenceName);
+				return new MSBuildPropertyReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Item:
-				return new MSBuildItemReferenceCollector (rr.ReferenceName);
+				return new MSBuildItemReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
-				return new MSBuildMetadataReferenceCollector (rr.ReferenceItemName, rr.ReferenceName);
+				var meta = (Tuple<string,string>)rr.Reference;
+				return new MSBuildMetadataReferenceCollector (meta.Item1, meta.Item1);
 			case MSBuildReferenceKind.Task:
-				return new MSBuildTaskReferenceCollector (rr.ReferenceName);
+				return new MSBuildTaskReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:
-				return new MSBuildTargetReferenceCollector (rr.ReferenceName);
+				return new MSBuildTargetReferenceCollector ((string)rr.Reference);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));

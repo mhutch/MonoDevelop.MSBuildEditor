@@ -19,6 +19,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (rr == null) {
 				return false;
 			}
+
 			var annotations = GetAnnotationsAtLocation<NavigationAnnotation> (doc, location);
 			if (annotations != null && annotations.Any ()) {
 				return true;
@@ -56,7 +57,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
 				return new MSBuildNavigationResult (
-					MSBuildReferenceKind.Target, rr.ReferenceName, rr.ReferenceOffset, rr.ReferenceName.Length
+					MSBuildReferenceKind.Target, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength
 				);
 			}
 			return null;

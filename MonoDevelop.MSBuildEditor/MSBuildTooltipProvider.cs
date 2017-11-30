@@ -41,15 +41,15 @@ namespace MonoDevelop.MSBuildEditor
 						Doc = doc,
 						ResolveResult = rr,
 						Packages = PackageSearchHelpers.SearchPackageInfo (
-							ext.PackageSearchManager, rr.ReferenceName, null, doc.GetTargetFramework (), CancellationToken.None
+							ext.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFramework (), CancellationToken.None
 						)
 					};
-					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
+					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceLength));
 				}
 				var info = rr.GetResolvedReference (doc);
 				if (info != null) {
 					var item = new InfoItem { Info = info, Doc = doc, ResolveResult = rr };
-					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceName.Length));
+					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceLength));
 				}
 			}
 			return Task.FromResult<TooltipItem> (null);
@@ -116,11 +116,11 @@ namespace MonoDevelop.MSBuildEditor
 
 			var packages = infoItem.Packages;
 			TooltipInformation ti;
-			bool done = CreatePackageTooltipInfo (infoItem.ResolveResult.ReferenceName, packages, out ti);
+			bool done = CreatePackageTooltipInfo ((string)infoItem.ResolveResult.Reference, packages, out ti);
 			if (!done) {
 				packages.ContinueWith (t => {
 					if (!done) {
-						done = CreatePackageTooltipInfo (infoItem.ResolveResult.ReferenceName, packages, out ti);
+						done = CreatePackageTooltipInfo ((string)infoItem.ResolveResult.Reference, packages, out ti);
 						if (ti != null) {
 							window.Clear ();
 							window.AddOverload (ti);
