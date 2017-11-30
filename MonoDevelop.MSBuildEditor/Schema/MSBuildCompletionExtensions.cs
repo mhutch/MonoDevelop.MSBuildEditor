@@ -182,36 +182,47 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			string basePath;
-			if (triggerExpression == null) {
-				basePath = null;
-			} else if (triggerExpression is ExpressionLiteral lit) {
-				basePath = lit.Value.Substring (0, lit.Value.Length - 1 - triggerLength);
-				//FIXME handle encoding
-				basePath = basePath.Replace ('\\', Path.DirectorySeparatorChar);
-				return GetPathCompletions (doc.Filename, basePath, includeFiles);
+			string basePath = EvaluateExpressionAsPath (triggerExpression, doc, triggerLength + 1);
+			return basePath == null? null : GetPathCompletions (doc.Filename, basePath, includeFiles);
+		}
+
+		public static string EvaluateExpressionAsPath (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
+		{
+			if (expression == null) {
+				return null;
 			}
 
-			if (!(triggerExpression is Expression expr)) {
+			if (expression is ExpressionLiteral lit) {
+				var path = lit.Value.Substring (0, lit.Value.Length - skipEndChars);
+				//FIXME handle encoding
+				return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
+			}
+
+			if (!(expression is Expression expr)) {
 				return null;
 			}
 
 			//FIXME evaluate directly without the MSBuildEvaluationContext
 			var sb = new StringBuilder ();
-			foreach (var node in expr.Nodes) {
+			for (int i = 0; i < expr.Nodes.Count; i++) {
+				var node = expr.Nodes [i];
 				if (node is ExpressionLiteral l) {
-					sb.Append (l.Value);
+					var val = l.Value;
+					if (i == expr.Nodes.Count - 1) {
+						val = val.Substring (0, val.Length - skipEndChars);
+					}
+					sb.Append (val);
 				} else if (node is ExpressionProperty p) {
 					sb.Append ($"$({p.Name})");
 				} else {
 					return null;
 				}
 			}
+
 			var evalCtx = MSBuildEvaluationContext.Create (
 				doc.ToolsVersion, doc.RuntimeInformation, doc.Filename, doc.Filename
 			);
-			basePath = evalCtx.EvaluatePath (sb.ToString (), null);
-			return GetPathCompletions (doc.Filename, basePath, includeFiles);
+			return evalCtx.EvaluatePath (sb.ToString (), Path.GetDirectoryName (doc.Filename));
 		}
 
 		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, string completionBasePath, bool includeFiles)
