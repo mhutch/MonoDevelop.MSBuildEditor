@@ -122,41 +122,49 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
-				foreach (var n in node.WithAllDescendants ()) {
-					if (n is ExpressionLiteral lit && lit.IsPure) {
-						var r = GetNavigationFromValue (kind, lit.Value, lit.Offset, Filename);
-						if (r != null) {
-							Navigations.Add (r);
+				switch (kind.GetScalarType ()) {
+				case MSBuildValueKind.TargetName:
+					foreach (var n in node.WithAllDescendants ()) {
+						if (n is ExpressionLiteral lit && lit.IsPure) {
+							Navigations.Add (new MSBuildNavigationResult (
+								MSBuildReferenceKind.Target, lit.Value, lit.Offset, lit.Length
+							));
 						}
 					}
+					break;
+				case MSBuildValueKind.File:
+				case MSBuildValueKind.FileOrFolder:
+				case MSBuildValueKind.ProjectFile:
+				case MSBuildValueKind.TaskAssemblyFile:
+				case MSBuildValueKind.Unknown:
+					if (node is ExpressionList list) {
+						foreach (var n in list.Nodes) {
+							var p = GetPathFromNode (n, (MSBuildRootDocument)Document);
+							if (p != null) {
+								Navigations.Add (p);
+							}
+						}
+					}
+					var path = GetPathFromNode (node, (MSBuildRootDocument)Document);
+					if (path != null) {
+						Navigations.Add (path);
+					}
+					break;
 				}
 			}
 		}
 
-		static MSBuildNavigationResult GetNavigationFromValue (MSBuildValueKind kind, string value, int offset, string filename)
+		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document)
 		{
-			switch (kind.GetScalarType ()) {
-			case MSBuildValueKind.TargetName:
-				return new MSBuildNavigationResult (
-					MSBuildReferenceKind.Target, value, offset, value.Length
-				);
-			case MSBuildValueKind.File:
-			case MSBuildValueKind.FileOrFolder:
-			case MSBuildValueKind.ProjectFile:
-			case MSBuildValueKind.TaskAssemblyFile:
-				try {
-					var path = Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (
-						Path.GetDirectoryName (filename), value
+			try {
+				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPath (node, document);
+				if (path != null && File.Exists (path)) {
+					return new MSBuildNavigationResult (
+						new [] { path }, node.Offset, node.Length
 					);
-					if (File.Exists (path)) {
-						return new MSBuildNavigationResult (
-							new [] { path }, offset, value.Length
-						);
-					}
-				} catch (Exception ex) {
-					Core.LoggingService.LogError ($"Error checking path for file '{value}'", ex);
 				}
-				break;
+			} catch (Exception ex) {
+				Core.LoggingService.LogError ($"Error checking path for file '{node}'", ex);
 			}
 			return null;
 		}
