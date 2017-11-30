@@ -29,6 +29,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return true;
 			}
 
+			if (rr.ReferenceKind == MSBuildReferenceKind.FileOrFolder) {
+				return true;
+			}
+
 			return false;
 		}
 
@@ -55,11 +59,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 					annotations.Select (a => a.Path).ToArray (), beginOffset, endOffset - beginOffset + 1
 				);
 			}
+
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
 				return new MSBuildNavigationResult (
 					MSBuildReferenceKind.Target, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength
 				);
 			}
+
+			if (rr.ReferenceKind == MSBuildReferenceKind.FileOrFolder) {
+				return new MSBuildNavigationResult (
+					(string[])rr.Reference, rr.ReferenceOffset, rr.ReferenceLength
+				);
+			}
+
 			return null;
 		}
 

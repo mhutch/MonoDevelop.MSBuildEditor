@@ -212,8 +212,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionLiteral lit:
+					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
-						VisitPureLiteral (info, kind.GetScalarType (), lit);
+						VisitPureLiteral (info, kind, lit);
+					}
+					switch (kind) {
+					case MSBuildValueKind.File:
+					case MSBuildValueKind.FileOrFolder:
+					case MSBuildValueKind.ProjectFile:
+					case MSBuildValueKind.TaskAssemblyFile:
+						var pathNode = lit.Parent as Expression ?? (ExpressionNode)lit;
+						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document);
+						if (path != null) {
+							rr.ReferenceKind = MSBuildReferenceKind.FileOrFolder;
+							rr.ReferenceOffset = path.Offset;
+							rr.ReferenceLength = path.Length;
+							rr.Reference = path.Paths;
+						}
+						break;
 					}
 					break;
 				}
@@ -295,6 +311,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		Target,
 		KnownValue,
 		NuGetID,
-		TargetFramework
+		TargetFramework,
+		FileOrFolder
 	}
 }

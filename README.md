@@ -72,9 +72,9 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * project kind completion
 * Include.Project filename completion should be relative to SDK, if any
 * support encoding all over
+* permuted path evaluation for filename completion
 
 * expression highlighting
 * trim whitespace on literals in expressions
-* go to definition to open files
 * Task parameters from assembly metadata
 * support property functions, item functions in new expression parser
