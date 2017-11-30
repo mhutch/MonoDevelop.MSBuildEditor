@@ -309,6 +309,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return variable.ValueKind;
 			}
 
+			if (variable is MSBuildLanguageAttribute att) {
+				switch (att.Name) {
+				case "Include":
+				case "Exclude":
+				case "Remove":
+				case "Update":
+					return MSBuildValueKind.File.List ();
+				}
+			}
+
 			if (variable is PropertyInfo || variable is MetadataInfo) {
 				if (StartsWith ("Enable")
 					|| StartsWith ("Disable")
