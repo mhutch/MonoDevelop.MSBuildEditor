@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					return new ExpressionList (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
 				}
 				if (nodes.Count == 0) {
-					return null;
+					return new ExpressionLiteral (baseOffset + startOffset, "", true);
 				}
 				if (nodes.Count == 1) {
 					return nodes [0];
