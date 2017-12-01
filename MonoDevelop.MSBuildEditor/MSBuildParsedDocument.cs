@@ -32,8 +32,10 @@ namespace MonoDevelop.MSBuildEditor
 			var schemaProvider = new MonoDevelopMSBuildSchemaProvider ();
 
 			var doc = new MSBuildParsedDocument (options.FileName);
+
 			doc.Flags |= ParsedDocumentFlags.NonSerializable;
 			doc.Document = MSBuildRootDocument.Parse (options.FileName, options.Content, oldDoc, schemaProvider, runtimeInformation, token);
+			doc.XDocument = doc.Document.XDocument;
 
 			return doc;
 		}
