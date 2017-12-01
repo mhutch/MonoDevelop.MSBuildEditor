@@ -50,6 +50,9 @@ namespace MonoDevelop.MSBuildEditor
 
 			//FIXME can we cache this? maybe make it async?
 			var rr = ext.ResolveCurrentLocation ();
+			if (rr == null) {
+				return null;
+			}
 
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Metadata:
