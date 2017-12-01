@@ -192,20 +192,22 @@ namespace MonoDevelop.MSBuildEditor
 
 			var triggerState = ExpressionCompletion.GetTriggerState (
 				expression,
+				rr.IsCondition (),
 				out int triggerLength,
-				out ExpressionNode triggerExpression);
+				out ExpressionNode triggerExpression,
+				out IReadOnlyList<ExpressionNode> comparandVariables
+			);
 
 			if (triggerState == ExpressionCompletion.TriggerState.None) {
 				return null;
 			}
 
-			if (triggerState == ExpressionCompletion.TriggerState.QuoteValue) {
-				var conditionCompletions = ExpressionCompletion.GetConditionValueCompletion (rr, expression, doc);
+			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
 				var l = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
-				foreach (var ci in conditionCompletions) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
 					l.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
 				}
-				return l.Count == 0? null : Task.FromResult<ICompletionDataList> (l);
+				return l.Count == 0 ? null : Task.FromResult<ICompletionDataList> (l);
 			}
 
 			var info = rr.GetElementOrAttributeValueInfo (doc);

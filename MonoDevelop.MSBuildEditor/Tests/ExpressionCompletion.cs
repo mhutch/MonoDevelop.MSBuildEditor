@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using MonoDevelop.MSBuildEditor.Language;
 using NUnit.Framework;
 using static MonoDevelop.MSBuildEditor.Language.ExpressionCompletion;
+using System.Linq;
+using System;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -36,9 +39,44 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("a;b", TriggerState.SemicolonValue, 1)]
 		public void TestTriggering (string expr, TriggerState expectedState, int expectedLength)
 		{
-			var state = GetTriggerState (expr, out int triggerLength, out ExpressionNode triggerNode);
+			var state = GetTriggerState (
+				expr, false,
+				out int triggerLength, out ExpressionNode triggerNode,
+				out IReadOnlyList<ExpressionNode> comparandVariables
+			);
 			Assert.AreEqual (expectedState, state);
 			Assert.AreEqual (expectedLength, triggerLength);
+		}
+
+		[TestCase ("", TriggerState.Value, 0)]
+		[TestCase ("$(", TriggerState.Property, 0)]
+		[TestCase ("$(Foo) == '", TriggerState.Value, 0, "Foo")]
+		[TestCase ("$(Foo) == '$(", TriggerState.Property, 0, "Foo")]
+		[TestCase ("$(Foo) == '$(a", TriggerState.Property, 1, "Foo")]
+		[TestCase ("$(Foo) == 'a", TriggerState.Value, 1, "Foo")]
+		[TestCase ("'$(Foo)' == 'a", TriggerState.Value, 1, "Foo")]
+		[TestCase ("'$(Foo)|$(Bar)' == 'a", TriggerState.Value, 1, "Foo", "Bar")]
+		[TestCase ("$(Foo) == 'a'", TriggerState.None, 0)]
+		[TestCase ("$(Foo) == 'a' And $(Bar) >= '", TriggerState.Value, 0, "Bar")]
+		public void TestConditionTriggering (params object[] args)
+		{
+			string expr = (string)args[0];
+			TriggerState expectedState = (TriggerState)args[1];
+			int expectedLength = (int)args[2];
+			List<string> expectedComparands = args.Skip (3).Cast<string> ().ToList ();
+
+			var state = GetTriggerState (
+				expr, true,
+				out int triggerLength, out ExpressionNode triggerNode,
+				out IReadOnlyList<ExpressionNode> comparandVariables
+			);
+
+			Assert.AreEqual (expectedState, state);
+			Assert.AreEqual (expectedLength, triggerLength);
+			Assert.AreEqual (expectedComparands.Count, comparandVariables?.Count ?? 0);
+			for (int i = 0; i < expectedComparands.Count; i++) {
+				Assert.AreEqual (expectedComparands[i], ((ExpressionProperty)comparandVariables[i]).Name);
+			}
 		}
 	}
 }

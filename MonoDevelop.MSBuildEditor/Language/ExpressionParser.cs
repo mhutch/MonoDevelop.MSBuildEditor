@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	//TODO: property functions, item transforms with custom separators
+	//TODO: property functions, item transforms with custom separators, item functions
 	static class ExpressionParser
 	{
 		public static ExpressionNode Parse (string expression, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)

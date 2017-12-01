@@ -44,8 +44,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		//FIXME: This is very rudimentary. We should parse the expression for real.
-		public static TriggerState GetTriggerState (string expression, out int triggerLength, out ExpressionNode triggerExpression)
+		public static bool IsCondition (this MSBuildResolveResult rr)
+		{
+			return rr.LanguageAttribute != null && rr.LanguageAttribute.ValueKind == MSBuildValueKind.Condition;
+		}
+
+		public static TriggerState GetTriggerState (
+			string expression, bool isCondition,
+			out int triggerLength, out ExpressionNode triggerExpression,
+			out IReadOnlyList<ExpressionNode> comparandVariables)
+		{
+			comparandVariables = null;
+			if (isCondition) {
+				return GetConditionTriggerState (expression, out triggerLength, out triggerExpression, out comparandVariables);
+			}
+			return GetTriggerState (expression, out triggerLength, out triggerExpression);
+		}
+
+		static TriggerState GetTriggerState (string expression, out int triggerLength, out ExpressionNode triggerExpression)
 		{
 			triggerLength = 0;
 
@@ -136,31 +152,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return TriggerState.None;
 			}
 
-			// trigger on '
-			if (LastChar () == '\'' && OddQuotes (expression)) {
-				return TriggerState.QuoteValue;
-			}
-
-			//trigger on letter after '
-			if (expression.Length >= 2 && PenultimateChar () == '\'' && char.IsLetter (LastChar ()) && OddQuotes (expression)) {
-				return TriggerState.QuoteValue;
-			}
 			return TriggerState.None;
 
 			char LastChar () => expression [expression.Length - 1];
 			char PenultimateChar () => expression [expression.Length - 2];
 			bool IsPossiblePathSegment (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
-		}
-
-		static bool OddQuotes (string s)
-		{
-			bool odd = false;
-			foreach (char c in s) {
-				if (c == '\'') {
-					odd = !odd;
-				}
-			}
-			return odd;
 		}
 
 		public enum TriggerState
@@ -172,9 +168,153 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Item,
 			Property,
 			Metadata,
-			QuoteValue,
 			DirectorySeparator,
 			MetadataOrItem
+		}
+
+		public static TriggerState GetConditionTriggerState (
+			string expression,
+			out int triggerLength, out ExpressionNode triggerExpression,
+			out IReadOnlyList<ExpressionNode> comparandValues
+		)
+		{
+			triggerLength = 0;
+			triggerExpression = null;
+			comparandValues = null;
+
+			if (expression.Length == 0 || (expression.Length == 0 && expression[0]=='\'')) {
+				triggerExpression = new ExpressionLiteral (0, "", true);
+				return TriggerState.Value;
+			}
+
+			if (expression.Length == 1) {
+				triggerExpression = new ExpressionLiteral (0, expression, true);
+				triggerLength = 1;
+				return TriggerState.Value;
+			}
+
+			var tokens = new List<Token> ();
+			var tokenizer = new ConditionTokenizer ();
+			tokenizer.Tokenize (expression);
+
+			int lastExpressionStart = 0;
+
+			while (tokenizer.Token.Type != TokenType.EOF) {
+				switch (tokenizer.Token.Type) {
+				case TokenType.And:
+				case TokenType.Or:
+					lastExpressionStart = tokenizer.Token.Position + tokenizer.Token.Value.Length;
+					break;
+				}
+				tokens.Add (tokenizer.Token);
+				tokenizer.GetNextToken ();
+			}
+
+			int last = tokens.Count - 1;
+			if (last >= 2 && TokenIsCondition (tokens[last-1].Type)) {
+				var lt = tokens [last];
+				if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position+lt.Value.Length] != '\''))) {
+					lastExpressionStart = lt.Position;
+					comparandValues = ReadPrecedingComparandVariables (tokens, last - 2);
+				} else {
+					triggerLength = 0;
+					triggerExpression = null;
+					return TriggerState.None;
+				}
+			}
+
+			var subexpr = expression.Substring (lastExpressionStart);
+			return GetTriggerState (subexpr, out triggerLength, out triggerExpression);
+		}
+
+		static bool TokenIsCondition (TokenType type)
+		{
+			switch (type) {
+			case TokenType.Equal:
+			case TokenType.NotEqual:
+			case TokenType.Less:
+			case TokenType.LessOrEqual:
+			case TokenType.Greater:
+			case TokenType.GreaterOrEqual:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		//TODO: unqualified metadata
+		static IReadOnlyList<ExpressionNode> ReadPrecedingComparandVariables (List<Token> tokens, int index)
+		{
+			var expr = tokens [index];
+			if (expr.Type == TokenType.String) {
+				var list = new List<ExpressionNode> ();
+				var expression = ExpressionParser.Parse (expr.ToString (), ExpressionOptions.ItemsAndMetadata);
+				foreach (var n in expression.WithAllDescendants ()) {
+					switch (n) {
+					case ExpressionMetadata em:
+					case ExpressionProperty ep:
+						list.Add (n);
+						break;
+					}
+				}
+				return list;
+			}
+
+			if (expr.Type == TokenType.RightParen && index - 3 >= 0) {
+				if (Readback (1, TokenType.String)) {
+					if (Readback (2, TokenType.LeftParen)){
+						if (Readback (3, TokenType.Property)) {
+							return new [] { new ExpressionProperty (0, 0, ValueBack (1)) };
+						}
+						if (Readback (3, TokenType.Metadata)) {
+							//TODO: handle unqualified metadata
+							return Array.Empty<ExpressionNode> ();
+						}
+					}
+					if (index - 4 >= 0 && Readback (2, TokenType.Dot) && Readback (3, TokenType.String) && Readback (4, TokenType.LeftParen) && Readback (5, TokenType.Metadata)) {
+						return new [] { new ExpressionMetadata (0, 0, ValueBack (3), ValueBack (1)) };
+					}
+				}
+			}
+
+			return null;
+
+			bool Readback (int i, TokenType type) => tokens [index - i].Type == type;
+			string ValueBack (int i) => tokens [index - i].Value;
+		}
+
+		public static IEnumerable<BaseInfo> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
+		{
+			foreach (var variable in variables) {
+				ValueInfo info;
+				switch (variable) {
+				case ExpressionProperty ep:
+					info = doc.GetProperty (ep.Name);
+					break;
+				case ExpressionMetadata em:
+					info = doc.GetMetadata (em.ItemName, em.MetadataName, true);
+					break;
+				default:
+					continue;
+				}
+
+				if (info == null) {
+					continue;
+				}
+
+				IEnumerable<BaseInfo> cinfos;
+				if (info.Values != null && info.Values.Count > 0) {
+					cinfos = info.Values;
+				} else {
+					cinfos = MSBuildCompletionExtensions.GetValueCompletions (info.ValueKind, doc);
+				}
+
+				if (cinfos != null) {
+					foreach (var ci in cinfos) {
+						yield return ci;
+					}
+				}
+			}
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (
@@ -194,125 +334,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case TriggerState.MetadataOrItem:
 				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
-				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength);;
+				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
 			}
 			throw new InvalidOperationException ();
-		}
-
-		public static IEnumerable<BaseInfo> GetConditionValueCompletion (
-			MSBuildResolveResult rr, string expression,
-			MSBuildRootDocument doc)
-		{
-			if (rr.LanguageAttribute == null || rr.LanguageAttribute.ValueKind != MSBuildValueKind.Condition) {
-				yield break;
-			}
-
-			var tokens = new List<Token> ();
-			var tokenizer = new ConditionTokenizer ();
-			tokenizer.Tokenize (expression);
-			while (tokenizer.Token.Type != TokenType.EOF) {
-				tokens.Add (tokenizer.Token);
-				tokenizer.GetNextToken ();
-			}
-
-			if (tokens.Count < 3) {
-				yield break;
-			}
-
-			//check we're starting a value
-			var last = tokens [tokens.Count - 1];
-			if (last.Type != TokenType.Apostrophe && (last.Type != TokenType.String || last.Value.Length > 0)) {
-				yield break;
-			}
-
-			//check it was preceded by a comparision
-			var penultimate = tokens [tokens.Count - 2];
-			switch (penultimate.Type) {
-			case TokenType.Equal:
-			case TokenType.NotEqual:
-			case TokenType.Less:
-			case TokenType.LessOrEqual:
-			case TokenType.Greater:
-			case TokenType.GreaterOrEqual:
-				break;
-			default:
-				yield break;
-			}
-
-			var variables = ReadPrecedingComparandVariables (tokens, tokens.Count - 3, doc);
-
-			foreach (var variable in variables) {
-				if (variable != null) {
-					IEnumerable<BaseInfo> cinfos;
-					if (variable.Values != null && variable.Values.Count > 0) {
-						cinfos = variable.Values;
-					} else {
-						cinfos = MSBuildCompletionExtensions.GetValueCompletions (variable.ValueKind, doc);
-					}
-					if (cinfos != null) {
-						foreach (var ci in cinfos) {
-							yield return ci;
-						}
-					}
-					continue;
-
-				}
-			}
-		}
-
-		//TODO: unqualified metadata
-		static IEnumerable<ValueInfo> ReadPrecedingComparandVariables (List<Token> tokens, int index, IEnumerable<IMSBuildSchema> schemas)
-		{
-			var expr = tokens [index];
-			if (expr.Type == TokenType.String) {
-				var expression = ExpressionParser.Parse (expr.ToString (), ExpressionOptions.ItemsAndMetadata);
-				foreach (var n in expression.WithAllDescendants ()) {
-					switch (n) {
-					case ExpressionProperty ep:
-						var pinfo = schemas.GetProperty (ep.Name);
-						if (pinfo != null) {
-							yield return pinfo;
-						}
-						break;
-					case ExpressionMetadata em:
-						var itemName = em.GetItemName ();
-						if (itemName != null) {
-							var minfo = schemas.GetMetadata (itemName, em.MetadataName, true);
-							if (minfo != null) {
-								yield return minfo;
-							}
-						}
-						break;
-					}
-				}
-			}
-
-			if (expr.Type == TokenType.RightParen && index - 3 >= 0) {
-				if (Readback (1, TokenType.String)) {
-					if (Readback (2, TokenType.LeftParen)){
-						if (Readback (3, TokenType.Property)) {
-							var info = schemas.GetProperty (ValueBack (1));
-							if (info != null) {
-								yield return info;
-							}
-							yield break;
-						}
-						if (Readback (3, TokenType.Metadata)) {
-							//TODO: handle unqualified metadata
-							yield break;
-						}
-					}
-					if (index - 4 >= 0 && Readback (2, TokenType.Dot) && Readback (3, TokenType.String) && Readback (4, TokenType.LeftParen) && Readback (5, TokenType.Metadata)) {
-						var info = schemas.GetMetadata (ValueBack (3), ValueBack (1), true);
-						if (info != null) {
-							yield return info;
-						}
-					}
-				}
-			}
-
-			bool Readback (int i, TokenType type) => tokens [index - i].Type == type;
-			string ValueBack (int i) => tokens [index - i].Value;
 		}
 	}
 }
