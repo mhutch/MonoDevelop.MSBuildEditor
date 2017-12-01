@@ -55,9 +55,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < results.Count; i++) {
 				var a = results [i];
 				var e = expected [i];
-				if (a.result.ReferenceKind != e.kind || e.reference.Equals (a.result.Reference)) {
+				if (a.result.ReferenceKind != e.kind || !IgnoreCaseEquals (e.reference, a.result.Reference)) {
 					Dump ();
-					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
+					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e.reference)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
 				}
 			}
 
@@ -70,6 +70,15 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			string FormatName (object reference) => reference is Tuple<string,string> t? $"{t.Item1}.{t.Item2}" : (string)reference;
 			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.Reference);
+			bool IgnoreCaseEquals (object a, object e)
+			{
+				if (e is Tuple<string,string> et) {
+					var at = (Tuple<string, string>)a;
+					return string.Equals (at.Item1, et.Item1, StringComparison.OrdinalIgnoreCase) &&
+						string.Equals (at.Item2, et.Item2, StringComparison.OrdinalIgnoreCase);
+				}
+				return string.Equals ((string)a, (string)e, StringComparison.OrdinalIgnoreCase);
+			}
 		}
 
 		[Test]
@@ -149,10 +158,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
-				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
-				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("foo", "bar"))),
-				(MSBuildReferenceKind.Metadata, Tuple.Create (Tuple.Create ("Foo", "bar")))
+				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo"))
 			);
 		}
 
