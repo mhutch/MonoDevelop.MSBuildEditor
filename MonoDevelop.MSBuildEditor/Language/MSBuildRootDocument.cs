@@ -80,6 +80,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (previous != null) {
 				doc.Schema = previous.Schema;
+				// try to recover some values that may have been collected from the imports, as they
+				// will not have been re-evaluated
+				var fx = previous.Frameworks.FirstOrDefault ();
+				if (fx != null) {
+					propVals.Collect ("TargetFramework", fx.ShortName);
+					propVals.Collect ("TargetFrameworkVersion", fx.Version);
+					propVals.Collect ("TargetFrameworkIdentifier", fx.Identifier);
+				}
 			} else {
 				doc.Schema = schemaProvider.GetSchema (filename, null);
 			}
