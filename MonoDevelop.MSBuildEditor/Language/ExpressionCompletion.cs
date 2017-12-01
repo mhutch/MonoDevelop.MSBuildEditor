@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuildEditor.Schema;
-using MonoDevelop.Projects.Formats.MSBuild.Conditions;
+using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuildEditor.Language

@@ -76,6 +76,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * syntax highlighting for property functions, item functions, transforms and conditions
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
 * trim whitespace on literals in expressions
+* collect known values for platform and configuration, and trigger intellisense on |
 
 * Task parameters from assembly metadata
 * support property functions, item functions in new expression parser

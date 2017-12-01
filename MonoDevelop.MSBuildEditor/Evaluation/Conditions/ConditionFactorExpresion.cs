@@ -31,45 +31,47 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Xml;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
-	internal sealed class ConditionFactorExpression : ConditionExpression {
-	
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
+	internal sealed class ConditionFactorExpression : ConditionExpression
+	{
+
 		readonly Token token;
-		
+
 		static Hashtable allValues;
 		static Hashtable trueValues;
 		static Hashtable falseValues;
-		
+
 		static ConditionFactorExpression ()
 		{
-			string[] trueValuesArray = new string[] {"true", "on", "yes"};
-			string[] falseValuesArray = new string[] {"false", "off", "no"};
-			
-			
+			string [] trueValuesArray = new string [] { "true", "on", "yes" };
+			string [] falseValuesArray = new string [] { "false", "off", "no" };
+
+
 			allValues = CollectionsUtil.CreateCaseInsensitiveHashtable ();
 			trueValues = CollectionsUtil.CreateCaseInsensitiveHashtable ();
 			falseValues = CollectionsUtil.CreateCaseInsensitiveHashtable ();
-			
+
 			foreach (string s in trueValuesArray) {
 				trueValues.Add (s, s);
 				allValues.Add (s, s);
 			}
-			
+
 			foreach (string s in falseValuesArray) {
 				falseValues.Add (s, s);
 				allValues.Add (s, s);
 			}
 		}
-		
+
 		public ConditionFactorExpression (Token token)
 		{
 			this.token = token;
 		}
-		
+
 		public override bool BoolEvaluate (IExpressionContext context)
 		{
 			Token evaluatedToken = EvaluateToken (token, context);
-		
+
 			if (trueValues [evaluatedToken.Value] != null)
 				return true;
 			else if (falseValues [evaluatedToken.Value] != null)
@@ -79,32 +81,32 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 						String.Format ("Expression \"{0}\" evaluated to \"{1}\" instead of a boolean value",
 								token.Value, evaluatedToken.Value));
 		}
-		
+
 		public override float NumberEvaluate (IExpressionContext context)
 		{
 			Token evaluatedToken = EvaluateToken (token, context);
-		
+
 			return Single.Parse (evaluatedToken.Value, CultureInfo.InvariantCulture);
 		}
-		
+
 		public override string StringEvaluate (IExpressionContext context)
 		{
 			Token evaluatedToken = EvaluateToken (token, context);
-		
+
 			return evaluatedToken.Value;
 		}
-		
+
 		// FIXME: check if we really can do it
 		public override bool CanEvaluateToBool (IExpressionContext context)
 		{
 			Token evaluatedToken = EvaluateToken (token, context);
-		
+
 			if (token.Type == TokenType.String && allValues [evaluatedToken.Value] != null)
 				return true;
 			else
 				return false;
 		}
-		
+
 		public override bool CanEvaluateToNumber (IExpressionContext context)
 		{
 			if (token.Type == TokenType.Number)
@@ -113,21 +115,26 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				var text = StringEvaluate (context);
 				Single number;
 				return Single.TryParse (text, out number);
-			}
-			else
+			} else
 				return false;
 		}
-		
+
 		public override bool CanEvaluateToString (IExpressionContext context)
 		{
 			return true;
 		}
-		
+
 		// FIXME: in some situations items might not be allowed
 		static Token EvaluateToken (Token token, IExpressionContext context)
 		{
 			string val = context.EvaluateString (token.Value);
 			return new Token (val, TokenType.String, 0);
+		}
+
+		internal Conditions.Token Token {
+			get {
+				return this.token;
+			}
 		}
 	}
 }

@@ -4,11 +4,11 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.TypeSystem;
-using MonoDevelop.Xml.Editor;
 using MonoDevelop.MSBuildEditor.Language;
-using System.Threading.Tasks;
+using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuildEditor
 {

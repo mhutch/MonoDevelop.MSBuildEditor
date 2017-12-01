@@ -1,10 +1,12 @@
 //
 // ConditionFunctionExpression.cs
 //
-// Author:
+// Authors:
 //   Marek Sieradzki (marek.sieradzki@gmail.com)
+//   Marek Safar (marek.safar@gmail.com)
 // 
 // (C) 2006 Marek Sieradzki
+// Copyright (c) 2014 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -30,81 +32,77 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using MonoDevelop.Projects.MSBuild;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
-	internal sealed class ConditionFunctionExpression : ConditionExpression {
-	
-		List <ConditionFactorExpression> 	args;
-		string					name;
-		
-		static Dictionary <string, MethodInfo>	functions;
-		
-		static ConditionFunctionExpression ()
-		{
-			Type t = typeof (ConditionFunctionExpression);
-			string [] names = new string [] { "Exists", "HasTrailingSlash" };
-		
-			functions = new Dictionary <string, MethodInfo> (StringComparer.OrdinalIgnoreCase);
-			foreach (string name in names)
-				functions.Add (name, t.GetMethod (name, BindingFlags.NonPublic | BindingFlags.Static));
-		}
-	
-		public ConditionFunctionExpression (string name, List <ConditionFactorExpression> args)
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
+	internal sealed class ConditionFunctionExpression : ConditionExpression
+	{
+
+		List<ConditionFactorExpression> args;
+		string name;
+
+		static readonly Dictionary<string, Func<string, IExpressionContext, bool>> functions = new Dictionary<string, Func<string, IExpressionContext, bool>> (StringComparer.OrdinalIgnoreCase) {
+			{ "Exists", Exists },
+			{ "HasTrailingSlash" , HasTrailingSlash }
+		};
+
+		public ConditionFunctionExpression (string name, List<ConditionFactorExpression> args)
 		{
 			this.args = args;
 			this.name = name;
 		}
-		
-		public override  bool BoolEvaluate (IExpressionContext context)
+
+		public override bool BoolEvaluate (IExpressionContext context)
 		{
-			if (!functions.ContainsKey (name))
-				throw new InvalidOperationException ("Unknown function named: " + name);
-			
-			if (functions [name] == null)
-				throw new InvalidOperationException ("Unknown function named: " + name);
-				
-			MethodInfo mi = functions [name];
-			object [] argsArr = new object [args.Count + 1];
-			int i = 0;
-			foreach (ConditionFactorExpression cfe in args)
-				argsArr [i++] = cfe.StringEvaluate (context);
-			argsArr [i] = context;
-				
-			return (bool) mi.Invoke (null, argsArr);
+			Func<string, IExpressionContext, bool> func;
+			if (!functions.TryGetValue (name, out func)) {
+				// MSB4091
+				throw new Exception (string.Format ("Found a call to an undefined function \"{0}\".", name));
+			}
+
+			if (args.Count != 1) {
+				// MSB4089
+				throw new Exception (string.Format ("Incorrect number of arguments to function in condition \"{0}\". Found {1} argument(s) when expecting {2}.",
+					name, args.Count, 1));
+			}
+
+			return func (args [0].StringEvaluate (context), context);
 		}
-		
+
 		public override float NumberEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override string StringEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override bool CanEvaluateToBool (IExpressionContext context)
 		{
 			return functions.ContainsKey (name);
 		}
-		
+
 		public override bool CanEvaluateToNumber (IExpressionContext context)
 		{
 			return false;
 		}
-		
+
 		public override bool CanEvaluateToString (IExpressionContext context)
 		{
 			return false;
 		}
 
 #pragma warning disable 0169
-#region Functions
+		#region Functions
 		// FIXME imported projects
 		static bool Exists (string file, IExpressionContext context)
 		{
-			string directory  = null;
+			if (string.IsNullOrEmpty (file))
+				return false;
+
+			string directory = null;
 
 			if (context.FullFileName != String.Empty)
 				directory = Path.GetDirectoryName (context.FullFileName);
@@ -128,7 +126,7 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 			return file [len - 1] == '\\' || file [len - 1] == '/';
 		}
 
-#endregion
+		#endregion
 #pragma warning restore 0169
 
 	}

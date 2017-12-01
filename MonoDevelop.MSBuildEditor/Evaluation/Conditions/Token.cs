@@ -29,24 +29,26 @@
 
 using System;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 
-	internal class Token {
-	
-		string		tokenValue;
-		TokenType	tokenType;
-	
+	internal class Token
+	{
+
+		string tokenValue;
+		TokenType tokenType;
+
 		public Token (string tokenValue, TokenType tokenType, int position)
 		{
 			this.tokenValue = tokenValue;
 			this.tokenType = tokenType;
 			this.Position = position + 1;
 		}
-		
+
 		public string Value {
 			get { return tokenValue; }
 		}
-		
+
 		public TokenType Type {
 			get { return tokenType; }
 		}
@@ -59,25 +61,25 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		public static string TypeAsString (TokenType tokenType)
 		{
 			switch (tokenType) {
-				case TokenType.Item:return "@";
-				case TokenType.Property:return "$";
-				case TokenType.Metadata:return "%";
-				case TokenType.Transform:return "->";
-				case TokenType.Less:return "<";
-				case TokenType.Greater:return ">";
-				case TokenType.LessOrEqual:return "<=";
-				case TokenType.GreaterOrEqual:return ">=";
-				case TokenType.Equal:return "=";
-				case TokenType.NotEqual:return "!=";
-				case TokenType.LeftParen:return "(";
-				case TokenType.RightParen:return ")";
-				case TokenType.Dot:return ".";
-				case TokenType.Comma:return ",";
-				case TokenType.Not:return "!";
-				case TokenType.And:return "and";
-				case TokenType.Or:return "or";
-				case TokenType.Apostrophe:return "'";
-				default: return tokenType.ToString ();
+			case TokenType.Item: return "@";
+			case TokenType.Property: return "$";
+			case TokenType.Metadata: return "%";
+			case TokenType.Transform: return "->";
+			case TokenType.Less: return "<";
+			case TokenType.Greater: return ">";
+			case TokenType.LessOrEqual: return "<=";
+			case TokenType.GreaterOrEqual: return ">=";
+			case TokenType.Equal: return "=";
+			case TokenType.NotEqual: return "!=";
+			case TokenType.LeftParen: return "(";
+			case TokenType.RightParen: return ")";
+			case TokenType.Dot: return ".";
+			case TokenType.Comma: return ",";
+			case TokenType.Not: return "!";
+			case TokenType.And: return "and";
+			case TokenType.Or: return "or";
+			case TokenType.Apostrophe: return "'";
+			default: return tokenType.ToString ();
 			}
 		}
 
@@ -89,8 +91,9 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 			return String.Format ("\"{0}\" at character position {1}", tokenValue, Position);
 		}
 	}
-	
-	internal enum TokenType {
+
+	internal enum TokenType
+	{
 		EOF,
 		BOF,
 		Number,
@@ -103,7 +106,7 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		Metadata,
 		FunctionName,
 		Transform,
-//		LiteralSubExpression,
+		//		LiteralSubExpression,
 
 		FirstPunct,
 
@@ -121,7 +124,7 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		And,
 		Or,
 		Apostrophe,
-		
+
 		LastPunct,
 		Invalid,
 	}

@@ -28,24 +28,26 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Build.Exceptions;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 
-	internal class ConditionParser {
-	
+	internal class ConditionParser
+	{
+
 		ConditionTokenizer tokenizer;
 		string conditionStr;
-		
+
 		ConditionParser (string condition)
 		{
 			tokenizer = new ConditionTokenizer ();
 			tokenizer.Tokenize (condition);
 			conditionStr = condition;
 		}
-		
+
 		public static bool ParseAndEvaluate (string condition, IExpressionContext context)
 		{
 			if (String.IsNullOrEmpty (condition))
@@ -73,18 +75,18 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		{
 			ConditionParser parser = new ConditionParser (condition);
 			ConditionExpression e = parser.ParseExpression ();
-			
+
 			if (!parser.tokenizer.IsEOF ())
 				throw new ExpressionParseException (String.Format ("Unexpected token found, {0}, in condition \"{1}\"", parser.tokenizer.Token, condition));
-			
+
 			return e;
 		}
-		
+
 		ConditionExpression ParseExpression ()
 		{
 			return ParseBooleanExpression ();
 		}
-		
+
 		ConditionExpression ParseBooleanExpression ()
 		{
 			return ParseBooleanAnd ();
@@ -94,48 +96,48 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		{
 			return a + " and " + b;
 		}
-		
+
 		ConditionExpression ParseBooleanAnd ()
 		{
 			ConditionExpression e = ParseBooleanOr ();
-			
+
 			while (tokenizer.IsToken (TokenType.And)) {
 				tokenizer.GetNextToken ();
 				e = new ConditionAndExpression (e, ParseBooleanOr ());
 			}
-			
+
 			return e;
 		}
-		
+
 		ConditionExpression ParseBooleanOr ()
 		{
 			ConditionExpression e = ParseRelationalExpression ();
-			
+
 			while (tokenizer.IsToken (TokenType.Or)) {
 				tokenizer.GetNextToken ();
 				e = new ConditionOrExpression (e, ParseRelationalExpression ());
 			}
-			
+
 			return e;
 		}
-		
+
 		ConditionExpression ParseRelationalExpression ()
 		{
 			ConditionExpression e = ParseFactorExpression ();
-			
+
 			Token opToken;
 			RelationOperator op;
-			
+
 			if (tokenizer.IsToken (TokenType.Less) ||
 				tokenizer.IsToken (TokenType.Greater) ||
 				tokenizer.IsToken (TokenType.Equal) ||
 				tokenizer.IsToken (TokenType.NotEqual) ||
 				tokenizer.IsToken (TokenType.LessOrEqual) ||
 				tokenizer.IsToken (TokenType.GreaterOrEqual)) {
-				
+
 				opToken = tokenizer.Token;
 				tokenizer.GetNextToken ();
-								
+
 				switch (opToken.Type) {
 				case TokenType.Equal:
 					op = RelationOperator.Equal;
@@ -159,12 +161,12 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 					throw new ExpressionParseException (String.Format ("Wrong relation operator {0}", opToken.Value));
 				}
 
-				e =  new ConditionRelationalExpression (e, ParseFactorExpression (), op);
+				e = new ConditionRelationalExpression (e, ParseFactorExpression (), op);
 			}
-			
+
 			return e;
 		}
-		
+
 		ConditionExpression ParseFactorExpression ()
 		{
 			ConditionExpression e;
@@ -182,12 +184,12 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				e = new ConditionFactorExpression (token);
 			} else if (token.Type == TokenType.Item || token.Type == TokenType.Property
 					|| token.Type == TokenType.Metadata) {
-				e = ParseReferenceExpression (token.Value);
+				e = ParseReferenceExpression (token.Value [0]);
 			} else if (token.Type == TokenType.Not) {
 				e = ParseNotExpression ();
 			} else
 				throw new ExpressionParseException (String.Format ("Unexpected token {0}, while parsing condition \"{1}\"", token, conditionStr));
-			
+
 			return e;
 		}
 
@@ -200,12 +202,12 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 		{
 			return new ConditionFunctionExpression (function_name, ParseFunctionArguments ());
 		}
-		
-		List <ConditionFactorExpression> ParseFunctionArguments ()
+
+		List<ConditionFactorExpression> ParseFunctionArguments ()
 		{
-			List <ConditionFactorExpression> list = new List <ConditionFactorExpression> ();
+			List<ConditionFactorExpression> list = new List<ConditionFactorExpression> ();
 			ConditionFactorExpression e;
-			
+
 			while (true) {
 				tokenizer.GetNextToken ();
 				if (tokenizer.Token.Type == TokenType.RightParen) {
@@ -214,31 +216,43 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				}
 				if (tokenizer.Token.Type == TokenType.Comma)
 					continue;
-					
+
 				tokenizer.Putback (tokenizer.Token);
-				e = (ConditionFactorExpression) ParseFactorExpression ();
+				e = (ConditionFactorExpression)ParseFactorExpression ();
 				list.Add (e);
 			}
-			
+
 			return list;
 		}
 
 		//@prefix: @ or $
-		ConditionExpression ParseReferenceExpression (string prefix)
+		ConditionExpression ParseReferenceExpression (char prefix)
 		{
-			StringBuilder sb = new StringBuilder ();
-
-			string ref_type = prefix [0] == '$' ? "a property" : "an item list";
 			int token_pos = tokenizer.Token.Position;
+			string ref_type = prefix == '$' ? "a property" : "an item list";
 			IsAtToken (TokenType.LeftParen, String.Format (
 						"Expected {0} at position {1} in condition \"{2}\". Missing opening parantheses after the '{3}'.",
 						ref_type, token_pos, conditionStr, prefix));
-			tokenizer.GetNextToken ();
 
+
+			if (prefix == '$') {
+				//
+				// Tjhe scan should consider quoted parenthesis but it breaks on .net as well
+				// we are bug compatible
+				//
+				tokenizer.ScanForClosingParens ();
+			} else {
+				tokenizer.GetNextToken ();
+			}
+
+			if (tokenizer.IsEOF ())
+				throw new ExpressionParseException ("Missing closing parenthesis in condition " + conditionStr);
+
+			StringBuilder sb = new StringBuilder ();
 			sb.AppendFormat ("{0}({1}", prefix, tokenizer.Token.Value);
 
 			tokenizer.GetNextToken ();
-			if (prefix == "@" && tokenizer.Token.Type == TokenType.Transform) {
+			if (prefix == '@' && tokenizer.Token.Type == TokenType.Transform) {
 				tokenizer.GetNextToken ();
 				sb.AppendFormat ("->'{0}'", tokenizer.Token.Value);
 
@@ -250,9 +264,7 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				}
 			}
 
-			IsAtToken (TokenType.RightParen, String.Format (
-						"Expected {0} at position {1} in condition \"{2}\". Missing closing parantheses'.",
-						ref_type, token_pos, conditionStr, prefix));
+			IsAtToken (TokenType.RightParen, "Missing closing parenthesis in condition " + conditionStr);
 			tokenizer.GetNextToken ();
 
 			sb.Append (")");

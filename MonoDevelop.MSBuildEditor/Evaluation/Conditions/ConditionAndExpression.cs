@@ -28,27 +28,29 @@
 using System;
 using System.Xml;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
-	internal sealed class ConditionAndExpression : ConditionExpression {
-	
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
+	internal sealed class ConditionAndExpression : ConditionExpression
+	{
+
 		readonly ConditionExpression left;
 		readonly ConditionExpression right;
-		
+
 		public ConditionAndExpression (ConditionExpression left, ConditionExpression right)
 		{
 			this.left = left;
 			this.right = right;
 		}
-		
+
 		public ConditionExpression Left {
 			get { return left; }
 		}
-		
+
 		public ConditionExpression Right {
 			get { return right; }
 		}
-	
-		public override  bool BoolEvaluate (IExpressionContext context)
+
+		public override bool BoolEvaluate (IExpressionContext context)
 		{
 			if (!left.BoolEvaluate (context))
 				return false;
@@ -56,33 +58,39 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				return false;
 			return true;
 		}
-		
-		
+
+
 		public override float NumberEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override string StringEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override bool CanEvaluateToBool (IExpressionContext context)
 		{
 			// Short-circuiting, check only left expr, right
 			// would be required only if left == true
 			return left.CanEvaluateToBool (context);
 		}
-		
+
 		public override bool CanEvaluateToNumber (IExpressionContext context)
 		{
 			return false;
 		}
-		
+
 		public override bool CanEvaluateToString (IExpressionContext context)
 		{
 			return false;
+		}
+
+		public override void CollectConditionProperties (ConditionedPropertyCollection properties)
+		{
+			left.CollectConditionProperties (properties);
+			right.CollectConditionProperties (properties);
 		}
 	}
 

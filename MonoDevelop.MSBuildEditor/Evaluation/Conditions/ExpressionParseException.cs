@@ -28,10 +28,12 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 	[Serializable]
-	internal class ExpressionParseException : Exception {
-	
+	internal class ExpressionParseException : Exception
+	{
+
 		public ExpressionParseException ()
 			: base ("Exception occured when parsing an expression.")
 		{

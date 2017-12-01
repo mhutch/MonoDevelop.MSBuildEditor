@@ -30,46 +30,52 @@
 using System;
 using System.Xml;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
-	internal sealed class ConditionNotExpression : ConditionExpression {
-	
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
+	internal sealed class ConditionNotExpression : ConditionExpression
+	{
+
 		readonly ConditionExpression expression;
-		
+
 		public ConditionNotExpression (ConditionExpression expression)
 		{
 			this.expression = expression;
 		}
-		
-		public override  bool BoolEvaluate (IExpressionContext context)
+
+		public override bool BoolEvaluate (IExpressionContext context)
 		{
 			return !(expression.BoolEvaluate (context));
 		}
-		
-		
+
+
 		public override float NumberEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override string StringEvaluate (IExpressionContext context)
 		{
 			throw new NotSupportedException ();
 		}
-		
+
 		public override bool CanEvaluateToBool (IExpressionContext context)
 		{
 			return expression.CanEvaluateToBool (context);
 		}
-		
+
 		public override bool CanEvaluateToNumber (IExpressionContext context)
 		{
 			return false;
 		}
-		
+
 		public override bool CanEvaluateToString (IExpressionContext context)
 		{
 			return false;
 		}
+
+		public override void CollectConditionProperties (ConditionedPropertyCollection properties)
+		{
+			expression.CollectConditionProperties (properties);
+		}
 	}
 }
-

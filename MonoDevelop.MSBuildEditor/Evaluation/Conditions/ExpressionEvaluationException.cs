@@ -28,9 +28,11 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 	[Serializable]
-	internal class ExpressionEvaluationException : Exception {
+	internal class ExpressionEvaluationException : Exception
+	{
 
 		public ExpressionEvaluationException ()
 			: base ("Exception occured when evaluating the expression.")

@@ -33,113 +33,116 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Text;
 
-namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 
-	internal sealed class ConditionTokenizer {
-	
-		string	inputString = null;
-		int	position = 0;
-		int	tokenPosition = 0;
-		
-		Token	token;
-		Token	putback = null;
-		
-//		bool	ignoreWhiteSpace = true;
-		
-		static TokenType[] charIndexToTokenType = new TokenType[128];
-		static Dictionary <string, TokenType> keywords = new Dictionary <string, TokenType> (StringComparer.OrdinalIgnoreCase);
+	internal sealed class ConditionTokenizer
+	{
+
+		string inputString = null;
+		int position = 0;
+		int tokenPosition = 0;
+
+		Token token;
+		Token putback = null;
+
+		//		bool	ignoreWhiteSpace = true;
+
+		static TokenType [] charIndexToTokenType = new TokenType [128];
+		static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType> (StringComparer.OrdinalIgnoreCase);
 
 		static ConditionTokenizer ()
 		{
 			for (int i = 0; i < 128; i++)
 				charIndexToTokenType [i] = TokenType.Invalid;
-			
+
 			foreach (CharToTokenType cht in charToTokenType)
-				charIndexToTokenType [(int) cht.ch] = cht.tokenType;
-			
+				charIndexToTokenType [(int)cht.ch] = cht.tokenType;
+
 			keywords.Add ("and", TokenType.And);
 			keywords.Add ("or", TokenType.Or);
 		}
-		
+
 		public ConditionTokenizer ()
 		{
-//			this.ignoreWhiteSpace = true;
+			//			this.ignoreWhiteSpace = true;
 		}
-		
+
 		public void Tokenize (string s)
 		{
 			if (s == null)
 				throw new ArgumentNullException ("s");
-		
+
 			this.inputString = s;
 			this.position = 0;
 			this.token = new Token (null, TokenType.BOF, 0);
 
 			GetNextToken ();
 		}
-		
+
 		void SkipWhiteSpace ()
 		{
 			int ch;
-			
+
 			while ((ch = PeekChar ()) != -1) {
 				if (!Char.IsWhiteSpace ((char)ch))
 					break;
 				ReadChar ();
 			}
 		}
-		
+
 		int PeekChar ()
 		{
 			if (position < inputString.Length)
-				return (int) inputString [position];
+				return (int)inputString [position];
 			else
 				return -1;
 		}
-		
+
 		int ReadChar ()
 		{
 			if (position < inputString.Length)
-				return (int) inputString [position++];
+				return (int)inputString [position++];
 			else
 				return -1;
 		}
-		
+
 		public void Expect (TokenType type)
 		{
 			if (token.Type != type)
 				throw new ExpressionParseException ("Expected token type of type: " + type + ", got " + token.Type +
 					" (" + token.Value + ") .");
-			
+
 			GetNextToken ();
 		}
-		
+
 		public bool IsEOF ()
 		{
 			return token.Type == TokenType.EOF;
 		}
-		
+
 		public bool IsNumber ()
 		{
 			return token.Type == TokenType.Number;
 		}
-		
+
 		public bool IsToken (TokenType type)
 		{
 			return token.Type == type;
 		}
-		
+
 		public bool IsPunctation ()
 		{
 			return (token.Type >= TokenType.FirstPunct && token.Type < TokenType.LastPunct);
 		}
-		
+
 		// FIXME test this
 		public void Putback (Token token)
 		{
 			putback = token;
 		}
-		
+
+		StringBuilder nextTokenSb = new StringBuilder ();
 		public void GetNextToken ()
 		{
 			if (putback != null) {
@@ -147,105 +150,99 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 				putback = null;
 				return;
 			}
-		
+
 			if (token.Type == TokenType.EOF)
 				throw new ExpressionParseException (String.Format (
 							"Error while parsing condition \"{0}\", ended abruptly.",
 							inputString));
-			
+
 			SkipWhiteSpace ();
-			
+
 			tokenPosition = position;
-			
-//			int i = PeekChar ();
+
+			//			int i = PeekChar ();
 			int i = ReadChar ();
-			
+
 			if (i == -1) {
 				token = new Token (null, TokenType.EOF, tokenPosition);
 				return;
 			}
-			
-			char ch = (char) i;
 
-			
+			char ch = (char)i;
+
+			nextTokenSb.Length = 0;
 			// FIXME: looks like a hack: if '-' is here '->' won't be tokenized
 			// maybe we should treat item reference as a token
 			if (ch == '-' && PeekChar () == '>') {
 				ReadChar ();
 				token = new Token ("->", TokenType.Transform, tokenPosition);
 			} else if (Char.IsDigit (ch) || ch == '-') {
-				StringBuilder sb = new StringBuilder ();
-				
-				sb.Append (ch);
-				
+
+				nextTokenSb.Append (ch);
+
 				while ((i = PeekChar ()) != -1) {
-					ch = (char) i;
-					
+					ch = (char)i;
+
 					if (Char.IsDigit (ch) || ch == '.')
-						sb.Append ((char) ReadChar ());
+						nextTokenSb.Append ((char)ReadChar ());
 					else
 						break;
 				}
-				
-				token = new Token (sb.ToString (), TokenType.Number, tokenPosition);
+
+				token = new Token (nextTokenSb.ToString (), TokenType.Number, tokenPosition);
 			} else if (ch == '\'' && position < inputString.Length) {
-				StringBuilder sb = new StringBuilder ();
-				string temp;
-				
-				sb.Append (ch);
+
+				nextTokenSb.Append (ch);
+
 				bool is_itemref = (PeekChar () == '@');
 				int num_open_braces = 0;
 				bool in_literal = false;
-				
+
 				while ((i = PeekChar ()) != -1) {
-					ch = (char) i;
+					ch = (char)i;
 					if (ch == '(' && !in_literal && is_itemref)
-						num_open_braces ++;
+						num_open_braces++;
 					if (ch == ')' && !in_literal && is_itemref)
-						num_open_braces --;
-					
-					sb.Append ((char) ReadChar ());
-					
+						num_open_braces--;
+
+					nextTokenSb.Append ((char)ReadChar ());
+
 					if (ch == '\'') {
 						if (num_open_braces == 0)
 							break;
 						in_literal = !in_literal;
 					}
 				}
-				
-				temp = sb.ToString ();
-				
-				token = new Token (temp.Substring (1, temp.Length - 2), TokenType.String, tokenPosition);
-				
-			} else 	if (ch == '_' || Char.IsLetter (ch)) {
-				StringBuilder sb = new StringBuilder ();
-				
-				sb.Append ((char) ch);
-				
+
+				token = new Token (nextTokenSb.ToString (1, nextTokenSb.Length - 2), TokenType.String, tokenPosition);
+
+			} else if (ch == '_' || Char.IsLetter (ch)) {
+				nextTokenSb.Append ((char)ch);
+
 				while ((i = PeekChar ()) != -1) {
-					if ((char) i == '_' || Char.IsLetterOrDigit ((char) i))
-						sb.Append ((char) ReadChar ());
+					if ((char)i == '_' || Char.IsLetterOrDigit ((char)i))
+						nextTokenSb.Append ((char)ReadChar ());
 					else
 						break;
 				}
-				
-				string temp = sb.ToString ();
-				
+
+				string temp = nextTokenSb.ToString ();
+
 				if (keywords.ContainsKey (temp))
 					token = new Token (temp, keywords [temp], tokenPosition);
 				else
 					token = new Token (temp, TokenType.String, tokenPosition);
-					
-			} else if (ch == '!' && PeekChar () == (int) '=') {
+
+			} else if (ch == '!' && PeekChar () == (int)'=') {
 				token = new Token ("!=", TokenType.NotEqual, tokenPosition);
 				ReadChar ();
-			} else if (ch == '<' && PeekChar () == (int) '=') {
+			} else if (ch == '<' && PeekChar () == (int)'=') {
 				token = new Token ("<=", TokenType.LessOrEqual, tokenPosition);
 				ReadChar ();
-			} else if (ch == '>' && PeekChar () == (int) '=') {
+			} else if (ch == '>' && PeekChar () == (int)'=') {
 				token = new Token (">=", TokenType.GreaterOrEqual, tokenPosition);
 				ReadChar ();
-			} else if (ch == '=' && PeekChar () == (int) '=') {
+			} else if (ch == '=' && PeekChar () == (int)'=') {
 				token = new Token ("==", TokenType.Equal, tokenPosition);
 				ReadChar ();
 			} else if (ch >= 32 && ch < 128) {
@@ -257,34 +254,58 @@ namespace MonoDevelop.Projects.Formats.MSBuild.Conditions {
 			} else
 				throw new ExpressionParseException (String.Format ("Invalid token: {0}", ch));
 		}
-		
+
+		public void ScanForClosingParens (int parensCounter = 1)
+		{
+			tokenPosition = position;
+			int start = position;
+			int ch;
+			while ((ch = ReadChar ()) >= 0) {
+				switch (ch) {
+				case ')':
+					if (--parensCounter == 0) {
+						--position;
+						token = new Token (inputString.Substring (start, position - start), TokenType.String, tokenPosition);
+						return;
+					}
+					break;
+				case '(':
+					++parensCounter;
+					break;
+				}
+			}
+
+			token = new Token (null, TokenType.EOF, tokenPosition);
+		}
+
 		public int TokenPosition {
 			get { return tokenPosition; }
 		}
-		
+
 		public Token Token {
 			get { return token; }
 		}
-		
-/*
-		public bool IgnoreWhiteSpace {
-			get { return ignoreWhiteSpace; }
-			set { ignoreWhiteSpace = value; }
-		}
-*/
-		
-		struct CharToTokenType {
+
+		/*
+				public bool IgnoreWhiteSpace {
+					get { return ignoreWhiteSpace; }
+					set { ignoreWhiteSpace = value; }
+				}
+		*/
+
+		struct CharToTokenType
+		{
 			public char ch;
 			public TokenType tokenType;
-			
+
 			public CharToTokenType (char ch, TokenType tokenType)
 			{
 				this.ch = ch;
 				this.tokenType = tokenType;
 			}
 		}
-		
-		static CharToTokenType[] charToTokenType = {
+
+		static CharToTokenType [] charToTokenType = {
 			new CharToTokenType ('<', TokenType.Less),
 			new CharToTokenType ('>', TokenType.Greater),
 			new CharToTokenType ('=', TokenType.Equal),
