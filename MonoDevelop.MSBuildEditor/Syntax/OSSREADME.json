@@ -1,0 +1,10 @@
+﻿// ATTENTION - THIS DIRECTORY CONTAINS THIRD PARTY OPEN SOURCE MATERIALS:
+
+[{
+    "name": "atom/language-xml",
+    "version": "0.0.0",
+    "license": "MIT",
+    "repositoryURL": "https://raw.githubusercontent.com/mono/monodevelop/master/main/src/core/MonoDevelop.Ide/MonoDevelop.Ide.Editor.Highlighting/VSCodeImport/xaml.json",
+    "description": "The file msbuild.json was derived from https://raw.githubusercontent.com/mono/monodevelop/master/main/src/core/MonoDevelop.Ide/MonoDevelop.Ide.Editor.Highlighting/VSCodeImport/syntaxes/xaml.json, which was derived from from the Atom package https://github.com/atom/language-xml, which were originally converted from the TextMate bundle https://github.com/textmate/xml.tmbundle."
+
+}]

@@ -70,4 +70,8 @@
     <Extension path = "/MonoDevelop/Ide/Editor/TooltipProviders">
         <Provider id="MSBuild" class="MonoDevelop.MSBuildEditor.MSBuildTooltipProvider" mimeType="application/x-msbuild" />
     </Extension>
+
+    <Extension path="/MonoDevelop/Ide/Editor/Bundles">
+        <Bundle resource = "MonoDevelop.MSBuildEditor.Syntax.msbuild.json" />
+    </Extension>
 </ExtensionModel>

@@ -9,9 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.Components.Commands;
+using MonoDevelop.Core;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.Editor.Highlighting;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.PackageSearch;
 using MonoDevelop.MSBuildEditor.Schema;
@@ -46,6 +48,23 @@ namespace MonoDevelop.MSBuildEditor
 					new NuGetV3ServiceFeedFactory (new WebRequestFactory()),
 				})
 			);
+
+			CheckHighlighting ();
+		}
+
+		//HACK: work around https://github.com/mono/monodevelop/issues/3438
+		void CheckHighlighting ()
+		{
+			var meth = typeof (SyntaxHighlightingService)
+				.GetMethod (
+					"GetSyntaxHighlightingDefinitionByName",
+					System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+				);
+			//HACK: the props extension is the only MSBuild extension that is not handled by the built-in highlighting
+			var highlighting = (SyntaxHighlightingDefinition) meth.Invoke (null, new object [] { new FilePath ("a.props") });
+			var old = Editor.SyntaxHighlighting;
+			Editor.SyntaxHighlighting = new SyntaxHighlighting (highlighting, Editor);
+			old.Dispose ();
 		}
 
 		public MSBuildRootDocument GetDocument ()

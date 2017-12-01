@@ -158,6 +158,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Syntax\msbuild.json" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
@@ -181,6 +182,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Schema\" />
+    <Folder Include="Syntax\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Syntax\OSSREADME.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
