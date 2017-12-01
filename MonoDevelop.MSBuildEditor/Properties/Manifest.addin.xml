@@ -25,7 +25,10 @@
 			<File pattern="*.fsproj" />
 			<File pattern="*.vbproj" />
 			<File pattern="*.xproj" />
-			<File pattern="*.proj" />
+            <File pattern="*.proj" />
+            <File pattern="*.csproj.user" />
+            <File pattern="*.fsproj.user" />
+			<File pattern="*.vbproj.user" />
 		</MimeType>
 	</Extension>
 
