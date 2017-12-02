@@ -221,14 +221,6 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 
-			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
-				var l = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
-					l.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
-				}
-				return l.Count == 0 ? null : Task.FromResult<ICompletionDataList> (l);
-			}
-
 			var info = rr.GetElementOrAttributeValueInfo (doc);
 			if (info == null) {
 				return null;
@@ -249,6 +241,12 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			var list = new CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
+
+			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
+					list.Add (new MSBuildCompletionData (ci, doc, rr, XmlCompletionData.DataType.XmlAttributeValue));
+				}
+			}
 
 			if (triggerState == ExpressionCompletion.TriggerState.Value) {
 				switch (kind) {
@@ -297,6 +295,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (list.Count > 0) {
 				return Task.FromResult<ICompletionDataList> (list);
 			}
+
 			return null;
 		}
 

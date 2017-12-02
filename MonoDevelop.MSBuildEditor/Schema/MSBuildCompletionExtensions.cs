@@ -302,7 +302,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return schemas.GetElementInfo (rr.LanguageElement, rr.ParentName, rr.ElementName);
 		}
 
-		public static MSBuildValueKind InferValueKindIfUnknown (ValueInfo variable)
+		public static MSBuildValueKind InferValueKindIfUnknown (this ValueInfo variable)
 		{
 			var kind = InferUnknownKind (variable);
 
@@ -334,7 +334,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
-			if (variable is PropertyInfo || variable is MetadataInfo) {
+			bool isProperty = variable is PropertyInfo;
+			if (isProperty || variable is MetadataInfo) {
 				if (StartsWith ("Enable")
 					|| StartsWith ("Disable")
 					|| StartsWith ("Require")
@@ -378,6 +379,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				if (EndsWith ("Files")) {
 					return MSBuildValueKind.File.List ();
+				}
+			}
+
+			//make sure these work even if the common targets schema isn't loaded
+			if (isProperty) {
+				switch (variable.Name.ToLowerInvariant ()) {
+				case "configuration":
+					return MSBuildValueKind.Configuration;
+				case "platform":
+					return MSBuildValueKind.Platform;
 				}
 			}
 

@@ -17,13 +17,13 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	// Copyright (c) 2009 Novell, Inc. (http://www.novell.com)
 	static class MSBuildEditorTesting
 	{
-		public static async Task<CompletionDataList> CreateProvider (string text, string extension, bool isCtrlSpace = false)
+		public static async Task<CompletionDataList> CreateProvider (string text, string extension, bool isCtrlSpace = false, char caretIndicator='$')
 		{
-			var result = await CreateEditor (text, extension);
+			var result = await CreateEditor (text, extension, caretIndicator);
 			var textEditorCompletion = result.Extension;
 			string editorText = result.EditorText;
 			TestViewContent sev = result.ViewContent;
-			int cursorPosition = text.IndexOf ('$');
+			int cursorPosition = text.IndexOf (caretIndicator);
 
 			var ctx = textEditorCompletion.GetCodeCompletionContext (sev);
 
@@ -45,12 +45,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			public TestViewContent ViewContent;
 		}
 
-		static async Task<CreateEditorResult> CreateEditor (string text, string extension)
+		static async Task<CreateEditorResult> CreateEditor (string text, string extension, char caretIndicator)
 		{
 			string editorText;
 			TestViewContent sev;
 			string parsedText;
-			int cursorPosition = text.IndexOf ('$');
+			int cursorPosition = text.IndexOf (caretIndicator);
 			int endPos = text.IndexOf ('$', cursorPosition + 1);
 			if (endPos == -1)
 				parsedText = editorText = text.Substring (0, cursorPosition) + text.Substring (cursorPosition + 1);

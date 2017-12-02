@@ -290,10 +290,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ValueInfo info;
 				switch (variable) {
 				case ExpressionProperty ep:
-					info = doc.GetProperty (ep.Name);
+					info = doc.GetProperty (ep.Name) ?? new PropertyInfo (ep.Name, null, false);
 					break;
 				case ExpressionMetadata em:
-					info = doc.GetMetadata (em.ItemName, em.MetadataName, true);
+					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null, false);
 					break;
 				default:
 					continue;
@@ -307,7 +307,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (info.Values != null && info.Values.Count > 0) {
 					cinfos = info.Values;
 				} else {
-					cinfos = MSBuildCompletionExtensions.GetValueCompletions (info.ValueKind, doc);
+					var kind = info.InferValueKindIfUnknown ();
+					cinfos = MSBuildCompletionExtensions.GetValueCompletions (kind, doc);
 				}
 
 				if (cinfos != null) {
