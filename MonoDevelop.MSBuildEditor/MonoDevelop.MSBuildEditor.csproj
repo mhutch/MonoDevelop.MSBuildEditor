@@ -141,6 +141,8 @@
     <Compile Include="MSBuildHighlightUsagesExtension.cs" />
     <Compile Include="Schema\FrameworkInfoProvider.cs" />
     <Compile Include="Language\MSBuildRootDocument.cs" />
+    <Compile Include="Evaluation\Conditions\ConditionExpressionExtensions.cs" />
+    <Compile Include="Evaluation\Conditions\IPropertyCollector.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />

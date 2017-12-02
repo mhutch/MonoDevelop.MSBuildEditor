@@ -5,6 +5,7 @@ using System;
 using MonoDevelop.Core;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
+using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -121,6 +122,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
 		{
+			//FIXME ExtractConfigurations should handle extracting references
+			if (resolvedAttribute.ValueKind == MSBuildValueKind.Condition) {
+				ExtractConfigurations (value, offset);
+			}
 			ExtractReferences (resolvedAttribute.ValueKind, value, offset);
 		}
 
@@ -167,6 +172,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var task = Document.Tasks [taskName];
 			if (!task.Parameters.ContainsKey (parameterName)) {
 				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null));
+			}
+		}
+
+		void ExtractConfigurations (string value, int startOffset)
+		{
+			try {
+				var cond = ConditionParser.ParseCondition (value);
+				cond.CollectConditionProperties (Document);
+			} catch (Exception ex) {
+				LoggingService.LogError ($"Error parsing MSBuild condition at {startOffset}", ex);
 			}
 		}
 

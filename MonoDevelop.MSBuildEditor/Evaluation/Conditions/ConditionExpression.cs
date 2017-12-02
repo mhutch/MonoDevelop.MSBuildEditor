@@ -26,9 +26,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Xml;
 
-namespace MonoDevelop.Projects.MSBuild.Conditions {
+namespace MonoDevelop.Projects.MSBuild.Conditions
+{
 	internal abstract class ConditionExpression {
 	
 		public abstract bool BoolEvaluate (IExpressionContext context);
@@ -39,7 +41,7 @@ namespace MonoDevelop.Projects.MSBuild.Conditions {
 		public abstract bool CanEvaluateToNumber (IExpressionContext context);
 		public abstract bool CanEvaluateToString (IExpressionContext context);
 
-		public virtual void CollectConditionProperties (ConditionedPropertyCollection properties)
+		public virtual void CollectConditionProperties (IPropertyCollector collector)
 		{
 		}
 	}

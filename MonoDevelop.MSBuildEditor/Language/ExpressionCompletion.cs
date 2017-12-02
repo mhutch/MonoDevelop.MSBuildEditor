@@ -285,6 +285,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static IEnumerable<BaseInfo> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
 		{
+			var names = new HashSet<string> ();
 			foreach (var variable in variables) {
 				ValueInfo info;
 				switch (variable) {
@@ -311,7 +312,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				if (cinfos != null) {
 					foreach (var ci in cinfos) {
-						yield return ci;
+						if (names.Add (ci.Name)) {
+							yield return ci;
+						}
 					}
 				}
 			}

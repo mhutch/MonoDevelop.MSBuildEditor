@@ -242,5 +242,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 			return element;
 		}
+
+		public static IEnumerable<string> GetConfigurations (this IEnumerable<IMSBuildSchema> schemas)
+		{
+			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Configurations).Distinct ();
+		}
+
+		public static IEnumerable<string> GetPlatforms (this IEnumerable<IMSBuildSchema> schemas)
+		{
+			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Platforms).Distinct ();
+		}
 	}
 }

@@ -10,13 +10,15 @@ using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
+using MonoDevelop.Projects;
+using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
 	delegate IEnumerable<Import> ImportResolver (string import, string sdk, PropertyValueCollector propertyVals);
 
-	class MSBuildDocument : IMSBuildSchema
+	class MSBuildDocument : IMSBuildSchema, IPropertyCollector
 	{
 		static readonly XName xnProject = new XName ("Project");
 
@@ -28,6 +30,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<Error> Errors { get; }
 		public bool IsToplevel { get; }
+
+		public HashSet<string> Configurations { get; } = new HashSet<string> ();
+		public HashSet<string> Platforms { get; } = new HashSet<string> ();
 
 		public MSBuildDocument (string filename, bool isToplevel)
 		{
@@ -273,6 +278,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			//properties and items are always visible from files they're used in
 			return !IsToplevel && name[0] == '_';
+		}
+
+		public void AddPropertyValues (List<string> combinedProperty, List<string> combinedValue)
+		{
+			for (int i = 0; i < combinedProperty.Count; i++) {
+				var p = combinedProperty [i];
+				var v = combinedValue [i];
+				switch (p.ToLowerInvariant ()) {
+				case "configuration":
+					Configurations.Add (v);
+					break;
+				case "platform":
+					Platforms.Add (v);
+					break;
+				}
+			}
 		}
 	}
 }

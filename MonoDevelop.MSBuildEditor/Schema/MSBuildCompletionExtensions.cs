@@ -152,6 +152,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
 				).ToList ();
+			case MSBuildValueKind.Configuration:
+				return doc.GetConfigurations ().Select (c => new ConstantInfo (c, "")).ToList ();
+			case MSBuildValueKind.Platform:
+				return doc.GetPlatforms ().Select (c => new ConstantInfo (c, "")).ToList ();
 			}
 
 			var fileCompletions = GetFilenameCompletions (kind, doc, null, 0);
