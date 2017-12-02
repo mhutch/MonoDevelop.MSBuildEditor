@@ -19,8 +19,10 @@
 		This particular system will use the first thing defined, so insert it way up the list.
 		-->
 		<MimeType id="application/x-msbuild" _description="MSBuild file" baseType="application/xml" insertbefore="application/xml">
-			<File pattern="*.targets" />
-			<File pattern="*.props" />
+            <File pattern="*.targets" />
+            <File pattern="*.props" />
+            <File pattern="*.tasks" />
+            <File pattern="*.overridetasks" />
 			<File pattern="*.csproj" />
 			<File pattern="*.fsproj" />
 			<File pattern="*.vbproj" />
