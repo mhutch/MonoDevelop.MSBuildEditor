@@ -861,6 +861,14 @@
         "ExternalConsole": {
             "description" : "Whether to close the external console after running a console application in the IDE",
             "kind" : "bool"
+        },
+        "Configurations": {
+            "description" : "The values that the IDE should list for the `Configuration` property",
+            "kind" : "configuration-list"
+        },
+        "Platforms": {
+            "description" : "The values that the IDE should list for the `Platform` property",
+            "kind" : "platform-list"
         }
     },
     "targets": {

@@ -89,7 +89,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (attribute.Value != null) {
-				VisitAttributeValue (element, attribute, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (TextDocument));
+				VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute, attribute.Value, attribute.GetValueStartOffset (TextDocument));
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 		}
 
-		protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
+		protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
 		{
 		}
 	}

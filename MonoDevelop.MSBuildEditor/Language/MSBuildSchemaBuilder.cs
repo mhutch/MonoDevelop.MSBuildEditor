@@ -113,20 +113,55 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)
 		{
+			var kind = resolved.ValueKind;
+
 			if (resolved.Kind == MSBuildKind.Property) {
 				var name = element.Name.Name;
 				propertyValues.Collect (name, value);
+
+				switch (element.Name.Name.ToLowerInvariant ()) {
+				case "configuration":
+					kind = MSBuildValueKind.Configuration;
+					break;
+				case "configurations":
+					kind = MSBuildValueKind.Configuration.List ();
+					break;
+				case "platform":
+					kind = MSBuildValueKind.Platform;
+					break;
+				case "platforms":
+					kind = MSBuildValueKind.Platform.List ();
+					break;
+				}
+			} else if (resolved.Kind == MSBuildKind.Metadata && element.ParentElement ().NameEquals ("ProjectConfiguration", true)) {
+				if (element.NameEquals ("Configuration", true)) {
+					kind = MSBuildValueKind.Configuration;
+				} else if (element.NameEquals ("Platform", true)) {
+					kind = MSBuildValueKind.Platform;
+				}
 			}
-			ExtractReferences (resolved.ValueKind, value, offset);
+
+			ExtractReferences (kind, value, offset);
 		}
 
-		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
+		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
 		{
-			//FIXME ExtractConfigurations should handle extracting references
-			if (resolvedAttribute.ValueKind == MSBuildValueKind.Condition) {
+			var kind = resolvedAttribute.ValueKind;
+
+			//FIXME ExtractConfigurations should directly handle extracting references
+			if (kind == MSBuildValueKind.Condition) {
 				ExtractConfigurations (value, offset);
 			}
-			ExtractReferences (resolvedAttribute.ValueKind, value, offset);
+
+			if (resolvedElement.Kind == MSBuildKind.Item && element.NameEquals ("ProjectConfiguration", true)) {
+				if (attribute.NameEquals ("Configuration", true)) {
+					kind = MSBuildValueKind.Configuration;
+				} else if (attribute.NameEquals ("Platform", true)) {
+					kind = MSBuildValueKind.Platform;
+				}
+			}
+
+			ExtractReferences (kind, value, offset);
 		}
 
 		void CollectItem (string itemName)
@@ -205,7 +240,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						break;
 					case ExpressionLiteral literal:
 						if (literal.IsPure) {
-							switch (kind) {
+							switch (kind.GetScalarType ()) {
 							case MSBuildValueKind.ItemName:
 								CollectItem (literal.Value);
 								break;
@@ -214,6 +249,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 								break;
 							case MSBuildValueKind.PropertyName:
 								CollectProperty (literal.Value);
+								break;
+							case MSBuildValueKind.Configuration:
+								Document.Configurations.Add (literal.Value);
+								break;
+							case MSBuildValueKind.Platform:
+								Document.Platforms.Add (literal.Value);
 								break;
 							}
 						}
