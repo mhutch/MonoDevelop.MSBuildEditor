@@ -141,8 +141,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if ((resolved.Kind == MSBuildKind.Task || resolved.Kind == MSBuildKind.UsingTask) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameStartOffset (TextDocument), element.Name.Name.Length, ReferenceUsage.Declaration));
+			switch (resolved.Kind) {
+			case MSBuildKind.Task:
+				if (IsMatch (element.Name.Name)) {
+					Results.Add ((element.GetNameStartOffset (TextDocument), element.Name.Name.Length, ReferenceUsage.Read));
+				}
+				break;
+			case MSBuildKind.UsingTask:
+				var nameAtt = element.Attributes.Get (new XName ("TaskName"), true);
+				if (nameAtt != null && !string.IsNullOrEmpty (nameAtt.Value)) {
+					var nameIdx = nameAtt.Value.LastIndexOf ('.') + 1;
+					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : nameAtt.Value;
+					if (IsMatch (name)) {
+						Results.Add ((nameAtt.GetValueStartOffset (TextDocument) + nameIdx, name.Length, ReferenceUsage.Declaration));
+					}
+				}
+				break;
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
