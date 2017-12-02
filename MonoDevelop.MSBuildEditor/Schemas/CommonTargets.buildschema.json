@@ -611,7 +611,7 @@
         "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names",
         "Platform": {
             "description": "The platform that is being used to build the project, for example \"AnyCPU\" or \"x86\"",
-            "kind" : "configuration"
+            "kind" : "platform"
         },
         "PlatformName": "",
         "PlatformFamilyName": "",
