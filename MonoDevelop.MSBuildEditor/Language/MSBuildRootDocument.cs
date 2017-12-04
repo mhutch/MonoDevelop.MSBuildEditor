@@ -135,7 +135,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var doc = xmlParser.Nodes.GetRoot ();
 
-			import.Document = new MSBuildDocument (Filename, false);
+			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (
 				doc, textDoc, RuntimeInformation, propVals,
 				(imp, sdk, props) => ResolveImport (null, projectPath, import.Filename, imp, sdk, props, schemaProvider, token)
