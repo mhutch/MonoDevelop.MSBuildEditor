@@ -99,6 +99,15 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 				return -1;
 		}
 
+		int PeekChar (int ahead)
+		{
+			int offset = ahead + position;
+			if (offset < inputString.Length)
+				return inputString [offset];
+			else
+				return -1;
+		}
+
 		int ReadChar ()
 		{
 			if (position < inputString.Length)
@@ -239,9 +248,29 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			} else if (ch == '<' && PeekChar () == (int)'=') {
 				token = new Token ("<=", TokenType.LessOrEqual, tokenPosition);
 				ReadChar ();
+			} else if (ch == '&' && PeekChar () == 'l' && PeekChar (1) == 't' && PeekChar (2) == ';') {
+				ReadChar ();
+				ReadChar ();
+				ReadChar ();
+				if (PeekChar () == '=') {
+					token = new Token ("<=", TokenType.LessOrEqual, tokenPosition);
+					ReadChar ();
+				} else {
+					token = new Token ("<", TokenType.Less, tokenPosition);
+				}
 			} else if (ch == '>' && PeekChar () == (int)'=') {
 				token = new Token (">=", TokenType.GreaterOrEqual, tokenPosition);
 				ReadChar ();
+			} else if (ch == '&' && PeekChar () == 'g' && PeekChar (1) == 't' && PeekChar (2) == ';') {
+				ReadChar ();
+				ReadChar ();
+				ReadChar ();
+				if (PeekChar () == '=') {
+					token = new Token (">=", TokenType.GreaterOrEqual, tokenPosition);
+					ReadChar ();
+				} else {
+					token = new Token (">", TokenType.Greater, tokenPosition);
+				}
 			} else if (ch == '=' && PeekChar () == (int)'=') {
 				token = new Token ("==", TokenType.Equal, tokenPosition);
 				ReadChar ();
