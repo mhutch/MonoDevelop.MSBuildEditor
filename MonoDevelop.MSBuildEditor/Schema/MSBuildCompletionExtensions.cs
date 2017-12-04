@@ -193,7 +193,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public static string EvaluateExpressionAsPath (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
 		{
 			if (expression == null) {
-				return null;
+				return Path.GetDirectoryName (doc.Filename);
 			}
 
 			if (expression is ExpressionLiteral lit) {
