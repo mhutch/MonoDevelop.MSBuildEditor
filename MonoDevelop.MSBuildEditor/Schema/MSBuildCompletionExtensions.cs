@@ -281,7 +281,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				break;
 			case MSBuildReferenceKind.KnownValue:
-				return (ValueInfo)rr.Reference;
+				return (BaseInfo)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:
 				var fx = (FrameworkReference)rr.Reference;
 				return FrameworkInfoProvider.Instance.GetBestInfo (fx, doc.Frameworks);
