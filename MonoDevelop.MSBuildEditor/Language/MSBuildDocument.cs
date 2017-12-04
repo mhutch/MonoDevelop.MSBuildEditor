@@ -10,7 +10,6 @@ using MonoDevelop.Core;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
-using MonoDevelop.Projects;
 using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
 
@@ -27,6 +26,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
+		public List<TaskDefinition> TaskDefinitions { get; } = new List<TaskDefinition> ();
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<Error> Errors { get; }
 		public bool IsToplevel { get; }

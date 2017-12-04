@@ -39,6 +39,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildKind.Property:
 				CollectProperty (element.Name.Name);
 				break;
+			case MSBuildKind.UsingTask:
+				CollectTaskDefinition (element);
+				break;
 			case MSBuildKind.Task:
 				CollectTask (element.Name.Name);
 				break;
@@ -208,6 +211,32 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (!task.Parameters.ContainsKey (parameterName)) {
 				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null));
 			}
+		}
+
+		void CollectTaskDefinition (XElement element)
+		{
+			string taskName = null, assemblyFile = null, assemblyName = null;
+			foreach (var att in element.Attributes) {
+				if (att.NameEquals ("TaskName", true)) {
+					taskName = att.Value;
+				} else if (att.NameEquals ("AssemblyFile", true)) {
+					assemblyFile = att.Value;
+				} else if (att.NameEquals ("AssemblyName", true)) {
+					assemblyName = att.Value;
+				}
+			}
+
+			if (taskName == null) {
+				return;
+			}
+
+			int nameIdx = taskName.LastIndexOf ('.');
+			string name = taskName.Substring (nameIdx + 1);
+			if (string.IsNullOrEmpty (name)) {
+				return;
+			}
+
+			Document.TaskDefinitions.Add (new TaskDefinition (name, taskName, assemblyName, assemblyFile, Filename, element.Region.Begin));
 		}
 
 		void ExtractConfigurations (string value, int startOffset)

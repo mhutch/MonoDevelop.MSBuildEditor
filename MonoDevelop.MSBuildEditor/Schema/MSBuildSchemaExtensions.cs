@@ -91,7 +91,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		static IEnumerable<TaskInfo> GetAllTaskDefinitions (this IEnumerable<IMSBuildSchema> schemas, string taskName)
+		static IEnumerable<TaskInfo> GetAllTaskVariants (this IEnumerable<IMSBuildSchema> schemas, string taskName)
 		{
 			foreach (var schema in schemas) {
 				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
@@ -102,13 +102,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static TaskInfo GetTask (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
-			return schemas.GetAllTaskDefinitions (name).FirstOrDefault ();
+			return schemas.GetAllTaskVariants (name).FirstOrDefault ();
 		}
 
 		public static IEnumerable<TaskParameterInfo> GetTaskParameters (this IEnumerable<IMSBuildSchema> schemas, string taskName)
 		{
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
-			foreach (var task in schemas.GetAllTaskDefinitions (taskName)) {
+			foreach (var task in schemas.GetAllTaskVariants (taskName)) {
 				foreach (var parameter in task.Parameters) {
 					if (names.Add (parameter.Key)) {
 						yield return parameter.Value;
@@ -117,10 +117,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		public static IEnumerable<TaskParameterInfo> GetAllTaskParameterDefinitions (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
+		public static IEnumerable<TaskParameterInfo> GetAllTaskParameterVariants (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
 		{
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
-			foreach (var task in schemas.GetAllTaskDefinitions (taskName)) {
+			foreach (var task in schemas.GetAllTaskVariants (taskName)) {
 				if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo parameter)) {
 					yield return parameter;
 				}
@@ -129,7 +129,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static TaskParameterInfo GetTaskParameter (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
 		{
-			return schemas.GetAllTaskParameterDefinitions (taskName, parameterName).FirstOrDefault ();
+			return schemas.GetAllTaskParameterVariants (taskName, parameterName).FirstOrDefault ();
 		}
 
 		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeBuiltins)
@@ -150,7 +150,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		public static IEnumerable<PropertyInfo> GetAllPropertyDefinitions (this IEnumerable<IMSBuildSchema> schemas, string propertyName)
+		public static IEnumerable<PropertyInfo> GetAllPropertyVariants (this IEnumerable<IMSBuildSchema> schemas, string propertyName)
 		{
 			foreach (var schema in schemas) {
 				if (schema.Properties.TryGetValue (propertyName, out PropertyInfo property)) {
@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static PropertyInfo GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
-			return schemas.GetAllPropertyDefinitions (name).FirstOrDefault ();
+			return schemas.GetAllPropertyVariants (name).FirstOrDefault ();
 		}
 
 		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas)
@@ -176,7 +176,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		public static IEnumerable<TargetInfo> GetAllTargetDefinitions (this IEnumerable<IMSBuildSchema> schemas, string targetName)
+		public static IEnumerable<TargetInfo> GetAllTargetVariants (this IEnumerable<IMSBuildSchema> schemas, string targetName)
 		{
 			foreach (var schema in schemas) {
 				if (schema.Targets.TryGetValue (targetName, out TargetInfo target)) {
@@ -187,7 +187,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static TargetInfo GetTarget (this IEnumerable<IMSBuildSchema> schemas, string targetName)
 		{
-			return schemas.GetAllTargetDefinitions (targetName).FirstOrDefault ();
+			return schemas.GetAllTargetVariants (targetName).FirstOrDefault ();
 		}
 
 		public static ValueInfo GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildLanguageAttribute attribute, string elementName, string attributeName)
@@ -251,6 +251,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public static IEnumerable<string> GetPlatforms (this IEnumerable<IMSBuildSchema> schemas)
 		{
 			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Platforms).Distinct ();
+		}
+
+		public static IEnumerable<TaskDefinition> GetTaskDefinitions (this IEnumerable<IMSBuildSchema> schemas)
+		{
+			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.TaskDefinitions);
 		}
 	}
 }

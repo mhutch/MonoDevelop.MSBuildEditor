@@ -143,6 +143,7 @@
     <Compile Include="Language\MSBuildRootDocument.cs" />
     <Compile Include="Evaluation\Conditions\ConditionExpressionExtensions.cs" />
     <Compile Include="Evaluation\Conditions\IPropertyCollector.cs" />
+    <Compile Include="Schema\TaskDefinition.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
