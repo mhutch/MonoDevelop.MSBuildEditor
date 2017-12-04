@@ -17,6 +17,10 @@ namespace MonoDevelop.MSBuildEditor
 		//FIXME docs say this is called on background thread but not true
 		protected override Task<IEnumerable<MemberReference>> GetReferencesAsync (MSBuildResolveResult resolveResult, CancellationToken token)
 		{
+			if (resolveResult == null) {
+				return Task.FromResult (Enumerable.Empty<MemberReference> ());
+			}
+
 			var ext = Editor.GetContent<MSBuildTextEditorExtension> ();
 			var doc = ext.GetDocument ();
 			var collector = MSBuildReferenceCollector.Create (resolveResult);
@@ -52,7 +56,8 @@ namespace MonoDevelop.MSBuildEditor
 			//FIXME can we cache this? maybe make it async?
 			var rr = ext.ResolveCurrentLocation ();
 			if (rr == null) {
-				return null;
+				//FIXME: AbstractUsagesExtension doesn't like us returning null directly
+				return Task.FromResult<MSBuildResolveResult> (null);
 			}
 
 			switch (rr.ReferenceKind) {
@@ -66,7 +71,8 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildReferenceKind.Target:
 				return Task.FromResult (rr);
 			}
-			return null;
+
+			return Task.FromResult<MSBuildResolveResult> (null);
 		}
 	}
 }
