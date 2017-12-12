@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using MonoDevelop.Ide.Editor;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
-using System.Collections.Generic;
-using System;
-using System.Globalization;
 using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			switch (resolved.Kind) {
 			case MSBuildKind.Project:
-				if (!Filename.EndsWith (".props", System.StringComparison.OrdinalIgnoreCase)) {
+				if (!Filename.EndsWith (".props", StringComparison.OrdinalIgnoreCase)) {
 					ValidateProjectHasTarget (element);
 				}
 				break;
@@ -69,6 +69,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				break;
 			case MSBuildKind.Item:
 				ValidateItemAttributes (resolved, element);
+				break;
+			case MSBuildKind.Task:
+				ValidateTaskParameters (resolved, element);
 				break;
 			}
 
@@ -221,6 +224,51 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (!hasInclude && !hasRemove && !hasUpdate && !isInTarget) {
 				AddError (
 					$"Items outside of targets must have Include, Update or Remove attributes",
+					element.GetNameRegion ());
+			}
+		}
+
+		void ValidateTaskParameters (MSBuildLanguageElement resolvedElement, XElement element)
+		{
+			var info = Document.GetSchemas ().GetTask (element.Name.Name);
+			if (info.IsInferred) {
+				AddWarning ($"Task {element.Name.Name} is not defined", element.GetNameRegion ());
+				return;
+			}
+
+			var required = new HashSet<string> ();
+			foreach (var p in info.Parameters) {
+				if (p.Value.Usage == TaskParameterUsage.RequiredInput) {
+					required.Add (p.Key);
+				}
+			}
+
+			foreach (var att in element.Attributes) {
+				if (resolvedElement.GetAttribute (att.Name.Name) != null) {
+					continue;
+				}
+				if (!info.Parameters.TryGetValue (att.Name.Name, out TaskParameterInfo pi)) {
+					AddWarning ($"Unknown parameter {att.Name.Name}", att.GetNameRegion ());
+					continue;
+				}
+				if (pi.Usage == TaskParameterUsage.Output) {
+					AddWarning ($"Parameter {att.Name.Name} is an output parameter", att.GetNameRegion ());
+					continue;
+				}
+				if (pi.Usage == TaskParameterUsage.RequiredInput) {
+					required.Remove (pi.Name);
+					if (String.IsNullOrWhiteSpace (att.Value)) {
+						AddError ($"Required parameter has empty value", att.GetNameRegion ());
+					}
+				}
+			}
+
+			if (required.Count > 0) {
+				string missingAtts = string.Join (", ", required.OrderBy (s => s));
+				AddWarning (
+					required.Count == 1
+						? $"Task {element.Name.Name} is missing the following required attribute: {missingAtts}"
+						: $"Task {element.Name.Name} is missing the following required attributes: {missingAtts}",
 					element.GetNameRegion ());
 			}
 		}

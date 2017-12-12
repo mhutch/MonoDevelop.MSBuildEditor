@@ -292,7 +292,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin);
-			Document.Tasks [info.Name] = info;
+			if (info != null) {
+				Document.Tasks [info.Name] = info;
+			}
 		}
 
 		void ExtractConfigurations (string value, int startOffset)
