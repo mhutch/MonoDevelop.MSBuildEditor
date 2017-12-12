@@ -205,14 +205,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void CollectTask (string name)
 		{
 			if (!Document.Tasks.TryGetValue (name, out TaskInfo task)) {
-				Document.Tasks [name] = task = new TaskInfo (name, null);
+				Document.Tasks [name] = task = new TaskInfo (name, null, null, null, null, null, Ide.Editor.DocumentLocation.Empty);
 			}
 		}
 
 		void CollectTaskParameter (string taskName, string parameterName)
 		{
 			var task = Document.Tasks [taskName];
-			if (!task.Parameters.ContainsKey (parameterName)) {
+			if (task.IsInferred && !task.Parameters.ContainsKey (parameterName)) {
 				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, TaskParameterUsage.Unknown, MSBuildValueKind.Unknown));
 			}
 		}
@@ -291,9 +291,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename);
-
-			Document.TaskDefinitions.Add (new TaskDefinition (name, info, taskName, assemblyName, assemblyFile, Filename, element.Region.Begin));
+			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin);
+			Document.Tasks [info.Name] = info;
 		}
 
 		void ExtractConfigurations (string value, int startOffset)

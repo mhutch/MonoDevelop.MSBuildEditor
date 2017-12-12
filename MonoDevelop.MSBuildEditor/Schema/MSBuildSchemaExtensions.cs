@@ -95,18 +95,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			//definitions take precedence over inference
 			foreach (var schema in schemas) {
-				if (schema is MSBuildDocument doc) {
-					foreach (var def in doc.TaskDefinitions) {
-						if (string.Equals (def.TaskName, taskName, StringComparison.OrdinalIgnoreCase) && def.Info != null) {
-							yield return def.Info;
-						}
+				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
+					if (!task.IsInferred) {
+						yield return task;
 					}
 				}
 			}
 
 			foreach (var schema in schemas) {
 				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
-					yield return task;
+					if (task.IsInferred) {
+						yield return task;
+					}
 				}
 			}
 		}
@@ -262,11 +262,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public static IEnumerable<string> GetPlatforms (this IEnumerable<IMSBuildSchema> schemas)
 		{
 			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Platforms).Distinct ();
-		}
-
-		public static IEnumerable<TaskDefinition> GetTaskDefinitions (this IEnumerable<IMSBuildSchema> schemas)
-		{
-			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.TaskDefinitions);
 		}
 	}
 }

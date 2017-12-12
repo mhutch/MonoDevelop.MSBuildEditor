@@ -39,9 +39,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, Compilation)?> resolvedAssemblies
 			= new Dictionary<(string, string, string), (string, Compilation)?> ();
 
-		Dictionary<TaskDefinition, TaskInfo> taskInfos = new Dictionary<TaskDefinition, TaskInfo> (new TaskDefinitionKeyComparer ());
-
-		public TaskInfo CreateTaskInfo (string typeName, string assemblyName, string assemblyFile, string declaredInFile)
+		public TaskInfo CreateTaskInfo (
+			string typeName, string assemblyName, string assemblyFile,
+			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation)
 		{
 			var file = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile);
 			if (file == null) {
@@ -54,14 +54,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			return TaskInfoFromType (type);
+			var desc = type.GetDocumentationCommentXml ();
+
+			var ti = new TaskInfo (type.Name, desc, GetFullName (type), assemblyName, assemblyFile, declaredInFile, declaredAtLocation);
+			PopulateTaskInfoFromType (ti, type);
+			return ti;
 		}
 
-		static TaskInfo TaskInfoFromType (INamedTypeSymbol type)
+		static void PopulateTaskInfoFromType (TaskInfo ti, INamedTypeSymbol type)
 		{
-			var desc = type.GetDocumentationCommentXml ();
-			var ti = new TaskInfo (type.Name, desc);
-
 			foreach (var member in type.GetMembers ()) {
 				if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
@@ -116,24 +117,21 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					kind = kind.List ();
 				}
 
-				//type: primitive, itaskitem, string, array of above
 				ti.Parameters.Add (prop.Name, new TaskParameterInfo (prop.Name, propDesc, usage, kind));
-			}
+			};
+		}
 
-			return ti;
-
-			string GetFullName (ITypeSymbol symbol)
-			{
-				var sb = new System.Text.StringBuilder ();
-				var ns = symbol.ContainingNamespace;
-				while (ns != null && !string.IsNullOrEmpty (ns.Name)) {
-					sb.Insert (0, '.');
-					sb.Insert (0, ns.Name);
-					ns = ns.ContainingNamespace;
-				}
-				sb.Append (symbol.Name);
-				return sb.ToString ();
+		static string GetFullName (ITypeSymbol symbol)
+		{
+			var sb = new System.Text.StringBuilder ();
+			var ns = symbol.ContainingNamespace;
+			while (ns != null && !string.IsNullOrEmpty (ns.Name)) {
+				sb.Insert (0, '.');
+				sb.Insert (0, ns.Name);
+				ns = ns.ContainingNamespace;
 			}
+			sb.Append (symbol.Name);
+			return sb.ToString ();
 		}
 
 		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
@@ -178,24 +176,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				var result = (path, compilation);
 				resolvedAssemblies [key] = result;
 				return result;
-			}
-		}
-
-		class TaskDefinitionKeyComparer : IEqualityComparer<TaskDefinition>
-		{
-			public bool Equals (TaskDefinition x, TaskDefinition y)
-			{
-				return
-					x.TypeName == y.TypeName
-					 && x.AssemblyName == y.AssemblyName
-					 && x.AssemblyFile == y.AssemblyFile;
-			}
-
-			public int GetHashCode (TaskDefinition obj)
-			{
-				return obj.TypeName.GetHashCode ()
-						  ^ (obj.AssemblyFile?.GetHashCode () ?? 0)
-						  ^ (obj.AssemblyName?.GetHashCode () ?? 0);
 			}
 		}
 	}

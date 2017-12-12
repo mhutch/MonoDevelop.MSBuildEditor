@@ -99,7 +99,6 @@
     <Compile Include="Language\XmlExtensions.cs" />
     <Compile Include="Schema\BaseInfo.cs" />
     <Compile Include="Schema\PropertyInfo.cs" />
-    <Compile Include="Schema\TaskInfo.cs" />
     <Compile Include="Schema\ItemInfo.cs" />
     <Compile Include="Schema\Builtins.cs" />
     <Compile Include="Schema\MetadataInfo.cs" />
@@ -144,8 +143,8 @@
     <Compile Include="Language\MSBuildRootDocument.cs" />
     <Compile Include="Evaluation\Conditions\ConditionExpressionExtensions.cs" />
     <Compile Include="Evaluation\Conditions\IPropertyCollector.cs" />
-    <Compile Include="Schema\TaskDefinition.cs" />
     <Compile Include="Schema\TaskMetadataBuilder.cs" />
+    <Compile Include="Schema\TaskInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
