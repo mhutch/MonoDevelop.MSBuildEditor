@@ -15,15 +15,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 		readonly bool isToplevel;
 		readonly IRuntimeInformation runtime;
 		readonly PropertyValueCollector propertyValues;
+		readonly TaskMetadataBuilder taskMetadataBuilder;
 		readonly ImportResolver resolveImport;
 
 		public MSBuildSchemaBuilder (
 			bool isToplevel, IRuntimeInformation runtime,
-			PropertyValueCollector propertyValues, ImportResolver resolveImport)
+			PropertyValueCollector propertyValues,
+			TaskMetadataBuilder taskBuilder,
+			ImportResolver resolveImport)
 		{
 			this.isToplevel = isToplevel;
 			this.runtime = runtime;
 			this.propertyValues = propertyValues;
+			this.taskMetadataBuilder = taskBuilder;
 			this.resolveImport = resolveImport;
 		}
 
@@ -52,7 +56,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case MSBuildKind.Parameter:
-				CollectTaskParameter (element.ParentElement ().Name.Name, element.Name.Name);
+				CollectTaskParameterDefinition (element.ParentElement ().Name.Name, element);
 				break;
 			case MSBuildKind.Metadata:
 				CollectMetadata (element.ParentElement ().Name.Name, element.Name.Name);
@@ -100,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (import != null) {
 				bool wasResolved = false;
 				var loc = isToplevel ? importAtt.GetValueRegion (TextDocument) : importAtt.Region;
-				foreach (var resolvedImport in resolveImport (import, null, propertyValues)) {
+				foreach (var resolvedImport in resolveImport (import, null)) {
 					Document.Imports [resolvedImport.Filename] = resolvedImport;
 					wasResolved |= resolvedImport.IsResolved;
 					if (isToplevel) {
@@ -209,8 +213,59 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			var task = Document.Tasks [taskName];
 			if (!task.Parameters.ContainsKey (parameterName)) {
-				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null));
+				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, TaskParameterUsage.Unknown, MSBuildValueKind.Unknown));
 			}
+		}
+
+		void CollectTaskParameterDefinition (string taskName, XElement def)
+		{
+			var task = Document.Tasks [taskName];
+			var parameterName = def.Name.Name;
+			if (task.Parameters.ContainsKey (parameterName)) {
+				return;
+			}
+
+			var usage = TaskParameterUsage.Unknown;
+			if (def.Attributes.IsTrue ("Required")) {
+				usage = TaskParameterUsage.RequiredInput;
+			} else if (def.Attributes.IsTrue ("Output")) {
+				usage = TaskParameterUsage.Output;
+			}
+
+			var kind = MSBuildValueKind.Unknown;
+			bool isList = false;
+
+			var type = def.Attributes.Get (new XName ("ParameterType"), true)?.Value;
+			if (type != null) {
+				if (type.EndsWith ("[]", StringComparison.Ordinal)) {
+					type = type.Substring (type.Length - 2);
+					isList = true;
+				}
+
+				switch (type.ToLowerInvariant ()) {
+				case "system.int32":
+				case "system.uint32":
+				case "system.int64":
+				case "system.uint64":
+					kind = MSBuildValueKind.Int;
+					break;
+				case "system.boolean":
+					kind = MSBuildValueKind.Bool;
+					break;
+				case "system.string":
+					kind = MSBuildValueKind.String;
+					break;
+				case "microsoft.build.framework.itaskitem":
+					kind = MSBuildValueKind.UnknownItem;
+					break;
+				}
+			}
+
+			if (isList) {
+				kind = kind.List ();
+			}
+
+			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, usage, kind));
 		}
 
 		void CollectTaskDefinition (XElement element)
@@ -236,7 +291,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			Document.TaskDefinitions.Add (new TaskDefinition (name, taskName, assemblyName, assemblyFile, Filename, element.Region.Begin));
+			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename);
+
+			Document.TaskDefinitions.Add (new TaskDefinition (name, info, taskName, assemblyName, assemblyFile, Filename, element.Region.Begin));
 		}
 
 		void ExtractConfigurations (string value, int startOffset)

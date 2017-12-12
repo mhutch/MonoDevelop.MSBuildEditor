@@ -82,6 +82,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		Extension,
 		Filename,
 
+		//we know it's an item but we don't know what kind
+		UnknownItem,
+
 		NuGetID,
 		NuGetVersion,
 

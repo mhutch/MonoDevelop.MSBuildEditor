@@ -93,6 +93,17 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		static IEnumerable<TaskInfo> GetAllTaskVariants (this IEnumerable<IMSBuildSchema> schemas, string taskName)
 		{
+			//definitions take precedence over inference
+			foreach (var schema in schemas) {
+				if (schema is MSBuildDocument doc) {
+					foreach (var def in doc.TaskDefinitions) {
+						if (string.Equals (def.TaskName, taskName, StringComparison.OrdinalIgnoreCase) && def.Info != null) {
+							yield return def.Info;
+						}
+					}
+				}
+			}
+
 			foreach (var schema in schemas) {
 				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
 					yield return task;
@@ -231,7 +242,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					if (omitEmpty) {
 						return null;
 					}
-					return new TaskParameterInfo (elementName, null);
+					return new TaskParameterInfo (elementName, null, TaskParameterUsage.Unknown, MSBuildValueKind.Unknown);
 				default:
 					throw new InvalidOperationException ($"Unsupported abstract element kind {element.Kind}");
 				}

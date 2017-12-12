@@ -43,14 +43,14 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			return (string)getPropMeth.Invoke (wrapped, new [] { name });
 		}
 
-		public static MSBuildEvaluationContext Create (MSBuildToolsVersion toolsVersion, IRuntimeInformation runtime, string projectPath, string thisFilePath)
+		public static MSBuildEvaluationContext Create (IRuntimeInformation runtime, string projectPath, string thisFilePath)
 		{
 			// MSBuildEvaluationContext can only populate these properties from an MSBuildProject and we don't have one
 			// OTOH this isn't a full evaluation anyway. Just set up a bunch of properties commonly used for imports.
 			// TODO: add more commonly used properties
 			var ctx = new MSBuildEvaluationContext ();
 
-			string tvString = toolsVersion.ToVersionString ();
+			string tvString = MSBuildToolsVersion.Unknown.ToVersionString ();
 			string binPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetBinPath ());
 			string toolsPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetToolsPath ());
 			var extPaths = runtime.GetExtensionsPaths ();

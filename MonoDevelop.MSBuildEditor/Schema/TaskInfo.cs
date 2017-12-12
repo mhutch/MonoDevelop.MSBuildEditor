@@ -19,8 +19,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 	class TaskParameterInfo : ValueInfo
 	{
-		public TaskParameterInfo (string name, string description) : base (name, description)
+		public TaskParameterUsage Usage { get; }
+
+		public TaskParameterInfo (string name, string description, TaskParameterUsage usage, MSBuildValueKind kind) : base (name, description, kind)
 		{
+			Usage = usage;
 		}
+	}
+
+	enum TaskParameterUsage
+	{
+		Unknown,
+		Input,
+		RequiredInput,
+		Output
 	}
 }

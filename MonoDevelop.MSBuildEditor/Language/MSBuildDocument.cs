@@ -15,7 +15,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	delegate IEnumerable<Import> ImportResolver (string import, string sdk, PropertyValueCollector propertyVals);
+	delegate IEnumerable<Import> ImportResolver (string import, string sdk);
 
 	class MSBuildDocument : IMSBuildSchema, IPropertyCollector
 	{
@@ -50,6 +50,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public void Build (
 			XDocument doc, ITextDocument textDocument,
 			IRuntimeInformation runtime, PropertyValueCollector propVals,
+			TaskMetadataBuilder taskBuilder,
 			ImportResolver resolveImport)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
@@ -66,7 +67,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			AddSdkProps (sdks, propVals, resolveImport);
 
-			var resolver = new MSBuildSchemaBuilder (IsToplevel, runtime, propVals, resolveImport);
+			var resolver = new MSBuildSchemaBuilder (IsToplevel, runtime, propVals, taskBuilder, resolveImport);
 			resolver.Run (doc, Filename, textDocument, this);
 
 			AddSdkTargets (sdks, propVals, resolveImport);
@@ -180,7 +181,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var sdk in sdkPaths) {
 				var propsPath = $"{sdk.path}\\Sdk.props";
-				var sdkProps = resolveImport (propsPath, sdk.id, propVals).FirstOrDefault ();
+				var sdkProps = resolveImport (propsPath, sdk.id).FirstOrDefault ();
 				if (sdkProps != null) {
 					Imports.Add (sdkProps.Filename, sdkProps);
 				}
@@ -191,7 +192,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var sdk in sdkPaths) {
 				var targetsPath = $"{sdk.path}\\Sdk.targets";
-				var sdkTargets = resolveImport (targetsPath, sdk.id, propVals).FirstOrDefault ();
+				var sdkTargets = resolveImport (targetsPath, sdk.id).FirstOrDefault ();
 				if (sdkTargets != null) {
 					Imports.Add (sdkTargets.Filename, sdkTargets);
 				}

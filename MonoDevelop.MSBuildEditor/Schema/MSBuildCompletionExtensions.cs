@@ -223,9 +223,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
-			var evalCtx = MSBuildEvaluationContext.Create (
-				doc.ToolsVersion, doc.RuntimeInformation, doc.Filename, doc.Filename
-			);
+			var evalCtx = MSBuildEvaluationContext.Create (doc.RuntimeInformation, doc.Filename, doc.Filename);
 			return evalCtx.EvaluatePath (sb.ToString (), Path.GetDirectoryName (doc.Filename));
 		}
 
@@ -332,6 +330,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				case "Update":
 					return MSBuildValueKind.File.List ();
 				}
+			}
+
+			//assume known items are files
+			if (variable.ValueKind == MSBuildValueKind.UnknownItem) {
+				return MSBuildValueKind.File;
+			}
+
+			if (variable.ValueKind == MSBuildValueKind.UnknownItem.List ()) {
+				return MSBuildValueKind.File.List ();
 			}
 
 			bool isProperty = variable is PropertyInfo;

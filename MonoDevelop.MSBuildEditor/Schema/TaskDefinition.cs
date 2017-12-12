@@ -7,7 +7,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class TaskDefinition
 	{
-		public TaskDefinition (string taskName, string typeName, string assemblyName, string assemblyFile, string declaredInFile, DocumentLocation declaredAtLocation)
+		public TaskDefinition (string taskName, TaskInfo info, string typeName, string assemblyName, string assemblyFile, string declaredInFile, DocumentLocation declaredAtLocation)
 		{
 			TaskName = taskName;
 			TypeName = typeName;
@@ -15,6 +15,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			AssemblyFile = assemblyFile;
 			DeclaredInFile = declaredInFile;
 			DeclaredAtLocation = declaredAtLocation;
+			Info = info;
 		}
 
 		public string TaskName { get; }
@@ -24,5 +25,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		
 		public string DeclaredInFile { get; }
 		public DocumentLocation DeclaredAtLocation { get; }
+
+		public TaskInfo Info { get; }
 	}
 }

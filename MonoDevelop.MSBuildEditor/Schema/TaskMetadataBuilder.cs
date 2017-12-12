@@ -1,0 +1,202 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using MonoDevelop.Core;
+using MonoDevelop.MSBuildEditor.Evaluation;
+using MonoDevelop.MSBuildEditor.Language;
+using BF = System.Reflection.BindingFlags;
+
+namespace MonoDevelop.MSBuildEditor.Schema
+{
+	class TaskMetadataBuilder
+	{
+		object metadataService;
+		MethodInfo getReferenceMethod;
+		string binPath;
+		MSBuildRootDocument rootDoc;
+
+		public TaskMetadataBuilder (MSBuildRootDocument rootDoc)
+		{
+			this.rootDoc = rootDoc;
+			binPath = rootDoc.RuntimeInformation.GetBinPath ();
+
+			var metadataServiceType = typeof (Workspace).Assembly.GetType ("Microsoft.CodeAnalysis.Host.IMetadataService");
+			getReferenceMethod = metadataServiceType.GetMethod ("GetReference", BF.Instance | BF.NonPublic | BF.Public);
+			var services = Ide.TypeSystem.TypeSystemService.Workspace.Services;
+			var getServiceMeth = services.GetType ().GetMethod ("GetService", BF.Instance | BF.NonPublic | BF.Public);
+			getServiceMeth = getServiceMeth.MakeGenericMethod (metadataServiceType);
+			metadataService = getServiceMeth.Invoke (services, null);
+		}
+
+		PortableExecutableReference GetReference (string resolvedPath, MetadataReferenceProperties properties = default)
+			=> (PortableExecutableReference)getReferenceMethod.Invoke (metadataService, new object [] { resolvedPath, properties });
+
+		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, Compilation)?> resolvedAssemblies
+			= new Dictionary<(string, string, string), (string, Compilation)?> ();
+
+		Dictionary<TaskDefinition, TaskInfo> taskInfos = new Dictionary<TaskDefinition, TaskInfo> (new TaskDefinitionKeyComparer ());
+
+		public TaskInfo CreateTaskInfo (string typeName, string assemblyName, string assemblyFile, string declaredInFile)
+		{
+			var file = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile);
+			if (file == null) {
+				return null;
+			}
+
+			var type = file.Value.compilation.GetTypeByMetadataName (typeName);
+			if (type == null) {
+				LoggingService.LogWarning ($"Did not resolve {typeName}");
+				return null;
+			}
+
+			return TaskInfoFromType (type);
+		}
+
+		static TaskInfo TaskInfoFromType (INamedTypeSymbol type)
+		{
+			var desc = type.GetDocumentationCommentXml ();
+			var ti = new TaskInfo (type.Name, desc);
+
+			foreach (var member in type.GetMembers ()) {
+				if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+					continue;
+				}
+
+				var propDesc = member.GetDocumentationCommentXml ();
+				var usage = TaskParameterUsage.Input;
+				foreach (var att in member.GetAttributes ()) {
+					switch (GetFullName (att.AttributeClass)) {
+					case "Microsoft.Build.Framework.OutputAttribute":
+						usage = TaskParameterUsage.Output;
+						break;
+					case "Microsoft.Build.Framework.RequiredAttribute":
+						usage = TaskParameterUsage.RequiredInput;
+						break;
+					}
+				}
+
+				var kind = MSBuildValueKind.Unknown;
+				ITypeSymbol propType = prop.Type;
+				bool isList = false;
+				if (propType is IArrayTypeSymbol arr) {
+					isList = true;
+					propType = arr.ElementType;
+				}
+
+				string fullTypeName = GetFullName (propType);
+
+				switch (fullTypeName) {
+				case "System.String":
+					kind = MSBuildValueKind.String;
+					break;
+				case "System.Boolean":
+					kind = MSBuildValueKind.Bool;
+					break;
+				case "System.Int32":
+				case "System.UInt32":
+				case "System.Int62":
+				case "System.UInt64":
+					kind = MSBuildValueKind.Int;
+					break;
+				case "Microsoft.Build.Framework.ITaskItem":
+					kind = MSBuildValueKind.UnknownItem;
+					break;
+				}
+
+				if (kind == MSBuildValueKind.Unknown) {
+					LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter {GetFullName (type)}'");
+				}
+
+				if (isList) {
+					kind = kind.List ();
+				}
+
+				//type: primitive, itaskitem, string, array of above
+				ti.Parameters.Add (prop.Name, new TaskParameterInfo (prop.Name, propDesc, usage, kind));
+			}
+
+			return ti;
+
+			string GetFullName (ITypeSymbol symbol)
+			{
+				var sb = new System.Text.StringBuilder ();
+				var ns = symbol.ContainingNamespace;
+				while (ns != null && !string.IsNullOrEmpty (ns.Name)) {
+					sb.Insert (0, '.');
+					sb.Insert (0, ns.Name);
+					ns = ns.ContainingNamespace;
+				}
+				sb.Append (symbol.Name);
+				return sb.ToString ();
+			}
+		}
+
+		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
+		{
+			var key = (assemblyName?.ToLowerInvariant (), assemblyFile?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
+			if (resolvedAssemblies.TryGetValue (key, out (string, Compilation)? r)) {
+				return r;
+			}
+
+			if (!string.IsNullOrEmpty (assemblyName)) {
+				var name = new AssemblyName (assemblyName);
+				string path = Path.Combine (binPath, $"{name.Name}.dll");
+				if (!File.Exists (path)) {
+					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyName}'");
+					resolvedAssemblies [key] = null;
+					return null;
+				}
+				return CreateResult (path);
+			}
+
+			if (!string.IsNullOrEmpty (assemblyFile)) {
+				string path;
+				if (assemblyFile.IndexOf ('$') < 0) {
+					path = Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (declaredInFile), assemblyFile);
+				} else {
+					var evalCtx = MSBuildEvaluationContext.Create (rootDoc.RuntimeInformation, rootDoc.Filename, declaredInFile);
+					path = evalCtx.EvaluatePath (assemblyFile, Path.GetDirectoryName (declaredInFile));
+				}
+				if (!File.Exists (path)) {
+					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
+					resolvedAssemblies [key] = null;
+					return null;
+				}
+				return CreateResult (path);
+			}
+
+			return null;
+
+			(string, Compilation) CreateResult (string path)
+			{
+				var compilation = CSharpCompilation.Create ("TaskResolver", references: new [] { GetReference (path) });
+				var result = (path, compilation);
+				resolvedAssemblies [key] = result;
+				return result;
+			}
+		}
+
+		class TaskDefinitionKeyComparer : IEqualityComparer<TaskDefinition>
+		{
+			public bool Equals (TaskDefinition x, TaskDefinition y)
+			{
+				return
+					x.TypeName == y.TypeName
+					 && x.AssemblyName == y.AssemblyName
+					 && x.AssemblyFile == y.AssemblyFile;
+			}
+
+			public int GetHashCode (TaskDefinition obj)
+			{
+				return obj.TypeName.GetHashCode ()
+						  ^ (obj.AssemblyFile?.GetHashCode () ?? 0)
+						  ^ (obj.AssemblyName?.GetHashCode () ?? 0);
+			}
+		}
+	}
+}

@@ -74,17 +74,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			importedFiles.Add (filename);
 
+			var taskBuilder = new TaskMetadataBuilder (doc);
+
 			doc.Build (
-				xdocument, textDoc, runtimeInfo, propVals,
-				(imp, sdk, props) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, props, schemaProvider, token)
+				xdocument, textDoc, runtimeInfo, propVals, taskBuilder,
+				(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
 			);
 
 			var binpath = doc.RuntimeInformation.GetBinPath ();
 			foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
-				doc.LoadTasks (importedFiles, previous, t, propVals, schemaProvider, token);
+				doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
 			}
 			foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
-				doc.LoadTasks (importedFiles, previous, t, propVals, schemaProvider, token);
+				doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
 			}
 
 			doc.Errors.AddRange (xmlParser.Errors);
@@ -112,17 +114,23 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return doc;
 		}
 
-		void LoadTasks (HashSet<string> importedFiles, MSBuildDocument previous, string filename, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		void LoadTasks (
+			HashSet<string> importedFiles, MSBuildDocument previous, string filename,
+			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			CancellationToken token)
 		{
 			try {
-				var import = GetCachedOrParse (importedFiles, previous, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, schemaProvider, token);
+				var import = GetCachedOrParse (importedFiles, previous, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, taskBuilder, schemaProvider, token);
 				Imports.Add (filename, import);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
 			}
 		}
 
-		Import ParseImport (HashSet<string> importedFiles, Import import, string projectPath, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		Import ParseImport (
+			HashSet<string> importedFiles, Import import, string projectPath,
+			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			CancellationToken token)
 		{
 			token.ThrowIfCancellationRequested ();
 
@@ -140,8 +148,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (
-				doc, textDoc, RuntimeInformation, propVals,
-				(imp, sdk, props) => ResolveImport (importedFiles, null, projectPath, import.Filename, imp, sdk, props, schemaProvider, token)
+				doc, textDoc, RuntimeInformation, propVals, taskBuilder,
+				(imp, sdk) => ResolveImport (importedFiles, null, projectPath, import.Filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
 			);
 
 			import.Document.Schema = schemaProvider.GetSchema (import.Filename, import.Sdk);
@@ -149,12 +157,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return import;
 		}
 
-		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			//TODO: re-use these contexts instead of recreating them
-			var importEvalCtx = MSBuildEvaluationContext.Create (
-				ToolsVersion, RuntimeInformation, projectPath, thisFilePath
-			);
+			var importEvalCtx = MSBuildEvaluationContext.Create (RuntimeInformation, projectPath, thisFilePath);
 
 			bool foundAny = false;
 
@@ -203,7 +209,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					foreach (var f in files) {
 						Import wildImport;
 						try {
-							wildImport = GetCachedOrParse (importedFiles, oldDoc, f, sdk, File.GetLastWriteTimeUtc (f), projectPath, propVals, schemaProvider, token);
+							wildImport = GetCachedOrParse (importedFiles, oldDoc, f, sdk, File.GetLastWriteTimeUtc (f), projectPath, propVals, taskBuilder, schemaProvider, token);
 						} catch (Exception ex) {
 							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
 							continue;
@@ -224,7 +230,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importedFiles, oldDoc, filename, sdk, fi.LastWriteTimeUtc, projectPath, propVals, schemaProvider, token);
+					import = GetCachedOrParse (importedFiles, oldDoc, filename, sdk, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
 				} catch (Exception ex) {
 					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
@@ -243,14 +249,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		Import GetCachedOrParse (HashSet<string> importedFiles, MSBuildDocument oldDoc, string filename, string sdk, DateTime mtimeUtc, string projectPath, PropertyValueCollector propVals, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		Import GetCachedOrParse (
+			HashSet<string> importedFiles, MSBuildDocument oldDoc, string filename, string sdk, DateTime mtimeUtc, string projectPath,
+			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			CancellationToken token)
 		{
 			if (oldDoc != null && oldDoc.Imports.TryGetValue (filename, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
 				//TODO: check mtimes of descendent imports too
 				return oldImport;
 			} else {
 				//TODO: guard against cyclic imports
-				return ParseImport (importedFiles, new Import (filename, sdk, mtimeUtc), projectPath, propVals, schemaProvider, token);
+				return ParseImport (importedFiles, new Import (filename, sdk, mtimeUtc), projectPath, propVals, taskBuilder, schemaProvider, token);
 			}
 		}
 

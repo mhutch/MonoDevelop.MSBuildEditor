@@ -77,6 +77,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
 * trim whitespace on literals in expressions
 * trigger intellisense on |, indexed against | separated comparands
-
-* Task parameters from assembly metadata
 * support property functions, item functions in new expression parser

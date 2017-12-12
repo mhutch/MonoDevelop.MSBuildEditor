@@ -110,5 +110,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 			return node;
 		}
+
+		public static bool IsTrue (this XAttributeCollection attributes, string name)
+		{
+			var att = attributes.Get (new XName (name), true);
+			return att != null && string.Equals (att.Value, "true", StringComparison.OrdinalIgnoreCase);
+		}
 	}
 }
