@@ -9,25 +9,21 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	static class ValueKindExtensions
 	{
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static MSBuildValueKind GetScalarType (this MSBuildValueKind value)
 		{
 			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal);
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool AllowExpressions (this MSBuildValueKind value)
 		{
 			return (value & MSBuildValueKind.Literal) == 0;
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool AllowLists (this MSBuildValueKind value)
 		{
 			return (value & MSBuildValueKind.List) != 0 || value == MSBuildValueKind.Unknown;
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool AllowListsOrCommaLists (this MSBuildValueKind value)
 		{
 			return (value & MSBuildValueKind.List) != 0
@@ -35,19 +31,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				|| value == MSBuildValueKind.Unknown;
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static bool AllowCommaLists (this MSBuildValueKind value)
 		{
 			return (value & MSBuildValueKind.CommaList) != 0 || value == MSBuildValueKind.Unknown;
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static MSBuildValueKind List (this MSBuildValueKind value)
 		{
 			return value | MSBuildValueKind.List;
 		}
 
-		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		public static MSBuildValueKind Literal (this MSBuildValueKind value)
 		{
 			return value | MSBuildValueKind.Literal;

@@ -57,7 +57,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Completion for metadata and property functions in expressions
 * Implement completion for more item and value types
 * Completion of inline C#
-* show type and default value of property/metadata/items in tooltips
+* show default value of property/metadata/items in tooltips
 * error when assigning values to reserved properties and metadata
 * parameter info tooltip when completing values
 * go to package page command on nugets
@@ -66,7 +66,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * property comparand validation
 * validate metadata refs are valid in context
 * use new expression parser for triggering intellisense
-* avoid importing the same targets file more than once,
   for example when multivalued language imports cause
   multiple imports of common targets
 * project kind completion
@@ -78,3 +77,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * trim whitespace on literals in expressions
 * trigger intellisense on |, indexed against | separated comparands
 * support property functions, item functions in new expression parser
+* validate property/items types passed to/from task parameters

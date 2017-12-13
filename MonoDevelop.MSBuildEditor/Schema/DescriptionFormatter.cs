@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
@@ -75,14 +76,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case ItemInfo item:
 				return ("item", info.Name);
 			case PropertyInfo prop:
-				return (prop.Reserved? "reserved property" : "property", info.Name);
+				return ("property", info.Name);
 			case TargetInfo prop:
 				return ("target", info.Name);
 			case MetadataInfo meta:
-				return (
-					meta.Reserved ? "reserved metadata" : "metadata",
-					meta.Item != null ? $"{meta.Item.Name}.{info.Name}" : info.Name
-				);
+				return ( "metadata", meta.Item != null ? $"{meta.Item.Name}.{info.Name}" : info.Name);
 			case TaskInfo task:
 				return ("task", info.Name);
 			case ConstantInfo value:
@@ -95,6 +93,155 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("parameter", tpi.Name);
 			}
 			return (null, null);
+
+		}
+
+		public static List<string> GetTypeDescription (this ValueInfo info)
+		{
+			var modifierList = new List<string> ();
+
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+
+			var kindName = FormatKind (info, kind);
+			if (kindName != null) {
+				modifierList.Add (kindName);
+				if (kind.AllowLists ()) {
+					modifierList.Add ("list");
+				} else if (kind.AllowCommaLists ()) {
+					modifierList.Add ("comma-list");
+				}
+				if (!kind.AllowExpressions ()) {
+					modifierList.Add ("literal");
+				}
+			}
+
+			if (info is PropertyInfo pi && pi.Reserved) {
+				modifierList.Add ("reserved");
+			}
+			if (info is MetadataInfo mi) {
+				if (mi.Reserved) {
+					modifierList.Add ("reserved");
+				}
+				if (mi.Required) {
+					modifierList.Add ("required");
+				}
+			}
+
+			if (info is TaskParameterInfo tpi) {
+				if (tpi.IsOutput) {
+					modifierList.Add ("output");
+				}
+				if (tpi.IsRequired) {
+					modifierList.Add ("required");
+				}
+			}
+
+			return modifierList;
+		}
+
+		static string FormatKind (ValueInfo info, MSBuildValueKind kind)
+		{
+			if (info.Values != null && info.Values.Count > 0) {
+				return "enum";
+			}
+			switch (kind.GetScalarType ()) {
+			case MSBuildValueKind.Bool:
+				return "bool";
+			case MSBuildValueKind.Int:
+				return "int";
+			case MSBuildValueKind.String:
+				return "string";
+			case MSBuildValueKind.Guid:
+				return "guid";
+			case MSBuildValueKind.Url:
+				return "url";
+			case MSBuildValueKind.Version:
+				return "version";
+			case MSBuildValueKind.SuffixedVersion:
+				return "version-suffixed";
+			case MSBuildValueKind.Lcid:
+				return "lcid";
+			case MSBuildValueKind.DateTime:
+				return "datetime";
+
+			case MSBuildValueKind.TargetName:
+				return "target-name";
+			case MSBuildValueKind.ItemName:
+				return "item-name";
+			case MSBuildValueKind.PropertyName:
+				return "property-name";
+			case MSBuildValueKind.MetadataName:
+				return "metadata-name";
+
+			case MSBuildValueKind.TaskName:
+				return "type-name";
+			case MSBuildValueKind.TaskAssemblyName:
+				return "assembly-name";
+			case MSBuildValueKind.TaskAssemblyFile:
+				return "file-path";
+			case MSBuildValueKind.TaskFactory:
+			case MSBuildValueKind.TaskArchitecture:
+			case MSBuildValueKind.TaskRuntime:
+				return "enum";
+			case MSBuildValueKind.TaskOutputParameterName:
+				return null;
+			case MSBuildValueKind.TaskParameterType:
+				return "type-name";
+			case MSBuildValueKind.Sdk:
+				return "sdk-id";
+			case MSBuildValueKind.SdkVersion:
+				return "sdk-version";
+			case MSBuildValueKind.SdkWithVersion:
+				return "sdk-id-version";
+			case MSBuildValueKind.Xmlns:
+			case MSBuildValueKind.Label:
+				return null;
+			case MSBuildValueKind.ToolsVersion:
+			case MSBuildValueKind.Importance:
+			case MSBuildValueKind.ContinueOnError:
+			case MSBuildValueKind.HostOS:
+			case MSBuildValueKind.HostRuntime:
+				return "enum";
+			case MSBuildValueKind.Configuration:
+				return "configuration";
+			case MSBuildValueKind.Platform:
+				return "platform";
+			case MSBuildValueKind.RuntimeID:
+				return "rid";
+			case MSBuildValueKind.TargetFramework:
+				return "framework";
+			case MSBuildValueKind.TargetFrameworkIdentifier:
+				return "framework-id";
+			case MSBuildValueKind.TargetFrameworkVersion:
+				return "framework-version";
+			case MSBuildValueKind.TargetFrameworkProfile:
+				return "framework-profile";
+			case MSBuildValueKind.TargetFrameworkMoniker:
+				return "framework-moniker";
+			case MSBuildValueKind.ProjectFile:
+				return "file-path";
+			case MSBuildValueKind.File:
+				return "file-path";
+			case MSBuildValueKind.Folder:
+				return "directory-path";
+			case MSBuildValueKind.FolderWithSlash:
+				return "directory-path-trailing-slash";
+			case MSBuildValueKind.FileOrFolder:
+				return "file-or-folder";
+			case MSBuildValueKind.Extension:
+				return "file-extension";
+			case MSBuildValueKind.Filename:
+				return "file-name";
+			case MSBuildValueKind.UnknownItem:
+				return "item";
+			case MSBuildValueKind.NuGetID:
+				return "nuget-id";
+			case MSBuildValueKind.NuGetVersion:
+				return "nuget-version";
+			case MSBuildValueKind.ProjectKindGuid:
+				return "flavor-guid";
+			}
+			return null;
 		}
 
 		public static string GetTitleCaseKindName (this ValueInfo info)

@@ -51,7 +51,14 @@ namespace MonoDevelop.MSBuildEditor
 			if (label.kind == null) {
 				return null;
 			}
-			return $"{label.kind} <span foreground=\"{color}\">{Escape (label.name)}</span>";
+			string modifiers = null;
+			if (info is ValueInfo vi) {
+				var tdesc = vi.GetTypeDescription ();
+				if (tdesc.Count > 0) {
+					modifiers = $" : {string.Join (", ", tdesc)}";
+				}
+			}
+			return $"{label.kind} <span foreground=\"{color}\">{Escape (label.name)}</span>{modifiers}";
 		}
 
 		public string GetSeenInMarkup (BaseInfo info)
