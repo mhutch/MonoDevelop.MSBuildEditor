@@ -332,21 +332,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 						break;
 					case ExpressionLiteral literal:
 						if (literal.IsPure) {
+							value = literal.Value.Trim ();
 							switch (kind.GetScalarType ()) {
 							case MSBuildValueKind.ItemName:
-								CollectItem (literal.Value);
+								CollectItem (value);
 								break;
 							case MSBuildValueKind.TargetName:
-								CollectTarget (literal.Value);
+								CollectTarget (value);
 								break;
 							case MSBuildValueKind.PropertyName:
-								CollectProperty (literal.Value);
+								CollectProperty (value);
 								break;
 							case MSBuildValueKind.Configuration:
-								Document.Configurations.Add (literal.Value);
+								Document.Configurations.Add (value);
 								break;
 							case MSBuildValueKind.Platform:
-								Document.Platforms.Add (literal.Value);
+								Document.Platforms.Add (value);
 								break;
 							}
 						}
