@@ -78,7 +78,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
-				CollectTaskParameter (element.Name.Name, attribute.Name.Name, true);
+				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Name.Name, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
