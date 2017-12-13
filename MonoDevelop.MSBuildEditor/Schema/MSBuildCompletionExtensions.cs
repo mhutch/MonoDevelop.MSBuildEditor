@@ -126,7 +126,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		public static IReadOnlyList<BaseInfo> GetValueCompletions (
-			MSBuildValueKind kind, MSBuildRootDocument doc)
+			MSBuildValueKind kind,
+			MSBuildRootDocument doc,
+			MSBuildResolveResult rr = null)
 		{
 			var simple = kind.GetSimpleValues (true);
 			if (simple != null) {
@@ -134,6 +136,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			switch (kind) {
+			case MSBuildValueKind.TaskOutputParameterName:
+				return doc.GetTaskParameters (rr.ParentName).Where (p => p.IsOutput).ToList ();
 			case MSBuildValueKind.TargetName:
 				return doc.GetTargets ().ToList ();
 			case MSBuildValueKind.PropertyName:

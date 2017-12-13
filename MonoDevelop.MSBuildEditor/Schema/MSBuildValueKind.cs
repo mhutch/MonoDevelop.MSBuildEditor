@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		TaskFactory,
 		TaskArchitecture,
 		TaskRuntime,
-		TaskParameterName,
+		TaskOutputParameterName,
 		TaskParameterType,
 
 		//things related to SDKs

@@ -278,7 +278,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
 				cinfos = info.Values;
 			} else {
-				cinfos = ExpressionCompletion.GetCompletionInfos (triggerState, kind, triggerExpression, triggerLength, doc);
+				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc);
 			}
 
 			if (cinfos != null) {
