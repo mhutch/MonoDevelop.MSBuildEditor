@@ -71,7 +71,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * project kind completion
 * Include.Project filename completion should be relative to SDK, if any
 * support encoding all over
-* permuted path evaluation for filename completion
 * syntax highlighting for property functions, item functions, transforms and conditions
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
 * trim whitespace on literals in expressions

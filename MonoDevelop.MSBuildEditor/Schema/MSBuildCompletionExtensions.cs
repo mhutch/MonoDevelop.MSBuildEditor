@@ -191,24 +191,26 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			string basePath = EvaluateExpressionAsPath (triggerExpression, doc, triggerLength + 1);
-			return basePath == null? null : GetPathCompletions (doc.Filename, basePath, includeFiles);
+			var basePaths = EvaluateExpressionAsPaths (triggerExpression, doc, triggerLength + 1).ToList ();
+			return basePaths.Count == 0 ? null : GetPathCompletions (doc.Filename, basePaths, includeFiles);
 		}
 
-		public static string EvaluateExpressionAsPath (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
+		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
 		{
 			if (expression == null) {
-				return Path.GetDirectoryName (doc.Filename);
+				yield return Path.GetDirectoryName (doc.Filename);
+				yield break;
 			}
 
 			if (expression is ExpressionLiteral lit) {
 				var path = lit.Value.Substring (0, lit.Value.Length - skipEndChars);
 				//FIXME handle encoding
-				return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
+				yield return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
+				yield break;
 			}
 
 			if (!(expression is Expression expr)) {
-				return null;
+				yield break;
 			}
 
 			//FIXME evaluate directly without the MSBuildEvaluationContext
@@ -224,35 +226,37 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				} else if (node is ExpressionProperty p) {
 					sb.Append ($"$({p.Name})");
 				} else {
-					return null;
+					yield break;
 				}
 			}
 
 			var evalCtx = MSBuildEvaluationContext.Create (doc.RuntimeInformation, doc.Filename, doc.Filename);
-			return evalCtx.EvaluatePath (sb.ToString (), Path.GetDirectoryName (doc.Filename));
+			foreach (var variant in evalCtx.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename),  null)) {
+				yield return variant;
+			}
 		}
 
-		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, string completionBasePath, bool includeFiles)
+		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, List<string> completionBasePaths, bool includeFiles)
 		{
-			var projectBaseDir = Path.GetDirectoryName (projectPath);
-			if (completionBasePath == null) {
-				completionBasePath = projectBaseDir;
-			} else {
-				completionBasePath = Path.GetFullPath (Path.Combine (projectBaseDir, completionBasePath));
-			}
-
 			var infos = new List<BaseInfo> ();
-			foreach (var e in Directory.GetDirectories (completionBasePath)) {
-				var name = Path.GetFileName (e);
-				infos.Add (new FileOrFolderInfo (name, true, e));
-			}
 
-			if (includeFiles) {
-				foreach (var e in Directory.GetFiles (completionBasePath)) {
+			var projectBaseDir = Path.GetDirectoryName (projectPath);
+			foreach (var p in completionBasePaths) {
+				var basePath = Path.GetFullPath (Path.Combine (projectBaseDir, p));
+
+				foreach (var e in Directory.GetDirectories (basePath)) {
 					var name = Path.GetFileName (e);
-					infos.Add (new FileOrFolderInfo (name, false, e));
+					infos.Add (new FileOrFolderInfo (name, true, e));
+				}
+
+				if (includeFiles) {
+					foreach (var e in Directory.GetFiles (basePath)) {
+						var name = Path.GetFileName (e);
+						infos.Add (new FileOrFolderInfo (name, false, e));
+					}
 				}
 			}
+
 			return infos;
 		}
 

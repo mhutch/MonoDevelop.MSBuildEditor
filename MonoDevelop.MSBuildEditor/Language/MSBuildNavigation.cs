@@ -169,7 +169,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document)
 		{
 			try {
-				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPath (node, document);
+				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPaths (node, document).FirstOrDefault ();
 				if (path != null && File.Exists (path)) {
 					return new MSBuildNavigationResult (
 						new [] { path }, node.Offset, node.Length

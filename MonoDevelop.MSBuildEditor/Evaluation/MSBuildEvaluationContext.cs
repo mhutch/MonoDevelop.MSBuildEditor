@@ -95,43 +95,39 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 				yield break;
 			}
 
-			if (propVals == null) {
-				yield return EvaluatePath (path, basePath);
-				yield break;
-			}
-
-			//ensure each of the properties is fully evaluated
-			//FIXME this is super hacky, use real MSBuild evaluation
-			foreach (var p in propVals) {
-				if (p.Value != null) {
-					for (int i = 0; i < p.Value.Count; i++) {
-						var val = p.Value [i];
-						int recDepth = 0;
-						try {
-							while (val.IndexOf ('$') > -1 && (recDepth++ < 10)) {
-								val = Evaluate (val);
+			if (propVals != null) {
+				//ensure each of the properties is fully evaluated
+				//FIXME this is super hacky, use real MSBuild evaluation
+				foreach (var p in propVals) {
+					if (p.Value != null) {
+						for (int i = 0; i < p.Value.Count; i++) {
+							var val = p.Value [i];
+							int recDepth = 0;
+							try {
+								while (val.IndexOf ('$') > -1 && (recDepth++ < 10)) {
+									val = Evaluate (val);
+								}
+								if (val != null && val.IndexOf ('$') < 0) {
+									SetPropertyValue (p.Key, val);
+								}
+								if (string.IsNullOrEmpty (val)) {
+									p.Value.RemoveAt (i);
+									i--;
+								} else {
+									p.Value [i] = val;
+								}
+							} catch (Exception ex) {
+								LoggingService.LogError ($"Error evaluating property {p.Key}={val}", ex);
 							}
-							if (val != null && val.IndexOf ('$') < 0) {
-								SetPropertyValue (p.Key, val);
-							}
-							if (string.IsNullOrEmpty (val)) {
-								p.Value.RemoveAt (i);
-								i--;
-							}
-							else {
-								p.Value [i] = val;
-							}
-						} catch (Exception ex) {
-							LoggingService.LogError ($"Error evaluating property {p.Key}={val}", ex);
 						}
 					}
 				}
-			}
 
-			//TODO: use a new context instead of altering this one?
-			foreach (var p in propVals) {
-				if (p.Value != null && p.Value.Count > 0) {
-					SetPropertyValue (p.Key, p.Value [0]);
+				//TODO: use a new context instead of altering this one?
+				foreach (var p in propVals) {
+					if (p.Value != null && p.Value.Count > 0) {
+						SetPropertyValue (p.Key, p.Value [0]);
+					}
 				}
 			}
 
@@ -139,7 +135,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			var expr = ExpressionParser.Parse (path, ExpressionOptions.None);
 			var propsToPermute = new List<(string, List<string>)> ();
 			foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
-				if (propVals.TryGetValues (prop.Name, out List<string> values) && values != null) {
+				if (propVals != null && propVals.TryGetValues (prop.Name, out List<string> values) && values != null) {
 					if (values.Count > 1) {
 						propsToPermute.Add ((prop.Name, values));
 					}
