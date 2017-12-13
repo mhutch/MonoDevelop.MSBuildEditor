@@ -63,62 +63,72 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		static void PopulateTaskInfoFromType (TaskInfo ti, INamedTypeSymbol type)
 		{
-			foreach (var member in type.GetMembers ()) {
-				if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
-					continue;
-				}
-
-				var propDesc = member.GetDocumentationCommentXml ();
-				var usage = TaskParameterUsage.Input;
-				foreach (var att in member.GetAttributes ()) {
-					switch (GetFullName (att.AttributeClass)) {
-					case "Microsoft.Build.Framework.OutputAttribute":
-						usage = TaskParameterUsage.Output;
-						break;
-					case "Microsoft.Build.Framework.RequiredAttribute":
-						usage = TaskParameterUsage.RequiredInput;
-						break;
+			while (type != null) {
+				foreach (var member in type.GetMembers ()) {
+					if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+						continue;
+					}
+					if (!ti.Parameters.ContainsKey (prop.Name)) {
+						var pi = ConvertParameter (prop, type);
+						ti.Parameters.Add (prop.Name, pi);
 					}
 				}
+				type = type.BaseType;
+			}
+		}
 
-				var kind = MSBuildValueKind.Unknown;
-				ITypeSymbol propType = prop.Type;
-				bool isList = false;
-				if (propType is IArrayTypeSymbol arr) {
-					isList = true;
-					propType = arr.ElementType;
-				}
-
-				string fullTypeName = GetFullName (propType);
-
-				switch (fullTypeName) {
-				case "System.String":
-					kind = MSBuildValueKind.String;
+		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
+		{
+			var propDesc = prop.GetDocumentationCommentXml ();
+			bool isOutput = false, isRequired = false;
+			foreach (var att in prop.GetAttributes ()) {
+				switch (GetFullName (att.AttributeClass)) {
+				case "Microsoft.Build.Framework.OutputAttribute":
+					isOutput = true;
 					break;
-				case "System.Boolean":
-					kind = MSBuildValueKind.Bool;
-					break;
-				case "System.Int32":
-				case "System.UInt32":
-				case "System.Int62":
-				case "System.UInt64":
-					kind = MSBuildValueKind.Int;
-					break;
-				case "Microsoft.Build.Framework.ITaskItem":
-					kind = MSBuildValueKind.UnknownItem;
+				case "Microsoft.Build.Framework.RequiredAttribute":
+					isRequired = true;
 					break;
 				}
+			}
 
-				if (kind == MSBuildValueKind.Unknown) {
-					LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter {GetFullName (type)}'");
-				}
+			var kind = MSBuildValueKind.Unknown;
+			ITypeSymbol propType = prop.Type;
+			bool isList = false;
+			if (propType is IArrayTypeSymbol arr) {
+				isList = true;
+				propType = arr.ElementType;
+			}
 
-				if (isList) {
-					kind = kind.List ();
-				}
+			string fullTypeName = GetFullName (propType);
 
-				ti.Parameters.Add (prop.Name, new TaskParameterInfo (prop.Name, propDesc, usage, kind));
-			};
+			switch (fullTypeName) {
+			case "System.String":
+				kind = MSBuildValueKind.String;
+				break;
+			case "System.Boolean":
+				kind = MSBuildValueKind.Bool;
+				break;
+			case "System.Int32":
+			case "System.UInt32":
+			case "System.Int62":
+			case "System.UInt64":
+				kind = MSBuildValueKind.Int;
+				break;
+			case "Microsoft.Build.Framework.ITaskItem":
+				kind = MSBuildValueKind.UnknownItem;
+				break;
+			}
+
+			if (kind == MSBuildValueKind.Unknown) {
+				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter {GetFullName (type)}'");
+			}
+
+			if (isList) {
+				kind = kind.List ();
+			}
+
+			return new TaskParameterInfo (prop.Name, propDesc, isRequired, isOutput, kind);
 		}
 
 		static string GetFullName (ITypeSymbol symbol)

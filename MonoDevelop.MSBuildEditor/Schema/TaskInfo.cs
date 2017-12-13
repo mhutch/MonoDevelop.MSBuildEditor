@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using MonoDevelop.Ide.Editor;
 
@@ -32,19 +33,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 	class TaskParameterInfo : ValueInfo
 	{
-		public TaskParameterUsage Usage { get; }
+		public bool IsOutput { get; }
+		public bool IsRequired { get; }
 
-		public TaskParameterInfo (string name, string description, TaskParameterUsage usage, MSBuildValueKind kind) : base (name, description, kind)
+		public TaskParameterInfo (string name, string description, bool isRequired, bool isOutput, MSBuildValueKind kind) : base (name, description, kind)
 		{
-			Usage = usage;
+			IsOutput = isOutput;
+			IsRequired = isRequired;
 		}
-	}
-
-	enum TaskParameterUsage
-	{
-		Unknown,
-		Input,
-		RequiredInput,
-		Output
 	}
 }

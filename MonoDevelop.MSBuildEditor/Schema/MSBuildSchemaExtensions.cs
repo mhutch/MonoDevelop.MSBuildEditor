@@ -242,7 +242,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					if (omitEmpty) {
 						return null;
 					}
-					return new TaskParameterInfo (elementName, null, TaskParameterUsage.Unknown, MSBuildValueKind.Unknown);
+					return new TaskParameterInfo (elementName, null, false, false, MSBuildValueKind.Unknown);
 				default:
 					throw new InvalidOperationException ($"Unsupported abstract element kind {element.Kind}");
 				}

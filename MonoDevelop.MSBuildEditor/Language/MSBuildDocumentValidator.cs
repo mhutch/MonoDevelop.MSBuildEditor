@@ -238,7 +238,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var required = new HashSet<string> ();
 			foreach (var p in info.Parameters) {
-				if (p.Value.Usage == TaskParameterUsage.RequiredInput) {
+				if (p.Value.IsRequired) {
 					required.Add (p.Key);
 				}
 			}
@@ -251,11 +251,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					AddWarning ($"Unknown parameter {att.Name.Name}", att.GetNameRegion ());
 					continue;
 				}
-				if (pi.Usage == TaskParameterUsage.Output) {
-					AddWarning ($"Parameter {att.Name.Name} is an output parameter", att.GetNameRegion ());
-					continue;
-				}
-				if (pi.Usage == TaskParameterUsage.RequiredInput) {
+				if (pi.IsRequired) {
 					required.Remove (pi.Name);
 					if (String.IsNullOrWhiteSpace (att.Value)) {
 						AddError ($"Required parameter has empty value", att.GetNameRegion ());
@@ -270,6 +266,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 						? $"Task {element.Name.Name} is missing the following required attribute: {missingAtts}"
 						: $"Task {element.Name.Name} is missing the following required attributes: {missingAtts}",
 					element.GetNameRegion ());
+			}
+
+			foreach (var child in element.Elements) {
+				if (child.NameEquals ("Output", true)) {
+					var paramNameAtt = child.Attributes.Get (new XName ("TaskParameter"), true);
+					var paramName = paramNameAtt?.Value;
+					if (paramName == null) {
+						continue;
+					}
+					if (!info.Parameters.TryGetValue (paramName, out TaskParameterInfo pi)) {
+						AddWarning ($"Unknown parameter {paramName}", paramNameAtt.GetValueRegion (TextDocument));
+						continue;
+					}
+					if (!pi.IsOutput) {
+						AddWarning ($"Parameter {paramName} is not an output parameter", paramNameAtt.GetValueRegion (TextDocument));
+						continue;
+					}
+				}
 			}
 		}
 

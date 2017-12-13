@@ -73,9 +73,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 					CollectMetadata (element.Name.Name, attribute.Name.Name);
 					break;
 				case MSBuildKind.Task:
-					CollectTaskParameter (element.Name.Name, attribute.Name.Name);
+					CollectTaskParameter (element.Name.Name, attribute.Name.Name, false);
 					break;
 				}
+			}
+			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
+				CollectTaskParameter (element.Name.Name, attribute.Name.Name, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -209,12 +212,18 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		void CollectTaskParameter (string taskName, string parameterName)
+		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
 			var task = Document.Tasks [taskName];
-			if (task.IsInferred && !task.Parameters.ContainsKey (parameterName)) {
-				task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, TaskParameterUsage.Unknown, MSBuildValueKind.Unknown));
+			if (task.IsInferred) {
+				return;
 			}
+			if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo pi)) {
+				if (pi.IsOutput || !isOutput) {
+					return;
+				}
+			}
+			task.Parameters[parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
 		}
 
 		void CollectTaskParameterDefinition (string taskName, XElement def)
@@ -225,12 +234,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var usage = TaskParameterUsage.Unknown;
-			if (def.Attributes.IsTrue ("Required")) {
-				usage = TaskParameterUsage.RequiredInput;
-			} else if (def.Attributes.IsTrue ("Output")) {
-				usage = TaskParameterUsage.Output;
-			}
+			bool isRequired = def.Attributes.IsTrue ("Required");
+			bool isOutout = def.Attributes.IsTrue ("Output");
 
 			var kind = MSBuildValueKind.Unknown;
 			bool isList = false;
@@ -265,7 +270,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				kind = kind.List ();
 			}
 
-			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, usage, kind));
+			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, isRequired, isOutout, kind));
 		}
 
 		void CollectTaskDefinition (XElement element)
