@@ -1,18 +1,5 @@
 ﻿{
     "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
-    "items": {
-        "DotNetCliToolReference": {
-            "description": "The CLI tool that the user wants restored in the context of the project",
-            "includeDescription": "tool NuGet package IDs",
-            "kind": "nugetid",
-            "metadata": {
-                "IncludeAssets": "%(PackageReference.IncludeAssets)",
-                "ExcludeAssets": "%(PackageReference.IncludeAssets)",
-                "PrivateAssets": "%(PackageReference.IncludeAssets)",
-                "Version": "%(PackageReference.Version)"
-            }
-        }
-    },
     "properties": {
         "AssemblyTitle": "Description for the assembly manifest",
         "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
