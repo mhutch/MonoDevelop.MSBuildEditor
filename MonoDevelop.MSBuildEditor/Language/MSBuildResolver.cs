@@ -141,7 +141,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
 						return;
 					case MSBuildKind.Parameter:
-						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+						var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+						if (!string.IsNullOrEmpty (taskName)) {
+							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
+							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+							rr.Reference = Tuple.Create (taskName, element.Name.Name);
+						}
 						return;
 					case MSBuildKind.Property:
 						rr.ReferenceKind = MSBuildReferenceKind.Property;
@@ -173,6 +178,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						break;
 					case MSBuildKind.Parameter:
 						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+						rr.Reference = Tuple.Create (element.Name.Name, attribute.Name.Name);
 						break;
 					default:
 						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
@@ -219,6 +225,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
 						VisitPureLiteral (info, kind, lit);
+						if (kind == MSBuildValueKind.TaskOutputParameterName) {
+							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+							rr.ReferenceOffset = lit.Offset;
+							rr.ReferenceLength = lit.Value.Length;
+							rr.Reference = Tuple.Create (element.ParentElement ().Name.Name, lit.Value);
+							break;
+						}
 					}
 					switch (kind) {
 					case MSBuildValueKind.File:
@@ -246,11 +259,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 				rr.Reference = node.Value;
 
 				switch (kind) {
+				case MSBuildValueKind.TaskOutputParameterName:
+					rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+					return;
 				case MSBuildValueKind.TargetName:
 					rr.ReferenceKind = MSBuildReferenceKind.Target;
 					return;
 				case MSBuildValueKind.NuGetID:
 					rr.ReferenceKind = MSBuildReferenceKind.NuGetID;
+					return;
+				case MSBuildValueKind.PropertyName:
+					rr.ReferenceKind = MSBuildReferenceKind.Property;
+					return;
+				case MSBuildValueKind.ItemName:
+					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
 				case MSBuildValueKind.TargetFramework:
 					rr.Reference = new FrameworkReference (null, null, node.Value, null);

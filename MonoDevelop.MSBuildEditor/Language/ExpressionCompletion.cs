@@ -322,13 +322,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (
+			MSBuildResolveResult rr,
 			TriggerState trigger, MSBuildValueKind kind,
 			ExpressionNode triggerExpression, int triggerLength,
 			MSBuildRootDocument doc)
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr);
 			case TriggerState.Item:
 				return doc.GetItems ();
 			case TriggerState.Metadata:

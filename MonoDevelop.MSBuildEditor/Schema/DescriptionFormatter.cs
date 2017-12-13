@@ -91,6 +91,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return (value.IsFolder? "folder" : "file", info.Name);
 			case FrameworkInfo fxi:
 				return ("framework", fxi.Reference.GetMoniker ());
+			case TaskParameterInfo tpi:
+				return ("parameter", tpi.Name);
 			}
 			return (null, null);
 		}
