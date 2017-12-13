@@ -21,19 +21,20 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			foreach (var att in rr.LanguageElement.Attributes) {
-				if (!att.IsAbstract) {
+				var spat = schemas.SpecializeAttribute (att, rr.ElementName);
+				if (!spat.IsAbstract) {
 					if (rr.LanguageElement.Kind == MSBuildKind.Item) {
 						if (isInTarget) {
-							if (att.Name == "Update") {
+							if (spat.Name == "Update") {
 								continue;
 							}
 						} else {
-							if (att.Name == "KeepMetadata" || att.Name == "RemoveMetadata" || att.Name == "KeepDuplicates") {
+							if (spat.Name == "KeepMetadata" || spat.Name == "RemoveMetadata" || spat.Name == "KeepDuplicates") {
 								continue;
 							}
 						}
 					}
-					yield return att;
+					yield return spat;
 				}
 			}
 
@@ -270,18 +271,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildReferenceKind.Target:
 				return doc.GetTarget ((string)rr.Reference);
 			case MSBuildReferenceKind.Keyword:
-				var attName = rr.AttributeName;
-				if (attName != null) {
-					var att = rr.LanguageElement.GetAttribute (attName);
-					if (att != null && !att.IsAbstract) {
-						return att;
-					}
-				} else {
-					if (!rr.LanguageElement.IsAbstract) {
-						return rr.LanguageElement;
-					}
-				}
-				break;
+				return (BaseInfo) rr.Reference;
 			case MSBuildReferenceKind.KnownValue:
 				return (BaseInfo)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:

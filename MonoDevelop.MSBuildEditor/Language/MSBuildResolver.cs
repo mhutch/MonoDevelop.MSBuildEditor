@@ -152,7 +152,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceKind = MSBuildReferenceKind.Property;
 						return;
 					default:
-						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+						if (!resolved.IsAbstract) {
+							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+							rr.Reference = resolved;
+						}
 						return;
 					}
 				}
@@ -164,13 +167,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				XElement element, XAttribute attribute,
 				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
+				rr.LanguageAttribute = resolvedAttribute
+					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
+
 				var start = ConvertLocation (attribute.Region.Begin);
 				bool inName = IsIn (start, attribute.Name.Name.Length);
 
 				if (inName) {
 					rr.ReferenceOffset = start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
-					rr.Reference = attribute.Name.Name;
 					switch (resolvedAttribute.AbstractKind) {
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
@@ -181,7 +186,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.Reference = Tuple.Create (element.Name.Name, attribute.Name.Name);
 						break;
 					default:
-						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+						if (!resolvedAttribute.IsAbstract) {
+							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+							rr.Reference = resolvedAttribute;
+						}
 						break;
 					}
 					return;

@@ -214,6 +214,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
+			return schemas.SpecializeAttribute (attribute, elementName);
+		}
+
+		public static MSBuildLanguageAttribute SpecializeAttribute (this IEnumerable<IMSBuildSchema> schemas, MSBuildLanguageAttribute attribute, string elementName)
+		{
 			if (attribute.ValueKind == MSBuildValueKind.MatchItem) {
 				var item = schemas.GetItem (elementName);
 				return new MSBuildLanguageAttribute (
