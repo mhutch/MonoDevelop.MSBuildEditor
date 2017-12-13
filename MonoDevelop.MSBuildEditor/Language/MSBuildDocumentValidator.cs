@@ -272,7 +272,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (child.NameEquals ("Output", true)) {
 					var paramNameAtt = child.Attributes.Get (new XName ("TaskParameter"), true);
 					var paramName = paramNameAtt?.Value;
-					if (paramName == null) {
+					if (string.IsNullOrEmpty (paramName)) {
 						continue;
 					}
 					if (!info.Parameters.TryGetValue (paramName, out TaskParameterInfo pi)) {
