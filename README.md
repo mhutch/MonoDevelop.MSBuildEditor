@@ -8,6 +8,8 @@ The MSBuild Editor extension provides improved support for editing MSBuild files
 
 Rich, MSBuild-specific IntelliSense helps you write your project and target files, with completions for MSBuild elements, attributes and expressions.
 
+![completion](images/completion.gif)
+
 ### Navigation
 
 The *Go to Definition* command can be used to navigate to an import or an SDK. If the import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
@@ -21,6 +23,8 @@ The extension resolves your project's imports recursively, and scans all the fou
 ### Tooltips
 
 Tooltips for items, properties and metadata allow you to see their descriptions and see which imports they have been referenced in.
+
+![completion](images/tooltip.png)
 
 Tooltips for imports and SDKs show you the paths of the imported files.
 
