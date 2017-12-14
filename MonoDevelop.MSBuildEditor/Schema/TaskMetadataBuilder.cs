@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -43,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			string typeName, string assemblyName, string assemblyFile,
 			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation)
 		{
-			var file = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile);
+			var file = GetTaskFile (assemblyName, assemblyFile, declaredInFile);
 			if (file == null) {
 				return null;
 			}
@@ -144,19 +145,30 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return sb.ToString ();
 		}
 
-		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
+		(string path, Compilation compilation)? GetTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
 		{
 			var key = (assemblyName?.ToLowerInvariant (), assemblyFile?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
 			if (resolvedAssemblies.TryGetValue (key, out (string, Compilation)? r)) {
 				return r;
 			}
+			(string, Compilation)? taskFile = null;
+			try {
+				taskFile = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile);
+			} catch (Exception ex) {
+				LoggingService.LogError ($"Error loading tasks assembly name='{assemblyName}' file='{taskFile}' in '{declaredInFile}'", ex);
+			}
+			resolvedAssemblies [key] = taskFile;
+			return taskFile;
+		}
 
+
+		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
+		{
 			if (!string.IsNullOrEmpty (assemblyName)) {
 				var name = new AssemblyName (assemblyName);
 				string path = Path.Combine (binPath, $"{name.Name}.dll");
 				if (!File.Exists (path)) {
 					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyName}'");
-					resolvedAssemblies [key] = null;
 					return null;
 				}
 				return CreateResult (path);
@@ -172,7 +184,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 				if (!File.Exists (path)) {
 					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
-					resolvedAssemblies [key] = null;
 					return null;
 				}
 				return CreateResult (path);
@@ -183,9 +194,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			(string, Compilation) CreateResult (string path)
 			{
 				var compilation = CSharpCompilation.Create ("TaskResolver", references: new [] { GetReference (path) });
-				var result = (path, compilation);
-				resolvedAssemblies [key] = result;
-				return result;
+				return (path, compilation);
 			}
 		}
 	}
