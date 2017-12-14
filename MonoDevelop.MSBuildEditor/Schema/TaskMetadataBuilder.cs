@@ -35,7 +35,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		PortableExecutableReference GetReference (string resolvedPath, MetadataReferenceProperties properties = default)
-			=> (PortableExecutableReference)getReferenceMethod.Invoke (metadataService, new object [] { resolvedPath, properties });
+		{
+			//HACK: for some reason the cache fails on 7.3 but works on 7.4
+			if (BuildInfo.Version.StartsWith ("7.3", StringComparison.Ordinal)) {
+				return MetadataReference.CreateFromFile (resolvedPath);
+			}
+			return (PortableExecutableReference)getReferenceMethod.Invoke (metadataService, new object [] { resolvedPath, properties });
+		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, Compilation)?> resolvedAssemblies
 			= new Dictionary<(string, string, string), (string, Compilation)?> ();
