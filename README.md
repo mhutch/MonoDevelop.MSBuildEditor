@@ -1,6 +1,6 @@
 # MonoDevelop.MSBuildEditor
 
-The MSBuild Editor extension provides improved support for editing MSBuild files in MonoDevelop.
+The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio for Mac and MonoDevelop. It can be imnstalled from the Extension Manager.
 
 ## Features
 
