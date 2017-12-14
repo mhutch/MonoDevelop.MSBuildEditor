@@ -18,11 +18,13 @@ There's even completion for condition comparisons.
 
 ### Navigation
 
-The *Go to Definition* command can be used to navigate to an import or an SDK. If the import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
+You can use the *Go to Definition* command or *Command*-click to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it. 
 
 The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports.
 
 ![](images/find-references.png)
+
+If you have "Highlight Identifiers" feature enabled, it'll work for MSBuild files too.
 
 ### Imports
 
