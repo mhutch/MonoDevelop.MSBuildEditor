@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (kind == MSBuildValueKind.Unknown) {
-				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter {GetFullName (type)}'");
+				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter '{GetFullName (type)}.{prop.Name}'");
 			}
 
 			if (isList) {
