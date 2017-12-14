@@ -80,7 +80,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 						continue;
 					}
-					if (!ti.Parameters.ContainsKey (prop.Name)) {
+					if (!ti.Parameters.ContainsKey (prop.Name) && prop.Name != "Log") {
 						var pi = ConvertParameter (prop, type);
 						ti.Parameters.Add (prop.Name, pi);
 					}
