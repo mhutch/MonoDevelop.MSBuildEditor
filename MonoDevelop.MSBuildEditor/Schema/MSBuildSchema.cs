@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					Properties [name] = new PropertyInfo (name, (string)val.Value);
 					continue;
 				}
-				string description = null, valueSeparator = null, defaultValue = null;
+				string description = null, valueSeparators = null, defaultValue = null;
 				var kind = MSBuildValueKind.Unknown;
 				List<ConstantInfo> values = null;
 				foreach (var pkv in (JObject)kv.Value) {
@@ -89,14 +89,33 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						defaultValue = (string)((JValue)pkv.Value).Value;
 						break;
 					case "valueSeparators":
-						valueSeparator = (string)((JValue)pkv.Value).Value;
+						valueSeparators = (string)((JValue)pkv.Value).Value;
 						break;
 					default:
 						throw new Exception ($"Unknown property {pkv.Key} in property {kv.Key}");
 					}
 				}
-				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue, valueSeparator?.ToCharArray ());
+
+				kind = CheckKind (kind, valueSeparators, values);
+
+				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue);
 			}
+		}
+
+		MSBuildValueKind CheckKind (MSBuildValueKind kind, string valueSeparator, List<ConstantInfo> values)
+		{
+			if (kind == MSBuildValueKind.Unknown && values != null && values.Count > 0) {
+				kind = MSBuildValueKind.String;
+			}
+			if (valueSeparator != null) {
+				if (valueSeparator.IndexOf (',') > -1) {
+					kind |= MSBuildValueKind.CommaList;
+				}
+				if (valueSeparator.IndexOf (';') > -1) {
+					kind |= MSBuildValueKind.List;
+				}
+			}
+			return kind;
 		}
 
 		void LoadItems (JObject items)
@@ -218,7 +237,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			return new MetadataInfo (
 				name, meta.Description, meta.Reserved, meta.Required,
-				meta.ValueKind, item, meta.Values, meta.DefaultValue, meta.ValueSeparators);
+				meta.ValueKind, item, meta.Values, meta.DefaultValue);
 		}
 
 		void AddMetadata (ItemInfo item, JObject metaObj)
@@ -277,11 +296,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						throw new Exception ($"Unknown property {mkv.Key} in metadata {kv.Key}");
 					}
 				}
+
+				kind = CheckKind (kind, valueSeparators, values);
+
 				item.Metadata.Add (
 					name,
 					new MetadataInfo (
 						name, description, false, required, kind, item,
-						values, defaultValue, valueSeparators?.ToCharArray ()
+						values, defaultValue
 					)
 				);
 			}

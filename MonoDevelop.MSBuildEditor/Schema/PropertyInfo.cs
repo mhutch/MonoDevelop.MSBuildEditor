@@ -13,8 +13,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public PropertyInfo (
 			string name, string description, bool reserved = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			List<ConstantInfo> values = null, string defaultValue = null, char[] valueSeparators = null)
-			: base (name, description, valueKind, values, defaultValue, valueSeparators)
+			List<ConstantInfo> values = null, string defaultValue = null)
+			: base (name, description, valueKind, values, defaultValue)
 		{
 			Reserved = reserved;
 		}

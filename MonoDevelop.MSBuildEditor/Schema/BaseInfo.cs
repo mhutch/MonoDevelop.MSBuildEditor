@@ -34,18 +34,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		protected ValueInfo (
 			string name, string description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
+			List<ConstantInfo> values = null, string defaultValue = null)
 			: base (name, description)
 		{
 			Values = values;
 			DefaultValue = defaultValue;
-			ValueSeparators = valueSeparators;
 			ValueKind = valueKind;
 		}
 
 		public MSBuildValueKind ValueKind { get; }
 		public List<ConstantInfo> Values { get; }
-		public char [] ValueSeparators { get; }
 		public string DefaultValue { get; }
 	}
 }

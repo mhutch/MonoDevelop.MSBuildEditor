@@ -16,8 +16,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			bool reserved = false, bool required = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			ItemInfo item = null,
-			List<ConstantInfo> values = null, string defaultValue = null, char [] valueSeparators = null)
-			: base (name, description, valueKind, values, defaultValue, valueSeparators)
+			List<ConstantInfo> values = null, string defaultValue = null)
+			: base (name, description, valueKind, values, defaultValue)
 		{
 			Item = item;
 			Required = required;

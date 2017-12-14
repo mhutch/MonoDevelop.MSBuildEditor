@@ -303,22 +303,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static MSBuildValueKind InferValueKindIfUnknown (this ValueInfo variable)
 		{
-			var kind = InferUnknownKind (variable);
-
-			if (variable.ValueSeparators != null) {
-				if (variable.ValueSeparators.Contains (';')) {
-					kind |= MSBuildValueKind.List;
-				}
-				if (variable.ValueSeparators.Contains (',')) {
-					kind |= MSBuildValueKind.CommaList;
-				}
-			}
-
-			return kind;
-		}
-
-		static MSBuildValueKind InferUnknownKind (ValueInfo variable)
-		{
 			if (variable.ValueKind != MSBuildValueKind.Unknown) {
 				return variable.ValueKind;
 			}
