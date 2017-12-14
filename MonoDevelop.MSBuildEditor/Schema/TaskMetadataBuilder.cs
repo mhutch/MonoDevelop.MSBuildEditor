@@ -60,7 +60,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
+
 			var type = file.Value.compilation.GetTypeByMetadataName (typeName);
+
+			//FIXME: do a full namespace-ignoring name lookup. this just special cases common targets
+			if (type == null) {
+				if (typeName.IndexOf ('.') < 0 && assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks", StringComparison.Ordinal)) {
+					type = file.Value.compilation.GetTypeByMetadataName ("Microsoft.Build.Tasks." + typeName);
+				}
+			}
+
 			if (type == null) {
 				LoggingService.LogWarning ($"Did not resolve {typeName}");
 				return null;
