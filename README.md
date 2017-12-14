@@ -6,9 +6,15 @@ The MSBuild Editor extension provides improved support for editing MSBuild files
 
 ### IntelliSense
 
-Rich, MSBuild-specific IntelliSense helps you write your project and target files, with completions for MSBuild elements, attributes and expressions.
+MSBuild-specific IntelliSense helps you write your project and target files, with rich contextual completion for MSBuild elements, attributes and expressions.
 
-![completion](images/completion.gif)
+The completion for `PackageReference` attributes queries NuGet.org as you type.
+
+![](images/completion.gif)
+
+There's even completion for condition comparisons.
+
+![](images/condition-completion.png)
 
 ### Navigation
 
@@ -16,17 +22,21 @@ The *Go to Definition* command can be used to navigate to an import or an SDK. I
 
 The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports.
 
+![](images/find-references.png)
+
 ### Imports
 
 The extension resolves your project's imports recursively, and scans all the found MSBuild files for items, properties, metadata, targets and tasks to be included in IntelliSense and *Find References*. It attempts to resolve imports as broadly as possible, ignoring conditions and checking multiple values. It also has full support for SDKs that are resolved via SDK resolvers.
 
 ### Tooltips
 
-Tooltips for items, properties and metadata allow you to see their descriptions and see which imports they have been referenced in.
+Tooltips for items, properties and metadata allow you to see their descriptions and expected value types, and see which imports they have been referenced in.
 
-![completion](images/tooltip.png)
+![](images/tooltip.png)
 
 Tooltips for imports and SDKs show you the paths of the imported files.
+
+![](images/import-tooltip.png)
 
 ### Schemas
 
@@ -40,22 +50,24 @@ The extension includes built-in schemas for `Microsoft.Common.targets` and other
 
 The editor validates your document against the MSBuild language and schema, and shows these errors and warnings as you type.
 
+![](images/validation.png)
+
 ### Documentation
 
 The extension includes documentation tooltips for the MSBuild language and many common items, properties and metadata.
 
 ### Formatting Style
 
-There is a formatting policy for MSBuild files, allowing you to customize the formatting behaviour. The default formatting policy uses two spaces for indentation, matching the project files created by Visual Studio.
+The extension adds a formatting policy for MSBuild files, allowing you to customize the formatting behaviour. The default formatting policy uses two spaces for indentation, matching the project files created by Visual Studio.
 
 ## TODO
 
 The following feature are not yet implemented. Please contact Mikayla if you are interested in helping out.
 
-* Port to Visual Studio
+* Port to Visual Studio for Windows
 * Snippets
 * Add more unit tests
-* Improve logic for figuring out context of unqualified metadata
+* Add logic to figure out context of unqualified metadata
 * In addition to brute forcing imports, resolve using full conditioned state
 * Write a json schema for the schema
 * Completion for metadata and property functions in expressions
@@ -77,7 +89,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * support encoding all over
 * syntax highlighting for property functions, item functions, transforms and conditions
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
-* trim whitespace on literals in expressions
 * trigger intellisense on |, indexed against | separated comparands
 * support property functions, item functions in new expression parser
 * validate property/items types passed to/from task parameters
+* add documentation for task parameters
+* fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
