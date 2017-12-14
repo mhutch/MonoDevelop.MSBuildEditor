@@ -50,6 +50,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			string typeName, string assemblyName, string assemblyFile,
 			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation)
 		{
+			//blacklist this, it's redundant
+			if (assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks.v", StringComparison.Ordinal)) {
+				return null;
+			}
+
 			var file = GetTaskFile (assemblyName, assemblyFile, declaredInFile);
 			if (file == null) {
 				return null;
