@@ -91,13 +91,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 						continue;
 					}
-					if (!ti.Parameters.ContainsKey (prop.Name) && prop.Name != "Log") {
+					if (!ti.Parameters.ContainsKey (prop.Name) && !IsSpecialName (prop.Name)) {
 						var pi = ConvertParameter (prop, type);
 						ti.Parameters.Add (prop.Name, pi);
 					}
 				}
 				type = type.BaseType;
 			}
+
+			bool IsSpecialName (string name) => name == "Log" || name == "HostObject" || name.StartsWith ("BuildEngine", StringComparison.Ordinal);
 		}
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
