@@ -229,7 +229,17 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			(string, Compilation) CreateResult (string path)
 			{
-				var compilation = CSharpCompilation.Create ("TaskResolver", references: new [] { GetReference (path) });
+				var compilation = CSharpCompilation.Create (
+					"TaskResolver",
+					references: new [] {
+						GetReference (path),
+						GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
+						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
+						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
+						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
+						GetReference (typeof (object).Assembly.Location)
+					}
+				);
 				return (path, compilation);
 			}
 		}
