@@ -56,6 +56,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var info = Document.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, attribute.Name.Name);
 
+			if (info == null) {
+				return;
+			}
+
 			VisitValue (
 				element, attribute, resolvedElement, resolvedAttribute,
 				info, attribute.Value, attribute.GetValueStartOffset (TextDocument));
