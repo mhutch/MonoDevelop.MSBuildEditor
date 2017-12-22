@@ -96,6 +96,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						ti.Parameters.Add (prop.Name, pi);
 					}
 				}
+
+				if (type.BaseType is IErrorTypeSymbol) {
+					LoggingService.LogWarning (
+						$"Error resolving '{GetFullName (type.BaseType)}' [{type.BaseType.ContainingAssembly.Name}] (from '{GetFullName (type)}')");
+					break;
+				}
+
 				type = type.BaseType;
 			}
 
