@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var pel = MSBuildLanguageElement.Get ("Project");
 
-			GetPropertiesUsedByImports (propVals, project);
+			GetPropertiesToTrack (propVals, project);
 
 			AddSdkProps (sdks, propVals, resolveImport);
 
@@ -72,15 +72,27 @@ namespace MonoDevelop.MSBuildEditor.Language
 			AddSdkTargets (sdks, propVals, resolveImport);
 		}
 
-		static void GetPropertiesUsedByImports (PropertyValueCollector propertyVals, XElement project)
+		static void GetPropertiesToTrack (PropertyValueCollector propertyVals, XElement project)
 		{
-			foreach (var el in project.Elements.Where (el => el.Name.Name == "Import")) {
-				var impAtt = el.Attributes.Get (new XName ("Project"), true);
-				if (impAtt != null) {
-					var expr = ExpressionParser.Parse (impAtt.Value, ExpressionOptions.None);
-					foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
-						propertyVals.Mark (prop.Name);
+			foreach (var el in project.Elements) {
+				if (el.NameEquals ("Import", true)) {
+					var impAtt = el.Attributes.Get (new XName ("Project"), true);
+					if (impAtt != null) {
+						MarkProperties (impAtt);
 					}
+				} else if (el.NameEquals ("UsingTask", true)) {
+					var afAtt = el.Attributes.Get (new XName ("AssemblyFile"), true);
+					if (afAtt != null) {
+						MarkProperties (afAtt);
+					}
+				}
+			}
+
+			void MarkProperties (XAttribute att)
+			{
+				var expr = ExpressionParser.Parse (att.Value, ExpressionOptions.None);
+				foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
+					propertyVals.Mark (prop.Name);
 				}
 			}
 		}

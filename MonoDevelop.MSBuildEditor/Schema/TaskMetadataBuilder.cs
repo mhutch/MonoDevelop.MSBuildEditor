@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -48,14 +49,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, string assemblyFile,
-			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation)
+			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation,
+			PropertyValueCollector propVals)
 		{
 			//blacklist this, it's redundant
 			if (assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks.v", StringComparison.Ordinal)) {
 				return null;
 			}
 
-			var file = GetTaskFile (assemblyName, assemblyFile, declaredInFile);
+			var file = GetTaskFile (assemblyName, assemblyFile, declaredInFile, propVals);
 			if (file == null) {
 				return null;
 			}
@@ -165,7 +167,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return sb.ToString ();
 		}
 
-		(string path, Compilation compilation)? GetTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
+		(string path, Compilation compilation)? GetTaskFile (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals)
 		{
 			var key = (assemblyName?.ToLowerInvariant (), assemblyFile?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
 			if (resolvedAssemblies.TryGetValue (key, out (string, Compilation)? r)) {
@@ -173,7 +175,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 			(string, Compilation)? taskFile = null;
 			try {
-				taskFile = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile);
+				taskFile = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile, propVals);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks assembly name='{assemblyName}' file='{taskFile}' in '{declaredInFile}'", ex);
 			}
@@ -182,7 +184,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 
-		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile)
+		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals)
 		{
 			if (!string.IsNullOrEmpty (assemblyName)) {
 				var name = new AssemblyName (assemblyName);
@@ -198,11 +200,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				string path;
 				if (assemblyFile.IndexOf ('$') < 0) {
 					path = Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (declaredInFile), assemblyFile);
+					if (!File.Exists (path)) {
+						path = null;
+					}
 				} else {
 					var evalCtx = MSBuildEvaluationContext.Create (rootDoc.RuntimeInformation, rootDoc.Filename, declaredInFile);
-					path = evalCtx.EvaluatePath (assemblyFile, Path.GetDirectoryName (declaredInFile));
+					path = evalCtx
+						.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile), propVals)
+						.FirstOrDefault (File.Exists);
 				}
-				if (!File.Exists (path)) {
+				if (path == null) {
 					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
 					return null;
 				}

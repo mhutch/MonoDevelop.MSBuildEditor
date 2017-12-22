@@ -296,7 +296,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin);
+			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
 			if (info != null) {
 				Document.Tasks [info.Name] = info;
 			}
