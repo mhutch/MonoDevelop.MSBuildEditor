@@ -21,15 +21,6 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (propName, prop.Name);
 		}
 
-		[TestCase ("$", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("@", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("%", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$a", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("@b", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("%c", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$ ", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("@ ", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("% ", ExpressionErrorKind.ExpectingLeftParen)]
 		[TestCase ("$(", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("@(", ExpressionErrorKind.ExpectingItemName)]
 		[TestCase ("%(", ExpressionErrorKind.ExpectingMetadataOrItemName)]
@@ -62,6 +53,22 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.IsInstanceOf<ExpressionError> (expr);
 			var err = (ExpressionError)expr;
 			Assert.AreEqual (error, err.Kind);
+		}
+
+		[Test]
+		[TestCase ("$")]
+		[TestCase ("@")]
+		[TestCase ("%")]
+		[TestCase ("$a")]
+		[TestCase ("@b")]
+		[TestCase ("%c")]
+		[TestCase ("$ ")]
+		[TestCase ("@ ")]
+		[TestCase ("% ")]
+		public void TestLiteral (string expression)
+		{
+			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
+			Assert.IsInstanceOf<ExpressionLiteral> (expr);
 		}
 
 		[Test]

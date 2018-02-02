@@ -38,6 +38,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ExpressionNode node;
 				switch (c) {
 				case '@':
+					if (!TryConsumeParen ()) {
+						continue;
+					}
 					if (options.HasFlag (ExpressionOptions.Items)) {
 						node = ParseItem (buffer, ref offset, endOffset, baseOffset);
 					} else {
@@ -45,9 +48,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case '$':
+					if (!TryConsumeParen ()) {
+						continue;
+					}
 					node = ParseProperty (buffer, ref offset, endOffset, baseOffset);
 					break;
 				case '%':
+					if (!TryConsumeParen ()) {
+						continue;
+					}
 					if (options.HasFlag (ExpressionOptions.Metadata)) {
 						node = ParseMetadata (buffer, ref offset, endOffset, baseOffset);
 					} else {
@@ -65,6 +74,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (node is ExpressionError) {
 					//short circuit out without capturing the rest as text, since it's not useful
 					return CreateResult (offset);
+				}
+
+				bool TryConsumeParen ()
+				{
+					if (offset < endOffset && buffer[offset+1] == '(') {
+						offset++;
+						offset++;
+						return true;
+					}
+					return false;
 				}
 			}
 
@@ -114,14 +133,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParseItem (string buffer, ref int offset, int endOffset, int baseOffset)
 		{
-			int start = offset;
+			int start = offset - 2;
 
-			offset++;
-			if (offset > endOffset || buffer [offset] != '(') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingLeftParen);
-			}
-
-			offset++;
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingItemName);
@@ -207,14 +220,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParseProperty (string buffer, ref int offset, int endOffset, int baseOffset)
 		{
-			int start = offset;
-
-			offset++;
-			if (offset > endOffset || buffer [offset] != '(') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingLeftParen);
-			}
-
-			offset++;
+			int start = offset - 2;
 
 			if (offset <= endOffset && buffer [offset] == '[') {
 				return ParsePropertyFunction (start, buffer, ref offset, endOffset, baseOffset);
@@ -242,14 +248,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)
 		{
-			int start = offset;
+			int start = offset - 2;
 
-			offset++;
-			if (offset > endOffset || buffer [offset] != '(') {
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingLeftParen);
-			}
-
-			offset++;
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataOrItemName);

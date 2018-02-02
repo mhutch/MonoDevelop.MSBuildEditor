@@ -150,7 +150,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		MetadataDisallowed,
 		EmptyListEntry,
-		ExpectingLeftParen,
 		ExpectingItemName,
 		ExpectingRightParen,
 		ExpectingRightParenOrPeriod,
@@ -235,8 +234,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case ExpressionErrorKind.EmptyListEntry:
 				isWarning = true;
 				return $"Empty list value";
-			case ExpressionErrorKind.ExpectingLeftParen:
-				return $"Expecting '('";
 			case ExpressionErrorKind.ExpectingItemName:
 				return $"Expecting item name";
 			case ExpressionErrorKind.ExpectingRightParen:
