@@ -151,7 +151,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
   </target>
 </project>".TrimStart ();
 
-			var refs = FindReferences (doc, MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo"));
+			var refs = FindReferences (doc, MSBuildReferenceKind.Metadata, ("bar", "foo"));
 
 			AssertLocations (
 				doc, "foo", refs,

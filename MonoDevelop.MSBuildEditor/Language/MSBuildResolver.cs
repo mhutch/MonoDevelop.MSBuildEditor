@@ -135,7 +135,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						return;
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.Reference = Tuple.Create (element.ParentElement ().Name.Name, element.Name.Name);
+						rr.Reference = (element.ParentElement ().Name.Name, element.Name.Name);
 						return;
 					case MSBuildKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
@@ -145,7 +145,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						if (!string.IsNullOrEmpty (taskName)) {
 							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
-							rr.Reference = Tuple.Create (taskName, element.Name.Name);
+							rr.Reference = (taskName, element.Name.Name);
 						}
 						return;
 					case MSBuildKind.Property:
@@ -179,11 +179,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 					switch (resolvedAttribute.AbstractKind) {
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.Reference = Tuple.Create (element.Name.Name, attribute.Name.Name);
+						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;
 					case MSBuildKind.Parameter:
 						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
-						rr.Reference = Tuple.Create (element.Name.Name, attribute.Name.Name);
+						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;
 					default:
 						if (!resolvedAttribute.IsAbstract) {
@@ -220,7 +220,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (em.ItemName == null || offset >= em.MetadataNameOffset) {
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.ReferenceOffset = em.MetadataNameOffset;
-						rr.Reference = Tuple.Create (em.GetItemName (), em.MetadataName);
+						rr.Reference = (em.GetItemName (), em.MetadataName);
 						rr.ReferenceLength = em.MetadataName.Length;
 					} else {
 						rr.ReferenceKind = MSBuildReferenceKind.Item;
@@ -237,7 +237,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
 							rr.ReferenceLength = lit.Value.Length;
-							rr.Reference = Tuple.Create (element.ParentElement ().Name.Name, lit.Value);
+							rr.Reference = (element.ParentElement ().Name.Name, lit.Value);
 							break;
 						}
 					}
@@ -331,6 +331,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public int ReferenceOffset;
 		public int ReferenceLength;
 		public object Reference;
+
+		public (string itemName, string metaName) ReferenceAsMetadata => (ValueTuple<string, string>)Reference;
+		public (string taskName, string paramName) ReferenceAsTaskParameter => (ValueTuple<string, string>)Reference;
 	}
 
 	enum MSBuildReferenceKind

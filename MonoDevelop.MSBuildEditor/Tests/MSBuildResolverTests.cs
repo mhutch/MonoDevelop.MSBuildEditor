@@ -69,12 +69,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				}
 			}
 
-			string FormatName (object reference) => reference is Tuple<string,string> t? $"{t.Item1}.{t.Item2}" : (string)reference;
+			string FormatName (object reference) => reference is ValueTuple<string,string> t? $"{t.Item1}.{t.Item2}" : (string)reference;
 			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.Reference);
 			bool IgnoreCaseEquals (MSBuildReferenceKind kind, object a, object e)
 			{
-				if (e is Tuple<string,string> et) {
-					var at = (Tuple<string, string>)a;
+				if (e is ValueTuple<string,string> et) {
+					var at = (ValueTuple<string, string>)a;
 					return string.Equals (at.Item1, et.Item1, StringComparison.OrdinalIgnoreCase) &&
 						string.Equals (at.Item2, et.Item2, StringComparison.OrdinalIgnoreCase);
 				}
@@ -166,10 +166,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, Tuple.Create ("bar", "foo"))
+				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+				(MSBuildReferenceKind.Metadata, ("bar", "foo"))
 			);
 		}
 

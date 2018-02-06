@@ -266,8 +266,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildReferenceKind.Item:
 				return doc.GetItem ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
-				var meta = (Tuple<string, string>)rr.Reference;
-				return doc.GetMetadata (meta.Item1, meta.Item2, true);
+				var m = rr.ReferenceAsMetadata;
+				return doc.GetMetadata (m.itemName, m.metaName, true);
 			case MSBuildReferenceKind.Property:
 				return doc.GetProperty ((string)rr.Reference);
 			case MSBuildReferenceKind.Task:
@@ -282,8 +282,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				var fx = (FrameworkReference)rr.Reference;
 				return FrameworkInfoProvider.Instance.GetBestInfo (fx, doc.Frameworks);
 			case MSBuildReferenceKind.TaskParameter:
-				var tp = (Tuple<string, string>)rr.Reference;
-				return doc.GetTaskParameter (tp.Item1, tp.Item2);
+				var p = rr.ReferenceAsTaskParameter;
+				return doc.GetTaskParameter (p.taskName, p.paramName);
 			}
 			return null;
 		}

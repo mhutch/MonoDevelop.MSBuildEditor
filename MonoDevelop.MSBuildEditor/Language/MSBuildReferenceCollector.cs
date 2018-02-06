@@ -59,8 +59,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.Item:
 				return new MSBuildItemReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
-				var meta = (Tuple<string,string>)rr.Reference;
-				return new MSBuildMetadataReferenceCollector (meta.Item1, meta.Item2);
+				var m = rr.ReferenceAsMetadata;
+				return new MSBuildMetadataReferenceCollector (m.itemName, m.metaName);
 			case MSBuildReferenceKind.Task:
 				return new MSBuildTaskReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:
