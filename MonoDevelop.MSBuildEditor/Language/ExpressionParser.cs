@@ -108,7 +108,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				} else {
 					var start = nodes [0].Offset;
 					var l = nodes [nodes.Count - 1].End - start;
-					splitList.Add (new Expression (baseOffset + start, l, nodes.ToArray ()));
+					splitList.Add (new Expression (start, l, nodes.ToArray ()));
 					nodes.Clear ();
 				}
 			}

@@ -188,9 +188,30 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
-		void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None)
+		[Test]
+		public void TestBaseOffset ()
 		{
-			var expr = ExpressionParser.Parse (expression, options);
+			TestParse (
+				"$(a) $(b);$(c);d",
+				new ExpressionList (
+					100, 16,
+					new Expression (
+						100, 9,
+						new ExpressionProperty (100, 4, "a"),
+						new ExpressionLiteral (104, " ", false),
+						new ExpressionProperty (105, 4, "b")
+					),
+					new ExpressionProperty (110, 4, "c"),
+					new ExpressionLiteral (115, "d", true)
+				),
+				ExpressionOptions.Lists,
+				100
+			);
+		}
+
+		void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
+		{
+			var expr = ExpressionParser.Parse (expression, options, baseOffset);
 			AssertEqual (expected, expr);
 		}
 
