@@ -209,6 +209,20 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
+		[Test]
+		public void TestXmlEntities ()
+		{
+			TestParse (
+				"&quot;;d&foo;bar",
+				new ExpressionList (
+					0, 16,
+					new ExpressionLiteral (0, "&quot;", true),
+					new ExpressionLiteral (7, "d&foo;bar", true)
+				),
+				ExpressionOptions.Lists
+			);
+		}
+
 		void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
 		{
 			var expr = ExpressionParser.Parse (expression, options, baseOffset);

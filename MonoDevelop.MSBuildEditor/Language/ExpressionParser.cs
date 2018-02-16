@@ -23,6 +23,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 			for (int offset = startOffset; offset <= endOffset; offset++) {
 				char c = buffer [offset];
 
+				//consume entities simply so the semicolon doesn't mess with list parsing
+				//we don't need the value and the base XML editor will handle errors
+				if (c == '&') {
+					offset++;
+					//FIXME: use proper entity name logic. this will do for now.
+					var name = ReadName (buffer, ref offset, endOffset);
+					if (offset > endOffset) {
+						break;
+					}
+					if (buffer[offset] == ';') {
+						continue;
+					}
+					c = buffer [offset];
+				}
+
 				if ((options.HasFlag (ExpressionOptions.Lists) && c == ';') || (c == ',' && options.HasFlag (ExpressionOptions.CommaLists))) {
 					CaptureLiteral (offset, nodes.Count == 0);
 					if (splitList == null) {
