@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using MonoDevelop.Ide;
 using NUnit.Framework;
+using MonoDevelop.Ide.CodeCompletion;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -12,8 +13,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		{
 			var provider = await MSBuildEditorTesting.CreateProvider (@"<Project><$", ".csproj");
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("PropertyGroup"));
-			Assert.IsNotNull (provider.Find ("Choose"));
+			AssertContainsItem (provider, "PropertyGroup");
+			AssertContainsItem (provider, "Choose");
 			Assert.AreEqual (12, provider.Count);
 		}
 
@@ -23,8 +24,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var provider = await MSBuildEditorTesting.CreateProvider (@"
 <Project><ItemGroup><Foo /><Bar /><$", ".csproj");
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Foo");
+			AssertContainsItem (provider, "Bar");
 			// comment, cdata, closing tags for Project and ItemGroup, plus the actual two items
 			Assert.AreEqual (6, provider.Count);
 		}
@@ -35,7 +36,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var provider = await MSBuildEditorTesting.CreateProvider (@"
 <Project><ItemGroup><Foo><Bar>a</Bar></Foo><Foo><$", ".csproj");
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Bar");
 			Assert.AreEqual (6, provider.Count);
 		}
 
@@ -45,8 +46,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var provider = await MSBuildEditorTesting.CreateProvider (@"
 <Project><ItemGroup><Foo Bar=""a"" /><Foo $", ".csproj", true);
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Bar"));
-			Assert.IsNotNull (provider.Find ("Include"));
+			AssertContainsItem (provider, "Bar");
+			AssertContainsItem (provider, "Include");
 			Assert.AreEqual (7, provider.Count);
 		}
 
@@ -58,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Configuration)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
+			AssertContainsItem (provider, "Foo");
 			Assert.AreEqual (3, provider.Count);
 		}
 
@@ -70,7 +71,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Platform)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Bar");
 			Assert.AreEqual (3, provider.Count);
 		}
 
@@ -83,8 +84,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Foo");
+			AssertContainsItem (provider, "Bar");
 			Assert.AreEqual (4, provider.Count);
 		}
 
@@ -97,8 +98,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Foo");
+			AssertContainsItem (provider, "Bar");
 			Assert.AreEqual (4, provider.Count);
 		}
 
@@ -111,7 +112,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
+			AssertContainsItem (provider, "Foo");
 			Assert.AreEqual (3, provider.Count);
 		}
 
@@ -124,7 +125,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
+			AssertContainsItem (provider, "Foo");
 			Assert.AreEqual (3, provider.Count);
 		}
 
@@ -137,9 +138,19 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <ItemGroup>
 <Baz Condition=""'$(Platform)|$(Configuration)'=='^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
-			Assert.IsNotNull (provider.Find ("Foo"));
-			Assert.IsNotNull (provider.Find ("Bar"));
+			AssertContainsItem (provider, "Foo");
+			AssertContainsItem (provider, "Bar");
 			Assert.AreEqual (4, provider.Count);
+		}
+
+		static void AssertContainsItem (CompletionDataList list, string displayName)
+		{
+			foreach (var data in list) {
+				if (data.DisplayText == displayName) {
+					return;
+				}
+			}
+			Assert.Fail ($"List does not contain item {displayName}");
 		}
 	}
 }
