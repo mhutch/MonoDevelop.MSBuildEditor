@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (resolvedElement != null) {
 				VisitResolvedElement (element, resolvedElement);
-			}else {
+			} else if (element != null) {
 				ResolveAndVisit (element, null);
 			}
 		}

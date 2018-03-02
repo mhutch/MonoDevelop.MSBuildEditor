@@ -69,7 +69,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public MSBuildRootDocument GetDocument ()
 		{
-			return ((MSBuildParsedDocument)DocumentContext.ParsedDocument).Document;
+			return ((MSBuildParsedDocument)DocumentContext.ParsedDocument)?.Document;
 		}
 
 		public override Task<ICompletionDataList> HandleCodeCompletionAsync (CodeCompletionContext completionContext, CompletionTriggerInfo triggerInfo, CancellationToken token = default (CancellationToken))
