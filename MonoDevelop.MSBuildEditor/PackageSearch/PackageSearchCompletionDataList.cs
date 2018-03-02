@@ -82,6 +82,8 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 		string oldSearchString;
 		IPackageFeedSearchJob<Tuple<string, FeedKind>> search;
 
+		//hack around brokenness on 7.3, fixed in 7.4SR
+		bool enableHacks;
 		readonly Type completionWindowType, listWindowType, listWidgetType;
 		readonly MethodInfo filterWordsMeth;
 		readonly FieldInfo completionWindowWindowField, oldCompletionStringField;
@@ -92,18 +94,24 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 			//needed for some hacks
 			completionWindowType = typeof (CompletionListWindow);
 			listWindowType = completionWindowType.Assembly.GetType ("MonoDevelop.Ide.CodeCompletion.ListWindow");
-			listWidgetType = completionWindowType.Assembly.GetType ("MonoDevelop.Ide.CodeCompletion.ListWidget");
-			filterWordsMeth = typeof (CompletionListWindow).GetMethod ("FilterWords", BF.NonPublic | BF.Instance);
-			completionWindowWindowField = completionWindowType.GetField ("window", BF.NonPublic | BF.Instance);
-			listWindowListProp = listWindowType.GetProperty ("List", BF.Public | BF.Instance);
-			oldCompletionStringField = listWidgetType.GetField ("oldCompletionString", BF.NonPublic | BF.Instance);
+			enableHacks = listWindowType != null;
 
-			//HACK: the completion windows crashes if we don't set this. it tries to
-			//preserve the selection, so first gets the old selected item - but after
-			//we already updated the list
-			AutoSelect = false;
+			if (enableHacks) {
+				listWidgetType = completionWindowType.Assembly.GetType ("MonoDevelop.Ide.CodeCompletion.ListWidget");
+				filterWordsMeth = typeof (CompletionListWindow).GetMethod ("FilterWords", BF.NonPublic | BF.Instance);
+				completionWindowWindowField = completionWindowType.GetField ("window", BF.NonPublic | BF.Instance);
+				listWindowListProp = listWindowType.GetProperty ("List", BF.Public | BF.Instance);
+				oldCompletionStringField = listWidgetType.GetField ("oldCompletionString", BF.NonPublic | BF.Instance);
+
+				//HACK: the completion windows crashes if we don't set this. it tries to
+				//preserve the selection, so first gets the old selected item - but after
+				//we already updated the list
+				AutoSelect = false;
+			}
+
 
 			AddKeyHandler (new PackageNameKeyHandler ());
+			AddKeyHandler (new RefilterKeyHandler (this));
 		}
 
 		protected void StartSearch (string initialSearch = "")
@@ -130,7 +138,7 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 			search = newSearch;
 			search.Updated += HandleSearchUpdated;
 
-			OnChanging (EventArgs.Empty);
+			Changing?.Invoke (this, EventArgs.Empty);
 			UpdateList ();
 		}
 
@@ -141,31 +149,39 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 
 		void UpdateList ()
 		{
-			foreach (var result in search.Results) {
-				if (itemsInList.Add (result.Item1)) {
+			if (enableHacks) {
+				foreach (var result in search.Results) {
+					if (itemsInList.Add (result.Item1)) {
+						Add (CreateCompletionData (result.Item1));
+					}
+				}
+			} else {
+				Clear ();
+				foreach (var result in search.Results) {
 					Add (CreateCompletionData (result.Item1));
 				}
 			}
 
-			//HACK: the completion window wil not re-sort the list
+			//HACK: the completion window will not re-sort the list
 			Sort (Comparer);
 			IsSorted = true;
 
 			//HACK: the completion list doesn't refilter after we update it
 			//so we have to manually reset the filtering
-			if (CompletionWindowManager.Wnd != null) {
+			if (enableHacks && CompletionWindowManager.Wnd != null) {
 				var window = completionWindowWindowField.GetValue (CompletionWindowManager.Wnd);
 				var list = listWindowListProp.GetValue (window);
 				oldCompletionStringField.SetValue (list, null);
 				filterWordsMeth.Invoke (CompletionWindowManager.Wnd, null);
 			}
 
+			bool wasChanging = false;
 			IsChanging = search.RemainingFeeds.Count > 0;
-			OnChanged (EventArgs.Empty);
 
-			//HACK: we shouldn't need to do this - the message should stay if IsChanging is still true
-			if (IsChanging) {
-				OnChanging (EventArgs.Empty);
+			Changed?.Invoke (this, EventArgs.Empty);
+
+			if (!wasChanging && IsChanging) {
+				Changing?.Invoke (this, EventArgs.Empty);
 			}
 		}
 
@@ -177,27 +193,8 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 		}
 
 		public bool IsChanging { get; set; }
-
-		public override CompletionListFilterResult FilterCompletionList (CompletionListFilterInput input)
-		{
-			//FIXME: there's probably a better place to do this...
-			UpdateSearch (input.CompletionString);
-
-			return base.FilterCompletionList (input);
-		}
-
 		public event EventHandler Changing;
 		public event EventHandler Changed;
-
-		void OnChanging (EventArgs e)
-		{
-			Changing?.Invoke (this, e);
-		}
-
-		void OnChanged (EventArgs e)
-		{
-			Changed?.Invoke (this, e);
-		}
 
 		public void Dispose ()
 		{
@@ -221,6 +218,31 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 			public bool PreProcessKey (CompletionListWindow listWindow, KeyDescriptor descriptor, out KeyActions keyAction)
 			{
 				return PostProcessKey (listWindow, descriptor, out keyAction);
+			}
+		}
+
+		class RefilterKeyHandler : ICompletionKeyHandler
+		{
+			PackageSearchCompletionDataList list;
+
+			public RefilterKeyHandler (PackageSearchCompletionDataList list)
+			{
+				this.list = list;
+			}
+
+			public bool PostProcessKey (CompletionListWindow listWindow, KeyDescriptor descriptor, out KeyActions keyAction)
+			{
+				//any time any key is pressed, we might need to update
+				list.UpdateSearch (listWindow.CompletionString);
+
+				keyAction = KeyActions.None;
+				return false;
+			}
+
+			public bool PreProcessKey (CompletionListWindow listWindow, KeyDescriptor descriptor, out KeyActions keyAction)
+			{
+				keyAction = KeyActions.None;
+				return false;
 			}
 		}
 	}
