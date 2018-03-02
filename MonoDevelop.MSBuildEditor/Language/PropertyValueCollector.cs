@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuildEditor.Schema;
+using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -64,16 +65,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return props.TryGetValue (name, out values) && values != null && values.Count > 0;
 		}
 
-		public List<FrameworkReference> GetFrameworks ()
+		public List<NuGetFramework> GetFrameworks ()
 		{
-			var list = new List<FrameworkReference> ();
+			var list = new List<NuGetFramework> ();
 			if (TryGetValues ("TargetFrameworks", out List<string> multiFxList)) {
 				foreach (var multiFxStr in multiFxList) {
 					if (multiFxStr != null && IsConstExpr (multiFxStr)) {
 						var multiFxArr = multiFxStr.Split (new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 						foreach (var fxstr in multiFxArr) {
-							var fx = FrameworkReference.FromShortName (fxstr);
-							if (fx != null) {
+							var fx = NuGetFramework.ParseFolder (fxstr);
+							if (fx != null && fx.IsSpecificFramework) {
 								list.Add (fx);
 							}
 						}
@@ -86,8 +87,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (TryGetValues ("TargetFramework", out List<string> fxList)) {
 				foreach (var fxstr in fxList) {
 					if (IsConstExpr (fxstr)) {
-						var fx = FrameworkReference.FromShortName (fxstr);
-						if (fx != null) {
+						var fx = NuGetFramework.ParseFolder (fxstr);
+						if (fx != null && fx.IsSpecificFramework) {
 							list.Add (fx);
 						}
 					}
@@ -96,22 +97,25 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (TryGetValues ("TargetFrameworkIdentifier", out List<string> idList) && TryGetValues ("TargetFrameworkVersion", out List<string> versionList)) {
 				var id = idList.FirstOrDefault (IsConstExpr);
-				var version = versionList.FirstOrDefault (v => {
+				var version = versionList.Select (v => {
 					if (v [0] == 'v') {
 						v = v.Substring (1);
 					}
-					return IsConstExpr (v) && Version.TryParse (v, out _);
-				});
+					if (IsConstExpr (v) && Version.TryParse (v, out Version parsed)) {
+						return parsed;
+					}
+					return null;
+				}).FirstOrDefault (v => v != null);
 
-				if (!string.IsNullOrEmpty (version) && !string.IsNullOrEmpty (id)) {
+				if (version != null && !string.IsNullOrEmpty (id)) {
 					if (TryGetValues ("TargetFrameworkProfile", out List<string> profileList)) {
 						var profile = profileList.FirstOrDefault (IsConstExpr);
 						if (profile != null) {
-							list.Add (new FrameworkReference (id, version, null, profileList[0]));
+							list.Add (new NuGetFramework (id, version, profile));
 							return list;
 						}
 					}
-					list.Add (new FrameworkReference (id, version, null, null));
+					list.Add (new NuGetFramework (id, version, null));
 					return list;
 				}
 			}

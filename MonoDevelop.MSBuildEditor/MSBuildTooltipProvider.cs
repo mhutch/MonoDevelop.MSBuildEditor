@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuildEditor
 						Doc = doc,
 						ResolveResult = rr,
 						Packages = PackageSearchHelpers.SearchPackageInfo (
-							ext.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFramework (), CancellationToken.None
+							ext.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
 						)
 					};
 					return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceLength));

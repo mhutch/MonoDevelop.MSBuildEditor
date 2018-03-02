@@ -150,7 +150,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			return Task.FromResult<ICompletionDataList> (
-				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFramework ()) {
+				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter ()) {
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}
@@ -164,7 +164,7 @@ namespace MonoDevelop.MSBuildEditor
 				return null;
 			}
 			return Task.FromResult<ICompletionDataList> (
-				new PackageVersionSearchCompletionDataList (PackageSearchManager, doc.GetTargetFramework (), name){
+				new PackageVersionSearchCompletionDataList (PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter (), name){
 					TriggerWordStart = startIdx,
 					TriggerWordLength = triggerLength
 				}

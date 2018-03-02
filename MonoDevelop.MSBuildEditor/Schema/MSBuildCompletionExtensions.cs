@@ -8,6 +8,7 @@ using System.Linq;
 using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.MSBuildEditor.Language;
 using System.Text;
+using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -151,11 +152,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return FrameworkInfoProvider.Instance.GetFrameworkIdentifiers ().ToList ();
 			case MSBuildValueKind.TargetFrameworkVersion:
 				return doc.Frameworks.SelectMany (
-					tfm => FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Identifier)
+					tfm => FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Framework)
 				).ToList ();
 			case MSBuildValueKind.TargetFrameworkProfile:
 				return doc.Frameworks.SelectMany (
-					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Identifier, tfm.Version)
+					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Framework, tfm.Version)
 				).ToList ();
 			case MSBuildValueKind.Configuration:
 				return doc.GetConfigurations ().Select (c => new ConstantInfo (c, "")).ToList ();
@@ -279,11 +280,74 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildReferenceKind.KnownValue:
 				return (BaseInfo)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:
-				var fx = (FrameworkReference)rr.Reference;
-				return FrameworkInfoProvider.Instance.GetBestInfo (fx, doc.Frameworks);
+				return ResolveFramework ((string)rr.Reference);
+			case MSBuildReferenceKind.TargetFrameworkIdentifier:
+				return BestGuessResolveFrameworkIdentifier ((string)rr.Reference, doc.Frameworks);
+			case MSBuildReferenceKind.TargetFrameworkVersion:
+				return BestGuessResolveFrameworkVersion ((string)rr.Reference, doc.Frameworks);
+			case MSBuildReferenceKind.TargetFrameworkProfile:
+				return BestGuessResolveFrameworkProfile ((string)rr.Reference, doc.Frameworks);
 			case MSBuildReferenceKind.TaskParameter:
 				var p = rr.ReferenceAsTaskParameter;
 				return doc.GetTaskParameter (p.taskName, p.paramName);
+			}
+			return null;
+		}
+
+		static BaseInfo ResolveFramework (string shortname)
+		{
+			var fullref = NuGetFramework.ParseFolder (shortname);
+			if (fullref.IsSpecificFramework) {
+				return new FrameworkInfo (shortname, fullref);
+			}
+			return null;
+		}
+
+		static BaseInfo BestGuessResolveFrameworkIdentifier (string identifier, IReadOnlyList<NuGetFramework> docTfms)
+		{
+			//if any tfm in the doc matches, assume it's referring to that
+			var existing = docTfms.FirstOrDefault (d => d.Framework == identifier);
+			if (existing != null) {
+				return new FrameworkInfo (identifier, existing);
+			}
+			//else take the latest known version for this framework
+			return FrameworkInfoProvider.Instance.GetFrameworkVersions (identifier).LastOrDefault ();
+		}
+
+		static BaseInfo BestGuessResolveFrameworkVersion (string version, IReadOnlyList<NuGetFramework> docTfms)
+		{
+			if (!Version.TryParse (version.TrimStart ('v', 'V'), out Version v)) {
+				return null;
+			}
+			//if any tfm in the doc has this version, assume it's referring to that
+			var existing = docTfms.FirstOrDefault (d => d.Version == v);
+			if (existing != null) {
+				return new FrameworkInfo (version, existing);
+			}
+			//if this matches a known version for any tfm id in the doc, take that
+			foreach (var tfm in docTfms) {
+				foreach (var f in FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Framework)) {
+					if (f.Reference.Version == v) {
+						return f;
+					}
+				}
+			}
+			return null;
+		}
+
+		static BaseInfo BestGuessResolveFrameworkProfile (string profile, IReadOnlyList<NuGetFramework> docTfms)
+		{
+			//if any tfm in the doc has this profile, assume it's referring to that
+			var existing = docTfms.FirstOrDefault (d => d.Profile == profile);
+			if (existing != null) {
+				return new FrameworkInfo (profile, existing);
+			}
+			foreach (var tfm in docTfms) {
+				foreach (var f in FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Framework, tfm.Version)) {
+					if (string.Equals (f.Name, profile, StringComparison.OrdinalIgnoreCase)) {
+						return f;
+					}
+				}
 			}
 			return null;
 		}

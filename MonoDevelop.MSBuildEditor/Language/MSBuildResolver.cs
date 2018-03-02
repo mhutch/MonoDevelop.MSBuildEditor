@@ -8,6 +8,7 @@ using MonoDevelop.Ide.Editor;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -283,20 +284,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
 				case MSBuildValueKind.TargetFramework:
-					rr.Reference = new FrameworkReference (null, null, node.Value, null);
+					rr.Reference = node.Value;
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				case MSBuildValueKind.TargetFrameworkIdentifier:
-					rr.Reference = new FrameworkReference (node.Value, null, null, null);
-					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					rr.Reference = node.Value;
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkIdentifier;
 					return;
 				case MSBuildValueKind.TargetFrameworkVersion:
-					rr.Reference = new FrameworkReference (null, node.Value, null, null);
-					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					rr.Reference = node.Value;
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkVersion;
 					return;
 				case MSBuildValueKind.TargetFrameworkProfile:
-					rr.Reference = new FrameworkReference (null, null, null, node.Value);
-					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
+					rr.Reference = node.Value;
+					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkProfile;
 					return;
 				}
 
@@ -349,6 +350,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		KnownValue,
 		NuGetID,
 		TargetFramework,
+		TargetFrameworkIdentifier,
+		TargetFrameworkVersion,
+		TargetFrameworkProfile,
 		FileOrFolder
 	}
 }

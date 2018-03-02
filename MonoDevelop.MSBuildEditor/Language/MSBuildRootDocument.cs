@@ -15,6 +15,7 @@ using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -22,7 +23,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		MSBuildToolsVersion? toolsVersion;
 
-		public IReadOnlyList<FrameworkReference> Frameworks { get; private set; }
+		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public IRuntimeInformation RuntimeInformation { get; private set; }
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; private set; }
@@ -31,9 +32,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 		}
 
-		public string GetTargetFramework ()
+		public string GetTargetFrameworkNuGetSearchParameter ()
 		{
-			return Frameworks.FirstOrDefault ()?.ToString () ?? ".NETStandard,Version=v2.0";
+			if (Frameworks.Count == 1) {
+				return Frameworks [0].DotNetFrameworkName;
+			}
+			//TODO properly support multiple filters
+			return null;
 		}
 
 		public static MSBuildRootDocument Parse (
@@ -97,9 +102,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				// will not have been re-evaluated
 				var fx = previous.Frameworks.FirstOrDefault ();
 				if (fx != null) {
-					propVals.Collect ("TargetFramework", fx.ShortName);
-					propVals.Collect ("TargetFrameworkVersion", fx.Version);
-					propVals.Collect ("TargetFrameworkIdentifier", fx.Identifier);
+					propVals.Collect ("TargetFramework", fx.GetShortFolderName ());
+					propVals.Collect ("TargetFrameworkVersion", FrameworkInfoProvider.FormatDisplayVersion (fx.Version));
+					propVals.Collect ("TargetFrameworkIdentifier", fx.Framework);
 				}
 			} else {
 				doc.Schema = schemaProvider.GetSchema (filename, null);
