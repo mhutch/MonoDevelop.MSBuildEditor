@@ -34,6 +34,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					new VersionInfo (new Version (4, 6, 2), "net462"),
 					new VersionInfo (new Version (4, 7), "net47"),
 					new VersionInfo (new Version (4, 7, 1), "net471"),
+					new VersionInfo (new Version (4, 7, 2), "net472")
 				)
 			);
 
@@ -43,6 +44,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					new VersionInfo (new Version (1, 0), "netcoreapp1.0"),
 					new VersionInfo (new Version (1, 1), "netcoreapp1.1"),
 					new VersionInfo (new Version (2, 0), "netcoreapp2.0"),
+					new VersionInfo (new Version (2, 0), "netcoreapp2.1")
 				)
 			);
 
