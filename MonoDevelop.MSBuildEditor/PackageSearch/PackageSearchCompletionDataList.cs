@@ -207,11 +207,10 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 		{
 			public bool PostProcessKey (CompletionListWindow listWindow, KeyDescriptor descriptor, out KeyActions keyAction)
 			{
+				keyAction = KeyActions.None;
 				if (descriptor.KeyChar == '.' || descriptor.KeyChar == '-') {
-					keyAction = KeyActions.Process;
 					return true;
 				}
-				keyAction = KeyActions.None;
 				return false;
 			}
 
