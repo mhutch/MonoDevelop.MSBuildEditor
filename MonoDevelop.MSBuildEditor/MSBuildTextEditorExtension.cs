@@ -255,6 +255,7 @@ namespace MonoDevelop.MSBuildEditor
 				case MSBuildValueKind.NuGetVersion:
 					return GetPackageVersionCompletions (doc, rr, Editor.CaretOffset - triggerLength, triggerLength);
 				case MSBuildValueKind.Sdk:
+				case MSBuildValueKind.SdkWithVersion:
 					return GetSdkCompletions (triggerLength, token);
 				case MSBuildValueKind.Guid:
 					list.Add (new GenerateGuidCompletionData ());
