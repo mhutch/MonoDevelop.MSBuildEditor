@@ -204,7 +204,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (expression is ExpressionLiteral lit) {
-				var path = lit.Value.Substring (0, lit.Value.Length - skipEndChars);
+				var path = TrimEndChars (lit.GetUnescapedValue ());
 				//FIXME handle encoding
 				yield return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
 				yield break;
@@ -219,9 +219,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			for (int i = 0; i < expr.Nodes.Count; i++) {
 				var node = expr.Nodes [i];
 				if (node is ExpressionLiteral l) {
-					var val = l.Value;
+					var val = l.GetUnescapedValue ();
 					if (i == expr.Nodes.Count - 1) {
-						val = val.Substring (0, val.Length - skipEndChars);
+						val = TrimEndChars (val);
 					}
 					sb.Append (val);
 				} else if (node is ExpressionProperty p) {
@@ -235,6 +235,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var variant in evalCtx.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename),  null)) {
 				yield return variant;
 			}
+
+			string TrimEndChars(string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
 		}
 
 		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, List<string> completionBasePaths, bool includeFiles)

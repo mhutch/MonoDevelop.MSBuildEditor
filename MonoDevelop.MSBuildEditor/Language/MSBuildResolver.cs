@@ -263,9 +263,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionLiteral node)
 			{
+				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;
 				rr.ReferenceLength = node.Value.Length;
-				rr.Reference = node.Value;
+				rr.Reference = value;
 
 				switch (kind) {
 				case MSBuildValueKind.TaskOutputParameterName:
@@ -284,19 +285,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
 				case MSBuildValueKind.TargetFramework:
-					rr.Reference = node.Value;
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
 				case MSBuildValueKind.TargetFrameworkIdentifier:
-					rr.Reference = node.Value;
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkIdentifier;
 					return;
 				case MSBuildValueKind.TargetFrameworkVersion:
-					rr.Reference = node.Value;
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkVersion;
 					return;
 				case MSBuildValueKind.TargetFrameworkProfile:
-					rr.Reference = node.Value;
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkProfile;
 					return;
 				}
@@ -305,9 +302,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				if (knownVals != null && knownVals.Count != 0) {
 					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, node.Value, StringComparison.OrdinalIgnoreCase)) {
+						if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
-							rr.Reference = kv;
 							return;
 						}
 					}

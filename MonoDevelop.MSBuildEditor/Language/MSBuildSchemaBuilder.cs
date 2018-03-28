@@ -305,10 +305,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void ExtractConfigurations (string value, int startOffset)
 		{
 			try {
+				value = XmlEscaping.UnescapeEntities (value);
 				var cond = ConditionParser.ParseCondition (value);
 				cond.CollectConditionProperties (Document);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild condition at {startOffset}", ex);
+				LoggingService.LogError ($"Error parsing MSBuild condition at {Filename}:{startOffset}", ex);
 			}
 		}
 
@@ -332,7 +333,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						break;
 					case ExpressionLiteral literal:
 						if (literal.IsPure) {
-							value = literal.Value.Trim ();
+							value = literal.GetUnescapedValue().Trim ();
 							switch (kind.GetScalarType ()) {
 							case MSBuildValueKind.ItemName:
 								CollectItem (value);

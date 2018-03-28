@@ -146,6 +146,7 @@
     <Compile Include="Evaluation\Conditions\IPropertyCollector.cs" />
     <Compile Include="Schema\TaskMetadataBuilder.cs" />
     <Compile Include="Schema\TaskInfo.cs" />
+    <Compile Include="Language\XmlEscaping.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />

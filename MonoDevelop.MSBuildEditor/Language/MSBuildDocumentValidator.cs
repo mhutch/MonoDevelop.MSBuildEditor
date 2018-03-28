@@ -357,7 +357,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					//maybe warn if they're not used anywhere outside of this expression?
 					break;
 				case ExpressionLiteral lit:
-					VisitPureLiteral (info, kind, lit.Value, lit.Offset, lit.Length);
+					VisitPureLiteral (info, kind, lit.GetUnescapedValue (), lit.Offset);
 					break;
 				}
 			}
@@ -367,7 +367,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			void AddListWarning (int start, int length) => AddWarning ($"{Name ()} does not expect lists", start, length);
 		}
 
-		void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset, int length)
+		//note: the value is unescaped, so offsets within it are not valid
+		void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset)
 		{
 			IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
 

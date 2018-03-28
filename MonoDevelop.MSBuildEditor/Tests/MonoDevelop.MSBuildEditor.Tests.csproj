@@ -47,6 +47,7 @@
     <Compile Include="MSBuildExpressionTests.cs" />
     <Compile Include="MSBuildImportTests.cs" />
     <Compile Include="ExpressionCompletion.cs" />
+    <Compile Include="XmlEscapingTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuildEditor.csproj">

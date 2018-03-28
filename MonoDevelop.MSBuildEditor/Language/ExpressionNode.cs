@@ -47,6 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class ExpressionLiteral : ExpressionNode
 	{
 		public string Value { get; }
+		public string GetUnescapedValue () => XmlEscaping.UnescapeEntities (Value);
 		public bool IsPure { get; }
 
 		public ExpressionLiteral (int offset, string value, bool isPure) : base (offset, value.Length)
