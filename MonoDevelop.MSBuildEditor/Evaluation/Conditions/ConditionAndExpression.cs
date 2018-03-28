@@ -50,53 +50,31 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			get { return right; }
 		}
 
-		public override bool BoolEvaluate (IExpressionContext context)
-		{
-			if (!left.BoolEvaluate (context))
-				return false;
-			if (!right.BoolEvaluate (context))
-				return false;
-			return true;
-		}
-
-
-		public override float NumberEvaluate (IExpressionContext context)
-		{
-			throw new NotSupportedException ();
-		}
-
-		public override string StringEvaluate (IExpressionContext context)
-		{
-			throw new NotSupportedException ();
-		}
-
-		public override bool CanEvaluateToBool (IExpressionContext context)
+		public override bool TryEvaluateToBool (IExpressionContext context, out bool result)
 		{
 			// Short-circuiting, check only left expr, right
 			// would be required only if left == true
-			return left.CanEvaluateToBool (context);
+			if (!left.TryEvaluateToBool (context, out result))
+				return false;
+
+			if (!result)
+				return true;
+
+			return right.TryEvaluateToBool (context, out result);
 		}
 
-		public override bool CanEvaluateToNumber (IExpressionContext context)
+		public override void CollectConditionProperties (IPropertyCollector properties)
 		{
-			return false;
-		}
-
-		public override bool CanEvaluateToString (IExpressionContext context)
-		{
-			return false;
-		}
-
-		public override void CollectConditionProperties (IPropertyCollector collector)
-		{
-			left.CollectConditionProperties (collector);
-			right.CollectConditionProperties (collector);
+			left.CollectConditionProperties (properties);
+			right.CollectConditionProperties (properties);
 		}
 	}
 
 	interface IExpressionContext
 	{
+		string FullDirectoryName { get; }
 		string FullFileName { get; }
 		string EvaluateString (string value);
+		System.Collections.Generic.Dictionary<string, bool> ExistsEvaluationCache { get; }
 	}
 }

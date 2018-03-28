@@ -28,14 +28,16 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Text;
 using Microsoft.Build.Exceptions;
 
 namespace MonoDevelop.Projects.MSBuild.Conditions
 {
 
-	internal class ConditionParser
+	internal sealed class ConditionParser
 	{
 
 		ConditionTokenizer tokenizer;
@@ -56,10 +58,10 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			try {
 				ConditionExpression ce = ParseCondition (condition);
 
-				if (!ce.CanEvaluateToBool (context))
+				if (!ce.TryEvaluateToBool (context, out bool result))
 					throw new InvalidProjectFileException (String.Format ("Can not evaluate \"{0}\" to bool.", condition));
 
-				return ce.BoolEvaluate (context);
+				return result;
 			} catch (ExpressionParseException epe) {
 				throw new InvalidProjectFileException (
 						String.Format ("Unable to parse condition \"{0}\" : {1}", condition, epe.Message),
@@ -71,6 +73,7 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			}
 		}
 
+		[Pure]
 		public static ConditionExpression ParseCondition (string condition)
 		{
 			ConditionParser parser = new ConditionParser (condition);
@@ -92,6 +95,7 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			return ParseBooleanAnd ();
 		}
 
+		[Pure]
 		public static string And (string a, string b)
 		{
 			return a + " and " + b;
@@ -210,16 +214,22 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 
 			while (true) {
 				tokenizer.GetNextToken ();
-				if (tokenizer.Token.Type == TokenType.RightParen) {
+				var token = tokenizer.Token;
+				if (token.Type == TokenType.RightParen) {
 					tokenizer.GetNextToken ();
 					break;
 				}
-				if (tokenizer.Token.Type == TokenType.Comma)
+				if (token.Type == TokenType.Comma)
 					continue;
 
-				tokenizer.Putback (tokenizer.Token);
+				if (token.Type != TokenType.Property)
+					tokenizer.Putback (token);
+
 				e = (ConditionFactorExpression)ParseFactorExpression ();
 				list.Add (e);
+
+				if (token.Type == TokenType.Property)
+					tokenizer.Putback (tokenizer.Token);
 			}
 
 			return list;
@@ -228,11 +238,12 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 		//@prefix: @ or $
 		ConditionExpression ParseReferenceExpression (char prefix)
 		{
-			int token_pos = tokenizer.Token.Position;
+			var token = tokenizer.Token;
+			int token_pos = token.Position;
 			string ref_type = prefix == '$' ? "a property" : "an item list";
-			IsAtToken (TokenType.LeftParen, String.Format (
-						"Expected {0} at position {1} in condition \"{2}\". Missing opening parantheses after the '{3}'.",
-						ref_type, token_pos, conditionStr, prefix));
+			if (token.Type != TokenType.LeftParen)
+				ThrowParseException (TokenType.LeftParen, "Expected {0} at position {1} in condition \"{2}\". Missing opening parantheses after the '{3}'.",
+						ref_type, token_pos, conditionStr, prefix);
 
 
 			if (prefix == '$') {
@@ -248,7 +259,7 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			if (tokenizer.IsEOF ())
 				throw new ExpressionParseException ("Missing closing parenthesis in condition " + conditionStr);
 
-			StringBuilder sb = new StringBuilder ();
+			var sb = new StringBuilder ();
 			sb.AppendFormat ("{0}({1}", prefix, tokenizer.Token.Value);
 
 			tokenizer.GetNextToken ();
@@ -264,7 +275,8 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 				}
 			}
 
-			IsAtToken (TokenType.RightParen, "Missing closing parenthesis in condition " + conditionStr);
+			if (tokenizer.Token.Type != TokenType.RightParen)
+				ThrowParseException (TokenType.RightParen, "Missing closing parenthesis in condition {0}", conditionStr);
 			tokenizer.GetNextToken ();
 
 			sb.Append (")");
@@ -273,22 +285,19 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			return new ConditionFactorExpression (new Token (sb.ToString (), TokenType.String, token_pos));
 		}
 
-		// used to check current token type
-		void IsAtToken (TokenType type, string error_msg)
+		void ThrowParseException (TokenType type, string error_fmt, params object [] args)
 		{
-			if (tokenizer.Token.Type != type) {
-				if (!String.IsNullOrEmpty (error_msg))
-					throw new ExpressionParseException (error_msg);
+			if (!String.IsNullOrEmpty (error_fmt))
+				throw new ExpressionParseException (string.Format (error_fmt, args));
 
-				if (tokenizer.Token.Type == TokenType.EOF)
-					throw new ExpressionParseException (String.Format (
-								"Expected a \"{0}\" but the condition ended abruptly, while parsing condition \"{1}\"",
-								Token.TypeAsString (type), conditionStr));
-
+			if (tokenizer.Token.Type == TokenType.EOF)
 				throw new ExpressionParseException (String.Format (
-								"Expected \"{0}\" token,  but got {1}, while parsing \"{2}\"",
-								Token.TypeAsString (type), tokenizer.Token, conditionStr));
-			}
+							"Expected a \"{0}\" but the condition ended abruptly, while parsing condition \"{1}\"",
+							Token.TypeAsString (type), conditionStr));
+
+			throw new ExpressionParseException (String.Format (
+							"Expected \"{0}\" token,  but got {1}, while parsing \"{2}\"",
+							Token.TypeAsString (type), tokenizer.Token, conditionStr));
 		}
 	}
 }

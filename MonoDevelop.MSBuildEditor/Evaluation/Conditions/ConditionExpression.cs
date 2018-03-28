@@ -26,22 +26,34 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
 using System.Xml;
 
 namespace MonoDevelop.Projects.MSBuild.Conditions
 {
-	internal abstract class ConditionExpression {
-	
-		public abstract bool BoolEvaluate (IExpressionContext context);
-		public abstract float NumberEvaluate (IExpressionContext context);
-		public abstract string StringEvaluate (IExpressionContext context);
-		
-		public abstract bool CanEvaluateToBool (IExpressionContext context);
-		public abstract bool CanEvaluateToNumber (IExpressionContext context);
-		public abstract bool CanEvaluateToString (IExpressionContext context);
+	internal abstract class ConditionExpression
+	{
 
-		public virtual void CollectConditionProperties (IPropertyCollector collector)
+		public abstract bool TryEvaluateToBool (IExpressionContext context, out bool result);
+
+		public virtual bool TryEvaluateToNumber (IExpressionContext context, out float result)
+		{
+			result = 0;
+			return false;
+		}
+
+		public virtual bool TryEvaluateToString (IExpressionContext context, out string result)
+		{
+			result = null;
+			return false;
+		}
+
+		public virtual bool TryEvaluateToVersion (IExpressionContext context, out Version result)
+		{
+			result = null;
+			return false;
+		}
+
+		public virtual void CollectConditionProperties (IPropertyCollector properties)
 		{
 		}
 	}

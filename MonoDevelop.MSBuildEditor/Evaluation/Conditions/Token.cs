@@ -28,21 +28,23 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Diagnostics.Contracts;
 
 namespace MonoDevelop.Projects.MSBuild.Conditions
 {
 
-	internal class Token
+	internal struct Token : IEquatable<Token>
 	{
 
-		string tokenValue;
-		TokenType tokenType;
+		readonly string tokenValue;
+		readonly TokenType tokenType;
+		readonly int position;
 
 		public Token (string tokenValue, TokenType tokenType, int position)
 		{
 			this.tokenValue = tokenValue;
 			this.tokenType = tokenType;
-			this.Position = position + 1;
+			this.position = position + 1;
 		}
 
 		public string Value {
@@ -55,9 +57,10 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 
 		// this is 1-based
 		public int Position {
-			get; private set;
+			get { return position; }
 		}
 
+		[Pure]
 		public static string TypeAsString (TokenType tokenType)
 		{
 			switch (tokenType) {
@@ -89,6 +92,25 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 				return String.Format ("{0} at character position {1}", tokenType.ToString (), Position);
 
 			return String.Format ("\"{0}\" at character position {1}", tokenValue, Position);
+		}
+
+		public override int GetHashCode ()
+		{
+			return (tokenValue?.GetHashCode () ?? 0) ^ tokenType.GetHashCode () ^ position.GetHashCode ();
+		}
+
+		public override bool Equals (object obj)
+		{
+			if (!(obj is Token))
+				return false;
+
+			var other = (Token)obj;
+			return Equals (other);
+		}
+
+		public bool Equals (Token other)
+		{
+			return tokenValue == other.tokenValue && tokenType == other.tokenType && position == other.position;
 		}
 	}
 

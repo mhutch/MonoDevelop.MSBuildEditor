@@ -51,45 +51,23 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			get { return right; }
 		}
 
-		public override bool BoolEvaluate (IExpressionContext context)
+		public override bool TryEvaluateToBool (IExpressionContext context, out bool result)
 		{
-			if (left.BoolEvaluate (context))
+			// Short-circuiting, check only left expr, right
+			// would be required only if left == false
+			if (!left.TryEvaluateToBool (context, out result))
+				return false;
+
+			if (result)
 				return true;
-			if (right.BoolEvaluate (context))
-				return true;
-			return false;
+
+			return right.TryEvaluateToBool (context, out result);
 		}
 
-		public override float NumberEvaluate (IExpressionContext context)
+		public override void CollectConditionProperties (IPropertyCollector properties)
 		{
-			throw new NotSupportedException ();
-		}
-
-		public override string StringEvaluate (IExpressionContext context)
-		{
-			throw new NotSupportedException ();
-		}
-
-		// FIXME: check if we really can do it
-		public override bool CanEvaluateToBool (IExpressionContext context)
-		{
-			return true;
-		}
-
-		public override bool CanEvaluateToNumber (IExpressionContext context)
-		{
-			return false;
-		}
-
-		public override bool CanEvaluateToString (IExpressionContext context)
-		{
-			return false;
-		}
-
-		public override void CollectConditionProperties (IPropertyCollector collector)
-		{
-			left.CollectConditionProperties (collector);
-			right.CollectConditionProperties (collector);
+			left.CollectConditionProperties (properties);
+			right.CollectConditionProperties (properties);
 		}
 	}
 }

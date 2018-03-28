@@ -52,12 +52,16 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			this.name = name;
 		}
 
-		public override bool BoolEvaluate (IExpressionContext context)
+		public override bool TryEvaluateToBool (IExpressionContext context, out bool result)
 		{
+			result = false;
 			Func<string, IExpressionContext, bool> func;
 			if (!functions.TryGetValue (name, out func)) {
+				return false;
+
+				// Not sure how this would be reached before.
 				// MSB4091
-				throw new Exception (string.Format ("Found a call to an undefined function \"{0}\".", name));
+				//throw new Exception (string.Format ("Found a call to an undefined function \"{0}\".", name));
 			}
 
 			if (args.Count != 1) {
@@ -66,32 +70,9 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 					name, args.Count, 1));
 			}
 
-			return func (args [0].StringEvaluate (context), context);
-		}
-
-		public override float NumberEvaluate (IExpressionContext context)
-		{
-			throw new NotSupportedException ();
-		}
-
-		public override string StringEvaluate (IExpressionContext context)
-		{
-			throw new NotSupportedException ();
-		}
-
-		public override bool CanEvaluateToBool (IExpressionContext context)
-		{
-			return functions.ContainsKey (name);
-		}
-
-		public override bool CanEvaluateToNumber (IExpressionContext context)
-		{
-			return false;
-		}
-
-		public override bool CanEvaluateToString (IExpressionContext context)
-		{
-			return false;
+			bool canEvaluate = args [0].TryEvaluateToString (context, out string arg0);
+			result = func (arg0, context);
+			return true;
 		}
 
 #pragma warning disable 0169
@@ -102,14 +83,18 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 			if (string.IsNullOrEmpty (file))
 				return false;
 
-			string directory = null;
-
-			if (context.FullFileName != String.Empty)
-				directory = Path.GetDirectoryName (context.FullFileName);
+			string directory = context.FullDirectoryName;
 
 			file = MSBuildProjectService.FromMSBuildPath (directory, file);
+			bool res;
+			lock (context.ExistsEvaluationCache) {
+				if (context.ExistsEvaluationCache.TryGetValue (file, out res))
+					return res;
 
-			return File.Exists (file) || Directory.Exists (file);
+				res = File.Exists (file) || Directory.Exists (file);
+				context.ExistsEvaluationCache [file] = res;
+			}
+			return res;
 		}
 
 		static bool HasTrailingSlash (string file, IExpressionContext context)
