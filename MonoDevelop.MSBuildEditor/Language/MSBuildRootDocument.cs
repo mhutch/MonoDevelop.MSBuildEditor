@@ -75,46 +75,65 @@ namespace MonoDevelop.MSBuildEditor.Language
 			doc.XDocument = xdocument;
 			doc.Text = textDoc;
 			doc.RuntimeInformation = runtimeInfo;
+			doc.Errors.AddRange (xmlParser.Errors);
 
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			importedFiles.Add (filename);
 
 			var taskBuilder = new TaskMetadataBuilder (doc);
 
-			doc.Build (
-				xdocument, textDoc, runtimeInfo, propVals, taskBuilder,
-				(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
-			);
-
-			var binpath = doc.RuntimeInformation.GetBinPath ();
-			foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
-				doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
-			}
-			foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
-				doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
+			try {
+				doc.Build (
+					xdocument, textDoc, runtimeInfo, propVals, taskBuilder,
+					(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
+				);
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error building document", ex);
 			}
 
-			doc.Errors.AddRange (xmlParser.Errors);
-
-			if (previous != null) {
-				doc.Schema = previous.Schema;
-				// try to recover some values that may have been collected from the imports, as they
-				// will not have been re-evaluated
-				var fx = previous.Frameworks.FirstOrDefault ();
-				if (fx != null) {
-					propVals.Collect ("TargetFramework", fx.GetShortFolderName ());
-					propVals.Collect ("TargetFrameworkVersion", FrameworkInfoProvider.FormatDisplayVersion (fx.Version));
-					propVals.Collect ("TargetFrameworkIdentifier", fx.Framework);
+			try {
+				var binpath = doc.RuntimeInformation.GetBinPath ();
+				foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
+					doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
 				}
-			} else {
-				doc.Schema = schemaProvider.GetSchema (filename, null);
+				foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
+					doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
+				}
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error resolving tasks", ex);
 			}
 
-			//this has to run in a second pass so that it runs after all the schemas are loaded
-			var validator = new MSBuildDocumentValidator ();
-			validator.Run (doc.XDocument, filename, textDoc, doc);
 
-			doc.Frameworks = propVals.GetFrameworks ();
+			try {
+				if (previous != null) {
+					// try to recover some values that may have been collected from the imports, as they
+					// will not have been re-evaluated
+					var fx = previous.Frameworks.FirstOrDefault ();
+					if (fx != null) {
+						propVals.Collect ("TargetFramework", fx.GetShortFolderName ());
+						propVals.Collect ("TargetFrameworkVersion", FrameworkInfoProvider.FormatDisplayVersion (fx.Version));
+						propVals.Collect ("TargetFrameworkIdentifier", fx.Framework);
+					}
+				}
+				doc.Frameworks = propVals.GetFrameworks ();
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error determining project framework", ex);
+				doc.Frameworks = new List<NuGetFramework> ();
+			}
+
+			try {
+				doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filename, null);
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error loading schema", ex);
+			}
+
+			try {
+				//this has to run in a second pass so that it runs after all the schemas are loaded
+				var validator = new MSBuildDocumentValidator ();
+				validator.Run (doc.XDocument, filename, textDoc, doc);
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error in validation", ex);
+			}
 
 			return doc;
 		}

@@ -100,26 +100,31 @@ namespace MonoDevelop.MSBuildEditor.Language
 		internal string GetSdkPath (IRuntimeInformation runtime, string sdk, DocumentRegion loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
-				string message = $"Could not parse SDK '{sdk}'";
-				LoggingService.LogError (message);
+				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
+				LoggingService.LogError (parseErrorMsg);
 				if (IsToplevel) {
-					AddError (message);
+					AddError (parseErrorMsg);
 				}
 				return null;
 			}
 
 			//FIXME: filename should be the root project, not this file
-			var sdkPath = runtime.GetSdkPath (sdkRef, Filename, null);
-			if (sdkPath == null) {
-				string message = $"Did not find SDK '{sdk}'";
-				LoggingService.LogError (message);
-				if (IsToplevel) {
-					AddError (message);
+			try {
+				var sdkPath = runtime.GetSdkPath (sdkRef, Filename, null);
+				if (sdk != null) {
+					return sdkPath;
 				}
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error in SDK resolver", ex);
 				return null;
 			}
 
-			return sdkPath;
+			string notFoundMsg = $"Did not find SDK '{sdk}'";
+			LoggingService.LogError (notFoundMsg);
+			if (IsToplevel) {
+				AddError (notFoundMsg);
+			}
+			return null;
 
 			void AddError (string msg) => Errors.Add (new Error (ErrorType.Error, msg, loc));
 		}
