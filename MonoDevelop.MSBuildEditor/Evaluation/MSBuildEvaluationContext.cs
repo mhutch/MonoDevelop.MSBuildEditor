@@ -53,7 +53,10 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			string tvString = MSBuildToolsVersion.Unknown.ToVersionString ();
 			string binPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetBinPath ());
 			string toolsPath = MSBuildProjectService.ToMSBuildPath (null, runtime.GetToolsPath ());
+
 			var extPaths = runtime.GetExtensionsPaths ();
+			ctx.extensionPaths = new List<string> (extPaths);
+
 			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
 			ctx.SetPropertyValue ("MSBuildToolsPath", toolsPath);
 			ctx.SetPropertyValue ("MSBuildToolsPath32", toolsPath);
@@ -63,8 +66,6 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			var extPath = MSBuildProjectService.ToMSBuildPath (null, extPaths.First());
 			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
 			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
-			ctx.SetPropertyValue ("MSBuildProjectDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath)));
-			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath) + Path.DirectorySeparatorChar));
 			ctx.SetPropertyValue ("VisualStudioVersion", "15.0");
 
 			var defaultSdksPath = runtime.GetSdksPath ();
@@ -72,7 +73,25 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
 			}
 
-			ctx.extensionPaths = new List<string> (extPaths);
+			// project path properties
+			string escapedProjectDir = MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath));
+			ctx.SetPropertyValue ("MSBuildProjectDirectory", escapedProjectDir);
+			// "MSBuildProjectDirectoryNoRoot" is this actually used for anything?
+			ctx.SetPropertyValue ("MSBuildProjectExtension", MSBuildProjectService.EscapeString (Path.GetExtension (projectPath)));
+			ctx.SetPropertyValue ("MSBuildProjectFile", MSBuildProjectService.EscapeString (Path.GetFileName (projectPath)));
+			ctx.SetPropertyValue ("MSBuildProjectFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (projectPath)));
+			ctx.SetPropertyValue ("MSBuildProjectName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (projectPath)));
+
+			//don't have a better value, this is as good as anything
+			ctx.SetPropertyValue ("MSBuildStartupDirectory", escapedProjectDir);
+
+			// this file path properties
+			ctx.SetPropertyValue ("MSBuildThisFile", MSBuildProjectService.EscapeString (Path.GetFileName (thisFilePath)));
+			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath)) + "\\");
+			//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
+			ctx.SetPropertyValue ("MSBuildThisFileExtension", MSBuildProjectService.EscapeString (Path.GetExtension (thisFilePath)));
+			ctx.SetPropertyValue ("MSBuildThisFileFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (thisFilePath)));
+			ctx.SetPropertyValue ("MSBuildThisFileName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath)));
 
 			return ctx;
 		}
@@ -124,6 +143,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 				}
 
 				//TODO: use a new context instead of altering this one?
+				//FIXME: this allows overwriting readonly props
 				foreach (var p in propVals) {
 					if (p.Value != null && p.Value.Count > 0) {
 						SetPropertyValue (p.Key, p.Value [0]);
