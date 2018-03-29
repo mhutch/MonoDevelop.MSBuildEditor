@@ -16,6 +16,8 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 {
 	class MSBuildEvaluationContext
 	{
+		static HashSet<string> readonlyProps = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+
 		object wrapped;
 		MethodInfo evaluateMeth, setPropMeth, getPropMeth;
 
@@ -57,43 +59,53 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			var extPaths = runtime.GetExtensionsPaths ();
 			ctx.extensionPaths = new List<string> (extPaths);
 
-			ctx.SetPropertyValue ("MSBuildBinPath", binPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath", toolsPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath32", toolsPath);
-			ctx.SetPropertyValue ("MSBuildToolsPath64", toolsPath);
-			ctx.SetPropertyValue ("RoslynTargetsPath", $"{binPath}\\Roslyn");
-			ctx.SetPropertyValue ("MSBuildToolsVersion", tvString);
+			AddReadOnlyProp ("MSBuildBinPath", binPath);
+			AddReadOnlyProp ("MSBuildToolsPath", toolsPath);
+			AddReadOnlyProp ("MSBuildToolsPath32", toolsPath);
+			AddReadOnlyProp ("MSBuildToolsPath64", toolsPath);
+			AddReadOnlyProp ("RoslynTargetsPath", $"{binPath}\\Roslyn");
+			AddReadOnlyProp ("MSBuildToolsVersion", tvString);
 			var extPath = MSBuildProjectService.ToMSBuildPath (null, extPaths.First());
-			ctx.SetPropertyValue ("MSBuildExtensionsPath", extPath);
-			ctx.SetPropertyValue ("MSBuildExtensionsPath32", extPath);
-			ctx.SetPropertyValue ("VisualStudioVersion", "15.0");
+			AddReadOnlyProp ("MSBuildExtensionsPath", extPath);
+			AddReadOnlyProp ("MSBuildExtensionsPath32", extPath);
+			AddReadOnlyProp ("VisualStudioVersion", "15.0");
 
 			var defaultSdksPath = runtime.GetSdksPath ();
 			if (defaultSdksPath != null) {
-				ctx.SetPropertyValue ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
+				AddReadOnlyProp ("MSBuildSDKsPath", MSBuildProjectService.ToMSBuildPath (null, defaultSdksPath));
 			}
 
 			// project path properties
 			string escapedProjectDir = MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (projectPath));
-			ctx.SetPropertyValue ("MSBuildProjectDirectory", escapedProjectDir);
+			AddReadOnlyProp ("MSBuildProjectDirectory", escapedProjectDir);
 			// "MSBuildProjectDirectoryNoRoot" is this actually used for anything?
-			ctx.SetPropertyValue ("MSBuildProjectExtension", MSBuildProjectService.EscapeString (Path.GetExtension (projectPath)));
-			ctx.SetPropertyValue ("MSBuildProjectFile", MSBuildProjectService.EscapeString (Path.GetFileName (projectPath)));
-			ctx.SetPropertyValue ("MSBuildProjectFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (projectPath)));
-			ctx.SetPropertyValue ("MSBuildProjectName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (projectPath)));
+			AddReadOnlyProp ("MSBuildProjectExtension", MSBuildProjectService.EscapeString (Path.GetExtension (projectPath)));
+			AddReadOnlyProp ("MSBuildProjectFile", MSBuildProjectService.EscapeString (Path.GetFileName (projectPath)));
+			AddReadOnlyProp ("MSBuildProjectFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (projectPath)));
+			AddReadOnlyProp ("MSBuildProjectName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (projectPath)));
 
 			//don't have a better value, this is as good as anything
-			ctx.SetPropertyValue ("MSBuildStartupDirectory", escapedProjectDir);
+			AddReadOnlyProp ("MSBuildStartupDirectory", escapedProjectDir);
 
 			// this file path properties
-			ctx.SetPropertyValue ("MSBuildThisFile", MSBuildProjectService.EscapeString (Path.GetFileName (thisFilePath)));
-			ctx.SetPropertyValue ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath)) + "\\");
+			AddReadOnlyProp ("MSBuildThisFile", MSBuildProjectService.EscapeString (Path.GetFileName (thisFilePath)));
+			AddReadOnlyProp ("MSBuildThisFileDirectory", MSBuildProjectService.ToMSBuildPath (null, Path.GetDirectoryName (thisFilePath)) + "\\");
 			//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
-			ctx.SetPropertyValue ("MSBuildThisFileExtension", MSBuildProjectService.EscapeString (Path.GetExtension (thisFilePath)));
-			ctx.SetPropertyValue ("MSBuildThisFileFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (thisFilePath)));
-			ctx.SetPropertyValue ("MSBuildThisFileName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath)));
+			AddReadOnlyProp ("MSBuildThisFileExtension", MSBuildProjectService.EscapeString (Path.GetExtension (thisFilePath)));
+			AddReadOnlyProp ("MSBuildThisFileFullPath", MSBuildProjectService.ToMSBuildPath (null, Path.GetFullPath (thisFilePath)));
+			AddReadOnlyProp ("MSBuildThisFileName", MSBuildProjectService.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath)));
+
+			//HACK: we don't get a usable value for this without real evaluation so hardcode 'obj'
+			var projectExtensionsPath = Path.GetFullPath (Path.Combine (Path.GetDirectoryName (projectPath), "obj"));
+			AddReadOnlyProp ("MSBuildProjectExtensionsPath", MSBuildProjectService.ToMSBuildPath (null, projectExtensionsPath) + "\\");
 
 			return ctx;
+
+			void AddReadOnlyProp (string key, string val)
+			{
+				ctx.SetPropertyValue (key, val);
+				readonlyProps.Add (key);
+			}
 		}
 
 		List<string> extensionPaths;
@@ -118,7 +130,7 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 				//ensure each of the properties is fully evaluated
 				//FIXME this is super hacky, use real MSBuild evaluation
 				foreach (var p in propVals) {
-					if (p.Value != null) {
+					if (p.Value != null && !readonlyProps.Contains (p.Key)) {
 						for (int i = 0; i < p.Value.Count; i++) {
 							var val = p.Value [i];
 							int recDepth = 0;
@@ -143,9 +155,8 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 				}
 
 				//TODO: use a new context instead of altering this one?
-				//FIXME: this allows overwriting readonly props
 				foreach (var p in propVals) {
-					if (p.Value != null && p.Value.Count > 0) {
+					if (p.Value != null && p.Value.Count > 0 && !readonlyProps.Contains(p.Key)) {
 						SetPropertyValue (p.Key, p.Value [0]);
 					}
 				}
@@ -155,6 +166,9 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 			var expr = ExpressionParser.Parse (path, ExpressionOptions.None);
 			var propsToPermute = new List<(string, List<string>)> ();
 			foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
+				if (readonlyProps.Contains (prop.Name)) {
+					continue;
+				}
 				if (propVals != null && propVals.TryGetValues (prop.Name, out List<string> values) && values != null) {
 					if (values.Count > 1) {
 						propsToPermute.Add ((prop.Name, values));

@@ -96,3 +96,4 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * validate property/items types passed to/from task parameters
 * add documentation for task parameters
 * fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
+* Fix MSBuildProjectExtensionsPath eval with nonstandard intermediate dir
