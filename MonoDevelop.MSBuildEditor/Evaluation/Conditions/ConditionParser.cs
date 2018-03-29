@@ -275,6 +275,12 @@ namespace MonoDevelop.Projects.MSBuild.Conditions
 				}
 			}
 
+			if (prefix == '%' && tokenizer.Token.Type == TokenType.Dot) {
+				tokenizer.GetNextToken ();
+				sb.AppendFormat (".{0}", tokenizer.Token.Value);
+				tokenizer.GetNextToken ();
+			}
+
 			if (tokenizer.Token.Type != TokenType.RightParen)
 				ThrowParseException (TokenType.RightParen, "Missing closing parenthesis in condition {0}", conditionStr);
 			tokenizer.GetNextToken ();
