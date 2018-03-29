@@ -194,6 +194,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 					continue;
 				}
 
+				//dedup
+				if (!importedFiles.Add (filename)) {
+					foundAny = true;
+					continue;
+				}
+
 				//wildcards
 				var wildcardIdx = filename.IndexOf ('*');
 				//arbitrary limit to skip improbably short values from bad evaluation
@@ -211,10 +217,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 					string [] files;
 					try {
 						var dir = filename.Substring (0, lastSlash);
-						if (!importedFiles.Add (dir)) {
-							foundAny = true;
-							continue;
-						}
 						if (!Directory.Exists (dir)) {
 							continue;
 						}
@@ -240,11 +242,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						}
 						yield return wildImport;
 					}
-					continue;
-				}
 
-				if (!importedFiles.Add (filename)) {
-					foundAny = true;
 					continue;
 				}
 
