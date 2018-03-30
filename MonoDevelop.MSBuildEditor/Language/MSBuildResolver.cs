@@ -304,6 +304,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
+							rr.Reference = kv;
 							return;
 						}
 					}
