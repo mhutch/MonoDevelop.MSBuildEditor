@@ -17,17 +17,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected int ConvertLocation (DocumentLocation location) => TextDocument.LocationToOffset (location);
 
-		public void Run (MSBuildRootDocument doc)
+		public void Run (MSBuildRootDocument doc, int offset = 0, int length = 0)
 		{
-			Run (doc.XDocument, doc.Filename, doc.Text, doc);
+			Run (doc.XDocument, doc.Filename, doc.Text, doc, offset, length);
 		}
 
-		public void Run (XDocument xDocument, string filename, ITextSource textDocument, MSBuildDocument doc)
+		public void Run (XDocument xDocument, string filename, ITextSource textDocument, MSBuildDocument doc, int offset = 0, int length = 0)
 		{
-			Run (xDocument.RootElement, null, filename, textDocument, doc);
+			Run (xDocument.RootElement, null, filename, textDocument, doc, offset, length);
 		}
 
-		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource textDocument, MSBuildDocument document)
+		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource textDocument, MSBuildDocument document, int offset = 0, int length = 0)
 		{
 			Filename = filename;
 			Document = document;
@@ -39,12 +39,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 					textDocument, filename, MSBuildTextEditorExtension.MSBuildMimeType
 				);
 
+			range = new DocumentRegion (
+				TextDocument.OffsetToLocation (offset),
+				length > 0
+					? TextDocument.OffsetToLocation (length + offset)
+					: new DocumentLocation (int.MaxValue, int.MaxValue));
+
 			if (resolvedElement != null) {
 				VisitResolvedElement (element, resolvedElement);
 			} else if (element != null) {
 				ResolveAndVisit (element, null);
 			}
 		}
+
+		DocumentRegion range;
 
 		void ResolveAndVisit (XElement element, MSBuildLanguageElement parent)
 		{
@@ -62,6 +70,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (resolved.ValueKind == MSBuildValueKind.Nothing) {
 				foreach (var child in element.Elements) {
+					if ((child.ClosingTag ?? child).Region.End < range.Begin) {
+						continue;
+					}
+					if (child.Region.Begin > range.End) {
+						return;
+					}
 					ResolveAndVisit (child, resolved);
 				}
 			}
@@ -70,6 +84,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void ResolveAttributesAndValue (XElement element, MSBuildLanguageElement resolved)
 		{
 			foreach (var att in element.Attributes) {
+				if (att.Region.End < range.Begin) {
+					continue;
+				}
+				if (att.Region.Begin > range.End) {
+					return;
+				}
 				var resolvedAtt = resolved.GetAttribute (att.Name.FullName);
 				if (resolvedAtt != null) {
 					VisitResolvedAttribute (element, att, resolved, resolvedAtt);
