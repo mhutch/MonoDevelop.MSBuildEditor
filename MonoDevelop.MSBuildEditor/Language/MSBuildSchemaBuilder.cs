@@ -99,7 +99,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
 				import = import == null? null : sdkPath + "\\" + import;
 
-				if (isToplevel) {
+				if (isToplevel && sdkPath != null) {
 					Document.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
 				}
 			}
@@ -110,7 +110,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				foreach (var resolvedImport in resolveImport (import, null)) {
 					Document.Imports [resolvedImport.Filename] = resolvedImport;
 					wasResolved |= resolvedImport.IsResolved;
-					if (isToplevel) {
+					if (isToplevel && wasResolved) {
 						Document.Annotations.Add (importAtt, new NavigationAnnotation (resolvedImport.Filename, loc));
 					}
 				}
