@@ -86,10 +86,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				.Where (a => !(a is IRegionAnnotation ra) || ra.Region.Contains (location));
 		}
 
-		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc)
+		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length)
 		{
 			var visitor = new MSBuildNavigationVisitor ();
-			visitor.Run (doc);
+			visitor.Run (doc, offset, length);
 			return visitor.Navigations;
 		}
 

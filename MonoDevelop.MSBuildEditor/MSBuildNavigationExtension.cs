@@ -27,7 +27,7 @@ namespace MonoDevelop.MSBuildEditor
 				return Task.FromResult (Enumerable.Empty<NavigationSegment> ());
 			}
 			return Task.Run (
-				() => CreateNavigationSegments (doc, MSBuildNavigation.ResolveAll (doc))
+				() => CreateNavigationSegments (doc, MSBuildNavigation.ResolveAll (doc, offset, length))
 			);
 		}
 
