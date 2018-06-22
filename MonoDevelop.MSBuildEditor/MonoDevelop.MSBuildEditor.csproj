@@ -147,6 +147,17 @@
     <Compile Include="Schema\TaskMetadataBuilder.cs" />
     <Compile Include="Schema\TaskInfo.cs" />
     <Compile Include="Language\XmlEscaping.cs" />
+    <Compile Include="Analysis\MSBuildAnalyzer.cs" />
+    <Compile Include="Analysis\MSBuildAnalysisContext.cs" />
+    <Compile Include="Analysis\MSBuildDiagnostic.cs" />
+    <Compile Include="Analysis\MSBuildRefactoringContext.cs" />
+    <Compile Include="Analysis\MSBuildFixContext.cs" />
+    <Compile Include="Analysis\MSBuildFixProvider.cs" />
+    <Compile Include="Analysis\MSBuildRefactoringProvider.cs" />
+    <Compile Include="Analysis\MSBuildActionOperation.cs" />
+    <Compile Include="Analysis\MSBuildAction.cs" />
+    <Compile Include="Analysis\MSBuildDiagnosticDescriptor.cs" />
+    <Compile Include="Analysis\MSBuildDiagnosticSeverity.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
