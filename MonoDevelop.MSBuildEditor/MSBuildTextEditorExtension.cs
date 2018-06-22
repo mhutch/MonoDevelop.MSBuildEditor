@@ -55,13 +55,25 @@ namespace MonoDevelop.MSBuildEditor
 		//HACK: work around https://github.com/mono/monodevelop/issues/3438
 		void CheckHighlighting ()
 		{
-			var meth = typeof (SyntaxHighlightingService)
-				.GetMethod (
-					"GetSyntaxHighlightingDefinitionByName",
-					System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
-				);
+			const System.Reflection.BindingFlags privateStatic
+				= System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
+
+			Type shs = typeof (SyntaxHighlightingService);
+			if (shs.GetField ("extensionBundle", privateStatic) != null) {
+				return;
+			}
+
+			var meth = shs.GetMethod ("GetSyntaxHighlightingDefinitionByName", privateStatic);
+			if (meth == null) {
+				return;
+			}
+
 			//HACK: the props extension is the only MSBuild extension that is not handled by the built-in highlighting
 			var highlighting = (SyntaxHighlightingDefinition) meth.Invoke (null, new object [] { new FilePath ("a.props") });
+			if (highlighting == null) {
+				return;
+			}
+
 			var old = Editor.SyntaxHighlighting;
 			Editor.SyntaxHighlighting = new SyntaxHighlighting (highlighting, Editor);
 			old.Dispose ();
