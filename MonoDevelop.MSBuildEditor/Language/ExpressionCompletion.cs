@@ -290,8 +290,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ValueInfo info;
 				switch (variable) {
 				case ExpressionProperty ep:
-					info = doc.GetProperty (ep.Name) ?? new PropertyInfo (ep.Name, null, false);
-					break;
+					if (ep.IsSimpleProperty) {
+						info = doc.GetProperty (ep.Name) ?? new PropertyInfo (ep.Name, null, false);
+						break;
+					}
+					continue;
 				case ExpressionMetadata em:
 					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null, false);
 					break;

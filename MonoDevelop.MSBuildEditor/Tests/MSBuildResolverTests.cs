@@ -192,5 +192,14 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				(MSBuildReferenceKind.Keyword, "DependsOnTargets")
 			);
 		}
+
+		[Test]
+		public void TestMarkedIndicesHelper ()
+		{
+			string str = "|abc|d|efg|hi";
+			var indices = MSBuildTestHelpers.GetMarkedIndices (ref str);
+			Assert.AreEqual (string.Join (",", indices), "0,3,4,7");
+			Assert.AreEqual ("abcdefghi", str);
+		}
 	}
 }

@@ -125,9 +125,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
-				case ExpressionProperty ep:
+				case ExpressionPropertyName ep:
 					if (IsMatch (ep.Name)) {
-						Results.Add ((ep.NameOffset, ep.Name.Length, ReferenceUsage.Read));
+						Results.Add ((ep.Offset, ep.Length, ReferenceUsage.Read));
 					}
 					break;
 				}

@@ -59,14 +59,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class ExpressionProperty : ExpressionNode
 	{
-		public string Name { get; }
+		public ExpressionPropertyNode Expression { get; }
 
-		public ExpressionProperty (int offset, int length, string name) : base (offset, length)
+		public bool IsSimpleProperty => Expression is ExpressionPropertyName;
+		public string Name => (Expression as ExpressionPropertyName)?.Name;
+		public int? NameOffset => (Expression as ExpressionPropertyName)?.Offset;
+
+		public ExpressionProperty (int offset, int length, ExpressionPropertyNode expression) : base (offset, length)
 		{
-			Name = name;
+			Expression = expression;
 		}
 
-		public int NameOffset => Offset + 2;
+		public ExpressionProperty(int offset, int length, string name)
+			: this (offset, length, new ExpressionPropertyName (offset + 2, name.Length, name))
+		{
+		}
 	}
 
 	class ExpressionMetadata : ExpressionNode
@@ -164,6 +171,58 @@ namespace MonoDevelop.MSBuildEditor.Language
 		PropertyFunctionsNotSupported,
     }
 
+	class ExpressionPropertyNode : ExpressionNode
+	{
+		public ExpressionPropertyNode(int offset, int length) : base (offset, length)
+		{
+		}
+	}
+
+	class ExpressionPropertyFunctionInvocation : ExpressionPropertyNode
+	{
+		public ExpressionPropertyNode Target { get; }
+		public string MethodName { get; }
+		public ExpressionArgumentList Arguments;
+
+		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, string methodName, ExpressionArgumentList arguments)
+			: base (offset, length)
+		{
+			Target = target;
+			MethodName = methodName;
+			Arguments = arguments;
+		}
+	}
+
+	class ExpressionArgumentList : ExpressionNode
+	{
+		public List<ExpressionNode> Arguments { get; }
+
+		public ExpressionArgumentList(int offset, int length, List<ExpressionNode> arguments) : base (offset, length)
+		{
+			Arguments = arguments;
+		}
+	}
+
+	class ExpressionPropertyName : ExpressionPropertyNode
+	{
+		public string Name { get; }
+
+		public ExpressionPropertyName(int offset, int length, string name) : base (offset, length)
+		{
+			Name = name;
+		}
+	}
+
+	class ExpressionClassReference : ExpressionPropertyNode
+	{
+		public string Name { get; }
+
+		public ExpressionClassReference(int offset, int length, string name) : base (offset, length)
+		{
+			Name = name;
+		}
+	}
+
 	[Flags]
 	enum ExpressionOptions
 	{
@@ -182,23 +241,56 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static IEnumerable<ExpressionNode> WithAllDescendants (this ExpressionNode node)
 		{
 			yield return node;
-			if (node is Expression expr) {
+
+			switch (node) {
+			case Expression expr:
 				foreach (var c in expr.Nodes) {
 					foreach (var n in c.WithAllDescendants ()) {
 						yield return n;
 					}
 				}
-			}
-			else if (node is ExpressionItem item && item.HasTransform) {
-				foreach (var n in item.Transform.WithAllDescendants ()) {
-					yield return n;
+				break;
+			case ExpressionItem item:
+				if (item.HasTransform) {
+					foreach (var n in item.Transform.WithAllDescendants ()) {
+						yield return n;
+					}
 				}
+				break;
+			case ExpressionProperty property:
+				if (property.Expression != null) {
+					foreach (var n in property.Expression.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionPropertyFunctionInvocation invocation:
+				if (invocation.Target != null) {
+					foreach (var n in invocation.Target.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (invocation.Arguments != null) {
+					foreach (var n in invocation.Arguments.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionArgumentList argumentList:
+				if (argumentList.Arguments != null) {
+					foreach (var a in argumentList.Arguments) {
+						foreach (var n in a.WithAllDescendants ()) {
+							yield return n;
+						}
+					}
+				}
+				break;
 			}
 		}
 
 		public static bool ContainsOffset (this ExpressionNode node, int offset)
 		{
-			return node.Offset <= offset && node.End > offset;
+			return node.Offset <= offset && node.End >= offset;
 		}
 
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
@@ -213,13 +305,37 @@ namespace MonoDevelop.MSBuildEditor.Language
 				//TODO: binary search?
 				foreach (var c in expr.Nodes) {
 					if (c.ContainsOffset (offset)) {
-						return c.Find (offset);
+						return c.FindInternal (offset);
 					}
 				}
 				break;
 			case ExpressionItem item:
 				if (item.HasTransform && item.Transform.ContainsOffset (offset)) {
-					return item.Transform.Find (offset);
+					return item.Transform.FindInternal (offset);
+				}
+				break;
+			case ExpressionProperty prop:
+				if (prop.Expression != null && prop.Expression.ContainsOffset (offset)) {
+					return prop.Expression.FindInternal (offset);
+				}
+				break;
+			case ExpressionPropertyFunctionInvocation prop:
+				if (prop.Target != null && prop.Target.ContainsOffset (offset)) {
+					return prop.Target.FindInternal (offset);
+
+				}
+				if (prop.Arguments != null && prop.Arguments.ContainsOffset (offset)) {
+					return prop.Arguments.FindInternal (offset);
+				}
+				break;
+			case ExpressionArgumentList argumentList:
+				if (argumentList.Arguments != null) {
+					//TODO: binary search?
+					foreach (var c in argumentList.Arguments) {
+						if (c.ContainsOffset (offset)) {
+							return c.FindInternal (offset);
+						}
+					}
 				}
 				break;
 			}

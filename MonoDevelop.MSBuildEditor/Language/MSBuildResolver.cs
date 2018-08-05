@@ -211,11 +211,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 					rr.ReferenceLength = ei.Name.Length;
 					rr.Reference = ei.Name;
 					break;
-				case ExpressionProperty ep:
+				case ExpressionPropertyName propName:
 					rr.ReferenceKind = MSBuildReferenceKind.Property;
-					rr.ReferenceOffset = ep.NameOffset;
-					rr.Reference = ep.Name;
-					rr.ReferenceLength = ep.Name.Length;
+					rr.ReferenceOffset = propName.Offset;
+					rr.Reference = propName.Name;
+					rr.ReferenceLength = propName.Length;
 					break;
 				case ExpressionMetadata em:
 					if (em.ItemName == null || offset >= em.MetadataNameOffset) {
