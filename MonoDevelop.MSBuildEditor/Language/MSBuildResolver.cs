@@ -230,7 +230,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceLength = em.ItemName.Length;
 					}
 					break;
-				case ExpressionLiteral lit:
+				case ExpressionText lit:
 					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
 						VisitPureLiteral (info, kind, lit);
@@ -261,7 +261,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionLiteral node)
+			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;

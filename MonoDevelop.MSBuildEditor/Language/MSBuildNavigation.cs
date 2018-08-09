@@ -137,7 +137,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (kind.GetScalarType ()) {
 				case MSBuildValueKind.TargetName:
 					foreach (var n in node.WithAllDescendants ()) {
-						if (n is ExpressionLiteral lit && lit.IsPure) {
+						if (n is ExpressionText lit && lit.IsPure) {
 							Navigations.Add (new MSBuildNavigationResult (
 								MSBuildReferenceKind.Target, lit.Value, lit.Offset, lit.Length
 							));

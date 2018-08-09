@@ -356,7 +356,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					//TODO: can we validate property/metadata/items refs?
 					//maybe warn if they're not used anywhere outside of this expression?
 					break;
-				case ExpressionLiteral lit:
+				case ExpressionText lit:
 					VisitPureLiteral (info, kind, lit.GetUnescapedValue (), lit.Offset);
 					break;
 				}

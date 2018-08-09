@@ -203,7 +203,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				yield break;
 			}
 
-			if (expression is ExpressionLiteral lit) {
+			if (expression is ExpressionText lit) {
 				var path = TrimEndChars (lit.GetUnescapedValue ());
 				//FIXME handle encoding
 				yield return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
@@ -218,7 +218,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var sb = new StringBuilder ();
 			for (int i = 0; i < expr.Nodes.Count; i++) {
 				var node = expr.Nodes [i];
-				if (node is ExpressionLiteral l) {
+				if (node is ExpressionText l) {
 					var val = l.GetUnescapedValue ();
 					if (i == expr.Nodes.Count - 1) {
 						val = TrimEndChars (val);

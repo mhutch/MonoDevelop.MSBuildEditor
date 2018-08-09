@@ -75,7 +75,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (!kind.AllowExpressions ()) {
 				VisitValueExpression (
 					element, attribute, resolvedElement, resolvedAttribute,
-					info, kind, new ExpressionLiteral (offset, value, true));
+					info, kind, new ExpressionText (offset, value, true));
 				return;
 			}
 

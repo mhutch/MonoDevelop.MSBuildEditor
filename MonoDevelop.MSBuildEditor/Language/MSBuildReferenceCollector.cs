@@ -234,19 +234,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 			switch (node) {
 			case ExpressionList list:
 				foreach (var c in list.Nodes) {
-					if (c is ExpressionLiteral l) {
+					if (c is ExpressionText l) {
 						CheckMatch (l);
 						break;
 					}
 				}
 				break;
-			case ExpressionLiteral lit:
+			case ExpressionText lit:
 				CheckMatch (lit);
 				break;
 			}
 		}
 
-		void CheckMatch (ExpressionLiteral node)
+		void CheckMatch (ExpressionText node)
 		{
 			//FIXME: get rid of this trim
 			if (IsMatch (node.Value.Trim ())) {

@@ -331,7 +331,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 							CollectMetadata (itemName, meta.MetadataName);
 						}
 						break;
-					case ExpressionLiteral literal:
+					case ExpressionText literal:
 						if (literal.IsPure) {
 							value = literal.GetUnescapedValue().Trim ();
 							switch (kind.GetScalarType ()) {

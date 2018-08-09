@@ -44,13 +44,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 	}
 
-	class ExpressionLiteral : ExpressionNode
+	class ExpressionText : ExpressionNode
 	{
 		public string Value { get; }
 		public string GetUnescapedValue () => XmlEscaping.UnescapeEntities (Value);
 		public bool IsPure { get; }
 
-		public ExpressionLiteral (int offset, string value, bool isPure) : base (offset, value.Length)
+		public ExpressionText (int offset, string value, bool isPure) : base (offset, value.Length)
 		{
 			Value = value;
 			IsPure = isPure;

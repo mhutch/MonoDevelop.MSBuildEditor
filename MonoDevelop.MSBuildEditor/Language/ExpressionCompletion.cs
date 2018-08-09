@@ -66,12 +66,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			triggerLength = 0;
 
 			if (expression.Length == 0) {
-				triggerExpression = new ExpressionLiteral (0, "", true);
+				triggerExpression = new ExpressionText (0, "", true);
 				return TriggerState.Value;
 			}
 
 			if (expression.Length == 1) {
-				triggerExpression = new ExpressionLiteral (0, expression, true);
+				triggerExpression = new ExpressionText (0, expression, true);
 				triggerLength = 1;
 				return TriggerState.Value;
 			}
@@ -85,7 +85,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
 					return LastChar () == ','? TriggerState.CommaValue : TriggerState.SemicolonValue;
 				}
-				if (triggerExpression is ExpressionLiteral l) {
+				if (triggerExpression is ExpressionText l) {
 					if (l.Length == 1) {
 						triggerLength = 1;
 						return PenultimateChar () == ',' ? TriggerState.CommaValue : TriggerState.SemicolonValue;
@@ -98,7 +98,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				lastNode = expr.Nodes.Last ();
 			}
 
-			if (lastNode is ExpressionLiteral lit) {
+			if (lastNode is ExpressionText lit) {
 				if (LastChar () == '\\') {
 					return TriggerState.DirectorySeparator;
 				}
@@ -183,12 +183,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			comparandValues = null;
 
 			if (expression.Length == 0 || (expression.Length == 0 && expression[0]=='\'')) {
-				triggerExpression = new ExpressionLiteral (0, "", true);
+				triggerExpression = new ExpressionText (0, "", true);
 				return TriggerState.Value;
 			}
 
 			if (expression.Length == 1) {
-				triggerExpression = new ExpressionLiteral (0, expression, true);
+				triggerExpression = new ExpressionText (0, expression, true);
 				triggerLength = 1;
 				return TriggerState.Value;
 			}

@@ -78,7 +78,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestLiteral (string expression)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
-			Assert.IsInstanceOf<ExpressionLiteral> (expr);
+			var lit = AssertCast<ExpressionText> (expr);
+			Assert.AreEqual (expression, lit.Value);
 		}
 
 		[Test]
@@ -141,11 +142,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc$(Foo)cde@(baritem)510",
 				 new Expression (
 					0, 25,
-					new ExpressionLiteral (0, "abc", false),
+					new ExpressionText (0, "abc", false),
 					new ExpressionProperty (3, 6, "Foo"),
-					new ExpressionLiteral (9, "cde", false),
+					new ExpressionText (9, "cde", false),
 					new ExpressionItem (12, 10, "baritem"),
-					new ExpressionLiteral (22, "510", false)
+					new ExpressionText (22, "510", false)
 				),
 				ExpressionOptions.Items
 			);
@@ -158,14 +159,14 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc;$(Foo)cde;@(baritem);stuff",
 				 new ExpressionList (
 					0, 30,
-					new ExpressionLiteral (0, "abc", true),
+					new ExpressionText (0, "abc", true),
 					new Expression (
 						4, 9,
 						new ExpressionProperty (4, 6, "Foo"),
-						new ExpressionLiteral (10, "cde", false)
+						new ExpressionText (10, "cde", false)
 					),
 					new ExpressionItem (14, 10, "baritem"),
-					new ExpressionLiteral (25, "stuff", true)
+					new ExpressionText (25, "stuff", true)
 				),
 				ExpressionOptions.ItemsAndLists
 			);
@@ -178,7 +179,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"abc;$(Foo)",
 				 new Expression (
 					0, 10,
-					new ExpressionLiteral (0, "abc;", false),
+					new ExpressionText (0, "abc;", false),
 					new ExpressionProperty (4, 6, "Foo")
 				)
 			);
@@ -208,11 +209,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					new Expression (
 						100, 9,
 						new ExpressionProperty (100, 4, "a"),
-						new ExpressionLiteral (104, " ", false),
+						new ExpressionText (104, " ", false),
 						new ExpressionProperty (105, 4, "b")
 					),
 					new ExpressionProperty (110, 4, "c"),
-					new ExpressionLiteral (115, "d", true)
+					new ExpressionText (115, "d", true)
 				),
 				ExpressionOptions.Lists,
 				100
@@ -226,8 +227,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"&quot;;d&foo;bar",
 				new ExpressionList (
 					0, 16,
-					new ExpressionLiteral (0, "&quot;", true),
-					new ExpressionLiteral (7, "d&foo;bar", true)
+					new ExpressionText (0, "&quot;", true),
+					new ExpressionText (7, "d&foo;bar", true)
 				),
 				ExpressionOptions.Lists
 			);
@@ -272,8 +273,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i]);
 				}
 				break;
-			case ExpressionLiteral literal:
-				var expectedLit = (ExpressionLiteral)expected;
+			case ExpressionText literal:
+				var expectedLit = (ExpressionText)expected;
 				Assert.AreEqual (expectedLit.Value, literal.Value);
 				Assert.AreEqual (expectedLit.IsPure, literal.IsPure);
 				break;
