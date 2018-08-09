@@ -23,9 +23,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		}
 
 		[TestCase ("$(", ExpressionErrorKind.ExpectingPropertyName)]
+		[TestCase ("$(    ", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("@(", ExpressionErrorKind.ExpectingItemName)]
 		[TestCase ("%(", ExpressionErrorKind.ExpectingMetadataOrItemName)]
 		[TestCase ("$(.", ExpressionErrorKind.ExpectingPropertyName)]
+		[TestCase ("$(   .", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("@(.", ExpressionErrorKind.ExpectingItemName)]
 		[TestCase ("%(.", ExpressionErrorKind.ExpectingMetadataOrItemName)]
 		[TestCase ("$(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
@@ -232,6 +234,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		}
 
 		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
+		[TestCase ("$(   Foo  .  Bar  (  )  )", "Foo", "Bar")]
 		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
 		//[TestCase ("$(Foo.A(5))", "Foo", "Baz", 5)]
 		//[TestCase ("$(Foo.A(true))", "Foo", "Baz", true)]
