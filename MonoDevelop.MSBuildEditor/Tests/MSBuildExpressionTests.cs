@@ -17,8 +17,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestProperty (string expression, string propName)
 		{
 			var expr = ExpressionParser.Parse (expression);
-			Assert.IsInstanceOf<ExpressionProperty>(expr);
-			var prop = (ExpressionProperty)expr;
+			var prop = AssertCast<ExpressionProperty> (expr);
+			Assert.IsTrue (prop.IsSimpleProperty);
 			Assert.AreEqual (propName, prop.Name);
 		}
 
@@ -61,8 +61,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
-			Assert.IsInstanceOf<ExpressionError> (expr);
-			var err = (ExpressionError)expr;
+			var err = AssertCast<ExpressionError> (expr);
 			Assert.AreEqual (error, err.Kind);
 		}
 
@@ -86,8 +85,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestMetadataDisallowed ()
 		{
 			var expr = ExpressionParser.Parse ("%(Foo)", ExpressionOptions.None);
-			Assert.IsInstanceOf<ExpressionError> (expr);
-			var err = (ExpressionError)expr;
+			var err = AssertCast<ExpressionError> (expr);
 			Assert.AreEqual (err.Kind, ExpressionErrorKind.MetadataDisallowed);
 		}
 
@@ -95,8 +93,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestItemsDisallowed ()
 		{
 			var expr = ExpressionParser.Parse ("@(Foo)", ExpressionOptions.None);
-			Assert.IsInstanceOf<ExpressionError> (expr);
-			var err = (ExpressionError)expr;
+			var err = AssertCast<ExpressionError> (expr);
 			Assert.AreEqual (err.Kind, ExpressionErrorKind.ItemsDisallowed);
 		}
 
@@ -106,9 +103,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestItem (string expression, string itemName)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Items);
-			Assert.IsInstanceOf<ExpressionItem> (expr);
-			var prop = (ExpressionItem)expr;
-			Assert.AreEqual (itemName, prop.Name);
+			var item = AssertCast<ExpressionItem> (expr);
+			Assert.AreEqual (itemName, item.Name);
 		}
 
 		[TestCase ("%(Foo)", "Foo")]
@@ -117,8 +113,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestUnqualifiedMetadata (string expression, string metaName)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
-			Assert.IsInstanceOf<ExpressionMetadata> (expr);
-			var meta = (ExpressionMetadata)expr;
+			var meta = AssertCast<ExpressionMetadata> (expr);
 			Assert.AreEqual (metaName, meta.MetadataName);
 			Assert.IsNull (meta.ItemName);
 		}
@@ -129,8 +124,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestQualifiedMetadata (string expression, string itemName, string metaName)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
-			Assert.IsInstanceOf<ExpressionMetadata> (expr);
-			var meta = (ExpressionMetadata)expr;
+			var meta = AssertCast<ExpressionMetadata> (expr);
 			Assert.AreEqual (metaName, meta.MetadataName);
 			Assert.AreEqual (itemName, meta.ItemName);
 		}
