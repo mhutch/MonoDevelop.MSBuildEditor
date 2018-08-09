@@ -61,9 +61,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestConditionTriggering (params object[] args)
 		{
 			string expr = (string)args[0];
-			TriggerState expectedState = (TriggerState)args[1];
+			var expectedState = (TriggerState)args[1];
 			int expectedLength = (int)args[2];
-			List<string> expectedComparands = args.Skip (3).Cast<string> ().ToList ();
+			var expectedComparands = args.Skip (3).Cast<string> ().ToList ();
 
 			var state = GetTriggerState (
 				expr, true,

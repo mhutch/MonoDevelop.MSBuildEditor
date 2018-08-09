@@ -118,7 +118,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionProperty p:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen && p.Name.Length == 1) {
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && p.Name.Length == 1) {
 						triggerLength = 1;
 						return TriggerState.Property;
 					}

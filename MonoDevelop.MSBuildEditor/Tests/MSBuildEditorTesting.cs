@@ -4,6 +4,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using MonoDevelop.Core;
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.CodeCompletion;
 using MonoDevelop.Ide.Gui;
@@ -99,9 +100,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				//HACK: the PackageManagement addin doesn't declare its dependencies correctly
 				//so the addin engine doesn't load these, and we have to force-load them
 				//so that we can use them
-				var nugetAddinLocation = Path.GetDirectoryName (typeof (PackageManagement.PackageManagementServices).Assembly.Location);
-				Core.Runtime.SystemAssemblyService.LoadAssemblyFrom (Path.Combine (nugetAddinLocation, "NuGet.Configuration.dll"));
-				Core.Runtime.SystemAssemblyService.LoadAssemblyFrom (Path.Combine (nugetAddinLocation, "NuGet.Protocol.dll"));
+				FilePath nugetAddinLocation = Path.GetDirectoryName (typeof (PackageManagement.PackageManagementServices).Assembly.Location);
+				Runtime.SystemAssemblyService.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Configuration.dll"));
+				Runtime.SystemAssemblyService.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Protocol.dll"));
 
 				Initialize (doc.Editor, doc);
 			}

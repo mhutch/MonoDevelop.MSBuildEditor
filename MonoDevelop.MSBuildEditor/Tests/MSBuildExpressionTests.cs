@@ -4,6 +4,7 @@
 using System;
 using NUnit.Framework;
 using MonoDevelop.MSBuildEditor.Language;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -27,10 +28,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(.", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("@(.", ExpressionErrorKind.ExpectingItemName)]
 		[TestCase ("%(.", ExpressionErrorKind.ExpectingMetadataOrItemName)]
-		[TestCase ("$(a", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("@(a", ExpressionErrorKind.ExpectingRightParenOrDash)]
 		[TestCase ("%(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
-		[TestCase ("$(a-", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a-", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("@(a.", ExpressionErrorKind.ExpectingRightParenOrDash)]
 		[TestCase ("%(a-", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("%(a.b", ExpressionErrorKind.ExpectingRightParen)]
@@ -47,6 +48,14 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(a->''", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->''d", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->'' ", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$(a..", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$(a.b", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$(a.b.", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$(a.b(", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(.", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b()", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingRightParen)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
@@ -55,7 +64,6 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (error, err.Kind);
 		}
 
-		[Test]
 		[TestCase ("$")]
 		[TestCase ("@")]
 		[TestCase ("%")]
@@ -223,13 +231,33 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
-		void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
+		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
+		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
+		//[TestCase ("$(Foo.A(5))", "Foo", "Baz", 5)]
+		//[TestCase ("$(Foo.A(true))", "Foo", "Baz", true)]
+		public void TestSimpleStringFunctions(object[] args)
+		{
+			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
+			var targetName = (string)args [1];
+			var methodName = (string)args [2];
+			var methArgs = args.Skip (3).ToList ();
+
+			var prop = AssertCast<ExpressionProperty> (expr);
+			Assert.IsFalse (prop.IsSimpleProperty);
+			var invocation = AssertCast<ExpressionPropertyFunctionInvocation> (prop.Expression);
+			var target = AssertCast<ExpressionPropertyName> (invocation.Target);
+			Assert.AreEqual (targetName, target.Name);
+			Assert.AreEqual (methodName, invocation.MethodName);
+			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
+		}
+
+		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
 		{
 			var expr = ExpressionParser.Parse (expression, options, baseOffset);
 			AssertEqual (expected, expr);
 		}
 
-		void AssertEqual (ExpressionNode expected, ExpressionNode actual)
+		static void AssertEqual (ExpressionNode expected, ExpressionNode actual)
 		{
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
@@ -262,6 +290,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			}
 			Assert.AreEqual (expected.Length, actual.Length);
 			Assert.AreEqual (expected.Offset, actual.Offset);
+		}
+
+		static T AssertCast<T> (object o)
+		{
+			Assert.IsInstanceOf<T> (o);
+			return (T)o;
 		}
 	}
 }

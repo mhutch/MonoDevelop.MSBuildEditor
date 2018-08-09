@@ -59,13 +59,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class ExpressionProperty : ExpressionNode
 	{
-		public ExpressionPropertyNode Expression { get; }
+		public ExpressionNode Expression { get; }
 
 		public bool IsSimpleProperty => Expression is ExpressionPropertyName;
 		public string Name => (Expression as ExpressionPropertyName)?.Name;
 		public int? NameOffset => (Expression as ExpressionPropertyName)?.Offset;
 
-		public ExpressionProperty (int offset, int length, ExpressionPropertyNode expression) : base (offset, length)
+		public ExpressionProperty (int offset, int length, ExpressionNode expression) : base (offset, length)
 		{
 			Expression = expression;
 		}
@@ -169,7 +169,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingRightParenOrDash,
 		ItemsDisallowed,
 		PropertyFunctionsNotSupported,
-    }
+		ExpectingMethodName,
+		ExpectingLeftParen,
+	}
 
 	class ExpressionPropertyNode : ExpressionNode
 	{

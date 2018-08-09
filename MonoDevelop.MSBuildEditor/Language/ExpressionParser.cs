@@ -238,7 +238,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			int start = offset - 2;
 
 			if (offset <= endOffset && buffer [offset] == '[') {
-				return ParsePropertyFunction (start, buffer, ref offset, endOffset, baseOffset);
+				return ParsePropertyStaticFunction (start, buffer, ref offset, endOffset, baseOffset);
 			}
 
 			string name = ReadName (buffer, ref offset, endOffset);
@@ -246,19 +246,96 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingPropertyName);
 			}
 
+			ExpressionPropertyNode propRef = new ExpressionPropertyName (baseOffset + offset - name.Length, name.Length, name);
+
+			bool foundFunction = false;
+
+			if (offset <= endOffset && buffer [offset] == '.') {
+				var o = offset;
+				if (WrapError (
+					ParsePropertyStringFunction (buffer, ref offset, endOffset, baseOffset, propRef),
+					out propRef,
+					out ExpressionError error,
+					n => new ExpressionProperty (baseOffset + start, o - start, n)
+				)) {
+					return error;
+				}
+				foundFunction = true;
+			}
+
 			if (offset > endOffset || buffer [offset] != ')') {
 				return new IncompleteExpressionError (
-					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParen,
-					new ExpressionProperty (baseOffset + start, offset - start + 1, name)
+					baseOffset + offset, offset > endOffset,
+					foundFunction? ExpressionErrorKind.ExpectingRightParen : ExpressionErrorKind.ExpectingRightParenOrPeriod,
+					new ExpressionProperty (baseOffset + start, offset - start, propRef)
 				);
 			}
 
-			return new ExpressionProperty (baseOffset + start, offset - start + 1, name);
+			return new ExpressionProperty (baseOffset + start, offset - start + 1, propRef);
 		}
 
-		static ExpressionNode ParsePropertyFunction (int start, string buffer, ref int offset, int endOffset, int baseOffset)
+		static ExpressionNode ParsePropertyStaticFunction(int start, string buffer, ref int offset, int endOffset, int baseOffset)
 		{
 			return new ExpressionError (baseOffset + offset, ExpressionErrorKind.PropertyFunctionsNotSupported);
+		}
+
+		static bool WrapError<T> (ExpressionNode result, out T success, out ExpressionError error, Func<T,ExpressionNode> wrap) where T : ExpressionNode
+		{
+			success = null;
+			error = null;
+			if (result is ExpressionError ee) {
+				var iee = ee as IncompleteExpressionError;
+				error = new IncompleteExpressionError (
+					ee.Offset,
+					iee?.WasEOF ?? false,
+					ee.Kind,
+					wrap (iee?.IncompleteNode as T)
+				);
+				return true;
+			}
+			success = (T)result;
+			return false;
+		}
+
+		static ExpressionNode ParsePropertyStringFunction(string buffer, ref int offset, int endOffset, int baseOffset, ExpressionPropertyNode target)
+		{
+			offset++;
+			if (offset > endOffset) {
+				return new IncompleteExpressionError (baseOffset + offset, true, ExpressionErrorKind.ExpectingMethodName, target);
+			}
+
+			var methodName = ReadName (buffer, ref offset, endOffset);
+			if (methodName == null) {
+				return new IncompleteExpressionError (baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMethodName, target);
+			}
+
+			if (offset > endOffset || buffer [offset] != '(') {
+				return new IncompleteExpressionError (baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingLeftParen, target);
+			}
+
+			int o = offset;
+			if (WrapError (
+				ParseFunctionArguments (buffer, ref offset, endOffset, baseOffset),
+				out ExpressionArgumentList args,
+				out ExpressionError error,
+				n => new ExpressionPropertyFunctionInvocation (target.Offset, (o + baseOffset) - target.Offset, target, methodName, n)
+			)) {
+				return error;
+			}
+
+			return new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, args);
+		}
+
+		static ExpressionNode ParseFunctionArguments(string buffer, ref int offset, int endOffset, int baseOffset)
+		{
+			int start = offset - 1;
+			offset++;
+			if (offset > endOffset || buffer [offset] != ')') {
+				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingRightParen);
+			}
+			offset++;
+
+			return new ExpressionArgumentList (baseOffset + start, offset - start, new List<ExpressionNode> ());
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)
