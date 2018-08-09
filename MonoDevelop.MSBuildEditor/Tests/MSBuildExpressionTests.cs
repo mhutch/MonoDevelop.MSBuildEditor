@@ -12,9 +12,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 	class MSBuildExpressionTests
 	{
 		[TestCase ("$(Foo)", "Foo")]
+		[TestCase ("$(   Foo   )", "Foo")]
 		[TestCase ("$(_Foo)", "_Foo")]
 		[TestCase ("$(_Foo12_3)", "_Foo12_3")]
-		public void TestProperty (string expression, string propName)
+		public void TestSimpleProperty (string expression, string propName)
 		{
 			var expr = ExpressionParser.Parse (expression);
 			var prop = AssertCast<ExpressionProperty> (expr);
@@ -54,10 +55,21 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(a..", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a.b", ExpressionErrorKind.ExpectingLeftParen)]
 		[TestCase ("$(a.b.", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$(a.b(", ExpressionErrorKind.ExpectingRightParen)]
-		[TestCase ("$(a.b(.", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$(a.b(.", ExpressionErrorKind.IncompleteValue)]
+		[TestCase ("$(a.b(/", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$(a.b()", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(true,", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$(a.b(true,   ", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$(a.b(true,.", ExpressionErrorKind.IncompleteValue)]
+		[TestCase ("$(a.b(true,/", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$(a.b(true,   .", ExpressionErrorKind.IncompleteValue)]
+		[TestCase ("$(a.b(true,   /", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$(a.b(true,true", ExpressionErrorKind.ExpectingRightParenOrComma)]
+		[TestCase ("$(a.b(true,true)", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(true,true)   ", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(true,true)   _", ExpressionErrorKind.ExpectingRightParen)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
@@ -231,8 +243,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
 		[TestCase ("$(   Foo  .  Bar  (  )  )", "Foo", "Bar")]
 		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
-		//[TestCase ("$(Foo.A(5))", "Foo", "Baz", 5)]
-		//[TestCase ("$(Foo.A(true))", "Foo", "Baz", true)]
+		[TestCase ("$(Foo.A(5))", "Foo", "A", 5)]
+		[TestCase ("$(Foo.A(true))", "Foo", "A", true)]
+		[TestCase ("$(Foo.A(true,   20 ))", "Foo", "A", true, 20)]
+		[TestCase ("$(Foo.A(20.5))", "Foo", "A", 20.5d)]
+		[TestCase ("$(Foo.A(.61))", "Foo", "A", .61d)]
 		public void TestSimpleStringFunctions(object[] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
@@ -242,11 +257,18 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			var prop = AssertCast<ExpressionProperty> (expr);
 			Assert.IsFalse (prop.IsSimpleProperty);
+
 			var invocation = AssertCast<ExpressionPropertyFunctionInvocation> (prop.Expression);
 			var target = AssertCast<ExpressionPropertyName> (invocation.Target);
+
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (methodName, invocation.MethodName);
+
 			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < methArgs.Count; i++) {
+				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
+				Assert.AreEqual (methArgs[i], arg.Value);
+			}
 		}
 
 		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)

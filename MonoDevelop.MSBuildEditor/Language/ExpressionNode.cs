@@ -57,6 +57,54 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 	}
 
+	abstract class ExpressionArgumentLiteral : ExpressionNode
+	{
+		public object Value { get; }
+		public abstract LiteralKind Kind { get; }
+		protected ExpressionArgumentLiteral(int offset, int length, object value) : base (offset, length)
+		{
+			Value = value;
+		}
+	}
+
+	abstract class ExpressionArgumentLiteral<T> : ExpressionArgumentLiteral
+	{
+		public new T Value => (T)base.Value;
+		protected ExpressionArgumentLiteral(int offset, int length, T value) : base (offset, length, value) {}
+	}
+
+	class ExpressionArgumentBool : ExpressionArgumentLiteral<bool>
+	{
+		public override LiteralKind Kind => LiteralKind.Bool;
+		public ExpressionArgumentBool(int offset, int length, bool value) : base (offset, length, value) { }
+	}
+
+	class ExpressionArgumentInt : ExpressionArgumentLiteral<long>
+	{
+		public override LiteralKind Kind => LiteralKind.Int;
+		public ExpressionArgumentInt(int offset, int length, long value) : base (offset, length, value) { }
+	}
+
+	class ExpressionArgumentFloat : ExpressionArgumentLiteral<double>
+	{
+		public override LiteralKind Kind => LiteralKind.Float;
+		public ExpressionArgumentFloat(int offset, int length, double value) : base (offset, length, value) { }
+	}
+
+	class ExpressionArgumentString : ExpressionArgumentLiteral<string>
+	{
+		public override LiteralKind Kind => LiteralKind.Bool;
+		public ExpressionArgumentString(int offset, int length, string value) : base (offset, length, value) { }
+	}
+
+	public enum LiteralKind
+	{
+		String,
+		Int,
+		Float,
+		Bool
+	}
+
 	class ExpressionProperty : ExpressionNode
 	{
 		public ExpressionNode Expression { get; }
@@ -171,6 +219,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		PropertyFunctionsNotSupported,
 		ExpectingMethodName,
 		ExpectingLeftParen,
+		ExpectingRightParenOrComma,
+		ExpectingRightParenOrValue,
+		ExpectingLiteralOrProperty,
+		ExpectingValue,
+		CouldNotParseNumber,
+		IncompleteValue,
 	}
 
 	class ExpressionPropertyNode : ExpressionNode
