@@ -37,6 +37,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("a,b", TriggerState.CommaValue, 1)]
 		[TestCase ("a;", TriggerState.SemicolonValue, 0)]
 		[TestCase ("a;b", TriggerState.SemicolonValue, 1)]
+		[TestCase ("$(a.", TriggerState.MethodName, 0)]
+		[TestCase ("$(a.b", TriggerState.MethodName, 1)]
+		[TestCase ("$(a.  b", TriggerState.MethodName, 1)]
 		public void TestTriggering (string expr, TriggerState expectedState, int expectedLength)
 		{
 			var state = GetTriggerState (

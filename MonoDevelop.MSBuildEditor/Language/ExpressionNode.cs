@@ -378,7 +378,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case ExpressionPropertyFunctionInvocation prop:
 				if (prop.Target != null && prop.Target.ContainsOffset (offset)) {
 					return prop.Target.FindInternal (offset);
-
 				}
 				if (prop.Arguments != null && prop.Arguments.ContainsOffset (offset)) {
 					return prop.Arguments.FindInternal (offset);

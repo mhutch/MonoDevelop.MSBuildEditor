@@ -122,6 +122,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 						triggerLength = 1;
 						return TriggerState.Property;
 					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
+						return TriggerState.MethodName;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
+						var inv = p.Find (iee.Offset - 1) as ExpressionPropertyFunctionInvocation;
+						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
+							triggerLength = 1;
+							return TriggerState.MethodName;
+						}
+					}
 					break;
 				case ExpressionMetadata m:
 					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
@@ -169,7 +179,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Property,
 			Metadata,
 			DirectorySeparator,
-			MetadataOrItem
+			MetadataOrItem,
+			MethodName
 		}
 
 		public static TriggerState GetConditionTriggerState (
