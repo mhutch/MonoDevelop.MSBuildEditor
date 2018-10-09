@@ -101,8 +101,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				//so the addin engine doesn't load these, and we have to force-load them
 				//so that we can use them
 				FilePath nugetAddinLocation = Path.GetDirectoryName (typeof (PackageManagement.PackageManagementServices).Assembly.Location);
-				Runtime.SystemAssemblyService.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Configuration.dll"));
-				Runtime.SystemAssemblyService.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Protocol.dll"));
+				Runtime.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Configuration.dll"));
+				Runtime.LoadAssemblyFrom (nugetAddinLocation.Combine ("NuGet.Protocol.dll"));
 
 				Initialize (doc.Editor, doc);
 			}
