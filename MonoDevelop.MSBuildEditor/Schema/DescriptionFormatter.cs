@@ -9,7 +9,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	static class DescriptionFormatter
 	{
-		public static string GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
+		public static DisplayText GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
 		{
 			if (doc == null) {
 				return info.Description;
@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
-			if (info.Description == null) {
+			if (info.Description.IsEmpty) {
 				switch (info) {
 				case PropertyInfo prop:
 					if (info.Name.EndsWith ("DependsOn", StringComparison.OrdinalIgnoreCase)) {

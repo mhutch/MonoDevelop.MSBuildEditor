@@ -5,7 +5,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class TargetInfo : BaseInfo
 	{
-		public TargetInfo (string name, string description)
+		public TargetInfo (string name, DisplayText description)
 			: base (name, description)
 		{
 		}

@@ -59,16 +59,16 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			var formatter = new DescriptionMarkupFormatter (doc);
 			var nameMarkup = formatter.GetNameMarkup (info);
-			if (nameMarkup == null) {
+			if (nameMarkup.IsEmpty) {
 				return null;
 			}
 
 			var desc = DescriptionFormatter.GetDescription (info, doc, rr);
 
 			return new TooltipInformation {
-				SignatureMarkup = nameMarkup,
-				SummaryMarkup = GLib.Markup.EscapeText (desc),
-				FooterMarkup = formatter.GetSeenInMarkup (info)
+				SignatureMarkup = nameMarkup.AsMarkup (),
+				SummaryMarkup = desc.AsMarkup (),
+				FooterMarkup = formatter.GetSeenInMarkup (info).AsMarkup ()
 			};
 		}
 

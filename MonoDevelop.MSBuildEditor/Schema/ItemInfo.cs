@@ -9,7 +9,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	class ItemInfo : ValueInfo
 	{
 		public ItemInfo (
-			string name, string description, string includeDescription = null,
+			string name, DisplayText description, string includeDescription = null,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			Dictionary<string, MetadataInfo> metadata = null)
 			: base (name, description, valueKind)

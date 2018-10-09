@@ -8,7 +8,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	class MSBuildLanguageAttribute : ValueInfo
 	{
 		public MSBuildLanguageAttribute (
-			string name, string description, MSBuildValueKind valueKind,
+			string name, DisplayText description, MSBuildValueKind valueKind,
 			bool required = false, MSBuildKind? abstractKind = null)
 			: base (name, description, valueKind)
 		{

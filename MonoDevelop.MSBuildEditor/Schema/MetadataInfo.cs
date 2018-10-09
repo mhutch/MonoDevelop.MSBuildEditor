@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public bool Required { get; }
 
 		public MetadataInfo (
-			string name, string description,
+			string name, DisplayText description,
 			bool reserved = false, bool required = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			ItemInfo item = null,

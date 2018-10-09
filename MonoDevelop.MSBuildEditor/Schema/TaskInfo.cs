@@ -11,7 +11,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public Dictionary<string, TaskParameterInfo> Parameters { get; } = new Dictionary<string, TaskParameterInfo> ();
 
-		public TaskInfo (string name, string description, string typeName, string assemblyName, string assemblyFile, string declaredInFile, DocumentLocation declaredAtLocation)
+		public TaskInfo (string name, DisplayText description, string typeName, string assemblyName, string assemblyFile, string declaredInFile, DocumentLocation declaredAtLocation)
 			: base (name, description)
 		{
 			TypeName = typeName;
@@ -36,7 +36,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public bool IsOutput { get; }
 		public bool IsRequired { get; }
 
-		public TaskParameterInfo (string name, string description, bool isRequired, bool isOutput, MSBuildValueKind kind) : base (name, description, kind)
+		public TaskParameterInfo (string name, DisplayText description, bool isRequired, bool isOutput, MSBuildValueKind kind) : base (name, description, kind)
 		{
 			IsOutput = isOutput;
 			IsRequired = isRequired;

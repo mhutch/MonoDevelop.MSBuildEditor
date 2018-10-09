@@ -5,7 +5,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class ConstantInfo : BaseInfo
 	{
-		public ConstantInfo (string name, string description) : base (name, description)
+		public ConstantInfo (string name, DisplayText description) : base (name, description)
 		{
 		}
 	}
@@ -14,7 +14,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public bool IsFolder { get; }
 
-		public FileOrFolderInfo (string name, bool isDirectory, string description) : base (name, description)
+		public FileOrFolderInfo (string name, bool isDirectory, DisplayText description) : base (name, description)
 		{
 			IsFolder = isDirectory;
 		}

@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public MSBuildLanguageElement AbstractChild { get; private set; }
 		public MSBuildLanguageAttribute AbstractAttribute { get; private set; }		
 
-		MSBuildLanguageElement (string name, string description, MSBuildKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
+		MSBuildLanguageElement (string name, DisplayText description, MSBuildKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
 			: base (name, description, valueKind)
 		{
 			Kind = kind;

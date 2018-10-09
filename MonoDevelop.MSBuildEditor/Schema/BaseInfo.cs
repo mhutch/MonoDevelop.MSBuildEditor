@@ -10,9 +10,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	abstract class BaseInfo
 	{
 		public string Name { get; }
-		public string Description { get; }
+		public DisplayText Description { get; }
 
-		protected BaseInfo (string name, string description)
+		protected BaseInfo (string name, DisplayText description)
 		{
 			Name = name;
 			Description = description;
@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	abstract class ValueInfo : BaseInfo
 	{
 		protected ValueInfo (
-			string name, string description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			List<ConstantInfo> values = null, string defaultValue = null)
 			: base (name, description)
 		{

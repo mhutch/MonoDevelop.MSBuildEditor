@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 		}
 
-		public string GetNameMarkup (BaseInfo info)
+		public DisplayText GetNameMarkup (BaseInfo info)
 		{
 			var color = GetColor (keywordColorId);
 			var label = DescriptionFormatter.GetTitle (info);
@@ -58,15 +58,18 @@ namespace MonoDevelop.MSBuildEditor
 					modifiers = $" : {string.Join (", ", tdesc)}";
 				}
 			}
-			return $"{label.kind} <span foreground=\"{color}\">{Escape (label.name)}</span>{modifiers}";
+			return new DisplayText (
+				$"{label.kind} <span foreground=\"{color}\">{Escape (label.name)}</span>{modifiers}",
+				true
+			);
 		}
 
-		public string GetSeenInMarkup (BaseInfo info)
+		public DisplayText GetSeenInMarkup (BaseInfo info)
 		{
 			return AppendSeenInMarkup(info, null);
 		}
 
-		public string AppendSeenInMarkup (BaseInfo info, string baseDesc)
+		public DisplayText AppendSeenInMarkup (BaseInfo info, string baseDesc)
 		{
 			IEnumerable<string> seenIn = doc.GetFilesSeenIn (info);
 			StringBuilder sb = null;
@@ -107,10 +110,10 @@ namespace MonoDevelop.MSBuildEditor
 				sb.Append (Escape (s.Substring (replacement.Value.prefix.Length)));
 				sb.Append ("</i>");
 			}
-			return sb?.ToString () ?? baseDesc;
+			return new DisplayText (sb?.ToString () ?? baseDesc, true);
 		}
 
-		internal static string GetNavigationMarkup (List<NavigationAnnotation> navs)
+		internal static DisplayText GetNavigationMarkup (List<NavigationAnnotation> navs)
 		{
 			if (navs.Count == 1) {
 				return $"<b>Resolved Path:</b> {GLib.Markup.EscapeText (navs[0].Path)}";
@@ -129,7 +132,7 @@ namespace MonoDevelop.MSBuildEditor
 					break;
 				}
 			}
-			return sb.ToString ();
+			return new DisplayText (sb.ToString ());
 		}
 
 		static string Escape (string s) => GLib.Markup.EscapeText (s);

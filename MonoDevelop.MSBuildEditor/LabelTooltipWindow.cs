@@ -11,14 +11,14 @@ namespace MonoDevelop.MSBuildEditor
 	//this is derived from MonoDevelop.SourceEditor.LanguageItemWindow
 	class LabelTooltipWindow : TooltipWindow
 	{
-		public LabelTooltipWindow (string messageMarkup)
+		public LabelTooltipWindow (DisplayText messageMarkup)
 		{
 			var label = new FixedWidthWrapLabel {
 				Wrap = Pango.WrapMode.WordChar,
 				Indent = -20,
 				BreakOnCamelCasing = true,
 				BreakOnPunctuation = true,
-				Markup = messageMarkup,
+				Markup = messageMarkup.AsMarkup (),
 			};
 
 			BorderWidth = 3;
