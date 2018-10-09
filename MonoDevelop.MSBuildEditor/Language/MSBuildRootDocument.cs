@@ -70,25 +70,46 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			string projectPath = filename;
 
-			var doc = new MSBuildRootDocument (filename);
-
-			doc.XDocument = xdocument;
-			doc.Text = textDoc;
-			doc.RuntimeInformation = runtimeInfo;
+			var doc = new MSBuildRootDocument (filename) {
+				XDocument = xdocument,
+				Text = textDoc,
+				RuntimeInformation = runtimeInfo
+			};
 			doc.Errors.AddRange (xmlParser.Errors);
 
-			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
-			importedFiles.Add (filename);
+			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase) {
+				filename
+			};
 
 			var taskBuilder = new TaskMetadataBuilder (doc);
 
+			var extension = Path.GetExtension (filename);
+
+			void ImportVariant (string fromExt, string toExt)
+			{
+				if (string.Equals (extension, fromExt, StringComparison.OrdinalIgnoreCase)) {
+					var variantFilename = Path.ChangeExtension (filename, toExt);
+					try {
+						var fi = new FileInfo (variantFilename);
+						if (fi.Exists) {
+							var imp = doc.GetCachedOrParse (importedFiles, previous, variantFilename, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
+							doc.Imports.Add (variantFilename, imp);
+						}
+					} catch (Exception ex) {
+						LoggingService.LogError ($"Error importing '{variantFilename}'", ex);
+					}
+				}
+			}
+
 			try {
+				ImportVariant (".targets", ".props");
 				doc.Build (
 					xdocument, textDoc, runtimeInfo, propVals, taskBuilder,
 					(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
 				);
+				ImportVariant (".targets", ".props");
 			} catch (Exception ex) {
-				LoggingService.LogError ("Error building document", ex);
+				LoggingService.LogError ($"Error building document '{projectPath}'", ex);
 			}
 
 			try {
