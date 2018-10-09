@@ -158,6 +158,8 @@
     <Compile Include="Analysis\MSBuildAction.cs" />
     <Compile Include="Analysis\MSBuildDiagnosticDescriptor.cs" />
     <Compile Include="Analysis\MSBuildDiagnosticSeverity.cs" />
+    <Compile Include="Language\FunctionCompletion.cs" />
+    <Compile Include="Schema\RoslynHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />

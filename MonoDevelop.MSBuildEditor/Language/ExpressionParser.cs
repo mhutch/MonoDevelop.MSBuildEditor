@@ -358,7 +358,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var methodName = ReadName (buffer, ref offset, endOffset);
 			if (methodName == null) {
-				return new IncompleteExpressionError (baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMethodName, target);
+				return new IncompleteExpressionError (
+					baseOffset + offset,
+					offset > endOffset,
+					ExpressionErrorKind.ExpectingMethodName,
+					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, null));
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);

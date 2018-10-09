@@ -375,6 +375,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 					return prop.Expression.FindInternal (offset);
 				}
 				break;
+			case IncompleteExpressionError err:
+				if (err.IncompleteNode != null && err.IncompleteNode.ContainsOffset (offset)) {
+					return err.IncompleteNode.FindInternal (offset);
+				}
+				break;
 			case ExpressionPropertyFunctionInvocation prop:
 				if (prop.Target != null && prop.Target.ContainsOffset (offset)) {
 					return prop.Target.FindInternal (offset);

@@ -11,37 +11,18 @@ using Microsoft.CodeAnalysis.CSharp;
 using MonoDevelop.Core;
 using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.MSBuildEditor.Language;
-using BF = System.Reflection.BindingFlags;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class TaskMetadataBuilder
 	{
-		object metadataService;
-		MethodInfo getReferenceMethod;
-		string binPath;
-		MSBuildRootDocument rootDoc;
+		readonly string binPath;
+		readonly MSBuildRootDocument rootDoc;
 
 		public TaskMetadataBuilder (MSBuildRootDocument rootDoc)
 		{
 			this.rootDoc = rootDoc;
 			binPath = rootDoc.RuntimeInformation.GetBinPath ();
-
-			var metadataServiceType = typeof (Workspace).Assembly.GetType ("Microsoft.CodeAnalysis.Host.IMetadataService");
-			getReferenceMethod = metadataServiceType.GetMethod ("GetReference", BF.Instance | BF.NonPublic | BF.Public);
-			var services = Ide.TypeSystem.TypeSystemService.Workspace.Services;
-			var getServiceMeth = services.GetType ().GetMethod ("GetService", BF.Instance | BF.NonPublic | BF.Public);
-			getServiceMeth = getServiceMeth.MakeGenericMethod (metadataServiceType);
-			metadataService = getServiceMeth.Invoke (services, null);
-		}
-
-		PortableExecutableReference GetReference (string resolvedPath, MetadataReferenceProperties properties = default)
-		{
-			//HACK: for some reason the cache fails on 7.3 but works on 7.4
-			if (BuildInfo.Version.StartsWith ("7.3", StringComparison.Ordinal)) {
-				return MetadataReference.CreateFromFile (resolvedPath);
-			}
-			return (PortableExecutableReference)getReferenceMethod.Invoke (metadataService, new object [] { resolvedPath, properties });
 		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, Compilation)?> resolvedAssemblies
@@ -79,7 +60,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			var desc = type.GetDocumentationCommentXml ();
 
-			var ti = new TaskInfo (type.Name, desc, GetFullName (type), assemblyName, assemblyFile, declaredInFile, declaredAtLocation);
+			var ti = new TaskInfo (type.Name, desc, type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtLocation);
 			PopulateTaskInfoFromType (ti, type);
 			return ti;
 		}
@@ -99,7 +80,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 				if (type.BaseType is IErrorTypeSymbol) {
 					LoggingService.LogWarning (
-						$"Error resolving '{GetFullName (type.BaseType)}' [{type.BaseType.ContainingAssembly.Name}] (from '{GetFullName (type)}')");
+						$"Error resolving '{type.BaseType.GetFullName ()}' [{type.BaseType.ContainingAssembly.Name}] (from '{type.GetFullName ()}')");
 					break;
 				}
 
@@ -114,7 +95,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var propDesc = prop.GetDocumentationCommentXml ();
 			bool isOutput = false, isRequired = false;
 			foreach (var att in prop.GetAttributes ()) {
-				switch (GetFullName (att.AttributeClass)) {
+				switch (att.AttributeClass.GetFullName ()) {
 				case "Microsoft.Build.Framework.OutputAttribute":
 					isOutput = true;
 					break;
@@ -132,7 +113,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				propType = arr.ElementType;
 			}
 
-			string fullTypeName = GetFullName (propType);
+			string fullTypeName = propType.GetFullName ();
 
 			switch (fullTypeName) {
 			case "System.String":
@@ -153,7 +134,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (kind == MSBuildValueKind.Unknown) {
-				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter '{GetFullName (type)}.{prop.Name}'");
+				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter '{type.GetFullName ()}.{prop.Name}'");
 			}
 
 			if (isList) {
@@ -161,19 +142,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			return new TaskParameterInfo (prop.Name, propDesc, isRequired, isOutput, kind);
-		}
-
-		static string GetFullName (ITypeSymbol symbol)
-		{
-			var sb = new System.Text.StringBuilder ();
-			var ns = symbol.ContainingNamespace;
-			while (ns != null && !string.IsNullOrEmpty (ns.Name)) {
-				sb.Insert (0, '.');
-				sb.Insert (0, ns.Name);
-				ns = ns.ContainingNamespace;
-			}
-			sb.Append (symbol.Name);
-			return sb.ToString ();
 		}
 
 		(string path, Compilation compilation)? GetTaskFile (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals)
@@ -188,7 +156,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks assembly name='{assemblyName}' file='{taskFile}' in '{declaredInFile}'", ex);
 			}
-			resolvedAssemblies [key] = taskFile;
+			resolvedAssemblies[key] = taskFile;
 			return taskFile;
 		}
 
@@ -231,13 +199,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			{
 				var compilation = CSharpCompilation.Create (
 					"TaskResolver",
-					references: new [] {
-						GetReference (path),
-						GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
-						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
-						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
-						GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
-						GetReference (typeof (object).Assembly.Location)
+					references: new[] {
+						RoslynHelpers.GetReference (path),
+						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
+						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
+						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
+						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
+						RoslynHelpers.GetReference (typeof (object).Assembly.Location)
 					}
 				);
 				return (path, compilation);

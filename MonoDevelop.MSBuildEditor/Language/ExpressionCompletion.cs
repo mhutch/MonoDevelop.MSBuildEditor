@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				//the last list entry is the thing that triggered it
 				triggerExpression = el.Nodes.Last ();
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
-					return LastChar () == ','? TriggerState.CommaValue : TriggerState.SemicolonValue;
+					return LastChar () == ',' ? TriggerState.CommaValue : TriggerState.SemicolonValue;
 				}
 				if (triggerExpression is ExpressionText l) {
 					if (l.Length == 1) {
@@ -164,8 +164,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			return TriggerState.None;
 
-			char LastChar () => expression [expression.Length - 1];
-			char PenultimateChar () => expression [expression.Length - 2];
+			char LastChar () => expression[expression.Length - 1];
+			char PenultimateChar () => expression[expression.Length - 2];
 			bool IsPossiblePathSegment (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
 		}
 
@@ -193,7 +193,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			triggerExpression = null;
 			comparandValues = null;
 
-			if (expression.Length == 0 || (expression.Length == 0 && expression[0]=='\'')) {
+			if (expression.Length == 0 || (expression.Length == 0 && expression[0] == '\'')) {
 				triggerExpression = new ExpressionText (0, "", true);
 				return TriggerState.Value;
 			}
@@ -222,9 +222,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			int last = tokens.Count - 1;
-			if (last >= 2 && TokenIsCondition (tokens[last-1].Type)) {
-				var lt = tokens [last];
-				if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position+lt.Value.Length] != '\''))) {
+			if (last >= 2 && TokenIsCondition (tokens[last - 1].Type)) {
+				var lt = tokens[last];
+				if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position + lt.Value.Length] != '\''))) {
 					lastExpressionStart = lt.Position;
 					comparandValues = ReadPrecedingComparandVariables (tokens, last - 2);
 				} else {
@@ -256,7 +256,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		//TODO: unqualified metadata
 		static IReadOnlyList<ExpressionNode> ReadPrecedingComparandVariables (List<Token> tokens, int index)
 		{
-			var expr = tokens [index];
+			var expr = tokens[index];
 			if (expr.Type == TokenType.String) {
 				var list = new List<ExpressionNode> ();
 				var expression = ExpressionParser.Parse (expr.ToString (), ExpressionOptions.ItemsAndMetadata);
@@ -273,9 +273,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (expr.Type == TokenType.RightParen && index - 3 >= 0) {
 				if (Readback (1, TokenType.String)) {
-					if (Readback (2, TokenType.LeftParen)){
+					if (Readback (2, TokenType.LeftParen)) {
 						if (Readback (3, TokenType.Property)) {
-							return new [] { new ExpressionProperty (0, 0, ValueBack (1)) };
+							return new[] { new ExpressionProperty (0, 0, ValueBack (1)) };
 						}
 						if (Readback (3, TokenType.Metadata)) {
 							//TODO: handle unqualified metadata
@@ -283,15 +283,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 						}
 					}
 					if (index - 4 >= 0 && Readback (2, TokenType.Dot) && Readback (3, TokenType.String) && Readback (4, TokenType.LeftParen) && Readback (5, TokenType.Metadata)) {
-						return new [] { new ExpressionMetadata (0, 0, ValueBack (3), ValueBack (1)) };
+						return new[] { new ExpressionMetadata (0, 0, ValueBack (3), ValueBack (1)) };
 					}
 				}
 			}
 
 			return null;
 
-			bool Readback (int i, TokenType type) => tokens [index - i].Type == type;
-			string ValueBack (int i) => tokens [index - i].Value;
+			bool Readback (int i, TokenType type) => tokens[index - i].Type == type;
+			string ValueBack (int i) => tokens[index - i].Value;
 		}
 
 		public static IEnumerable<BaseInfo> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
@@ -354,6 +354,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
 				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
+			case TriggerState.MethodName:
+				return FunctionCompletion.GetMethodNameCompletions (triggerExpression);
 			}
 			throw new InvalidOperationException ();
 		}
