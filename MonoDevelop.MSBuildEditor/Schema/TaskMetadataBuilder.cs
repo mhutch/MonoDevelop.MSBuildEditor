@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using MonoDevelop.Core;
+using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Evaluation;
 using MonoDevelop.MSBuildEditor.Language;
 
@@ -19,10 +19,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		readonly string binPath;
 		readonly MSBuildRootDocument rootDoc;
 
+		Dictionary<string, Projects.Project> projectMap
+			= new Dictionary<string, Projects.Project> (StringComparer.OrdinalIgnoreCase);
+
 		public TaskMetadataBuilder (MSBuildRootDocument rootDoc)
 		{
 			this.rootDoc = rootDoc;
 			binPath = rootDoc.RuntimeInformation.GetBinPath ();
+
+			foreach (var project in Ide.IdeApp.Workspace.GetAllProjects()) {
+				var outName = project.GetOutputFileName (project.ParentSolution.DefaultConfigurationSelector);
+				projectMap[Path.GetFileNameWithoutExtension (outName)] = project;
+			}
 		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, Compilation)?> resolvedAssemblies
@@ -38,27 +46,39 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			var file = GetTaskFile (assemblyName, assemblyFile, declaredInFile, propVals);
-			if (file == null) {
+			Compilation compilation = GetTaskFile (assemblyName, assemblyFile, declaredInFile, propVals)?.compilation;
+			if (compilation == null) {
 				return null;
 			}
 
-
-			var type = file.Value.compilation.GetTypeByMetadataName (typeName);
-
-			//FIXME: do a full namespace-ignoring name lookup. this just special cases common targets
-			if (type == null) {
-				if (typeName.IndexOf ('.') < 0 && assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks", StringComparison.Ordinal)) {
-					type = file.Value.compilation.GetTypeByMetadataName ("Microsoft.Build.Tasks." + typeName);
+			INamedTypeSymbol FindType (INamespaceSymbol ns, string name)
+			{
+				foreach (var m in ns.GetMembers ()) {
+					switch (m) {
+					case INamedTypeSymbol ts:
+						if (ts.Name == name) {
+							return ts;
+						}
+						continue;
+					case INamespaceSymbol childNs:
+						var found = FindType (childNs, name);
+						if (found != null) {
+							return found;
+						}
+						continue;
+					}
 				}
+				return null;
 			}
+
+			var type = compilation.GetTypeByMetadataName (typeName) ?? FindType (compilation.Assembly.GlobalNamespace, typeName);
 
 			if (type == null) {
 				LoggingService.LogWarning ($"Did not resolve {typeName}");
 				return null;
 			}
 
-			var desc = type.GetDocumentationCommentXml ();
+			DisplayText desc = Ambience.GetSummaryMarkup (type);
 
 			var ti = new TaskInfo (type.Name, desc, type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtLocation);
 			PopulateTaskInfoFromType (ti, type);
@@ -92,7 +112,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
-			var propDesc = prop.GetDocumentationCommentXml ();
+			DisplayText propDesc = Ambience.GetSummaryMarkup (prop);
+
 			bool isOutput = false, isRequired = false;
 			foreach (var att in prop.GetAttributes ()) {
 				switch (att.AttributeClass.GetFullName ()) {
@@ -164,6 +185,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		(string path, Compilation compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals)
 		{
 			if (!string.IsNullOrEmpty (assemblyName)) {
+				if (projectMap.TryGetValue(assemblyName, out var project)) {
+					return CreateProjectResult (project);
+				}
 				var name = new AssemblyName (assemblyName);
 				string path = Path.Combine (binPath, $"{name.Name}.dll");
 				if (!File.Exists (path)) {
@@ -174,17 +198,27 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (!string.IsNullOrEmpty (assemblyFile)) {
-				string path;
+				string path = null;
 				if (assemblyFile.IndexOf ('$') < 0) {
 					path = Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (declaredInFile), assemblyFile);
 					if (!File.Exists (path)) {
+						if (projectMap.TryGetValue (Path.GetFileNameWithoutExtension (path), out var project)) {
+							return CreateProjectResult (project);
+						}
 						path = null;
 					}
 				} else {
 					var evalCtx = MSBuildEvaluationContext.Create (rootDoc.RuntimeInformation, rootDoc.Filename, declaredInFile);
-					path = evalCtx
-						.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile), propVals)
-						.FirstOrDefault (File.Exists);
+					var permutations = evalCtx
+						.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile), propVals);
+					foreach (var p in permutations) {
+						if (projectMap.TryGetValue (Path.GetFileNameWithoutExtension (p), out var project)) {
+							return CreateProjectResult (project);
+						}
+						if (path == null && File.Exists(p)) {
+							path = p;
+						}
+					}
 				}
 				if (path == null) {
 					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
@@ -209,6 +243,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 				);
 				return (path, compilation);
+			}
+
+			//FIXME: propagate the async
+			(string path, Compilation compilation) CreateProjectResult (Projects.Project project)
+			{
+				return (
+					project.GetOutputFileName (project.ParentSolution.DefaultConfigurationSelector),
+					Ide.TypeSystem.TypeSystemService.GetCompilationAsync (project).Result
+				);
 			}
 		}
 	}
