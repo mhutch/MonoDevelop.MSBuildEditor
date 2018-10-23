@@ -17,6 +17,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
+		public List<string> IntelliSenseImports { get; } = new List<string> ();
 
 		public static MSBuildSchema Load (TextReader reader)
 		{
@@ -53,6 +54,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					break;
 				case "license":
 					break;
+				case "intellisenseImports":
+					LoadIntelliSenseImports ((JArray)kv.Value);
+					break;
 				default:
 					throw new Exception ($"Unknown property {kv.Key} in root");
 				}
@@ -64,7 +68,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in properties) {
 				var name = kv.Key;
 				if (kv.Value is JValue val) {
-					Properties [name] = new PropertyInfo (name, (string)val.Value);
+					Properties[name] = new PropertyInfo (name, (string)val.Value);
 					continue;
 				}
 				string description = null, valueSeparators = null, defaultValue = null;
@@ -147,7 +151,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				if (metadata != null) {
 					AddMetadata (item, metadata);
 				}
-				Items [name] = item;
+				Items[name] = item;
 			}
 		}
 
@@ -155,7 +159,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			var split = valueKind.Split ('-');
 
-			if (!Enum.TryParse (split [0], true, out MSBuildValueKind result)) {
+			if (!Enum.TryParse (split[0], true, out MSBuildValueKind result)) {
 				//accept unknown values in case we run into newer schema formats
 				LoggingService.LogDebug ($"Unknown value kind '{valueKind}'");
 				return MSBuildValueKind.Unknown;
@@ -211,7 +215,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					result = result.Literal ();
 					continue;
 				default:
-					LoggingService.LogDebug ($"Unknown value suffix '{split [i]}'");
+					LoggingService.LogDebug ($"Unknown value suffix '{split[i]}'");
 					continue;
 				}
 			}
@@ -227,7 +231,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			if (split.Length == 1 && parent != null && parent.Metadata.TryGetValue (split[0], out MetadataInfo sibling)) {
 				return sibling;
 			}
-			if (split.Length == 2 && Items.TryGetValue (split[0], out ItemInfo item) && item.Metadata.TryGetValue (split [1], out MetadataInfo cousin)) {
+			if (split.Length == 2 && Items.TryGetValue (split[0], out ItemInfo item) && item.Metadata.TryGetValue (split[1], out MetadataInfo cousin)) {
 				return cousin;
 			}
 			throw new Exception ($"Invalid metadata reference {desc} in item {parent.Name}");
@@ -337,8 +341,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			foreach (var kv in items) {
 				var name = kv.Key;
-				var desc = (string) ((JValue)kv.Value).Value;
+				var desc = (string)((JValue)kv.Value).Value;
 				Targets.Add (name, new TargetInfo (name, desc));
+			}
+		}
+
+		void LoadIntelliSenseImports (JArray intelliSenseImports)
+		{
+			foreach (var import in intelliSenseImports) {
+				string val = (string)((JValue)import).Value;
+				if (!string.IsNullOrEmpty(val)) {
+					IntelliSenseImports.Add (val);
+				}
 			}
 		}
 	}

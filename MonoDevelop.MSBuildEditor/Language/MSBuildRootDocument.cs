@@ -77,6 +77,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			};
 			doc.Errors.AddRange (xmlParser.Errors);
 
+			try {
+				doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filename, null);
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error loading schema", ex);
+			}
+
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase) {
 				filename
 			};
@@ -85,28 +91,49 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			var extension = Path.GetExtension (filename);
 
+			string MakeRelativeMSBuildPathAbsolute (string path)
+			{
+				var dir = Path.GetDirectoryName (doc.Filename);
+				path = path.Replace ('\\', Path.DirectorySeparatorChar);
+				return Path.GetFullPath (Path.Combine (dir, path));
+			}
+
+			void ImportPossibleFile (string possibleFile)
+			{
+				try {
+					var fi = new FileInfo (possibleFile);
+					if (fi.Exists) {
+						var imp = doc.GetCachedOrParse (importedFiles, previous, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
+						doc.Imports.Add (possibleFile, imp);
+					}
+				} catch (Exception ex) {
+					LoggingService.LogError ($"Error importing '{possibleFile}'", ex);
+				}
+			}
+
 			void ImportVariant (string fromExt, string toExt)
 			{
 				if (string.Equals (extension, fromExt, StringComparison.OrdinalIgnoreCase)) {
 					var variantFilename = Path.ChangeExtension (filename, toExt);
-					try {
-						var fi = new FileInfo (variantFilename);
-						if (fi.Exists) {
-							var imp = doc.GetCachedOrParse (importedFiles, previous, variantFilename, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
-							doc.Imports.Add (variantFilename, imp);
-						}
-					} catch (Exception ex) {
-						LoggingService.LogError ($"Error importing '{variantFilename}'", ex);
-					}
+					ImportPossibleFile (variantFilename);
 				}
 			}
 
 			try {
 				ImportVariant (".targets", ".props");
+
+				// this currently only happens in the root file
+				// it's a quick hack to allow files to get some basic intellisense by
+				// importing the files _that they themselves expect to be imported from_
+				foreach (var intellisenseImport in doc.Schema.IntelliSenseImports) {
+					ImportPossibleFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+				}
+
 				doc.Build (
 					xdocument, textDoc, runtimeInfo, propVals, taskBuilder,
 					(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
 				);
+
 				ImportVariant (".targets", ".props");
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error building document '{projectPath}'", ex);
@@ -124,7 +151,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 				LoggingService.LogError ("Error resolving tasks", ex);
 			}
 
-
 			try {
 				if (previous != null) {
 					// try to recover some values that may have been collected from the imports, as they
@@ -140,12 +166,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			} catch (Exception ex) {
 				LoggingService.LogError ("Error determining project framework", ex);
 				doc.Frameworks = new List<NuGetFramework> ();
-			}
-
-			try {
-				doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filename, null);
-			} catch (Exception ex) {
-				LoggingService.LogError ("Error loading schema", ex);
 			}
 
 			try {
