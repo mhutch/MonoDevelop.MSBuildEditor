@@ -125,8 +125,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				// this currently only happens in the root file
 				// it's a quick hack to allow files to get some basic intellisense by
 				// importing the files _that they themselves expect to be imported from_
-				foreach (var intellisenseImport in doc.Schema.IntelliSenseImports) {
-					ImportPossibleFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+				if (doc.Schema != null) {
+					foreach (var intellisenseImport in doc.Schema.IntelliSenseImports) {
+						ImportPossibleFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+					}
 				}
 
 				doc.Build (
