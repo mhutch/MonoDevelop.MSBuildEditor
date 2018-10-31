@@ -1,0 +1,267 @@
+{
+  "$id": "https://github.com/mhutch/MonoDevelop.MSBuildEditor",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "license": {},
+    "items": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/item" }
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/property" }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/target" }
+    },
+    "intellisenseImports": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Additional files to be imported at development time for IntelliSense"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "metadata": {
+      "description": "Defines a metadata value",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "description": { "type": "string" },
+            "includeDescription": { "type": "string" },
+            "kind": { "$ref": "#/definitions/kind" },
+            "default": { "type": "string" },
+            "values": { "$ref": "#/definitions/valueList" },
+            "valueSeparators": { "type": "string" },
+            "required": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "item": {
+      "description": "Defines an item",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Description of the item"
+
+            },
+            "includeDescription": {
+              "type": "string",
+              "description": "Describes the item values listed in the Include attribute e.g. 'source files'"
+            },
+            "kind": { "$ref": "#/definitions/kind" },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/metadata" }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "property": {
+      "description": "Defines a property",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Description of the property"
+            },
+            "kind": { "$ref": "#/definitions/kind" },
+            "default": {
+              "type": "string",
+              "description": "The default value"
+            },
+            "values": { "$ref": "#/definitions/valueList" },
+            "valueSeparators": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "target": {
+      "type": "string",
+      "description": "Describes the target"
+    },
+    "valueList": {
+      "description": "A list of valid values",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Reference to another value list"
+        },
+        {
+          "type": "array",
+          "description": "Array of valid values"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "description": "Description for the value"
+          }
+        }
+      ]
+    },
+    "kind": {
+      "description": "The type of the value(s)",
+      "type": "string",
+      "enum": [
+        "data",
+        "bool",
+        "int",
+        "string",
+        "guid",
+        "url",
+        "version",
+        "suffixedversion",
+        "lcid",
+        "targetname",
+        "itemname",
+        "propertyname",
+        "sdk",
+        "sdkversion",
+        "label",
+        "importance",
+        "runtimeid",
+        "targetframework",
+        "targetframeworkversion",
+        "targetframeworkidentifier",
+        "targetframeworkprofile",
+        "targetframeworkmoniker",
+        "nugetid",
+        "nugetversion",
+        "projectfile",
+        "file",
+        "folder",
+        "folderwithslash",
+        "fileorfolder",
+        "extension",
+        "configuration",
+        "platform",
+        "projectkindguid",
+
+        "data-list",
+        "bool-list",
+        "int-list",
+        "string-list",
+        "guid-list",
+        "url-list",
+        "version-list",
+        "suffixedversion-list",
+        "lcid-list",
+        "targetname-list",
+        "itemname-list",
+        "propertyname-list",
+        "sdk-list",
+        "sdkversion-list",
+        "label-list",
+        "importance-list",
+        "runtimeid-list",
+        "targetframework-list",
+        "targetframeworkversion-list",
+        "targetframeworkidentifier-list",
+        "targetframeworkprofile-list",
+        "targetframeworkmoniker-list",
+        "nugetid-list",
+        "nugetversion-list",
+        "projectfile-list",
+        "file-list",
+        "folder-list",
+        "folderwithslash-list",
+        "fileorfolder-list",
+        "extension-list",
+        "configuration-list",
+        "platform-list",
+        "projectkindguid-list",
+
+        "data-list-const",
+        "bool-list-const",
+        "int-list-const",
+        "string-list-const",
+        "guid-list-const",
+        "url-list-const",
+        "version-list-const",
+        "suffixedversion-list-const",
+        "lcid-list-const",
+        "targetname-list-const",
+        "itemname-list-const",
+        "propertyname-list-const",
+        "sdk-list-const",
+        "sdkversion-list-const",
+        "label-list-const",
+        "importance-list-const",
+        "runtimeid-list-const",
+        "targetframework-list-const",
+        "targetframeworkversion-list-const",
+        "targetframeworkidentifier-list-const",
+        "targetframeworkprofile-list-const",
+        "targetframeworkmoniker-list-const",
+        "nugetid-list-const",
+        "nugetversion-list-const",
+        "projectfile-list-const",
+        "file-list-const",
+        "folder-list-const",
+        "folderwithslash-list-const",
+        "fileorfolder-list-const",
+        "extension-list-const",
+        "configuration-list-const",
+        "platform-list-const",
+        "projectkindguid-list-const",
+
+        "data-const-list",
+        "bool-const-list",
+        "int-const-list",
+        "string-const-list",
+        "guid-const-list",
+        "url-const-list",
+        "version-const-list",
+        "suffixedversion-const-list",
+        "lcid-const-list",
+        "targetname-const-list",
+        "itemname-const-list",
+        "propertyname-const-list",
+        "sdk-const-list",
+        "sdkversion-const-list",
+        "label-const-list",
+        "importance-const-list",
+        "runtimeid-const-list",
+        "targetframework-const-list",
+        "targetframeworkversion-const-list",
+        "targetframeworkidentifier-const-list",
+        "targetframeworkprofile-const-list",
+        "targetframeworkmoniker-const-list",
+        "nugetid-const-list",
+        "nugetversion-const-list",
+        "projectfile-const-list",
+        "file-const-list",
+        "folder-const-list",
+        "folderwithslash-const-list",
+        "fileorfolder-const-list",
+        "extension-const-list",
+        "configuration-const-list",
+        "platform-const-list",
+        "projectkindguid-const-list"
+      ]
+    }
+  }
+}

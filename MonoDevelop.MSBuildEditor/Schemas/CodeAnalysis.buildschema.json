@@ -166,6 +166,6 @@
             "description": "Indicates whether to include the name of the rule when Code Analysis emits a suppression.",
             "kind": "bool",
             "default": "true"
-        },
+        }
     }
 }

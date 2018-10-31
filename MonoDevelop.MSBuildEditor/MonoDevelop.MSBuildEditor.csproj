@@ -201,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Syntax\OSSREADME.json" />
+    <None Include="Schemas\buildschema.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

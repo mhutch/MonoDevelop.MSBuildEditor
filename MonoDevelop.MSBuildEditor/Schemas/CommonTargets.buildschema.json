@@ -27,7 +27,7 @@
                 },
                 "RequiredTargetFramework": {
                     "description": "The minimum required target framework version in order to use this assembly as a reference",
-                    "kind": "TargetFrameworkVersion"
+                    "kind": "targetframeworkversion"
                 }
             }
         },
@@ -635,7 +635,7 @@
                 "ARM": "Only runs on ARM processors",
                 "x64": "Only runs on a 64-bit runtime on x86 processors",
                 "x86": "Only runs on a 32-bit runtime on x86 processors",
-                "Itanium": "Only runs on Itanium processors",
+                "Itanium": "Only runs on Itanium processors"
             },
             "default": "anycpu"
         },
@@ -813,7 +813,7 @@
             "description": "Directory containing the root project",
             "kind" : "folderwithslash"
         },
-        "ProjectName" : {
+        "ProjectFileName" : {
             "description": "Name of the project, formed by appending the extension to the base name",
             "kind" : "string"
         },
@@ -923,6 +923,6 @@
         "BeforeResolveReferences" : "Runs before the ResolveReferences target. Can be safely overridden in project files.",
         "AfterResolveReferences" : "after before the ResolveReferences target. Can be safely overridden in project files.",
         "BeforeResGen" : "Runs before the ResGen target. Can be safely overridden in project files.",
-        "AfterResGen" : "Runs after the ResGen target. Can be safely overridden in project files.",
+        "AfterResGen" : "Runs after the ResGen target. Can be safely overridden in project files."
     }
 }
