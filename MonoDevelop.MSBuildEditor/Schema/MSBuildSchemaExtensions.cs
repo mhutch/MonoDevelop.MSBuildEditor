@@ -12,19 +12,30 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		public static IEnumerable<ItemInfo> GetItems (this IEnumerable<IMSBuildSchema> schemas)
 		{
-			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+			// prefer items with descriptions, in case items that just add metadata are found first
+			// this means we can't do it lazily. we could defer items without descriptions till
+			// the end and discard them when we find a version with a description, which would be
+			// partially lazy, but probably not worth it
+			var found = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
+
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Items) {
-					if (!schema.IsPrivate (item.Key) && names.Add (item.Key)) {
-						yield return item.Value;
+					if (schema.IsPrivate (item.Key)) {
+						continue;
+					}
+					if (!found.TryGetValue (item.Key, out ItemInfo existing) || (existing.Description.IsEmpty && !item.Value.Description.IsEmpty)) {
+						found [item.Key] = item.Value;
 					}
 				}
 			}
+
+			return found.Values;
 		}
 
 		public static ItemInfo GetItem (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
-			return schemas.GetAllItemDefinitions (name).FirstOrDefault ();
+			// prefer items with descriptions, in case items that just add metadata are found first
+			return schemas.GetAllItemDefinitions (name).GetFirstWithDescriptionOrDefault ();
 		}
 
 		//collect all known definitions for this item
@@ -267,6 +278,21 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public static IEnumerable<string> GetPlatforms (this IEnumerable<IMSBuildSchema> schemas)
 		{
 			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Platforms).Distinct ();
+		}
+
+		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : BaseInfo
+		{
+			T first = null;
+
+			//prefer infos with descriptions, in case non-schema infos (or item infos that
+			//just add metadata) are found first
+			foreach (var info in seq) {
+				if (info.Description.Text != null) {
+					return info;
+				}
+				return first ?? info;
+			}
+			return null;
 		}
 	}
 }

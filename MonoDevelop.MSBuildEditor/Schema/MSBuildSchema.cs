@@ -126,6 +126,27 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			foreach (var kv in items) {
 				var name = kv.Key;
+
+				if (kv.Value is JValue val) {
+					var s = (string)val.Value;
+					if (!s.StartsWith ("@(", StringComparison.Ordinal)
+						|| !s.EndsWith (")", StringComparison.Ordinal)
+						|| !Items.TryGetValue (s.Substring (2, s.Length - 3), out ItemInfo refVal)
+						) {
+						throw new Exception ($"Invalid item reference '{s}' for item {name}");
+					}
+					var i = new ItemInfo (name, refVal.Description, refVal.IncludeDescription, refVal.ValueKind);
+					//clone the metadata so we can parent it properly
+					foreach (var m in refVal.Metadata.Values) {
+						i.Metadata.Add (m.Name, new MetadataInfo (
+							m.Name, m.Description, m.Reserved, m.Required,
+							m.ValueKind, i, m.Values, m.DefaultValue)
+						);
+					}
+					Items [name] = i;
+					continue;
+				}
+
 				string description = null, includeDescription = null;
 				var kind = MSBuildValueKind.Unknown;
 				JObject metadata = null;
