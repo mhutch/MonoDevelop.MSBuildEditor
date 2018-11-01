@@ -1,9 +1,10 @@
 {
   "$id": "https://github.com/mhutch/MonoDevelop.MSBuildEditor",
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Describes the MSBuild schema format",
   "type": "object",
   "properties": {
-    "license": {},
+    "license": { "type": "string" },
     "items": {
       "type": "object",
       "additionalProperties": { "$ref": "#/definitions/item" }

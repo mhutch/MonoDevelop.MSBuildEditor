@@ -1,41 +1,41 @@
 ﻿{
-    "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
-    "properties": {
-        "AssemblyTitle": "Description for the assembly manifest",
-        "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
-        "EnableDefaultItems": {
-            "description": "Whether to include items in the project directory by wildcard",
-            "kind": "bool",
-            "default": "true"
-        },
-        "EnableDefaultCompileItems": {
-            "description": "Whether to include source files in the project directory by wildcard",
-            "kind": "bool",
-            "default": "true"
-        },
-        "EnableDefaultEmbeddedResourceItems": {
-            "description": "Whether to include embedded resources in the project directory by wildcard",
-            "kind": "bool",
-            "default": "true"
-        },
-        "EnableDefaultNoneItems" : {
-            "description": "Whether to include none items in the project directory by wildcard",
-            "kind": "bool",
-            "default": "true"
-        },
-        "DefaultItemExcludes": {
-            "description": "Files to omit from wildcard item includes",
-            "kind": "file-list"
-        },
-        "DisableImplicitFrameworkReferences": {
-            "description": "Disable implicit inclusion of framework references",
-            "kind": "bool",
-            "default": "false"
-        },
-        "SetLinkMetadataAutomatically": {
-            "description": "Whether to automatically set Link metadata on items outside the project folder",
-            "kind": "bool",
-            "default": "true"
-        }
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AssemblyTitle": "Description for the assembly manifest",
+    "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
+    "EnableDefaultItems": {
+      "description": "Whether to include items in the project directory by wildcard",
+      "kind": "bool",
+      "default": "true"
+    },
+    "EnableDefaultCompileItems": {
+      "description": "Whether to include source files in the project directory by wildcard",
+      "kind": "bool",
+      "default": "true"
+    },
+    "EnableDefaultEmbeddedResourceItems": {
+      "description": "Whether to include embedded resources in the project directory by wildcard",
+      "kind": "bool",
+      "default": "true"
+    },
+    "EnableDefaultNoneItems": {
+      "description": "Whether to include none items in the project directory by wildcard",
+      "kind": "bool",
+      "default": "true"
+    },
+    "DefaultItemExcludes": {
+      "description": "Files to omit from wildcard item includes",
+      "kind": "file-list"
+    },
+    "DisableImplicitFrameworkReferences": {
+      "description": "Disable implicit inclusion of framework references",
+      "kind": "bool",
+      "default": "false"
+    },
+    "SetLinkMetadataAutomatically": {
+      "description": "Whether to automatically set Link metadata on items outside the project folder",
+      "kind": "bool",
+      "default": "true"
     }
+  }
 }
