@@ -98,37 +98,49 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return Path.GetFullPath (Path.Combine (dir, path));
 			}
 
-			void ImportPossibleFile (string possibleFile)
+			Import TryImportFile (string possibleFile)
 			{
 				try {
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
 						var imp = doc.GetCachedOrParse (importedFiles, previous, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
 						doc.Imports.Add (possibleFile, imp);
+						return imp;
 					}
 				} catch (Exception ex) {
 					LoggingService.LogError ($"Error importing '{possibleFile}'", ex);
 				}
+				return null;
 			}
 
-			void ImportVariant (string fromExt, string toExt)
+			Import TryImportSibling (string ifHasThisExtension, string thenTryThisExtension)
 			{
-				if (string.Equals (extension, fromExt, StringComparison.OrdinalIgnoreCase)) {
-					var variantFilename = Path.ChangeExtension (filename, toExt);
-					ImportPossibleFile (variantFilename);
+				if (string.Equals (ifHasThisExtension, extension, StringComparison.OrdinalIgnoreCase)) {
+					var siblingFilename = Path.ChangeExtension (filename, thenTryThisExtension);
+					return TryImportFile (siblingFilename);
+				}
+				return null;
+			}
+
+			void TryImportIntellisenseImports (MSBuildSchema schema)
+			{
+				foreach (var intellisenseImport in schema.IntelliSenseImports) {
+					TryImportFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
 				}
 			}
 
 			try {
-				ImportVariant (".targets", ".props");
+				//if this is a targets file, try to import the props _at the top_
+				var propsImport = TryImportSibling (".targets", ".props");
 
 				// this currently only happens in the root file
 				// it's a quick hack to allow files to get some basic intellisense by
-				// importing the files _that they themselves expect to be imported from_
-				if (doc.Schema != null) {
-					foreach (var intellisenseImport in doc.Schema.IntelliSenseImports) {
-						ImportPossibleFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
-					}
+				// importing the files _that they themselves expect to be imported from_.
+				// we also try to load them from the sibling props, as a paired targets/props
+				// will likely share a schema file.
+				var schema = doc.Schema ?? propsImport?.Document?.Schema;
+				if (schema != null) {
+					TryImportIntellisenseImports (doc.Schema);
 				}
 
 				doc.Build (
@@ -136,7 +148,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 					(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
 				);
 
-				ImportVariant (".targets", ".props");
+				//if this is a props file, try to import the targets _at the bottom_
+				var targetsImport = TryImportSibling (".props", ".targets");
+
+				//and if we didn't load intellisense import already, try to load them from the sibling targets
+				if (schema == null && targetsImport?.Document?.Schema != null) {
+					TryImportIntellisenseImports (targetsImport.Document.Schema);
+				}
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error building document '{projectPath}'", ex);
 			}
