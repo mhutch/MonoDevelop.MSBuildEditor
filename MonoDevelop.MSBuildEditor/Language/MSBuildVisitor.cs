@@ -14,6 +14,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected MSBuildDocument Document { get; private set; }
 		protected string Filename { get; private set; }
 		protected IReadonlyTextDocument TextDocument { get; private set; }
+		protected string Extension { get; private set; }
+
+		protected bool IsTargetsFile => string.Equals (Extension, ".targets", System.StringComparison.OrdinalIgnoreCase);
+		protected bool IsPropsFile => string.Equals (Extension, ".props", System.StringComparison.OrdinalIgnoreCase);
 
 		protected int ConvertLocation (DocumentLocation location) => TextDocument.LocationToOffset (location);
 
@@ -31,6 +35,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			Filename = filename;
 			Document = document;
+			Extension = System.IO.Path.GetExtension (filename);
 
 			//HACK: we should really use the ITextSource directly, but since the XML parser positions are
 			//currently line/col, we need a TextDocument to convert to offsets

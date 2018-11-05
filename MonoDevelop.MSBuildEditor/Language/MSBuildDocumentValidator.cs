@@ -310,8 +310,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
 			ValueInfo info, string value, int offset)
 		{
-			if (info.DefaultValue != null && string.Equals (info.DefaultValue, value)) {
-				AddWarning ($"{info.GetTitleCaseKindName ()} has default value", offset, value.Length);
+			if (!IsTargetsFile && !IsPropsFile) {
+				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value)) {
+					AddWarning ($"{info.GetTitleCaseKindName ()} has default value", offset, value.Length);
+				}
 			}
 
 			// we skip calling base, and instead parse the expression with more options enabled
