@@ -186,7 +186,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return MSBuildValueKind.Unknown;
 			}
 
-			//whitelist permitted values
+			//explicitly define permitted values
 			switch (result) {
 			case MSBuildValueKind.Data:
 			case MSBuildValueKind.Bool:

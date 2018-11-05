@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -41,7 +42,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			string declaredInFile, Ide.Editor.DocumentLocation declaredAtLocation,
 			PropertyValueCollector propVals)
 		{
-			//blacklist this, it's redundant
+			//ignore this, it's redundant
 			if (assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks.v", StringComparison.Ordinal)) {
 				return null;
 			}
@@ -71,7 +72,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			var type = compilation.GetTypeByMetadataName (typeName) ?? FindType (compilation.Assembly.GlobalNamespace, typeName);
+			// Figure out what assembly to search in.
+			// If it's a project from the IDE we're done. If it's not, then we've
+			// actually synthesized a container compilation, and the assembly we're
+			// really interested in is the first reference.
+			IAssemblySymbol asmToSearch = compilation.Assembly;
+			if(asmToSearch.Name == "__MSBuildEditorTaskResolver") {
+				asmToSearch = compilation.SourceModule.ReferencedAssemblySymbols [0];
+			}
+
+			var type = asmToSearch.GetTypeByMetadataName (typeName) ?? FindType (asmToSearch.GlobalNamespace, typeName);
 
 			if (type == null) {
 				LoggingService.LogWarning ($"Did not resolve {typeName}");
@@ -94,7 +104,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 					}
 					if (!ti.Parameters.ContainsKey (prop.Name) && !IsSpecialName (prop.Name)) {
 						var pi = ConvertParameter (prop, type);
-						ti.Parameters.Add (prop.Name, pi);
+						if (pi != null) {
+							ti.Parameters.Add (prop.Name, pi);
+						}
 					}
 				}
 
@@ -155,7 +167,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (kind == MSBuildValueKind.Unknown) {
-				LoggingService.LogWarning ($"Unknown type '{fullTypeName}' for parameter '{type.GetFullName ()}.{prop.Name}'");
+				LoggingService.LogDebug ($"Unknown type '{fullTypeName}' for parameter '{type.GetFullName ()}.{prop.Name}'");
+				return null;
 			}
 
 			if (isList) {
@@ -232,7 +245,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			(string, Compilation) CreateResult (string path)
 			{
 				var compilation = CSharpCompilation.Create (
-					"TaskResolver",
+					"__MSBuildEditorTaskResolver",
 					references: new[] {
 						RoslynHelpers.GetReference (path),
 						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
