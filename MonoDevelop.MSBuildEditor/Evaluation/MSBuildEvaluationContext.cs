@@ -147,8 +147,10 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 								} else {
 									p.Value [i] = val;
 								}
-							} catch (Exception ex) {
-								LoggingService.LogError ($"Error evaluating property {p.Key}={val}", ex);
+							} catch {
+								//this happens a lot with things like property functions that
+								//index into null values, so make it quiet
+								LoggingService.LogDebug ($"Error evaluating property {p.Key}={val}");
 							}
 						}
 					}
