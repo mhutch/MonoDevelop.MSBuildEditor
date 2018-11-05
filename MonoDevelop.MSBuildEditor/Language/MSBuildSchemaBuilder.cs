@@ -320,7 +320,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				foreach (var node in expression.WithAllDescendants ()) {
 					switch (node) {
 					case ExpressionProperty prop:
-						CollectProperty (prop.Name);
+						if (prop.IsSimpleProperty) {
+							CollectProperty (prop.Name);
+						}
 						break;
 					case ExpressionItem item:
 						CollectItem (item.Name);
