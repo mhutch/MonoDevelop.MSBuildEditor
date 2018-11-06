@@ -150,7 +150,8 @@ namespace MonoDevelop.MSBuildEditor.Evaluation
 							} catch {
 								//this happens a lot with things like property functions that
 								//index into null values, so make it quiet
-								LoggingService.LogDebug ($"Error evaluating property {p.Key}={val}");
+								//LoggingService.LogDebug ($"Error evaluating property {p.Key}={val}");
+								//FIXME stop ignoring these errors
 							}
 						}
 					}

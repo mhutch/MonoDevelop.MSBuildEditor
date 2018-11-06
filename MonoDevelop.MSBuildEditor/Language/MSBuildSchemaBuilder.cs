@@ -358,7 +358,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild expression at {startOffset}", ex);
+				LoggingService.LogError ($"Error parsing MSBuild expression '{value}' in file {Filename} at {startOffset}", ex);
 			}
 		}
     }

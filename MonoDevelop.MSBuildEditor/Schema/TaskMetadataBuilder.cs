@@ -167,7 +167,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 
 			if (kind == MSBuildValueKind.Unknown) {
-				LoggingService.LogDebug ($"Unknown type '{fullTypeName}' for parameter '{type.GetFullName ()}.{prop.Name}'");
+				//this usually happens because the type has public members with custom types for testing,
+				//e.g. NuGetPack.Logger.
+				//in general MSBuild does not support custom types on task parameters so they would not be
+				//usable anyway.
+				//LoggingService.LogDebug ($"Unknown type '{fullTypeName}' for parameter '{type.GetFullName ()}.{prop.Name}'");
 				return null;
 			}
 
