@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuildEditor.PackageSearch
 		{
 			return manager.SearchPackageInfo (packageId, packageVersion, tfm, cancelToken).ContinueWith (
 				t => PackageSearchHelpers.CreateTooltipInformation (t.Result),
-				TaskContinuationOptions.ExecuteSynchronously);
+				cancelToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 		}
 	}
 }
