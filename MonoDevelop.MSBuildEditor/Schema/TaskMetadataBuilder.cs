@@ -47,9 +47,18 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			Compilation compilation = GetTaskFile (assemblyName, assemblyFile, declaredInFile, propVals)?.compilation;
+			var tasks = GetTaskFile (assemblyName, assemblyFile, declaredInFile, propVals);
+			Compilation compilation = tasks?.compilation;
 			if (compilation == null) {
+				//TODO log this?
 				return null;
+			}
+
+			string asmShortName;
+			if (string.IsNullOrEmpty (assemblyName)) {
+				asmShortName = Path.GetFileNameWithoutExtension (tasks.Value.path);
+			} else {
+				asmShortName = new AssemblyName (assemblyName).Name;
 			}
 
 			INamedTypeSymbol FindType (INamespaceSymbol ns, string name)
@@ -78,7 +87,12 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			// really interested in is the first reference.
 			IAssemblySymbol asmToSearch = compilation.Assembly;
 			if(asmToSearch.Name == "__MSBuildEditorTaskResolver") {
-				asmToSearch = compilation.SourceModule.ReferencedAssemblySymbols [0];
+				asmToSearch = compilation.SourceModule.ReferencedAssemblySymbols
+					.FirstOrDefault (a => string.Equals (a.Name, asmShortName, StringComparison.OrdinalIgnoreCase));
+				if (asmToSearch == null) {
+					//TODO log this?
+					return null;
+				}
 			}
 
 			var type = asmToSearch.GetTypeByMetadataName (typeName) ?? FindType (asmToSearch.GlobalNamespace, typeName);
@@ -248,17 +262,28 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 			(string, Compilation) CreateResult (string path)
 			{
+				var name = Path.GetFileNameWithoutExtension (path);
+
+				var refs = new List<PortableExecutableReference> {
+					RoslynHelpers.GetReference (path),
+					RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
+					RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
+					RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
+					RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
+					RoslynHelpers.GetReference (typeof (object).Assembly.Location)
+				};
+
+				if (name != "Microsoft.Build.Tasks.Core") {
+					refs.Add (RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Tasks.Core.dll")));
+					refs.Add (RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v4.0.dll")));
+					refs.Add (RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v12.0.dll")));
+				}
+
 				var compilation = CSharpCompilation.Create (
 					"__MSBuildEditorTaskResolver",
-					references: new[] {
-						RoslynHelpers.GetReference (path),
-						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
-						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
-						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
-						RoslynHelpers.GetReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
-						RoslynHelpers.GetReference (typeof (object).Assembly.Location)
-					}
+					references: refs.ToArray()
 				);
+
 				return (path, compilation);
 			}
 
