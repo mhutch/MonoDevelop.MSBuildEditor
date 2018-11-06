@@ -259,7 +259,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					foundPeriod = true;
 					goto case '0';
 				case ',': case ')': case ' ': {
-						string str = buffer.Substring (start + baseOffset, offset - start);
+						string str = buffer.Substring (start, offset - start);
 						if (foundPeriod) {
 							if (double.TryParse (str, out double result)) {
 								return new ExpressionArgumentFloat (start + baseOffset, str.Length, result);
