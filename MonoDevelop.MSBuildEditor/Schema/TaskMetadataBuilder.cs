@@ -113,7 +113,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			while (type != null) {
 				foreach (var member in type.GetMembers ()) {
-					if (!(member is IPropertySymbol prop) || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+					//skip overrides as they will have incorrect accessibility. trust the base definition.
+					if (!(member is IPropertySymbol prop) || member.IsOverride || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 						continue;
 					}
 					if (!ti.Parameters.ContainsKey (prop.Name) && !IsSpecialName (prop.Name)) {
