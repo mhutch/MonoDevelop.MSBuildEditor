@@ -98,6 +98,12 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var type = asmToSearch.GetTypeByMetadataName (typeName) ?? FindType (asmToSearch.GlobalNamespace, typeName);
 
 			if (type == null) {
+				switch(typeName) {
+				case "Microsoft.Build.Tasks.RequiresFramework35SP1Assembly":
+				case "Microsoft.Build.Tasks.ResolveNativeReference":
+					//we don't care about these, they're not present on Mac and they're just noise
+					return null;
+				}
 				LoggingService.LogWarning ($"Did not resolve {typeName}");
 				return null;
 			}

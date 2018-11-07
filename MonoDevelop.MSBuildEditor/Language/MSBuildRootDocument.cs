@@ -244,10 +244,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
+			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
+			if (importExpr.IndexOf("$(MSBuildUserExtensionsPath)",StringComparison.OrdinalIgnoreCase) > -1) {
+				yield break;
+			}
+
 			//TODO: re-use these contexts instead of recreating them
 			var importEvalCtx = MSBuildEvaluationContext.Create (RuntimeInformation, projectPath, thisFilePath);
 
 			bool foundAny = false;
+			bool isWildcard = false;
 
 			//the ToList is necessary because nested parses can alter the list between this yielding values 
 			foreach (var filename in importEvalCtx.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath), propVals).ToList ()) {
@@ -263,10 +269,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 				//wildcards
 				var wildcardIdx = filename.IndexOf ('*');
+
 				//arbitrary limit to skip improbably short values from bad evaluation
 				const int MIN_WILDCARD_STAR_IDX = 15;
 				const int MIN_WILDCARD_PATTERN_IDX = 10;
 				if (wildcardIdx > MIN_WILDCARD_STAR_IDX) {
+					isWildcard |= true;
 					var lastSlash = filename.LastIndexOf (Path.DirectorySeparatorChar);
 					if (lastSlash < MIN_WILDCARD_PATTERN_IDX) {
 						continue;
@@ -322,6 +330,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				foundAny = true;
 				yield return import;
 				continue;
+			}
+
+			// we skip logging for wildcards as these are generally extensibility points that are often unused
+			// this is here (rather than being folded into the next condition) for ease of breakpointing
+			if (isWildcard) {
+				foundAny = true;
 			}
 
 			if (!foundAny) {
