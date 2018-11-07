@@ -5,7 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using MonoDevelop.MSBuildEditor.Schema;
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -25,6 +24,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 				Mark ("TargetFrameworkVersion");
 				Mark ("TargetFrameworkProfile");
 				Mark ("TargetFrameworkMoniker");
+
+				//HACK hardcode these, the values are used in imports of the file that defines them
+				//so the automatic simple marking doesn't work
+				//TODO move this to a the buildschema?
+				//TODO set MicrosoftNETBuildTasksTFM to net46?
+				Mark ("MicrosoftNETBuildTasksDirectoryRoot");
+				Mark ("MicrosoftNETBuildTasksTFM");
+				Mark ("MicrosoftNETBuildTasksDirectory");
+				Mark ("MicrosoftNETBuildExtensionsTasksAssembly");
+				Mark ("MicrosoftNETBuildTasksAssembly");
 			}
 		}
 
