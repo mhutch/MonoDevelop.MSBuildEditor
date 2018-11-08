@@ -20,6 +20,11 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
+# Addin manifests
+[*.addin.xml]
+indent_style = space
+indent_size = 4
+
 # JSON files
 [*.json]
 indent_style = space

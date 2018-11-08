@@ -79,4 +79,11 @@
     <Extension path="/MonoDevelop/Ide/Editor/Bundles">
         <Bundle resource = "MonoDevelop.MSBuildEditor.Syntax.msbuild.json" />
     </Extension>
+
+	<Extension path="/MonoDevelop/Ide/Commands/TextEditor">
+        <Command id = "MonoDevelop.MSBuildEditor.MSBuildCommands.ToggleShowPrivateSymbols"
+                _label = "Show/Hide Private MSBuild Symbols"
+                _description="Toggles whether private MSBuild symbols are shown in IntelliSense"
+                defaultHandler = "MonoDevelop.MSBuildEditor.ToggleShowPrivateSymbolsHandler" />
+    </Extension>
 </ExtensionModel>

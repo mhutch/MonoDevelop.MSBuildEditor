@@ -18,9 +18,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			// partially lazy, but probably not worth it
 			var found = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 
+			bool hidePrivateSymbols = !MSBuildOptions.ShowPrivateSymbols.Value;
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Items) {
-					if (schema.IsPrivate (item.Key)) {
+					if (hidePrivateSymbols && schema.IsPrivate (item.Key)) {
 						continue;
 					}
 					if (!found.TryGetValue (item.Key, out ItemInfo existing) || (existing.Description.IsEmpty && !item.Value.Description.IsEmpty)) {
@@ -162,10 +163,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				}
 			}
 
+			bool showPrivateSymbols = MSBuildOptions.ShowPrivateSymbols.Value;
 			var names = new HashSet<string> (Builtins.Properties.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Properties) {
-					if (!schema.IsPrivate (item.Key) && names.Add (item.Key)) {
+					if ((showPrivateSymbols || !schema.IsPrivate (item.Key)) && names.Add (item.Key)) {
 						yield return item.Value;
 					}
 				}
@@ -188,10 +190,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas)
 		{
+			bool showPrivateSymbols = MSBuildOptions.ShowPrivateSymbols.Value;
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var target in schema.Targets) {
-					if (!schema.IsPrivate (target.Key) && names.Add (target.Key)) {
+					if ((showPrivateSymbols || !schema.IsPrivate (target.Key)) && names.Add (target.Key)) {
 						yield return target.Value;
 					}
 				}

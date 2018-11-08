@@ -11,7 +11,8 @@ namespace MonoDevelop.MSBuildEditor
 {
 	public enum MSBuildCommands
 	{
-		NavigationOperations
+		NavigationOperations,
+		ToggleShowPrivateSymbols
 	}
 
 	sealed class MSBuildNavigationOperationsCommandHandler : CommandHandler
@@ -43,5 +44,28 @@ namespace MonoDevelop.MSBuildEditor
 				info.Add (findReferenceCommand, new Action (() => IdeApp.CommandService.DispatchCommand (RefactoryCommands.FindReferences)));
 			}
 		}
+	}
+
+	sealed class ToggleShowPrivateSymbolsHandler : CommandHandler
+	{
+		protected override void Update (CommandInfo info)
+		{
+			if (MSBuildOptions.ShowPrivateSymbols.Value) {
+				info.Text = "Hide Private MSBuild Symbols";
+			} else {
+				info.Text = "Hide Private MSBuild Symbols";
+			}
+		}
+
+		protected override void Run ()
+		{
+			MSBuildOptions.ShowPrivateSymbols.Value = !MSBuildOptions.ShowPrivateSymbols.Value;
+		}
+	}
+
+	static class MSBuildOptions
+	{
+		static public ConfigurationProperty<bool> ShowPrivateSymbols { get; }
+			= ConfigurationProperty.Create ("MSBuildEditor.ShowPrivateSymbols", false);
 	}
 }
