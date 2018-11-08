@@ -18,6 +18,8 @@ namespace MonoDevelop.MSBuildEditor
 		readonly MSBuildResolveResult rr;
 		readonly BaseInfo info;
 
+		int priorityGroup = 0;
+
 		public MSBuildCompletionData (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, null, type)
 		{
@@ -28,7 +30,14 @@ namespace MonoDevelop.MSBuildEditor
 			if (info is FileOrFolderInfo f) {
 				Icon = f.IsFolder? Stock.ClosedFolder : Stock.GenericFile;
 			}
+
+			// deprioritize private values
+			if (info.Name[0]=='_') {
+				priorityGroup = -int.MaxValue;
+			}
 		}
+
+		public override int PriorityGroup => priorityGroup;
 
 		public override Task<TooltipInformation> CreateTooltipInformation (bool smartWrap, CancellationToken cancelToken)
 		{
