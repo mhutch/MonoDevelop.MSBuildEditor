@@ -172,7 +172,7 @@
     <AddinReference Include="MonoDevelop.PackageManagement" />
     <PackageReference Include="Microsoft.Build" Version="15.8.166" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" />
-    <PackageReference Include="MonoDevelop.Addins" Version="0.4.4" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.5" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
