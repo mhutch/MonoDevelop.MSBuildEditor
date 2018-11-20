@@ -34,6 +34,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				Mark ("MicrosoftNETBuildTasksDirectory");
 				Mark ("MicrosoftNETBuildExtensionsTasksAssembly");
 				Mark ("MicrosoftNETBuildTasksAssembly");
+
+				// this is needed for PackageReference-provided imports to load from the global cache
+				Mark ("NuGetPackageRoot");
 			}
 		}
 
