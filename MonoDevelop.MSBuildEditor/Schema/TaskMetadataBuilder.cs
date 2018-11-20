@@ -28,9 +28,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			this.rootDoc = rootDoc;
 			binPath = rootDoc.RuntimeInformation.GetBinPath ();
 
-			foreach (var project in Ide.IdeApp.Workspace.GetAllProjects()) {
-				var outName = project.GetOutputFileName (project.ParentSolution.DefaultConfigurationSelector);
-				projectMap[Path.GetFileNameWithoutExtension (outName)] = project;
+			if (Ide.IdeApp.IsRunning) {
+				try {
+					foreach (var project in Ide.IdeApp.Workspace.GetAllProjects ()) {
+						var outName = project.GetOutputFileName (project.ParentSolution.DefaultConfigurationSelector);
+						projectMap [Path.GetFileNameWithoutExtension (outName)] = project;
+					}
+				} catch (Exception ex) {
+					LoggingService.LogError ("Error reading open projects", ex);
+				}
 			}
 		}
 
