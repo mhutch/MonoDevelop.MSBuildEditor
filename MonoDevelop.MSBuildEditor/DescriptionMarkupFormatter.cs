@@ -74,13 +74,13 @@ namespace MonoDevelop.MSBuildEditor
 			IEnumerable<string> seenIn = doc.GetFilesSeenIn (info);
 			StringBuilder sb = null;
 
-			List<(string prefix, string subst)> prefixes = null;
+			Func<string, (string prefix, string remaining)?> shorten  = null;
 
 			int count = 0;
 			foreach (var s in seenIn) {
 				if (count++ == 0) {
 					sb = new StringBuilder ();
-					prefixes = GetPrefixes (doc.RuntimeInformation);
+					shorten  = CreateFilenameShortener (doc.RuntimeInformation);
 					if (!string.IsNullOrEmpty (baseDesc)) {
 						sb.AppendLine (baseDesc);
 						sb.AppendLine ();
@@ -98,7 +98,7 @@ namespace MonoDevelop.MSBuildEditor
 				//factor out some common prefixes into variables
 				//we do this instead of using the original string, as the result is simpler
 				//and easier to understand
-				var replacement = GetLongestReplacement (s, prefixes);
+				var replacement = shorten (s);
 				if (!replacement.HasValue) {
 					sb.Append ("<i>");
 					sb.Append (Escape (s));
@@ -106,8 +106,8 @@ namespace MonoDevelop.MSBuildEditor
 					continue;
 				}
 				sb.Append ("<i>");
-				sb.Append ($"<span foreground=\"{GetColor(varColorID)}\">{Escape (replacement.Value.subst)}</span>");
-				sb.Append (Escape (s.Substring (replacement.Value.prefix.Length)));
+				sb.Append ($"<span foreground=\"{GetColor(varColorID)}\">{Escape (replacement.Value.prefix)}</span>");
+				sb.Append (Escape (replacement.Value.remaining));
 				sb.Append ("</i>");
 			}
 			return new DisplayText (sb?.ToString () ?? baseDesc, true);
@@ -137,11 +137,21 @@ namespace MonoDevelop.MSBuildEditor
 
 		static string Escape (string s) => GLib.Markup.EscapeText (s);
 
+		/// <summary>
+		/// Shortens filenames by extracting common prefixes into MSBuild properties. Returns null if the name could not be shortened in this way.
+		/// </summary>
+		public static Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
+		{
+			var prefixes = GetPrefixes (runtimeInfo);
+			return s => GetLongestReplacement (s, prefixes);
+		}
+
 		static List<(string prefix, string subst)> GetPrefixes (IRuntimeInformation runtimeInfo)
 		{
-			var list = new List<(string prefix, string subst)> ();
-			list.Add ((runtimeInfo.GetBinPath (), "$(MSBuildBinPath)"));
-			list.Add ((runtimeInfo.GetToolsPath (), "$(MSBuildToolsPath)"));
+			var list = new List<(string prefix, string subst)> {
+				(runtimeInfo.GetBinPath (), "$(MSBuildBinPath)"),
+				(runtimeInfo.GetToolsPath (), "$(MSBuildToolsPath)")
+			};
 			foreach (var extPath in runtimeInfo.GetExtensionsPaths ()) {
 				list.Add ((extPath, "$(MSBuildExtensionsPath)"));
 			}
@@ -152,7 +162,7 @@ namespace MonoDevelop.MSBuildEditor
 			return list;
 		}
 
-		static (string prefix, string subst)? GetLongestReplacement (string val, List<(string prefix, string subst)> replacements)
+		static (string prefix, string remaining)? GetLongestReplacement (string val, List<(string prefix, string subst)> replacements)
 		{
 			(string prefix, string subst)? longestReplacement = null;
 			foreach (var replacement in replacements) {
@@ -162,7 +172,13 @@ namespace MonoDevelop.MSBuildEditor
 					}
 				}
 			}
-			return longestReplacement;
+
+			if (longestReplacement.HasValue) {
+				return (longestReplacement.Value.subst, val.Substring (longestReplacement.Value.prefix.Length));
+			}
+
+			return null;
 		}
 	}
+
 }

@@ -86,4 +86,8 @@
                 _description="Toggles whether private MSBuild symbols are shown in IntelliSense"
                 defaultHandler = "MonoDevelop.MSBuildEditor.ToggleShowPrivateSymbolsHandler" />
     </Extension>
+
+    <Extension path="/MonoDevelop/Ide/Pads">
+        <Pad class="MonoDevelop.MSBuildEditor.Pads.MSBuildImportNavigatorPad" _label="MSBuild Imports" defaultPlacement="right" />
+    </Extension>
 </ExtensionModel>

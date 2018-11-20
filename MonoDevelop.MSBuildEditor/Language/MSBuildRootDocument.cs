@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				const int MIN_WILDCARD_STAR_IDX = 15;
 				const int MIN_WILDCARD_PATTERN_IDX = 10;
 				if (wildcardIdx > MIN_WILDCARD_STAR_IDX) {
-					isWildcard |= true;
+					isWildcard = true;
 					var lastSlash = filename.LastIndexOf (Path.DirectorySeparatorChar);
 					if (lastSlash < MIN_WILDCARD_PATTERN_IDX) {
 						continue;
@@ -332,17 +332,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				continue;
 			}
 
-			// we skip logging for wildcards as these are generally extensibility points that are often unused
-			// this is here (rather than being folded into the next condition) for ease of breakpointing
-			if (isWildcard) {
-				foundAny = true;
+			//yield a placeholder for tooltips, imports pad etc to query
+			if (!foundAny) {
+				yield return new Import (importExpr, sdk, DateTime.MinValue);
 			}
 
-			if (!foundAny) {
+			// we skip logging for wildcards as these are generally extensibility points that are often unused
+			// this is here (rather than being folded into the next condition) for ease of breakpointing
+			if (!foundAny && !isWildcard) {
 				if (oldDoc == null && failedImports.Add (importExpr)) {
 					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExpr}'");
 				}
-				yield return new Import (importExpr, sdk, DateTime.MinValue);
 			}
 		}
 

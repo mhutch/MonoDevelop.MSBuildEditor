@@ -161,6 +161,9 @@
     <Compile Include="Language\FunctionCompletion.cs" />
     <Compile Include="Schema\RoslynHelpers.cs" />
     <Compile Include="DisplayText.cs" />
+    <Compile Include="Pads\MSBuildImportNavigatorPad.cs" />
+    <Compile Include="Pads\MSBuildImportNavigator.cs" />
+    <Compile Include="Pads\DocumentWithMimeTypeTracker.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.Xml" />
