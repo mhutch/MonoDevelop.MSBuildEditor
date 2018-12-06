@@ -98,12 +98,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return Path.GetFullPath (Path.Combine (dir, path));
 			}
 
-			Import TryImportFile (string possibleFile)
+			Import TryImportFile (string label, string possibleFile)
 			{
 				try {
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
-						var imp = doc.GetCachedOrParse (importedFiles, previous, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
+						var imp = doc.GetCachedOrParse (importedFiles, previous, label, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
 						doc.Imports.Add (possibleFile, imp);
 						return imp;
 					}
@@ -117,7 +117,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			{
 				if (string.Equals (ifHasThisExtension, extension, StringComparison.OrdinalIgnoreCase)) {
 					var siblingFilename = Path.ChangeExtension (filename, thenTryThisExtension);
-					return TryImportFile (siblingFilename);
+					return TryImportFile ("(implicit)", siblingFilename);
 				}
 				return null;
 			}
@@ -125,7 +125,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			void TryImportIntellisenseImports (MSBuildSchema schema)
 			{
 				foreach (var intellisenseImport in schema.IntelliSenseImports) {
-					TryImportFile (MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+					TryImportFile ("(from schema)", MakeRelativeMSBuildPathAbsolute (intellisenseImport));
 				}
 			}
 
@@ -162,10 +162,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			try {
 				var binpath = doc.RuntimeInformation.GetBinPath ();
 				foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
-					doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
+					doc.LoadTasks (importedFiles, previous, "(core tasks)", t, propVals, taskBuilder, schemaProvider, token);
 				}
 				foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
-					doc.LoadTasks (importedFiles, previous, t, propVals, taskBuilder, schemaProvider, token);
+					doc.LoadTasks (importedFiles, previous, "(core overridetasks)", t, propVals, taskBuilder, schemaProvider, token);
 				}
 			} catch (Exception ex) {
 				LoggingService.LogError ("Error resolving tasks", ex);
@@ -200,12 +200,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		void LoadTasks (
-			HashSet<string> importedFiles, MSBuildDocument previous, string filename,
+			HashSet<string> importedFiles, MSBuildDocument previous, string label, string filename,
 			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
 			try {
-				var import = GetCachedOrParse (importedFiles, previous, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, taskBuilder, schemaProvider, token);
+				var import = GetCachedOrParse (importedFiles, previous, label, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, taskBuilder, schemaProvider, token);
 				Imports.Add (filename, import);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
@@ -304,7 +304,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					foreach (var f in files) {
 						Import wildImport;
 						try {
-							wildImport = GetCachedOrParse (importedFiles, oldDoc, f, sdk, File.GetLastWriteTimeUtc (f), projectPath, propVals, taskBuilder, schemaProvider, token);
+							wildImport = GetCachedOrParse (importedFiles, oldDoc, importExpr, f, sdk, File.GetLastWriteTimeUtc (f), projectPath, propVals, taskBuilder, schemaProvider, token);
 						} catch (Exception ex) {
 							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
 							continue;
@@ -321,7 +321,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importedFiles, oldDoc, filename, sdk, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
+					import = GetCachedOrParse (importedFiles, oldDoc, importExpr, filename, sdk, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
 				} catch (Exception ex) {
 					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
@@ -334,7 +334,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//yield a placeholder for tooltips, imports pad etc to query
 			if (!foundAny) {
-				yield return new Import (importExpr, sdk, DateTime.MinValue);
+				yield return new Import (importExpr, sdk, null, DateTime.MinValue);
 			}
 
 			// we skip logging for wildcards as these are generally extensibility points that are often unused
@@ -347,16 +347,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		Import GetCachedOrParse (
-			HashSet<string> importedFiles, MSBuildDocument oldDoc, string filename, string sdk, DateTime mtimeUtc, string projectPath,
+			HashSet<string> importedFiles, MSBuildDocument oldDoc, string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc, string projectPath,
 			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
-			if (oldDoc != null && oldDoc.Imports.TryGetValue (filename, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
+			if (oldDoc != null && oldDoc.Imports.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
 				//TODO: check mtimes of descendent imports too
 				return oldImport;
 			} else {
 				//TODO: guard against cyclic imports
-				return ParseImport (importedFiles, new Import (filename, sdk, mtimeUtc), projectPath, propVals, taskBuilder, schemaProvider, token);
+				return ParseImport (importedFiles, new Import (importExpr, sdk, resolvedFilename, mtimeUtc), projectPath, propVals, taskBuilder, schemaProvider, token);
 			}
 		}
 
