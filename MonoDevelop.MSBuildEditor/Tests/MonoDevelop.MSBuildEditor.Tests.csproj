@@ -30,7 +30,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="MonoDevelop.Addins.GuiUnit" Version="0.1.1" />
-    <PackageReference Include="MonoDevelop.Addins" Version="0.4.5" />
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MSBuildEditorTesting.cs" />

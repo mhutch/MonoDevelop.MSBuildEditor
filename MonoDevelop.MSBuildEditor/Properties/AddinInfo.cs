@@ -4,7 +4,7 @@ using Mono.Addins.Description;
 [assembly: Addin (
 	"MonoDevelop.MSBuildEditor",
 	Namespace = "MonoDevelop.MSBuildEditor",
-	Version = "2.1.0"
+	Version = "2.2.0"
 )]
 
 [assembly: AddinName ("MSBuild Editor")]
