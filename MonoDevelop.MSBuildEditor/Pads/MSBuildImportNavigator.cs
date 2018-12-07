@@ -62,26 +62,58 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		void AddNode (TreeNavigator treeNavigator, MSBuildDocument document, Func<string,(string prefix, string remaining)?> shorten)
 		{
 			bool first = true;
+
+			string group = null;
+
 			foreach (var import in document.Imports) {
-				if (!first) {
-					treeNavigator.InsertAfter ();
-				}
+				bool needsInsert = !first;
 				first = false;
 
-				if (import.Value.IsResolved) {
-					var shortened = shorten (import.Key);
+				void CloseGroup ()
+				{
+					if (group != null) {
+						treeNavigator.MoveToParent ();
+						group = null;
+					}
+				}
+
+				if (import.OriginalImport.IndexOf('*') > -1 || import.OriginalImport[0] == '(') {
+					if (import.OriginalImport != group) {
+						CloseGroup ();
+						if (needsInsert) {
+							treeNavigator.InsertAfter ();
+							needsInsert = false;
+						}
+						treeNavigator.SetValue (markupField, $"<span color='{Colors.BlueViolet.ToHexString ()}'>{GLib.Markup.EscapeText(import.OriginalImport)}</Span>");
+						if (import.IsResolved) {
+							group = import.OriginalImport;
+							treeNavigator.AddChild ();
+						} else {
+							continue;
+						}
+					}
+				} else {
+					CloseGroup ();
+				}
+
+				if (needsInsert) {
+					treeNavigator.InsertAfter ();
+				}
+
+				if (import.IsResolved) {
+					var shortened = shorten (import.Filename);
 					if (shortened.HasValue) {
 						treeNavigator.SetValue (markupField, $"<span color='{Colors.Blue.ToHexString ()}'>{GLib.Markup.EscapeText (shortened.Value.prefix)}</span>{shortened.Value.remaining}");
 					} else {
-						treeNavigator.SetValue (markupField, GLib.Markup.EscapeText (import.Key));
+						treeNavigator.SetValue (markupField, GLib.Markup.EscapeText (import.Filename));
 					}
 				} else {
-					treeNavigator.SetValue (markupField, $"<span color='{Colors.Red.ToHexString ()}'>{GLib.Markup.EscapeText (import.Key)}</span>");
+					treeNavigator.SetValue (markupField, $"<span color='{Colors.Red.ToHexString ()}'>{GLib.Markup.EscapeText (import.OriginalImport)}</span>");
 				}
 
-				if (import.Value.IsResolved && import.Value.Document.Imports.Count > 0) {
+				if (import.IsResolved && import.Document.Imports.Count > 0) {
 					treeNavigator.AddChild ();
-					AddNode (treeNavigator, import.Value.Document, shorten);
+					AddNode (treeNavigator, import.Document, shorten);
 					treeNavigator.MoveToParent ();
 				}
 			}
