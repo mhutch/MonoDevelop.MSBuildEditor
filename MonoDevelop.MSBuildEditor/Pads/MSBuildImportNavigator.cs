@@ -2,11 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 using MonoDevelop.Core;
 using MonoDevelop.MSBuildEditor.Language;
 using Xwt;
-using Xwt.Drawing;
 
 namespace MonoDevelop.MSBuildEditor.Pads
 {
@@ -14,8 +12,13 @@ namespace MonoDevelop.MSBuildEditor.Pads
 	{
 		DocumentWithMimeTypeTracker documentTracker;
 		readonly DataField<string> markupField = new DataField<string> ();
-		readonly DataField<TextSpan> spanField = new DataField<TextSpan> ();
+		readonly DataField<Import> importField = new DataField<Import> ();
+		readonly DataField<bool> isGroupField = new DataField<bool> ();
 		readonly TreeStore store;
+
+		static readonly string colorGroup = "#2CC775";
+		static readonly string colorReplacement = "#7DA7FF";
+		static readonly string colorUnresolved = "#FF5446";
 
 		public MSBuildImportNavigator ()
 		{
@@ -23,7 +26,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 			HeadersVisible = false;
 			BorderVisible = false;
 
-			store = new TreeStore (markupField, spanField);
+			store = new TreeStore (markupField, importField, isGroupField);
 			DataSource = store;
 
 			documentTracker = new DocumentWithMimeTypeTracker ("application/x-msbuild");
@@ -84,7 +87,11 @@ namespace MonoDevelop.MSBuildEditor.Pads
 							treeNavigator.InsertAfter ();
 							needsInsert = false;
 						}
-						treeNavigator.SetValue (markupField, $"<span color='{Colors.BlueViolet.ToHexString ()}'>{GLib.Markup.EscapeText(import.OriginalImport)}</Span>");
+						treeNavigator.SetValues (
+							markupField, $"<span color='{colorGroup}'>{GLib.Markup.EscapeText(import.OriginalImport)}</Span>",
+							importField, import,
+							isGroupField, true
+						);
 						if (import.IsResolved) {
 							group = import.OriginalImport;
 							treeNavigator.AddChild ();
@@ -103,12 +110,24 @@ namespace MonoDevelop.MSBuildEditor.Pads
 				if (import.IsResolved) {
 					var shortened = shorten (import.Filename);
 					if (shortened.HasValue) {
-						treeNavigator.SetValue (markupField, $"<span color='{Colors.Blue.ToHexString ()}'>{GLib.Markup.EscapeText (shortened.Value.prefix)}</span>{shortened.Value.remaining}");
+						treeNavigator.SetValues (
+							markupField, $"<span color='{colorReplacement}'>{GLib.Markup.EscapeText (shortened.Value.prefix)}</span>{shortened.Value.remaining}",
+							importField, import,
+							isGroupField, false
+						);
 					} else {
-						treeNavigator.SetValue (markupField, GLib.Markup.EscapeText (import.Filename));
+						treeNavigator.SetValues (
+							markupField, GLib.Markup.EscapeText (import.Filename),
+							importField, import,
+							isGroupField, false
+						);
 					}
 				} else {
-					treeNavigator.SetValue (markupField, $"<span color='{Colors.Red.ToHexString ()}'>{GLib.Markup.EscapeText (import.OriginalImport)}</span>");
+					treeNavigator.SetValues (
+						markupField, $"<span color='{colorUnresolved}'>{GLib.Markup.EscapeText (import.OriginalImport)}</span>",
+						importField, import,
+						isGroupField, false
+					);
 				}
 
 				if (import.IsResolved && import.Document.Imports.Count > 0) {
