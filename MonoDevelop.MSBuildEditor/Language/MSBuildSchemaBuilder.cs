@@ -108,7 +108,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				bool wasResolved = false;
 				var loc = isToplevel ? importAtt.GetValueRegion (TextDocument) : importAtt.Region;
 				foreach (var resolvedImport in resolveImport (import, null)) {
-					Document.Imports [resolvedImport.Filename] = resolvedImport;
+					Document.AddImport (resolvedImport);
 					wasResolved |= resolvedImport.IsResolved;
 					if (isToplevel && wasResolved) {
 						Document.Annotations.Add (importAtt, new NavigationAnnotation (resolvedImport.Filename, loc));

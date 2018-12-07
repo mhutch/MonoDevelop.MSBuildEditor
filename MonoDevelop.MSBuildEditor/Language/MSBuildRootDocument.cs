@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
 						var imp = doc.GetCachedOrParse (importedFiles, previous, label, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
-						doc.Imports.Add (possibleFile, imp);
+						doc.AddImport (imp);
 						return imp;
 					}
 				} catch (Exception ex) {
@@ -200,13 +200,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		void LoadTasks (
-			HashSet<string> importedFiles, MSBuildDocument previous, string label, string filename,
+			HashSet<string> importedFiles, MSBuildRootDocument previous, string label, string filename,
 			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
 			try {
 				var import = GetCachedOrParse (importedFiles, previous, label, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, taskBuilder, schemaProvider, token);
-				Imports.Add (filename, import);
+				AddImport (import);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
 			}
@@ -347,16 +347,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		Import GetCachedOrParse (
-			HashSet<string> importedFiles, MSBuildDocument oldDoc, string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc, string projectPath,
+			HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc, string projectPath,
 			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
-			if (oldDoc != null && oldDoc.Imports.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
+			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
 				//TODO: check mtimes of descendent imports too
 				return oldImport;
 			} else {
 				//TODO: guard against cyclic imports
 				return ParseImport (importedFiles, new Import (importExpr, sdk, resolvedFilename, mtimeUtc), projectPath, propVals, taskBuilder, schemaProvider, token);
+			}
+		}
+
+		readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
+
+		public override void AddImport (Import import)
+		{
+			base.AddImport (import);
+			if (import.IsResolved) {
+				resolvedImportsMap [import.Filename] = import;
 			}
 		}
 

@@ -21,7 +21,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		static readonly XName xnProject = new XName ("Project");
 
-		public Dictionary<string, Import> Imports { get; } = new Dictionary<string, Import> (StringComparer.OrdinalIgnoreCase);
+		//NOTE: this is keyed on the filepath of resolved imports and original expression of unresolved imports
+		//the reason for this is that a single expression can resolve to multiple imports
+		public List<Import> Imports { get; } = new List<Import> ();
+
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
@@ -193,13 +196,18 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
+		public virtual void AddImport (Import import)
+		{
+			Imports.Add (import);
+		}
+
 		void AddSdkProps (IEnumerable<(string id, string path, DocumentRegion loc)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
 		{
 			foreach (var sdk in sdkPaths) {
 				var propsPath = $"{sdk.path}\\Sdk.props";
 				var sdkProps = resolveImport (propsPath, sdk.id).FirstOrDefault ();
 				if (sdkProps != null) {
-					Imports.Add (sdkProps.Filename, sdkProps);
+					AddImport (sdkProps);
 				}
 			}
 		}
@@ -210,7 +218,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var targetsPath = $"{sdk.path}\\Sdk.targets";
 				var sdkTargets = resolveImport (targetsPath, sdk.id).FirstOrDefault ();
 				if (sdkTargets != null) {
-					Imports.Add (sdkTargets.Filename, sdkTargets);
+					AddImport (sdkTargets);
 				}
 			}
 		}
@@ -218,9 +226,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public IEnumerable<Import> GetDescendentImports ()
 		{
 			foreach (var i in Imports) {
-				yield return i.Value;
-				if (i.Value.Document != null) {
-					foreach (var d in i.Value.Document.GetDescendentImports ()) {
+				yield return i;
+				if (i.Document != null) {
+					foreach (var d in i.Document.GetDescendentImports ()) {
 						yield return d;
 					}
 				}
