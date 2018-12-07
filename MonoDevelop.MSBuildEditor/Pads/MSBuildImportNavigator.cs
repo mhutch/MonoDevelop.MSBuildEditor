@@ -138,6 +138,19 @@ namespace MonoDevelop.MSBuildEditor.Pads
 			}
 		}
 
+		protected override void OnRowActivated (TreeViewRowEventArgs a)
+		{
+			var nav = store.GetNavigatorAt (a.Position);
+			if (nav != null) {
+				var isGroup = nav.GetValue (isGroupField);
+				if (!isGroup) {
+					var import = nav.GetValue (importField);
+					Ide.IdeApp.Workbench.OpenDocument (import.Filename, null, true);
+				}
+			}
+			base.OnRowActivated (a);
+		}
+
 		protected override void Dispose (bool disposing)
 		{
 			if (disposing) {
