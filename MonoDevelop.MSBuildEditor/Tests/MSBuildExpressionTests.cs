@@ -251,7 +251,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(Foo.A(true,   20 ))", "Foo", "A", true, 20)]
 		[TestCase ("$(Foo.A(20.5))", "Foo", "A", 20.5d)]
 		[TestCase ("$(Foo.A(.61))", "Foo", "A", .61d)]
-		public void TestSimpleStringFunctions(object[] args)
+		public void TestSimplePropertyFunctions(object[] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
 			var targetName = (string)args [1];
@@ -271,6 +271,37 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < methArgs.Count; i++) {
 				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
 				Assert.AreEqual (methArgs[i], arg.Value);
+			}
+		}
+
+		[TestCase ("@(Foo->Bar())", "Foo", "Bar")]
+		[TestCase ("@(   Foo  ->  Bar  (  )  )", "Foo", "Bar")]
+		//[TestCase ("@(Foo->Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("@(Foo->A(5))", "Foo", "A", 5)]
+		[TestCase ("@(Foo->A(true))", "Foo", "A", true)]
+		[TestCase ("@(Foo->A(true,   20 ))", "Foo", "A", true, 20)]
+		[TestCase ("@(Foo->A(20.5))", "Foo", "A", 20.5d)]
+		[TestCase ("@(Foo->A(.61))", "Foo", "A", .61d)]
+		public void TestSimpleItemFunctions (object [] args)
+		{
+			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.ItemsMetadataAndLists, 0);
+			var targetName = (string)args [1];
+			var methodName = (string)args [2];
+			var methArgs = args.Skip (3).ToList ();
+
+			var prop = AssertCast<ExpressionItem> (expr);
+			Assert.IsFalse (prop.IsSimpleItem);
+
+			var invocation = AssertCast<ExpressionItemFunctionInvocation> (prop.Expression);
+			var target = AssertCast<ExpressionItemName> (invocation.Target);
+
+			Assert.AreEqual (targetName, target.Name);
+			Assert.AreEqual (methodName, invocation.MethodName);
+
+			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < methArgs.Count; i++) {
+				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
+				Assert.AreEqual (methArgs [i], arg.Value);
 			}
 		}
 
@@ -317,6 +348,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		static T AssertCast<T> (object o)
 		{
+			if (o != null && typeof (T).IsAssignableFrom (o.GetType ())) {
+				return (T)o;
+			}
+			if (o is ExpressionError err) {
+				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
+			}
 			Assert.IsInstanceOf<T> (o);
 			return (T)o;
 		}

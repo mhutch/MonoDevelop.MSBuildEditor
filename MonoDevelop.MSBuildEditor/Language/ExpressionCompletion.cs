@@ -116,6 +116,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 						triggerLength = 1;
 						return TriggerState.Item;
 					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
+						return TriggerState.MethodName;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
+						var inv = i.Find (iee.Offset - 1) as ExpressionItemFunctionInvocation;
+						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
+							triggerLength = 1;
+							return TriggerState.MethodName;
+						}
+					}
 					break;
 				case ExpressionProperty p:
 					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && p.Name.Length == 1) {

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
-	//TODO: property functions, item transforms with custom separators, item functions
 	static class ExpressionParser
 	{
 		public static ExpressionNode Parse (string expression, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
@@ -150,6 +149,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			int start = offset - 2;
 
+			ConsumeWhitespace (ref offset);
+
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingItemName);
@@ -234,6 +235,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			offset++;
 			//FIXME: if we don't find the end, parse the partial transform anyway
+			//TODO: support custom separators
 			var endAposOffset = buffer.IndexOf ('\'', offset, endOffset - offset + 1);
 			if (endAposOffset < 0) {
 				return new IncompleteExpressionError (baseOffset + endOffset, true, ExpressionErrorKind.ExpectingApos, target);
@@ -253,9 +255,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
 		{
-			return new ExpressionError (offset, ExpressionErrorKind.PropertyFunctionsNotSupported);
-			/*
-
 			var methodName = ReadName (buffer, ref offset, endOffset);
 			if (methodName == null) {
 				return new IncompleteExpressionError (
@@ -286,7 +285,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			return new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, args);
-			*/
 		}
 
 		static string ReadName (string buffer, ref int offset, int endOffset)
