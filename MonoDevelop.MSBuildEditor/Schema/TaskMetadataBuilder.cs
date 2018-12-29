@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return null;
 			}
 
-			DisplayText desc = Ambience.GetSummaryMarkup (type);
+			var desc = new DisplayText (Ambience.GetSummaryMarkup (type), true);
 
 			var ti = new TaskInfo (type.Name, desc, type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtLocation);
 			PopulateTaskInfoFromType (ti, type);
@@ -151,7 +151,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
-			DisplayText propDesc = Ambience.GetSummaryMarkup (prop);
+			var propDesc = new DisplayText (Ambience.GetSummaryMarkup (prop), true);
 
 			bool isOutput = false, isRequired = false;
 			foreach (var att in prop.GetAttributes ()) {

@@ -34,7 +34,6 @@
     <Compile Include="Properties\AddinInfo.cs" />
     <Compile Include="MSBuildTextEditorExtension.cs" />
     <Compile Include="Evaluation\MSBuildEvaluationContext.cs" />
-    <Compile Include="Evaluation\IntrinsicFunctions.cs" />
     <Compile Include="Evaluation\EscapingUtilities.cs" />
     <Compile Include="Evaluation\Conditions\ConditionAndExpression.cs" />
     <Compile Include="Evaluation\Conditions\ConditionExpression.cs" />

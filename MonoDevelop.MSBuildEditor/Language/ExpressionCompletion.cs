@@ -117,13 +117,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 						return TriggerState.Item;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
-						return TriggerState.MethodName;
+						return TriggerState.ItemFunctionName;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						var inv = i.Find (iee.Offset - 1) as ExpressionItemFunctionInvocation;
 						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
 							triggerLength = 1;
-							return TriggerState.MethodName;
+							return TriggerState.ItemFunctionName;
 						}
 					}
 					break;
@@ -133,13 +133,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 						return TriggerState.Property;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
-						return TriggerState.MethodName;
+						return TriggerState.PropertyFunctionName;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						var inv = p.Find (iee.Offset - 1) as ExpressionPropertyFunctionInvocation;
 						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
 							triggerLength = 1;
-							return TriggerState.MethodName;
+							return TriggerState.PropertyFunctionName;
 						}
 					}
 					break;
@@ -190,7 +190,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Metadata,
 			DirectorySeparator,
 			MetadataOrItem,
-			MethodName
+			PropertyFunctionName,
+			ItemFunctionName,
 		}
 
 		public static TriggerState GetConditionTriggerState (
@@ -364,8 +365,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
 				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
-			case TriggerState.MethodName:
-				return FunctionCompletion.GetMethodNameCompletions (triggerExpression);
+			case TriggerState.PropertyFunctionName:
+				return FunctionCompletion.GetPropertyFunctionNameCompletions (triggerExpression);
+			case TriggerState.ItemFunctionName:
+				return FunctionCompletion.GetItemFunctionNameCompletions (triggerExpression);
 			}
 			throw new InvalidOperationException ();
 		}
