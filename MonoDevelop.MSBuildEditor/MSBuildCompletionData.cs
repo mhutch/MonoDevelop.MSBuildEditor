@@ -17,12 +17,17 @@ namespace MonoDevelop.MSBuildEditor
 		readonly MSBuildRootDocument doc;
 		readonly MSBuildResolveResult rr;
 		readonly BaseInfo info;
-
-		int priorityGroup = 0;
+		readonly int priorityGroup = 0;
 
 		public MSBuildCompletionData (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, null, type)
 		{
+			if (info is FunctionInfo fi) {
+				foreach (var overload in fi.Overloads) {
+					AddOverload (new MSBuildCompletionData (overload, doc, rr, type));
+				}
+			}
+
 			this.info = info;
 			this.doc = doc;
 			this.rr = rr;

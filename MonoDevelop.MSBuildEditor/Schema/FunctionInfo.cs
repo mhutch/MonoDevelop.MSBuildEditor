@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+
 namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class FunctionInfo : BaseInfo
@@ -10,6 +12,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public virtual string ReturnType => returnType;
 		public virtual FunctionParameterInfo [] Parameters => arguments;
+		public List<FunctionInfo> Overloads { get; } = new List<FunctionInfo> ();
 
 		protected FunctionInfo (string name, DisplayText description) : base (name, description)
 		{

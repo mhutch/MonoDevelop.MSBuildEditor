@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	static class FunctionCompletion
 	{
-		public static IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public static IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is Expression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -27,19 +27,31 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//string function completion
 			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
-				return GetStringMethods ();
+				return CollapseOverloads (GetStringMethods ());
 			}
 
 			return null;
 		}
 
-		public static IEnumerable<BaseInfo> GetItemFunctionNameCompletions (ExpressionNode triggerExpression)
+		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
-			return GetIntrinsicItemFunctions ()
-				.Concat (GetStringMethods ());
+			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMethods ()));
 		}
 
-		static IEnumerable<BaseInfo> GetStringMethods ()
+		public static ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos)
+		{
+			var functions = new Dictionary<string, FunctionInfo> ();
+			foreach (var info in infos) {
+				if (functions.TryGetValue (info.Name, out FunctionInfo existing)) {
+					existing.Overloads.Add (info);
+				} else {
+					functions.Add (info.Name, info);
+				}
+			}
+			return functions.Values.ToArray ();
+		}
+
+		static IEnumerable<FunctionInfo> GetStringMethods ()
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
@@ -47,7 +59,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (!(member is IMethodSymbol method)) {
 					continue;
 				}
-				if (method.IsStatic || !method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+				if (method.IsStatic || method.MethodKind == MethodKind.Constructor || !method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
 				yield return new RoslynFunctionInfo (method);
@@ -64,7 +76,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			);
 		}
 
-		static IEnumerable<BaseInfo> GetIntrinsicItemFunctions ()
+		static IEnumerable<FunctionInfo> GetIntrinsicItemFunctions ()
 		{
 			yield return new FunctionInfo (
 				"Count",
