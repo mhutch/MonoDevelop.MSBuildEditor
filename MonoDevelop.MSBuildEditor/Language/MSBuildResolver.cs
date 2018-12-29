@@ -205,9 +205,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				switch (node.Find (offset)) {
-				case ExpressionItem ei:
+				case ExpressionItemName ei:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
-					rr.ReferenceOffset = ei.NameOffset;
+					rr.ReferenceOffset = ei.Offset;
 					rr.ReferenceLength = ei.Name.Length;
 					rr.Reference = ei.Name;
 					break;

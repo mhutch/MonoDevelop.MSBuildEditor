@@ -97,7 +97,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public ExpressionArgumentString(int offset, int length, string value) : base (offset, length, value) { }
 	}
 
-	public enum LiteralKind
+	enum LiteralKind
 	{
 		String,
 		Int,
@@ -116,6 +116,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public ExpressionProperty (int offset, int length, ExpressionNode expression) : base (offset, length)
 		{
 			Expression = expression;
+			expression.SetParent (this);
 		}
 
 		public ExpressionProperty(int offset, int length, string name)
@@ -158,22 +159,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class ExpressionItem : ExpressionNode
 	{
-		public string Name { get; }
-		public ExpressionNode Transform { get; }
+		public ExpressionItemNode Expression { get; }
 
-		public ExpressionItem (int offset, int length, string name) : this (offset, length, name, null)
+		public bool IsSimpleItem => Expression is ExpressionItemName;
+		public string Name => Expression.ItemName;
+		public int? NameOffset => Expression.ItemNameOffset;
+
+		public ExpressionItem (int offset, int length, ExpressionItemNode expression) : base (offset, length)
 		{
+			Expression = expression;
+			expression.SetParent (this);
 		}
 
-		public ExpressionItem (int offset, int length, string name, ExpressionNode transform) : base (offset, length)
+		public ExpressionItem (int offset, int length, string name)
+			: this (offset, length, new ExpressionItemName (offset + 2, name.Length, name))
 		{
-			Transform = transform;
-			transform?.SetParent (this);
-			Name = name;
 		}
-
-		public int NameOffset => Offset + 2;
-		public bool HasTransform => Transform != null;
 	}
 
 	class ExpressionError : ExpressionNode
@@ -199,6 +200,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			: base (offset, wasEOF? 0 : 1, kind)
 		{
 			IncompleteNode = incompleteNode;
+			incompleteNode.SetParent (this);
 		}
 	}
 
@@ -225,6 +227,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingValue,
 		CouldNotParseNumber,
 		IncompleteValue,
+		ExpectingMethodOrTransform,
 	}
 
 	class ExpressionPropertyNode : ExpressionNode
@@ -244,8 +247,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 			: base (offset, length)
 		{
 			Target = target;
+			target.SetParent (this);
 			MethodName = methodName;
 			Arguments = arguments;
+			arguments?.SetParent (this);
 		}
 	}
 
@@ -256,6 +261,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public ExpressionArgumentList(int offset, int length, List<ExpressionNode> arguments) : base (offset, length)
 		{
 			Arguments = arguments;
+			foreach (var a in arguments) {
+				a.SetParent (this);
+			}
 		}
 	}
 
@@ -276,6 +284,68 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public ExpressionClassReference(int offset, int length, string name) : base (offset, length)
 		{
 			Name = name;
+		}
+	}
+
+	abstract class ExpressionItemNode : ExpressionNode
+	{
+		public ExpressionItemNode (int offset, int length) : base (offset, length)
+		{
+		}
+
+		public abstract string ItemName { get; }
+		public abstract int ItemNameOffset { get; }
+	}
+
+	class ExpressionItemName : ExpressionItemNode
+	{
+		public string Name { get; }
+
+		public ExpressionItemName (int offset, int length, string name) : base (offset, length)
+		{
+			Name = name;
+		}
+
+		public override string ItemName => Name;
+		public override int ItemNameOffset => Offset;
+	}
+
+	class ExpressionItemFunctionInvocation : ExpressionItemNode
+	{
+		public ExpressionItemNode Target { get; }
+		public string MethodName { get; }
+
+		public override string ItemName => Target.ItemName;
+		public override int ItemNameOffset => Target.ItemNameOffset;
+
+		public ExpressionArgumentList Arguments;
+
+		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, string methodName, ExpressionArgumentList arguments)
+			: base (offset, length)
+		{
+			Target = target;
+			target.SetParent (this);
+			MethodName = methodName;
+			Arguments = arguments;
+			arguments?.SetParent (this);
+		}
+	}
+
+	class ExpressionItemTransform : ExpressionItemNode
+	{
+		public ExpressionItemNode Target { get; }
+		public ExpressionNode Transform { get; }
+
+		public override string ItemName => Target.ItemName;
+		public override int ItemNameOffset => Target.ItemNameOffset;
+
+		public ExpressionItemTransform (int offset, int length, ExpressionItemNode target, ExpressionNode transform)
+			: base (offset, length)
+		{
+			Target = target;
+			target.SetParent (this);
+			Transform = transform;
+			transform.SetParent (this);
 		}
 	}
 
@@ -307,8 +377,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionItem item:
-				if (item.HasTransform) {
-					foreach (var n in item.Transform.WithAllDescendants ()) {
+				if (item.Expression != null) {
+					foreach (var n in item.Expression.WithAllDescendants ()) {
 						yield return n;
 					}
 				}
@@ -341,6 +411,30 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 				}
 				break;
+			case ExpressionItemFunctionInvocation invocation:
+				if (invocation.Target != null) {
+					foreach (var n in invocation.Target.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (invocation.Arguments != null) {
+					foreach (var n in invocation.Arguments.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionItemTransform transform:
+				if (transform.Target != null) {
+					foreach (var n in transform.Target.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (transform.Transform != null) {
+					foreach (var n in transform.Transform.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
 			}
 		}
 
@@ -366,8 +460,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionItem item:
-				if (item.HasTransform && item.Transform.ContainsOffset (offset)) {
-					return item.Transform.FindInternal (offset);
+				if (item.Expression != null && item.Expression.ContainsOffset (offset)) {
+					return item.Expression.FindInternal (offset);
 				}
 				break;
 			case ExpressionProperty prop:
@@ -396,6 +490,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 							return c.FindInternal (offset);
 						}
 					}
+				}
+				break;
+			case ExpressionItemFunctionInvocation invocation:
+				if (invocation.Target != null && invocation.Target.ContainsOffset (offset)) {
+					return invocation.Target.FindInternal (offset);
+				}
+				if (invocation.Arguments != null && invocation.Arguments.ContainsOffset (offset)) {
+					return invocation.Arguments.FindInternal (offset);
+				}
+				break;
+			case ExpressionItemTransform transform:
+				if (transform.Target != null && transform.Target.ContainsOffset (offset)) {
+					return transform.Target.FindInternal (offset);
+				}
+				if (transform.Transform != null && transform.Transform.ContainsOffset (offset)) {
+					return transform.Transform.FindInternal (offset);
 				}
 				break;
 			}
@@ -431,6 +541,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return $"Expecting '-' or ')'";
 			case ExpressionErrorKind.ItemsDisallowed:
 				return $"{Name()} does not allow metadata";
+			case ExpressionErrorKind.ExpectingMethodOrTransform:
+				return $"Expecting item function or transform";
 			default:
 				return $"Invalid expression: {errorKind}";
 			}

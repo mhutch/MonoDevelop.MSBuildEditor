@@ -90,9 +90,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
-				case ExpressionItem ei:
+				case ExpressionItemName ei:
 					if (IsMatch (ei.Name)) {
-						Results.Add ((ei.NameOffset, ei.Name.Length, ReferenceUsage.Read));
+						Results.Add ((ei.Offset, ei.Name.Length, ReferenceUsage.Read));
 					}
 					break;
 				case ExpressionMetadata em:

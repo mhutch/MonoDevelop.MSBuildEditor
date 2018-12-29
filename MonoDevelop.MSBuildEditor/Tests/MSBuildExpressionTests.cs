@@ -44,9 +44,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(a-", ExpressionErrorKind.ExpectingRightAngleBracket)]
 		[TestCase ("@(a   -", ExpressionErrorKind.ExpectingRightAngleBracket)]
 		[TestCase ("@(a-.", ExpressionErrorKind.ExpectingRightAngleBracket)]
-		[TestCase ("@(a->", ExpressionErrorKind.ExpectingApos)]
-		[TestCase ("@(a->  ", ExpressionErrorKind.ExpectingApos)]
-		[TestCase ("@(a->.", ExpressionErrorKind.ExpectingApos)]
+		[TestCase ("@(a->", ExpressionErrorKind.ExpectingMethodOrTransform)]
+		[TestCase ("@(a->  ", ExpressionErrorKind.ExpectingMethodOrTransform)]
+		[TestCase ("@(a->.", ExpressionErrorKind.ExpectingMethodOrTransform)]
 		[TestCase ("@(a->'f", ExpressionErrorKind.ExpectingApos)]
 		[TestCase ("@(a->''", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->''d", ExpressionErrorKind.ExpectingRightParen)]
@@ -198,8 +198,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				"@(Foo->'%(Bar.Baz)')",
 				new ExpressionItem (
 					0, 20,
-					"Foo",
-					new ExpressionMetadata (8, 10, "Bar", "Baz")
+					new ExpressionItemTransform (
+						2, 17,
+						new ExpressionItemName (2, 3, "Foo"),
+						new ExpressionMetadata (8, 10, "Bar", "Baz")
+					)
 				),
 				ExpressionOptions.Items
 			);
