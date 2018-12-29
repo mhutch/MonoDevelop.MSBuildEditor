@@ -91,18 +91,17 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("framework", fxi.Reference.DotNetFrameworkName);
 			case TaskParameterInfo tpi:
 				return ("parameter", tpi.Name);
+			case FunctionInfo fi:
+				return ("function", fi.Name);
 			}
 			return (null, null);
-
 		}
 
-		public static List<string> GetTypeDescription (this ValueInfo info)
+		public static List<string> GetTypeDescription (this MSBuildValueKind kind)
 		{
 			var modifierList = new List<string> ();
+			string kindName = FormatKind (kind);
 
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
-
-			var kindName = FormatKind (info, kind);
 			if (kindName != null) {
 				modifierList.Add (kindName);
 				if (kind.AllowLists ()) {
@@ -113,6 +112,19 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				if (!kind.AllowExpressions ()) {
 					modifierList.Add ("literal");
 				}
+			}
+
+			return modifierList;
+		}
+
+		public static List<string> GetTypeDescription (this ValueInfo info)
+		{
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+
+			var modifierList = GetTypeDescription (kind);
+
+			if (info.Values != null && info.Values.Count > 0) {
+				modifierList [0] = "enum";
 			}
 
 			if (info is PropertyInfo pi && pi.Reserved) {
@@ -139,11 +151,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return modifierList;
 		}
 
-		static string FormatKind (ValueInfo info, MSBuildValueKind kind)
+		static string FormatKind (MSBuildValueKind kind)
 		{
-			if (info.Values != null && info.Values.Count > 0) {
-				return "enum";
-			}
 			switch (kind.GetScalarType ()) {
 			case MSBuildValueKind.Bool:
 				return "bool";
@@ -232,6 +241,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return "file-extension";
 			case MSBuildValueKind.Filename:
 				return "file-name";
+			case MSBuildValueKind.MatchItem:
 			case MSBuildValueKind.UnknownItem:
 				return "item";
 			case MSBuildValueKind.NuGetID:

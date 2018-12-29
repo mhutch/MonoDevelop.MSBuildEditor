@@ -46,22 +46,60 @@ namespace MonoDevelop.MSBuildEditor
 
 		public DisplayText GetNameMarkup (BaseInfo info)
 		{
-			var color = GetColor (keywordColorId);
+			var keywordColor = GetColor (keywordColorId);
+			var varColor = GetColor (varColorID);
+
 			var label = DescriptionFormatter.GetTitle (info);
 			if (label.kind == null) {
 				return null;
 			}
-			string modifiers = null;
+
+			var sb = new StringBuilder ();
+
+			void AppendColor (string value, string color)
+			{
+				sb.Append ("<span foreground=\"");
+				sb.Append (color);
+				sb.Append ("\">");
+				sb.Append (value);
+				sb.Append ("</span>");
+			}
+
+			AppendColor (label.kind, keywordColor);
+			sb.Append (" ");
+			sb.Append (label.name);
+
+			string typeInfo = null;
 			if (info is ValueInfo vi) {
 				var tdesc = vi.GetTypeDescription ();
 				if (tdesc.Count > 0) {
-					modifiers = $" : {string.Join (", ", tdesc)}";
+					typeInfo = string.Join (" ", tdesc);
 				}
 			}
-			return new DisplayText (
-				$"{label.kind} <span foreground=\"{color}\">{Escape (label.name)}</span>{modifiers}",
-				true
-			);
+
+			if (info is FunctionInfo fi) {
+				typeInfo = fi.ReturnType;
+				sb.Append ("(");
+				bool first = true;
+				foreach (var p in fi.Parameters) {
+					if (first) {
+						first = false;
+					} else {
+						sb.Append (", ");
+					}
+					sb.Append (p.Name);
+					sb.Append (" : ");
+					AppendColor (p.Type, varColor);
+				}
+				sb.Append (")");
+			}
+
+			if (typeInfo != null) {
+				sb.Append (" : ");
+				AppendColor (typeInfo, varColor);
+			}
+
+			return new DisplayText (sb.ToString (), true);
 		}
 
 		public DisplayText GetSeenInMarkup (BaseInfo info)

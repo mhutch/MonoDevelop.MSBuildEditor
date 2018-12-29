@@ -9,13 +9,15 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	abstract class BaseInfo
 	{
+		readonly DisplayText description;
+
 		public string Name { get; }
-		public DisplayText Description { get; }
+		public virtual DisplayText Description => description;
 
 		protected BaseInfo (string name, DisplayText description)
 		{
 			Name = name;
-			Description = description;
+			this.description = description;
 		}
 
 		public override bool Equals (object obj)

@@ -50,10 +50,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (method.IsStatic || !method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
-				yield return new ConstantInfo (
-					method.Name,
-					new DisplayText (Ambience.GetSummaryMarkup (method), true)
-				);
+				yield return new RoslynFunctionInfo (method);
 			}
 		}
 
@@ -69,46 +66,52 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static IEnumerable<BaseInfo> GetIntrinsicItemFunctions ()
 		{
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"Count",
-				"Count ()\n" +
-				"Counts the number of items.");
-			yield return new ConstantInfo (
+				"Counts the number of items.",
+				MSBuildValueKind.Int);
+			yield return new FunctionInfo (
 				"DirectoryName",
-				"DirectoryName ()\n" +
-				"Transforms each item into its directory name.");
-			yield return new ConstantInfo (
+				"Transforms each item into its directory name.",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"Metadata",
-				"Metadata (\"Name\")\n" +
-				"Returns the values of the specified metadata.");
-			yield return new ConstantInfo (
+				"Returns the values of the specified metadata.",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName));
+			yield return new FunctionInfo (
 				"DistinctWithCase",
-				"DistinctWithCase ()\n" +
-				"Returns the items with distinct ItemSpecs, respecting case but ignoring metadata.");
-			yield return new ConstantInfo (
+				"Returns the items with distinct ItemSpecs, respecting case but ignoring metadata.",
+				MSBuildValueKind.MatchItem.List());
+			yield return new FunctionInfo (
 				"Distinct",
-				"Distinct ()\n" +
-				"Returns the items with distinct ItemSpecs, ignoring case and metadata.");
-			yield return new ConstantInfo (
+				"Returns the items with distinct ItemSpecs, ignoring case and metadata.",
+				MSBuildValueKind.MatchItem.List());
+			yield return new FunctionInfo (
 				"Reverse",
-				"Reverse ()\n" +
-				"Reverses the list.");
-			yield return new ConstantInfo (
+				"Reverses the list.",
+				MSBuildValueKind.MatchItem.List());
+			yield return new FunctionInfo (
 				"ClearMetadata",
-				"ClearMetadata ()\n" +
-				"Returns the items with their metadata cleared.");
-			yield return new ConstantInfo (
+				"Returns the items with their metadata cleared.",
+				MSBuildValueKind.MatchItem.List());
+			yield return new FunctionInfo (
 				"HasMetadata",
-				"HasMetadata (\"Name\")\n" +
-				"Returns the items that have non-empty values for the specified metadata.");
-			yield return new ConstantInfo (
+				"Returns the items that have non-empty values for the specified metadata.",
+				MSBuildValueKind.MatchItem.List(),
+				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName));
+			yield return new FunctionInfo (
 				"WithMetadataValue",
-				"WithMetadataValue (\"Name\", \"Value\")\n" +
-				"Returns items that have the specified metadata value, ignoring case.");
-			yield return new ConstantInfo (
+				"Returns items that have the specified metadata value, ignoring case.",
+				MSBuildValueKind.MatchItem.List (),
+				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName),
+				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"AnyHaveMetadataValue",
-				"AnyHaveMetadataValue (\"Name\", \"Value\")\n" +
-				"Returns true if any item has the specified metadata name and value, ignoring case.");
+				"Returns true if any item has the specified metadata name and value, ignoring case.",
+				MSBuildValueKind.Bool,
+				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName),
+				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
 		}
 
 		static IEnumerable<BaseInfo> GetIntrinsicPropertyFunctions ()
