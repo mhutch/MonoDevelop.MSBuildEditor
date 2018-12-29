@@ -4,6 +4,7 @@
 using Microsoft.CodeAnalysis;
 using MonoDevelop.Ide.TypeSystem;
 using System.Linq;
+using MonoDevelop.MSBuildEditor.Language;
 
 namespace MonoDevelop.MSBuildEditor.Schema
 {
@@ -18,7 +19,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
 
-		public override string ReturnType => symbol.GetReturnType ().Name;
+		public override string ReturnType => string.Join (" ", FunctionCompletion.ConvertType (symbol.GetReturnType ()).GetTypeDescription ());
 		public override FunctionParameterInfo [] Parameters =>
 			symbol.Parameters.Select (p => new RoslynFunctionArgumentInfo (p)).ToArray ();
 	}
@@ -33,6 +34,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		}
 
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
-		public override string Type => symbol.Type.Name;
+		public override string Type => string.Join (" ", FunctionCompletion.ConvertType (symbol.Type).GetTypeDescription ());
 	}
 }

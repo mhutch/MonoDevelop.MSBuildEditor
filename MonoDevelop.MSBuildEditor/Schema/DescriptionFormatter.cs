@@ -172,6 +172,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return "lcid";
 			case MSBuildValueKind.DateTime:
 				return "datetime";
+			case MSBuildValueKind.Char:
+				return "char";
+			case MSBuildValueKind.Object:
+				return "object";
 
 			case MSBuildValueKind.TargetName:
 				return "target-name";

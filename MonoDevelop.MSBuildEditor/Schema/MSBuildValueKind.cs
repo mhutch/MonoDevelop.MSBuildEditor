@@ -24,6 +24,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		// basic data types
 		Bool,
 		Int,
+		Float,
 		String,
 		Guid,
 		Url,
@@ -31,6 +32,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		SuffixedVersion,
 		Lcid,
 		DateTime,
+		Object,
+		Char,
 
 		// references to abstract types
 		TargetName,

@@ -62,6 +62,19 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (method.IsStatic || method.MethodKind == MethodKind.Constructor || !method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
+				if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+					continue;
+				}
+				bool unknownType = false;
+				foreach (var p in method.Parameters) {
+					if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						unknownType = true;
+						break;
+					}
+				}
+				if (unknownType) {
+					continue;
+				}
 				yield return new RoslynFunctionInfo (method);
 			}
 		}
@@ -74,6 +87,38 @@ namespace MonoDevelop.MSBuildEditor.Language
 					RoslynHelpers.GetReference (typeof(string).Assembly.Location),
 				}
 			);
+		}
+
+		public static MSBuildValueKind ConvertType (ITypeSymbol type)
+		{
+			if (type is IArrayTypeSymbol arr) {
+				return ConvertType (arr.ElementType) | MSBuildValueKind.List;
+			}
+
+			string fullTypeName = RoslynHelpers.GetFullName (type);
+
+			switch (fullTypeName) {
+			case "System.String":
+				return MSBuildValueKind.String;
+			case "System.Boolean":
+				return MSBuildValueKind.Bool;
+			case "System.Int32":
+			case "System.UInt32":
+			case "System.Int62":
+			case "System.UInt64":
+				return MSBuildValueKind.Int;
+			case "System.Float":
+			case "System.Double":
+				return MSBuildValueKind.Float;
+			case "Microsoft.Build.Framework.ITaskItem":
+				return MSBuildValueKind.UnknownItem;
+			case "System.Object":
+				return MSBuildValueKind.Object;
+			case "System.DateTime":
+				return MSBuildValueKind.DateTime;
+			}
+
+			return MSBuildValueKind.Unknown;
 		}
 
 		static IEnumerable<FunctionInfo> GetIntrinsicItemFunctions ()
