@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		{
 			return doc
 				.GetDescendentImports ()
-				.FirstOrDefault (i => i.Filename.EndsWith (filename, StringComparison.OrdinalIgnoreCase))
+				.FirstOrDefault (i => i.IsResolved && i.Filename.EndsWith (filename, StringComparison.OrdinalIgnoreCase))
 				?.IsResolved ?? false;
 		}
 
