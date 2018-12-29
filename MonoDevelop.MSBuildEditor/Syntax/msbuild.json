@@ -342,6 +342,9 @@
                     "include": "#msbuild-item"
                 },
                 {
+                    "include": "#msbuild-item-function"
+                },
+                {
                     "include": "#msbuild-metadata"
                 }
             ]
@@ -370,6 +373,29 @@
                     "name": "keyword.msbuild.item"
                 },
                 "3": {
+                    "name": "punctuation.definition.tag.xml"
+                }
+            }
+        },
+        "msbuild-item-function": {
+            "match": "(\\@\\()([_[:alpha:]][_[:alnum:]]*)(->)([_[:alpha:]][_[:alnum:]]*)?(\\(\\))(\\))",
+            "captures": {
+                "1": {
+                    "name": "punctuation.definition.tag.xml"
+                },
+                "2": {
+                    "name": "keyword.msbuild.item"
+                },
+                "3": {
+                    "name": "punctuation.definition.tag.xml"
+                },
+                "4": {
+                    "name": "keyword.msbuild.item"
+                },
+                "5": {
+                    "name": "punctuation.definition.tag.xml"
+                },
+                "6": {
                     "name": "punctuation.definition.tag.xml"
                 }
             }
