@@ -22,19 +22,26 @@ namespace MonoDevelop.MSBuildEditor
 		public MSBuildCompletionData (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, DataType type)
 			: base (info.Name, null, type)
 		{
-			if (info is FunctionInfo fi) {
-				foreach (var overload in fi.Overloads) {
-					AddOverload (new MSBuildCompletionData (overload, doc, rr, type));
+			switch (info) {
+			case FunctionInfo fi: {
+					foreach (var overload in fi.Overloads) {
+						AddOverload (new MSBuildCompletionData (overload, doc, rr, type));
+					}
+					Icon = Stock.Method;
+					break;
 				}
+			case PropertyInfo _:
+				Icon = Stock.Property;
+				break;
+			case FileOrFolderInfo f:
+				Icon = f.IsFolder ? Stock.ClosedFolder : Stock.GenericFile;
+				break;
 			}
 
 			this.info = info;
 			this.doc = doc;
 			this.rr = rr;
 
-			if (info is FileOrFolderInfo f) {
-				Icon = f.IsFolder? Stock.ClosedFolder : Stock.GenericFile;
-			}
 
 			// deprioritize private values
 			if (info.Name[0]=='_') {
