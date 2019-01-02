@@ -96,6 +96,15 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([a]::b(1,1)", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("$([a]::b(1,1x", ExpressionErrorKind.CouldNotParseNumber)]
 		[TestCase ("$([a]::b(1,tr", ExpressionErrorKind.IncompleteValue)]
+		[TestCase ("$([a.b", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a.b.", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([1", ExpressionErrorKind.ExpectingClassName)]
+		[TestCase ("$([a.1", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([a.  ", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([ a .  ", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([ a . b  . ", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([ a . )", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("$([ a . b . )", ExpressionErrorKind.ExpectingClassNameComponent)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
@@ -308,6 +317,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([Foo]::A(true,   20 ))", "Foo", "A", true, 20)]
 		[TestCase ("$([Foo]::A(20.5))", "Foo", "A", 20.5d)]
 		[TestCase ("$([Foo]::A(.61))", "Foo", "A", .61d)]
+		[TestCase ("$([Foo.Bar]::A())", "Foo.Bar", "A")]
+		[TestCase ("$([Foo  .  Bar]::A())", "Foo.Bar", "A")]
+		[TestCase ("$([  Foo  .  Bar  ]::A())", "Foo.Bar", "A")]
 		public void TestStaticPropertyFunctions (object [] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 0);

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -309,20 +310,88 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return buffer.Substring (start, offset - start);
 		}
 
+		enum ClassRefParseState
+		{
+			Initial,
+			Component,
+			ExpectingPeriod,
+			ExpectingComponent
+		}
+
 		static ExpressionNode ReadClassReference (string buffer, ref int offset, int endOffset)
 		{
-			if (offset > endOffset) {
-				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+			int start = offset;
+			int lastCharOffset = start;
+
+			var sb = new StringBuilder ();
+			ClassRefParseState state = ClassRefParseState.Initial;
+
+			while (offset <= endOffset) {
+				char ch = buffer [offset];
+
+				switch (state) {
+				case ClassRefParseState.Initial:
+					if (char.IsLetter (ch) || ch == '_') {
+						sb.Append (ch);
+						lastCharOffset = offset;
+						state = ClassRefParseState.Component;
+						break;
+					}
+					return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+
+				case ClassRefParseState.Component:
+					if (char.IsLetterOrDigit (ch) || ch == '_') {
+						sb.Append (ch);
+						lastCharOffset = offset;
+						break;
+					}
+					if (ch == '.') {
+						sb.Append (ch);
+						lastCharOffset = offset;
+						state = ClassRefParseState.ExpectingComponent;
+						break;
+					}
+					if (char.IsWhiteSpace (ch)) {
+						state = ClassRefParseState.ExpectingPeriod;
+						break;
+					}
+					return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
+
+				case ClassRefParseState.ExpectingComponent:
+					if (char.IsLetter (ch) || ch == '_') {
+						sb.Append (ch);
+						lastCharOffset = offset;
+						state = ClassRefParseState.Component;
+						break;
+					}
+					if (char.IsWhiteSpace (ch)) {
+						break;
+					}
+					return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassNameComponent);
+
+				case ClassRefParseState.ExpectingPeriod:
+					if (char.IsWhiteSpace (ch)) {
+						break;
+					}
+					if (ch == '.') {
+						sb.Append (ch);
+						lastCharOffset = offset;
+						state = ClassRefParseState.ExpectingComponent;
+						break;
+					}
+					return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
+				}
+				offset++;
 			}
 
-			var name = ReadName (buffer, ref offset, endOffset);
-			if (name == null) {
+			switch (state) {
+			case ClassRefParseState.Initial:
 				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+			case ClassRefParseState.ExpectingComponent:
+				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassNameComponent);
 			}
 
-			ConsumeSpace (buffer, ref offset, endOffset);
-
-			return new ExpressionClassReference (offset - name.Length, name.Length, name);
+			return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
 		}
 
 		static void ConsumeSpace (string buffer, ref int offset, int endOffset)

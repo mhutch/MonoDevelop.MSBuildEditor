@@ -228,7 +228,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingMethodOrTransform,
 		ExpectingBracketColonColon,
 		ExpectingClassName,
-		ExpectingClassNameComponent,
+		ExpectingClassNameComponent
 	}
 
 	class ExpressionPropertyNode : ExpressionNode
@@ -248,7 +248,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			: base (offset, length)
 		{
 			Target = target;
-			target.SetParent (this);
+			target?.SetParent (this);
 			MethodName = methodName;
 			Arguments = arguments;
 			arguments?.SetParent (this);
@@ -564,6 +564,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return "Expecting class name";
 			case ExpressionErrorKind.ExpectingClassNameComponent:
 				return "Incomplete class name";
+
 			default:
 				return $"Invalid expression: {errorKind}";
 			}
