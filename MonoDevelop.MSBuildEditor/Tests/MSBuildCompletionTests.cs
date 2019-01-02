@@ -150,7 +150,69 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					return;
 				}
 			}
-			Assert.Fail ($"List does not contain item {displayName}");
+			Assert.Fail ($"List does not contain expected item {displayName}");
+		}
+
+		static void AssertDoesNotContainItem (CompletionDataList list, string displayName)
+		{
+			foreach (var data in list) {
+				if (data.DisplayText == displayName) {
+					Assert.Fail ($"List contains unexpected item {displayName}");
+				}
+			}
+		}
+
+		[Test]
+		public async Task IntrinsicStaticPropertyFunctionCompletion ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$([MSBuild]::^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "GetDirectoryNameOfFileAbove");
+			Assert.AreEqual (32, provider.Count);
+		}
+
+		[Test]
+		public async Task StaticPropertyFunctionCompletion ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$([System.String]::^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "new");
+			AssertContainsItem (provider, "Join");
+			AssertDoesNotContainItem (provider, "ToLower");
+		}
+
+		[Test]
+		public async Task PropertyStringFunctionCompletion ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$(Foo.^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "ToLower");
+			AssertContainsItem (provider, "get_Length");
+		}
+
+		[Test]
+		public async Task ItemFunctionCompletion ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>@(Foo->^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			//intrinsic functions
+			AssertContainsItem (provider, "DistinctWithCase");
+			AssertContainsItem (provider, "Metadata");
+			//string functions
+			AssertContainsItem (provider, "get_Length");
+			AssertContainsItem (provider, "ToLower");
 		}
 	}
 }

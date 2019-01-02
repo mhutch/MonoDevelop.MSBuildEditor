@@ -133,12 +133,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			var begin = TextDocument.LocationToOffset (element.Region.End);
-			int end;
+			int end = begin;
 
 			if (element.IsClosed && element.FirstChild == null) {
 				end = TextDocument.LocationToOffset (element.ClosingTag.Region.Begin);
 			} else {
-				for (end = begin; end < (TextDocument.Length + 1) && TextDocument.GetCharAt (end) != '<'; end++) { }
+				//HACK: in some cases GetCharAt can throw at the end of the document even with TextDocument.Length check
+				try {
+					for (; end < (TextDocument.Length + 1) && TextDocument.GetCharAt (end) != '<'; end++) { }
+				} catch {
+					end--;
+				}
 			}
 			var text = TextDocument.GetTextBetween (begin, end);
 
