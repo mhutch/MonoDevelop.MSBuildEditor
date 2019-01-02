@@ -309,6 +309,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return buffer.Substring (start, offset - start);
 		}
 
+		static ExpressionNode ReadClassReference (string buffer, ref int offset, int endOffset)
+		{
+			if (offset > endOffset) {
+				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+			}
+
+			var name = ReadName (buffer, ref offset, endOffset);
+			if (name == null) {
+				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+			}
+
+			ConsumeSpace (buffer, ref offset, endOffset);
+
+			return new ExpressionClassReference (offset - name.Length, name.Length, name);
+		}
+
 		static void ConsumeSpace (string buffer, ref int offset, int endOffset)
 		{
 			while (offset <= endOffset) {
@@ -413,22 +429,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return new ExpressionProperty (baseOffset + start, offset - start + 1, propRef);
 		}
 
-		static ExpressionNode ParsePropertyStaticFunction(int start, string buffer, ref int offset, int endOffset, int baseOffset)
+		static ExpressionNode ParsePropertyStaticFunction (int start, string buffer, ref int offset, int endOffset, int baseOffset)
 		{
 			offset++;
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			var className = ReadName (buffer, ref offset, endOffset);
-			if (className == null) {
-				return new IncompleteExpressionError (
-					baseOffset + offset,
-					offset > endOffset,
-					ExpressionErrorKind.ExpectingClassName,
-					new ExpressionPropertyFunctionInvocation (start, (offset + baseOffset) - start, null, null, null));
+			var className = ReadClassReference (buffer, ref offset, endOffset);
+			if (WrapError (
+				className,
+				out ExpressionClassReference classRef,
+				out IncompleteExpressionError err,
+				(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, o - baseOffset - start, n, null, null)
+			)) {
+				return err;
 			}
-			var classRef = new ExpressionClassReference (offset - className.Length, className.Length, className);
-
-			ConsumeSpace (buffer, ref offset, endOffset);
 
 			if (offset + 2 > endOffset || buffer [offset] != ']' || buffer [offset+1] != ':' || buffer [offset+2] != ':') {
 				return new IncompleteExpressionError (
