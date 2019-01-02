@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 {
 	static class FunctionCompletion
 	{
-		public static IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public static IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is Expression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -28,6 +28,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//string function completion
 			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
 				return CollapseOverloads (GetStringMethods ());
+			}
+
+			if (node.Target is ExpressionClassReference classRef) {
+				if (classRef.Name == "MSBuild") {
+					return CollapseOverloads (GetIntrinsicPropertyFunctions ());
+				}
 			}
 
 			return null;
@@ -171,167 +177,224 @@ namespace MonoDevelop.MSBuildEditor.Language
 				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
 		}
 
-		static IEnumerable<BaseInfo> GetIntrinsicPropertyFunctions ()
+		static IEnumerable<FunctionInfo> GetIntrinsicPropertyFunctions ()
 		{
-			yield return new ConstantInfo (
+			//these are all really doubles and longs but MSBuildValueKind doesn't make a distinction
+			yield return new FunctionInfo (
 				"Add",
-				"double Add (double a, double b)\n" +
-				"Add two doubles");
-			yield return new ConstantInfo (
+				"Add two doubles",
+				MSBuildValueKind.Float,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
+			yield return new FunctionInfo (
 				"Add",
-				"long Add (long a, long b)\n" +
-				"Add two longs");
-			yield return new ConstantInfo (
+				"Add two longs",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"Subtract",
-				"double Subtract (double a, double b)\n" +
-				"Subtract two doubles");
-			yield return new ConstantInfo (
+				"Subtract two doubles",
+				MSBuildValueKind.Float,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
+			yield return new FunctionInfo (
 				"Subtract",
-				"long Subtract (long a, long b)\n" +
-				"Subtract two longs");
-			yield return new ConstantInfo (
+				"Subtract two longs",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"Multiply",
-				"double Multiply (double a, double b)\n" +
-				"Multiply two doubles");
-			yield return new ConstantInfo (
+				"Multiply two doubles",
+				MSBuildValueKind.Float,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
+			yield return new FunctionInfo (
 				"Multiply",
-				"long Multiply (long a, long b)\n" +
-				"Multiply two longs");
-			yield return new ConstantInfo (
+				"Multiply two longs",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"Divide",
-				"double Divide (double a, double b)\n" +
-				"Divide two doubles");
-			yield return new ConstantInfo (
+				"Divide two doubles",
+				MSBuildValueKind.Float,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
+			yield return new FunctionInfo (
 				"Divide",
-				"long Divide (long a, long b)\n" +
-				"Divide two longs");
-			yield return new ConstantInfo (
+				"Divide two longs",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"Modulo",
-				"double Modulo (double a, double b)\n" +
-				"Modulo two doubles");
-			yield return new ConstantInfo (
+				"Modulo two doubles",
+				MSBuildValueKind.Float,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
+			yield return new FunctionInfo (
 				"Modulo",
-				"long Modulo (long a, long b)\n" +
-				"Modulo two longs");
+				"Modulo two longs",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
 
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"Escape",
-				"string Escape (string unescaped)\n" +
-				"Escape the string according to MSBuild's escaping rules");
-			yield return new ConstantInfo (
+				"Escape the string according to MSBuild's escaping rules",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("unescaped", "The unescaped string", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"Unescape",
-				"string Unescape (string escaped)\n" +
-				"Unescape the string according to MSBuild's escaping rules");
+				"Unescape the string according to MSBuild's escaping rules",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("escaped", "The escaped string", MSBuildValueKind.String));
 
 
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"BitwiseOr",
-				"int BitwiseOr (int first, int second)\n" +
-				"Perform a bitwise OR on the first and second (first | second)");
-			yield return new ConstantInfo (
+				"Perform a bitwise OR on the first and second (first | second)",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"BitwiseAnd",
-				"int BitwiseAnd (int first, int second)\n" +
-				"Perform a bitwise AND on the first and second (first & second)");
-			yield return new ConstantInfo (
+				"Perform a bitwise AND on the first and second (first & second)",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"BitwiseXor",
-				"int BitwiseXor (int first, int second)\n" +
-				"Perform a bitwise XOR on the first and second (first ^ second)");
-			yield return new ConstantInfo (
+				"Perform a bitwise XOR on the first and second (first ^ second)",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
+				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			yield return new FunctionInfo (
 				"BitwiseNot",
-				"int BitwiseNot (int first)\n" +
-				"Perform a bitwise NOT on the first and second (~first)");
+				"Perform a bitwise NOT on the first (~first)",
+				MSBuildValueKind.Int,
+				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int));
 
-
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"GetRegistryValue",
-				"object GetRegistryValue (string keyName, string valueName)\n" +
-				"Get the value of the registry key and value, default value is null");
-			yield return new ConstantInfo (
+				"Get the value of the registry key and value, default value is null",
+				MSBuildValueKind.Object,
+				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
+				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"GetRegistryValue",
-				"object GetRegistryValue (string keyName, string valueName, object defaultValue)\n" +
-				"Get the value of the registry key and value");
-			yield return new ConstantInfo (
+				"Get the value of the registry key and value",
+				MSBuildValueKind.Object,
+				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
+				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String),
+				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.Object));
+			yield return new FunctionInfo (
 				"GetRegistryValueFromView",
-				"object GetRegistryValueFromView (string keyName, string valueName, object defaultValue, params object [] views)\n" +
-				"Get the value of the registry key from one of the RegistryView's specified");
+				"Get the value of the registry key from one of the RegistryViews specified",
+				MSBuildValueKind.Object,
+				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
+				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String),
+				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.Object),
+				//todo params, registryView enum
+				new FunctionParameterInfo ("views", "Which registry view(s) to use", MSBuildValueKind.Object.List()));
 
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"MakeRelative",
-				"string MakeRelative (string basePath, string path)\n" +
-				"Converts a file path to be relative to the specified base path.");
-			yield return new ConstantInfo (
+				"Converts a file path to be relative to the specified base path.",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("basePath", "The base path", MSBuildValueKind.String),
+				new FunctionParameterInfo ("path", "The path to convert", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"GetDirectoryNameOfFileAbove",
-				"string GetDirectoryNameOfFileAbove (string startingDirectory, string fileName)\n" +
-				"Searches upward for a directory containing the specified file, beginning in the specified directory.");
-			yield return new ConstantInfo (
+				"Searches upward for a directory containing the specified file, beginning in the specified directory.",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("startingDirectory", "The starting directory", MSBuildValueKind.String),
+				new FunctionParameterInfo ("fileName", "The filename for which to search", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"GetPathOfFileAbove",
-				"string GetPathOfFileAbove (string file, string startingDirectory)\n" +
-				"Searches upward for the specified file, beginning in the specified directory.");
+				"Searches upward for the specified file, beginning in the specified directory.",
+				MSBuildValueKind.String,
+				//yes, GetPathOfFileAbove and GetDirectoryNameOfFileAbove have reversed args
+				new FunctionParameterInfo ("file", "The filename for which to search", MSBuildValueKind.String),
+				new FunctionParameterInfo ("startingDirectory", "The starting directory", MSBuildValueKind.String));
 
-			yield return new ConstantInfo (
+			yield return new FunctionInfo (
 				"ValueOrDefault",
-				"string ValueOrDefault (string conditionValue, string defaultValue)\n" +
-				"Return the string in parameter 'defaultValue' only if parameter 'conditionValue' is empty, else, return the value conditionValue");
-			yield return new ConstantInfo (
+				"Return the string in parameter 'defaultValue' only if parameter 'conditionValue' is empty, else, return the value conditionValue",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("conditionValue", "The condition", MSBuildValueKind.String),
+				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"DoesTaskHostExist",
-				"bool DoesTaskHostExist (string runtime, string architecture)\n" +
-				"Returns true if a task host exists that can service the requested runtime and architecture");
-			yield return new ConstantInfo (
+				"Returns true if a task host exists that can service the requested runtime and architecture",
+				MSBuildValueKind.Bool,
+				//FIXME type these more strongly for intellisense
+				new FunctionParameterInfo ("runtime", "The runtime", MSBuildValueKind.String),
+				new FunctionParameterInfo ("architecture", "The architecture", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"EnsureTrailingSlash",
-				"string EnsureTrailingSlash (string path)\n" +
-				"If the given path doesn't have a trailing slash then add one. If empty, leave it empty.");
-			yield return new ConstantInfo (
+				"If the given path doesn't have a trailing slash then add one. If empty, leave it empty.",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("path", "The path", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"NormalizeDirectory",
-				"string NormalizeDirectory (params string [] path)\n" +
-				"Gets the canonical full path of the provided directory, with correct directory separators for the current OS and a trailing slash.");
-			yield return new ConstantInfo (
+				"Gets the canonical full path of the provided directory, with correct directory separators for the current OS and a trailing slash.",
+				MSBuildValueKind.String,
+				//FIXME params
+				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.List()));
+			yield return new FunctionInfo (
 				"NormalizePath",
-				"string NormalizePath (params string [] path)\n" +
-				"Gets the canonical full path of the provided path, with correct directory separators for the current OS.");
-			yield return new ConstantInfo (
+				"Gets the canonical full path of the provided path, with correct directory separators for the current OS.",
+				MSBuildValueKind.String,
+				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.List ()));
+			yield return new FunctionInfo (
 				"IsOSPlatform",
-				"bool IsOSPlatform (string platformString)\n" +
-				"Whether the current OS platform is the specified OSPlatform value. Case insensitive.");
-			yield return new ConstantInfo (
+				"Whether the current OS platform is the specified OSPlatform value. Case insensitive.",
+				MSBuildValueKind.Bool,
+				//FIXME stronger typing
+				new FunctionParameterInfo ("platformString", "The OSPlatform value", MSBuildValueKind.String));
+			yield return new FunctionInfo (
 				"IsOsUnixLike",
-				"bool IsOsUnixLike ()\n" +
-				"True if current OS is a Unix system.");
-			yield return new ConstantInfo (
+				"True if current OS is a Unix system.",
+				MSBuildValueKind.Bool);
+			yield return new FunctionInfo (
 				"IsOsBsdLike",
-				"bool IsOsBsdLike ()\n" +
-				"True if current OS is a BSD system.");
-			yield return new ConstantInfo (
+				"True if current OS is a BSD system.",
+				MSBuildValueKind.Bool);
+			yield return new FunctionInfo (
 				"GetCurrentToolsDirectory",
-				"string GetCurrentToolsDirectory ()\n" +
-				"Gets the path of the current tools directory");
-			yield return new ConstantInfo (
+				"Gets the path of the current tools directory",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetToolsDirectory32",
-				"string GetToolsDirectory32 ()\n" +
-				"Gets the path of the 32-bit tools directory");
-			yield return new ConstantInfo (
+				"Gets the path of the 32-bit tools directory",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetToolsDirectory64",
-				"string GetToolsDirectory64 ()\n" +
-				"Gets the path of the 64-bit tools directory");
-			yield return new ConstantInfo (
+				"Gets the path of the 64-bit tools directory",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetMSBuildSDKsPath",
-				"string GetMSBuildSDKsPath ()\n" +
-				"Gets the path of the MSBuild SDKs directory");
-			yield return new ConstantInfo (
+				"Gets the path of the MSBuild SDKs directory",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetVsInstallRoot",
-				"string GetVsInstallRoot ()\n" +
-				"Gets the root directory of the Visual Studio installation");
-			yield return new ConstantInfo (
+				"Gets the root directory of the Visual Studio installation",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetProgramFiles32",
-				"string GetProgramFiles32 ()\n" +
-				"Gets the path of the 32-bit Program Files directory");
-			yield return new ConstantInfo (
+				"Gets the path of the 32-bit Program Files directory",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"GetMSBuildExtensionsPath",
-				"string GetMSBuildExtensionsPath ()\n" +
-				"Gets the value of MSBuildExtensionsPath");
-			yield return new ConstantInfo (
+				"Gets the value of MSBuildExtensionsPath",
+				MSBuildValueKind.String);
+			yield return new FunctionInfo (
 				"IsRunningFromVisualStudio",
-				"bool IsRunningFromVisualStudio ()\n" +
-				"Whether MSBuild is running from Visual Studio");
+				"Whether MSBuild is running from Visual Studio",
+				MSBuildValueKind.Bool);
 		}
 	}
 }

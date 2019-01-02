@@ -176,6 +176,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return "char";
 			case MSBuildValueKind.Object:
 				return "object";
+			case MSBuildValueKind.Float:
+				return "float";
 
 			case MSBuildValueKind.TargetName:
 				return "target-name";
