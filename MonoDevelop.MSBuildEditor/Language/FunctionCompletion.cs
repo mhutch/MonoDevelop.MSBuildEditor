@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -33,6 +34,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			if (node.Target is ExpressionClassReference classRef) {
 				if (classRef.Name == "MSBuild") {
 					return CollapseOverloads (GetIntrinsicPropertyFunctions ());
+				}
+				if (permittedFunctions.TryGetValue (classRef.Name, out HashSet<string> members)) {
+					return CollapseOverloads (GetStaticFunctions (classRef.Name, members));
 				}
 			}
 
@@ -85,6 +89,47 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
+		private static IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
+		{
+			var compilation = CreateCoreCompilation ();
+			var type = compilation.GetTypeByMetadataName (className);
+			if (type == null) {
+				yield break;
+			}
+			foreach (var member in type.GetMembers ()) {
+				if (!(member is IMethodSymbol method)) {
+					continue;
+				}
+				if (!method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+					continue;
+				}
+				bool isCtor = method.MethodKind == MethodKind.Constructor;
+				if (!method.IsStatic && !isCtor) {
+					continue;
+				}
+				if (members != null && !members.Contains (member.Name)) {
+					continue;
+				}
+				if (!isCtor && ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+					continue;
+				}
+				bool unknownType = false;
+				foreach (var p in method.Parameters) {
+					if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						unknownType = true;
+						break;
+					}
+				}
+				//FIXME relax this
+				if (unknownType) {
+					continue;
+				}
+				yield return new RoslynFunctionInfo (method);
+			}
+
+		}
+
+		//FIXME: reuse this
 		static Compilation CreateCoreCompilation ()
 		{
 			return CSharpCompilation.Create (
@@ -113,6 +158,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case "System.Int62":
 			case "System.UInt64":
 				return MSBuildValueKind.Int;
+			case "System.Char":
+				return MSBuildValueKind.Char;
 			case "System.Float":
 			case "System.Double":
 				return MSBuildValueKind.Float;
@@ -396,5 +443,78 @@ namespace MonoDevelop.MSBuildEditor.Language
 				"Whether MSBuild is running from Visual Studio",
 				MSBuildValueKind.Bool);
 		}
+
+		//FIXME put this on some context class instead of static
+		static readonly Dictionary<string, HashSet<string>> permittedFunctions = new Dictionary<string, HashSet<string>> {
+			{ "System.Byte", null },
+			{ "System.Char", null },
+			{ "System.Convert", null },
+			{ "System.DateTime", null },
+			{ "System.Decimal", null },
+			{ "System.Double", null },
+			{ "System.Enum", null },
+			{ "System.Guid", null },
+			{ "System.Int16", null },
+			{ "System.Int32", null },
+			{ "System.Int64", null },
+			{ "System.IO.Path", null },
+			{ "System.Math", null },
+			{ "System.UInt16", null },
+			{ "System.UInt32", null },
+			{ "System.UInt64", null },
+			{ "System.SByte", null },
+			{ "System.Single", null },
+			{ "System.String", null },
+			{ "System.StringComparer", null },
+			{ "System.TimeSpan", null },
+			{ "System.Text.RegularExpressions.Regex", null },
+			{ "System.UriBuilder", null },
+			{ "System.Version", null },
+			{ "Microsoft.Build.Utilities.ToolLocationHelper", null },
+			{ "System.Runtime.InteropServices.RuntimeInformation", null },
+			{ "System.Runtime.InteropServices.OSPlatform", null },
+			{ "System.Environment", new HashSet<string> {
+				"ExpandEnvironmentVariables",
+				"GetEnvironmentVariable",
+				"GetEnvironmentVariables",
+				"GetFolderPath",
+				"GetLogicalDrives",
+				"CommandLine",
+				"Is64BitOperatingSystem",
+				"Is64BitProcess",
+				"MachineName",
+				"OSVersion",
+				"ProcessorCount",
+				"StackTrace",
+				"SystemDirectory",
+				"SystemPageSize",
+				"TickCount",
+				"UserDomainName",
+				"UserInteractive",
+				"UserName",
+				"Version",
+				"WorkingSet"
+			} },
+			{ "System.IO.Directory", new HashSet<string> {
+				"GetDirectories",
+				"GetFiles",
+				"GetLastAccessTime",
+				"GetLastWriteTime",
+				"GetParent"
+			} },
+			{ "System.IO.File", new HashSet<string> {
+				"Exists",
+				"GetCreationTime",
+				"GetAttributes",
+				"GetLastAccessTime",
+				"GetLastWriteTime",
+				"ReadAllText"
+			} },
+			{ "System.Globalization.CultureInfo", new HashSet<string> {
+				"GetCultureInfo",
+				".ctor",
+				"CurrentUICulture"
+			} }
+		};
 	}
 }

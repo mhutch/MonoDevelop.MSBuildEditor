@@ -12,7 +12,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	{
 		readonly IMethodSymbol symbol;
 
-		public RoslynFunctionInfo (IMethodSymbol symbol) : base (symbol.Name, null)
+		static string GetName (IMethodSymbol symbol)
+		{
+			if (symbol.MethodKind == MethodKind.Constructor)
+				return "new";
+			return symbol.Name;
+		}
+
+		public RoslynFunctionInfo (IMethodSymbol symbol) : base (GetName (symbol), null)
 		{
 			this.symbol = symbol;
 		}
