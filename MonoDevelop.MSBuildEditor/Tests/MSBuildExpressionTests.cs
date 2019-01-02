@@ -58,8 +58,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(a.b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$(a.b(.", ExpressionErrorKind.IncompleteValue)]
 		[TestCase ("$(a.b(/", ExpressionErrorKind.ExpectingRightParenOrValue)]
-		[TestCase ("$(a.b()", ExpressionErrorKind.ExpectingRightParen)]
-		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b()", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$(a.b(1,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,   ", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,.", ExpressionErrorKind.IncompleteValue)]
@@ -67,9 +68,34 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(a.b(true,   .", ExpressionErrorKind.IncompleteValue)]
 		[TestCase ("$(a.b(true,   /", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,true", ExpressionErrorKind.ExpectingRightParenOrComma)]
-		[TestCase ("$(a.b(true,true)", ExpressionErrorKind.ExpectingRightParen)]
-		[TestCase ("$(a.b(true,true)   ", ExpressionErrorKind.ExpectingRightParen)]
-		[TestCase ("$(a.b(true,true)   _", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("$(a.b(true,true)", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$(a.b(true,true)   ", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$(a.b(true,true)   _", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$([a", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([ a", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a ", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$( [a ", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a]", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a)", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a]:", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a]: ", ExpressionErrorKind.ExpectingBracketColonColon)]
+		[TestCase ("$([a]::", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$([a]:: ", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$([a]:: (", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$([a]::b", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$([a]:: b", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$([a]::b ", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$([a]::b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b (", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b( ", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b()", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$([a]::b().", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$([a]::b(1,", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$([a]::b(true,", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$([a]::b(1,1", ExpressionErrorKind.ExpectingRightParenOrComma)]
+		[TestCase ("$([a]::b(1,1)", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$([a]::b(1,1x", ExpressionErrorKind.CouldNotParseNumber)]
+		[TestCase ("$([a]::b(1,tr", ExpressionErrorKind.IncompleteValue)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
@@ -271,6 +297,37 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			for (int i = 0; i < methArgs.Count; i++) {
 				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
 				Assert.AreEqual (methArgs[i], arg.Value);
+			}
+		}
+
+		[TestCase ("$([Foo]::Bar())", "Foo", "Bar")]
+		[TestCase ("$(   [Foo]::    Bar  (  )  )", "Foo", "Bar")]
+		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("$([Foo]::A(5))", "Foo", "A", 5)]
+		[TestCase ("$([Foo]::A(true))", "Foo", "A", true)]
+		[TestCase ("$([Foo]::A(true,   20 ))", "Foo", "A", true, 20)]
+		[TestCase ("$([Foo]::A(20.5))", "Foo", "A", 20.5d)]
+		[TestCase ("$([Foo]::A(.61))", "Foo", "A", .61d)]
+		public void TestStaticPropertyFunctions (object [] args)
+		{
+			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 0);
+			var targetName = (string)args [1];
+			var methodName = (string)args [2];
+			var methArgs = args.Skip (3).ToList ();
+
+			var prop = AssertCast<ExpressionProperty> (expr);
+			Assert.IsFalse (prop.IsSimpleProperty);
+
+			var invocation = AssertCast<ExpressionPropertyFunctionInvocation> (prop.Expression);
+			var target = AssertCast<ExpressionClassReference> (invocation.Target);
+
+			Assert.AreEqual (targetName, target.Name);
+			Assert.AreEqual (methodName, invocation.MethodName);
+
+			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < methArgs.Count; i++) {
+				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
+				Assert.AreEqual (methArgs [i], arg.Value);
 			}
 		}
 

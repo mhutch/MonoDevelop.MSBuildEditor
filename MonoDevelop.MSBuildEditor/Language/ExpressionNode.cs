@@ -218,16 +218,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingApos,
 		ExpectingRightParenOrDash,
 		ItemsDisallowed,
-		PropertyFunctionsNotSupported,
 		ExpectingMethodName,
 		ExpectingLeftParen,
 		ExpectingRightParenOrComma,
 		ExpectingRightParenOrValue,
-		ExpectingLiteralOrProperty,
 		ExpectingValue,
 		CouldNotParseNumber,
 		IncompleteValue,
 		ExpectingMethodOrTransform,
+		ExpectingBracketColonColon,
+		ExpectingClassName,
 	}
 
 	class ExpressionPropertyNode : ExpressionNode
@@ -517,7 +517,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			isWarning = false;
 			switch (errorKind) {
 			case ExpressionErrorKind.MetadataDisallowed:
-				return $"{Name()} does not allow metadata";
+				return $"{Name ()} does not allow metadata";
 			case ExpressionErrorKind.EmptyListEntry:
 				isWarning = true;
 				return $"Empty list value";
@@ -540,9 +540,27 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case ExpressionErrorKind.ExpectingRightParenOrDash:
 				return $"Expecting '-' or ')'";
 			case ExpressionErrorKind.ItemsDisallowed:
-				return $"{Name()} does not allow metadata";
+				return $"{Name ()} does not allow metadata";
 			case ExpressionErrorKind.ExpectingMethodOrTransform:
 				return $"Expecting item function or transform";
+			case ExpressionErrorKind.ExpectingMethodName:
+				return "Expecting method name";
+			case ExpressionErrorKind.ExpectingLeftParen:
+				return "Expecting '('";
+			case ExpressionErrorKind.ExpectingRightParenOrComma:
+				return "Expecting ')' or ','";
+			case ExpressionErrorKind.ExpectingRightParenOrValue:
+				return "Expecting ',' or value";
+			case ExpressionErrorKind.ExpectingValue:
+				return "Expecting value";
+			case ExpressionErrorKind.CouldNotParseNumber:
+				return "Invalid numeric value";
+			case ExpressionErrorKind.IncompleteValue:
+				return "Incomplete value";
+			case ExpressionErrorKind.ExpectingBracketColonColon:
+				return "Expecting ']::'";
+			case ExpressionErrorKind.ExpectingClassName:
+				return "Incomplete class name";
 			default:
 				return $"Invalid expression: {errorKind}";
 			}
