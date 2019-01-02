@@ -48,6 +48,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMethods ()));
 		}
 
+		internal static IEnumerable<BaseInfo> GetClassNameCompletions (ExpressionNode triggerExpression)
+		{
+			foreach (var type in permittedFunctions) {
+				//FIXME: prettify
+				yield return new ConstantInfo (type.Key, null);
+			}
+			yield return new ConstantInfo ("MSBuild", "Intrinsic MSBuild functions");
+		}
+
 		public static ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos)
 		{
 			var functions = new Dictionary<string, FunctionInfo> ();

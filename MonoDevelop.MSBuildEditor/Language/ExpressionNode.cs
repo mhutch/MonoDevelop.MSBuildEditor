@@ -180,13 +180,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class ExpressionError : ExpressionNode
 	{
 		public ExpressionErrorKind Kind { get; }
+		public bool WasEOF => Length == 0;
 
-		public ExpressionError (int offset, int length, ExpressionErrorKind kind) : base (offset, length)
+		public ExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind) : base (offset, wasEOF ? 0 : 1)
 		{
 			Kind = kind;
 		}
 
-		public ExpressionError (int offset, ExpressionErrorKind kind) : this (offset, 1, kind)
+		public ExpressionError (int offset, ExpressionErrorKind kind) : this (offset, false, kind)
 		{
 		}
 	}
@@ -194,10 +195,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class IncompleteExpressionError : ExpressionError
 	{
 		public ExpressionNode IncompleteNode { get; }
-		public bool WasEOF => Length == 0;
 
 		public IncompleteExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode)
-			: base (offset, wasEOF? 0 : 1, kind)
+			: base (offset, wasEOF, kind)
 		{
 			IncompleteNode = incompleteNode;
 			incompleteNode.SetParent (this);
@@ -442,6 +442,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static bool ContainsOffset (this ExpressionNode node, int offset)
 		{
 			return node.Offset <= offset && node.End >= offset;
+		}
+
+		//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
+		public static ExpressionNode Find (this IncompleteExpressionError node, int offset)
+		{
+			return node.IncompleteNode.Find (offset);
 		}
 
 		public static ExpressionNode Find (this ExpressionNode node, int offset)

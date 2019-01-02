@@ -135,6 +135,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
 						return TriggerState.PropertyFunctionName;
 					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingClassName) {
+						return TriggerState.PropertyFunctionClassName;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon) {
+						if (iee.Find (iee.Offset - 1) is ExpressionClassReference cr && cr.Name.Length == 1) {
+							triggerLength = 1;
+							return TriggerState.PropertyFunctionClassName;
+						}
+					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						var inv = p.Find (iee.Offset - 1) as ExpressionPropertyFunctionInvocation;
 						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
@@ -192,6 +201,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			MetadataOrItem,
 			PropertyFunctionName,
 			ItemFunctionName,
+			PropertyFunctionClassName,
 		}
 
 		public static TriggerState GetConditionTriggerState (
@@ -369,6 +379,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return FunctionCompletion.GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:
 				return FunctionCompletion.GetItemFunctionNameCompletions (triggerExpression);
+			case TriggerState.PropertyFunctionClassName:
+				return FunctionCompletion.GetClassNameCompletions (triggerExpression);
 			}
 			throw new InvalidOperationException ();
 		}

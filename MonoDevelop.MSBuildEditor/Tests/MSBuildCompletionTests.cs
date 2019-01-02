@@ -214,6 +214,18 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			AssertContainsItem (provider, "get_Length");
 			AssertContainsItem (provider, "ToLower");
 		}
+
+		[Test]
+		public async Task PropertyFunctionClassNames ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$([^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "MSBuild");
+			AssertContainsItem (provider, "System.String");
+		}
 	}
 }
 

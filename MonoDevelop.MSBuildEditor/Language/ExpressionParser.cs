@@ -386,9 +386,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			switch (state) {
 			case ClassRefParseState.Initial:
-				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+				return new ExpressionError (offset, true, ExpressionErrorKind.ExpectingClassName);
 			case ClassRefParseState.ExpectingComponent:
-				return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassNameComponent);
+				return new IncompleteExpressionError (offset, true, ExpressionErrorKind.ExpectingClassNameComponent,
+					new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ())
+				);
 			}
 
 			return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
@@ -565,7 +567,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var iee = ee as IncompleteExpressionError;
 				error = new IncompleteExpressionError (
 					ee.Offset,
-					iee?.WasEOF ?? false,
+					ee.WasEOF,
 					ee.Kind,
 					wrap (iee?.IncompleteNode as T, ee.Offset)
 				);
