@@ -93,6 +93,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return ("parameter", tpi.Name);
 			case FunctionInfo fi:
 				return ("function", fi.Name);
+			case ClassInfo ci:
+				return ("class", ci.Name);
 			}
 			return (null, null);
 		}

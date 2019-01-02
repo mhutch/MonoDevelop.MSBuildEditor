@@ -43,4 +43,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
 		public override string Type => string.Join (" ", FunctionCompletion.ConvertType (symbol.Type).GetTypeDescription ());
 	}
+
+	class RoslynClassInfo : ClassInfo
+	{
+		readonly ITypeSymbol symbol;
+
+		public RoslynClassInfo (string name, ITypeSymbol symbol) : base (name, null)
+		{
+			this.symbol = symbol;
+		}
+
+		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
+	}
 }

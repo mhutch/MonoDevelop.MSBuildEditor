@@ -36,6 +36,9 @@ namespace MonoDevelop.MSBuildEditor
 			case FileOrFolderInfo f:
 				Icon = f.IsFolder ? Stock.ClosedFolder : Stock.GenericFile;
 				break;
+			case ClassInfo _:
+				Icon = Stock.Class;
+				break;
 			}
 
 			this.info = info;

@@ -50,11 +50,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		internal static IEnumerable<BaseInfo> GetClassNameCompletions (ExpressionNode triggerExpression)
 		{
-			foreach (var type in permittedFunctions) {
-				//FIXME: prettify
-				yield return new ConstantInfo (type.Key, null);
+			var compilation = CreateCoreCompilation ();
+			foreach (var kv in permittedFunctions) {
+				var type = compilation.GetTypeByMetadataName (kv.Key);
+				if (type != null) {
+					yield return new RoslynClassInfo (kv.Key, type);
+				} else {
+					yield return new ClassInfo (kv.Key, null);
+				}
 			}
-			yield return new ConstantInfo ("MSBuild", "Intrinsic MSBuild functions");
+			yield return new ClassInfo ("MSBuild", "Intrinsic MSBuild functions");
 		}
 
 		public static ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos)

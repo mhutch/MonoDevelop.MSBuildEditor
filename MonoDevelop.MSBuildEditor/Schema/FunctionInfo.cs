@@ -40,4 +40,11 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			this.type = string.Join (" ", type.GetTypeDescription ());
 		}
 	}
+
+	class ClassInfo : BaseInfo
+	{
+		public ClassInfo (string name, DisplayText description) : base (name, description)
+		{
+		}
+	}
 }
