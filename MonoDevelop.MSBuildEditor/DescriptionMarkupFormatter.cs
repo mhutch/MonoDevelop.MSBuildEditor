@@ -79,19 +79,21 @@ namespace MonoDevelop.MSBuildEditor
 
 			if (info is FunctionInfo fi) {
 				typeInfo = fi.ReturnType;
-				sb.Append ("(");
-				bool first = true;
-				foreach (var p in fi.Parameters) {
-					if (first) {
-						first = false;
-					} else {
-						sb.Append (", ");
+				if(!fi.IsProperty) {
+					sb.Append ("(");
+					bool first = true;
+					foreach (var p in fi.Parameters) {
+						if (first) {
+							first = false;
+						} else {
+							sb.Append (", ");
+						}
+						sb.Append (p.Name);
+						sb.Append (" : ");
+						AppendColor (p.Type, varColor);
 					}
-					sb.Append (p.Name);
-					sb.Append (" : ");
-					AppendColor (p.Type, varColor);
+					sb.Append (")");
 				}
-				sb.Append (")");
 			}
 
 			if (typeInfo != null) {

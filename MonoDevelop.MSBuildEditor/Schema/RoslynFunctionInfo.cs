@@ -55,4 +55,20 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
 	}
+
+	class RoslynPropertyInfo : FunctionInfo
+	{
+		readonly IPropertySymbol symbol;
+
+		public RoslynPropertyInfo (IPropertySymbol symbol) : base (symbol.Name, null)
+		{
+			this.symbol = symbol;
+		}
+
+		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
+
+		public override string ReturnType => string.Join (" ", FunctionCompletion.ConvertType (symbol.GetReturnType ()).GetTypeDescription ());
+		public override FunctionParameterInfo [] Parameters => null;
+		public override bool IsProperty => true;
+	}
 }

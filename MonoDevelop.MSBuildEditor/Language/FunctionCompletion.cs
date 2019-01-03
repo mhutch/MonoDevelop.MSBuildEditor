@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor.Language
@@ -28,7 +27,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//string function completion
 			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
-				return CollapseOverloads (GetStringMethods ());
+				return CollapseOverloads (GetStringMembers ());
 			}
 
 			if (node.Target is ExpressionClassReference classRef) {
@@ -45,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
-			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMethods ()));
+			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMembers ()));
 		}
 
 		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
@@ -79,7 +78,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static BaseInfo GetPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
-				return GetStringMethods ().FirstOrDefault (n => n.Name == name);
+				return GetStringMembers ().FirstOrDefault (n => n.Name == name);
 			}
 			if (className == "MSBuild") {
 				return GetIntrinsicPropertyFunctions ().FirstOrDefault (n => n.Name == name);
@@ -102,31 +101,44 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		static IEnumerable<FunctionInfo> GetStringMethods ()
+		static IEnumerable<FunctionInfo> GetStringMembers ()
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
 			foreach (var member in type.GetMembers ()) {
-				if (!(member is IMethodSymbol method)) {
+				if (member.IsStatic || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
-				if (method.IsStatic || method.MethodKind == MethodKind.Constructor || !method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
-					continue;
-				}
-				if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
-					continue;
-				}
-				bool unknownType = false;
-				foreach (var p in method.Parameters) {
-					if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
-						unknownType = true;
+				if (member is IMethodSymbol method) {
+					switch (method.MethodKind) {
+					case MethodKind.Ordinary:
+					case MethodKind.PropertyGet:
+					case MethodKind.BuiltinOperator:
+					case MethodKind.UserDefinedOperator:
 						break;
+					default:
+						continue;
 					}
+					if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+						continue;
+					}
+					bool unknownType = false;
+					foreach (var p in method.Parameters) {
+						if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+							unknownType = true;
+							break;
+						}
+					}
+					if (unknownType) {
+						continue;
+					}
+					yield return new RoslynFunctionInfo (method);
+				} else if (member is IPropertySymbol prop) {
+					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						continue;
+					}
+					yield return new RoslynPropertyInfo (prop);
 				}
-				if (unknownType) {
-					continue;
-				}
-				yield return new RoslynFunctionInfo (method);
 			}
 		}
 

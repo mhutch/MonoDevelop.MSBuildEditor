@@ -27,7 +27,8 @@ namespace MonoDevelop.MSBuildEditor
 					foreach (var overload in fi.Overloads) {
 						AddOverload (new MSBuildCompletionData (overload, doc, rr, type));
 					}
-					Icon = Stock.Method;
+					//FIXME: can we resolve the msbuild / .net property terminology overloading?
+					Icon = fi.IsProperty? Stock.Property : Stock.Method;
 					break;
 				}
 			case PropertyInfo _:

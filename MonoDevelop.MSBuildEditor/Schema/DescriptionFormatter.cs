@@ -92,6 +92,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case TaskParameterInfo tpi:
 				return ("parameter", tpi.Name);
 			case FunctionInfo fi:
+				if (fi.IsProperty) {
+					//FIXME: can we resolve the msbuild / .net property terminology overloading?
+					return ("property", fi.Name);
+				}
 				return ("function", fi.Name);
 			case ClassInfo ci:
 				return ("class", ci.Name);

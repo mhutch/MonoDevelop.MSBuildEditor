@@ -13,6 +13,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public virtual string ReturnType => returnType;
 		public virtual FunctionParameterInfo [] Parameters => arguments;
 		public List<FunctionInfo> Overloads { get; } = new List<FunctionInfo> ();
+		public virtual bool IsProperty => false;
 
 		protected FunctionInfo (string name, DisplayText description) : base (name, description)
 		{
