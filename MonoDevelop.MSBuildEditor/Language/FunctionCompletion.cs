@@ -150,36 +150,50 @@ namespace MonoDevelop.MSBuildEditor.Language
 				yield break;
 			}
 			foreach (var member in type.GetMembers ()) {
-				if (!(member is IMethodSymbol method)) {
-					continue;
-				}
-				if (!method.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
-					continue;
-				}
-				bool isCtor = method.MethodKind == MethodKind.Constructor;
-				if (!method.IsStatic && !isCtor) {
+				if (!member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
 				if (members != null && !members.Contains (member.Name)) {
 					continue;
 				}
-				if (!isCtor && ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
-					continue;
-				}
-				bool unknownType = false;
-				foreach (var p in method.Parameters) {
-					if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
-						unknownType = true;
+				if (member is IMethodSymbol method) {
+					switch (method.MethodKind) {
+					case MethodKind.Ordinary:
+					case MethodKind.PropertyGet:
+					case MethodKind.BuiltinOperator:
+					case MethodKind.UserDefinedOperator:
+						if(!method.IsStatic) {
+							continue;
+						}
+						if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+							continue;
+						}
 						break;
+					case MethodKind.Constructor:
+						break;
+					default:
+						continue;
 					}
-				}
-				//FIXME relax this
-				if (unknownType) {
-					continue;
-				}
-				yield return new RoslynFunctionInfo (method);
-			}
 
+					bool unknownType = false;
+					foreach (var p in method.Parameters) {
+						if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+							unknownType = true;
+							break;
+						}
+					}
+					//FIXME relax this
+					if (unknownType) {
+						continue;
+					}
+					yield return new RoslynFunctionInfo (method);
+				} else if (member is IPropertySymbol prop) {
+					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						continue;
+					}
+					yield return new RoslynPropertyInfo (prop);
+				}
+			}
 		}
 
 		//FIXME: reuse this
