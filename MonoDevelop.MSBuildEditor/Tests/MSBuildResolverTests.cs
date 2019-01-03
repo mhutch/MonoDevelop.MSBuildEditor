@@ -201,5 +201,32 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (string.Join (",", indices), "0,3,4,7");
 			Assert.AreEqual ("abcdefghi", str);
 		}
+
+		[Test]
+		public void PropertyFunctionResolution ()
+		{
+			var doc = @"
+<project>
+  <propertygroup>
+    <x condition=""'$(foo.b|ar())'==''"">$(x)$(bar.ba|z())</x>
+    <x condition=""'$([foo.b|ar]::ba|z(1,2))'==''"">$([b|ar.a.b]::fo|o())</x>
+  </propertygroup>
+  <target name='z' DependsOnTargets=""$(bar.fo|o())""/>
+  <target name='x' DependsOnTargets=""$([on|e]::|two())""/>
+</project>".TrimStart ();
+
+			AssertReferences (
+				doc,
+				(MSBuildReferenceKind.PropertyFunction, ((string)null, "bar")),
+				(MSBuildReferenceKind.PropertyFunction, ((string)null, "baz")),
+				(MSBuildReferenceKind.ClassName, "foo.bar"),
+				(MSBuildReferenceKind.PropertyFunction, ("foo.bar", "baz")),
+				(MSBuildReferenceKind.ClassName, "bar.a.b"),
+				(MSBuildReferenceKind.PropertyFunction, ("bar.a.b", "foo")),
+				(MSBuildReferenceKind.PropertyFunction, ((string)null, "foo")),
+				(MSBuildReferenceKind.ClassName, "one"),
+				(MSBuildReferenceKind.PropertyFunction, ("one", "two"))
+			);
+		}
 	}
 }
