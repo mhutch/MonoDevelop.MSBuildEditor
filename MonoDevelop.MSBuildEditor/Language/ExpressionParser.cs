@@ -697,6 +697,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return ReadArgumentString (ch, buffer, ref offset, endOffset, baseOffset);
 			}
 
+			if (ch == '$' && offset < endOffset && buffer [offset + 1] == '(') {
+				offset += 2;
+				var prop = ParseProperty (buffer, ref offset, endOffset, baseOffset);
+				offset++;
+				return prop;
+			}
+
 			var name = ReadName (buffer, ref offset, endOffset);
 			if (name != null) {
 				if (bool.TryParse (name, out bool val)) {

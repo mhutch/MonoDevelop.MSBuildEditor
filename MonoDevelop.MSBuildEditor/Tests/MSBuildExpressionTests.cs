@@ -390,6 +390,30 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
+		[Test]
+		public void TestComplexArgs ()
+		{
+			TestParse (
+				"$(Foo.Bar($(Baz), 'thing'))",
+				new ExpressionProperty (
+					0, 27,
+					new ExpressionPropertyFunctionInvocation (
+						2, 24,
+						new ExpressionPropertyName (2, 3, "Foo"),
+						new ExpressionFunctionName (6, "Bar"),
+						new ExpressionArgumentList (9, 17, new List<ExpressionNode> {
+							new ExpressionProperty (
+								10, 6,
+								new ExpressionPropertyName (12, 3, "Baz")
+							),
+							new ExpressionArgumentString (18, 7, "thing")
+						})
+					)
+				),
+				ExpressionOptions.ItemsMetadataAndLists
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None)
 		{
 			var expr = ExpressionParser.Parse (expression, options, 0);
@@ -402,6 +426,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
 		{
+			if (actual is ExpressionError err && !(expected is ExpressionError)) {
+				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
+			}
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
 			{
