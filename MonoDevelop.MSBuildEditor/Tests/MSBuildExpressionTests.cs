@@ -5,6 +5,7 @@ using System;
 using NUnit.Framework;
 using MonoDevelop.MSBuildEditor.Language;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuildEditor.Tests
 {
@@ -59,7 +60,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(a.b(.", ExpressionErrorKind.IncompleteValue)]
 		[TestCase ("$(a.b(/", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$(a.b()", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
-		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$(a.b().", ExpressionErrorKind.ExpectingMethodName)]
+		[TestCase ("$(a.b()  .  ", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a.b(1,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$(a.b(true,   ", ExpressionErrorKind.ExpectingValue)]
@@ -89,7 +91,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([a]::b (", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b( ", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b()", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
-		[TestCase ("$([a]::b().", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		[TestCase ("$([a]::b().", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$([a]::b(1,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$([a]::b(true,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$([a]::b(1,1", ExpressionErrorKind.ExpectingRightParenOrComma)]
@@ -381,6 +383,32 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			}
 		}
 
+		[Test]
+		public void TestFunctionChaining ()
+		{
+			TestParse (
+				"$(Foo.Bar().Baz(1,'hi'))",
+				new ExpressionProperty (
+					0, 24,
+					new ExpressionPropertyFunctionInvocation (
+						2, 21,
+						new ExpressionPropertyFunctionInvocation (
+							2, 9,
+							new ExpressionPropertyName (2, 3, "Foo"),
+							new ExpressionFunctionName (6, "Bar"),
+							new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
+						),
+						new ExpressionFunctionName (12, "Baz"),
+						new ExpressionArgumentList (15, 2, new List<ExpressionNode> {
+							new ExpressionArgumentInt (16, 1, 1),
+							new ExpressionArgumentString (18, 4, "hi")
+						})
+					)
+				),
+				ExpressionOptions.ItemsMetadataAndLists
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
 		{
 			var expr = ExpressionParser.Parse (expression, options, baseOffset);
@@ -405,18 +433,61 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				Assert.AreEqual (expectedLit.IsPure, literal.IsPure);
 				break;
 			case ExpressionProperty prop:
-				Assert.AreEqual (((ExpressionProperty)expected).Name, prop.Name);
+				var expectedProp = (ExpressionProperty)expected;
+				AssertEqual (expectedProp.Expression, prop.Expression);
 				break;
 			case ExpressionItem item:
-				Assert.AreEqual (((ExpressionItem)expected).Name, item.Name);
+				var expectedItem = (ExpressionItem)expected;
+				AssertEqual (expectedItem.Expression, item.Expression);
 				break;
 			case ExpressionMetadata meta:
 				var expectedMeta = (ExpressionMetadata)expected;
 				Assert.AreEqual (expectedMeta.MetadataName, meta.MetadataName);
 				Assert.AreEqual (expectedMeta.ItemName, meta.ItemName);
 				break;
+			case ExpressionItemName itemName:
+				var expectedItemName = (ExpressionItemName)expected;
+				Assert.AreEqual (expectedItemName.Name, itemName.Name);
+				break;
+			case ExpressionPropertyName propName:
+				var expectedPropName = (ExpressionPropertyName)expected;
+				Assert.AreEqual (expectedPropName.Name, propName.Name);
+				break;
+			case ExpressionFunctionName funcName:
+				var expectedFuncName = (ExpressionFunctionName)expected;
+				Assert.AreEqual (expectedFuncName.Name, funcName.Name);
+				break;
+			case ExpressionPropertyFunctionInvocation propInv:
+				var expectedPropInv = (ExpressionPropertyFunctionInvocation)expected;
+				AssertEqual (expectedPropInv.Function, propInv.Function);
+				AssertEqual (expectedPropInv.Target, propInv.Target);
+				AssertEqual (expectedPropInv.Arguments, propInv.Arguments);
+				break;
+			case ExpressionItemFunctionInvocation itemInv:
+				var expectedItemInv = (ExpressionItemFunctionInvocation)expected;
+				AssertEqual (expectedItemInv.Function, itemInv.Function);
+				AssertEqual (expectedItemInv.Target, itemInv.Target);
+				AssertEqual (expectedItemInv.Arguments, itemInv.Arguments);
+				break;
+			case ExpressionItemTransform itemTransform:
+				var expectedItemTransform = (ExpressionItemTransform)expected;
+				AssertEqual (expectedItemTransform.Transform, itemTransform.Transform);
+				AssertEqual (expectedItemTransform.Target, itemTransform.Target);
+				break;
+			case ExpressionArgumentList argList:
+				var expectedArgList = (ExpressionArgumentList)expected;
+				Assert.AreEqual (expectedArgList.Arguments.Count, argList.Arguments.Count);
+				for (int i = 0; i < argList.Arguments.Count; i++) {
+					AssertEqual (expectedArgList.Arguments[i], argList.Arguments[i]);
+				}
+				break;
+			case ExpressionArgumentLiteral argLiteral:
+				var expectedArgLiteral = (ExpressionArgumentLiteral)expected;
+				Assert.AreEqual (expectedArgLiteral.Kind, argLiteral.Kind);
+				Assert.AreEqual (expectedArgLiteral.Value, argLiteral.Value);
+				break;
 			default:
-				throw new Exception ("Unsupported node kind");
+				throw new Exception ($"Unsupported node kind {actual.GetType()}");
 			}
 			Assert.AreEqual (expected.Length, actual.Length);
 			Assert.AreEqual (expected.Offset, actual.Offset);
