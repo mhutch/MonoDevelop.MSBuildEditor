@@ -69,6 +69,9 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildReferenceKind.Item:
 			case MSBuildReferenceKind.Property:
 			case MSBuildReferenceKind.Target:
+			case MSBuildReferenceKind.ItemFunction:
+			case MSBuildReferenceKind.PropertyFunction:
+			case MSBuildReferenceKind.ClassName:
 				return Task.FromResult (rr);
 			}
 

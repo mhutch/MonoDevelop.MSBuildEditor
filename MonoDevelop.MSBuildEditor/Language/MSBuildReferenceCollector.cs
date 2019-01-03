@@ -45,6 +45,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.Task:
 			case MSBuildReferenceKind.Metadata:
 			case MSBuildReferenceKind.Target:
+			case MSBuildReferenceKind.ItemFunction:
+			case MSBuildReferenceKind.PropertyFunction:
+			case MSBuildReferenceKind.ClassName:
 				return rr.Reference != null;
 			}
 
@@ -65,6 +68,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new MSBuildTaskReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:
 				return new MSBuildTargetReferenceCollector ((string)rr.Reference);
+			case MSBuildReferenceKind.ItemFunction:
+				return new MSBuildItemFunctionReferenceCollector ((string)rr.Reference);
+			case MSBuildReferenceKind.PropertyFunction:
+				(string className, string itemName) = ((string, string))rr.Reference;
+				return new MSBuildPropertyFunctionReferenceCollector (className, itemName);
+			case MSBuildReferenceKind.ClassName:
+				return new MSBuildClassReferenceCollector ((string)rr.Reference);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
@@ -268,6 +278,76 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 			base.VisitResolvedElement (element, resolved);
+		}
+	}
+
+	class MSBuildPropertyFunctionReferenceCollector : MSBuildReferenceCollector
+	{
+		readonly string className;
+
+		public MSBuildPropertyFunctionReferenceCollector (string className, string functionName) : base (functionName)
+		{
+			this.className = className;
+		}
+
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionFunctionName func:
+					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
+						if (IsMatch (func.Name) && className == (inv.Target as ExpressionClassReference)?.Name) {
+							Results.Add ((func.Offset, func.Length, ReferenceUsage.Read));
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	class MSBuildItemFunctionReferenceCollector : MSBuildReferenceCollector
+	{
+		public MSBuildItemFunctionReferenceCollector (string functionName) : base (functionName) { }
+
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionFunctionName func:
+					if (func.Parent is ExpressionItemFunctionInvocation inv && IsMatch (func.Name)) {
+						Results.Add ((func.Offset, func.Length, ReferenceUsage.Read));
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	class MSBuildClassReferenceCollector : MSBuildReferenceCollector
+	{
+		public MSBuildClassReferenceCollector (string className) : base (className) { }
+
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionClassReference classRef:
+					if (IsMatch (classRef.Name)) {
+						Results.Add ((classRef.Offset, classRef.Length, ReferenceUsage.Read));
+					}
+					break;
+				}
+			}
 		}
 	}
 }

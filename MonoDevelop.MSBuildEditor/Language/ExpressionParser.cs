@@ -687,6 +687,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return ReadArgumentNumber (buffer, ref offset, endOffset, baseOffset);
 			}
 
+			if (ch == '"' || ch == '\'') {
+				return ReadArgumentString (ch, buffer, ref offset, endOffset, baseOffset);
+			}
+
 			var name = ReadName (buffer, ref offset, endOffset);
 			if (name != null) {
 				if (bool.TryParse (name, out bool val)) {
@@ -697,6 +701,22 @@ namespace MonoDevelop.MSBuildEditor.Language
 			offset = start;
 
 			return new ExpressionError (baseOffset + offset, wasFirst? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue);
+		}
+
+		static ExpressionNode ReadArgumentString (char terminator, string buffer, ref int offset, int endOffset, int baseOffset)
+		{
+			int start = offset;
+			offset++;
+			while (offset <= endOffset) {
+				char ch = buffer [offset];
+				if (ch == terminator) {
+					offset++;
+					int length = offset - start;
+					return new ExpressionArgumentString (baseOffset + start, length, buffer.Substring (start + 1, length - 2));
+				}
+				offset++;
+			}
+			return new ExpressionError (baseOffset + offset, true, ExpressionErrorKind.IncompleteString);
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)
