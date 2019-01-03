@@ -1,0 +1,23 @@
+<Project>
+	<PropertyGroup>
+    <Foo>1</Foo>
+		<MetadataName>Identity</MetadataName>
+		<Hello>Hello world</Hello>
+	</PropertyGroup>
+	<ItemGroup>
+		<A Include="one;two;three" />
+	</ItemGroup>
+	<Target Name="Build">
+		<Message Text="$([System.String]::new('hello').Substring('$(Foo)').Substring($(Foo)))" />
+		<Message Text="$([System.String]::new(`hello $(Hello.Substring('$(Foo)'))`))" />
+		<Message Text="$([System.DateTime]::Now.ToString().Length)" />
+		<!-- both property forms are valid -->
+		<Message Text="$([System.DateTime]::Now.AddDays(5))" />
+		<Message Text="$([System.DateTime]::get_Now().AddDays(5))" />
+		<Message Text="$(Hello.IndexOf('World',StringComparison.OrdinalIgnoreCase))" />
+		<Message Text="@(A->'%(Identity)', ' - ')" />
+    <Message Text="@(A->Metadata('$(MetadataName)'))" />
+		<Message Text="@(A->Metadata($(MetadataName)))" />
+		<!-- note: item functions cannot be chained -->
+	</Target>
+</Project>
