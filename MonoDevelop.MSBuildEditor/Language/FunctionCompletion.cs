@@ -27,7 +27,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			//string function completion
 			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
-				return CollapseOverloads (GetStringMembers ());
+				return CollapseOverloads (GetStringMembers (true));
 			}
 
 			if (node.Target is ExpressionClassReference classRef) {
@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
-			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMembers ()));
+			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMembers (false)));
 		}
 
 		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
@@ -78,7 +78,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static BaseInfo GetPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
-				return GetStringMembers ().FirstOrDefault (n => n.Name == name);
+				return GetStringMembers (true).FirstOrDefault (n => n.Name == name);
 			}
 			if (className == "MSBuild") {
 				return GetIntrinsicPropertyFunctions ().FirstOrDefault (n => n.Name == name);
@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		//FIXME: make this lookup cheaper
 		public static BaseInfo GetItemFunctionInfo (string name)
 		{
-			return GetIntrinsicItemFunctions ().FirstOrDefault (n => n.Name == name);
+			return GetItemFunctionNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
@@ -101,7 +101,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		static IEnumerable<FunctionInfo> GetStringMembers ()
+		static IEnumerable<FunctionInfo> GetStringMembers (bool includeProperties)
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						continue;
 					}
 					yield return new RoslynFunctionInfo (method);
-				} else if (member is IPropertySymbol prop) {
+				} else if (includeProperties && member is IPropertySymbol prop) {
 					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
 						continue;
 					}

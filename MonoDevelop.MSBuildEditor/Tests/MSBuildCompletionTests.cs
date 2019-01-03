@@ -195,8 +195,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <PropertyGroup>
 <Foo>$(Foo.^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
+			//string functions
 			AssertContainsItem (provider, "ToLower");
+			//properties can be accessed with the getter method
 			AssertContainsItem (provider, "get_Length");
+			//.net properties are allowed for properties
+			AssertContainsItem (provider, "Length");
 		}
 
 		[Test]
@@ -211,8 +215,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			AssertContainsItem (provider, "DistinctWithCase");
 			AssertContainsItem (provider, "Metadata");
 			//string functions
-			AssertContainsItem (provider, "get_Length");
 			AssertContainsItem (provider, "ToLower");
+			//properties can be accessed with the getter method
+			AssertContainsItem (provider, "get_Length");
+			//.net properties are not allowed for items
+			AssertDoesNotContainItem (provider, "Length");
 		}
 
 		[Test]

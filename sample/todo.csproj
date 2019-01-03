@@ -16,8 +16,9 @@
 		<Message Text="$([System.DateTime]::get_Now().AddDays(5))" />
 		<Message Text="$(Hello.IndexOf('World',StringComparison.OrdinalIgnoreCase))" />
 		<Message Text="@(A->'%(Identity)', ' - ')" />
-    <Message Text="@(A->Metadata('$(MetadataName)'))" />
+		<Message Text="@(A->Metadata('$(MetadataName)'))" />
 		<Message Text="@(A->Metadata($(MetadataName)))" />
-		<!-- note: item functions cannot be chained -->
+		<Message Text="@(A->get_Length())" />
+		<!-- note: item functions cannot be chained and cannot use properties -->
 	</Target>
 </Project>
