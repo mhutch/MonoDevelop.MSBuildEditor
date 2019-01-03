@@ -246,27 +246,6 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		}
 
 		[Test]
-		public void TestBaseOffset ()
-		{
-			TestParse (
-				"$(a) $(b);$(c);d",
-				new ExpressionList (
-					100, 16,
-					new Expression (
-						100, 9,
-						new ExpressionProperty (100, 4, "a"),
-						new ExpressionText (104, " ", false),
-						new ExpressionProperty (105, 4, "b")
-					),
-					new ExpressionProperty (110, 4, "c"),
-					new ExpressionText (115, "d", true)
-				),
-				ExpressionOptions.Lists,
-				100
-			);
-		}
-
-		[Test]
 		public void TestXmlEntities ()
 		{
 			TestParse (
@@ -409,13 +388,17 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
-		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
+		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None)
 		{
-			var expr = ExpressionParser.Parse (expression, options, baseOffset);
-			AssertEqual (expected, expr);
+			var expr = ExpressionParser.Parse (expression, options, 0);
+			AssertEqual (expected, expr, 0);
+
+			const int baseOffset = 123;
+			expr = ExpressionParser.Parse (expression, options, baseOffset);
+			AssertEqual (expected, expr, baseOffset);
 		}
 
-		static void AssertEqual (ExpressionNode expected, ExpressionNode actual)
+		static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
 		{
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
@@ -424,7 +407,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				var expectedExpr = (Expression)expected;
 				Assert.AreEqual (expectedExpr.Nodes.Count, expr.Nodes.Count);
 				for (int i = 0; i < expr.Nodes.Count; i++) {
-					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i]);
+					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i], expectedOffset);
 				}
 				break;
 			case ExpressionText literal:
@@ -434,11 +417,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				break;
 			case ExpressionProperty prop:
 				var expectedProp = (ExpressionProperty)expected;
-				AssertEqual (expectedProp.Expression, prop.Expression);
+				AssertEqual (expectedProp.Expression, prop.Expression, expectedOffset);
 				break;
 			case ExpressionItem item:
 				var expectedItem = (ExpressionItem)expected;
-				AssertEqual (expectedItem.Expression, item.Expression);
+				AssertEqual (expectedItem.Expression, item.Expression, expectedOffset);
 				break;
 			case ExpressionMetadata meta:
 				var expectedMeta = (ExpressionMetadata)expected;
@@ -459,26 +442,26 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				break;
 			case ExpressionPropertyFunctionInvocation propInv:
 				var expectedPropInv = (ExpressionPropertyFunctionInvocation)expected;
-				AssertEqual (expectedPropInv.Function, propInv.Function);
-				AssertEqual (expectedPropInv.Target, propInv.Target);
-				AssertEqual (expectedPropInv.Arguments, propInv.Arguments);
+				AssertEqual (expectedPropInv.Function, propInv.Function, expectedOffset);
+				AssertEqual (expectedPropInv.Target, propInv.Target, expectedOffset);
+				AssertEqual (expectedPropInv.Arguments, propInv.Arguments, expectedOffset);
 				break;
 			case ExpressionItemFunctionInvocation itemInv:
 				var expectedItemInv = (ExpressionItemFunctionInvocation)expected;
-				AssertEqual (expectedItemInv.Function, itemInv.Function);
-				AssertEqual (expectedItemInv.Target, itemInv.Target);
-				AssertEqual (expectedItemInv.Arguments, itemInv.Arguments);
+				AssertEqual (expectedItemInv.Function, itemInv.Function, expectedOffset);
+				AssertEqual (expectedItemInv.Target, itemInv.Target, expectedOffset);
+				AssertEqual (expectedItemInv.Arguments, itemInv.Arguments, expectedOffset);
 				break;
 			case ExpressionItemTransform itemTransform:
 				var expectedItemTransform = (ExpressionItemTransform)expected;
-				AssertEqual (expectedItemTransform.Transform, itemTransform.Transform);
-				AssertEqual (expectedItemTransform.Target, itemTransform.Target);
+				AssertEqual (expectedItemTransform.Transform, itemTransform.Transform, expectedOffset);
+				AssertEqual (expectedItemTransform.Target, itemTransform.Target, expectedOffset);
 				break;
 			case ExpressionArgumentList argList:
 				var expectedArgList = (ExpressionArgumentList)expected;
 				Assert.AreEqual (expectedArgList.Arguments.Count, argList.Arguments.Count);
 				for (int i = 0; i < argList.Arguments.Count; i++) {
-					AssertEqual (expectedArgList.Arguments[i], argList.Arguments[i]);
+					AssertEqual (expectedArgList.Arguments[i], argList.Arguments[i], expectedOffset);
 				}
 				break;
 			case ExpressionArgumentLiteral argLiteral:
@@ -490,7 +473,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
 			}
 			Assert.AreEqual (expected.Length, actual.Length);
-			Assert.AreEqual (expected.Offset, actual.Offset);
+			Assert.AreEqual (expected.Offset + expectedOffset, actual.Offset);
 		}
 
 		static T AssertCast<T> (object o)
