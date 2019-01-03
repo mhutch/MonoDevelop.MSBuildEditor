@@ -465,9 +465,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
 		{
 			//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
-			if (node is IncompleteExpressionError ee) {
-				node = ee.IncompleteNode;
-			}
+			node = (node as IncompleteExpressionError)?.IncompleteNode ?? node;
+
 			return node.ContainsOffset (offset) ? FindInternal (node, offset) : null;
 		}
 
@@ -477,8 +476,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case Expression expr:
 				//TODO: binary search?
 				foreach (var c in expr.Nodes) {
-					if (c.ContainsOffset (offset)) {
-						return c.FindInternal (offset);
+					var n = (c as IncompleteExpressionError)?.IncompleteNode ?? c;
+					if (n.ContainsOffset (offset)) {
+						return n.FindInternal (offset);
 					}
 				}
 				break;
