@@ -606,7 +606,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
-					ExpressionErrorKind.ExpectingLeftParen,
+					ExpressionErrorKind.IncompleteProperty,
 					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, funcName, null)
 				);
 			}

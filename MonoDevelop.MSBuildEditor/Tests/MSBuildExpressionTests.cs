@@ -52,10 +52,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(a->''", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->''d", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->'' ", ExpressionErrorKind.ExpectingRightParen)]
+		[TestCase ("@(a->a", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("@(a->  a", ExpressionErrorKind.ExpectingLeftParen)]
 		[TestCase ("$(a.", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a..", ExpressionErrorKind.ExpectingMethodName)]
-		[TestCase ("$(a.b", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$(a.b.", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$(a.b", ExpressionErrorKind.IncompleteProperty)]
+		[TestCase ("$(a.b.", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a.b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$(a.b(.", ExpressionErrorKind.IncompleteValue)]
 		[TestCase ("$(a.b(/", ExpressionErrorKind.ExpectingRightParenOrValue)]
@@ -84,9 +86,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([a]::", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$([a]:: ", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$([a]:: (", ExpressionErrorKind.ExpectingMethodName)]
-		[TestCase ("$([a]::b", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$([a]:: b", ExpressionErrorKind.ExpectingLeftParen)]
-		[TestCase ("$([a]::b ", ExpressionErrorKind.ExpectingLeftParen)]
+		[TestCase ("$([a]::b", ExpressionErrorKind.IncompleteProperty)]
+		[TestCase ("$([a]:: b", ExpressionErrorKind.IncompleteProperty)]
+		[TestCase ("$([a]::b ", ExpressionErrorKind.IncompleteProperty)]
 		[TestCase ("$([a]::b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b (", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b( ", ExpressionErrorKind.ExpectingRightParenOrValue)]
@@ -378,7 +380,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 							new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
 						),
 						new ExpressionFunctionName (12, "Baz"),
-						new ExpressionArgumentList (15, 2, new List<ExpressionNode> {
+						new ExpressionArgumentList (15, 8, new List<ExpressionNode> {
 							new ExpressionArgumentInt (16, 1, 1),
 							new ExpressionArgumentString (18, 4, "hi")
 						})
