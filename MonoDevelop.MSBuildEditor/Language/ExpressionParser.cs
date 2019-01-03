@@ -256,13 +256,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
 		{
+			int nameOffset = offset;
 			var methodName = ReadName (buffer, ref offset, endOffset);
 			if (methodName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingMethodName,
-					new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, null));
+					new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, baseOffset + nameOffset, null));
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);
@@ -272,7 +273,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingLeftParen,
-					new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, null)
+					new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, baseOffset + nameOffset, null)
 				);
 			}
 
@@ -280,12 +281,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ParseFunctionArgumentList (buffer, ref offset, endOffset, baseOffset),
 				out ExpressionArgumentList args,
 				out IncompleteExpressionError error,
-				(n, o) => new ExpressionItemFunctionInvocation (target.Offset, o - target.Offset, target, methodName, n)
+				(n, o) => new ExpressionItemFunctionInvocation (target.Offset, o - target.Offset, target, methodName, baseOffset + nameOffset, n)
 			)) {
 				return error;
 			}
 
-			return new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, args);
+			return new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, baseOffset + nameOffset, args);
 		}
 
 		static string ReadName (string buffer, ref int offset, int endOffset)
@@ -318,7 +319,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			ExpectingComponent
 		}
 
-		static ExpressionNode ReadClassReference (string buffer, ref int offset, int endOffset)
+		static ExpressionNode ReadClassReference (string buffer, ref int offset, int endOffset, int baseOffset)
 		{
 			int start = offset;
 			int lastCharOffset = start;
@@ -337,7 +338,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						state = ClassRefParseState.Component;
 						break;
 					}
-					return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassName);
+					return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingClassName);
 
 				case ClassRefParseState.Component:
 					if (char.IsLetterOrDigit (ch) || ch == '_') {
@@ -355,7 +356,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						state = ClassRefParseState.ExpectingPeriod;
 						break;
 					}
-					return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
+					return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
 
 				case ClassRefParseState.ExpectingComponent:
 					if (char.IsLetter (ch) || ch == '_') {
@@ -367,7 +368,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (char.IsWhiteSpace (ch)) {
 						break;
 					}
-					return new ExpressionError (offset, ExpressionErrorKind.ExpectingClassNameComponent);
+					return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingClassNameComponent);
 
 				case ClassRefParseState.ExpectingPeriod:
 					if (char.IsWhiteSpace (ch)) {
@@ -379,7 +380,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 						state = ClassRefParseState.ExpectingComponent;
 						break;
 					}
-					return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
+					return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
 				}
 				offset++;
 			}
@@ -389,11 +390,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new ExpressionError (offset, true, ExpressionErrorKind.ExpectingClassName);
 			case ClassRefParseState.ExpectingComponent:
 				return new IncompleteExpressionError (offset, true, ExpressionErrorKind.ExpectingClassNameComponent,
-					new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ())
+					new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ())
 				);
 			}
 
-			return new ExpressionClassReference (start, lastCharOffset - start + 1, sb.ToString ());
+			return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
 		}
 
 		static void ConsumeSpace (string buffer, ref int offset, int endOffset)
@@ -505,12 +506,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			offset++;
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			var className = ReadClassReference (buffer, ref offset, endOffset);
+			var className = ReadClassReference (buffer, ref offset, endOffset, baseOffset);
 			if (WrapError (
 				className,
 				out ExpressionClassReference classRef,
 				out IncompleteExpressionError err,
-				(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, o - baseOffset - start, n, null, null)
+				(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, o - baseOffset - start, n, null, 0, null)
 			)) {
 				return err;
 			}
@@ -520,20 +521,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 					baseOffset + offset,
 					offset + 2 > endOffset,
 					ExpressionErrorKind.ExpectingBracketColonColon,
-					new ExpressionPropertyFunctionInvocation (start, (offset + baseOffset) - start, classRef, null, null)
+					new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, null, 0, null)
 				);
 			}
 			offset += 3;
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
+			int nameOffset = offset;
 			var methodName = ReadName (buffer, ref offset, endOffset);
 			if (methodName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingMethodName,
-					new ExpressionPropertyFunctionInvocation (start, (offset + baseOffset) - start, classRef, null, null));
+					new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, null, 0, null));
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);
@@ -543,7 +545,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingLeftParen,
-					new ExpressionPropertyFunctionInvocation (start, (offset + baseOffset) - start, classRef, methodName, null)
+					new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, methodName, baseOffset + nameOffset, null)
 				);
 			}
 
@@ -551,12 +553,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ParseFunctionArgumentList (buffer, ref offset, endOffset, baseOffset),
 				out ExpressionArgumentList args,
 				out IncompleteExpressionError error,
-				(n, o) => new ExpressionPropertyFunctionInvocation (start, (o + baseOffset) - start, classRef, methodName, n)
+				(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, (o + baseOffset) - start, classRef, methodName, baseOffset + nameOffset, n)
 			)) {
 				return error;
 			}
 
-			return new ExpressionPropertyFunctionInvocation (start, (offset + baseOffset) - start, classRef, methodName, args);
+			return new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, methodName, baseOffset + nameOffset, args);
 		}
 
 		static bool WrapError<T> (ExpressionNode result, out T success, out IncompleteExpressionError error, Func<T,int,ExpressionNode> wrap) where T : ExpressionNode
@@ -583,13 +585,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
+			int nameOffset = 0;
 			var methodName = ReadName (buffer, ref offset, endOffset);
 			if (methodName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingMethodName,
-					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, null));
+					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, nameOffset, null));
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);
@@ -599,7 +602,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					baseOffset + offset,
 					offset > endOffset,
 					ExpressionErrorKind.ExpectingLeftParen,
-					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, null)
+					new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, nameOffset, null)
 				);
 			}
 
@@ -607,12 +610,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ParseFunctionArgumentList  (buffer, ref offset, endOffset, baseOffset),
 				out ExpressionArgumentList args,
 				out IncompleteExpressionError error,
-				(n,o) => new ExpressionPropertyFunctionInvocation (target.Offset, o - target.Offset, target, methodName, n)
+				(n,o) => new ExpressionPropertyFunctionInvocation (target.Offset, o - target.Offset, target, methodName, nameOffset, n)
 			)) {
 				return error;
 			}
 
-			return new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, args);
+			return new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, methodName, nameOffset, args);
 		}
 
 		static ExpressionNode ParseFunctionArgumentList (string buffer, ref int offset, int endOffset, int baseOffset)
@@ -686,11 +689,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (bool.TryParse (name, out bool val)) {
 					return new ExpressionArgumentBool (start + baseOffset, name.Length, val);
 				}
-				return new ExpressionError (offset, ExpressionErrorKind.IncompleteValue);
+				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteValue);
 			}
 			offset = start;
 
-			return new ExpressionError (offset, wasFirst? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue);
+			return new ExpressionError (baseOffset + offset, wasFirst? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue);
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset)

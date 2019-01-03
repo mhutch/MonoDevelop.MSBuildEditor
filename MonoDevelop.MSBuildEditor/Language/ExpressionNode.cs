@@ -242,14 +242,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		public ExpressionPropertyNode Target { get; }
 		public string MethodName { get; }
+		public int MethodNameOffset { get; }
+
 		public ExpressionArgumentList Arguments;
 
-		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, string methodName, ExpressionArgumentList arguments)
+		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, string methodName, int methodNameOffset, ExpressionArgumentList arguments)
 			: base (offset, length)
 		{
 			Target = target;
 			target?.SetParent (this);
 			MethodName = methodName;
+			MethodNameOffset = methodNameOffset;
 			Arguments = arguments;
 			arguments?.SetParent (this);
 		}
@@ -315,18 +318,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		public ExpressionItemNode Target { get; }
 		public string MethodName { get; }
+		public int MethodNameOffset { get; }
 
 		public override string ItemName => Target.ItemName;
 		public override int ItemNameOffset => Target.ItemNameOffset;
 
 		public ExpressionArgumentList Arguments;
 
-		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, string methodName, ExpressionArgumentList arguments)
+		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, string methodName, int methodNameOffset, ExpressionArgumentList arguments)
 			: base (offset, length)
 		{
 			Target = target;
 			target.SetParent (this);
 			MethodName = methodName;
+			MethodNameOffset = methodNameOffset;
 			Arguments = arguments;
 			arguments?.SetParent (this);
 		}
@@ -444,14 +449,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return node.Offset <= offset && node.End >= offset;
 		}
 
-		//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
-		public static ExpressionNode Find (this IncompleteExpressionError node, int offset)
-		{
-			return node.IncompleteNode.Find (offset);
-		}
-
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
 		{
+			//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
+			if (node is IncompleteExpressionError ee) {
+				node = ee.IncompleteNode;
+			}
 			return node.ContainsOffset (offset) ? FindInternal (node, offset) : null;
 		}
 

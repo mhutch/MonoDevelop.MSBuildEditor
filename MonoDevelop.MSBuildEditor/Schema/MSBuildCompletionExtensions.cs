@@ -292,6 +292,13 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildReferenceKind.TaskParameter:
 				var p = rr.ReferenceAsTaskParameter;
 				return doc.GetTaskParameter (p.taskName, p.paramName);
+			case MSBuildReferenceKind.ItemFunction:
+				return FunctionCompletion.GetItemFunctionInfo ((string)rr.Reference);
+			case MSBuildReferenceKind.PropertyFunction:
+				(string className, string name) = ((string,string)) rr.Reference;
+				return FunctionCompletion.GetPropertyFunctionInfo (className, name);
+			case MSBuildReferenceKind.ClassName:
+				return FunctionCompletion.GetClassInfo ((string)rr.Reference);
 			}
 			return null;
 		}

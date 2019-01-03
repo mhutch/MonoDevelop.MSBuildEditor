@@ -378,9 +378,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case TriggerState.PropertyFunctionName:
 				return FunctionCompletion.GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:
-				return FunctionCompletion.GetItemFunctionNameCompletions (triggerExpression);
+				return FunctionCompletion.GetItemFunctionNameCompletions ();
 			case TriggerState.PropertyFunctionClassName:
-				return FunctionCompletion.GetClassNameCompletions (triggerExpression);
+				return FunctionCompletion.GetClassNameCompletions ();
 			}
 			throw new InvalidOperationException ();
 		}

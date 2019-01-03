@@ -43,12 +43,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return null;
 		}
 
-		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions (ExpressionNode triggerExpression)
+		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
 			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMethods ()));
 		}
 
-		internal static IEnumerable<BaseInfo> GetClassNameCompletions (ExpressionNode triggerExpression)
+		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
 		{
 			var compilation = CreateCoreCompilation ();
 			foreach (var kv in permittedFunctions) {
@@ -73,6 +73,33 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 			return functions.Values.ToArray ();
+		}
+
+		//FIXME: make this lookup cheaper
+		public static BaseInfo GetPropertyFunctionInfo (string className, string name)
+		{
+			if (className == null) {
+				return GetStringMethods ().FirstOrDefault (n => n.Name == name);
+			}
+			if (className == "MSBuild") {
+				return GetIntrinsicPropertyFunctions ().FirstOrDefault (n => n.Name == name);
+			}
+			if (permittedFunctions.TryGetValue (className, out HashSet<string> members)) {
+				return GetStaticFunctions (className, members).FirstOrDefault (n => n.Name == name);
+			}
+			return null;
+		}
+
+		//FIXME: make this lookup cheaper
+		public static BaseInfo GetItemFunctionInfo (string name)
+		{
+			return GetIntrinsicItemFunctions ().FirstOrDefault (n => n.Name == name);
+		}
+
+		//FIXME: make this lookup cheaper
+		public static BaseInfo GetClassInfo (string name)
+		{
+			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		static IEnumerable<FunctionInfo> GetStringMethods ()
@@ -103,7 +130,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		private static IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
+		static IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName (className);

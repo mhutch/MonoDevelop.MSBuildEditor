@@ -230,6 +230,30 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceLength = em.ItemName.Length;
 					}
 					break;
+				case ExpressionItemFunctionInvocation fi:
+					if (!string.IsNullOrEmpty (fi.MethodName) && fi.MethodNameOffset <= offset && (fi.MethodNameOffset + fi.MethodName.Length) >= offset) {
+						rr.ReferenceKind = MSBuildReferenceKind.ItemFunction;
+						rr.ReferenceOffset = fi.MethodNameOffset;
+						rr.Reference = fi.MethodName;
+						rr.ReferenceLength = fi.MethodName.Length;
+					}
+					break;
+				case ExpressionPropertyFunctionInvocation fi:
+					if (!string.IsNullOrEmpty (fi.MethodName) && fi.MethodNameOffset <= offset && (fi.MethodNameOffset + fi.MethodName.Length) >= offset) {
+						rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
+						rr.ReferenceOffset = fi.MethodNameOffset;
+						rr.Reference = ((fi.Target as ExpressionClassReference)?.Name, fi.MethodName);
+						rr.ReferenceLength = fi.MethodName.Length;
+					}
+					break;
+				case ExpressionClassReference cr:
+					if (!string.IsNullOrEmpty (cr.Name)) {
+						rr.ReferenceKind = MSBuildReferenceKind.ClassName;
+						rr.ReferenceOffset = cr.Offset;
+						rr.Reference = cr.Name;
+						rr.ReferenceLength = cr.Length;
+					}
+					break;
 				case ExpressionText lit:
 					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
@@ -350,6 +374,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 		TargetFrameworkIdentifier,
 		TargetFrameworkVersion,
 		TargetFrameworkProfile,
-		FileOrFolder
+		FileOrFolder,
+		ItemFunction,
+		PropertyFunction,
+		ClassName
 	}
 }
