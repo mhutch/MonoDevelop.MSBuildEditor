@@ -241,18 +241,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class ExpressionPropertyFunctionInvocation : ExpressionPropertyNode
 	{
 		public ExpressionPropertyNode Target { get; }
-		public string MethodName { get; }
-		public int MethodNameOffset { get; }
-
+		public ExpressionFunctionName Function { get; }
 		public ExpressionArgumentList Arguments;
 
-		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, string methodName, int methodNameOffset, ExpressionArgumentList arguments)
+		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, ExpressionFunctionName methodName, ExpressionArgumentList arguments)
 			: base (offset, length)
 		{
 			Target = target;
 			target?.SetParent (this);
-			MethodName = methodName;
-			MethodNameOffset = methodNameOffset;
+			Function = methodName;
+			methodName?.SetParent (this);
 			Arguments = arguments;
 			arguments?.SetParent (this);
 		}
@@ -317,23 +315,32 @@ namespace MonoDevelop.MSBuildEditor.Language
 	class ExpressionItemFunctionInvocation : ExpressionItemNode
 	{
 		public ExpressionItemNode Target { get; }
-		public string MethodName { get; }
-		public int MethodNameOffset { get; }
+		public ExpressionFunctionName Function { get; }
 
 		public override string ItemName => Target.ItemName;
 		public override int ItemNameOffset => Target.ItemNameOffset;
 
 		public ExpressionArgumentList Arguments;
 
-		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, string methodName, int methodNameOffset, ExpressionArgumentList arguments)
+		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, ExpressionFunctionName methodName, ExpressionArgumentList arguments)
 			: base (offset, length)
 		{
 			Target = target;
 			target.SetParent (this);
-			MethodName = methodName;
-			MethodNameOffset = methodNameOffset;
+			Function = methodName;
+			methodName?.SetParent (this);
 			Arguments = arguments;
 			arguments?.SetParent (this);
+		}
+	}
+
+	class ExpressionFunctionName : ExpressionNode
+	{
+		public string Name { get; }
+
+		public ExpressionFunctionName (int offset, string name) : base (offset, name.Length)
+		{
+			Name = name;
 		}
 	}
 
@@ -397,6 +404,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionPropertyFunctionInvocation invocation:
+				if (invocation.Function != null) {
+					yield return invocation.Function;
+				}
 				if (invocation.Target != null) {
 					foreach (var n in invocation.Target.WithAllDescendants ()) {
 						yield return n;
@@ -418,6 +428,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionItemFunctionInvocation invocation:
+				if (invocation.Function != null) {
+					yield return invocation.Function;
+				}
 				if (invocation.Target != null) {
 					foreach (var n in invocation.Target.WithAllDescendants ()) {
 						yield return n;
@@ -485,6 +498,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionPropertyFunctionInvocation prop:
+				if (prop.Function != null && prop.Function.ContainsOffset (offset)) {
+					return prop.Function;
+				}
 				if (prop.Target != null && prop.Target.ContainsOffset (offset)) {
 					return prop.Target.FindInternal (offset);
 				}
@@ -503,6 +519,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case ExpressionItemFunctionInvocation invocation:
+				if (invocation.Function != null && invocation.Function.ContainsOffset (offset)) {
+					return invocation.Function;
+				}
 				if (invocation.Target != null && invocation.Target.ContainsOffset (offset)) {
 					return invocation.Target.FindInternal (offset);
 				}

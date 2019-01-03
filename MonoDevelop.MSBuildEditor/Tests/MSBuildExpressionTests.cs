@@ -290,8 +290,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		{
 			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
 			var targetName = (string)args [1];
-			var methodName = (string)args [2];
-			var methArgs = args.Skip (3).ToList ();
+			var funcName = (string)args [2];
+			var funcArgs = args.Skip (3).ToList ();
 
 			var prop = AssertCast<ExpressionProperty> (expr);
 			Assert.IsFalse (prop.IsSimpleProperty);
@@ -300,12 +300,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var target = AssertCast<ExpressionPropertyName> (invocation.Target);
 
 			Assert.AreEqual (targetName, target.Name);
-			Assert.AreEqual (methodName, invocation.MethodName);
+			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < methArgs.Count; i++) {
+			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < funcArgs.Count; i++) {
 				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (methArgs[i], arg.Value);
+				Assert.AreEqual (funcArgs[i], arg.Value);
 			}
 		}
 
@@ -324,8 +324,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		{
 			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 0);
 			var targetName = (string)args [1];
-			var methodName = (string)args [2];
-			var methArgs = args.Skip (3).ToList ();
+			var funcName = (string)args [2];
+			var funcArgs = args.Skip (3).ToList ();
 
 			var prop = AssertCast<ExpressionProperty> (expr);
 			Assert.IsFalse (prop.IsSimpleProperty);
@@ -334,12 +334,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var target = AssertCast<ExpressionClassReference> (invocation.Target);
 
 			Assert.AreEqual (targetName, target.Name);
-			Assert.AreEqual (methodName, invocation.MethodName);
+			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < methArgs.Count; i++) {
+			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < funcArgs.Count; i++) {
 				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (methArgs [i], arg.Value);
+				Assert.AreEqual (funcArgs [i], arg.Value);
 			}
 		}
 
@@ -355,8 +355,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		{
 			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.ItemsMetadataAndLists, 0);
 			var targetName = (string)args [1];
-			var methodName = (string)args [2];
-			var methArgs = args.Skip (3).ToList ();
+			var funcName = (string)args [2];
+			var funcArgs = args.Skip (3).ToList ();
 
 			var prop = AssertCast<ExpressionItem> (expr);
 			Assert.IsFalse (prop.IsSimpleItem);
@@ -365,12 +365,12 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			var target = AssertCast<ExpressionItemName> (invocation.Target);
 
 			Assert.AreEqual (targetName, target.Name);
-			Assert.AreEqual (methodName, invocation.MethodName);
+			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (methArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < methArgs.Count; i++) {
+			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
+			for (int i = 0; i < funcArgs.Count; i++) {
 				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (methArgs [i], arg.Value);
+				Assert.AreEqual (funcArgs [i], arg.Value);
 			}
 		}
 

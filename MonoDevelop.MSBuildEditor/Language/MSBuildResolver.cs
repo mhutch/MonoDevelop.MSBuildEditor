@@ -230,20 +230,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceLength = em.ItemName.Length;
 					}
 					break;
-				case ExpressionItemFunctionInvocation fi:
-					if (!string.IsNullOrEmpty (fi.MethodName) && fi.MethodNameOffset <= offset && (fi.MethodNameOffset + fi.MethodName.Length) >= offset) {
+				case ExpressionFunctionName name:
+					rr.ReferenceOffset = name.Offset;
+					rr.ReferenceLength = name.Name.Length;
+					if (name.Parent is ExpressionItemNode item) {
 						rr.ReferenceKind = MSBuildReferenceKind.ItemFunction;
-						rr.ReferenceOffset = fi.MethodNameOffset;
-						rr.Reference = fi.MethodName;
-						rr.ReferenceLength = fi.MethodName.Length;
-					}
-					break;
-				case ExpressionPropertyFunctionInvocation fi:
-					if (!string.IsNullOrEmpty (fi.MethodName) && fi.MethodNameOffset <= offset && (fi.MethodNameOffset + fi.MethodName.Length) >= offset) {
+						rr.Reference = name.Name;
+					} else if (name.Parent is ExpressionPropertyFunctionInvocation prop) {
 						rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
-						rr.ReferenceOffset = fi.MethodNameOffset;
-						rr.Reference = ((fi.Target as ExpressionClassReference)?.Name, fi.MethodName);
-						rr.ReferenceLength = fi.MethodName.Length;
+						rr.Reference = ((prop.Target as ExpressionClassReference)?.Name, name.Name);
 					}
 					break;
 				case ExpressionClassReference cr:

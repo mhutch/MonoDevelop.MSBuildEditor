@@ -120,8 +120,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 						return TriggerState.ItemFunctionName;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
-						var inv = i.Find (iee.Offset - 1) as ExpressionItemFunctionInvocation;
-						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
+						var func = i.Find (iee.Offset - 1) as ExpressionFunctionName;
+						if (func != null && func.Name != null && func.Name.Length == 1) {
 							triggerLength = 1;
 							return TriggerState.ItemFunctionName;
 						}
@@ -145,8 +145,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 						}
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
-						var inv = p.Find (iee.Offset - 1) as ExpressionPropertyFunctionInvocation;
-						if (inv != null && inv.MethodName != null && inv.MethodName.Length == 1) {
+						var func = p.Find (iee.Offset - 1) as ExpressionFunctionName;
+						if (func != null && func.Name != null && func.Name.Length == 1) {
 							triggerLength = 1;
 							return TriggerState.PropertyFunctionName;
 						}
