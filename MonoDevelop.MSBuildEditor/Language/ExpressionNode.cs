@@ -229,7 +229,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingBracketColonColon,
 		ExpectingClassName,
 		ExpectingClassNameComponent,
-		IncompleteString
+		IncompleteString,
+		IncompleteProperty
 	}
 
 	class ExpressionPropertyNode : ExpressionNode
@@ -602,7 +603,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return "Incomplete class name";
 			case ExpressionErrorKind.IncompleteString:
 				return "Incomplete string";
-
+			case ExpressionErrorKind.IncompleteProperty:
+				return "Incomplete property";
 			default:
 				return $"Invalid expression: {errorKind}";
 			}

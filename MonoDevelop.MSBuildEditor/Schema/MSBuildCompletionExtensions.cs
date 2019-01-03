@@ -293,8 +293,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				var p = rr.ReferenceAsTaskParameter;
 				return doc.GetTaskParameter (p.taskName, p.paramName);
 			case MSBuildReferenceKind.ItemFunction:
+				//FIXME: attempt overload resolution
 				return FunctionCompletion.GetItemFunctionInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.PropertyFunction:
+				//FIXME: attempt overload resolution
 				(string className, string name) = ((string,string)) rr.Reference;
 				return FunctionCompletion.GetPropertyFunctionInfo (className, name);
 			case MSBuildReferenceKind.ClassName:

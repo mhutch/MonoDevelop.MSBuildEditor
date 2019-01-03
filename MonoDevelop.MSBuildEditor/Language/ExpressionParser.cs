@@ -540,22 +540,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			if (offset > endOffset || buffer [offset] != '(') {
+			if (offset > endOffset) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
-					ExpressionErrorKind.ExpectingLeftParen,
+					ExpressionErrorKind.IncompleteProperty,
 					new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, funcName, null)
 				);
 			}
 
-			if (WrapError (
-				ParseFunctionArgumentList (buffer, ref offset, endOffset, baseOffset),
-				out ExpressionArgumentList args,
-				out IncompleteExpressionError error,
-				(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, (o + baseOffset) - start, classRef, funcName, n)
-			)) {
-				return error;
+			//arguments are optional, it could be a property
+			ExpressionArgumentList args = null;
+			if (buffer[offset] == '(') {
+				if (WrapError (
+					ParseFunctionArgumentList (buffer, ref offset, endOffset, baseOffset),
+					out args,
+					out IncompleteExpressionError error,
+					(n, o) => new ExpressionPropertyFunctionInvocation (baseOffset + start, (o + baseOffset) - start, classRef, funcName, n)
+				)) {
+					return error;
+				}
 			}
 
 			return new ExpressionPropertyFunctionInvocation (baseOffset + start, (offset + baseOffset) - start, classRef, funcName, args);
@@ -598,7 +602,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			if (offset > endOffset || buffer [offset] != '(') {
+			if (offset > endOffset) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
 					offset > endOffset,
@@ -607,13 +611,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				);
 			}
 
-			if (WrapError (
-				ParseFunctionArgumentList  (buffer, ref offset, endOffset, baseOffset),
-				out ExpressionArgumentList args,
+			//arguments are optional, it could be a property
+			ExpressionArgumentList args = null;
+			if (buffer [offset] == '(') {
+				if (WrapError (
+				ParseFunctionArgumentList (buffer, ref offset, endOffset, baseOffset),
+				out args,
 				out IncompleteExpressionError error,
-				(n,o) => new ExpressionPropertyFunctionInvocation (target.Offset, o - target.Offset, target, funcName, n)
+				(n, o) => new ExpressionPropertyFunctionInvocation (target.Offset, o - target.Offset, target, funcName, n)
 			)) {
-				return error;
+					return error;
+				}
 			}
 
 			return new ExpressionPropertyFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, funcName, args);
