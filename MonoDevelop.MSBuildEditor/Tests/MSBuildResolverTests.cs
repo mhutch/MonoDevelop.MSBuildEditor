@@ -228,5 +228,23 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				(MSBuildReferenceKind.PropertyFunction, ("one", "two"))
 			);
 		}
+
+		[Test]
+		public void ItemFunctionResolution ()
+		{
+			var doc = @"
+<project>
+  <itemgroup>
+    <x include=""@(ay->b|ee())""/>
+  </itemgroup>
+  <target name='z' Inputs=""@(bar->fo|o())""/>
+</project>".TrimStart ();
+
+			AssertReferences (
+				doc,
+				(MSBuildReferenceKind.ItemFunction, "bee"),
+				(MSBuildReferenceKind.ItemFunction, "foo")
+			);
+		}
 	}
 }
