@@ -15,6 +15,8 @@
 		<Message Text="$([System.DateTime]::Now.AddDays(5))" />
 		<Message Text="$([System.DateTime]::get_Now().AddDays(5))" />
 		<Message Text="$(Hello.IndexOf('World',StringComparison.OrdinalIgnoreCase))" />
+		<Message Text="$(Hello[0])$(Hello[3])" />
+		<Message Text="$(Registry:HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework@InstallRoot)" />
 		<Message Text="@(A->'%(Identity)', ' - ')" />
 		<Message Text="@(A->Metadata('$(MetadataName)'))" />
 		<Message Text="@(A->Metadata($(MetadataName)))" />
