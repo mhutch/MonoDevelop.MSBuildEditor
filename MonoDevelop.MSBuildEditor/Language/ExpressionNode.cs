@@ -48,6 +48,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		public string Value { get; }
 		public string GetUnescapedValue () => XmlEscaping.UnescapeEntities (Value);
+
+		/// <summary>
+		/// Indicates whether this exists by itself, as opposed to being concatenated with other values.
+		/// </summary>
 		public bool IsPure { get; }
 
 		public ExpressionText (int offset, string value, bool isPure) : base (offset, value.Length)

@@ -261,6 +261,20 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
+		static void CheckArgs (List<object> expected, ExpressionArgumentList actual)
+		{
+			Assert.AreEqual (expected.Count, actual.Arguments.Count);
+			for (int i = 0; i < expected.Count; i++) {
+				var arg = actual.Arguments [i];
+				if (arg is ExpressionText et) {
+					Assert.AreEqual (expected [i], et.Value);
+				} else {
+					var lit = AssertCast<ExpressionArgumentLiteral> (arg);
+					Assert.AreEqual (expected [i], lit.Value);
+				}
+			}
+		}
+
 		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
 		[TestCase ("$(   Foo  .  Bar  (  )  )", "Foo", "Bar")]
 		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
@@ -288,11 +302,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < funcArgs.Count; i++) {
-				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (funcArgs[i], arg.Value);
-			}
+			CheckArgs (funcArgs, invocation.Arguments);
 		}
 
 		[TestCase ("$([Foo]::Bar())", "Foo", "Bar")]
@@ -324,11 +334,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < funcArgs.Count; i++) {
-				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (funcArgs [i], arg.Value);
-			}
+			CheckArgs (funcArgs, invocation.Arguments);
 		}
 
 		[TestCase ("@(Foo->Bar())", "Foo", "Bar")]
@@ -357,11 +363,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			Assert.AreEqual (funcArgs.Count, invocation.Arguments.Arguments.Count);
-			for (int i = 0; i < funcArgs.Count; i++) {
-				var arg = AssertCast<ExpressionArgumentLiteral> (invocation.Arguments.Arguments [i]);
-				Assert.AreEqual (funcArgs [i], arg.Value);
-			}
+			CheckArgs (funcArgs, invocation.Arguments);
 		}
 
 		[Test]
@@ -382,7 +384,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 						new ExpressionFunctionName (12, "Baz"),
 						new ExpressionArgumentList (15, 8, new List<ExpressionNode> {
 							new ExpressionArgumentInt (16, 1, 1),
-							new ExpressionArgumentString (18, 4, "hi")
+							new ExpressionText (19, "hi", true)
 						})
 					)
 				),
@@ -406,7 +408,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 								10, 6,
 								new ExpressionPropertyName (12, 3, "Baz")
 							),
-							new ExpressionArgumentString (18, 7, "thing")
+							new ExpressionText (19, "thing", true)
 						})
 					)
 				),
