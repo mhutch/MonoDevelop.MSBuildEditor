@@ -288,6 +288,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(Foo.A(.61))", "Foo", "A", .61d)]
 		[TestCase ("$(Foo.A('bees'))", "Foo", "A", "bees")]
 		[TestCase ("$(Foo.A('bees', 2, 'more bees'))", "Foo", "A", "bees", 2, "more bees")]
+		[TestCase ("$(Foo.A(`bees`, `more bees`))", "Foo", "A", "bees", "more bees")]
 		public void TestSimplePropertyFunctions(object[] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
@@ -323,6 +324,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([Foo  .  Bar]::A())", "Foo.Bar", "A")]
 		[TestCase ("$([  Foo  .  Bar  ]::A())", "Foo.Bar", "A")]
 		[TestCase ("$([Foo.Bar]::A ( 'bees' , 2 , 'more bees' ) )", "Foo.Bar", "A", "bees", 2, "more bees")]
+		[TestCase ("$([Foo.Bar]::A ( 'bees' ,  `more bees` ) )", "Foo.Bar", "A", "bees", "more bees")]
 		public void TestStaticPropertyFunctions (object [] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 0);
@@ -355,6 +357,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(Foo->A(20.5))", "Foo", "A", 20.5d)]
 		[TestCase ("@(Foo->A(.61))", "Foo", "A", .61d)]
 		[TestCase ("@(Foo->A('bees' , 2 , 'more bees'))", "Foo", "A", "bees", 2, "more bees")]
+		[TestCase ("@(Foo->A(`bees`, 'more bees'))", "Foo", "A", "bees", "more bees")]
 		public void TestSimpleItemFunctions (object [] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.ItemsMetadataAndLists, 0);

@@ -687,7 +687,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return ReadArgumentNumber (buffer, ref offset, endOffset, baseOffset);
 			}
 
-			if (ch == '"' || ch == '\'') {
+			if (ch == '"' || ch == '\'' || ch == '`') {
 				return ReadArgumentString (ch, buffer, ref offset, endOffset, baseOffset);
 			}
 
