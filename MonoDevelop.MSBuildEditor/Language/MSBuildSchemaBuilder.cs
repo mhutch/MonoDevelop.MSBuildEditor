@@ -319,12 +319,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var expression = ExpressionParser.Parse (value, ExpressionOptions.ItemsMetadataAndLists, startOffset);
 				foreach (var node in expression.WithAllDescendants ()) {
 					switch (node) {
-					case ExpressionProperty prop:
-						if (prop.IsSimpleProperty) {
-							CollectProperty (prop.Name);
-						}
+					case ExpressionPropertyName prop:
+						CollectProperty (prop.Name);
 						break;
-					case ExpressionItem item:
+					case ExpressionItemName item:
 						CollectItem (item.Name);
 						break;
 					case ExpressionMetadata meta:
