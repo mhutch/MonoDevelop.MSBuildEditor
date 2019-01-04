@@ -190,7 +190,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				);
 			}
 
-			if (buffer [offset] == '\'') {
+			char ch = buffer [offset];
+			if (ch == '\'' || ch == '`' || ch == '"') {
 				if (WrapError (
 					ParseItemTransform (buffer, ref offset, endOffset, baseOffset, itemRef),
 					out itemRef,
@@ -231,32 +232,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
+		//TODO: support custom separators
 		static ExpressionNode ParseItemTransform (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
 		{
-			offset++;
-			//TODO: support custom separators
-			var endAposOffset = buffer.IndexOf ('\'', offset, endOffset - offset + 1);
-			ExpressionNode transform;
-			if (endAposOffset == 0) {
-				transform = new ExpressionText (offset, "", true);
-			} else {
-				//FIXME: disallow items in the transform
-				transform = Parse (buffer, offset, endAposOffset < 0 ? endOffset : endAposOffset - 1, ExpressionOptions.Metadata, baseOffset);
+			char terminator = buffer [offset];
+			if (WrapError (
+				ReadArgumentString (terminator, buffer, ref offset, endOffset, baseOffset),
+				out ExpressionNode expr,
+				out IncompleteExpressionError err,
+				(n, o) => new ExpressionItemTransform (target.Offset, o - target.Offset + baseOffset, target, n)
+				)) {
+				return err;
 			}
 
-			offset = (endAposOffset < 0 ? endOffset  : endAposOffset) + 1;
-			var node = new ExpressionItemTransform (target.Offset, (offset + baseOffset) - target.Offset, target, transform);
-
-			if (endAposOffset < 0) {
-				return new IncompleteExpressionError (
-					baseOffset + offset - 1,
-					true,
-					ExpressionErrorKind.ExpectingApos,
-					node
-				);
-			}
-
-			return node;
+			return new ExpressionItemTransform (target.Offset, offset - target.Offset + baseOffset, target, expr);
 		}
 
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)

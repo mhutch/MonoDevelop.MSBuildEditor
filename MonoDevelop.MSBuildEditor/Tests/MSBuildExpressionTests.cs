@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("@(a->", ExpressionErrorKind.ExpectingMethodOrTransform)]
 		[TestCase ("@(a->  ", ExpressionErrorKind.ExpectingMethodOrTransform)]
 		[TestCase ("@(a->.", ExpressionErrorKind.ExpectingMethodOrTransform)]
-		[TestCase ("@(a->'f", ExpressionErrorKind.ExpectingApos)]
+		[TestCase ("@(a->'f", ExpressionErrorKind.IncompleteString)]
 		[TestCase ("@(a->''", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->''d", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->'' ", ExpressionErrorKind.ExpectingRightParen)]

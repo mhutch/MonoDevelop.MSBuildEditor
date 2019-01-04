@@ -219,7 +219,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ExpectingMetadataName,
 		ExpectingMetadataOrItemName,
 		ExpectingRightAngleBracket,
-		ExpectingApos,
 		ExpectingRightParenOrDash,
 		ItemsDisallowed,
 		ExpectingMethodName,
@@ -587,8 +586,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return $"Expecting metadata or item name";
 			case ExpressionErrorKind.ExpectingRightAngleBracket:
 				return $"Expecting '>'";
-			case ExpressionErrorKind.ExpectingApos:
-				return $"Expecting single quote";
 			case ExpressionErrorKind.ExpectingRightParenOrDash:
 				return $"Expecting '-' or ')'";
 			case ExpressionErrorKind.ItemsDisallowed:
