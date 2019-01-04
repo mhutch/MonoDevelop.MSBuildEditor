@@ -336,69 +336,254 @@
     "msbuild-expression": {
       "patterns": [
         {
+          "include": "#msbuild-static-property"
+        },
+        {
+          "include": "#msbuild-registry-property"
+        },
+        {
           "include": "#msbuild-property"
         },
         {
-          "include": "#msbuild-item"
+          "include": "#msbuild-item-function"
         },
         {
-          "include": "#msbuild-item-function"
+          "include": "#msbuild-item-transform"
+        },
+        {
+          "include": "#msbuild-item"
         },
         {
           "include": "#msbuild-metadata"
         }
       ]
     },
+    "msbuild-expression-string-single": {
+      "begin": "'",
+      "end": "'",
+      "name": "string.interpolated.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-expression"
+        }
+      ]
+    },
+    "msbuild-expression-string-backtick": {
+      "begin": "`",
+      "end": "`",
+      "name": "string.interpolated.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-expression"
+        }
+      ]
+    },
+    "msbuild-function-args": {
+      "patterns": [
+        {
+          "match": "(\\w*),(\\w*)",
+          "name": "punctuation.definition.param-sep.msbuild"
+        },
+        {
+          "match": "\b(true|false)\b",
+          "name": "constant.language.bool.msbuild"
+        },
+        {
+          "match": "([0-9]+)?\\.([0-9]+)",
+          "name": "constant.numeric.decimal.msbuild"
+        },
+        {
+          "match": "[0-9]+",
+          "name": "constant.numeric.decimal.msbuild"
+        },
+        {
+          "include": "#msbuild-expression"
+        },
+        {
+          "include": "#msbuild-expression-string-single"
+        },
+        {
+          "include": "#msbuild-expression-string-double"
+        },
+        {
+          "include": "#msbuild-expression-string-backtick"
+        }
+      ]
+    },
+    "msbuild-expression-string-double": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.interpolated.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-expression"
+        }
+      ]
+    },
     "msbuild-property": {
-      "match": "(\\$\\()([_[:alpha:]][_[:alnum:]]*)?(\\))",
+      "begin": "\\$\\(([_[:alpha:]][_[:alnum:]]*)?",
       "captures": {
         "1": {
-          "name": "punctuation.definition.tag.xml"
+          "name": "keyword.msbuild.property"
+        }
+      },
+      "end": "\\)",
+      "name": "punctuation.definition.property.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-property-function"
+        },
+        {
+          "include": "#msbuild-property-function-property"
+        }
+      ]
+    },
+    "msbuild-static-property": {
+      "begin": "\\$\\(\\[([_[:alnum:]]+)(?:\\.([_[:alnum:]]+))?(?:\\.([_[:alnum:]]+))?(?:\\.([_[:alnum:]]+))?(?:\\.([_[:alnum:]]+))*\\]",
+      "captures": {
+        "1": {
+          "name": "keyword.class.msbuild"
         },
         "2": {
-          "name": "keyword.msbuild.property"
+          "name": "keyword.class.msbuild"
         },
         "3": {
-          "name": "punctuation.definition.tag.xml"
+          "name": "keyword.class.msbuild"
+        },
+        "4": {
+          "name": "keyword.class.msbuild"
+        },
+        "5": {
+          "name": "keyword.class.msbuild"
         }
-      }
+      },
+      "end": "\\)",
+      "name": "punctuation.definition.property.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-property-function"
+        },
+        {
+          "include": "#msbuild-static-property-function"
+        },
+        {
+          "include": "#msbuild-property-function-property"
+        },
+        {
+          "include": "#msbuild-static-property-function-property"
+        }
+      ]
+    },
+    "msbuild-registry-property": {
+      "match": "\\$\\(([_[:alpha:]][_[:alnum:]]*)\\:([_\\\\\\.@[:alnum:]]*)\\)",
+      "captures": {
+        "1": {
+          "name": "keyword.property.msbuild"
+        },
+        "2": {
+          "name": "entity.name.tag.registry.msbuild"
+        }
+      },
+      "name": "punctuation.definition.property.msbuild"
+    },
+    "msbuild-property-function": {
+      "begin": "\\.([_[:alpha:]][_[:alnum:]]*)\\(",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.function.msbuild"
+        }
+      },
+      "end": "\\)",
+      "name": "punctuation.definition.property.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-function-args"
+        }
+      ]
+    },
+    "msbuild-property-function-property": {
+      "match": "\\.([_[:alpha:]][_[:alnum:]]*)",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.function-property.msbuild"
+        }
+      },
+      "name": "punctuation.definition.property.msbuild"
+    },
+    "msbuild-static-property-function": {
+      "begin": "\\:\\:([_[:alpha:]][_[:alnum:]]+)\\(",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.function.msbuild"
+        }
+      },
+      "end": "\\)",
+      "name": "punctuation.definition.property.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-function-args"
+        }
+      ]
+    },
+    "msbuild-static-property-function-property": {
+      "match": "\\:\\:([_[:alpha:]][_[:alnum:]]+)",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.function-property.msbuild"
+        }
+      },
+      "name": "punctuation.definition.property.msbuild"
     },
     "msbuild-item": {
-      "match": "(\\@\\()([_[:alpha:]][_[:alnum:]]*)?(\\))",
+      "match": "\\@\\(([_[:alpha:]][_[:alnum:]]*)?\\)",
+      "name": "punctuation.definition.item.msbuild",
       "captures": {
         "1": {
-          "name": "punctuation.definition.tag.xml"
-        },
-        "2": {
-          "name": "keyword.msbuild.item"
-        },
-        "3": {
-          "name": "punctuation.definition.tag.xml"
+          "name": "keyword.item.msbuild"
         }
       }
     },
     "msbuild-item-function": {
-      "match": "(\\@\\()([_[:alpha:]][_[:alnum:]]*)(->)([_[:alpha:]][_[:alnum:]]*)?(\\(\\))(\\))",
-      "captures": {
+      "begin": "\\@\\(([_[:alpha:]][_[:alnum:]]*)->([_[:alpha:]][_[:alnum:]]+)\\(",
+      "end": "\\)\\)",
+      "name": "punctuation.definition.item.msbuild",
+      "beginCaptures": {
         "1": {
-          "name": "punctuation.definition.tag.xml"
+          "name": "keyword.msbuild.item"
         },
         "2": {
-          "name": "keyword.msbuild.item"
-        },
-        "3": {
-          "name": "punctuation.definition.tag.xml"
-        },
-        "4": {
-          "name": "keyword.msbuild.item"
-        },
-        "5": {
-          "name": "punctuation.definition.tag.xml"
-        },
-        "6": {
-          "name": "punctuation.definition.tag.xml"
+          "name": "entity.name.tag.function.msbuild"
         }
-      }
+      },
+      "patterns": [
+        {
+          "include": "#msbuild-function-args"
+        }
+      ]
+    },
+    "msbuild-item-transform": {
+      "begin": "\\@\\(([_[:alpha:]][_[:alnum:]]*)->",
+      "end": "\\)",
+      "name": "punctuation.definition.item.msbuild",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.msbuild.item"
+        },
+        "2": {
+          "name": "entity.name.tag.function.msbuild"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#msbuild-expression-string-double"
+        },
+        {
+          "include": "#msbuild-expression-string-single"
+        },
+        {
+          "include": "#msbuild-expression-string-backtick"
+        }
+      ]
     },
     "msbuild-metadata": {
       "match": "(\\%\\()([_[:alpha:]][_[:alnum:]]*)?(\\.)?([_[:alpha:]][_[:alnum:]]*)?(\\))",
