@@ -126,24 +126,24 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionItemName ein:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash && ein.Name?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
+						triggerLength = ein.Name.Length;
 						return TriggerState.Item;
 					}
 					break;
 				case ExpressionPropertyName pn:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && pn.Name?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+						triggerLength = pn.Name.Length;
 						return TriggerState.Property;
 					}
 					break;
 				case ExpressionFunctionName fn:
-					if (iee.Kind == ExpressionErrorKind.IncompleteProperty && fn.Name?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.IncompleteProperty) {
+						triggerLength = fn.Name.Length;
 						return TriggerState.PropertyFunctionName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen && fn.Name?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
+						triggerLength = fn.Name.Length;
 						return TriggerState.ItemFunctionName;
 					}
 					break;
@@ -156,8 +156,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					break;
 				case ExpressionClassReference cr:
-					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon && cr.Name?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon) {
+						triggerLength = cr.Name.Length;
 						return TriggerState.PropertyFunctionClassName;
 					}
 					break;
@@ -165,12 +165,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
 						return TriggerState.Metadata;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && m.ItemName?.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+						triggerLength = m.ItemName.Length;
 						return TriggerState.MetadataOrItem;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen && m.MetadataName.Length == 1) {
-						triggerLength = 1;
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen) {
+						triggerLength = m.MetadataName.Length;
 						return TriggerState.Metadata;
 					}
 					break;
