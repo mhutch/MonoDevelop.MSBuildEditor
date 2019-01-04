@@ -183,7 +183,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 			offset++;
 			ConsumeWhitespace (ref offset);
 
-
 			if (offset > endOffset || !(buffer [offset] == '\'' || char.IsLetter (buffer [offset]))) {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMethodOrTransform,
@@ -477,16 +476,54 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			while (offset <= endOffset && buffer [offset] == '.') {
-				if (WrapError (
-					ParsePropertyInstanceFunction (buffer, ref offset, endOffset, baseOffset, propRef),
-					out propRef,
-					out IncompleteExpressionError error,
-					(n, o) => new ExpressionProperty (baseOffset + start, o - baseOffset - start, n)
-				)) {
-					return error;
-				}
+			if (offset <= endOffset
+				&& buffer [offset] == ':'
+				&& propRef is ExpressionPropertyName regStr
+				&& string.Equals ("registry", regStr.Name, StringComparison.OrdinalIgnoreCase)
+				) {
+				offset++;
 				ConsumeSpace (buffer, ref offset, endOffset);
+				int regStart = offset;
+				while (offset <= endOffset) {
+					char ch = buffer [offset];
+
+					switch (ch) {
+					case '\\':
+					case '@':
+					case '_':
+					case '.':
+						offset++;
+						continue;
+					case ' ':
+						ConsumeSpace (buffer, ref offset, endOffset);
+						goto case ')';
+					case ')':
+						string value = buffer.Substring (regStart, offset - regStart);
+						propRef = new ExpressionPropertyRegistryValue (propRef.Offset, offset - propRef.Offset + baseOffset, value);
+						break;
+					default:
+						if (char.IsLetterOrDigit (ch)) {
+							goto case '.';
+						}
+						string v = buffer.Substring (regStart, offset - regStart);
+						propRef = new ExpressionPropertyRegistryValue (propRef.Offset, offset - propRef.Offset + baseOffset, v);
+						// as the current char is not ')', this will turn into an error
+						break;
+					}
+					break;
+				}
+			} else {
+				while (offset <= endOffset && buffer [offset] == '.') {
+					if (WrapError (
+						ParsePropertyInstanceFunction (buffer, ref offset, endOffset, baseOffset, propRef),
+						out propRef,
+						out IncompleteExpressionError error,
+						(n, o) => new ExpressionProperty (baseOffset + start, o - baseOffset - start, n)
+					)) {
+						return error;
+					}
+					ConsumeSpace (buffer, ref offset, endOffset);
+				}
 			}
 
 			if (offset > endOffset || buffer [offset] != ')') {

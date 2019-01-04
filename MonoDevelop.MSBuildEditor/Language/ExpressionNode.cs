@@ -285,6 +285,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 	}
 
+	class ExpressionPropertyRegistryValue : ExpressionPropertyNode
+	{
+		public string RegistryReference { get; }
+
+		public ExpressionPropertyRegistryValue (int offset, int length, string registryReference) : base (offset, length)
+		{
+			RegistryReference = registryReference;
+		}
+	}
+
 	class ExpressionClassReference : ExpressionPropertyNode
 	{
 		public string Name { get; }

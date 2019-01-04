@@ -416,6 +416,20 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			);
 		}
 
+		[Test]
+		public void TestRegistryKey ()
+		{
+			TestParse (
+				"$(Registry:HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework@InstallRoot)",
+				new ExpressionProperty (
+					0, 75,
+					new ExpressionPropertyRegistryValue (
+						2, 72, "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework@InstallRoot"
+					)
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected, ExpressionOptions options = ExpressionOptions.None)
 		{
 			var expr = ExpressionParser.Parse (expression, options, 0);
@@ -499,6 +513,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				var expectedArgLiteral = (ExpressionArgumentLiteral)expected;
 				Assert.AreEqual (expectedArgLiteral.Kind, argLiteral.Kind);
 				Assert.AreEqual (expectedArgLiteral.Value, argLiteral.Value);
+				break;
+			case ExpressionPropertyRegistryValue regVal:
+				var expectedRegVal = (ExpressionPropertyRegistryValue)expected;
+				Assert.AreEqual (expectedRegVal.RegistryReference, regVal.RegistryReference);
 				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
