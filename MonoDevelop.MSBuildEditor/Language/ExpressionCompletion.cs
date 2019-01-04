@@ -93,9 +93,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			var lastNode = triggerExpression;
-			if (lastNode is Expression expr) {
-				lastNode = expr.Nodes.Last ();
+			//find the deepest node that touches the end
+			var lastNode = triggerExpression.Find (expression.Length);
+			if (lastNode == null) {
+				return TriggerState.None;
 			}
 
 			if (lastNode is ExpressionText lit) {
@@ -109,52 +110,62 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			if (lastNode is IncompleteExpressionError iee && iee.WasEOF) {
-				switch (iee.IncompleteNode) {
+			//find the deepest error
+			var error = lastNode as ExpressionError;
+			ExpressionNode parent = lastNode.Parent;
+			while (parent != null && error == null) {
+				error = parent as ExpressionError;
+				parent = parent.Parent;
+			}
+
+			if (error is IncompleteExpressionError iee && iee.WasEOF) {
+				switch (lastNode) {
 				case ExpressionItem i:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash && i.Name.Length == 1) {
-						triggerLength = 1;
-						return TriggerState.Item;
-					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
 						return TriggerState.ItemFunctionName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
-						if (i.Find (iee.Offset) is ExpressionFunctionName func && func.Name?.Length == 1) {
-							triggerLength = 1;
-							return TriggerState.ItemFunctionName;
-						}
+					break;
+				case ExpressionItemName ein:
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash && ein.Name?.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.Item;
 					}
 					break;
-				case ExpressionProperty p:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && p.Name.Length == 1) {
+				case ExpressionPropertyName pn:
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && pn.Name?.Length == 1) {
 						triggerLength = 1;
 						return TriggerState.Property;
 					}
+					break;
+				case ExpressionFunctionName fn:
+					if (iee.Kind == ExpressionErrorKind.IncompleteProperty && fn.Name?.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.PropertyFunctionName;
+					}
+					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen && fn.Name?.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.ItemFunctionName;
+					}
+					break;
+				case ExpressionPropertyFunctionInvocation pfi:
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
 						return TriggerState.PropertyFunctionName;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingClassName) {
 						return TriggerState.PropertyFunctionClassName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon) {
-						if (iee.Find (iee.Offset) is ExpressionClassReference cr && cr.Name.Length == 1) {
-							triggerLength = 1;
-							return TriggerState.PropertyFunctionClassName;
-						}
-					}
-					if (iee.Kind == ExpressionErrorKind.IncompleteProperty) {
-						if (p.Find (iee.Offset) is ExpressionFunctionName propFunc && propFunc.Name?.Length == 1) {
-							triggerLength = 1;
-							return TriggerState.PropertyFunctionName;
-						}
+					break;
+				case ExpressionClassReference cr:
+					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon && cr.Name?.Length == 1) {
+						triggerLength = 1;
+						return TriggerState.PropertyFunctionClassName;
 					}
 					break;
 				case ExpressionMetadata m:
 					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
 						return TriggerState.Metadata;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && m.ItemName.Length == 1) {
+					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod && m.ItemName?.Length == 1) {
 						triggerLength = 1;
 						return TriggerState.MetadataOrItem;
 					}
@@ -167,8 +178,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return TriggerState.None;
 			}
 
-			if (lastNode is ExpressionError err) {
-				switch (err.Kind) {
+			if (error != null) {
+				switch (error.Kind) {
 				case ExpressionErrorKind.ExpectingPropertyName:
 					return TriggerState.Property;
 				case ExpressionErrorKind.ExpectingItemName:
