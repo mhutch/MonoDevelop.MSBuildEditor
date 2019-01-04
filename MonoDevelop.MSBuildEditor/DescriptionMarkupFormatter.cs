@@ -78,7 +78,7 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			if (info is FunctionInfo fi) {
-				typeInfo = fi.ReturnType;
+				typeInfo = fi.ReturnTypeString;
 				if(!fi.IsProperty) {
 					sb.Append ("(");
 					bool first = true;

@@ -25,11 +25,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return null;
 			}
 
-			//string function completion
-			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
-				return CollapseOverloads (GetStringMembers (true));
-			}
-
 			if (node.Target is ExpressionClassReference classRef) {
 				if (classRef.Name == "MSBuild") {
 					return CollapseOverloads (GetIntrinsicPropertyFunctions ());
@@ -37,14 +32,47 @@ namespace MonoDevelop.MSBuildEditor.Language
 				if (permittedFunctions.TryGetValue (classRef.Name, out HashSet<string> members)) {
 					return CollapseOverloads (GetStaticFunctions (classRef.Name, members));
 				}
+				return null;
+			}
+
+			//function completion
+			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
+				var type = ResolveType (node.Target);
+				return CollapseOverloads (GetInstanceFunctions (type, true));
 			}
 
 			return null;
 		}
 
+		static MSBuildValueKind ResolveType (ExpressionPropertyNode node)
+		{
+			if (node is ExpressionPropertyName) {
+				return MSBuildValueKind.Unknown;
+			}
+
+			if (node is ExpressionPropertyFunctionInvocation inv) {
+				if (inv.Target is ExpressionClassReference classRef) {
+					var info = GetPropertyFunctionInfo (classRef.Name, inv.Function.Name);
+					return info.ReturnType;
+				}
+
+				//FIXME: maybe this could pass the types along directly instead of constantly converting
+				var targetType = ResolveType (inv.Target);
+
+				//FIXME: overload resolution
+				var match = GetInstanceFunctions (targetType, true).FirstOrDefault (m => m.Name == inv.Function.Name);
+				if (match != null) {
+					return match.ReturnType;
+				}
+				return MSBuildValueKind.Unknown;
+			}
+
+			return MSBuildValueKind.Unknown;
+		}
+
 		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
-			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringMembers (false)));
+			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringFunctions (false)));
 		}
 
 		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
@@ -75,10 +103,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//FIXME: make this lookup cheaper
-		public static BaseInfo GetPropertyFunctionInfo (string className, string name)
+		public static FunctionInfo GetPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
-				return GetStringMembers (true).FirstOrDefault (n => n.Name == name);
+				return GetStringFunctions (true).FirstOrDefault (n => n.Name == name);
 			}
 			if (className == "MSBuild") {
 				return GetIntrinsicPropertyFunctions ().FirstOrDefault (n => n.Name == name);
@@ -101,10 +129,31 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		static IEnumerable<FunctionInfo> GetStringMembers (bool includeProperties)
+		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties)
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
+			return GetInstanceFunctions (type, includeProperties);
+		}
+
+		static IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties)
+		{
+			var dotNetType = GetDotNetTypeName (kind);
+			var compilation = CreateCoreCompilation ();
+
+			INamedTypeSymbol type = null;
+			if (dotNetType != null) {
+				type = compilation.GetTypeByMetadataName (dotNetType);
+			}
+			if (type == null) {
+				type = compilation.GetTypeByMetadataName ("System.String");
+			}
+
+			return GetInstanceFunctions (type, includeProperties);
+		}
+
+		static IEnumerable<FunctionInfo> GetInstanceFunctions (INamedTypeSymbol type, bool includeProperties)
+		{
 			foreach (var member in type.GetMembers ()) {
 				if (member.IsStatic || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
@@ -239,6 +288,32 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			return MSBuildValueKind.Unknown;
+		}
+
+		static string GetDotNetTypeName (MSBuildValueKind kind)
+		{
+			if (kind.AllowLists ()) {
+				return null;
+			}
+
+			switch (kind) {
+			case MSBuildValueKind.String:
+				return "System.String";
+			case MSBuildValueKind.Bool:
+				return "System.Boolean";
+			case MSBuildValueKind.Int:
+				return "System.Int32";
+			case MSBuildValueKind.Char:
+				return "System.Char";
+			case MSBuildValueKind.Float:
+				return "System.Float";
+			case MSBuildValueKind.Object:
+				return "System.Object";
+			case MSBuildValueKind.DateTime:
+				return "System.DateTime";
+			}
+
+			return null;
 		}
 
 		static IEnumerable<FunctionInfo> GetIntrinsicItemFunctions ()

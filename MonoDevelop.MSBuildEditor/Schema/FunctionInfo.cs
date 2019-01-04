@@ -8,9 +8,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 	class FunctionInfo : BaseInfo
 	{
 		readonly FunctionParameterInfo [] arguments;
-		readonly string returnType;
+		readonly MSBuildValueKind returnType;
 
-		public virtual string ReturnType => returnType;
+		public virtual MSBuildValueKind ReturnType { get; }
+		public string ReturnTypeString => string.Join (" ", ReturnType.GetTypeDescription ());
 		public virtual FunctionParameterInfo [] Parameters => arguments;
 		public List<FunctionInfo> Overloads { get; } = new List<FunctionInfo> ();
 		public virtual bool IsProperty => false;
@@ -22,7 +23,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public FunctionInfo (string name, DisplayText description, MSBuildValueKind returnType, params FunctionParameterInfo [] arguments) : base (name, description)
 		{
 			this.arguments = arguments;
-			this.returnType = string.Join (" ", returnType.GetTypeDescription());
+			this.returnType = returnType;
 		}
 	}
 
