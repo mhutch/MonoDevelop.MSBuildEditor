@@ -195,7 +195,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					ParseItemTransform (buffer, ref offset, endOffset, baseOffset, itemRef),
 					out itemRef,
 					out IncompleteExpressionError error,
-					(n, o) => new ExpressionItem (baseOffset + start, o - baseOffset - start, n)
+					(n, o) => new ExpressionItem (baseOffset + start, o - start + 1, n)
 				)) {
 					return error;
 				}
@@ -204,7 +204,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					ParseItemFunction (buffer, ref offset, endOffset, baseOffset, itemRef),
 					out itemRef,
 					out IncompleteExpressionError error,
-					(n, o) => new ExpressionItem (baseOffset + start, o - baseOffset - start, n)
+					(n, o) => new ExpressionItem (baseOffset + start, o - start + 1, n)
 				)) {
 					return error;
 				}
@@ -234,23 +234,29 @@ namespace MonoDevelop.MSBuildEditor.Language
 		static ExpressionNode ParseItemTransform (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
 		{
 			offset++;
-			//FIXME: if we don't find the end, parse the partial transform anyway
 			//TODO: support custom separators
 			var endAposOffset = buffer.IndexOf ('\'', offset, endOffset - offset + 1);
-			if (endAposOffset < 0) {
-				return new IncompleteExpressionError (baseOffset + endOffset, true, ExpressionErrorKind.ExpectingApos, target);
-			}
-
 			ExpressionNode transform;
 			if (endAposOffset == 0) {
 				transform = new ExpressionText (offset, "", true);
 			} else {
 				//FIXME: disallow items in the transform
-				transform = Parse (buffer, offset, endAposOffset - 1, ExpressionOptions.Metadata, baseOffset);
+				transform = Parse (buffer, offset, endAposOffset < 0 ? endOffset : endAposOffset - 1, ExpressionOptions.Metadata, baseOffset);
 			}
 
-			offset = endAposOffset + 1;
-			return new ExpressionItemTransform (target.Offset, (offset + baseOffset) - target.Offset, target, transform);
+			offset = (endAposOffset < 0 ? endOffset  : endAposOffset) + 1;
+			var node = new ExpressionItemTransform (target.Offset, (offset + baseOffset) - target.Offset, target, transform);
+
+			if (endAposOffset < 0) {
+				return new IncompleteExpressionError (
+					baseOffset + offset - 1,
+					true,
+					ExpressionErrorKind.ExpectingApos,
+					node
+				);
+			}
+
+			return node;
 		}
 
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
