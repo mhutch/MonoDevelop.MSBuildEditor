@@ -233,6 +233,17 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			AssertContainsItem (provider, "MSBuild");
 			AssertContainsItem (provider, "System.String");
 		}
+
+		[Test]
+		public async Task PropertyFunctionChaining ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$([System.DateTime]::Now.^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "AddDays");
+		}
 	}
 }
 
