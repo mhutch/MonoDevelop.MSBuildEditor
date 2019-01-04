@@ -237,8 +237,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 						rr.ReferenceKind = MSBuildReferenceKind.ItemFunction;
 						rr.Reference = name.Name;
 					} else if (name.Parent is ExpressionPropertyFunctionInvocation prop) {
-						rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
-						rr.Reference = ((prop.Target as ExpressionClassReference)?.Name, name.Name);
+						if (prop.Target is ExpressionClassReference classRef) {
+							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
+							rr.Reference = (classRef.Name, name.Name);
+						} else {
+							var type = FunctionCompletion.ResolveType (prop.Target);
+							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
+							rr.Reference = (type, name.Name);
+						}
 					}
 					break;
 				case ExpressionClassReference cr:
@@ -372,6 +378,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		FileOrFolder,
 		ItemFunction,
 		PropertyFunction,
+		StaticPropertyFunction,
 		ClassName
 	}
 }

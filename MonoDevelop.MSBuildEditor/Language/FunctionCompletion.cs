@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return null;
 		}
 
-		static MSBuildValueKind ResolveType (ExpressionPropertyNode node)
+		public static MSBuildValueKind ResolveType (ExpressionPropertyNode node)
 		{
 			if (node is ExpressionPropertyName) {
 				return MSBuildValueKind.Unknown;
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 			if (node is ExpressionPropertyFunctionInvocation inv) {
 				if (inv.Target is ExpressionClassReference classRef) {
-					var info = GetPropertyFunctionInfo (classRef.Name, inv.Function.Name);
+					var info = GetStaticPropertyFunctionInfo (classRef.Name, inv.Function.Name);
 					return info.ReturnType;
 				}
 
@@ -103,10 +103,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		//FIXME: make this lookup cheaper
-		public static FunctionInfo GetPropertyFunctionInfo (string className, string name)
+		public static FunctionInfo GetStaticPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
-				return GetStringFunctions (true).FirstOrDefault (n => n.Name == name);
+				return null;
 			}
 			if (className == "MSBuild") {
 				return GetIntrinsicPropertyFunctions ().FirstOrDefault (n => n.Name == name);
@@ -115,6 +115,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return GetStaticFunctions (className, members).FirstOrDefault (n => n.Name == name);
 			}
 			return null;
+		}
+
+		//FIXME: make this lookup cheaper
+		public static FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
+		{
+			return GetInstanceFunctions (valueKind, true).FirstOrDefault (f => f.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper

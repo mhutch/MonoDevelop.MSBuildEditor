@@ -78,6 +78,11 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					return string.Equals (at.Item1, et.Item1, StringComparison.OrdinalIgnoreCase) &&
 						string.Equals (at.Item2, et.Item2, StringComparison.OrdinalIgnoreCase);
 				}
+				if (e is ValueTuple<MSBuildValueKind, string> vk) {
+					var at = (ValueTuple<MSBuildValueKind, string>)a;
+					return at.Item1 == vk.Item1 &&
+						string.Equals (at.Item2, vk.Item2, StringComparison.OrdinalIgnoreCase);
+				}
 				if (kind == MSBuildReferenceKind.Keyword) {
 					if (a is MSBuildLanguageElement el) {
 						a = el.Name;
@@ -217,15 +222,15 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 			AssertReferences (
 				doc,
-				(MSBuildReferenceKind.PropertyFunction, ((string)null, "bar")),
-				(MSBuildReferenceKind.PropertyFunction, ((string)null, "baz")),
+				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "bar")),
+				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "baz")),
 				(MSBuildReferenceKind.ClassName, "foo.bar"),
-				(MSBuildReferenceKind.PropertyFunction, ("foo.bar", "baz")),
+				(MSBuildReferenceKind.StaticPropertyFunction, ("foo.bar", "baz")),
 				(MSBuildReferenceKind.ClassName, "bar.a.b"),
-				(MSBuildReferenceKind.PropertyFunction, ("bar.a.b", "foo")),
-				(MSBuildReferenceKind.PropertyFunction, ((string)null, "foo")),
+				(MSBuildReferenceKind.StaticPropertyFunction, ("bar.a.b", "foo")),
+				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "foo")),
 				(MSBuildReferenceKind.ClassName, "one"),
-				(MSBuildReferenceKind.PropertyFunction, ("one", "two"))
+				(MSBuildReferenceKind.StaticPropertyFunction, ("one", "two"))
 			);
 		}
 

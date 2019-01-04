@@ -47,6 +47,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.Target:
 			case MSBuildReferenceKind.ItemFunction:
 			case MSBuildReferenceKind.PropertyFunction:
+			case MSBuildReferenceKind.StaticPropertyFunction:
 			case MSBuildReferenceKind.ClassName:
 				return rr.Reference != null;
 			}
@@ -71,8 +72,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.ItemFunction:
 				return new MSBuildItemFunctionReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.PropertyFunction:
-				(string className, string itemName) = ((string, string))rr.Reference;
-				return new MSBuildPropertyFunctionReferenceCollector (className, itemName);
+				(string className, string name) = ((string, string))rr.Reference;
+				return new MSBuildStaticPropertyFunctionReferenceCollector (className, name);
+			case MSBuildReferenceKind.StaticPropertyFunction:
+				(MSBuildValueKind valueKind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
+				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName);
 			case MSBuildReferenceKind.ClassName:
 				return new MSBuildClassReferenceCollector ((string)rr.Reference);
 			}
@@ -281,11 +285,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 	}
 
-	class MSBuildPropertyFunctionReferenceCollector : MSBuildReferenceCollector
+	class MSBuildStaticPropertyFunctionReferenceCollector : MSBuildReferenceCollector
 	{
 		readonly string className;
 
-		public MSBuildPropertyFunctionReferenceCollector (string className, string functionName) : base (functionName)
+		public MSBuildStaticPropertyFunctionReferenceCollector (string className, string functionName) : base (functionName)
 		{
 			this.className = className;
 		}
@@ -299,8 +303,46 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionFunctionName func:
 					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
-						if (IsMatch (func.Name) && className == (inv.Target as ExpressionClassReference)?.Name) {
+						if (IsMatch (func.Name) && inv.Target is ExpressionClassReference className && className.Name == Name) {
 							Results.Add ((func.Offset, func.Length, ReferenceUsage.Read));
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	class MSBuildPropertyFunctionReferenceCollector : MSBuildReferenceCollector
+	{
+		readonly MSBuildValueKind valueKind;
+
+		public MSBuildPropertyFunctionReferenceCollector (MSBuildValueKind valueKind, string functionName) : base (functionName)
+		{
+			if (valueKind == MSBuildValueKind.Unknown) {
+				valueKind = MSBuildValueKind.String;
+			}
+			this.valueKind = valueKind;
+		}
+
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionFunctionName func:
+					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
+						if (IsMatch (func.Name)) {
+							//TODO: should we be fuzzy here and accept "unknown"?
+							var resolvedKind = FunctionCompletion.ResolveType (inv);
+							if (resolvedKind == MSBuildValueKind.Unknown) {
+								resolvedKind = MSBuildValueKind.String;
+							}
+							if (resolvedKind == valueKind) {
+								Results.Add ((func.Offset, func.Length, ReferenceUsage.Read));
+							}
 						}
 					}
 					break;
