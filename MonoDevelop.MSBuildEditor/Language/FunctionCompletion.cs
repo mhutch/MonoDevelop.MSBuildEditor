@@ -143,6 +143,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
+		internal static BaseInfo GetEnumInfo (string reference)
+		{
+			//FIXME: resolve enum values
+			return new ConstantInfo (reference, null);
+		}
+
 		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
 		{
 			var compilation = CreateCoreCompilation ();

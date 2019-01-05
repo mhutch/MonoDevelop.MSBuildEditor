@@ -49,6 +49,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			case MSBuildReferenceKind.PropertyFunction:
 			case MSBuildReferenceKind.StaticPropertyFunction:
 			case MSBuildReferenceKind.ClassName:
+			case MSBuildReferenceKind.Enum:
 				return rr.Reference != null;
 			}
 
@@ -79,6 +80,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName);
 			case MSBuildReferenceKind.ClassName:
 				return new MSBuildClassReferenceCollector ((string)rr.Reference);
+			case MSBuildReferenceKind.Enum:
+				return new MSBuildEnumReferenceCollector ((string)rr.Reference);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
@@ -385,6 +388,25 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionClassReference classRef:
 					if (IsMatch (classRef.Name)) {
+					break;
+				}
+			}
+		}
+	}
+
+	class MSBuildEnumReferenceCollector : MSBuildReferenceCollector
+	{
+		public MSBuildEnumReferenceCollector (string enumName) : base (enumName) { }
+
+		protected override void VisitValueExpression (
+			XElement element, XAttribute attribute,
+			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			foreach (var n in node.WithAllDescendants ()) {
+				switch (n) {
+				case ExpressionClassReference classRef:
+					if (IsMatch (classRef.Name) && classRef.Parent is ExpressionArgumentList) {
 						Results.Add ((classRef.Offset, classRef.Length, ReferenceUsage.Read));
 					}
 					break;

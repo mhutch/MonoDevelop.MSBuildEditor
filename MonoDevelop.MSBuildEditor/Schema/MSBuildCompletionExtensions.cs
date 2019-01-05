@@ -305,6 +305,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				return FunctionCompletion.GetPropertyFunctionInfo (kind, funcName);
 			case MSBuildReferenceKind.ClassName:
 				return FunctionCompletion.GetClassInfo ((string)rr.Reference);
+			case MSBuildReferenceKind.Enum:
+				return FunctionCompletion.GetEnumInfo ((string)rr.Reference);
 			}
 			return null;
 		}

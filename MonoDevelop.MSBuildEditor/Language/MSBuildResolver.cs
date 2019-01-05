@@ -249,7 +249,13 @@ namespace MonoDevelop.MSBuildEditor.Language
 					break;
 				case ExpressionClassReference cr:
 					if (!string.IsNullOrEmpty (cr.Name)) {
-						rr.ReferenceKind = MSBuildReferenceKind.ClassName;
+						if (cr.Parent is ExpressionArgumentList) {
+							rr.ReferenceKind = MSBuildReferenceKind.Enum;
+						} else if (cr.Parent is ExpressionPropertyFunctionInvocation) {
+							rr.ReferenceKind = MSBuildReferenceKind.ClassName;
+						} else {
+							break;
+						}
 						rr.ReferenceOffset = cr.Offset;
 						rr.Reference = cr.Name;
 						rr.ReferenceLength = cr.Length;
@@ -379,6 +385,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		ItemFunction,
 		PropertyFunction,
 		StaticPropertyFunction,
-		ClassName
+		ClassName,
+		Enum
 	}
 }

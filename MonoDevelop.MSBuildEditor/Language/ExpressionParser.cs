@@ -656,7 +656,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return false;
 		}
 
-		static ExpressionNode ParsePropertyInstanceFunction(string buffer, ref int offset, int endOffset, int baseOffset, ExpressionPropertyNode target)
+		static ExpressionNode ParsePropertyInstanceFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionPropertyNode target)
 		{
 			offset++;
 
@@ -793,12 +793,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return prop;
 			}
 
-			var name = ReadName (buffer, ref offset, endOffset);
-			if (name != null) {
-				if (bool.TryParse (name, out bool val)) {
-					return new ExpressionArgumentBool (start + baseOffset, name.Length, val);
+			if (char.IsLetter (ch)) {
+				var crNode = ReadClassReference (buffer, ref offset, endOffset, baseOffset);
+				if (crNode is ExpressionClassReference classRef && bool.TryParse (classRef.Name, out bool boolVal)) {
+					return new ExpressionArgumentBool (classRef.Offset, classRef.Length, boolVal);
 				}
-				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteValue);
+				return crNode;
 			}
 			offset = start;
 

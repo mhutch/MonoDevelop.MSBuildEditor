@@ -309,7 +309,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	abstract class ExpressionItemNode : ExpressionNode
 	{
-		public ExpressionItemNode (int offset, int length) : base (offset, length)
+		protected ExpressionItemNode (int offset, int length) : base (offset, length)
 		{
 		}
 
