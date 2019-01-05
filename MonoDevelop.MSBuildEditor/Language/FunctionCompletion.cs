@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			var incomplete = (triggerExpression as IncompleteExpressionError)?.IncompleteNode;
-			incomplete = incomplete?.Find (incomplete.Length);
+			incomplete = incomplete?.Find (incomplete.End);
 
 			if (!(incomplete is ExpressionPropertyFunctionInvocation node)) {
 				return null;
@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			//function completion
 			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
 				var type = ResolveType (node.Target);
-				return CollapseOverloads (GetInstanceFunctions (type, true));
+				return CollapseOverloads (GetInstanceFunctions (type, true, false));
 			}
 
 			return null;
@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				var targetType = ResolveType (inv.Target);
 
 				//FIXME: overload resolution
-				var match = GetInstanceFunctions (targetType, true).FirstOrDefault (m => m.Name == inv.Function.Name);
+				var match = Find (GetInstanceFunctions (targetType, true, true), inv.Function?.Name);
 				if (match != null) {
 					return match.ReturnType;
 				}
@@ -72,7 +72,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
-			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringFunctions (false)));
+			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringFunctions (false, false)));
 		}
 
 		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
@@ -120,7 +120,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 		//FIXME: make this lookup cheaper
 		public static FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
 		{
-			return GetInstanceFunctions (valueKind, true).FirstOrDefault (f => f.Name == name);
+			return Find (GetInstanceFunctions (valueKind, true, true), name);
+		}
+
+		static FunctionInfo Find (IEnumerable<FunctionInfo> functions, string name)
+		{
+			if (name == null) {
+				return functions.FirstOrDefault (f => f is RoslynPropertyInfo rf && rf.Symbol.IsIndexer);
+			}
+			return functions.FirstOrDefault (f => f.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
@@ -135,14 +143,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties)
+		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
 		{
 			var compilation = CreateCoreCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
-			return GetInstanceFunctions (type, includeProperties);
+			return GetInstanceFunctions (type, includeProperties, includeIndexers);
 		}
 
-		static IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties)
+		static IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
 		{
 			var dotNetType = GetDotNetTypeName (kind);
 			var compilation = CreateCoreCompilation ();
@@ -155,10 +163,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				type = compilation.GetTypeByMetadataName ("System.String");
 			}
 
-			return GetInstanceFunctions (type, includeProperties);
+			return GetInstanceFunctions (type, includeProperties, includeIndexers);
 		}
 
-		static IEnumerable<FunctionInfo> GetInstanceFunctions (INamedTypeSymbol type, bool includeProperties)
+		static IEnumerable<FunctionInfo> GetInstanceFunctions (INamedTypeSymbol type, bool includeProperties, bool includeIndexers)
 		{
 			foreach (var member in type.GetMembers ()) {
 				if (member.IsStatic || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
@@ -190,6 +198,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 					yield return new RoslynFunctionInfo (method);
 				} else if (includeProperties && member is IPropertySymbol prop) {
 					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						continue;
+					}
+					if (!includeIndexers && prop.IsIndexer) {
 						continue;
 					}
 					yield return new RoslynPropertyInfo (prop);

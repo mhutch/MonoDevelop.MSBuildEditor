@@ -308,6 +308,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(Foo.A('bees'))", "Foo", "A", "bees")]
 		[TestCase ("$(Foo.A('bees', 2, 'more bees'))", "Foo", "A", "bees", 2, "more bees")]
 		[TestCase ("$(Foo.A(`bees`, `more bees`))", "Foo", "A", "bees", "more bees")]
+		[TestCase ("$(a[0])", "a", null, 0)]
+		[TestCase ("$(a['hello',true])", "a", null, "hello", true)]
 		public void TestSimplePropertyFunctions(object[] args)
 		{
 			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
@@ -392,21 +394,28 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		public void TestFunctionChaining ()
 		{
 			TestParse (
-				"$(Foo.Bar().Baz(1,'hi'))",
+				"$(Foo.Bar()[0].Baz(1,'hi'))",
 				new ExpressionProperty (
-					0, 24,
+					0, 27,
 					new ExpressionPropertyFunctionInvocation (
-						2, 21,
+						2, 24,
 						new ExpressionPropertyFunctionInvocation (
-							2, 9,
-							new ExpressionPropertyName (2, 3, "Foo"),
-							new ExpressionFunctionName (6, "Bar"),
-							new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
+							2, 12,
+							new ExpressionPropertyFunctionInvocation (
+								2, 9,
+								new ExpressionPropertyName (2, 3, "Foo"),
+								new ExpressionFunctionName (6, "Bar"),
+								new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
+							),
+							null,
+							new ExpressionArgumentList (11, 3, new List<ExpressionNode> {
+								new ExpressionArgumentInt (12, 1, 0),
+							})
 						),
-						new ExpressionFunctionName (12, "Baz"),
-						new ExpressionArgumentList (15, 8, new List<ExpressionNode> {
-							new ExpressionArgumentInt (16, 1, 1),
-							new ExpressionText (19, "hi", true)
+						new ExpressionFunctionName (15, "Baz"),
+						new ExpressionArgumentList (18, 8, new List<ExpressionNode> {
+							new ExpressionArgumentInt (19, 1, 1),
+							new ExpressionText (22, "hi", true)
 						})
 					)
 				),

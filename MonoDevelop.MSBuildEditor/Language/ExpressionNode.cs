@@ -249,13 +249,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public ExpressionFunctionName Function { get; }
 		public ExpressionArgumentList Arguments;
 
-		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, ExpressionFunctionName methodName, ExpressionArgumentList arguments)
+		public bool IsProperty => Function != null && Arguments == null;
+		public bool IsIndexer => Function == null && Arguments != null;
+
+		public ExpressionPropertyFunctionInvocation(int offset, int length, ExpressionPropertyNode target, ExpressionFunctionName function, ExpressionArgumentList arguments)
 			: base (offset, length)
 		{
 			Target = target;
 			target?.SetParent (this);
-			Function = methodName;
-			methodName?.SetParent (this);
+			Function = function;
+			function?.SetParent (this);
 			Arguments = arguments;
 			arguments?.SetParent (this);
 		}

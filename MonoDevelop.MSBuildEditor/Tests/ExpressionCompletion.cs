@@ -57,6 +57,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$(foo.bar(1, '$(a", TriggerState.Property, 1)]
 		[TestCase ("@(a->'$(b", TriggerState.Property, 1)]
 		[TestCase ("@(a->'$(b)','$(a", TriggerState.Property, 1)]
+		[TestCase ("$(a[0].", TriggerState.PropertyFunctionName, 0)]
 		public void TestTriggering (string expr, TriggerState expectedState, int expectedLength)
 		{
 			var state = GetTriggerState (

@@ -10,8 +10,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	class RoslynFunctionInfo : FunctionInfo
 	{
-		readonly IMethodSymbol symbol;
-
 		static string GetName (IMethodSymbol symbol)
 		{
 			if (symbol.MethodKind == MethodKind.Constructor)
@@ -21,13 +19,14 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public RoslynFunctionInfo (IMethodSymbol symbol) : base (GetName (symbol), null)
 		{
-			this.symbol = symbol;
+			Symbol = symbol;
 		}
 
-		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
+		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (Symbol), true);
 
-		public override FunctionParameterInfo [] Parameters => symbol.Parameters.Select (p => new RoslynFunctionArgumentInfo (p)).ToArray ();
-		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (symbol.GetReturnType ());
+		public IMethodSymbol Symbol { get; }
+		public override FunctionParameterInfo [] Parameters => Symbol.Parameters.Select (p => new RoslynFunctionArgumentInfo (p)).ToArray ();
+		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (Symbol.GetReturnType ());
 	}
 
 	class RoslynFunctionArgumentInfo : FunctionParameterInfo
@@ -45,28 +44,26 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 	class RoslynClassInfo : ClassInfo
 	{
-		readonly ITypeSymbol symbol;
-
 		public RoslynClassInfo (string name, ITypeSymbol symbol) : base (name, null)
 		{
-			this.symbol = symbol;
+			Symbol = symbol;
 		}
 
-		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
+		public ITypeSymbol Symbol { get; }
+		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (Symbol), true);
 	}
 
 	class RoslynPropertyInfo : FunctionInfo
 	{
-		readonly IPropertySymbol symbol;
-
 		public RoslynPropertyInfo (IPropertySymbol symbol) : base (symbol.Name, null)
 		{
-			this.symbol = symbol;
+			Symbol = symbol;
 		}
 
-		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
+		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (Symbol), true);
 
-		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (symbol.GetReturnType ());
+		public IPropertySymbol Symbol { get; }
+		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (Symbol.GetReturnType ());
 		public override FunctionParameterInfo [] Parameters => null;
 		public override bool IsProperty => true;
 	}

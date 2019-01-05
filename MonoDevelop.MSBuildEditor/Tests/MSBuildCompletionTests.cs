@@ -201,6 +201,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			AssertContainsItem (provider, "get_Length");
 			//.net properties are allowed for properties
 			AssertContainsItem (provider, "Length");
+			//indexers should be filtered out
+			AssertDoesNotContainItem (provider, "this[]");
 		}
 
 		[Test]
@@ -220,6 +222,8 @@ namespace MonoDevelop.MSBuildEditor.Tests
 			AssertContainsItem (provider, "get_Length");
 			//.net properties are not allowed for items
 			AssertDoesNotContainItem (provider, "Length");
+			//indexers should be filtered out
+			AssertDoesNotContainItem (provider, "this[]");
 		}
 
 		[Test]
@@ -243,6 +247,18 @@ namespace MonoDevelop.MSBuildEditor.Tests
 <Foo>$([System.DateTime]::Now.^", ".csproj", true, '^');
 			Assert.IsNotNull (provider);
 			AssertContainsItem (provider, "AddDays");
+		}
+
+		[Test]
+		public async Task IndexerChaining ()
+		{
+			var provider = await MSBuildEditorTesting.CreateProvider (@"
+<Project>
+<PropertyGroup>
+<Foo>$(Foo[0].^", ".csproj", true, '^');
+			Assert.IsNotNull (provider);
+			AssertContainsItem (provider, "CompareTo");
+			AssertDoesNotContainItem (provider, "Substring");
 		}
 	}
 }
