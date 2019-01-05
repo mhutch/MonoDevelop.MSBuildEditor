@@ -219,6 +219,10 @@
         },
         {
           "include": "#msbuild-expression"
+        },
+        {
+          "match": "([,;])",
+          "name": "punctuation.definition.list-sep.msbuild"
         }
       ]
     },
@@ -290,6 +294,10 @@
         },
         {
           "include": "#msbuild-expression"
+        },
+        {
+          "match": "([,;])",
+          "name": "punctuation.definition.list-sep.msbuild"
         }
       ]
     },
@@ -358,6 +366,16 @@
         }
       ]
     },
+    "msbuild-expression-string-double": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.interpolated.msbuild",
+      "patterns": [
+        {
+          "include": "#msbuild-expression"
+        }
+      ]
+    },
     "msbuild-expression-string-single": {
       "begin": "'",
       "end": "'",
@@ -407,16 +425,6 @@
         },
         {
           "include": "#msbuild-expression-string-backtick"
-        }
-      ]
-    },
-    "msbuild-expression-string-double": {
-      "begin": "\"",
-      "end": "\"",
-      "name": "string.interpolated.msbuild",
-      "patterns": [
-        {
-          "include": "#msbuild-expression"
         }
       ]
     },
