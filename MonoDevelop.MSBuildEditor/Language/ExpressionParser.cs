@@ -232,20 +232,56 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 		}
 
-		//TODO: support custom separators
 		static ExpressionNode ParseItemTransform (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)
 		{
 			char terminator = buffer [offset];
+
 			if (WrapError (
 				ReadArgumentString (terminator, buffer, ref offset, endOffset, baseOffset),
 				out ExpressionNode expr,
 				out IncompleteExpressionError err,
-				(n, o) => new ExpressionItemTransform (target.Offset, o - target.Offset + baseOffset, target, n)
+				(n, o) => new ExpressionItemTransform (target.Offset, o - target.Offset + baseOffset, target, n, null)
 				)) {
 				return err;
 			}
 
-			return new ExpressionItemTransform (target.Offset, offset - target.Offset + baseOffset, target, expr);
+			int preSpaceOffset = offset;
+			ConsumeSpace (buffer, ref offset, endOffset);
+
+			if (offset > endOffset || buffer [offset] != ',') {
+				return new ExpressionItemTransform (target.Offset, preSpaceOffset - target.Offset + baseOffset, target, expr, null);
+			}
+			offset++;
+
+			ConsumeSpace (buffer, ref offset, endOffset);
+
+			bool foundCustomSeparator = false;
+			if (offset <= endOffset) {
+				terminator = buffer [offset];
+				if (terminator == '\'' || terminator == '"' || terminator == '`') {
+					foundCustomSeparator = true;
+				}
+			}
+
+			if (!foundCustomSeparator) {
+				return new IncompleteExpressionError (
+					offset,
+					offset > endOffset,
+					ExpressionErrorKind.ExpectingValue,
+					new ExpressionItemTransform (target.Offset, preSpaceOffset - target.Offset + baseOffset, target, expr, null)
+				);
+			}
+
+			if (WrapError (
+				ReadArgumentString (terminator, buffer, ref offset, endOffset, baseOffset),
+				out ExpressionNode sepExpr,
+				out err,
+				(n, o) => new ExpressionItemTransform (target.Offset, o - target.Offset + baseOffset, target, expr, n)
+				)) {
+				return err;
+			}
+
+			return new ExpressionItemTransform (target.Offset, offset - target.Offset + baseOffset, target, expr, sepExpr);
 		}
 
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionItemNode target)

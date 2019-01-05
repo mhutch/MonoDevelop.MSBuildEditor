@@ -363,17 +363,20 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		public ExpressionItemNode Target { get; }
 		public ExpressionNode Transform { get; }
+		public ExpressionNode Separator { get; }
 
 		public override string ItemName => Target.ItemName;
 		public override int ItemNameOffset => Target.ItemNameOffset;
 
-		public ExpressionItemTransform (int offset, int length, ExpressionItemNode target, ExpressionNode transform)
+		public ExpressionItemTransform (int offset, int length, ExpressionItemNode target, ExpressionNode transform, ExpressionNode separator)
 			: base (offset, length)
 		{
 			Target = target;
 			target.SetParent (this);
 			Transform = transform;
 			transform.SetParent (this);
+			Separator = separator;
+			separator?.SetParent (this);
 		}
 	}
 
@@ -468,6 +471,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 						yield return n;
 					}
 				}
+				if (transform.Separator != null) {
+					foreach (var n in transform.Separator.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
 				break;
 			case IncompleteExpressionError err:
 				if (err.IncompleteNode != null) {
@@ -557,6 +565,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				if (transform.Transform != null && transform.Transform.ContainsOffset (offset)) {
 					return transform.Transform.FindInternal (offset);
+				}
+				if (transform.Separator != null && transform.Separator.ContainsOffset (offset)) {
+					return transform.Separator.FindInternal (offset);
 				}
 				break;
 			}

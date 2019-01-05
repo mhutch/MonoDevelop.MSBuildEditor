@@ -109,6 +109,9 @@ namespace MonoDevelop.MSBuildEditor.Tests
 		[TestCase ("$([ a . b  . ", ExpressionErrorKind.ExpectingClassNameComponent)]
 		[TestCase ("$([ a . )", ExpressionErrorKind.ExpectingClassNameComponent)]
 		[TestCase ("$([ a . b . )", ExpressionErrorKind.ExpectingClassNameComponent)]
+		[TestCase ("@(foo->'x', ", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("@(foo->'x', '", ExpressionErrorKind.IncompleteString)]
+		[TestCase ("@(foo->'x', ''", ExpressionErrorKind.ExpectingRightParen)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
@@ -240,7 +243,26 @@ namespace MonoDevelop.MSBuildEditor.Tests
 					new ExpressionItemTransform (
 						2, 17,
 						new ExpressionItemName (2, 3, "Foo"),
-						new ExpressionMetadata (8, 10, "Bar", "Baz")
+						new ExpressionMetadata (8, 10, "Bar", "Baz"),
+						null
+					)
+				),
+				ExpressionOptions.Items
+			);
+		}
+
+		[Test]
+		public void TestItemTransformWithCustomSeparator ()
+		{
+			TestParse (
+				"@(Foo->'%(Bar.Baz)', '$(x)')",
+				new ExpressionItem (
+					0, 28,
+					new ExpressionItemTransform (
+						2, 25,
+						new ExpressionItemName (2, 3, "Foo"),
+						new ExpressionMetadata (8, 10, "Bar", "Baz"),
+						new ExpressionProperty (22, 4, new ExpressionPropertyName (24, 1, "x"))
 					)
 				),
 				ExpressionOptions.Items
@@ -442,6 +464,10 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
 		{
+			if (expected == null) {
+				Assert.IsNull (actual);
+				return;
+			}
 			if (actual is ExpressionError err && !(expected is ExpressionError)) {
 				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
 			}
@@ -501,6 +527,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 				var expectedItemTransform = (ExpressionItemTransform)expected;
 				AssertEqual (expectedItemTransform.Transform, itemTransform.Transform, expectedOffset);
 				AssertEqual (expectedItemTransform.Target, itemTransform.Target, expectedOffset);
+				AssertEqual (expectedItemTransform.Separator, itemTransform.Separator, expectedOffset);
 				break;
 			case ExpressionArgumentList argList:
 				var expectedArgList = (ExpressionArgumentList)expected;
