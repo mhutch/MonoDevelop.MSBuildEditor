@@ -12,13 +12,17 @@ The completion for `PackageReference` attributes queries NuGet.org as you type.
 
 ![](images/completion.gif)
 
-There's even completion for condition comparisons.
+There's completion for condition comparisons:
 
 ![](images/condition-completion.png)
 
+And there's also completion for property functions:
+
+![](images/property-function-completion.png)
+
 ### Navigation
 
-You can use the *Go to Definition* command or *Command*-click to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it. 
+You can use the *Go to Definition* command or *Command*-click to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
 
 The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports.
 
@@ -71,8 +75,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Add more unit tests
 * Add logic to figure out context of unqualified metadata
 * In addition to brute forcing imports, resolve using full conditioned state
-* Write a json schema for the schema
-* Completion for metadata and property functions in expressions
 * Implement completion for more item and value types
 * Completion of inline C#
 * show default value of property/metadata/items in tooltips
@@ -89,10 +91,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * project kind completion
 * Include.Project filename completion should be relative to SDK, if any
 * support encoding all over
-* syntax highlighting for property functions, item functions, transforms and conditions
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
 * trigger intellisense on |, indexed against | separated comparands
-* support property functions, item functions in new expression parser
 * validate property/items types passed to/from task parameters
 * add documentation for task parameters
 * fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
