@@ -72,10 +72,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return new MSBuildTargetReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.ItemFunction:
 				return new MSBuildItemFunctionReferenceCollector ((string)rr.Reference);
-			case MSBuildReferenceKind.PropertyFunction:
+			case MSBuildReferenceKind.StaticPropertyFunction:
 				(string className, string name) = ((string, string))rr.Reference;
 				return new MSBuildStaticPropertyFunctionReferenceCollector (className, name);
-			case MSBuildReferenceKind.StaticPropertyFunction:
+			case MSBuildReferenceKind.PropertyFunction:
 				(MSBuildValueKind valueKind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
 				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName);
 			case MSBuildReferenceKind.ClassName:
