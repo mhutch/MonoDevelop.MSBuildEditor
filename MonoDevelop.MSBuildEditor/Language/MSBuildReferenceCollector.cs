@@ -292,7 +292,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 	{
 		readonly string className;
 
-		public MSBuildStaticPropertyFunctionReferenceCollector (string className, string functionName) : base (functionName)
+		public MSBuildStaticPropertyFunctionReferenceCollector (string className, string functionName)
+			: base (MSBuildPropertyFunctionReferenceCollector.StripGetPrefix (functionName))
 		{
 			this.className = className;
 		}
@@ -306,7 +307,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionFunctionName func:
 					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
-						if (IsMatch (func.Name) && inv.Target is ExpressionClassReference className && className.Name == Name) {
+						string baseName = MSBuildPropertyFunctionReferenceCollector.StripGetPrefix (func.Name);
+						if (IsMatch (baseName) && inv.Target is ExpressionClassReference cn && cn.Name == className) {
 							Results.Add ((func.Offset, func.Length, ReferenceUsage.Read));
 						}
 					}
@@ -318,9 +320,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class MSBuildPropertyFunctionReferenceCollector : MSBuildReferenceCollector
 	{
+		//ensure that props and function-style props are equivalent e.g get_Now() and Now
+		//this is kinda hacky, we should really check whether the get variant is a
+		//method and the non-get variant is a property
+		internal static string StripGetPrefix (string name)
+		{
+			if (name.StartsWith ("get_", StringComparison.Ordinal) && name.Length > 4) {
+				return name.Substring (4);
+			}
+			return name;
+		}
+
 		readonly MSBuildValueKind valueKind;
 
-		public MSBuildPropertyFunctionReferenceCollector (MSBuildValueKind valueKind, string functionName) : base (functionName)
+		public MSBuildPropertyFunctionReferenceCollector (MSBuildValueKind valueKind, string functionName)
+			: base (StripGetPrefix (functionName))
 		{
 			if (valueKind == MSBuildValueKind.Unknown) {
 				valueKind = MSBuildValueKind.String;
@@ -337,7 +351,8 @@ namespace MonoDevelop.MSBuildEditor.Language
 				switch (n) {
 				case ExpressionFunctionName func:
 					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
-						if (IsMatch (func.Name)) {
+						string baseName = StripGetPrefix (func.Name);
+						if (IsMatch (baseName)) {
 							//TODO: should we be fuzzy here and accept "unknown"?
 							var resolvedKind = FunctionCompletion.ResolveType (inv);
 							if (resolvedKind == MSBuildValueKind.Unknown) {
@@ -387,7 +402,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
 				case ExpressionClassReference classRef:
-					if (IsMatch (classRef.Name)) {
+					if (IsMatch (classRef.Name) && classRef.Parent is ExpressionPropertyFunctionInvocation) {
+						Results.Add ((classRef.Offset, classRef.Length, ReferenceUsage.Read));
+					}
 					break;
 				}
 			}
