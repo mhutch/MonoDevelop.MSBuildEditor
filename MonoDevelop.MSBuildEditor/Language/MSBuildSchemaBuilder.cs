@@ -33,6 +33,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			try {
+				CollectResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved);
+			} catch (Exception ex) when (isToplevel) {
+				AddError ($"Internal error: {ex.Message}", element.GetNameRegion ());
+				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+			}
+		}
+
+		void CollectResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Import:
 				ResolveImport (element);

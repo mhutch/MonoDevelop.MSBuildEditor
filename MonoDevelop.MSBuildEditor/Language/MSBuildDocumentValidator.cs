@@ -4,25 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using MonoDevelop.Ide.Editor;
+using System.Linq;
+using MonoDevelop.Core;
 using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
-using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
 	class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
-		void AddError (ErrorType errorType, string message, DocumentRegion region) => Document.Errors.Add (new Error (errorType, message, region));
-		void AddError (ErrorType errorType, string message, int offset, int length) => Document.Errors.Add (new Error (errorType, message, GetRegion (offset, length)));
-		DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (TextDocument.OffsetToLocation (offset), TextDocument.OffsetToLocation (offset + length));
-		void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
-		void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, offset, length);
-		void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
-		void AddWarning (string message, int offset, int length) => AddError (ErrorType.Warning, message, offset, length);
-
-
 		protected override void VisitUnknownElement (XElement element)
 		{
 			AddError ($"Unknown element '{element.Name.FullName}'", element.Region);
@@ -36,6 +27,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 		}
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
+			try {
+				ValidateResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved);
+			} catch (Exception ex) {
+				AddError ($"Internal error: {ex.Message}", element.GetNameRegion ());
+				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+			}
+		}
+
+		void ValidateResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			foreach (var rat in resolved.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
@@ -74,8 +76,6 @@ namespace MonoDevelop.MSBuildEditor.Language
 				ValidateTaskParameters (resolved, element);
 				break;
 			}
-
-			base.VisitResolvedElement (element, resolved);
 		}
 
 		void ValidateProjectHasTarget (XElement element)
