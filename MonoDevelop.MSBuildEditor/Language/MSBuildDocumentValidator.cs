@@ -161,10 +161,10 @@ namespace MonoDevelop.MSBuildEditor.Language
 					}
 					foundParameterGroup = true;
 				}
-				if (child.NameEquals ("TaskBody", true)) {
+				if (child.NameEquals ("Task", true)) {
 					if (foundTaskBody) {
 						AddError (
-							$"UsingTask may only have one TaskBody",
+							$"UsingTask may only have one Task body",
 							child.GetNameRegion ());
 					}
 					foundTaskBody = true;
@@ -172,7 +172,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 			if (foundParameterGroup != foundTaskBody) {
 				AddError (
-					$"UsingTask must have both TaskBody and ParameterGroup, or neither",
+					$"UsingTask must have both Task body and ParameterGroup, or neither",
 					element.GetNameRegion ());
 			}
 		}

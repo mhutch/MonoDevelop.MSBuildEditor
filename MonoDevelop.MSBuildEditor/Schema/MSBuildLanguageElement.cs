@@ -89,8 +89,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			var property = AddBuiltin ("Property", ElementDescriptions.Property, MSBuildKind.Property, MSBuildValueKind.Unknown, true);
 			var propertyGroup = AddBuiltin ("PropertyGroup", ElementDescriptions.PropertyGroup, MSBuildKind.PropertyGroup);
 			var target = AddBuiltin ("Target", ElementDescriptions.Target, MSBuildKind.Target);
-			var task = AddBuiltin ("Task", ElementDescriptions.Task, MSBuildKind.Task, isAbstract: true);
-			var taskBody = AddBuiltin ("TaskBody", ElementDescriptions.TaskBody, MSBuildKind.TaskBody, MSBuildValueKind.Data);
+			var task = AddBuiltin ("AbstractTask", ElementDescriptions.Task, MSBuildKind.Task, isAbstract: true);
+			var taskBody = AddBuiltin ("Task", ElementDescriptions.TaskBody, MSBuildKind.TaskBody, MSBuildValueKind.Data);
 			var usingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildKind.UsingTask);
 			var when = AddBuiltin ("When", ElementDescriptions.When, MSBuildKind.When);
 

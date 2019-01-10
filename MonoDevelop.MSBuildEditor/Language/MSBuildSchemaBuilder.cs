@@ -56,13 +56,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case MSBuildKind.Parameter:
-				CollectTaskParameterDefinition (element.ParentElement ().Name.Name, element);
+				var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+				if (!string.IsNullOrEmpty (taskName)) {
+					CollectTaskParameterDefinition (taskName, element);
+				}
 				break;
 			case MSBuildKind.Metadata:
 				CollectMetadata (element.ParentElement ().Name.Name, element.Name.Name);
 				break;
 			}
-			base.VisitResolvedElement (element, resolved);
 		}
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
@@ -243,7 +245,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var type = def.Attributes.Get (new XName ("ParameterType"), true)?.Value;
 			if (type != null) {
 				if (type.EndsWith ("[]", StringComparison.Ordinal)) {
-					type = type.Substring (type.Length - 2);
+					type = type.Substring (0, type.Length - 2);
 					isList = true;
 				}
 
@@ -296,10 +298,11 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
-			if (info != null) {
-				Document.Tasks [info.Name] = info;
+			TaskInfo info = null;
+			if (assemblyName != null || assemblyFile != null) {
+				taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
 			}
+			Document.Tasks [info?.Name ?? taskName] = info ?? new TaskInfo (taskName, null, null, null, null, Filename, element.Region.Begin);
 		}
 
 		void ExtractConfigurations (string value, int startOffset)
