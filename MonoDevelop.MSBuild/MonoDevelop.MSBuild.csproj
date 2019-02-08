@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Schemas\CodeAnalysis.buildschema.json" />
+    <None Remove="Schemas\CommonTargets.buildschema.json" />
+    <None Remove="Schemas\Cpp.buildschema.json" />
+    <None Remove="Schemas\CSharp.buildschema.json" />
+    <None Remove="Schemas\NetSdk.buildschema.json" />
+    <None Remove="Schemas\NuGetPack.buildschema.json" />
+    <None Remove="Schemas\VisualBasic.buildschema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas\CodeAnalysis.buildschema.json" />
+    <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
+    <EmbeddedResource Include="Schemas\Cpp.buildschema.json" />
+    <EmbeddedResource Include="Schemas\CSharp.buildschema.json" />
+    <EmbeddedResource Include="Schemas\NetSdk.buildschema.json" />
+    <EmbeddedResource Include="Schemas\NuGetPack.buildschema.json" />
+    <EmbeddedResource Include="Schemas\VisualBasic.buildschema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="2.10.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="16.0.428" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="NuGet.Frameworks" Version="4.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Schema\ElementDescriptions.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ElementDescriptions.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Schema\ElementDescriptions.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.271
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuildEditor", "MonoDevelop.MSBuildEditor\MonoDevelop.MSBuildEditor.csproj", "{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuildEditor.Tests", "MonoDevelop.MSBuildEditor\Tests\MonoDevelop.MSBuildEditor.Tests.csproj", "{A345C0C4-4752-4CC6-B8C0-C1541CD4A2E9}"
@@ -9,6 +11,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml", "MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj", "{87DE05FC-4B18-4C21-8AA5-237CB5B97780}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Tests", "MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj", "{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild", "MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj", "{E30D9BF7-2840-4274-A8A6-58D34295C6C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Tests", "MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj", "{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,10 +34,32 @@ Global
 		{A345C0C4-4752-4CC6-B8C0-C1541CD4A2E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A345C0C4-4752-4CC6-B8C0-C1541CD4A2E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A345C0C4-4752-4CC6-B8C0-C1541CD4A2E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E30D9BF7-2840-4274-A8A6-58D34295C6C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E30D9BF7-2840-4274-A8A6-58D34295C6C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E30D9BF7-2840-4274-A8A6-58D34295C6C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E30D9BF7-2840-4274-A8A6-58D34295C6C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D111E12-470F-4E1D-9A39-DB2611E338C7}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
-		$0.TextStylePolicy = $1
+		$0.TextStylePolicy = $3
 		$1.scope = text/x-csharp
 		$0.CSharpFormattingPolicy = $2
 		$2.scope = text/x-csharp
@@ -48,7 +80,6 @@ Global
 		$2.SpacingAfterMethodDeclarationName = True
 		$2.SpaceAfterMethodCallName = True
 		$2.SpaceBeforeOpenSquareBracket = True
-		$0.TextStylePolicy = $3
 		$3.FileWidth = 80
 		$3.scope = text/microsoft-resx
 		$0.XmlFormattingPolicy = $4
