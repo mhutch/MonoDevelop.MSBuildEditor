@@ -7,6 +7,7 @@ using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -108,9 +109,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = isToplevel? sdkAtt.GetValueRegion (TextDocument) : sdkAtt.Region;
+				var loc = isToplevel ? sdkAtt.GetValueRegion (TextDocument) : sdkAtt.Region;
 				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
-				import = import == null? null : sdkPath + "\\" + import;
+				import = import == null ? null : sdkPath + "\\" + import;
 
 				if (isToplevel && sdkPath != null) {
 					Document.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
