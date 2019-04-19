@@ -315,6 +315,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case MSBuildValueKind.ItemName:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
+				case MSBuildValueKind.TaskName:
+					rr.ReferenceKind = MSBuildReferenceKind.Task;
+					return;
 				case MSBuildValueKind.TargetFramework:
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;

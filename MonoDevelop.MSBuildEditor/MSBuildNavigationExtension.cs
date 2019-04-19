@@ -15,6 +15,7 @@ using MonoDevelop.Ide.FindInFiles;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.MSBuildEditor.Schema;
 
 namespace MonoDevelop.MSBuildEditor
 {
@@ -47,6 +48,9 @@ namespace MonoDevelop.MSBuildEditor
 					break;
 				case MSBuildReferenceKind.Target:
 					FindReferences (() => new MSBuildTargetDefinitionCollector (result.Name), doc);
+					break;
+				case MSBuildReferenceKind.Task:
+					IdeApp.Workbench.OpenDocument (result.DestFile, null, result.DestLocation.Line, result.DestLocation.Column);
 					break;
 				}
 			} catch (Exception ex) {

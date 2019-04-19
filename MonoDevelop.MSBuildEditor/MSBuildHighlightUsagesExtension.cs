@@ -74,6 +74,7 @@ namespace MonoDevelop.MSBuildEditor
 			case MSBuildReferenceKind.StaticPropertyFunction:
 			case MSBuildReferenceKind.ClassName:
 			case MSBuildReferenceKind.Enum:
+			case MSBuildReferenceKind.Task:
 				return Task.FromResult (rr);
 			}
 
