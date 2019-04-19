@@ -91,12 +91,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
-				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Name.Name, true);
+				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Value, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
-        void ResolveImport (XElement element)
+		void ResolveImport (XElement element)
 		{
 			var importAtt = element.Attributes [new XName ("Project")];
 			var sdkAtt = element.Attributes [new XName ("Sdk")];
@@ -228,7 +228,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
 			var task = Document.Tasks [taskName];
-			if (task.IsInferred) {
+			if (task.IsInferred && !task.ForceInferAttributes) {
 				return;
 			}
 			if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo pi)) {
@@ -236,7 +236,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					return;
 				}
 			}
-			task.Parameters[parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
+			task.Parameters [parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
 		}
 
 		void CollectTaskParameterDefinition (string taskName, XElement def)
@@ -288,14 +288,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void CollectTaskDefinition (XElement element)
 		{
-			string taskName = null, assemblyFile = null, assemblyName = null;
+			string taskName = null, assemblyFile = null, assemblyName = null, taskFactory = null;
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("TaskName", true)) {
-					taskName = att.Value;
-				} else if (att.NameEquals ("AssemblyFile", true)) {
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "assemblyfile":
 					assemblyFile = att.Value;
-				} else if (att.NameEquals ("AssemblyName", true)) {
+					break;
+				case "assemblyname":
 					assemblyName = att.Value;
+					break;
+				case "taskfactory":
+					taskFactory = att.Value;
+					break;
+				case "taskname":
+					taskName = att.Value;
+					break;
 				}
 			}
 
@@ -309,11 +316,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			TaskInfo info = null;
-			if (assemblyName != null || assemblyFile != null) {
-				taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
+			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
+				TaskInfo info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
+				if (info != null) {
+					Document.Tasks [info.Name] = info;
+					return;
+				}
 			}
-			Document.Tasks [info?.Name ?? taskName] = info ?? new TaskInfo (taskName, null, null, null, null, Filename, element.Region.Begin);
+
+			//HACK: RoslynCodeTaskFactory determines the parameters automatically from the code, until we
+			//can do this too we need to force inference
+			bool forceInferAttributes = taskFactory != null && (
+				string.Equals (taskFactory, "RoslynCodeTaskFactory", StringComparison.OrdinalIgnoreCase) || (
+					string.Equals (taskFactory, "CodeTaskFactory", StringComparison.OrdinalIgnoreCase) &&
+					string.Equals (assemblyFile, "$(RoslynCodeTaskFactory)", StringComparison.OrdinalIgnoreCase
+				)) &&
+				!element.Elements.Any (n => n.Name.Name == "ParameterGroup"));
+
+			Document.Tasks [taskName] = new TaskInfo (taskName, null, null, null, null, Filename, element.Region.Begin) {
+				ForceInferAttributes = forceInferAttributes
+			};
 		}
 
 		void ExtractConfigurations (string value, int startOffset)

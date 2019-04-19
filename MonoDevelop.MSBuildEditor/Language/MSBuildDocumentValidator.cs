@@ -134,46 +134,117 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void ValidateUsingTaskHasAssembly (XElement element)
 		{
-			bool foundAssemblyAttribute = false;
+			XAttribute taskFactoryAtt = null;
+			XAttribute asmNameAtt = null;
+			XAttribute asmFileAtt = null;
+
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("AssemblyName", true) || att.NameEquals ("AssemblyFile", true)) {
-					if (foundAssemblyAttribute) {
-						AddError (
-							$"UsingTask may have only one AssemblyName or AssemblyFile attribute",
-							att.GetNameRegion ());
-					}
-					foundAssemblyAttribute = true;
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "assemblyfile":
+					asmFileAtt = att;
+					break;
+				case "assemblyname":
+					asmNameAtt = att;
+					break;
+				case "taskfactory":
+					taskFactoryAtt = att;
+					break;
 				}
 			}
-			if (!foundAssemblyAttribute) {
+
+			if (asmNameAtt == null && asmFileAtt == null) {
 				AddError (
 					$"UsingTask must have AssemblyName or AssemblyFile attribute",
 					element.GetNameRegion ());
+			} else if (taskFactoryAtt != null && asmNameAtt != null) {
+				AddError (
+					$"UsingTask with TaskFactory cannot have AssemblyName attribute",
+					asmNameAtt.GetNameRegion ());
+			} else if (taskFactoryAtt != null && asmFileAtt == null) {
+				AddError (
+					$"UsingTask with TaskFactory must have AssemblyFile attribute",
+					element.GetNameRegion ());
+			} else if (asmNameAtt != null && asmFileAtt != null) {
+				AddError (
+					$"UsingTask may not have both AssemblyName and AssemblyFile attributes",
+					asmNameAtt.GetNameRegion ());
 			}
 
-			bool foundParameterGroup = false, foundTaskBody = false;
+			XElement parameterGroup = null, taskBody = null;
 			foreach (var child in element.Elements) {
 				if (child.NameEquals ("ParameterGroup", true)) {
-					if (foundParameterGroup) {
+					if (parameterGroup != null) {
 						AddError (
 							$"UsingTask may only have one ParameterGroup",
 							child.GetNameRegion ());
 					}
-					foundParameterGroup = true;
+					parameterGroup = child;
 				}
 				if (child.NameEquals ("Task", true)) {
-					if (foundTaskBody) {
+					if (taskBody != null) {
 						AddError (
 							$"UsingTask may only have one Task body",
 							child.GetNameRegion ());
 					}
-					foundTaskBody = true;
+					taskBody = child;
 				}
 			}
-			if (foundParameterGroup != foundTaskBody) {
+
+			if (taskFactoryAtt == null) {
+				if (taskBody != null) {
+					AddError (
+						$"UsingTask without TaskFactory attribute cannot have Task element",
+						taskBody.GetNameRegion ());
+				} else if (parameterGroup != null) {
+					AddError (
+						$"UsingTask without TaskFactory attribute cannot have ParameterGroup element",
+						parameterGroup.GetNameRegion ());
+				}
+			} else {
+				if (taskBody == null) {
+					AddError (
+						$"UsingTask with TaskFactory attribute must have Task element",
+						element.GetNameRegion ());
+				}
+
+				if (taskBody != null) {
+					switch (taskFactoryAtt.Value?.ToLowerInvariant ()) {
+					case "codetaskfactory":
+						if (string.Equals (asmFileAtt.Value, "$(RoslynCodeTaskFactory)")) {
+							goto case "roslyncodetaskfactory";
+						}
+						break;
+					case "roslyncodetaskfactory":
+						ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						break;
+					case null:
+						AddError (
+							$"UsingTask with Task element must have TaskFactory attribute",
+							taskBody.GetNameRegion ());
+						break;
+					}
+				}
+			}
+
+		}
+
+		void ValidateRoslynCodeTaskFactory (XElement usingTask, XElement taskBody, XElement parameterGroup)
+		{
+			var code = taskBody.Elements.FirstOrDefault (f => string.Equals (f.Name.Name, "code", StringComparison.OrdinalIgnoreCase));
+			if (code == null) {
 				AddError (
-					$"UsingTask must have both Task body and ParameterGroup, or neither",
-					element.GetNameRegion ());
+					$"RoslynCodeTaskFactory requires Code element in Task body",
+					taskBody.GetNameRegion ());
+				return;
+			}
+			var typeAtt = code.Attributes.Get (new XName ("Type"), true);
+			var sourceAtt = code.Attributes.Get (new XName ("Source"), true);
+			if (sourceAtt != null || string.Equals (typeAtt?.Value, "Class", StringComparison.OrdinalIgnoreCase)) {
+				if (parameterGroup != null) {
+					AddError (
+						$"RoslynCodeTaskFactory with class ignores ParameterGroup",
+						parameterGroup.GetNameRegion ());
+				}
 			}
 		}
 

@@ -29,6 +29,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public DocumentLocation DeclaredAtLocation { get; }
 
 		public bool IsInferred => DeclaredInFile == null;
+
+		public bool ForceInferAttributes { get; set; }
 	}
 
 	class TaskParameterInfo : ValueInfo
