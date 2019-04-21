@@ -4,6 +4,7 @@
 
 using MonoDevelop.Core.Text;
 using MonoDevelop.Ide.Editor;
+using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -157,5 +158,14 @@ namespace MonoDevelop.MSBuildEditor.Language
 		protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
 		{
 		}
+
+		protected void AddError (ErrorType errorType, string message, DocumentRegion region) => Document.Errors.Add (new Error (errorType, message, region));
+		protected void AddError (ErrorType errorType, string message, int offset, int length) => Document.Errors.Add (new Error (errorType, message, GetRegion (offset, length)));
+		protected DocumentRegion GetRegion (int offset, int length) => new DocumentRegion (TextDocument.OffsetToLocation (offset), TextDocument.OffsetToLocation (offset + length));
+		protected void AddError (string message, DocumentRegion region) => AddError (ErrorType.Error, message, region);
+		protected void AddError (string message, int offset, int length) => AddError (ErrorType.Error, message, offset, length);
+		protected void AddWarning (string message, DocumentRegion region) => AddError (ErrorType.Warning, message, region);
+		protected void AddWarning (string message, int offset, int length) => AddError (ErrorType.Warning, message, offset, length);
+
 	}
 }

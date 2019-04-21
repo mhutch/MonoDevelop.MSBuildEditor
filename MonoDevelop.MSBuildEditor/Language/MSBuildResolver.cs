@@ -168,10 +168,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 				XElement element, XAttribute attribute,
 				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
+				var start = ConvertLocation (attribute.Region.Begin);
+				var end = ConvertLocation (attribute.Region.End);
+
+				if (!IsIn (start, end - start)) {
+					base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+					return;
+				}
+
 				rr.LanguageAttribute = resolvedAttribute
 					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
 
-				var start = ConvertLocation (attribute.Region.Begin);
 				bool inName = IsIn (start, attribute.Name.Name.Length);
 
 				if (inName) {
@@ -264,7 +271,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case ExpressionText lit:
 					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
-						VisitPureLiteral (info, kind, lit);
+						VisitPureLiteral (element, info, kind, lit);
 						if (kind == MSBuildValueKind.TaskOutputParameterName) {
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
@@ -292,7 +299,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 
-			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionText node)
+			void VisitPureLiteral (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;
@@ -315,6 +322,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 				case MSBuildValueKind.ItemName:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
+				case MSBuildValueKind.TaskName:
+					rr.ReferenceKind = MSBuildReferenceKind.Task;
+					return;
 				case MSBuildValueKind.TargetFramework:
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
@@ -326,6 +336,18 @@ namespace MonoDevelop.MSBuildEditor.Language
 					return;
 				case MSBuildValueKind.TargetFrameworkProfile:
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkProfile;
+					return;
+				case MSBuildValueKind.MetadataName:
+					//this is used for KeepMetadata/RemoveMetadata.
+					//reasonable to resolve from first item in include.
+					var itemName = MSBuildMetadataReferenceCollector.GetIncludeExpression (element, TextDocument)
+						.WithAllDescendants ()
+						.OfType<ExpressionItemName> ()
+						.FirstOrDefault ();
+					if (itemName != null) {
+						rr.Reference = (itemName.Name, value);
+						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+					}
 					return;
 				}
 

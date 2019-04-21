@@ -72,6 +72,16 @@ namespace MonoDevelop.MSBuildEditor.Language
 				);
 			}
 
+			if (rr.ReferenceKind == MSBuildReferenceKind.Task) {
+				var task = doc.GetTask ((string)rr.Reference);
+				if (task.DeclaredInFile != null) {
+					return new MSBuildNavigationResult (
+						MSBuildReferenceKind.Task, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength,
+						task.DeclaredInFile, task.DeclaredAtLocation
+					);
+				}
+			}
+
 			return null;
 		}
 
@@ -184,12 +194,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 	class MSBuildNavigationResult
 	{
-		public MSBuildNavigationResult (MSBuildReferenceKind kind, string name, int offset, int length)
+		public MSBuildNavigationResult (
+			MSBuildReferenceKind kind, string name, int offset, int length,
+			string destFile = null, DocumentLocation destLocation = default)
 		{
 			Kind = kind;
 			Name = name;
 			Offset = offset;
 			Length = length;
+			DestFile = destFile;
 		}
 
 		public MSBuildNavigationResult (string [] paths, int offset, int length)
@@ -205,5 +218,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		public int Offset { get; }
 		public int Length { get; }
 		public string [] Paths { get; }
+		public string DestFile { get; }
+		public DocumentLocation DestLocation { get; }
 	}
 }

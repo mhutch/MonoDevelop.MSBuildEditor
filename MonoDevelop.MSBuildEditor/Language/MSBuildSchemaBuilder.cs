@@ -7,6 +7,7 @@ using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.MSBuildEditor.Schema;
 using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
+using System.Linq;
 
 namespace MonoDevelop.MSBuildEditor.Language
 {
@@ -33,6 +34,17 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			try {
+				CollectResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved);
+			} catch (Exception ex) when (isToplevel) {
+				AddError ($"Internal error: {ex.Message}", element.GetNameRegion ());
+				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+			}
+		}
+
+		void CollectResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Import:
 				ResolveImport (element);
@@ -56,13 +68,15 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 				break;
 			case MSBuildKind.Parameter:
-				CollectTaskParameterDefinition (element.ParentElement ().Name.Name, element);
+				var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+				if (!string.IsNullOrEmpty (taskName)) {
+					CollectTaskParameterDefinition (taskName, element);
+				}
 				break;
 			case MSBuildKind.Metadata:
 				CollectMetadata (element.ParentElement ().Name.Name, element.Name.Name);
 				break;
 			}
-			base.VisitResolvedElement (element, resolved);
 		}
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
@@ -78,12 +92,12 @@ namespace MonoDevelop.MSBuildEditor.Language
 				}
 			}
 			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
-				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Name.Name, true);
+				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Value, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
-        void ResolveImport (XElement element)
+		void ResolveImport (XElement element)
 		{
 			var importAtt = element.Attributes [new XName ("Project")];
 			var sdkAtt = element.Attributes [new XName ("Sdk")];
@@ -95,9 +109,9 @@ namespace MonoDevelop.MSBuildEditor.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = isToplevel? sdkAtt.GetValueRegion (TextDocument) : sdkAtt.Region;
+				var loc = isToplevel ? sdkAtt.GetValueRegion (TextDocument) : sdkAtt.Region;
 				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
-				import = import == null? null : sdkPath + "\\" + import;
+				import = import == null ? null : sdkPath + "\\" + import;
 
 				if (isToplevel && sdkPath != null) {
 					Document.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
@@ -215,7 +229,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
 			var task = Document.Tasks [taskName];
-			if (task.IsInferred) {
+			if (task.IsInferred && !task.ForceInferAttributes) {
 				return;
 			}
 			if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo pi)) {
@@ -223,7 +237,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 					return;
 				}
 			}
-			task.Parameters[parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
+			task.Parameters [parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
 		}
 
 		void CollectTaskParameterDefinition (string taskName, XElement def)
@@ -243,7 +257,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			var type = def.Attributes.Get (new XName ("ParameterType"), true)?.Value;
 			if (type != null) {
 				if (type.EndsWith ("[]", StringComparison.Ordinal)) {
-					type = type.Substring (type.Length - 2);
+					type = type.Substring (0, type.Length - 2);
 					isList = true;
 				}
 
@@ -275,14 +289,21 @@ namespace MonoDevelop.MSBuildEditor.Language
 
 		void CollectTaskDefinition (XElement element)
 		{
-			string taskName = null, assemblyFile = null, assemblyName = null;
+			string taskName = null, assemblyFile = null, assemblyName = null, taskFactory = null;
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("TaskName", true)) {
-					taskName = att.Value;
-				} else if (att.NameEquals ("AssemblyFile", true)) {
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "assemblyfile":
 					assemblyFile = att.Value;
-				} else if (att.NameEquals ("AssemblyName", true)) {
+					break;
+				case "assemblyname":
 					assemblyName = att.Value;
+					break;
+				case "taskfactory":
+					taskFactory = att.Value;
+					break;
+				case "taskname":
+					taskName = att.Value;
+					break;
 				}
 			}
 
@@ -296,10 +317,26 @@ namespace MonoDevelop.MSBuildEditor.Language
 				return;
 			}
 
-			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
-			if (info != null) {
-				Document.Tasks [info.Name] = info;
+			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
+				TaskInfo info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Region.Begin, propertyValues);
+				if (info != null) {
+					Document.Tasks [info.Name] = info;
+					return;
+				}
 			}
+
+			//HACK: RoslynCodeTaskFactory determines the parameters automatically from the code, until we
+			//can do this too we need to force inference
+			bool forceInferAttributes = taskFactory != null && (
+				string.Equals (taskFactory, "RoslynCodeTaskFactory", StringComparison.OrdinalIgnoreCase) || (
+					string.Equals (taskFactory, "CodeTaskFactory", StringComparison.OrdinalIgnoreCase) &&
+					string.Equals (assemblyFile, "$(RoslynCodeTaskFactory)", StringComparison.OrdinalIgnoreCase
+				)) &&
+				!element.Elements.Any (n => n.Name.Name == "ParameterGroup"));
+
+			Document.Tasks [taskName] = new TaskInfo (taskName, null, null, null, null, Filename, element.Region.Begin) {
+				ForceInferAttributes = forceInferAttributes
+			};
 		}
 
 		void ExtractConfigurations (string value, int startOffset)
