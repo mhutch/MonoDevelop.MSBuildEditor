@@ -69,7 +69,14 @@ namespace MonoDevelop.MSBuild.Tests
 				}
 			}
 
-			string FormatName (object reference) => reference is ValueTuple<string,string> t? $"{t.Item1}.{t.Item2}" : (string)reference;
+			string FormatName (object reference) {
+				if (reference is ValueTuple<string, string> t) return $"{t.Item1}.{t.Item2}";
+				if (reference is string s) return s;
+				if (reference is MSBuildLanguageElement el) return $"Element/{el.Name}";
+				if (reference is MSBuildLanguageAttribute att) return $"Attribute/{att.Name}";
+				return reference?.ToString () ?? "[null]";
+			}
+
 			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.Reference);
 			bool IgnoreCaseEquals (MSBuildReferenceKind kind, object a, object e)
 			{

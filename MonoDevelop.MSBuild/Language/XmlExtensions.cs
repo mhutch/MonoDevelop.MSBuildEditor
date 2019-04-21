@@ -26,11 +26,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static TextSpan GetNameSpan (this XElement element) => new Xml.Dom.TextSpan (element.Span.Start + 1, element.Name.FullName.Length);
+		public static TextSpan GetNameSpan (this XElement element) => new TextSpan (element.Span.Start + 1, element.Name.FullName.Length);
 
 		public static int GetNameOffset (this XElement element) => element.Span.Start + 1;
 
-		public static TextSpan GetNameSpan (this XAttribute attribute) => Xml.Dom.TextSpan.FromBounds (attribute.Span.Start, attribute.Name.FullName.Length);
+		public static TextSpan GetNameSpan (this XAttribute attribute) => new TextSpan (attribute.Span.Start, attribute.Name.FullName.Length);
 
 		public static TextSpan GetSquiggleSpan (this XNode node)
 		{
