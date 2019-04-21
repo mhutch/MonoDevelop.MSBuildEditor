@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		static readonly string[] emptyArray = new string[0];
 
-		MSBuildLanguageElement [] children = Array.Empty<MSBuildLanguageElement> ();
+		MSBuildLanguageElement[] children = Array.Empty<MSBuildLanguageElement> ();
 		MSBuildLanguageAttribute[] attributes = Array.Empty<MSBuildLanguageAttribute> ();
 
 		public IEnumerable<MSBuildLanguageElement> Children { get { return children; } }
@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public MSBuildKind Kind { get; }
 		public bool IsAbstract { get; }
 		public MSBuildLanguageElement AbstractChild { get; private set; }
-		public MSBuildLanguageAttribute AbstractAttribute { get; private set; }		
+		public MSBuildLanguageAttribute AbstractAttribute { get; private set; }
 
 		MSBuildLanguageElement (string name, DisplayText description, MSBuildKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
 			: base (name, description, valueKind)
@@ -89,25 +89,25 @@ namespace MonoDevelop.MSBuild.Schema
 			var property = AddBuiltin ("Property", ElementDescriptions.Property, MSBuildKind.Property, MSBuildValueKind.Unknown, true);
 			var propertyGroup = AddBuiltin ("PropertyGroup", ElementDescriptions.PropertyGroup, MSBuildKind.PropertyGroup);
 			var target = AddBuiltin ("Target", ElementDescriptions.Target, MSBuildKind.Target);
-			var task = AddBuiltin ("Task", ElementDescriptions.Task, MSBuildKind.Task, isAbstract: true);
-			var taskBody = AddBuiltin ("TaskBody", ElementDescriptions.TaskBody, MSBuildKind.TaskBody, MSBuildValueKind.Data);
+			var task = AddBuiltin ("AbstractTask", ElementDescriptions.Task, MSBuildKind.Task, isAbstract: true);
+			var taskBody = AddBuiltin ("Task", ElementDescriptions.TaskBody, MSBuildKind.TaskBody, MSBuildValueKind.Data);
 			var usingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildKind.UsingTask);
 			var when = AddBuiltin ("When", ElementDescriptions.When, MSBuildKind.When);
 
-			choose.children = new [] { otherwise, when };
-			importGroup.children = new [] { import };
-			item.children = new [] { metadata };
-			itemDefinition.children = new [] { metadata };
-			itemDefinitionGroup.children = new [] { itemDefinition };
-			itemGroup.children = new [] { item };
-			otherwise.children = new [] { choose, itemGroup, propertyGroup };
-			parameterGroup.children = new [] { parameter };
-			project.children = new [] { choose, import, importGroup, projectExtensions, propertyGroup, itemGroup, itemDefinitionGroup, target, usingTask };
-			propertyGroup.children = new [] { property };
-			target.children = new [] { onError, itemGroup, propertyGroup, task };
-			task.children = new [] { output };
-			usingTask.children = new [] { parameterGroup, taskBody };
-			when.children = new [] { choose, itemGroup, propertyGroup };
+			choose.children = new[] { otherwise, when };
+			importGroup.children = new[] { import };
+			item.children = new[] { metadata };
+			itemDefinition.children = new[] { metadata };
+			itemDefinitionGroup.children = new[] { itemDefinition };
+			itemGroup.children = new[] { item };
+			otherwise.children = new[] { choose, itemGroup, propertyGroup };
+			parameterGroup.children = new[] { parameter };
+			project.children = new[] { choose, import, importGroup, projectExtensions, propertyGroup, itemGroup, itemDefinitionGroup, target, usingTask };
+			propertyGroup.children = new[] { property };
+			target.children = new[] { onError, itemGroup, propertyGroup, task };
+			task.children = new[] { output };
+			usingTask.children = new[] { parameterGroup, taskBody };
+			when.children = new[] { choose, itemGroup, propertyGroup };
 
 			item.AbstractChild = metadata;
 			target.AbstractChild = task;
@@ -117,7 +117,7 @@ namespace MonoDevelop.MSBuild.Schema
 			itemGroup.AbstractChild = item;
 			parameterGroup.AbstractChild = parameter;
 
-			import.attributes = new [] {
+			import.attributes = new[] {
 				new MSBuildLanguageAttribute ("Project", ElementDescriptions.Import_Project, MSBuildValueKind.ProjectFile, true),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Import_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Import_Label, MSBuildValueKind.Label),
@@ -129,7 +129,7 @@ namespace MonoDevelop.MSBuild.Schema
 			var itemMetadataAtt = new MSBuildLanguageAttribute ("Metadata", ElementDescriptions.Metadata, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Metadata);
 			item.AbstractAttribute = itemMetadataAtt;
 
-			item.attributes = new [] {
+			item.attributes = new[] {
 				new MSBuildLanguageAttribute ("Exclude", ElementDescriptions.Item_Exclude, MSBuildValueKind.MatchItem),
 				new MSBuildLanguageAttribute ("Include", ElementDescriptions.Item_Include, MSBuildValueKind.MatchItem),
 				new MSBuildLanguageAttribute ("Remove", ElementDescriptions.Item_Remove, MSBuildValueKind.MatchItem),
@@ -142,13 +142,13 @@ namespace MonoDevelop.MSBuild.Schema
 				itemMetadataAtt
 			};
 
-			parameter.attributes = new [] {
+			parameter.attributes = new[] {
 				new MSBuildLanguageAttribute ("Output", ElementDescriptions.Parameter_Output, MSBuildValueKind.Bool.Literal()),
 				new MSBuildLanguageAttribute ("ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
 				new MSBuildLanguageAttribute ("Required", ElementDescriptions.Parameter_Required, MSBuildValueKind.Bool.Literal()),
 			};
 
-			project.attributes = new [] {
+			project.attributes = new[] {
 				new MSBuildLanguageAttribute ("DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildValueKind.TargetName.List ().Literal ()),
 				new MSBuildLanguageAttribute ("InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildValueKind.TargetName.List ().Literal ()),
 				new MSBuildLanguageAttribute ("ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal ()),
@@ -157,7 +157,7 @@ namespace MonoDevelop.MSBuild.Schema
 				new MSBuildLanguageAttribute ("Sdk", ElementDescriptions.Project_Sdk, MSBuildValueKind.SdkWithVersion.List().Literal ()),
 			};
 
-			target.attributes = new [] {
+			target.attributes = new[] {
 				new MSBuildLanguageAttribute ("Name", ElementDescriptions.Target_Name, MSBuildValueKind.TargetName.Literal (), true),
 				new MSBuildLanguageAttribute ("DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildValueKind.TargetName.List()),
 				new MSBuildLanguageAttribute ("Inputs", ElementDescriptions.Target_Inputs, MSBuildValueKind.Unknown),
@@ -170,42 +170,42 @@ namespace MonoDevelop.MSBuild.Schema
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Target_Label, MSBuildValueKind.Label),
 			};
 
-			property.attributes = new [] {
+			property.attributes = new[] {
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Property_Label, MSBuildValueKind.Label),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Property_Condition, MSBuildValueKind.Condition),
 			};
 
-			propertyGroup.attributes = new [] {
+			propertyGroup.attributes = new[] {
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.PropertyGroup_Label, MSBuildValueKind.Label),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.PropertyGroup_Condition, MSBuildValueKind.Condition),
 			};
 
-			importGroup.attributes = new [] {
+			importGroup.attributes = new[] {
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ImportGroup_Label, MSBuildValueKind.Label),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ImportGroup_Condition, MSBuildValueKind.Condition),
 			};
 
-			itemGroup.attributes = new [] {
+			itemGroup.attributes = new[] {
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ItemGroup_Label, MSBuildValueKind.Label),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ItemGroup_Condition, MSBuildValueKind.Condition),
 			};
 
-			itemDefinitionGroup.attributes = new [] {
+			itemDefinitionGroup.attributes = new[] {
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ItemDefinitionGroup_Label, MSBuildValueKind.Label),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ItemDefinitionGroup_Condition, MSBuildValueKind.Condition),
 			};
 
-			when.attributes = new [] {
+			when.attributes = new[] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.When_Condition, MSBuildValueKind.Condition, true),
 			};
 
-			onError.attributes = new [] {
+			onError.attributes = new[] {
 				new MSBuildLanguageAttribute ("ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildValueKind.TargetName.List (), true),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.OnError_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("Label", ElementDescriptions.OnError_Label, MSBuildValueKind.Label),
 			};
 
-			usingTask.attributes = new [] {
+			usingTask.attributes = new[] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.UsingTask_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
 				new MSBuildLanguageAttribute ("AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
@@ -215,11 +215,11 @@ namespace MonoDevelop.MSBuild.Schema
 				new MSBuildLanguageAttribute ("Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
 			};
 
-			taskBody.attributes = new [] {
+			taskBody.attributes = new[] {
 				new MSBuildLanguageAttribute ("Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildValueKind.Bool.Literal ()),
 			};
 
-			output.attributes = new [] {
+			output.attributes = new[] {
 				new MSBuildLanguageAttribute ("TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.Literal (), true),
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Output, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("ItemName", ElementDescriptions.Output_ItemName, MSBuildValueKind.ItemName.Literal ()),
@@ -229,7 +229,7 @@ namespace MonoDevelop.MSBuild.Schema
 			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Parameter);
 			task.AbstractAttribute = taskParameterAtt;
 
-			task.attributes = new [] {
+			task.attributes = new[] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Task_Condition, MSBuildValueKind.Condition),
 				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
 				new MSBuildLanguageAttribute ("Architecture", ElementDescriptions.Task_Architecture, MSBuildValueKind.TaskArchitecture),
@@ -237,7 +237,7 @@ namespace MonoDevelop.MSBuild.Schema
 				taskParameterAtt
 			};
 
-			metadata.attributes = new [] {
+			metadata.attributes = new[] {
 				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Metadata_Condition, MSBuildValueKind.Condition),
 			};
 		}

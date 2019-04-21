@@ -22,9 +22,9 @@ namespace MonoDevelop.MSBuild.Language
 			Run (doc.XDocument, doc.Filename, doc.Text, doc, offset, length);
 		}
 
-		public void Run (XDocument xDocument, string filename, ITextSource textDocument, MSBuildDocument doc, int offset = 0, int length = 0)
+		public void Run (XDocument xDocument, string filename, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0)
 		{
-			Run (xDocument.RootElement, null, filename, textDocument, doc, offset, length);
+			Run (xDocument.RootElement, null, filename, textSource, doc, offset, length);
 		}
 
 		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource textSource, MSBuildDocument document, int offset = 0, int length = 0)
@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Language
 			Extension = System.IO.Path.GetExtension (filename);
 			TextSource = textSource;
 
-			range = new TextSpan (offset, length > 0? length + offset : int.MaxValue);
+			range = new TextSpan (offset, length > 0 ? length + offset : int.MaxValue);
 
 			if (resolvedElement != null) {
 				VisitResolvedElement (element, resolvedElement);
@@ -43,7 +43,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		Xml.Dom.TextSpan range;
+		TextSpan range;
 
 		void ResolveAndVisit (XElement element, MSBuildLanguageElement parent)
 		{

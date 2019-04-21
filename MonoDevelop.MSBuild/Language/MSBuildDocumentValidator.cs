@@ -35,6 +35,17 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			try {
+				ValidateResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved);
+			} catch (Exception ex) {
+				AddError ($"Internal error: {ex.Message}", element.GetNameSpan ());
+				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+			}
+		}
+
+		void ValidateResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
 			foreach (var rat in resolved.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (new XName (rat.Name), true);
@@ -72,8 +83,6 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateTaskParameters (resolved, element);
 				break;
 			}
-
-			base.VisitResolvedElement (element, resolved);
 		}
 
 		void ValidateProjectHasTarget (XElement element)
@@ -132,46 +141,117 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ValidateUsingTaskHasAssembly (XElement element)
 		{
-			bool foundAssemblyAttribute = false;
+			XAttribute taskFactoryAtt = null;
+			XAttribute asmNameAtt = null;
+			XAttribute asmFileAtt = null;
+
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("AssemblyName", true) || att.NameEquals ("AssemblyFile", true)) {
-					if (foundAssemblyAttribute) {
-						AddError (
-							$"UsingTask may have only one AssemblyName or AssemblyFile attribute",
-							att.GetNameSpan ());
-					}
-					foundAssemblyAttribute = true;
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "assemblyfile":
+					asmFileAtt = att;
+					break;
+				case "assemblyname":
+					asmNameAtt = att;
+					break;
+				case "taskfactory":
+					taskFactoryAtt = att;
+					break;
 				}
 			}
-			if (!foundAssemblyAttribute) {
+
+			if (asmNameAtt == null && asmFileAtt == null) {
 				AddError (
 					$"UsingTask must have AssemblyName or AssemblyFile attribute",
 					element.GetNameSpan ());
+			} else if (taskFactoryAtt != null && asmNameAtt != null) {
+				AddError (
+					$"UsingTask with TaskFactory cannot have AssemblyName attribute",
+					asmNameAtt.GetNameSpan ());
+			} else if (taskFactoryAtt != null && asmFileAtt == null) {
+				AddError (
+					$"UsingTask with TaskFactory must have AssemblyFile attribute",
+					element.GetNameSpan ());
+			} else if (asmNameAtt != null && asmFileAtt != null) {
+				AddError (
+					$"UsingTask may not have both AssemblyName and AssemblyFile attributes",
+					asmNameAtt.GetNameSpan ());
 			}
 
-			bool foundParameterGroup = false, foundTaskBody = false;
+			XElement parameterGroup = null, taskBody = null;
 			foreach (var child in element.Elements) {
 				if (child.NameEquals ("ParameterGroup", true)) {
-					if (foundParameterGroup) {
+					if (parameterGroup != null) {
 						AddError (
 							$"UsingTask may only have one ParameterGroup",
 							child.GetNameSpan ());
 					}
-					foundParameterGroup = true;
+					parameterGroup = child;
 				}
-				if (child.NameEquals ("TaskBody", true)) {
-					if (foundTaskBody) {
+				if (child.NameEquals ("Task", true)) {
+					if (taskBody != null) {
 						AddError (
-							$"UsingTask may only have one TaskBody",
+							$"UsingTask may only have one Task body",
 							child.GetNameSpan ());
 					}
-					foundTaskBody = true;
+					taskBody = child;
 				}
 			}
-			if (foundParameterGroup != foundTaskBody) {
+
+			if (taskFactoryAtt == null) {
+				if (taskBody != null) {
+					AddError (
+						$"UsingTask without TaskFactory attribute cannot have Task element",
+						taskBody.GetNameSpan ());
+				} else if (parameterGroup != null) {
+					AddError (
+						$"UsingTask without TaskFactory attribute cannot have ParameterGroup element",
+						parameterGroup.GetNameSpan ());
+				}
+			} else {
+				if (taskBody == null) {
+					AddError (
+						$"UsingTask with TaskFactory attribute must have Task element",
+						element.GetNameSpan ());
+				}
+
+				if (taskBody != null) {
+					switch (taskFactoryAtt.Value?.ToLowerInvariant ()) {
+					case "codetaskfactory":
+						if (string.Equals (asmFileAtt.Value, "$(RoslynCodeTaskFactory)")) {
+							goto case "roslyncodetaskfactory";
+						}
+						break;
+					case "roslyncodetaskfactory":
+						ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						break;
+					case null:
+						AddError (
+							$"UsingTask with Task element must have TaskFactory attribute",
+							taskBody.GetNameSpan ());
+						break;
+					}
+				}
+			}
+
+		}
+
+		void ValidateRoslynCodeTaskFactory (XElement usingTask, XElement taskBody, XElement parameterGroup)
+		{
+			var code = taskBody.Elements.FirstOrDefault (f => string.Equals (f.Name.Name, "code", StringComparison.OrdinalIgnoreCase));
+			if (code == null) {
 				AddError (
-					$"UsingTask must have both TaskBody and ParameterGroup, or neither",
-					element.GetNameSpan ());
+					$"RoslynCodeTaskFactory requires Code element in Task body",
+					taskBody.GetNameSpan ());
+				return;
+			}
+			var typeAtt = code.Attributes.Get (new XName ("Type"), true);
+			var sourceAtt = code.Attributes.Get (new XName ("Source"), true);
+			if (sourceAtt != null || string.Equals (typeAtt?.Value, "Class", StringComparison.OrdinalIgnoreCase)) {
+				if (parameterGroup != null) {
+					AddError (
+						$"RoslynCodeTaskFactory with class ignores ParameterGroup",
+						parameterGroup.GetNameSpan ());
+				}
 			}
 		}
 
@@ -335,13 +415,13 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionList list:
 					if (!allowLists) {
-						AddListWarning (list.Nodes [0].End, 1);
+						AddListWarning (list.Nodes[0].End, 1);
 					}
 					break;
 				case ExpressionError err:
 					var msg = err.Kind.GetMessage (info, out bool isWarning);
 					AddError (
-						isWarning? DiagnosticSeverity.Warning : DiagnosticSeverity.Error,
+						isWarning ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error,
 						msg,
 						err.Offset,
 						Math.Max (1, err.Length)

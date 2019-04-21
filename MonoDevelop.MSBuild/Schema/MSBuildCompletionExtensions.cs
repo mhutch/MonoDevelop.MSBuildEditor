@@ -194,7 +194,6 @@ namespace MonoDevelop.MSBuild.Schema
 			return basePaths.Count == 0 ? null : GetPathCompletions (doc.Filename, basePaths, includeFiles);
 		}
 
-
 		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
 		{
 			throw new NotImplementedException ();
@@ -218,7 +217,7 @@ namespace MonoDevelop.MSBuild.Schema
 			//FIXME evaluate directly without the MSBuildEvaluationContext
 			var sb = new StringBuilder ();
 			for (int i = 0; i < expr.Nodes.Count; i++) {
-				var node = expr.Nodes [i];
+				var node = expr.Nodes[i];
 				if (node is ExpressionText l) {
 					var val = l.GetUnescapedValue ();
 					if (i == expr.Nodes.Count - 1) {
@@ -233,11 +232,12 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			var evalCtx = MSBuildEvaluationContext.Create (doc.RuntimeInformation, doc.Filename, doc.Filename);
-			foreach (var variant in evalCtx.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename),  null)) {
+			foreach (var variant in evalCtx.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename), null)) {
 				yield return variant;
 			}
 
-			string TrimEndChars(string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));*/
+			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
+			*/
 		}
 
 		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, List<string> completionBasePaths, bool includeFiles)
@@ -271,15 +271,22 @@ namespace MonoDevelop.MSBuild.Schema
 				return doc.GetItem ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
 				var m = rr.ReferenceAsMetadata;
+				if (Builtins.Metadata.TryGetValue (m.metaName, out var builtinMeta)) {
+					return builtinMeta;
+				}
 				return doc.GetMetadata (m.itemName, m.metaName, true);
 			case MSBuildReferenceKind.Property:
-				return doc.GetProperty ((string)rr.Reference);
+				var propName = (string)rr.Reference;
+				if (Builtins.Properties.TryGetValue (propName, out var builtinProp)) {
+					return builtinProp;
+				}
+				return doc.GetProperty (propName);
 			case MSBuildReferenceKind.Task:
 				return doc.GetTask ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:
 				return doc.GetTarget ((string)rr.Reference);
 			case MSBuildReferenceKind.Keyword:
-				return (BaseInfo) rr.Reference;
+				return (BaseInfo)rr.Reference;
 			case MSBuildReferenceKind.KnownValue:
 				return (BaseInfo)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:
@@ -298,7 +305,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return FunctionCompletion.GetItemFunctionInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				//FIXME: attempt overload resolution
-				(string className, string name) = ((string,string)) rr.Reference;
+				(string className, string name) = ((string, string))rr.Reference;
 				return FunctionCompletion.GetStaticPropertyFunctionInfo (className, name);
 			case MSBuildReferenceKind.PropertyFunction:
 				//FIXME: attempt overload resolution
@@ -469,8 +476,8 @@ namespace MonoDevelop.MSBuild.Schema
 			return MSBuildValueKind.Unknown;
 
 			bool StartsWith (string prefix) => variable.Name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
-			                                           && variable.Name.Length > prefix.Length
-			                                           && char.IsUpper (variable.Name[prefix.Length]);
+													   && variable.Name.Length > prefix.Length
+													   && char.IsUpper (variable.Name[prefix.Length]);
 			bool EndsWith (string suffix) => variable.Name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		}
 	}

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -90,14 +91,22 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildItemReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildItemReferenceCollector (string itemName) : base (itemName) {}
+		public MSBuildItemReferenceCollector (string itemName) : base (itemName) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameOffset(), element.Name.Name.Length, ReferenceUsage.Write));
+				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
+		}
+
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		{
+			if (resolvedAttribute.ValueKind == MSBuildValueKind.ItemName.Literal () && IsMatch (attribute.Value)) {
+				Results.Add ((attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write));
+			}
+			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
 		protected override void VisitValueExpression (
@@ -124,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildPropertyReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildPropertyReferenceCollector (string propertyName) : base (propertyName) {}
+		public MSBuildPropertyReferenceCollector (string propertyName) : base (propertyName) { }
 
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
@@ -133,6 +142,14 @@ namespace MonoDevelop.MSBuild.Language
 				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
+		}
+
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		{
+			if (resolvedAttribute.ValueKind == MSBuildValueKind.PropertyName.Literal () && IsMatch (attribute.Value)) {
+				Results.Add ((attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write));
+			}
+			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
 		protected override void VisitValueExpression (
@@ -154,7 +171,7 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildTaskReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTaskReferenceCollector (string taskName) : base (taskName) {}
+		public MSBuildTaskReferenceCollector (string taskName) : base (taskName) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
@@ -191,7 +208,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement ().Name.Name)) {
-				AddResult (element, ReferenceUsage.Write);
+				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -199,9 +216,24 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (resolvedAttribute.AbstractKind == MSBuildKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
-				AddResult (attribute, ReferenceUsage.Write);
+				Results.Add ((attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+		}
+
+		// null doc means offsets will not be correct
+		internal static ExpressionNode GetIncludeExpression (XElement itemElement)
+		{
+			var include = itemElement.Attributes
+				.FirstOrDefault (e => string.Equals (e.Name.Name, "Include", StringComparison.OrdinalIgnoreCase));
+
+			if (include == null || string.IsNullOrWhiteSpace (include.Value)) {
+				return null;
+			}
+			return ExpressionParser.Parse (
+				include.Value,
+				ExpressionOptions.ItemsMetadataAndLists,
+				include.Span.Start);
 		}
 
 		protected override void VisitValueExpression (
@@ -209,6 +241,39 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
+			//these are things like <Foo Include="@(Bar)" RemoveMetadata="SomeBarMetadata" />
+			if (kind.GetScalarType () == MSBuildValueKind.MetadataName) {
+				var expr = GetIncludeExpression (element);
+				if (expr != null && expr
+					.WithAllDescendants ()
+					.OfType<ExpressionItemName> ()
+					.Any (n => IsItemNameMatch (n.ItemName))
+				) {
+					switch (node) {
+					case ExpressionList list:
+						foreach (var c in list.Nodes) {
+							if (c is ExpressionText l) {
+								CheckMatch (l);
+								break;
+							}
+						}
+						break;
+					case ExpressionText lit:
+						CheckMatch (lit);
+						break;
+					}
+				}
+
+				void CheckMatch (ExpressionText t)
+				{
+					//FIXME: get rid of this trim
+					if (t.IsPure && IsMatch (t.Value.Trim ())) {
+						Results.Add ((t.Offset, t.Length, ReferenceUsage.Read));
+					}
+				}
+				return;
+			}
+
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
 				case ExpressionMetadata em:
@@ -228,17 +293,6 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		public MSBuildTargetReferenceCollector (string targetName) : base (targetName) { }
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
-		{
-			if (resolved.Kind == MSBuildKind.Target) {
-				var nameAtt = element.Attributes.Get (new XName (Name), true);
-				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueOffset (), Name.Length, ReferenceUsage.Declaration));
-				}
-			}
-			base.VisitResolvedElement (element, resolved);
-		}
-
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
@@ -247,41 +301,41 @@ namespace MonoDevelop.MSBuild.Language
 			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
 				return;
 			}
+			bool isDeclaration = !kind.AllowExpressions ();
 
 			switch (node) {
 			case ExpressionList list:
 				foreach (var c in list.Nodes) {
 					if (c is ExpressionText l) {
-						CheckMatch (l);
-						break;
+						CheckMatch (l, isDeclaration);
 					}
 				}
 				break;
 			case ExpressionText lit:
-				CheckMatch (lit);
+				CheckMatch (lit, isDeclaration);
 				break;
 			}
 		}
 
-		void CheckMatch (ExpressionText node)
+		void CheckMatch (ExpressionText node, bool isDeclaration)
 		{
 			//FIXME: get rid of this trim
 			if (IsMatch (node.Value.Trim ())) {
-				Results.Add ((node.Offset, node.Length, ReferenceUsage.Read));
+				Results.Add ((node.Offset, node.Length, isDeclaration ? ReferenceUsage.Declaration : ReferenceUsage.Read));
 			}
 		}
 	}
 
 	class MSBuildTargetDefinitionCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTargetDefinitionCollector (string targetName) : base (targetName) {}
+		public MSBuildTargetDefinitionCollector (string targetName) : base (targetName) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (resolved.Kind == MSBuildKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					Results.Add ((nameAtt.GetValueOffset (), Name.Length, ReferenceUsage.Declaration));
+					Results.Add ((nameAtt.Span.Start, nameAtt.Span.Length, ReferenceUsage.Declaration));
 				}
 			}
 			base.VisitResolvedElement (element, resolved);

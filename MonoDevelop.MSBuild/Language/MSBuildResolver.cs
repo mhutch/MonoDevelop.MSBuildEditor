@@ -41,9 +41,9 @@ namespace MonoDevelop.MSBuild.Language
 			//HACK: the only way to reconnect them is reflection
 			if (nodePath.Count > 1) {
 				for (int idx = 1; idx < nodePath.Count; idx++) {
-					var node = nodePath [idx];
+					var node = nodePath[idx];
 					if (node.Parent == null) {
-						var parent = nodePath [idx - 1];
+						var parent = nodePath[idx - 1];
 						ParentProp.SetValue (node, parent);
 					}
 				}
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (languageElement != null && languageElement.ValueKind == MSBuildValueKind.Data) {
 					break;
 				}
-				
+
 				//code completion is forgiving, all we care about best guess resolve for deepest child
 				if (node is XElement xel && xel.Name.Prefix == null) {
 					el = xel;
@@ -166,14 +166,17 @@ namespace MonoDevelop.MSBuild.Language
 				XElement element, XAttribute attribute,
 				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
+				if (!attribute.Span.Contains (offset)) {
+					return;
+				}
+
 				rr.LanguageAttribute = resolvedAttribute
 					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
 
-				var start = attribute.Span.Start;
-				bool inName = IsIn (start, attribute.Name.Name.Length);
+				bool inName = attribute.GetNameSpan ().Contains (offset);
 
 				if (inName) {
-					rr.ReferenceOffset = start;
+					rr.ReferenceOffset = attribute.Span.Start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
 					switch (resolvedAttribute.AbstractKind) {
 					case MSBuildKind.Metadata:
@@ -262,7 +265,7 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionText lit:
 					kind = kind.GetScalarType ();
 					if (lit.IsPure) {
-						VisitPureLiteral (info, kind, lit);
+						VisitPureLiteral (element, info, kind, lit);
 						if (kind == MSBuildValueKind.TaskOutputParameterName) {
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
@@ -290,7 +293,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, ExpressionText node)
+			void VisitPureLiteral (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;
@@ -313,6 +316,9 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.ItemName:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					return;
+				case MSBuildValueKind.TaskName:
+					rr.ReferenceKind = MSBuildReferenceKind.Task;
+					return;
 				case MSBuildValueKind.TargetFramework:
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFramework;
 					return;
@@ -324,6 +330,18 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				case MSBuildValueKind.TargetFrameworkProfile:
 					rr.ReferenceKind = MSBuildReferenceKind.TargetFrameworkProfile;
+					return;
+				case MSBuildValueKind.MetadataName:
+					//this is used for KeepMetadata/RemoveMetadata.
+					//reasonable to resolve from first item in include.
+					var itemName = MSBuildMetadataReferenceCollector.GetIncludeExpression (element)
+						.WithAllDescendants ()
+						.OfType<ExpressionItemName> ()
+						.FirstOrDefault ();
+					if (itemName != null) {
+						rr.Reference = (itemName.Name, value);
+						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+					}
 					return;
 				}
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Linq;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
@@ -32,6 +33,17 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
+			try {
+				CollectResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved);
+			} catch (Exception ex) when (isToplevel) {
+				Document.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, $"Internal error: {ex.Message}", element.GetNameSpan ()));
+				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+			}
+		}
+
+		void CollectResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		{
 			switch (resolved.Kind) {
 			case MSBuildKind.Import:
 				ResolveImport (element);
@@ -55,13 +67,15 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildKind.Parameter:
-				CollectTaskParameterDefinition (element.ParentElement ().Name.Name, element);
+				var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+				if (!string.IsNullOrEmpty (taskName)) {
+					CollectTaskParameterDefinition (taskName, element);
+				}
 				break;
 			case MSBuildKind.Metadata:
 				CollectMetadata (element.ParentElement ().Name.Name, element.Name.Name);
 				break;
 			}
-			base.VisitResolvedElement (element, resolved);
 		}
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
@@ -77,15 +91,15 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
-				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Name.Name, true);
+				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Value, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
 
-        void ResolveImport (XElement element)
+		void ResolveImport (XElement element)
 		{
-			var importAtt = element.Attributes [new XName ("Project")];
-			var sdkAtt = element.Attributes [new XName ("Sdk")];
+			var importAtt = element.Attributes[new XName ("Project")];
+			var sdkAtt = element.Attributes[new XName ("Sdk")];
 
 			string sdkPath = null, import = null;
 
@@ -94,9 +108,9 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = isToplevel? sdkAtt.GetValueSpan () : sdkAtt.Span;
+				var loc = sdkAtt.GetValueSpan ();
 				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
-				import = import == null? null : sdkPath + "\\" + import;
+				import = import == null ? null : sdkPath + "\\" + import;
 
 				if (isToplevel && sdkPath != null) {
 					Document.Annotations.Add (sdkAtt, new NavigationAnnotation (sdkPath, loc));
@@ -105,7 +119,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (import != null) {
 				bool wasResolved = false;
-				var loc = isToplevel ? importAtt.GetValueSpan () : importAtt.Span;
+				var loc = importAtt.GetValueSpan ();
 				foreach (var resolvedImport in resolveImport (import, null)) {
 					Document.AddImport (resolvedImport);
 					wasResolved |= resolvedImport.IsResolved;
@@ -191,7 +205,7 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTarget (string name)
 		{
 			if (name != null && !Document.Targets.TryGetValue (name, out TargetInfo target)) {
-				Document.Targets [name] = target = new TargetInfo (name, null);
+				Document.Targets[name] = target = new TargetInfo (name, null);
 			}
 		}
 
@@ -207,14 +221,14 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTask (string name)
 		{
 			if (!Document.Tasks.TryGetValue (name, out TaskInfo task)) {
-				Document.Tasks [name] = task = new TaskInfo (name, null, null, null, null, null, 0);
+				Document.Tasks[name] = task = new TaskInfo (name, null, null, null, null, null, 0);
 			}
 		}
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
-			var task = Document.Tasks [taskName];
-			if (task.IsInferred) {
+			var task = Document.Tasks[taskName];
+			if (task.IsInferred && !task.ForceInferAttributes) {
 				return;
 			}
 			if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo pi)) {
@@ -227,7 +241,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CollectTaskParameterDefinition (string taskName, XElement def)
 		{
-			var task = Document.Tasks [taskName];
+			var task = Document.Tasks[taskName];
 			var parameterName = def.Name.Name;
 			if (task.Parameters.ContainsKey (parameterName)) {
 				return;
@@ -242,7 +256,7 @@ namespace MonoDevelop.MSBuild.Language
 			var type = def.Attributes.Get (new XName ("ParameterType"), true)?.Value;
 			if (type != null) {
 				if (type.EndsWith ("[]", StringComparison.Ordinal)) {
-					type = type.Substring (type.Length - 2);
+					type = type.Substring (0, type.Length - 2);
 					isList = true;
 				}
 
@@ -274,14 +288,21 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CollectTaskDefinition (XElement element)
 		{
-			string taskName = null, assemblyFile = null, assemblyName = null;
+			string taskName = null, assemblyFile = null, assemblyName = null, taskFactory = null;
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("TaskName", true)) {
-					taskName = att.Value;
-				} else if (att.NameEquals ("AssemblyFile", true)) {
+				switch (att.Name.Name.ToLowerInvariant ()) {
+				case "assemblyfile":
 					assemblyFile = att.Value;
-				} else if (att.NameEquals ("AssemblyName", true)) {
+					break;
+				case "assemblyname":
 					assemblyName = att.Value;
+					break;
+				case "taskfactory":
+					taskFactory = att.Value;
+					break;
+				case "taskname":
+					taskName = att.Value;
+					break;
 				}
 			}
 
@@ -295,10 +316,26 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
-			var info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Span.Start, propertyValues);
-			if (info != null) {
-				Document.Tasks [info.Name] = info;
+			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
+				TaskInfo info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Span.Start, propertyValues);
+				if (info != null) {
+					Document.Tasks[info.Name] = info;
+					return;
+				}
 			}
+
+			//HACK: RoslynCodeTaskFactory determines the parameters automatically from the code, until we
+			//can do this too we need to force inference
+			bool forceInferAttributes = taskFactory != null && (
+				string.Equals (taskFactory, "RoslynCodeTaskFactory", StringComparison.OrdinalIgnoreCase) || (
+					string.Equals (taskFactory, "CodeTaskFactory", StringComparison.OrdinalIgnoreCase) &&
+					string.Equals (assemblyFile, "$(RoslynCodeTaskFactory)", StringComparison.OrdinalIgnoreCase
+				)) &&
+				!element.Elements.Any (n => n.Name.Name == "ParameterGroup"));
+
+			Document.Tasks[taskName] = new TaskInfo (taskName, null, null, null, null, Filename, element.Span.Start) {
+				ForceInferAttributes = forceInferAttributes
+			};
 		}
 
 		void ExtractConfigurations (string value, int startOffset)
@@ -326,13 +363,13 @@ namespace MonoDevelop.MSBuild.Language
 						break;
 					case ExpressionMetadata meta:
 						var itemName = meta.GetItemName ();
-						if(itemName != null) {
+						if (itemName != null) {
 							CollectMetadata (itemName, meta.MetadataName);
 						}
 						break;
 					case ExpressionText literal:
 						if (literal.IsPure) {
-							value = literal.GetUnescapedValue().Trim ();
+							value = literal.GetUnescapedValue ().Trim ();
 							switch (kind.GetScalarType ()) {
 							case MSBuildValueKind.ItemName:
 								CollectItem (value);
@@ -358,5 +395,5 @@ namespace MonoDevelop.MSBuild.Language
 				LoggingService.LogError ($"Error parsing MSBuild expression '{value}' in file {Filename} at {startOffset}", ex);
 			}
 		}
-    }
+	}
 }

@@ -24,9 +24,11 @@ namespace MonoDevelop.MSBuild.Schema
 		public string AssemblyFile { get; }
 
 		public string DeclaredInFile { get; }
-		public int DeclaredAtOffset { get; }
+		public int DeclaredAtOffset  { get; }
 
 		public bool IsInferred => DeclaredInFile == null;
+
+		public bool ForceInferAttributes { get; set; }
 	}
 
 	public class TaskParameterInfo : ValueInfo
