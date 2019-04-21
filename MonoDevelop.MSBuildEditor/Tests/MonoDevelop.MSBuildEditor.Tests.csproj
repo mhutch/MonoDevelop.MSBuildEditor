@@ -8,7 +8,7 @@
     <RootNamespace>MonoDevelop.MSBuildEditor.Tests</RootNamespace>
     <AssemblyName>MonoDevelop.MSBuildEditor.Tests</AssemblyName>
     <IsAddin>False</IsAddin>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
