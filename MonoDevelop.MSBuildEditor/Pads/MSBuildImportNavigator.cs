@@ -34,14 +34,13 @@ namespace MonoDevelop.MSBuildEditor.Pads
 
 			DocumentChanged (documentTracker, new DocumentChangedEventArgs (documentTracker.Document, null));
 		}
-
 		void DocumentChanged (object sender, DocumentChangedEventArgs e)
 		{
 			if (e.OldDocument != null) {
-				e.OldDocument.DocumentParsed -= DocumentParsed;
+				e.OldDocument.DocumentContext.DocumentParsed -= DocumentParsed;
 			}
 			if (e.NewDocument != null) {
-				e.NewDocument.DocumentParsed += DocumentParsed;
+				e.NewDocument.DocumentContext.DocumentParsed += DocumentParsed;
 			}
 			DocumentParsed (e.NewDocument, EventArgs.Empty);
 		}
@@ -54,8 +53,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		void Update ()
 		{
 			store.Clear ();
-
-			if (documentTracker.Document?.ParsedDocument is MSBuildParsedDocument doc) {
+			if (documentTracker.Document?.DocumentContext.ParsedDocument is MSBuildParsedDocument doc) {
 				var shorten = DescriptionMarkupFormatter.CreateFilenameShortener (doc.Document.RuntimeInformation);
 				AddNode (store.AddNode (), doc.Document, shorten);
 				ExpandAll ();
@@ -155,7 +153,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		{
 			if (disposing) {
 				if (documentTracker.Document != null) {
-					documentTracker.Document.DocumentParsed -= DocumentParsed;
+					documentTracker.Document.DocumentContext.DocumentParsed -= DocumentParsed;
 				}
 				documentTracker?.Dispose ();
 				documentTracker = null;

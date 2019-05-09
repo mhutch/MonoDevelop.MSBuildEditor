@@ -41,6 +41,6 @@ namespace MonoDevelop.MSBuildEditor
 			UpdateFont ((FixedWidthWrapLabel)Child);
 		}
 
-		void UpdateFont (FixedWidthWrapLabel label) => label.FontDescription = Ide.Fonts.FontService.GetFontDescription ("Pad");
+		void UpdateFont (FixedWidthWrapLabel label) => label.FontDescription = Ide.IdeServices.FontService.GetFontDescription ("Pad");
 	}
 }

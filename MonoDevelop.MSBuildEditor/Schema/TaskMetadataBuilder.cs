@@ -305,7 +305,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			{
 				return (
 					project.GetOutputFileName (project.ParentSolution.DefaultConfigurationSelector),
-					Ide.TypeSystem.TypeSystemService.GetCompilationAsync (project).Result
+					Ide.IdeServices.TypeSystemService.GetCompilationAsync (project).Result
 				);
 			}
 		}

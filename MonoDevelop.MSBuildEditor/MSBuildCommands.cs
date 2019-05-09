@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuildEditor
 		protected override void Update (CommandArrayInfo info)
 		{
 			var doc = IdeApp.Workbench.ActiveDocument;
-			if (doc == null || doc.FileName == FilePath.Null || doc.ParsedDocument == null)
+			if (doc == null || doc.FileName == FilePath.Null || doc.DocumentContext.ParsedDocument == null)
 				return;
 
 			var msbuildEditor = doc.GetContent<MSBuildTextEditorExtension> ();
