@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			var metadataServiceType = typeof (Workspace).Assembly.GetType ("Microsoft.CodeAnalysis.Host.IMetadataService");
 			getReferenceMethod = metadataServiceType.GetMethod ("GetReference", BF.Instance | BF.NonPublic | BF.Public);
-			var services = Ide.TypeSystem.TypeSystemService.Workspace.Services;
+			var services = Ide.IdeServices.TypeSystemService.Workspace.Services;
 			var getServiceMeth = services.GetType ().GetMethod ("GetService", BF.Instance | BF.NonPublic | BF.Public);
 			getServiceMeth = getServiceMeth.MakeGenericMethod (metadataServiceType);
 			metadataService = getServiceMeth.Invoke (services, null);
