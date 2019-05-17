@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static MSBuildResolveResult Resolve (
 			XmlParser parser, ITextSource textSource, MSBuildDocument context)
 		{
-			int offset = parser.Offset;
+			int offset = parser.Position;
 
 			//clones and connects nodes to their parents
 			parser = parser.GetTreeParser ();

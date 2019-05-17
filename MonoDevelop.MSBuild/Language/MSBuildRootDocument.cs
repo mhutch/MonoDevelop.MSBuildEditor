@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (xdocument != null && xdocument.RootElement != null) {
 				if (!xdocument.RootElement.IsEnded)
-					xdocument.RootElement.End (xmlParser.Offset);
+					xdocument.RootElement.End (xmlParser.Position);
 			}
 
 			var propVals = new PropertyValueCollector (true);
