@@ -301,7 +301,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
 		[TestCase ("$(   Foo  .  Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("$(Foo.A(5))", "Foo", "A", 5)]
 		[TestCase ("$(Foo.A(true))", "Foo", "A", true)]
 		[TestCase ("$(Foo.A(true,   20 ))", "Foo", "A", true, 20)]
@@ -333,7 +333,6 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("$([Foo]::Bar())", "Foo", "Bar")]
 		[TestCase ("$(   [Foo]::    Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("$([Foo]::A(5))", "Foo", "A", 5)]
 		[TestCase ("$([Foo]::A(true))", "Foo", "A", true)]
 		[TestCase ("$([Foo]::A(true,   20 ))", "Foo", "A", true, 20)]
@@ -365,7 +364,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("@(Foo->Bar())", "Foo", "Bar")]
 		[TestCase ("@(   Foo  ->  Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("@(Foo->Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("@(Foo->Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("@(Foo->A(5))", "Foo", "A", 5)]
 		[TestCase ("@(Foo->A(true))", "Foo", "A", true)]
 		[TestCase ("@(Foo->A(true,   20 ))", "Foo", "A", true, 20)]

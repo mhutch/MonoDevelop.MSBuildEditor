@@ -53,10 +53,15 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$(foo.bar($(a", TriggerState.Property, 1)]
 		[TestCase ("$(foo.bar('$(", TriggerState.Property, 0)]
 		[TestCase ("$(foo.bar('$(a", TriggerState.Property, 1)]
+		[TestCase ("$(foo.bar('%(", TriggerState.MetadataOrItem, 0)]
+		[TestCase ("$(foo.bar('%(a", TriggerState.MetadataOrItem, 1)]
 		[TestCase ("$(foo.bar(1, '$(", TriggerState.Property, 0)]
 		[TestCase ("$(foo.bar(1, '$(a", TriggerState.Property, 1)]
+		[TestCase ("@(a->'$(", TriggerState.Property, 0)]
 		[TestCase ("@(a->'$(b", TriggerState.Property, 1)]
 		[TestCase ("@(a->'$(b)','$(a", TriggerState.Property, 1)]
+		[TestCase ("@(a->'%(", TriggerState.MetadataOrItem, 0)]
+		[TestCase ("@(a->'%(b", TriggerState.MetadataOrItem, 1)]
 		[TestCase ("$(a[0].", TriggerState.PropertyFunctionName, 0)]
 		public void TestTriggering (string expr, TriggerState expectedState, int expectedLength)
 		{
