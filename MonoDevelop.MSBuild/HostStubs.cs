@@ -14,10 +14,10 @@ namespace MonoDevelop.MSBuild
 {
 	static class LoggingService
 	{
-		public static void LogDebug (string message) => throw new NotImplementedException ();
-		public static void LogError (string message, Exception ex) => throw new NotImplementedException ();
-		public static void LogError (string message) => throw new NotImplementedException ();
-		internal static void LogWarning (string v) => throw new NotImplementedException ();
+		public static void LogDebug (string message) => Console.WriteLine (message);
+		public static void LogError (string message, Exception ex) => LogError ($"{message}: {ex}");
+		public static void LogError (string message) => Console.Error.WriteLine (message);
+		internal static void LogWarning (string v) => Console.WriteLine (v);
 	}
 
 	static class Ambience

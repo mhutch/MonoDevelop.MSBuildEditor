@@ -1,68 +1,8 @@
 ﻿{
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "items": {
-    "Content":  {
-      "metadata": {
-        "Pack": {
-          "description": "Whether to include the item in the NuGet package",
-          "kind": "bool"
-        },
-        "PackagePath": {
-          "description": "The item's path within the package. If it has a trailing slash, the filename will be appended.",
-          "kind": "fileorfolder-list"
-        },
-        "PackageCopyToOutput": {
-          "description": "Sets CopyToOutput on the contentFiles entry in the output nuspec",
-          "kind": "bool"
-        },
-        "PackageFlatten": {
-          "description": "Sets Flatten on the contentFiles entry in the output nuspec",
-          "kind": "bool"
-        }
-      }
-    },
-    "Compile": "@(Content)",
-    "EmbeddedResource": "@(Content)",
-    "ApplicationDefinition": "@(Content)",
-    "Page": "@(Content)",
-    "Resource": "@(Content)",
-    "SplashScreen": "@(Content)",
-    "DesignData": "@(Content)",
-    "DesignDataWithDesignTimeCreateableTypes": "@(Content)",
-    "CodeAnalysisDictionary": "@(Content)",
-    "AndroidAsset": "@(Content)",
-    "AndroidResource": "@(Content)",
-    "BundleResource": "@(Content)",
-    "None": "@(Content)",
     "ProjectReference":  {
       "metadata": {
-        "IncludeAssets": {
-          "description": "Assets that will be consumed by the project",
-          "default": "all",
-          "values": {
-            "compile": "Libraries from the `lib` folder",
-            "runtime": "Contents of the `runtime` folder",
-            "contentFiles": "All of the assets",
-            "build": "MSBuild targets",
-            "analyzers": "Code analyzers",
-            "native": "Contents of the `native` folder",
-            "none": "None of the assets",
-            "all": "All of the assets"
-          },
-          "valueSeparators": ","
-        },
-        "ExcludeAssets": {
-          "description": "Assets that will not be consumed by the project",
-          "default": "none",
-          "values": "%(IncludeAssets)",
-          "valueSeparators": ","
-        },
-        "PrivateAssets": {
-          "description": "Assets that will be consumed by the project but won't flow to its parent",
-          "default": "contentfiles,analyzers,build",
-          "values": "%(IncludeAssets)",
-          "valueSeparators": ","
-        },
         "TreatAsPackageReference": {
           "description": "Whether to treat this project reference as a project reference in the output package",
           "kind": "bool"
@@ -156,6 +96,66 @@
       "description": "Whether to include Content files in the package",
       "kind": "bool",
       "default": "true"
+    }
+  },
+    "metadata": [
+    {
+      "#": "Metadata that controls how an item is packaged",
+      "$appliesTo": [
+        "Content", "Compile", "EmbeddedResource", "ApplicationDefinition", "Page", "Resource",
+          "SplashScreen", "DesignData", "DesignDataWithDesignTimeCreateableTypes", "CodeAnalysisDictionary",
+          "AndroidAsset", "AndroidResource", "BundleResource", "None"
+      ],
+      "Pack": {
+        "description": "Whether to include the item in the NuGet package",
+        "kind": "bool"
+      },
+      "PackagePath": {
+        "description": "The item's path within the package. If it has a trailing slash, the filename will be appended.",
+        "kind": "fileorfolder-list"
+      },
+      "PackageCopyToOutput": {
+        "description": "Sets CopyToOutput on the contentFiles entry in the output nuspec",
+        "kind": "bool"
+      },
+      "PackageFlatten": {
+        "description": "Sets Flatten on the contentFiles entry in the output nuspec",
+        "kind": "bool"
+      }
+    },
+    {
+      "#": "Metadata that controls how assets are consumed/propagated from a reference",
+      "$appliesTo": "ProjectReference",
+      "IncludeAssets": {
+        "description": "Assets that will be consumed by the project",
+        "default": "all",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "ExcludeAssets": {
+        "description": "Assets that will not be consumed by the project",
+        "default": "none",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "PrivateAssets": {
+        "description": "Assets that will be consumed by the project but won't flow to its parent",
+        "default": "contentfiles,analyzers,build",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      }
+    }
+  ],
+  "enumKinds": {
+    "asset": {
+      "compile": "Libraries from the `lib` folder",
+      "runtime": "Contents of the `runtime` folder",
+      "contentFiles": "All of the assets",
+      "build": "MSBuild targets",
+      "analyzers": "Code analyzers",
+      "native": "Contents of the `native` folder",
+      "none": "None of the assets",
+      "all": "All of the assets"
     }
   },
   "targets": {

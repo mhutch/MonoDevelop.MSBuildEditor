@@ -88,6 +88,9 @@ namespace MonoDevelop.MSBuild.Schema
 		//we know it's an item but we don't know what kind
 		UnknownItem,
 
+		// values declared separately
+		CustomEnum,
+
 		NuGetID,
 		NuGetVersion,
 

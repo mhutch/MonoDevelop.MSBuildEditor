@@ -85,33 +85,6 @@
         "Version": {
           "description": "The version of the NuGet package dependency",
           "kind": "nugetversion"
-        },
-        "IncludeAssets": {
-          "description": "Assets that will be consumed by the project",
-          "default": "all",
-          "values": {
-            "compile": "Libraries from the `lib` folder",
-            "runtime": "Contents of the `runtime` folder",
-            "contentFiles": "All of the assets",
-            "build": "MSBuild targets",
-            "analyzers": "Code analyzers",
-            "native": "Contents of the `native` folder",
-            "none": "None of the assets",
-            "all": "All of the assets"
-          },
-          "valueSeparators": ","
-        },
-        "ExcludeAssets": {
-          "description": "Assets that will not be consumed by the project",
-          "default": "none",
-          "values": "%(IncludeAssets)",
-          "valueSeparators": ","
-        },
-        "PrivateAssets": {
-          "description": "Assets that will be consumed by the project but won't flow to its parent",
-          "default": "contentfiles,analyzers,build",
-          "values": "%(IncludeAssets)",
-          "valueSeparators": ","
         }
       }
     },
@@ -120,10 +93,10 @@
       "includeDescription": "tool NuGet package IDs",
       "kind": "nugetid",
       "metadata": {
-        "IncludeAssets": "%(PackageReference.IncludeAssets)",
-        "ExcludeAssets": "%(PackageReference.IncludeAssets)",
-        "PrivateAssets": "%(PackageReference.IncludeAssets)",
-        "Version": "%(PackageReference.Version)"
+        "Version": {
+          "description": "The version of the NuGet package dependency",
+          "kind": "nugetversion"
+        }
       }
     },
     "ProjectConfiguration": {
@@ -185,18 +158,6 @@
         "Package": "",
         "EmbedInteropTypes": {
           "kind": "bool"
-        },
-        "IncludeAssets": {
-          "description": "Assets to include from this reference",
-          "values": "%(PackageReference.IncludeAssets)"
-        },
-        "ExcludeAssets": {
-          "description": "Assets to exclude from this reference",
-          "values": "%(PackageReference.IncludeAssets)"
-        },
-        "PrivateAssets": {
-          "description": "Assets that are private in this reference",
-          "values": "%(PackageReference.IncludeAssets)"
         }
       }
     },
@@ -205,29 +166,12 @@
       "includeDescription": "source files",
       "kind": "file-list",
       "metadata": {
-        "SubType": "",
-        "DependentUpon": "A filename under which this should be grouped in the IDE",
         "AutoGen": {
           "description": "Whether file was generated from another file",
           "kind": "bool"
         },
         "DesignTime": "",
-        "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)",
         "DesignTimeSharedInput": "",
-        "Visible": {
-          "description": "Display in user interface",
-          "kind": "bool",
-          "default": "true"
-        },
-        "CopyToOutputDirectory": {
-          "description": "Whether to copy the file to the output directory",
-          "values": {
-            "Never": "Do not copy the file",
-            "Always": "Always copy the file",
-            "PreserveNewest": "Copy the file if it is newer than the existing copy"
-          },
-          "default": "Never"
-        },
         "VBMyExtensionTemplateID": ""
       }
     },
@@ -236,15 +180,7 @@
       "includeDescription": "resource files",
       "kind": "file-list",
       "metadata": {
-        "LogicalName": "Overrides the default resource ID",
-        "Generator": "Name of any file generator that is run on this item",
-        "LastGenOutput": "File that was created by any file generator that was run on this item",
-        "CustomToolNamespace": "Namespace into which any file generator that is run on this item should create code",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)"
+        "LogicalName": "Overrides the default resource ID"
       }
     },
     "Content": {
@@ -252,14 +188,6 @@
       "includeDescription": "content files",
       "kind": "file-list",
       "metadata": {
-        "Generator": "%(EmbeddedResource.Generator)",
-        "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
-        "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
         "CopyToPublishDirectory": {
           "description": "Whether to copy the file to the publish directory",
           "values": {
@@ -269,10 +197,9 @@
           },
           "default": "Never"
         },
-        "Group": "",
         "IsAssembly": "",
         "PublishState": {
-          "values": [ "Default", "Included", "Excluded", "DataFile", "Prerequisite" ],
+          "kind": "enum-publishstate",
           "default": "Default"
         }
       }
@@ -280,64 +207,21 @@
     "Page": {
       "description": "XAML files that are converted to binary and compiled into the assembly",
       "includeDescription": "XAML files",
-      "kind": "file-list",
-      "metadata": {
-        "Generator": "%(EmbeddedResource.Generator)",
-        "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
-        "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
-        "Group": "%(Content.Group)"
-      }
+      "kind": "file-list"
     },
     "Resource": {
       "description": "File that is compiled into the assembly",
       "includeDescription": "resource files",
-      "kind": "file-list",
-      "metadata": {
-        "Generator": "%(EmbeddedResource.Generator)",
-        "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
-        "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
-        "Group": "%(Content.Group)"
-      }
+      "kind": "file-list"
     },
     "ApplicationDefinition": {
       "description": "XAML file that contains the application definition, only one can be defined",
       "includeDescription": "application definition",
-      "kind": "file",
-      "metadata": {
-        "Generator": "%(EmbeddedResource.Generator)",
-        "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
-        "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)",
-        "Group": "%(Content.Group)"
-      }
+      "kind": "file"
     },
     "None": {
       "description": "Files that should have no role in the build process",
-      "kind": "file-list",
-      "metadata": {
-        "Generator": "%(EmbeddedResource.Generator)",
-        "LastGenOutput": "%(EmbeddedResource.LastGenOutput)",
-        "CustomToolNamespace": "%(EmbeddedResource.CustomToolNamespace)",
-        "DependentUpon": "%(Compile.DependentUpon)",
-        "Link": "%(Compile.Link)",
-        "Visible": "%(Compile.Visible)",
-        "SubType": "%(Compile.SubType)",
-        "CopyToOutputDirectory": "%(Compile.CopyToOutputDirectory)"
-      }
+      "kind": "file-list"
     },
     "BaseApplicationManifest": {
       "description": "The base application manifest for the build. Contains ClickOnce security information.",
@@ -373,7 +257,6 @@
     "FileAssociation": {
       "kind": "string",
       "metadata": {
-        "Visible": "%(Compile.Visible)",
         "DefaultIcon": "",
         "Description": "",
         "Progid": ""
@@ -382,7 +265,6 @@
     "BootstrapperFile": {
       "kind": "file",
       "metadata": {
-        "Visible": "%(Compile.Visible)",
         "ProductName": "",
         "Install": ""
       }
@@ -390,9 +272,10 @@
     "PublishFile": {
       "kind": "file-list",
       "metadata": {
-        "Visible": "%(Compile.Visible)",
-        "Group": "%(Content.Group)",
-        "PublishState": "%(Content.PublishState)",
+        "PublishState": {
+          "kind": "enum-publishstate",
+          "default": "Default"
+        },
         "IncludeHash": {
           "kind": "bool"
         },
@@ -880,6 +763,96 @@
     "Platforms": {
       "description": "The values that the IDE should list for the `Platform` property",
       "kind": "platform-list"
+    }
+  },
+  "metadata": [
+    {
+      "#": "Metadata that controls how assets are consumed/propagated from a reference",
+      "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference" ],
+      "IncludeAssets": {
+        "description": "Assets that will be consumed by the project",
+        "default": "all",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "ExcludeAssets": {
+        "description": "Assets that will not be consumed by the project",
+        "default": "none",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "PrivateAssets": {
+        "description": "Assets that will be consumed by the project but won't flow to its parent",
+        "default": "contentfiles,analyzers,build",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      }
+    },
+    {
+      "#": "Metadata that applies to files that are generated by tools",
+      "$appliesTo": [ "ApplicationDefinition", "None", "EmbeddedResource", "Content", "Page", "Resource" ],
+      "Generator": "Name of any file generator that is run on this item",
+      "LastGenOutput": "File that was created by any file generator that was run on this item",
+      "CustomToolNamespace": "Namespace into which any file generator that is run on this item should create code"
+    },
+    {
+      "#": "This technically applies to everything declared outside of a target",
+      "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None", "BootstrapperFile", "PublishFile", "FileAssociation" ],
+      "Visible": {
+        "description": "Whether the item should be displayed in the IDE solution tree",
+        "kind": "bool",
+        "default": "true"
+      }
+    },
+    {
+      "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
+      "CopyToOutputDirectory": {
+        "description": "Whether to copy the file to the output directory",
+        "values": {
+          "Never": "Do not copy the file",
+          "Always": "Always copy the file",
+          "PreserveNewest": "Copy the file if it is newer than the existing copy"
+        },
+        "default": "Never"
+      }
+    },
+    {
+      "#": "No idea what this is",
+      "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
+      "SubType": ""
+    },
+    {
+      "#": "Some XAML thing maybe?",
+      "$appliesTo": [ "Content", "Page", "Resource", "ApplicationDefinition", "PublishFile" ],
+      "Group": ""
+    },
+    {
+      "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
+      "DependentUpon": "The file under which this file should be grouped in the IDE solution tree"
+    },
+    {
+      "#": "This technically applies to everything declared outside of a target",
+      "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
+      "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)"
+    }
+  ],
+  "enumKinds": {
+    "asset": {
+      "compile": "Libraries from the `lib` folder",
+      "runtime": "Contents of the `runtime` folder",
+      "contentFiles": "All of the assets",
+      "build": "MSBuild targets",
+      "analyzers": "Code analyzers",
+      "native": "Contents of the `native` folder",
+      "none": "None of the assets",
+      "all": "All of the assets"
+    },
+    "publishstate": {
+      "Default": "",
+      "Included": "",
+      "Excluded": "",
+      "DataFile": "",
+      "Prerequisite": ""
     }
   },
   "targets": {
