@@ -1,0 +1,10 @@
+version: 0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+image: Visual Studio 2019
+before_build:
+- cmd: msbuild /t:Restore
+build:
+  project: MonoDevelop.MSBuildEditor.sln
+  parallel: true
+  verbosity: minimal
