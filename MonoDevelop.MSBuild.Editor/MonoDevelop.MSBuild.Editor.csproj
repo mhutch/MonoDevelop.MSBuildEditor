@@ -12,5 +12,5 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="16.0.428" />
   </ItemGroup>
-  
+
 </Project>
