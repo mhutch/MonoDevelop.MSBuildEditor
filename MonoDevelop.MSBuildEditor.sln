@@ -13,9 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml", "MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj", "{87DE05FC-4B18-4C21-8AA5-237CB5B97780}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.Xml", "MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj", "{87DE05FC-4B18-4C21-8AA5-237CB5B97780}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Tests", "MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj", "{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.Xml.Tests", "MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj", "{15F97390-6C1B-4DC6-9D7C-1210B3C9A1A3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild", "MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj", "{E30D9BF7-2840-4274-A8A6-58D34295C6C8}"
 EndProject

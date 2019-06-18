@@ -14,9 +14,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 	[Order]
 	class MSBuildQuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
 	{
-		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer)
-		{
-			return new MSBuildQuickInfoSource ();
-		}
+		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer) =>
+			new MSBuildQuickInfoSource (textBuffer);
 	}
 }

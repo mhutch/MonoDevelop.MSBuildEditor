@@ -4,11 +4,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
 	class MSBuildQuickInfoSource : IAsyncQuickInfoSource
 	{
+		ITextBuffer textBuffer;
+
+		public MSBuildQuickInfoSource (ITextBuffer textBuffer)
+		{
+			this.textBuffer = textBuffer;
+		}
+
 		public Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
 		{
 			throw new System.NotImplementedException ();

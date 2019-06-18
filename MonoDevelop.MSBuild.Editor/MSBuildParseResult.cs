@@ -8,7 +8,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	public class MSBuildParseResult : Xml.Editor.IntelliSense.MSBuildParseResult
+	public class MSBuildParseResult : XmlParseResult
 	{
 		public MSBuildParseResult (XDocument xDocument, List<XmlDiagnosticInfo> diagnostics) : base (xDocument, diagnostics)
 		{
