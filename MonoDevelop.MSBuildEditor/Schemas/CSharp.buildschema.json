@@ -5,18 +5,23 @@
   "properties": {
     "LangVersion": {
       "description": "The version of the C# language the compiler should accept",
+      "default": "default",
       "values": {
-        "default": "All language versions that the compiler supports",
-        "latest": "All language versions that the compiler supports",
-        "ISO-1": "C# 1.0/1.1, as specified in ISO/IEC 23270:2003",
-        "ISO-2": "C# 2.0, as specified in ISO/IEC 23270:2006",
-        "3": "C# 3.0",
-        "4": "C# 4.0",
-        "5": "C# 5.0",
-        "6": "C# 6.0",
-        "7": "C# 7.0",
-        "7.1": "C# 7.1",
-        "7.2": "C# 7.2"
+        "default": "The compiler accepts syntax from the latest major version it supports",
+        "preview": "The compiler accepts syntax from the latest preview version it supports",
+        "latest": "The compiler accepts syntax from the latest minor version it supports",
+        "latestMajor": "The compiler accepts syntax from the latest major version it supports",
+        "ISO-1": "The compiler accepts syntax from C# 1.0/1.1 and below, as specified in ISO/IEC 23270:2003",
+        "ISO-2": "The compiler accepts syntax from C# 2.0 and below, as specified in ISO/IEC 23270:2006",
+        "3": "The compiler accepts syntax from C# 3.0 and below",
+        "4": "The compiler accepts syntax from C# 4.0 and below",
+        "5": "The compiler accepts syntax from C# 5.0 and below",
+        "6": "The compiler accepts syntax from C# 6.0 and below",
+        "7": "The compiler accepts syntax from C# 7.0 and below",
+        "7.1": "The compiler accepts syntax from C# 7.1 and below",
+        "7.2": "The compiler accepts syntax from C# 7.2 and below",
+        "7.3": "The compiler accepts syntax from C# 7.3 and below",
+        "8.0": "The compiler accepts syntax from C# 8.0 and below"
       }
     },
     "Deterministic": {
