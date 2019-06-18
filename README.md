@@ -115,3 +115,10 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Test schema loader
 * Test schema composition
 * Test schema inference
+
+## Build Status
+
+Status | Platform | Runtimes
+--- | --- | ---
+[![Build Status](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor.svg?branch=library)](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor) | Linux | Mono
+[![Build status](https://ci.appveyor.com/api/projects/status/bil5oj1e45xis98h/branch/library?svg=true)](https://ci.appveyor.com/project/mhutch/monodevelop-msbuildeditor/branch/library) | Windows | .NET Framework
