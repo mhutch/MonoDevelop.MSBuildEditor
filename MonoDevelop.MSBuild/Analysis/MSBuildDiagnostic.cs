@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Text;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
@@ -12,13 +11,15 @@ namespace MonoDevelop.MSBuild.Analysis
 		public MSBuildDiagnosticDescriptor Descriptor { get; }
 		public ImmutableDictionary<string, object> Properties { get; }
 		public MSBuildDiagnosticSeverity Severity { get; }
-		public Span Location { get; }
+		public int Offset { get; }
+		public int Length { get; }
 		readonly object [] messageArgs;
 
-		public MSBuildDiagnostic(MSBuildDiagnosticDescriptor descriptor, Span location, MSBuildDiagnosticSeverity severity, ImmutableDictionary<string, object> properties, object [] messageArgs)
+		public MSBuildDiagnostic(MSBuildDiagnosticDescriptor descriptor, int offset, int length, MSBuildDiagnosticSeverity severity, ImmutableDictionary<string, object> properties, object [] messageArgs)
 		{
 			Descriptor = descriptor;
-			Location = location;
+			Offset = offset;
+			Length = length;
 			Properties = properties;
 			Severity = severity;
 			this.messageArgs = messageArgs;
