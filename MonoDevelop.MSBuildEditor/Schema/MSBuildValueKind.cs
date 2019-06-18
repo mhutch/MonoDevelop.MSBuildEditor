@@ -7,7 +7,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 {
 	//FIXME: should there be flags for directories with/without/dontcare trailing slashes? absolute/relative paths?
 	[Flags]
-	enum MSBuildValueKind
+	public enum MSBuildValueKind
 	{
 		Unknown,
 
@@ -88,6 +88,9 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		//we know it's an item but we don't know what kind
 		UnknownItem,
 
+		// values declared separately
+		CustomEnum,
+
 		NuGetID,
 		NuGetVersion,
 
@@ -100,6 +103,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		CommaList = 1 << 29,
 
 		/// Disallow expressions
-		Literal = 1 << 30
+		Literal = 1 << 30,
 	}
 }

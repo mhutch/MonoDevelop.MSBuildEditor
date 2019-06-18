@@ -19,6 +19,8 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 		public List<string> IntelliSenseImports { get; } = new List<string> ();
 
+		Dictionary<string, List<ConstantInfo>> customEnumKinds;
+
 		public static MSBuildSchema Load (TextReader reader)
 		{
 			var schema = new MSBuildSchema ();
@@ -41,26 +43,65 @@ namespace MonoDevelop.MSBuildEditor.Schema
 				doc = JObject.Load (jr);
 			}
 
+			JObject properties = null;
+			JObject items = null;
+			JObject targets = null;
+			JArray intellisenseImports = null;
+			JArray metadataGroups = null;
+			JObject enumKinds = null;
+
+			// we don't process the values in the switch, as we need a particular ordering
 			foreach (var kv in doc) {
 				switch (kv.Key) {
 				case "properties":
-					LoadProperties ((JObject)kv.Value);
+					properties = (JObject)kv.Value;
 					break;
 				case "items":
+					items = (JObject)kv.Value;
 					LoadItems ((JObject)kv.Value);
 					break;
 				case "targets":
-					LoadTargets ((JObject)kv.Value);
+					targets = (JObject)kv.Value;
 					break;
 				case "license":
 					break;
 				case "intellisenseImports":
-					LoadIntelliSenseImports ((JArray)kv.Value);
+					intellisenseImports = (JArray)kv.Value;
+					break;
+				case "metadata":
+					metadataGroups = (JArray)kv.Value;
+					break;
+				case "enumKinds":
+					enumKinds = (JObject)kv.Value;
 					break;
 				default:
 					throw new Exception ($"Unknown property {kv.Key} in root");
 				}
 			}
+
+			if (intellisenseImports != null) {
+				LoadIntelliSenseImports (intellisenseImports);
+			}
+			// enumKinds must come before properties, items and metadataGroups
+			// as they may use the declared enum kinds
+			if (enumKinds != null) {
+				customEnumKinds = LoadEnumKinds (enumKinds);
+			}
+			if (properties != null) {
+				LoadProperties (properties);
+			}
+			if (items != null) {
+				LoadItems (items);
+			}
+			// metadataGroups must come after items, as it may apply metadata to existing items
+			if (metadataGroups != null) {
+				LoadMetadataGroups (metadataGroups);
+			}
+			if (targets != null) {
+				LoadTargets (targets);
+			}
+			//we don't need it any more, free it up. kinda hacky, should really pass it down the call chain.
+			customEnumKinds = null;
 		}
 
 		void LoadProperties (JObject properties)
@@ -80,14 +121,10 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)pkv.Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)pkv.Value).Value);
+						kind = ParseValueKind ((string)((JValue)pkv.Value).Value, ref values);
 						break;
 					case "values":
-						if (pkv.Value is JObject valuesObj) {
-							values = GetValues ((JObject)pkv.Value);
-						} else {
-							values = GetValues ((JArray)pkv.Value);
-						}
+						values = LoadEnum (pkv.Value);
 						break;
 					case "default":
 						defaultValue = (string)((JValue)pkv.Value).Value;
@@ -127,26 +164,6 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			foreach (var kv in items) {
 				var name = kv.Key;
 
-				if (kv.Value is JValue val) {
-					var s = (string)val.Value;
-					if (!s.StartsWith ("@(", StringComparison.Ordinal)
-						|| !s.EndsWith (")", StringComparison.Ordinal)
-						|| !Items.TryGetValue (s.Substring (2, s.Length - 3), out ItemInfo refVal)
-						) {
-						throw new Exception ($"Invalid item reference '{s}' for item {name}");
-					}
-					var i = new ItemInfo (name, refVal.Description, refVal.IncludeDescription, refVal.ValueKind);
-					//clone the metadata so we can parent it properly
-					foreach (var m in refVal.Metadata.Values) {
-						i.Metadata.Add (m.Name, new MetadataInfo (
-							m.Name, m.Description, m.Reserved, m.Required,
-							m.ValueKind, i, m.Values, m.DefaultValue)
-						);
-					}
-					Items [name] = i;
-					continue;
-				}
-
 				string description = null, includeDescription = null;
 				var kind = MSBuildValueKind.Unknown;
 				JObject metadata = null;
@@ -156,7 +173,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 						description = (string)((JValue)ikv.Value).Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)ikv.Value).Value);
+						kind = ParseValueKind ((string)((JValue)ikv.Value).Value, out _);
 						break;
 					case "includeDescription":
 						includeDescription = (string)((JValue)ikv.Value).Value;
@@ -176,15 +193,30 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			}
 		}
 
-		static MSBuildValueKind ParseValueKind (string valueKind)
+		MSBuildValueKind ParseValueKind (string valueKind, ref List<ConstantInfo> enumValues)
+		{
+			var kind = ParseValueKind (valueKind, out var enumName);
+			if (kind == MSBuildValueKind.CustomEnum && enumValues == null) {
+				if (!customEnumKinds.TryGetValue (enumName, out enumValues)) {
+					throw new Exception ($"Unknown custom enum '{enumName}'");
+				}
+			}
+			return kind;
+		}
+
+		static MSBuildValueKind ParseValueKind (string valueKind, out string enumName)
 		{
 			var split = valueKind.Split ('-');
+
+			enumName = null;
 
 			if (!Enum.TryParse (split[0], true, out MSBuildValueKind result)) {
 				//accept unknown values in case we run into newer schema formats
 				LoggingService.LogDebug ($"Unknown value kind '{valueKind}'");
 				return MSBuildValueKind.Unknown;
 			}
+
+			int modifiersIdx = 1;
 
 			//explicitly define permitted values
 			switch (result) {
@@ -222,12 +254,16 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			case MSBuildValueKind.Platform:
 			case MSBuildValueKind.ProjectKindGuid:
 				break;
+			case MSBuildValueKind.CustomEnum:
+				enumName = split[1];
+				modifiersIdx++;
+				break;
 			default:
 				LoggingService.LogDebug ($"Value '{result}' not permitted in schema");
 				return MSBuildValueKind.Unknown;
 			}
 
-			for (int i = 1; i < split.Length; i++) {
+			for (int i = modifiersIdx; i < split.Length; i++) {
 				switch (split[i]) {
 				case "list":
 					result = result.List ();
@@ -243,98 +279,70 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return result;
 		}
 
-		MetadataInfo GetMetadataReference (string desc, ItemInfo parent)
+		MetadataInfo LoadMetadata (string name, JToken value)
 		{
-			if (!desc.StartsWith ("%(", StringComparison.Ordinal) || !desc.EndsWith (")", StringComparison.Ordinal)) {
-				return null;
+			//simple version, just a description string
+			if (value is JValue v) {
+				var desc = ((string)v.Value).Trim ();
+				return new MetadataInfo (name, desc);
 			}
-			var split = desc.Substring (2, desc.Length - 3).Split ('.');
-			if (split.Length == 1 && parent != null && parent.Metadata.TryGetValue (split[0], out MetadataInfo sibling)) {
-				return sibling;
-			}
-			if (split.Length == 2 && Items.TryGetValue (split[0], out ItemInfo item) && item.Metadata.TryGetValue (split[1], out MetadataInfo cousin)) {
-				return cousin;
-			}
-			throw new Exception ($"Invalid metadata reference {desc} in item {parent.Name}");
-		}
 
-		MetadataInfo WithNewName (MetadataInfo meta, string name, ItemInfo item)
-		{
+			string description = null, valueSeparators = null, defaultValue = null;
+			bool required = false;
+			MSBuildValueKind kind = MSBuildValueKind.Unknown;
+			List<ConstantInfo> values = null;
+			foreach (var mkv in (JObject)value) {
+				switch (mkv.Key) {
+				case "description":
+					description = (string)((JValue)mkv.Value).Value;
+					break;
+				case "kind":
+					kind = ParseValueKind ((string)((JValue)mkv.Value).Value, ref values);
+					break;
+				case "values":
+					values = GetValues ((JObject)mkv.Value);
+					break;
+				case "valueSeparators":
+					valueSeparators = (string)((JValue)mkv.Value).Value;
+					break;
+				case "default":
+					defaultValue = (string)((JValue)mkv.Value).Value;
+					break;
+				case "required":
+					required = (bool)((JValue)mkv.Value).Value;
+					break;
+				default:
+					throw new Exception ($"Unknown property {mkv.Key} in metadata {name}");
+				}
+			}
+
+			kind = CheckKind (kind, valueSeparators, values);
+
 			return new MetadataInfo (
-				name, meta.Description, meta.Reserved, meta.Required,
-				meta.ValueKind, item, meta.Values, meta.DefaultValue);
+				name, description, false, required, kind, null,
+				values, defaultValue
+			);
 		}
 
 		void AddMetadata (ItemInfo item, JObject metaObj)
 		{
 			foreach (var kv in metaObj) {
 				var name = kv.Key;
-
-				//simple version, just a description string
-				if (kv.Value is JValue value) {
-					var desc = ((string)value.Value).Trim ();
-					var reference = GetMetadataReference (desc, item);
-					if (reference != null) {
-						item.Metadata.Add (name, WithNewName (reference, name, item));
-					} else {
-						item.Metadata.Add (name, new MetadataInfo (name, desc));
-					}
-					continue;
-				}
-
-				string description = null, valueSeparators = null, defaultValue = null;
-				bool required = false;
-				MSBuildValueKind kind = MSBuildValueKind.Unknown;
-				List<ConstantInfo> values = null;
-				foreach (var mkv in (JObject)kv.Value) {
-					switch (mkv.Key) {
-					case "description":
-						description = (string)((JValue)mkv.Value).Value;
-						break;
-					case "kind":
-						kind = ParseValueKind ((string)((JValue)mkv.Value).Value);
-						break;
-					case "values":
-						switch (mkv.Value) {
-						case JValue jv:
-							var metaRef = GetMetadataReference ((string)jv.Value, item);
-							if (metaRef == null) {
-								throw new Exception ("Invalid metadata reference");
-							}
-							values = metaRef.Values;
-							break;
-						case JObject jo:
-							values = GetValues (jo);
-							break;
-						}
-						break;
-					case "valueSeparators":
-						valueSeparators = (string)((JValue)mkv.Value).Value;
-						break;
-					case "default":
-						defaultValue = (string)((JValue)mkv.Value).Value;
-						break;
-					case "required":
-						required = (bool)((JValue)mkv.Value).Value;
-						break;
-					default:
-						throw new Exception ($"Unknown property {mkv.Key} in metadata {kv.Key}");
-					}
-				}
-
-				kind = CheckKind (kind, valueSeparators, values);
-
-				item.Metadata.Add (
-					name,
-					new MetadataInfo (
-						name, description, false, required, kind, item,
-						values, defaultValue
-					)
-				);
+				var val = LoadMetadata (name, kv.Value);
+				val.Item = item;
+				item.Metadata.Add (name, val);
 			}
 		}
 
-		List<ConstantInfo> GetValues (JObject value)
+		static List<ConstantInfo> LoadEnum (JToken value)
+		{
+			if (value is JObject valuesObj) {
+				return GetValues (valuesObj);
+			}
+			return GetValues ((JArray)value);
+		}
+
+		static List<ConstantInfo> GetValues (JObject value)
 		{
 			var values = new List<ConstantInfo> ();
 			foreach (var ikv in value) {
@@ -343,7 +351,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 			return values;
 		}
 
-		List<ConstantInfo> GetValues (JArray arr)
+		static List<ConstantInfo> GetValues (JArray arr)
 		{
 			var values = new List<ConstantInfo> ();
 			foreach (var val in arr) {
@@ -354,7 +362,7 @@ namespace MonoDevelop.MSBuildEditor.Schema
 
 		public bool IsPrivate (string name)
 		{
-			//assembly everything in a schema is public
+			// everything in a schema is public
 			return false;
 		}
 
@@ -371,9 +379,71 @@ namespace MonoDevelop.MSBuildEditor.Schema
 		{
 			foreach (var import in intelliSenseImports) {
 				string val = (string)((JValue)import).Value;
-				if (!string.IsNullOrEmpty(val)) {
+				if (!string.IsNullOrEmpty (val)) {
 					IntelliSenseImports.Add (val);
 				}
+			}
+		}
+
+		Dictionary<string, List<ConstantInfo>> LoadEnumKinds (JObject value)
+		{
+			var dict = new Dictionary<string, List<ConstantInfo>> ();
+			foreach (var kv in value) {
+				dict.Add (kv.Key, LoadEnum (kv.Value));
+			}
+			return dict;
+		}
+
+		void LoadMetadataGroups (JArray value)
+		{
+			foreach (var val in value) {
+				LoadMetadataGroup ((JObject)val);
+			}
+		}
+
+		void LoadMetadataGroup (JObject obj)
+		{
+			string[] appliesTo = null;
+			var metadata = new List<MetadataInfo> ();
+
+			foreach (var kv in obj) {
+				//comments
+				if (kv.Key[0] == '#') {
+					continue;
+				}
+				if (kv.Key == "$appliesTo") {
+					if (kv.Value is JArray arr) {
+						appliesTo = new string[arr.Count];
+						for (int i = 0; i < arr.Count; i++) {
+							appliesTo[i] = (string)((JValue)arr[i]).Value;
+						}
+					} else {
+						appliesTo = new[] { (string)kv.Value };
+					}
+					continue;
+				}
+				metadata.Add (LoadMetadata (kv.Key, kv.Value));
+			}
+
+			if (appliesTo == null) {
+				throw new Exception ("Metadata groups must have $appliesTo keys");
+			}
+
+			bool isFirstItem = true;
+
+			foreach (var itemName in appliesTo) {
+				if (!Items.TryGetValue (itemName, out ItemInfo item)) {
+					item = new ItemInfo (itemName, null);
+					Items.Add (itemName, item);
+				}
+
+				foreach (var m in metadata) {
+					//the original metadata object gets parented on the first item, subsequent items get a copy
+					var toAdd = isFirstItem ? m : new MetadataInfo (m.Name, m.Description, m.Reserved, m.Required, m.ValueKind, item, m.Values, m.DefaultValue);
+					item.Metadata.Add (toAdd.Name, toAdd);
+					toAdd.Item = item;
+				}
+				isFirstItem = false;
 			}
 		}
 	}
