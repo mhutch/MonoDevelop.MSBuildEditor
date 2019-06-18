@@ -9,6 +9,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo ("MonoDevelop.MSBuild.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo ("MonoDevelop.MSBuild.Editor")]
 
 namespace MonoDevelop.MSBuild
 {
@@ -18,20 +19,6 @@ namespace MonoDevelop.MSBuild
 		public static void LogError (string message, Exception ex) => LogError ($"{message}: {ex}");
 		public static void LogError (string message) => Console.Error.WriteLine (message);
 		internal static void LogWarning (string v) => Console.WriteLine (v);
-	}
-
-	static class Ambience
-	{
-		public static string GetSummaryMarkup (IMethodSymbol symbol) => throw new NotImplementedException ();
-		public static string GetSummaryMarkup (IParameterSymbol symbol) => throw new NotImplementedException ();
-		public static string GetSummaryMarkup (ITypeSymbol symbol) => throw new NotImplementedException ();
-		public static string GetSummaryMarkup (IPropertySymbol symbol) => throw new NotImplementedException ();
-	}
-
-	static class Extensions
-	{
-		public static ITypeSymbol GetReturnType (this IPropertySymbol property) => throw new NotImplementedException ();
-		public static ITypeSymbol GetReturnType (this IMethodSymbol method) => throw new NotImplementedException ();
 	}
 
 	static class Markup
@@ -69,8 +56,6 @@ namespace MonoDevelop.MSBuild
 
 	static class MSBuildHost
 	{
-		public static Compilation GetMSBuildCompilation () => throw new NotImplementedException ();
-
 		public static class Options
 		{
 			public static bool ShowPrivateSymbols => false;
@@ -78,7 +63,9 @@ namespace MonoDevelop.MSBuild
 
 		public static IMSBuildEvaluationContext CreateEvaluationContext (IRuntimeInformation runtimeInformation, string projectPath, string thisFilePath) => throw new NotImplementedException ();
 
-		public static TaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => throw new NotImplementedException ();
+		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => throw new NotImplementedException ();
+
+		public static IFunctionTypeProvider GetFunctionTypeProvider () => throw new NotImplementedException ();
 	}
 
 	interface IMSBuildEvaluationContext

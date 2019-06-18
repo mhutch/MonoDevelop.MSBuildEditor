@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
   </ItemGroup>
 
 </Project>

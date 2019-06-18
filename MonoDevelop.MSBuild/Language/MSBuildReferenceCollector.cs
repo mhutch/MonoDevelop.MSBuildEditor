@@ -408,7 +408,7 @@ namespace MonoDevelop.MSBuild.Language
 						string baseName = StripGetPrefix (func.Name);
 						if (IsMatch (baseName)) {
 							//TODO: should we be fuzzy here and accept "unknown"?
-							var resolvedKind = FunctionCompletion.ResolveType (inv);
+							var resolvedKind = MSBuildHost.GetFunctionTypeProvider ().ResolveType (inv);
 							if (resolvedKind == MSBuildValueKind.Unknown) {
 								resolvedKind = MSBuildValueKind.String;
 							}

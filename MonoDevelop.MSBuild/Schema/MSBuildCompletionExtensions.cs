@@ -302,19 +302,19 @@ namespace MonoDevelop.MSBuild.Schema
 				return doc.GetTaskParameter (p.taskName, p.paramName);
 			case MSBuildReferenceKind.ItemFunction:
 				//FIXME: attempt overload resolution
-				return FunctionCompletion.GetItemFunctionInfo ((string)rr.Reference);
+				return MSBuildHost.GetFunctionTypeProvider ().GetItemFunctionInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				//FIXME: attempt overload resolution
 				(string className, string name) = ((string, string))rr.Reference;
-				return FunctionCompletion.GetStaticPropertyFunctionInfo (className, name);
+				return MSBuildHost.GetFunctionTypeProvider ().GetStaticPropertyFunctionInfo (className, name);
 			case MSBuildReferenceKind.PropertyFunction:
 				//FIXME: attempt overload resolution
 				(MSBuildValueKind kind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
-				return FunctionCompletion.GetPropertyFunctionInfo (kind, funcName);
+				return MSBuildHost.GetFunctionTypeProvider ().GetPropertyFunctionInfo (kind, funcName);
 			case MSBuildReferenceKind.ClassName:
-				return FunctionCompletion.GetClassInfo ((string)rr.Reference);
+				return MSBuildHost.GetFunctionTypeProvider ().GetClassInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.Enum:
-				return FunctionCompletion.GetEnumInfo ((string)rr.Reference);
+				return MSBuildHost.GetFunctionTypeProvider ().GetEnumInfo ((string)rr.Reference);
 			}
 			return null;
 		}

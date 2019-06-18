@@ -103,6 +103,6 @@ namespace MonoDevelop.MSBuild.Schema
 		CommaList = 1 << 29,
 
 		/// Disallow expressions
-		Literal = 1 << 30
+		Literal = 1 << 30,
 	}
 }

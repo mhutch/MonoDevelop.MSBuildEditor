@@ -385,11 +385,11 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.DirectorySeparator:
 				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
 			case TriggerState.PropertyFunctionName:
-				return FunctionCompletion.GetPropertyFunctionNameCompletions (triggerExpression);
+				return MSBuildHost.GetFunctionTypeProvider ().GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:
-				return FunctionCompletion.GetItemFunctionNameCompletions ();
+				return MSBuildHost.GetFunctionTypeProvider ().GetItemFunctionNameCompletions ();
 			case TriggerState.PropertyFunctionClassName:
-				return FunctionCompletion.GetClassNameCompletions ();
+				return MSBuildHost.GetFunctionTypeProvider ().GetClassNameCompletions ();
 			}
 			throw new InvalidOperationException ();
 		}

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="16.0.428" />
+  </ItemGroup>
+  
+</Project>

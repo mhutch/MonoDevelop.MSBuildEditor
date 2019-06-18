@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Language
 		public void Build (
 			XDocument doc, ITextSource textSource,
 			IRuntimeInformation runtime, PropertyValueCollector propVals,
-			TaskMetadataBuilder taskBuilder,
+			ITaskMetadataBuilder taskBuilder,
 			ImportResolver resolveImport)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);

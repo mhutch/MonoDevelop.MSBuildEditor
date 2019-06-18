@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.Xml.Editor", "MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj", "{563FFDF7-0739-42DF-B987-B804A26D1E0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Editor", "MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj", "{17E0FE72-B6D9-4187-BD80-D8A27BC74533}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

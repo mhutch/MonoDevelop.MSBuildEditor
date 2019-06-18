@@ -8,9 +8,9 @@ using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	static class FunctionCompletion
+	class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
-		public static IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is Expression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -42,7 +42,7 @@ namespace MonoDevelop.MSBuild.Language
 			return null;
 		}
 
-		public static MSBuildValueKind ResolveType (ExpressionPropertyNode node)
+		public MSBuildValueKind ResolveType (ExpressionPropertyNode node)
 		{
 			if (node is ExpressionPropertyName) {
 				return MSBuildValueKind.Unknown;
@@ -68,14 +68,14 @@ namespace MonoDevelop.MSBuild.Language
 			return MSBuildValueKind.Unknown;
 		}
 
-		public static IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
+		public IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ()
 		{
 			return CollapseOverloads (GetIntrinsicItemFunctions ().Concat (GetStringFunctions (false, false)));
 		}
 
-		public static IEnumerable<ClassInfo> GetClassNameCompletions ()
+		public IEnumerable<ClassInfo> GetClassNameCompletions ()
 		{
-			var compilation = MSBuildHost.GetMSBuildCompilation ();
+			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 			foreach (var kv in permittedFunctions) {
 				var type = compilation.GetTypeByMetadataName (kv.Key);
 				if (type != null) {
@@ -87,7 +87,7 @@ namespace MonoDevelop.MSBuild.Language
 			yield return new ClassInfo ("MSBuild", "Intrinsic MSBuild functions");
 		}
 
-		public static ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos)
+		public ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos)
 		{
 			var functions = new Dictionary<string, FunctionInfo> ();
 			foreach (var info in infos) {
@@ -101,7 +101,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//FIXME: make this lookup cheaper
-		public static FunctionInfo GetStaticPropertyFunctionInfo (string className, string name)
+		public FunctionInfo GetStaticPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
 				return null;
@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//FIXME: make this lookup cheaper
-		public static FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
+		public FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
 		{
 			return Find (GetInstanceFunctions (valueKind, true, true), name);
 		}
@@ -130,18 +130,18 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//FIXME: make this lookup cheaper
-		public static BaseInfo GetItemFunctionInfo (string name)
+		public BaseInfo GetItemFunctionInfo (string name)
 		{
 			return GetItemFunctionNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
-		public static BaseInfo GetClassInfo (string name)
+		public BaseInfo GetClassInfo (string name)
 		{
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		internal static BaseInfo GetEnumInfo (string reference)
+		public BaseInfo GetEnumInfo (string reference)
 		{
 			//FIXME: resolve enum values
 			return new ConstantInfo (reference, null);
@@ -149,7 +149,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
 		{
-			var compilation = MSBuildHost.GetMSBuildCompilation ();
+			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 			var type = compilation.GetTypeByMetadataName ("System.String");
 			return GetInstanceFunctions (type, includeProperties, includeIndexers);
 		}
@@ -157,7 +157,7 @@ namespace MonoDevelop.MSBuild.Language
 		static IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
 		{
 			var dotNetType = GetDotNetTypeName (kind);
-			var compilation = MSBuildHost.GetMSBuildCompilation ();
+			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 
 			INamedTypeSymbol type = null;
 			if (dotNetType != null) {
@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		static IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
 		{
-			var compilation = MSBuildHost.GetMSBuildCompilation ();
+			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 			var type = compilation.GetTypeByMetadataName (className);
 			if (type == null) {
 				yield break;

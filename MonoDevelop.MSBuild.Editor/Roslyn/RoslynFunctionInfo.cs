@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public IMethodSymbol Symbol { get; }
 		public override FunctionParameterInfo [] Parameters => Symbol.Parameters.Select (p => new RoslynFunctionArgumentInfo (p)).ToArray ();
-		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (Symbol.GetReturnType ());
+		public override MSBuildValueKind ReturnType => RoslynFunctionTypeProvider.ConvertType (Symbol.GetReturnType ());
 	}
 
 	class RoslynFunctionArgumentInfo : FunctionParameterInfo
@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (symbol), true);
-		public override string Type => string.Join (" ", FunctionCompletion.ConvertType (symbol.Type).GetTypeDescription ());
+		public override string Type => string.Join (" ", RoslynFunctionTypeProvider.ConvertType (symbol.Type).GetTypeDescription ());
 	}
 
 	class RoslynClassInfo : ClassInfo
@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public override DisplayText Description => new DisplayText (Ambience.GetSummaryMarkup (Symbol), true);
 
 		public IPropertySymbol Symbol { get; }
-		public override MSBuildValueKind ReturnType => FunctionCompletion.ConvertType (Symbol.GetReturnType ());
+		public override MSBuildValueKind ReturnType => RoslynFunctionTypeProvider.ConvertType (Symbol.GetReturnType ());
 		public override FunctionParameterInfo [] Parameters => null;
 		public override bool IsProperty => true;
 	}

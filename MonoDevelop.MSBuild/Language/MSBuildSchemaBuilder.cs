@@ -15,13 +15,13 @@ namespace MonoDevelop.MSBuild.Language
 		readonly bool isToplevel;
 		readonly IRuntimeInformation runtime;
 		readonly PropertyValueCollector propertyValues;
-		readonly TaskMetadataBuilder taskMetadataBuilder;
+		readonly ITaskMetadataBuilder taskMetadataBuilder;
 		readonly ImportResolver resolveImport;
 
 		public MSBuildSchemaBuilder (
 			bool isToplevel, IRuntimeInformation runtime,
 			PropertyValueCollector propertyValues,
-			TaskMetadataBuilder taskBuilder,
+			ITaskMetadataBuilder taskBuilder,
 			ImportResolver resolveImport)
 		{
 			this.isToplevel = isToplevel;

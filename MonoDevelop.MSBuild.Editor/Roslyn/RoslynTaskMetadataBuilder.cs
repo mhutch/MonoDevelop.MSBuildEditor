@@ -9,7 +9,7 @@ using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	public abstract class TaskMetadataBuilder
+	public abstract class TaskMetadataBuilder : ITaskMetadataBuilder
 	{
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, string assemblyFile,
@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Schema
 			var type = assembly.GetTypeByMetadataName (typeName) ?? FindType (assembly.GlobalNamespace, typeName);
 
 			if (type == null) {
-				switch(typeName) {
+				switch (typeName) {
 				case "Microsoft.Build.Tasks.RequiresFramework35SP1Assembly":
 				case "Microsoft.Build.Tasks.ResolveNativeReference":
 					//we don't care about these, they're not present on Mac and they're just noise

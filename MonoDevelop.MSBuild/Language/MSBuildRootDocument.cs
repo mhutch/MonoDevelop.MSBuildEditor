@@ -191,7 +191,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void LoadTasks (
 			HashSet<string> importedFiles, MSBuildRootDocument previous, string label, string filename,
-			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
 			try {
@@ -204,7 +204,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		Import ParseImport (
 			HashSet<string> importedFiles, Import import, string projectPath,
-			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
 			token.ThrowIfCancellationRequested ();
@@ -232,7 +232,7 @@ namespace MonoDevelop.MSBuild.Language
 			return import;
 		}
 
-		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider, CancellationToken token)
+		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider, CancellationToken token)
 		{
 			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
 			if (importExpr.IndexOf("$(MSBuildUserExtensionsPath)",StringComparison.OrdinalIgnoreCase) > -1) {
@@ -338,7 +338,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		Import GetCachedOrParse (
 			HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc, string projectPath,
-			PropertyValueCollector propVals, TaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
+			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
 			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {

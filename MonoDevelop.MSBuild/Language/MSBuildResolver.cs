@@ -242,7 +242,7 @@ namespace MonoDevelop.MSBuild.Language
 							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
 							rr.Reference = (classRef.Name, name.Name);
 						} else {
-							var type = FunctionCompletion.ResolveType (prop.Target);
+							var type = MSBuildHost.GetFunctionTypeProvider ().ResolveType (prop.Target);
 							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
 							rr.Reference = (type, name.Name);
 						}
