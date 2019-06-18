@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild", "Mono
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Tests", "MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj", "{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.Xml.Editor", "MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj", "{563FFDF7-0739-42DF-B987-B804A26D1E0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{563FFDF7-0739-42DF-B987-B804A26D1E0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
