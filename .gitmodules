@@ -3,4 +3,4 @@
 	url = https://github.com/mhutch/ProjFileTools.git
 [submodule "MonoDevelop.Xml"]
 	path = MonoDevelop.Xml
-	url = git@github.com:mhutch/MonoDevelop.Xml.git
+	url = https://github.com/mhutch/MonoDevelop.Xml.git
