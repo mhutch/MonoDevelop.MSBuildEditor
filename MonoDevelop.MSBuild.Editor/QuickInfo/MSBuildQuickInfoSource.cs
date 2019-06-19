@@ -27,18 +27,18 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 		protected MSBuildBackgroundParser GetParser () => BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)textBuffer);
 
-		public Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
+		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
 		{
 			var parser = GetParser ();
+			var snapshot = textBuffer.CurrentSnapshot;
 
-			//FIXME: get a real document
-			var doc = MSBuildRootDocument.CreateTestDocument ();
+			var result = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, cancellationToken);
+			var doc = result.MSBuildDocument;
+				//.LastParseResult?.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
 
 			if (doc == null) {
-				return Task.FromResult<QuickInfoItem> (null);
+				return null;
 			}
-
-			var snapshot = textBuffer.CurrentSnapshot;
 
 			var trigger = session.GetTriggerPoint (textBuffer);
 			var offset = trigger.GetPosition (snapshot);
@@ -47,20 +47,20 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 			var annotations = MSBuildNavigation.GetAnnotationsAtOffset<NavigationAnnotation> (doc, offset)?.ToList ();
 			if (annotations != null && annotations.Count > 0) {
-				return Task.FromResult (CreateQuickInfo (snapshot, annotations));
+				return CreateQuickInfo (snapshot, annotations);
 			}
 
 			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
-					return Task.FromResult (CreateNuGetQuickInfo (snapshot, doc, rr));
+					return CreateNuGetQuickInfo (snapshot, doc, rr);
 				}
 				var info = rr.GetResolvedReference (doc);
 				if (info != null) {
-					return Task.FromResult (CreateQuickInfo (snapshot, doc, info, rr));
+					return CreateQuickInfo (snapshot, doc, info, rr);
 				}
 			}
-			return Task.FromResult<QuickInfoItem> (null);
+			return null;
 		}
 
 		QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)

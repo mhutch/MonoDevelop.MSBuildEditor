@@ -27,39 +27,43 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 		}
 
-		protected override Task<CompletionContext> GetElementCompletionsAsync (
+		protected override async Task<CompletionContext> GetElementCompletionsAsync (
 			SnapshotPoint triggerLocation,
 			List<XObject> nodePath,
 			bool includeBracket,
 			CancellationToken token)
 		{
-			var doc = GetMSBuildDocument ();
+			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
+			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
+
 			var rr = ResolveAt (triggerLocation, doc);
 			if (rr == null) {
-				return Task.FromResult (CompletionContext.Empty);
+				return CompletionContext.Empty;
 			}
 
 			var items = new List<CompletionItem> ();
-			//AddMiscBeginTags (list);
+			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
 				items.Add (CreateCompletionItem (el, doc, rr, XmlImages.ElementImage));
 			}
 
-			return Task.FromResult (new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items)));
+			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
-		protected override Task<CompletionContext> GetAttributeCompletionsAsync (
+		protected override async Task<CompletionContext> GetAttributeCompletionsAsync (
 			SnapshotPoint triggerLocation,
 			List<XObject> nodePath,
 			IAttributedXObject attributedObject,
 			Dictionary<string, string> existingAtts,
 			CancellationToken token)
 		{
-			var doc = GetMSBuildDocument ();
+			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
+			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
+
 			var rr = ResolveAt (triggerLocation, doc);
 			if (rr?.LanguageElement == null)
-				return Task.FromResult (CompletionContext.Empty);
+				return CompletionContext.Empty;
 
 			var items = new List<CompletionItem> ();
 
@@ -69,7 +73,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return Task.FromResult (new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items)));
+			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, Microsoft.VisualStudio.Text.Adornments.ImageElement image)
@@ -84,7 +88,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		MSBuildResolveResult ResolveAt (SnapshotPoint point, MSBuildDocument context) =>
 			MSBuildResolver.Resolve (GetSpineParser (point), point.Snapshot.GetTextSource (), context);
 
-		MSBuildRootDocument GetMSBuildDocument () => new MSBuildRootDocument (null);
+		Task<MSBuildParseResult> GetParseAsync (ITextSnapshot snapshot, CancellationToken cancellationToken) => GetParser ().GetOrParseAsync ((ITextSnapshot2) snapshot, cancellationToken);
 
 		public Task<object> GetDocumentationAsync (CompletionItem item)
 		{

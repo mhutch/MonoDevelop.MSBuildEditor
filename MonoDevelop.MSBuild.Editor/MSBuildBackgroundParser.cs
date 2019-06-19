@@ -1,28 +1,46 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Text;
+using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.IntelliSense;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	public class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
+	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
 	{
 		protected override Task<MSBuildParseResult> StartParseAsync (
 			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
 			ITextSnapshot2 previousSnapshot, CancellationToken token)
 		{
-			var parser = new XmlParser (StateMachine, true);
 			return Task.Run (() => {
-				var length = snapshot.Length;
-				for (int i = 0; i < length; i++) {
-					parser.Push (snapshot[i]);
-				}
-				return new MSBuildParseResult (parser.Nodes.GetRoot (), parser.Diagnostics);
+				var oldDoc = previousParse?.MSBuildDocument;
+
+				//fixme
+				string filename = "foo.csproj";
+				var runtimeInformation = oldDoc?.RuntimeInformation ?? new DummyRuntimeInformation ();
+				var schemaProvider = new MSBuildSchemaProvider ();
+
+				var doc = MSBuildRootDocument.Parse (filename, snapshot.GetTextSource (), oldDoc, schemaProvider, runtimeInformation, token);
+
+				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors);
 			});
+		}
+
+		class DummyRuntimeInformation : IRuntimeInformation
+		{
+			public string GetBinPath () => null;
+			public IEnumerable<string> GetExtensionsPaths () => Enumerable.Empty<string> ();
+			public List<SdkInfo> GetRegisteredSdks () => new List<SdkInfo> ();
+			public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath) => null;
+			public string GetSdksPath () => null;
+			public string GetToolsPath () => null;
 		}
 	}
 }
