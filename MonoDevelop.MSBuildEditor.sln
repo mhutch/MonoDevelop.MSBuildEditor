@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.271
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuildEditor", "MonoDevelop.MSBuildEditor\MonoDevelop.MSBuildEditor.csproj", "{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.Xml.Editor", "MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj", "{563FFDF7-0739-42DF-B987-B804A26D1E0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Editor", "MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj", "{17E0FE72-B6D9-4187-BD80-D8A27BC74533}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Editor.VisualStudio", "MonoDevelop.MSBuild.Editor.VisualStudio\MonoDevelop.MSBuild.Editor.VisualStudio.csproj", "{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17E0FE72-B6D9-4187-BD80-D8A27BC74533}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
