@@ -26,11 +26,6 @@ namespace MonoDevelop.MSBuild
 		public static string EscapeText (string text) => throw new NotImplementedException ();
 	}
 
-	static class MSBuildProjectService
-	{
-		public static string FromMSBuildPath (string directory, string file) => throw new NotImplementedException ();
-	}
-
 	static class TextEditorFactory
 	{
 		public static ITextSource CreateNewDocument (string filename) => new StringTextSource (File.ReadAllText (filename), filename);

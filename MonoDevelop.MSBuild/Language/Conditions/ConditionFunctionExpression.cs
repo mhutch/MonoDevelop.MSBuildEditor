@@ -30,6 +30,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Language.Conditions
 {
@@ -83,7 +84,7 @@ namespace MonoDevelop.MSBuild.Language.Conditions
 
 			string directory = context.FullDirectoryName;
 
-			file = MonoDevelop.MSBuild.MSBuildProjectService.FromMSBuildPath (directory, file);
+			file = MSBuildEscaping.FromMSBuildPath (directory, file);
 			bool res;
 			lock (context.ExistsEvaluationCache) {
 				if (context.ExistsEvaluationCache.TryGetValue (file, out res))
