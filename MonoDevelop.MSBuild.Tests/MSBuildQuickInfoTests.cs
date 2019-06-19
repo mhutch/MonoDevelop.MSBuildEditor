@@ -13,7 +13,6 @@ using NUnit.Framework;
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	[Ignore ("There is currently no quickinfo broker")]
 	public class MSBuildQuickInfoTests : CompletionTestBase
 	{
 		public override IContentType ContentType => Catalog.ContentTypeRegistryService.GetContentType (MSBuildContentType.Name);
