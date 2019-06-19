@@ -61,14 +61,32 @@ namespace MonoDevelop.MSBuild
 			public static bool ShowPrivateSymbols => false;
 		}
 
-		public static IMSBuildEvaluationContext CreateEvaluationContext (IRuntimeInformation runtimeInformation, string projectPath, string thisFilePath) => throw new NotImplementedException ();
+		public static IMSBuildEvaluationContext CreateEvaluationContext (IRuntimeInformation runtimeInformation, string projectPath, string thisFilePath) => new NoopMSBuildEvaluationContext ();
 
-		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => throw new NotImplementedException ();
+		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => new NoopTaskMetadataBuilder ();
 
 		public static IFunctionTypeProvider GetFunctionTypeProvider () => FunctionTypeProvider;
 
 		// hack for tests
 		public static IFunctionTypeProvider FunctionTypeProvider { get; set; }
+
+		//FIXME
+		class NoopTaskMetadataBuilder : ITaskMetadataBuilder
+		{
+			public TaskInfo CreateTaskInfo (string typeName, string assemblyName, string assemblyFile, string declaredInFile, int declaredAtOffset, PropertyValueCollector propVals)
+			{
+				return null;
+			}
+		}
+
+		//FIXME
+		class NoopMSBuildEvaluationContext : IMSBuildEvaluationContext
+		{
+			public IEnumerable<string> EvaluatePathWithPermutation (string pathExpression, string baseDirectory, PropertyValueCollector propVals)
+			{
+				yield break;
+			}
+		}
 	}
 
 	interface IMSBuildEvaluationContext
