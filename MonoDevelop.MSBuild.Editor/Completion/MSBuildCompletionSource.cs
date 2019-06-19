@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public Task<object> GetDocumentationAsync (CompletionItem item)
 		{
-			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info)) {
+			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) && info.Description.AsText () != null) {
 				return Task.FromResult<object> (
 					new ContainerElement (
 						ContainerElementStyle.Wrapped,
