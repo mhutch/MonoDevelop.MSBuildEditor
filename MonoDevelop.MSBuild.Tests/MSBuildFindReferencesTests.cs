@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
 using NUnit.Framework;
 
@@ -17,7 +18,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			string filename = "test.csproj";
 
-			var textDoc = TextEditorFactory.CreateNewDocument (docString, filename);
+			var textDoc = TextSourceFactory.CreateNewDocument (docString, filename);
 
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			xmlParser.Parse (new StringReader (docString));
@@ -47,8 +48,8 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 
 			for (int i = 0; i < actual.Count; i++) {
-				var (offset, length, usage) = actual [i];
-				var (expectedOffset, expectedLength, expectedUsage) = expected [i];
+				var (offset, length, usage) = actual[i];
+				var (expectedOffset, expectedLength, expectedUsage) = expected[i];
 				if (offset != expectedOffset || length != expectedLength || usage != expectedUsage || !string.Equals (expectedName, doc.Substring (offset, length), StringComparison.OrdinalIgnoreCase)) {
 					DumpLocations ();
 					Assert.Fail ($"Position {i}: expected ({expectedOffset}, {expectedLength})='{expectedName}' ({expectedUsage}), got ({offset}, {length})='{doc.Substring (offset, length)}' ({usage})");
@@ -76,7 +77,7 @@ namespace MonoDevelop.MSBuild.Tests
     <bar><foo>@(foo)</foo></bar>
     <baz include=""@(foo->'%(foo.bar)')"" />
   </itemgroup>
-</project>".TrimStart ().Replace("\r", "");
+</project>".TrimStart ().Replace ("\r", "");
 
 			var refs = FindReferences (doc, MSBuildReferenceKind.Item, "Foo");
 

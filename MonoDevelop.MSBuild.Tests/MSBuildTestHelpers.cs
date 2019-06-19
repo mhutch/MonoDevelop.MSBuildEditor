@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Text;
 using MonoDevelop.MSBuild;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -55,7 +56,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var indices = new Queue<int> (GetMarkedIndices (ref docString, marker));
 
-			var textDoc = TextEditorFactory.CreateNewDocument (docString, filename);
+			var textDoc = TextSourceFactory.CreateNewDocument (docString, filename);
 
 			var treeParser = new XmlParser (new XmlRootState (), true);
 			treeParser.Parse (textDoc.CreateReader ());

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using NuGet.Frameworks;
@@ -214,7 +215,7 @@ namespace MonoDevelop.MSBuild.Language
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			ITextSource textSource;
 			try {
-				textSource = TextEditorFactory.CreateNewDocument (import.Filename);
+				textSource = TextSourceFactory.CreateNewDocument (import.Filename);
 				xmlParser.Parse (textSource.CreateReader ());
 			} catch (Exception ex) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
