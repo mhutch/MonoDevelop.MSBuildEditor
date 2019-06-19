@@ -217,6 +217,9 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public void PropertyFunctionResolution ()
 		{
+			// HACK
+			MSBuildHost.FunctionTypeProvider = new RoslynFunctionTypeProvider ();
+
 			var doc = @"
 <project>
   <propertygroup>

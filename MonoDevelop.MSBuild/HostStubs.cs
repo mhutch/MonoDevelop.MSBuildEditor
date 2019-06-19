@@ -65,7 +65,10 @@ namespace MonoDevelop.MSBuild
 
 		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => throw new NotImplementedException ();
 
-		public static IFunctionTypeProvider GetFunctionTypeProvider () => throw new NotImplementedException ();
+		public static IFunctionTypeProvider GetFunctionTypeProvider () => FunctionTypeProvider;
+
+		// hack for tests
+		public static IFunctionTypeProvider FunctionTypeProvider { get; set; }
 	}
 
 	interface IMSBuildEvaluationContext
