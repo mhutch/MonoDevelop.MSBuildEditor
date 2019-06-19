@@ -22,7 +22,12 @@ namespace MonoDevelop.MSBuild.Language
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public IRuntimeInformation RuntimeInformation { get; private set; }
 		public ITextSource Text { get; private set; }
-		public XDocument XDocument { get; private set; }
+		public XDocument XDocument { get; internal set; }
+
+		internal static MSBuildRootDocument CreateTestDocument ()
+		{
+			return new MSBuildRootDocument (null) { XDocument = new XDocument () };
+		}
 
 		public MSBuildRootDocument (string filename) : base (filename, true)
 		{

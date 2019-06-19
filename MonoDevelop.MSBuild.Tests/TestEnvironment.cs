@@ -7,6 +7,7 @@ using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.IntelliSense;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests.Completion;
+using MonoDevelop.Xml.Tests.EditorTestHelpers;
 
 namespace MonoDevelop.MSBuild.Tests
 {
@@ -32,7 +33,10 @@ namespace MonoDevelop.MSBuild.Tests
 		static void Initialize ()
 		{
 			// Remember to initialize that JoinableTaskContext if you need it
-			MefJoinableTaskContext = new JoinableTaskContext ();
+			var mainloop = new MockMainLoop ();
+			mainloop.Start ().Wait ();
+			MefJoinableTaskContext = mainloop.JoinableTaskContext;
+			System.Threading.SynchronizationContext.SetSynchronizationContext (mainloop);
 
 			EditorEnvironment.DefaultAssemblies = new string[2]
 			{
