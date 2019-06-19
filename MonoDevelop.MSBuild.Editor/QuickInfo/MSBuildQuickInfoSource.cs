@@ -6,7 +6,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
@@ -84,7 +86,15 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			};
 			*/
 
-			return new QuickInfoItem (span, desc);
+			var content = new ContainerElement (
+				ContainerElementStyle.Wrapped,
+				new ClassifiedTextElement (
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, desc.AsText ())
+				)
+			);
+
+
+			return new QuickInfoItem (span, content);
 		}
 
 		QuickInfoItem CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr)
@@ -113,7 +123,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			//TODO: format elements
 			//var markup = DescriptionMarkupFormatter.GetNavigationMarkup (navs);
 
-			return new QuickInfoItem (span, navs.Count ());
+			var content = new ContainerElement (
+				ContainerElementStyle.Wrapped,
+				new ClassifiedTextElement (
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, navs.First ().Path)
+				)
+			);
+
+			return new QuickInfoItem (span, content);
 		}
 
 		public void Dispose ()

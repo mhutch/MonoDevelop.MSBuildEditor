@@ -2,21 +2,26 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor.IntelliSense;
 using MonoDevelop.MSBuild.Schema;
-using System.Collections.Immutable;
+using MonoDevelop.Xml.Completion;
+using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.IntelliSense;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>
+	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
 		public MSBuildCompletionSource (ITextView textView) : base (textView)
 		{
@@ -67,15 +72,33 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.FromResult (new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items)));
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo att, MSBuildRootDocument doc, MSBuildResolveResult rr, Microsoft.VisualStudio.Text.Adornments.ImageElement image)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, Microsoft.VisualStudio.Text.Adornments.ImageElement image)
 		{
 			//FIXME add description etc
-			return new CompletionItem (att.Name, this);
+			var item = new CompletionItem (info.Name, this);
+			item.AddDocumentationProvider (this);
+			item.Properties.AddProperty (typeof(BaseInfo), info);
+			return item;
 		}
 
 		MSBuildResolveResult ResolveAt (SnapshotPoint point, MSBuildDocument context) =>
 			MSBuildResolver.Resolve (GetSpineParser (point), point.Snapshot.GetTextSource (), context);
 
 		MSBuildRootDocument GetMSBuildDocument () => new MSBuildRootDocument (null);
+
+		public Task<object> GetDocumentationAsync (CompletionItem item)
+		{
+			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info)) {
+				return Task.FromResult<object> (
+					new ContainerElement (
+						ContainerElementStyle.Wrapped,
+						new ClassifiedTextElement (
+							new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, info.Description.AsText ())
+						)
+					)
+				);
+			}
+			return Task.FromResult<object> (null);
+		}
 	}
 }
