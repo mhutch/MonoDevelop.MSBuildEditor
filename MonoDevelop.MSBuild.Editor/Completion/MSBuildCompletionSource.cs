@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			CancellationToken token)
 		{
 			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
-			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
+			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 
 			var rr = ResolveAt (triggerLocation, doc);
 			if (rr == null) {
@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			CancellationToken token)
 		{
 			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
-			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
+			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 
 			var rr = ResolveAt (triggerLocation, doc);
 			if (rr?.LanguageElement == null)
