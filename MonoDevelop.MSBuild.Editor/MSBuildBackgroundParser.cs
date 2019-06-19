@@ -15,6 +15,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
 	{
+		IRuntimeInformation runtimeInformation = new NullRuntimeInformation ();
+
 		protected override Task<MSBuildParseResult> StartParseAsync (
 			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
 			ITextSnapshot2 previousSnapshot, CancellationToken token)
@@ -24,7 +26,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				//fixme
 				string filename = "foo.csproj";
-				var runtimeInformation = oldDoc?.RuntimeInformation ?? new DummyRuntimeInformation ();
 				var schemaProvider = new MSBuildSchemaProvider ();
 
 				var doc = MSBuildRootDocument.Parse (filename, snapshot.GetTextSource (), oldDoc, schemaProvider, runtimeInformation, token);
@@ -33,7 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			});
 		}
 
-		class DummyRuntimeInformation : IRuntimeInformation
+		class NullRuntimeInformation : IRuntimeInformation
 		{
 			public string GetBinPath () => null;
 			public IEnumerable<string> GetExtensionsPaths () => Enumerable.Empty<string> ();

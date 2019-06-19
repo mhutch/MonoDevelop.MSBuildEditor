@@ -8,9 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using NuGet.Frameworks;
@@ -22,7 +20,6 @@ namespace MonoDevelop.MSBuild.Language
 		MSBuildToolsVersion? toolsVersion;
 
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
-		public IRuntimeInformation RuntimeInformation { get; private set; }
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; internal set; }
 
@@ -35,7 +32,7 @@ namespace MonoDevelop.MSBuild.Language
 		public string GetTargetFrameworkNuGetSearchParameter ()
 		{
 			if (Frameworks.Count == 1) {
-				return Frameworks [0].DotNetFrameworkName;
+				return Frameworks[0].DotNetFrameworkName;
 			}
 			//TODO properly support multiple filters
 			return null;
@@ -66,8 +63,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var doc = new MSBuildRootDocument (filename) {
 				XDocument = xdocument,
-				Text = textSource,
-				RuntimeInformation = runtimeInfo
+				Text = textSource
 			};
 			doc.Errors.AddRange (xmlParser.Diagnostics);
 
@@ -83,6 +79,17 @@ namespace MonoDevelop.MSBuild.Language
 
 			var taskBuilder = MSBuildHost.CreateTaskMetadataBuilder (doc);
 
+			var parseContext = new MSBuildParserContext (
+				runtimeInfo,
+				doc,
+				previous,
+				importedFiles,
+				projectPath,
+				propVals,
+				taskBuilder,
+				schemaProvider,
+				token);
+
 			var extension = Path.GetExtension (filename);
 
 			string MakeRelativeMSBuildPathAbsolute (string path)
@@ -97,7 +104,7 @@ namespace MonoDevelop.MSBuild.Language
 				try {
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
-						var imp = doc.GetCachedOrParse (importedFiles, previous, label, possibleFile, null, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
+						var imp = parseContext.GetCachedOrParse (label, possibleFile, null, fi.LastWriteTimeUtc);
 						doc.AddImport (imp);
 						return imp;
 					}
@@ -139,7 +146,7 @@ namespace MonoDevelop.MSBuild.Language
 
 				doc.Build (
 					xdocument, textSource, runtimeInfo, propVals, taskBuilder,
-					(imp, sdk) => doc.ResolveImport (importedFiles, previous, projectPath, filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
+					parseContext.CreateImportResolver (filename)
 				);
 
 				//if this is a props file, try to import the targets _at the bottom_
@@ -154,12 +161,12 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var binpath = doc.RuntimeInformation.GetBinPath ();
+				var binpath = parseContext.RuntimeInformation.GetBinPath ();
 				foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
-					doc.LoadTasks (importedFiles, previous, "(core tasks)", t, propVals, taskBuilder, schemaProvider, token);
+					doc.LoadTasks (parseContext, "(core tasks)", t);
 				}
 				foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
-					doc.LoadTasks (importedFiles, previous, "(core overridetasks)", t, propVals, taskBuilder, schemaProvider, token);
+					doc.LoadTasks (parseContext, "(core overridetasks)", t);
 				}
 			} catch (Exception ex) {
 				LoggingService.LogError ("Error resolving tasks", ex);
@@ -193,182 +200,24 @@ namespace MonoDevelop.MSBuild.Language
 			return doc;
 		}
 
-		void LoadTasks (
-			HashSet<string> importedFiles, MSBuildRootDocument previous, string label, string filename,
-			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
-			CancellationToken token)
+		void LoadTasks (MSBuildParserContext context, string label, string filename)
 		{
 			try {
-				var import = GetCachedOrParse (importedFiles, previous, label, filename, null, File.GetLastWriteTimeUtc (filename), Filename, propVals, taskBuilder, schemaProvider, token);
+				var import = context.GetCachedOrParse (label, filename, null, File.GetLastWriteTimeUtc (filename));
 				AddImport (import);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
 			}
 		}
 
-		Import ParseImport (
-			HashSet<string> importedFiles, Import import, string projectPath,
-			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
-			CancellationToken token)
-		{
-			token.ThrowIfCancellationRequested ();
-
-			var xmlParser = new XmlParser (new XmlRootState (), true);
-			ITextSource textSource;
-			try {
-				textSource = TextSourceFactory.CreateNewDocument (import.Filename);
-				xmlParser.Parse (textSource.CreateReader ());
-			} catch (Exception ex) {
-				LoggingService.LogError ("Unhandled error parsing xml document", ex);
-				return import;
-			}
-
-			var doc = xmlParser.Nodes.GetRoot ();
-
-			import.Document = new MSBuildDocument (import.Filename, false);
-			import.Document.Build (
-				doc, textSource, RuntimeInformation, propVals, taskBuilder,
-				(imp, sdk) => ResolveImport (importedFiles, null, projectPath, import.Filename, imp, sdk, propVals, taskBuilder, schemaProvider, token)
-			);
-
-			import.Document.Schema = schemaProvider.GetSchema (import.Filename, import.Sdk);
-
-			return import;
-		}
-
-		IEnumerable<Import> ResolveImport (HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string projectPath, string thisFilePath, string importExpr, string sdk, PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider, CancellationToken token)
-		{
-			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
-			if (importExpr.IndexOf("$(MSBuildUserExtensionsPath)",StringComparison.OrdinalIgnoreCase) > -1) {
-				yield break;
-			}
-
-			//TODO: re-use these contexts instead of recreating them
-			var runtimeContext = new MSBuildRuntimeEvaluationContext (RuntimeInformation);
-			var fileContext = new MSBuildFileEvaluationContext (runtimeContext, projectPath, thisFilePath);
-			var context = new MSBuildCollectedValuesEvaluationContext (fileContext, propVals);
-
-			bool foundAny = false;
-			bool isWildcard = false;
-
-			//the ToList is necessary because nested parses can alter the list between this yielding values 
-			foreach (var filename in context.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath)).ToList ()) {
-				if (string.IsNullOrEmpty (filename)) {
-					continue;
-				}
-
-				//dedup
-				if (!importedFiles.Add (filename)) {
-					foundAny = true;
-					continue;
-				}
-
-				//wildcards
-				var wildcardIdx = filename.IndexOf ('*');
-
-				//arbitrary limit to skip improbably short values from bad evaluation
-				const int MIN_WILDCARD_STAR_IDX = 15;
-				const int MIN_WILDCARD_PATTERN_IDX = 10;
-				if (wildcardIdx > MIN_WILDCARD_STAR_IDX) {
-					isWildcard = true;
-					var lastSlash = filename.LastIndexOf (Path.DirectorySeparatorChar);
-					if (lastSlash < MIN_WILDCARD_PATTERN_IDX) {
-						continue;
-					}
-					if (lastSlash > wildcardIdx) {
-						continue;
-					}
-
-					string [] files;
-					try {
-						var dir = filename.Substring (0, lastSlash);
-						if (!Directory.Exists (dir)) {
-							continue;
-						}
-
-						//finding the folder's enough for this to "count" as resolved even if there aren't any files in it
-						foundAny = true;
-
-						var pattern = filename.Substring (lastSlash + 1);
-
-						files = Directory.GetFiles (dir, pattern);
-					} catch (Exception ex) {
-						LoggingService.LogError ($"Error evaluating wildcard in import candidate '{filename}'", ex);
-						continue;
-					}
-
-					foreach (var f in files) {
-						Import wildImport;
-						try {
-							wildImport = GetCachedOrParse (importedFiles, oldDoc, importExpr, f, sdk, File.GetLastWriteTimeUtc (f), projectPath, propVals, taskBuilder, schemaProvider, token);
-						} catch (Exception ex) {
-							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
-							continue;
-						}
-						yield return wildImport;
-					}
-
-					continue;
-				}
-
-				Import import;
-				try {
-					var fi = new FileInfo (filename);
-					if (!fi.Exists) {
-						continue;
-					}
-					import = GetCachedOrParse (importedFiles, oldDoc, importExpr, filename, sdk, fi.LastWriteTimeUtc, projectPath, propVals, taskBuilder, schemaProvider, token);
-				} catch (Exception ex) {
-					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
-					continue;
-				}
-
-				foundAny = true;
-				yield return import;
-				continue;
-			}
-
-			//yield a placeholder for tooltips, imports pad etc to query
-			if (!foundAny) {
-				yield return new Import (importExpr, sdk, null, DateTime.MinValue);
-			}
-
-			// we skip logging for wildcards as these are generally extensibility points that are often unused
-			// this is here (rather than being folded into the next condition) for ease of breakpointing
-			if (!foundAny && !isWildcard) {
-				if (oldDoc == null && failedImports.Add (importExpr)) {
-					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExpr}'");
-				}
-			}
-		}
-
-		Import GetCachedOrParse (
-			HashSet<string> importedFiles, MSBuildRootDocument oldDoc, string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc, string projectPath,
-			PropertyValueCollector propVals, ITaskMetadataBuilder taskBuilder, MSBuildSchemaProvider schemaProvider,
-			CancellationToken token)
-		{
-			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
-				//TODO: check mtimes of descendent imports too
-				return oldImport;
-			}
-			//TODO: guard against cyclic imports
-			return ParseImport (
-				importedFiles,
-				new Import (importExpr, sdk, resolvedFilename, mtimeUtc),
-				projectPath,
-				propVals,
-				taskBuilder,
-				schemaProvider,
-				token);
-		}
-
-		readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
+		//hack for MSBuildParserContext to access
+		internal readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
 
 		public override void AddImport (Import import)
 		{
 			base.AddImport (import);
 			if (import.IsResolved) {
-				resolvedImportsMap [import.Filename] = import;
+				resolvedImportsMap[import.Filename] = import;
 			}
 		}
 
@@ -382,8 +231,6 @@ namespace MonoDevelop.MSBuild.Language
 			return GetSchemas ().GetEnumerator ();
 		}
 
-		static readonly HashSet<string> failedImports = new HashSet<string> ();
-
 		public MSBuildToolsVersion ToolsVersion {
 			get {
 				if (toolsVersion.HasValue) {
@@ -391,13 +238,13 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (XDocument.RootElement != null) {
-					var sdkAtt = XDocument.RootElement.Attributes [new XName ("Sdk")];
+					var sdkAtt = XDocument.RootElement.Attributes[new XName ("Sdk")];
 					if (sdkAtt != null) {
 						toolsVersion = MSBuildToolsVersion.V15_0;
 						return toolsVersion.Value;
 					}
 
-					var tvAtt = XDocument.RootElement.Attributes [new XName ("ToolsVersion")];
+					var tvAtt = XDocument.RootElement.Attributes[new XName ("ToolsVersion")];
 					if (tvAtt != null) {
 						var val = tvAtt.Value;
 						if (MSBuildToolsVersionExtensions.TryParse (val, out MSBuildToolsVersion tv)) {
