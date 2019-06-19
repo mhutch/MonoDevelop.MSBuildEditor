@@ -28,9 +28,4 @@ namespace MonoDevelop.MSBuild
 	{
 		public static Compilation GetMSBuildCompilation () => throw new NotImplementedException ();
 	}
-
-	interface IMSBuildEvaluationContext
-	{
-		IEnumerable<string> EvaluatePathWithPermutation (string pathExpression, string baseDirectory, PropertyValueCollector propVals);
-	}
 }

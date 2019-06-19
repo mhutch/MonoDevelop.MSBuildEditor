@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
@@ -243,13 +244,15 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			//TODO: re-use these contexts instead of recreating them
-			var importEvalCtx = MSBuildHost.CreateEvaluationContext (RuntimeInformation, projectPath, thisFilePath);
+			var runtimeContext = new MSBuildRuntimeEvaluationContext (RuntimeInformation);
+			var fileContext = new MSBuildFileEvaluationContext (runtimeContext, projectPath, thisFilePath);
+			var context = new MSBuildCollectedValuesEvaluationContext (fileContext, propVals);
 
 			bool foundAny = false;
 			bool isWildcard = false;
 
 			//the ToList is necessary because nested parses can alter the list between this yielding values 
-			foreach (var filename in importEvalCtx.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath), propVals).ToList ()) {
+			foreach (var filename in context.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath)).ToList ()) {
 				if (string.IsNullOrEmpty (filename)) {
 					continue;
 				}
@@ -347,10 +350,16 @@ namespace MonoDevelop.MSBuild.Language
 			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
 				//TODO: check mtimes of descendent imports too
 				return oldImport;
-			} else {
-				//TODO: guard against cyclic imports
-				return ParseImport (importedFiles, new Import (importExpr, sdk, resolvedFilename, mtimeUtc), projectPath, propVals, taskBuilder, schemaProvider, token);
 			}
+			//TODO: guard against cyclic imports
+			return ParseImport (
+				importedFiles,
+				new Import (importExpr, sdk, resolvedFilename, mtimeUtc),
+				projectPath,
+				propVals,
+				taskBuilder,
+				schemaProvider,
+				token);
 		}
 
 		readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
@@ -391,8 +400,7 @@ namespace MonoDevelop.MSBuild.Language
 					var tvAtt = XDocument.RootElement.Attributes [new XName ("ToolsVersion")];
 					if (tvAtt != null) {
 						var val = tvAtt.Value;
-						MSBuildToolsVersion tv;
-						if (MSBuildToolsVersionExtensions.TryParse (val, out tv)) {
+						if (MSBuildToolsVersionExtensions.TryParse (val, out MSBuildToolsVersion tv)) {
 							toolsVersion = tv;
 							return tv;
 						}

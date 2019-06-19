@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 
@@ -31,8 +31,6 @@ namespace MonoDevelop.MSBuild
 			public static bool ShowPrivateSymbols => false;
 		}
 
-		public static IMSBuildEvaluationContext CreateEvaluationContext (IRuntimeInformation runtimeInformation, string projectPath, string thisFilePath) => new NoopMSBuildEvaluationContext ();
-
 		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => new NoopTaskMetadataBuilder ();
 
 		public static IFunctionTypeProvider GetFunctionTypeProvider () => FunctionTypeProvider;
@@ -48,19 +46,5 @@ namespace MonoDevelop.MSBuild
 				return null;
 			}
 		}
-
-		//FIXME
-		class NoopMSBuildEvaluationContext : IMSBuildEvaluationContext
-		{
-			public IEnumerable<string> EvaluatePathWithPermutation (string pathExpression, string baseDirectory, PropertyValueCollector propVals)
-			{
-				yield break;
-			}
-		}
-	}
-
-	interface IMSBuildEvaluationContext
-	{
-		IEnumerable<string> EvaluatePathWithPermutation (string pathExpression, string baseDirectory, PropertyValueCollector propVals);
 	}
 }
