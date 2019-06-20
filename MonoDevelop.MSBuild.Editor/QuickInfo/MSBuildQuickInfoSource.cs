@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
 
@@ -34,7 +35,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 			var result = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, cancellationToken);
 			var doc = result.MSBuildDocument;
-				//.LastParseResult?.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
+			//.LastParseResult?.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
 
 			if (doc == null) {
 				return null;
@@ -53,7 +54,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
-					return CreateNuGetQuickInfo (snapshot, doc, rr);
+					return CreateNuGetQuickInfo (snapshot, doc, rr, cancellationToken);
 				}
 				var info = rr.GetResolvedReference (doc);
 				if (info != null) {
@@ -101,16 +102,17 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			return new QuickInfoItem (span, content);
 		}
 
-		QuickInfoItem CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr)
+		QuickInfoItem CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			//TODO nuget tooltips
 			/*
+			var packages = PackageSearchHelpers.SearchPackageInfo (
+				ext.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
+			);
+
 			var item = new InfoItem {
 				Doc = doc,
 				ResolveResult = rr,
-				Packages = PackageSearchHelpers.SearchPackageInfo (
-		ext.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
-	)
 			};
 			return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceLength));
 			*/
