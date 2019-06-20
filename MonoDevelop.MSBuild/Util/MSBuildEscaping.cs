@@ -38,6 +38,17 @@ namespace MonoDevelop.MSBuild.Util
 		static readonly Dictionary<char, string> specialCharactersEscaped;
 		static readonly Dictionary<string, char> specialCharactersUnescaped;
 
+		static MSBuildEscaping ()
+		{
+			specialCharactersEscaped = new Dictionary<char, string> (specialCharacters.Length);
+			specialCharactersUnescaped = new Dictionary<string, char> (specialCharacters.Length);
+			for (int i = 0; i < specialCharacters.Length; ++i) {
+				var escaped = ((int)specialCharacters[i]).ToString ("X");
+				specialCharactersEscaped[specialCharacters[i]] = '%' + escaped;
+				specialCharactersUnescaped[escaped] = specialCharacters[i];
+			}
+		}
+
 		public static string EscapeString (string str)
 		{
 			int i = str.IndexOfAny (specialCharacters);
