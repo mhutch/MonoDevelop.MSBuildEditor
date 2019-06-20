@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			};
 			return Task.FromResult (new TooltipItem (item, rr.ReferenceOffset, rr.ReferenceLength));
 			*/
-			return null; ;
+			return null;
 		}
 
 		QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)

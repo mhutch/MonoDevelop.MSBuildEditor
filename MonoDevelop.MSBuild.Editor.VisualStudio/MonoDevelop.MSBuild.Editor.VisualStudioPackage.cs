@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -12,8 +15,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[ProvideLanguageService (
 		typeof (MSBuildLanguageService), "MSBuild", 101,
 		AutoOutlining = false,
-		ShowCompletion = true, EnableAsyncCompletion = true,
-		EnableAdvancedMembersOption = true, HideAdvancedMembersByDefault = true,
+		ShowCompletion = true,
+		EnableAsyncCompletion = true,
+		EnableAdvancedMembersOption = true,
+		HideAdvancedMembersByDefault = true,
 		QuickInfo = true,
 		ShowDropDownOptions = false,
 		DefaultToInsertSpaces = true,
