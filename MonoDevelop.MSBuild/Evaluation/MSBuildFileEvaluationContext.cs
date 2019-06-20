@@ -23,7 +23,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			string projectPath,
 			string thisFilePath)
 		{
-			this.runtimeContext = runtimeContext;
+			this.runtimeContext = runtimeContext ?? throw new ArgumentNullException (nameof (runtimeContext));
 
 			// project path properties
 			string escapedProjectDir = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName(projectPath));
