@@ -77,6 +77,10 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 			var desc = DescriptionFormatter.GetDescription (info, doc, rr);
 
+			if (desc.IsEmpty) {
+				return null;
+			}
+
 			//TODO: format elements
 			/*
 			return new TooltipInformation {
