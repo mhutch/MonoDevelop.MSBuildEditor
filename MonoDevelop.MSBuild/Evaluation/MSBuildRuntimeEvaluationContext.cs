@@ -21,8 +21,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public MSBuildRuntimeEvaluationContext (IRuntimeInformation runtime)
 		{
 			string tvString = MSBuildToolsVersion.Unknown.ToVersionString ();
-			string binPath = MSBuildEscaping.ToMSBuildPath (null, runtime.GetBinPath ());
-			string toolsPath = MSBuildEscaping.ToMSBuildPath (null, runtime.GetToolsPath ());
+			string binPath = MSBuildEscaping.ToMSBuildPath (runtime.GetBinPath (), null);
+			string toolsPath = MSBuildEscaping.ToMSBuildPath (runtime.GetToolsPath (), null);
 
 			var searchPaths = runtime.GetSearchPaths ();
 
@@ -45,9 +45,12 @@ namespace MonoDevelop.MSBuild.Evaluation
 			values["MSBuildToolsVersion"] = tvString;
 			values["VisualStudioVersion"] = "15.0";
 
+			values["MSBuildProgramFiles32"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
+			values["MSBuildProgramFiles64"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
+
 			var defaultSdksPath = runtime.GetSdksPath ();
 			if (defaultSdksPath != null) {
-				values["MSBuildSDKsPath"] = MSBuildEscaping.ToMSBuildPath (null, defaultSdksPath);
+				values["MSBuildSDKsPath"] = MSBuildEscaping.ToMSBuildPath (defaultSdksPath, null);
 			}
 		}
 

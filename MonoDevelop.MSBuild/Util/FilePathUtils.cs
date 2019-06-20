@@ -63,8 +63,8 @@ namespace MonoDevelop.MSBuild.Util
 			return a == b;
 		}
 
-		public unsafe static string AbsoluteToRelativePath (string baseDirectoryPath, string absPath)
-		{
+		public unsafe static string AbsoluteToRelativePath (string absPath, string baseDirectoryPath)
+        {
 			if (!Path.IsPathRooted (absPath) || string.IsNullOrEmpty (baseDirectoryPath))
 				return absPath;
 
@@ -149,8 +149,8 @@ namespace MonoDevelop.MSBuild.Util
 			}
 		}
 
-		public static string RelativeToAbsolutePath (string baseDirectoryPath, string relPath)
-		{
+		public static string RelativeToAbsolutePath (string relPath, string baseDirectoryPath)
+        {
 			return Path.GetFullPath (Path.Combine (baseDirectoryPath, relPath));
 		}
 

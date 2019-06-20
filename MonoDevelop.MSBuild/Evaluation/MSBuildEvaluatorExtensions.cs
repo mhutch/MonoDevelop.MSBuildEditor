@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016 Xamarin Inc.
+// Copyright (c) 2016 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -61,9 +61,15 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		public static string EvaluatePath (
 			this IMSBuildEvaluationContext context,
+			ExpressionNode expression,
+			string baseDirectory)
+			=> MSBuildEscaping.FromMSBuildPath (context.Evaluate(expression), baseDirectory);
+
+		public static string EvaluatePath (
+			this IMSBuildEvaluationContext context,
 			string expression,
 			string baseDirectory)
-			=> MSBuildEscaping.FromMSBuildPath (context.Evaluate (expression), baseDirectory);
+			=> context.EvaluatePath (ExpressionParser.Parse (expression), baseDirectory);
 
 		// FIXME: need to make this more efficient.
 		// can we ignore results where a property was simply not found?

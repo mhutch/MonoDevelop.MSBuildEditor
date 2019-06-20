@@ -84,7 +84,7 @@ namespace MonoDevelop.MSBuild.Language.Conditions
 
 			string directory = context.FullDirectoryName;
 
-			file = MSBuildEscaping.FromMSBuildPath (directory, file);
+			file = MSBuildEscaping.FromMSBuildPath(file, directory);
 			bool res;
 			lock (context.ExistsEvaluationCache) {
 				if (context.ExistsEvaluationCache.TryGetValue (file, out res))

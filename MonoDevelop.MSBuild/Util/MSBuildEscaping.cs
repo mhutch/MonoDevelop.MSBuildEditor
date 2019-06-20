@@ -105,34 +105,34 @@ namespace MonoDevelop.MSBuild.Util
 			return str;
 		}
 
-		public static string ToMSBuildPath (string baseDirectory, string absPath, bool normalize = true)
+		public static string ToMSBuildPath (string absPath, string baseDirectory = null, bool normalize = true)
 		{
 			if (string.IsNullOrEmpty (absPath))
 				return absPath;
 			if (baseDirectory != null) {
-				absPath = FilePathUtils.AbsoluteToRelativePath (baseDirectory, absPath);
+				absPath = FilePathUtils.AbsoluteToRelativePath (absPath, baseDirectory);
 				if (normalize)
 					absPath = FilePathUtils.NormalizeRelativePath (absPath);
 			}
 			return EscapeString (absPath).Replace ('/', '\\');
 		}
 
-		internal static string ToMSBuildPathRelative (string baseDirectory, string absPath)
+		internal static string ToMSBuildPathRelative (string absPath, string baseDirectory)
 		{
-			string filePath = ToMSBuildPath (baseDirectory, absPath);
-			return FilePathUtils.AbsoluteToRelativePath (baseDirectory, filePath);
+			string filePath = ToMSBuildPath (absPath, baseDirectory);
+			return FilePathUtils.AbsoluteToRelativePath (filePath, baseDirectory);
 		}
 
 
-		internal static string FromMSBuildPathRelative (string baseDirectory, string relPath)
+		internal static string FromMSBuildPathRelative (string relPath, string baseDirectory)
 		{
-			string filePath = FromMSBuildPath (baseDirectory, relPath);
-			return FilePathUtils.AbsoluteToRelativePath (baseDirectory, filePath);
+			string filePath = FromMSBuildPath (relPath, baseDirectory);
+			return FilePathUtils.AbsoluteToRelativePath (filePath, baseDirectory);
 		}
 
-		public static string FromMSBuildPath (string basePath, string relPath)
+		public static string FromMSBuildPath (string relPath, string baseDirectory)
 		{
-			FromMSBuildPath (basePath, relPath, out string res);
+			FromMSBuildPath (relPath, baseDirectory, out string res);
 			return res;
 		}
 
@@ -145,7 +145,7 @@ namespace MonoDevelop.MSBuild.Util
 			return false;
 		}
 
-		internal static bool FromMSBuildPath (string basePath, string relPath, out string resultPath)
+		internal static bool FromMSBuildPath (string relPath, string baseDirectory, out string resultPath)
 		{
 			resultPath = relPath;
 
@@ -164,8 +164,8 @@ namespace MonoDevelop.MSBuild.Util
 
 			bool isRooted = Path.IsPathRooted (path);
 
-			if (!isRooted && basePath != null) {
-				path = Path.Combine (basePath, path);
+			if (!isRooted && baseDirectory != null) {
+				path = Path.Combine (baseDirectory, path);
 				isRooted = Path.IsPathRooted (path);
 			}
 
