@@ -11,11 +11,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class NullRuntimeInformation : IRuntimeInformation
 	{
+		Dictionary<string, IReadOnlyList<string>> searchPaths = new Dictionary<string, IReadOnlyList<string>>();
+
 		public string GetBinPath () => null;
-		public IEnumerable<string> GetExtensionsPaths () => Enumerable.Empty<string> ();
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 		public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath) => null;
 		public string GetSdksPath () => null;
+
+		public IReadOnlyDictionary<string, IReadOnlyList<string>> GetSearchPaths () => searchPaths;
+
 		public string GetToolsPath () => null;
 	}
 }

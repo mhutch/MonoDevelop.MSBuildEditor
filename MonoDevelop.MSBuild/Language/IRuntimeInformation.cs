@@ -9,7 +9,7 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		string GetBinPath ();
 		string GetToolsPath ();
-		IEnumerable<string> GetExtensionsPaths ();
+		IReadOnlyDictionary<string, IReadOnlyList<string>> GetSearchPaths ();
 		string GetSdksPath ();
 		IList<SdkInfo> GetRegisteredSdks ();
 		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
