@@ -106,6 +106,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 				yield break;
 			}
 
+			yield return context.EvaluatePath (expression, baseDirectory);
+			yield break;
+
 			throw new NotSupportedException ();
 
 			/*

@@ -20,11 +20,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		public MSBuildRuntimeEvaluationContext (IRuntimeInformation runtime)
 		{
-			string tvString = MSBuildToolsVersion.Unknown.ToVersionString ();
-			string binPath = MSBuildEscaping.ToMSBuildPath (runtime.GetBinPath (), null);
-			string toolsPath = MSBuildEscaping.ToMSBuildPath (runtime.GetToolsPath (), null);
-
-			var searchPaths = runtime.GetSearchPaths ();
+			string binPath = MSBuildEscaping.ToMSBuildPath (runtime.BinPath);
+			string toolsPath = MSBuildEscaping.ToMSBuildPath (runtime.ToolsPath);
 
 			Convert ("MSBuildExtensionsPath");
 			Convert ("MSBuildExtensionsPath32");
@@ -32,7 +29,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			void Convert (string name)
 			{
-				if (searchPaths.TryGetValue (name, out var vals)) {
+				if (runtime.SearchPaths.TryGetValue (name, out var vals)) {
 					values[name] = new MSBuildPropertyValue (vals.ToArray ());
 				}
 			}
@@ -42,13 +39,13 @@ namespace MonoDevelop.MSBuild.Evaluation
 			values["MSBuildToolsPath32"] = toolsPath;
 			values["MSBuildToolsPath64"] = toolsPath;
 			values["RoslynTargetsPath"] = $"{binPath}\\Roslyn";
-			values["MSBuildToolsVersion"] = tvString;
+			values["MSBuildToolsVersion"] = runtime.ToolsVersion;
 			values["VisualStudioVersion"] = "15.0";
 
 			values["MSBuildProgramFiles32"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
 			values["MSBuildProgramFiles64"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
 
-			var defaultSdksPath = runtime.GetSdksPath ();
+			var defaultSdksPath = runtime.SdksPath;
 			if (defaultSdksPath != null) {
 				values["MSBuildSDKsPath"] = MSBuildEscaping.ToMSBuildPath (defaultSdksPath, null);
 			}

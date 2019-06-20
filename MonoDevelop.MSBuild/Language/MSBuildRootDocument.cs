@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var binpath = parseContext.RuntimeInformation.GetBinPath ();
+				var binpath = parseContext.RuntimeInformation.BinPath;
 				foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
 					doc.LoadTasks (parseContext, "(core tasks)", t);
 				}

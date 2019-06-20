@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016 Xamarin Inc.
+// Copyright (c) 2016 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -16,11 +16,12 @@ namespace MonoDevelop.MSBuild.Language
 		V14_0,
 		//VS2017
 		V15_0,
+		Current
 	}
 
 	static class MSBuildToolsVersionExtensions
 	{
-		const MSBuildToolsVersion DEFAULT = MSBuildToolsVersion.V15_0;
+		const MSBuildToolsVersion DEFAULT = MSBuildToolsVersion.Current;
 
 		public static string ToVersionString (this MSBuildToolsVersion version)
 		{
@@ -63,6 +64,9 @@ namespace MonoDevelop.MSBuild.Language
 			case "15.0":
 				version = MSBuildToolsVersion.V15_0;
 				return true;
+			case "Current":
+				version = MSBuildToolsVersion.Current;
+				return true;
 			default:
 				version = MSBuildToolsVersion.Unknown;
 				return true;
@@ -71,6 +75,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static bool IsAtLeast (this MSBuildToolsVersion version, MSBuildToolsVersion other)
 		{
+
 			if (version == MSBuildToolsVersion.Unknown) {
 				version = DEFAULT;
 			}

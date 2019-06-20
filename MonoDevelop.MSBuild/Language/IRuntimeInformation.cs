@@ -7,10 +7,11 @@ namespace MonoDevelop.MSBuild.Language
 {
 	interface IRuntimeInformation
 	{
-		string GetBinPath ();
-		string GetToolsPath ();
-		IReadOnlyDictionary<string, IReadOnlyList<string>> GetSearchPaths ();
-		string GetSdksPath ();
+		string ToolsVersion { get; }
+		string BinPath { get; }
+		string ToolsPath { get; }
+		IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
+		string SdksPath { get; }
 		IList<SdkInfo> GetRegisteredSdks ();
 		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
 	}

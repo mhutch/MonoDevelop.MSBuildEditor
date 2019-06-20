@@ -60,4 +60,4 @@ namespace MonoDevelop.MSBuild.Evaluation
 			return context.Evaluate (expr);
 		}
 	}
-}{
+}

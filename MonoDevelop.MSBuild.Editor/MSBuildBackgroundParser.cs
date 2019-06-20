@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public MSBuildBackgroundParser ()
 		{
 			try {
-				runtimeInformation = new ProjectCollectionRuntimeInformation (ProjectCollection.GlobalProjectCollection);
+				runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
 			} catch (Exception ex) {
 				LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
 				runtimeInformation = new NullRuntimeInformation ();
