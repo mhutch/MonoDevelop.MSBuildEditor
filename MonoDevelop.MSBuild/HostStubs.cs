@@ -16,7 +16,8 @@ namespace MonoDevelop.MSBuild
 		public static void LogDebug (string message) => Console.WriteLine (message);
 		public static void LogError (string message, Exception ex) => LogError ($"{message}: {ex}");
 		public static void LogError (string message) => Console.Error.WriteLine (message);
-		internal static void LogWarning (string v) => Console.WriteLine (v);
+		internal static void LogWarning (string message) => Console.WriteLine (message);
+		internal static void LogInfo (string message) => Console.WriteLine (message);
 	}
 
 	static class Markup
