@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
+	[DebuggerDisplay("{Value} (Multiple:{HasMultipleValues})")]
     struct MSBuildPropertyValue
     {
 		readonly IEnumerable<string> multiple;

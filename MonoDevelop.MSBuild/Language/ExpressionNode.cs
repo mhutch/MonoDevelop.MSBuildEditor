@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language
@@ -23,6 +24,7 @@ namespace MonoDevelop.MSBuild.Language
 		internal void SetParent (ExpressionNode parent) => Parent = parent;
     }
 
+	[DebuggerDisplay ("Expression ({Nodes.Count} nodes)")]
 	class Expression : ExpressionNode
 	{
 		public IReadOnlyList<ExpressionNode> Nodes { get; }
@@ -44,6 +46,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("{Value} (IsPure: {IsPure})")]
 	class ExpressionText : ExpressionNode
 	{
 		public string Value { get; }
@@ -71,6 +74,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("Literal: {Value}")]
 	abstract class ExpressionArgumentLiteral<T> : ExpressionArgumentLiteral
 	{
 		public new T Value => (T)base.Value;
@@ -109,6 +113,7 @@ namespace MonoDevelop.MSBuild.Language
 		Bool
 	}
 
+	[DebuggerDisplay ("Property: {Name} (IsSimple: {IsSimpleProperty})")]
 	class ExpressionProperty : ExpressionNode
 	{
 		public ExpressionNode Expression { get; }
@@ -129,6 +134,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("Metadata: {ItemName}.{MetadataName}")]
 	class ExpressionMetadata : ExpressionNode
 	{
 		public string ItemName { get; }
@@ -161,6 +167,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("Item: {Name} (IsSimple: {IsSimpleItem})")]
 	class ExpressionItem : ExpressionNode
 	{
 		public ExpressionItemNode Expression { get; }
@@ -181,6 +188,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("Error ({Kind})")]
 	class ExpressionError : ExpressionNode
 	{
 		public ExpressionErrorKind Kind { get; }
@@ -196,6 +204,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 	}
 
+	[DebuggerDisplay ("Error ({Kind}): {IncompleteNode}")]
 	class IncompleteExpressionError : ExpressionError
 	{
 		public ExpressionNode IncompleteNode { get; }
