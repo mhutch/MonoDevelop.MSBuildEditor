@@ -52,6 +52,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 			if (defaultSdksPath != null) {
 				values["MSBuildSDKsPath"] = MSBuildEscaping.ToMSBuildPath (defaultSdksPath, null);
 			}
+
+			//these are read from a config file and may be described in terms of other properties
+			values["MSBuildExtensionsPath"] = values["MSBuildExtensionsPath"].Collapse (this);
+			values["MSBuildExtensionsPath32"] = values["MSBuildExtensionsPath32"].Collapse (this);
+			values["MSBuildExtensionsPath64"] = values["MSBuildExtensionsPath64"].Collapse (this);
 		}
 
 		public bool TryGetProperty (string name, out MSBuildPropertyValue value) => values.TryGetValue (name, out value);
