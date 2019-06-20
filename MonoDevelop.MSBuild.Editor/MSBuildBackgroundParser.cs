@@ -9,7 +9,7 @@ using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Text;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Editor.IntelliSense;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {

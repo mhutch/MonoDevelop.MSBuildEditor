@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2014 Xamarin Inc.
+// Copyright (c) 2014 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -17,7 +17,7 @@ using MonoDevelop.Ide.Editor.Highlighting;
 using MonoDevelop.MSBuildEditor.Language;
 using MonoDevelop.MSBuildEditor.PackageSearch;
 using MonoDevelop.MSBuildEditor.Schema;
-using MonoDevelop.Xml.Completion;
+using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;

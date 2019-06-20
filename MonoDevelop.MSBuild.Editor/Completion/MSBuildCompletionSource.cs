@@ -14,10 +14,8 @@ using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Completion;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
-using MonoDevelop.Xml.Editor.IntelliSense;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
