@@ -11,7 +11,7 @@ namespace MonoDevelop.MSBuild.Language
 		string GetToolsPath ();
 		IEnumerable<string> GetExtensionsPaths ();
 		string GetSdksPath ();
-		List<SdkInfo> GetRegisteredSdks ();
+		IList<SdkInfo> GetRegisteredSdks ();
 		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
 	}
 }

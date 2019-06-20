@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 	///     Component responsible for resolving an SDK to a file path. Loads and coordinates
 	///     with <see cref="SdkResolver" /> plug-ins.
 	/// </summary>
-	class MSBuildSdkResolution
+	class MSBuildSdkResolver
 	{
 		readonly object _lockObject = new object ();
 		IList<SdkResolver> _resolvers;
@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		readonly string sdksPath;
 		readonly string binDir;
 
-		internal MSBuildSdkResolution (string binDir, string sdksPath)
+		internal MSBuildSdkResolver (string binDir, string sdksPath)
 		{
 			this.binDir = binDir;
 			this.sdksPath = sdksPath;

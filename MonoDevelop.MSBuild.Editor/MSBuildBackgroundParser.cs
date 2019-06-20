@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Framework;
+using Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.Text;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
@@ -15,7 +13,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
 	{
-		IRuntimeInformation runtimeInformation = new NullRuntimeInformation ();
+		readonly IRuntimeInformation runtimeInformation = new ProjectCollectionRuntimeInformation (ProjectCollection.GlobalProjectCollection);
 
 		protected override Task<MSBuildParseResult> StartParseAsync (
 			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
@@ -32,16 +30,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors);
 			});
-		}
-
-		class NullRuntimeInformation : IRuntimeInformation
-		{
-			public string GetBinPath () => null;
-			public IEnumerable<string> GetExtensionsPaths () => Enumerable.Empty<string> ();
-			public List<SdkInfo> GetRegisteredSdks () => new List<SdkInfo> ();
-			public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath) => null;
-			public string GetSdksPath () => null;
-			public string GetToolsPath () => null;
 		}
 	}
 }
