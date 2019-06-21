@@ -82,6 +82,24 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
+		public void PropertyCollectorEvaluationContextTest ()
+		{
+			var collector = new PropertyValueCollector (false);
+			collector.Mark ("Hello");
+			collector.Collect ("Hello", "One");
+			collector.Collect ("Hello", "Two");
+
+			var ctx = new MSBuildCollectedValuesEvaluationContext (
+				new TestEvaluationContext (),
+				collector
+			);
+
+			var vals = ctx.EvaluateWithPermutation ("$(Hello)").ToList ();
+			Assert.AreEqual (2, vals.Count);
+			Assert.AreEqual ("One", vals[0]);
+			Assert.AreEqual ("Two", vals[1]);
+		}
+		[Test]
 		public void TestCommonTargetsImports ()
 		{
 			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();

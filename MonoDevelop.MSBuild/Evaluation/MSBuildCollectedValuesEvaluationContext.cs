@@ -27,6 +27,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			if (collector.TryGetValues (name, out var values)) {
 				value = new MSBuildPropertyValue (values);
+				return true;
 			}
 
 			return false;
