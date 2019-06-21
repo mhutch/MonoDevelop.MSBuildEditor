@@ -129,7 +129,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 							}
 						} else {
 							foreach (var v in value.GetValues ()) {
-								foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
+								foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (v), depth + 1)) {
 									yield return evaluated;
 								}
 							}
