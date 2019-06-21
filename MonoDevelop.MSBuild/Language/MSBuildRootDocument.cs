@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -22,8 +23,9 @@ namespace MonoDevelop.MSBuild.Language
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; internal set; }
+		public IRuntimeInformation RuntimeInformation { get; private set; }
 
-		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument () };
+		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), RuntimeInformation = new NullRuntimeInformation () };
 
 		public MSBuildRootDocument (string filename) : base (filename, true)
 		{
@@ -63,7 +65,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			var doc = new MSBuildRootDocument (filename) {
 				XDocument = xdocument,
-				Text = textSource
+				Text = textSource,
+				RuntimeInformation = runtimeInfo
 			};
 			doc.Errors.AddRange (xmlParser.Diagnostics);
 

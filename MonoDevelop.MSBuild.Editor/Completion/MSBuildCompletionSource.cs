@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Language;
@@ -25,16 +24,33 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 		}
 
+
+		class MSBuildCompletionSessionContext
+		{
+			public MSBuildRootDocument doc;
+			public MSBuildResolveResult rr;
+		}
+
+		async Task<(MSBuildRootDocument doc, MSBuildResolveResult rr)> GetSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
+		{
+			if (session.Properties.TryGetProperty<MSBuildCompletionSessionContext> (typeof (MSBuildCompletionSessionContext), out var context)) {
+				return (context.doc, context.rr);
+			}
+			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
+			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
+			var rr = ResolveAt (triggerLocation, doc);
+			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), new MSBuildCompletionSessionContext { doc = doc, rr = rr });
+			return (doc, rr);
+		}
+
 		protected override async Task<CompletionContext> GetElementCompletionsAsync (
+			IAsyncCompletionSession session,
 			SnapshotPoint triggerLocation,
 			List<XObject> nodePath,
 			bool includeBracket,
 			CancellationToken token)
 		{
-			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
-			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-
-			var rr = ResolveAt (triggerLocation, doc);
+			(var doc, var rr) = await GetSessionContext (session, triggerLocation, token);
 			if (rr == null) {
 				return CompletionContext.Empty;
 			}
@@ -50,18 +66,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		protected override async Task<CompletionContext> GetAttributeCompletionsAsync (
+			IAsyncCompletionSession session,
 			SnapshotPoint triggerLocation,
 			List<XObject> nodePath,
 			IAttributedXObject attributedObject,
 			Dictionary<string, string> existingAtts,
 			CancellationToken token)
 		{
-			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
-			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-
-			var rr = ResolveAt (triggerLocation, doc);
-			if (rr?.LanguageElement == null)
+			(var doc, var rr) = await GetSessionContext (session, triggerLocation, token);
+			if (rr?.LanguageElement == null) {
 				return CompletionContext.Empty;
+			}
 
 			var items = new List<CompletionItem> ();
 
@@ -88,19 +103,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		Task<MSBuildParseResult> GetParseAsync (ITextSnapshot snapshot, CancellationToken cancellationToken) => GetParser ().GetOrParseAsync ((ITextSnapshot2) snapshot, cancellationToken);
 
-		public Task<object> GetDocumentationAsync (CompletionItem item)
+		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
 		{
-			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) && info.Description.AsText () != null) {
-				return Task.FromResult<object> (
-					new ContainerElement (
-						ContainerElementStyle.Wrapped,
-						new ClassifiedTextElement (
-							new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, info.Description.AsText ())
-						)
-					)
-				);
+			if (!item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) || info == null) {
+				return Task.FromResult<object> (null);
 			}
-			return Task.FromResult<object> (null);
+
+			if (!session.Properties.TryGetProperty<MSBuildCompletionSessionContext> (typeof (MSBuildCompletionSessionContext), out var context)) {
+				return Task.FromResult<object> (null);
+			}
+
+			return Task.FromResult (DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr));
 		}
 	}
 }

@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
 
@@ -64,43 +65,10 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			return null;
 		}
 
-		QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
-		{
-			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
-
-			/*
-			var formatter = new DescriptionMarkupFormatter (doc);
-			var nameMarkup = formatter.GetNameMarkup (info);
-			if (nameMarkup.IsEmpty) {
-				return null;
-			}
-			*/
-
-			var desc = DescriptionFormatter.GetDescription (info, doc, rr);
-
-			if (desc.IsEmpty) {
-				return null;
-			}
-
-			//TODO: format elements
-			/*
-			return new TooltipInformation {
-				SignatureMarkup = nameMarkup.AsMarkup (),
-				SummaryMarkup = desc.AsMarkup (),
-				FooterMarkup = formatter.GetSeenInMarkup (info).AsMarkup ()
-			};
-			*/
-
-			var content = new ContainerElement (
-				ContainerElementStyle.Wrapped,
-				new ClassifiedTextElement (
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, desc.AsText ())
-				)
-			);
-
-
-			return new QuickInfoItem (span, content);
-		}
+		static QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
+			=> new QuickInfoItem (
+				snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),
+				DisplayElementFactory.GetInfoTooltipElement (doc, info, rr));
 
 		QuickInfoItem CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
@@ -119,24 +87,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			return null;
 		}
 
-		QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)
+		static QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)
 		{
 			var navs = annotations.ToList ();
 
 			var first = navs.First ();
 			var span = snapshot.CreateTrackingSpan (first.Span.Start, first.Span.Length, SpanTrackingMode.EdgeInclusive);
 
-			//TODO: format elements
-			//var markup = DescriptionMarkupFormatter.GetNavigationMarkup (navs);
-
-			var content = new ContainerElement (
-				ContainerElementStyle.Wrapped,
-				new ClassifiedTextElement (
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, navs.First ().Path)
-				)
-			);
-
-			return new QuickInfoItem (span, content);
+			return new QuickInfoItem (span, DisplayElementFactory.GetResolvedPathElement (navs));
 		}
 
 		public void Dispose ()

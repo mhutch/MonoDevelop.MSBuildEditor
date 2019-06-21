@@ -20,11 +20,6 @@ namespace MonoDevelop.MSBuild
 		internal static void LogInfo (string message) => Console.WriteLine (message);
 	}
 
-	static class Markup
-	{
-		public static string EscapeText (string text) => throw new NotImplementedException ();
-	}
-
 	static class MSBuildHost
 	{
 		public static class Options
