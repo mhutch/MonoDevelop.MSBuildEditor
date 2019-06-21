@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -12,20 +11,35 @@ namespace MonoDevelop.MSBuild.Evaluation
 	[DebuggerDisplay ("{Value} (Multiple:{HasMultipleValues})")]
 	struct MSBuildPropertyValue
 	{
+		bool? isCollapsed;
 		IList<string> multiple;
 
 		public MSBuildPropertyValue (string value)
 		{
 			Value = value;
 			multiple = null;
-			IsCollapsed = false;
+			isCollapsed = null;
 		}
 
 		public MSBuildPropertyValue (IList<string> multiple)
 		{
 			Value = multiple[0];
 			this.multiple = multiple.Count > 1 ? multiple : null;
-			IsCollapsed = false;
+			isCollapsed = null;
+		}
+
+		static readonly char[] expressionChars = { '@', '$', '%' };
+		bool CheckCollapsed ()
+		{
+			if (multiple != null) {
+				foreach (var v in multiple) {
+					if (v != null && v.IndexOfAny (expressionChars) > -1) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return Value == null || Value.IndexOfAny (expressionChars) < 0;
 		}
 
 		public static implicit operator MSBuildPropertyValue (string value)
@@ -35,7 +49,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		public string Value { get; private set; }
 		public bool HasMultipleValues => multiple != null;
-		public bool IsCollapsed { get; private set; }
+		public bool IsCollapsed => isCollapsed ?? (isCollapsed = CheckCollapsed ()).Value;
 		public IEnumerable<string> GetValues () => multiple ?? throw new InvalidOperationException ();
 
 		internal MSBuildPropertyValue Collapse (IMSBuildEvaluationContext context)
@@ -50,7 +64,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			} else {
 				Value = Collapse (context, Value);
 			}
-			IsCollapsed = true;
+			isCollapsed = true;
 			return this;
 		}
 
