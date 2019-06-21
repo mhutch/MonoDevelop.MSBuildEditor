@@ -4,15 +4,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 
-namespace MonoDevelop.MSBuild.Language
+namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
 		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
-			if (triggerExpression is Expression expression) {
+			if (triggerExpression is ComplexExpression expression) {
 				triggerExpression = expression.Nodes.Last ();
 			}
 

@@ -6,8 +6,9 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Schema;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	public abstract class TaskMetadataBuilder : ITaskMetadataBuilder
 	{

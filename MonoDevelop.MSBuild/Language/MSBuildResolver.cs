@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -279,7 +280,7 @@ namespace MonoDevelop.MSBuild.Language
 					case MSBuildValueKind.FileOrFolder:
 					case MSBuildValueKind.ProjectFile:
 					case MSBuildValueKind.TaskAssemblyFile:
-						var pathNode = lit.Parent as Expression ?? (ExpressionNode)lit;
+						var pathNode = lit.Parent as ComplexExpression ?? (ExpressionNode)lit;
 						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document);
 						if (path != null) {
 							rr.ReferenceKind = MSBuildReferenceKind.FileOrFolder;

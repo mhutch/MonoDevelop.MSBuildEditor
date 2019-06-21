@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.Build.Framework;
 
 using MonoDevelop.MSBuild.Language.Conditions;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;

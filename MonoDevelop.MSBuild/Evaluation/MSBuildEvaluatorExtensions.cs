@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				}
 				return string.Empty;
 			}
-			case Expression expr: {
+			case ComplexExpression expr: {
 				var sb = new StringBuilder ();
 				foreach (var n in expr.Nodes) {
 					switch (n) {

@@ -3,9 +3,9 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Schema;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	class RoslynFunctionInfo : FunctionInfo
 	{

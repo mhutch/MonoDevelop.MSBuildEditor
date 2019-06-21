@@ -8,6 +8,7 @@ using System.Linq;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.MSBuild.Language.Expressions;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -79,7 +80,7 @@ namespace MonoDevelop.MSBuild.Language
 			const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
 			triggerExpression = ExpressionParser.Parse (expression, options);
 
-			if (triggerExpression is ExpressionList el) {
+			if (triggerExpression is ComplexExpression el) {
 				//the last list entry is the thing that triggered it
 				triggerExpression = el.Nodes.Last ();
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -146,7 +147,7 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.ProjectFile:
 				case MSBuildValueKind.TaskAssemblyFile:
 				case MSBuildValueKind.Unknown:
-					if (node is ExpressionList list) {
+					if (node is ComplexExpression list) {
 						foreach (var n in list.Nodes) {
 							var p = GetPathFromNode (n, (MSBuildRootDocument)Document);
 							if (p != null) {

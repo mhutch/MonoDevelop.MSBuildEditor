@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {

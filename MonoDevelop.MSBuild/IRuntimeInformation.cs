@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuild.Language
+namespace MonoDevelop.MSBuild
 {
 	interface IRuntimeInformation
 	{

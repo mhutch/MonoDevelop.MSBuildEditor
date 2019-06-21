@@ -27,7 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using NUnit.Framework;

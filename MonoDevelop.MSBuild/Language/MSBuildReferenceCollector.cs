@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -250,7 +251,7 @@ namespace MonoDevelop.MSBuild.Language
 					.Any (n => IsItemNameMatch (n.ItemName))
 				) {
 					switch (node) {
-					case ExpressionList list:
+					case ComplexExpression list:
 						foreach (var c in list.Nodes) {
 							if (c is ExpressionText l) {
 								CheckMatch (l);
@@ -304,7 +305,7 @@ namespace MonoDevelop.MSBuild.Language
 			bool isDeclaration = !kind.AllowExpressions ();
 
 			switch (node) {
-			case ExpressionList list:
+			case ComplexExpression list:
 				foreach (var c in list.Nodes) {
 					if (c is ExpressionText l) {
 						CheckMatch (l, isDeclaration);

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -413,7 +414,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
-				case ExpressionList list:
+				case ComplexExpression list:
 					if (!allowLists) {
 						AddListWarning (list.Nodes[0].End, 1);
 					}

@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	static class RoslynHelpers
 	{

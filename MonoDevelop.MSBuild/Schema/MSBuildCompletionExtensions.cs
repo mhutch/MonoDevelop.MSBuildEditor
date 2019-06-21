@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema

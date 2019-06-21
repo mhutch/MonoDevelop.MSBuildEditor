@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;

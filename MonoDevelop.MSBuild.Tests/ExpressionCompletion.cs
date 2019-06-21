@@ -7,6 +7,7 @@ using NUnit.Framework;
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 using System.Linq;
 using System;
+using MonoDevelop.MSBuild.Language.Expressions;
 
 namespace MonoDevelop.MSBuild.Tests
 {

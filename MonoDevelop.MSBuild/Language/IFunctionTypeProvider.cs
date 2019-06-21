@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2014 Xamarin Inc.
+// Copyright (c) 2014 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language

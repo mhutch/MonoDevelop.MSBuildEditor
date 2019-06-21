@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MonoDevelop.MSBuild.Language
+namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	static class ExpressionParser
 	{
@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language
 				} else {
 					var start = nodes [0].Offset;
 					var l = nodes [nodes.Count - 1].End - start;
-					splitList.Add (new Expression (start, l, nodes.ToArray ()));
+					splitList.Add (new ComplexExpression (start, l, nodes.ToArray ()));
 					nodes.Clear ();
 				}
 			}
@@ -134,7 +134,7 @@ namespace MonoDevelop.MSBuild.Language
 					FlushNodesToSplitList (offset);
 				}
 				if (splitList != null) {
-					return new ExpressionList (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
+					return new ComplexExpression (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
 				}
 				if (nodes.Count == 0) {
 					return new ExpressionText (baseOffset + startOffset, "", true);
@@ -142,7 +142,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (nodes.Count == 1) {
 					return nodes [0];
 				}
-				return new Expression (baseOffset + startOffset, endOffset - startOffset + 1, nodes.ToArray ());
+				return new ComplexExpression (baseOffset + startOffset, endOffset - startOffset + 1, nodes.ToArray ());
 			}
 		}
 

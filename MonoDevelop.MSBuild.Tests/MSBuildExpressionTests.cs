@@ -3,7 +3,7 @@
 
 using System;
 using NUnit.Framework;
-using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -190,7 +190,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc$(Foo)cde@(baritem)510",
-				 new Expression (
+				 new ComplexExpression (
 					0, 25,
 					new ExpressionText (0, "abc", false),
 					new ExpressionProperty (3, 6, "Foo"),
@@ -207,10 +207,10 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc;$(Foo)cde;@(baritem);stuff",
-				 new ExpressionList (
+				 new ComplexExpression (
 					0, 30,
 					new ExpressionText (0, "abc", true),
-					new Expression (
+					new ComplexExpression (
 						4, 9,
 						new ExpressionProperty (4, 6, "Foo"),
 						new ExpressionText (10, "cde", false)
@@ -227,7 +227,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc;$(Foo)",
-				 new Expression (
+				 new ComplexExpression (
 					0, 10,
 					new ExpressionText (0, "abc;", false),
 					new ExpressionProperty (4, 6, "Foo")
@@ -276,7 +276,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"&quot;;d&foo;bar",
-				new ExpressionList (
+				new ComplexExpression (
 					0, 16,
 					new ExpressionText (0, "&quot;", true),
 					new ExpressionText (7, "d&foo;bar", true)
@@ -484,8 +484,8 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
 			{
-			case Expression expr:
-				var expectedExpr = (Expression)expected;
+			case ComplexExpression expr:
+				var expectedExpr = (ComplexExpression)expected;
 				Assert.AreEqual (expectedExpr.Nodes.Count, expr.Nodes.Count);
 				for (int i = 0; i < expr.Nodes.Count; i++) {
 					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i], expectedOffset);
