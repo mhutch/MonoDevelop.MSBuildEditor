@@ -77,7 +77,7 @@ namespace MonoDevelop.MSBuild.Tests
 				{ "Baz", new MSBuildPropertyValue (new[] { "X", "Y" }) }
 			};
 
-			var results = context.EvaluateWithPermutation (null, ExpressionParser.Parse (expr), 0).ToList ();
+			var results = context.EvaluateWithPermutation (expr).ToList ();
 			Assert.AreEqual (args.Length - 1, results.Count);
 			for (int i = 0; i < args.Length - 1; i++) {
 				Assert.AreEqual (args[i+1], results[i]);

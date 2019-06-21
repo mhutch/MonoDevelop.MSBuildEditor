@@ -107,7 +107,13 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
-		internal static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
+		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string expression)
+			=> EvaluateWithPermutation (context, null, ExpressionParser.Parse (expression), 0);
+
+		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, ExpressionNode expression)
+			=> EvaluateWithPermutation (context, null, expression, 0);
+
+		static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
 		{
 			switch (expression) {
 			// yield plain text

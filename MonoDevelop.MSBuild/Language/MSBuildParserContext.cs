@@ -109,8 +109,7 @@ namespace MonoDevelop.MSBuild.Language
 			bool foundAny = false;
 			bool isWildcard = false;
 
-			//the ToList is necessary because nested parses can alter the list between this yielding values 
-			foreach (var filename in context.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath)).ToList ()) {
+			foreach (var filename in context.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath))) {
 				if (string.IsNullOrEmpty (filename)) {
 					continue;
 				}
