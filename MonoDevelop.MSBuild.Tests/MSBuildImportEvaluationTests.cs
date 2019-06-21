@@ -4,10 +4,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using NUnit.Framework;
@@ -102,33 +102,65 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual ("One", vals[0]);
 			Assert.AreEqual ("Two", vals[1]);
 		}
+
 		[Test]
 		public void TestCommonTargetsImports ()
 		{
-			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
-			var textSource = TextSourceFactory.CreateNewDocument (
+			var doc = ParseDoc (
 				"<Project><Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" /></Project>",
 				"myfile.csproj"
 			);
+
+			AssertImportsExist (
+				doc,
+				"Microsoft.CSharp.CrossTargeting.targets",
+				"Microsoft.CSharp.CurrentVersion.targets",
+				"Microsoft.Common.CurrentVersion.targets",
+				"NuGet.targets"
+			);
+		}
+
+		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
+		{
+			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
+			var textSource = TextSourceFactory.CreateNewDocument (contents, filename);
 			var schemaProvider = new MSBuildSchemaProvider ();
 
-			var rootDoc = MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, default);
-			var imports = GetAllImports (rootDoc).ToList ();
-			Console.WriteLine (imports.Count);
+			return MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, default);
+		}
 
-			IEnumerable<Import> GetAllImports (MSBuildDocument doc)
-			{
-				foreach (var import in doc.Imports) {
-					yield return import;
-					if (import.IsResolved) {
-						foreach (var childImport in GetAllImports (import.Document)) {
-							yield return childImport;
-						}
+		static void AssertImportsExist (MSBuildRootDocument rootDoc, params string[] filenames)
+		{
+			var collected = new Dictionary<string, Import> (StringComparer.OrdinalIgnoreCase);
+			foreach (var f in filenames) {
+				collected.Add (f, null);
+			}
+
+			foreach (var import in GetAllImports (rootDoc)) {
+				if (import.IsResolved) {
+					var name = Path.GetFileName (import.Filename);
+					if (collected.ContainsKey (name)) {
+						collected[name] = import;
+					}
+				}
+			}
+
+			foreach (var kvp in collected) {
+				Assert.NotNull (kvp.Value, "Missing import {0}", kvp.Key);
+			}
+		}
+
+		static IEnumerable<Import> GetAllImports (MSBuildDocument doc)
+		{
+			foreach (var import in doc.Imports) {
+				yield return import;
+				if (import.IsResolved) {
+					foreach (var childImport in GetAllImports (import.Document)) {
+						yield return childImport;
 					}
 				}
 			}
 		}
-
 	}
 
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable
