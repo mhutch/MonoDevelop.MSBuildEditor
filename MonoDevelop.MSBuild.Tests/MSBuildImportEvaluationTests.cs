@@ -17,6 +17,9 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class MSBuildImportEvaluationTests
 	{
+		[OneTimeSetUp]
+		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+
 		[Test]
 		[TestCase("Hello\\Bye.targets", "Hello\\Bye.targets")]
 		[TestCase("$(Foo)", "XfooX")]
@@ -126,23 +129,6 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 		}
 
-		[OneTimeSetUp]
-		public void RegisterMSBuildAssemblies ()
-		{
-			if (Platform.IsWindows) {
-				Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
-			}
-			else if (Platform.IsMac) {
-				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath(
-					"/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/msbuild/Current/bin"
-				);
-			}
-			else {
-				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath(
-					"/usr/lib/mono/msbuild/Current/bin"
-				);
-			}
-		}
 	}
 
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable

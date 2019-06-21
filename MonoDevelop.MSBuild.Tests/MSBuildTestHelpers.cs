@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MonoDevelop.MSBuild;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
@@ -86,5 +85,29 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			return new MSBuildDocument (null, false);
 		}
-    }
+
+		static bool registeredAssemblies;
+
+		public static void RegisterMSBuildAssemblies ()
+		{
+			if (registeredAssemblies) {
+				return;
+			}
+			registeredAssemblies = true;
+
+			if (Platform.IsWindows) {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults ();
+			}
+			else if (Platform.IsMac) {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (
+					"/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/msbuild/Current/bin"
+				);
+			}
+			else {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (
+					"/usr/lib/mono/msbuild/Current/bin"
+				);
+			}
+		}
+	}
 }

@@ -15,6 +15,9 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class MSBuildQuickInfoTests : CompletionTestBase
 	{
+		[OneTimeSetUp]
+		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+
 		public override IContentType ContentType => Catalog.ContentTypeRegistryService.GetContentType (MSBuildContentType.Name);
 
 		[Test]
