@@ -107,7 +107,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
-		static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
+		internal static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
 		{
 			switch (expression) {
 			// yield plain text
@@ -128,8 +128,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 								yield return prefix + v;
 							}
 						} else {
-							foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
-								yield return evaluated;
+							foreach (var v in value.GetValues ()) {
+								foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
+									yield return evaluated;
+								}
 							}
 						}
 					} else {

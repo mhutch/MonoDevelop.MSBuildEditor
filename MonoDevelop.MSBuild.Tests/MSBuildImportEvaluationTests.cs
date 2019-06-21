@@ -4,7 +4,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Language.Expressions;
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -53,13 +55,36 @@ namespace MonoDevelop.MSBuild.Tests
 
 			Assert.Throws<Exception> (() => context.Evaluate ("$(Foo)"));
 		}
+
+		[Test]
+		[TestCase ("$(Foo)", "One", "Two", "Three")]
+		[TestCase ("$(Foo) Thing", "One Thing", "Two Thing", "Three Thing")]
+		[TestCase ("X$(Foo)X", "XOneX", "XTwoX", "XThreeX")]
+		[TestCase ("$(Bar)", "Hello X", "Hello Y")]
+		public void TestPermutedEvaluation (object[] args)
+		{
+			var expr = (string)args[0];
+
+			var context = new TestEvaluationContext {
+				{ "Foo", new MSBuildPropertyValue (new[] { "One", "Two", "Three" }) },
+				{ "Bar", "Hello $(Baz)" },
+				{ "Baz", new MSBuildPropertyValue (new[] { "X", "Y" }) }
+			};
+
+			var results = context.EvaluateWithPermutation (null, ExpressionParser.Parse (expr), 0).ToList ();
+			Assert.AreEqual (args.Length - 1, results.Count);
+			for (int i = 0; i < args.Length - 1; i++) {
+				Assert.AreEqual (args[i+1], results[i]);
+			}
+		}
 	}
 
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable
 	{
-		readonly Dictionary<string, string> properties = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, MSBuildPropertyValue> properties
+			= new Dictionary<string, MSBuildPropertyValue> (StringComparer.OrdinalIgnoreCase);
 
-		public void Add (string name, string value)
+		public void Add (string name, MSBuildPropertyValue value)
 		{
 			properties.Add (name, value);
 		}
