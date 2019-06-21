@@ -45,7 +45,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MSBuildLanguageService.cs" />
-    <Compile Include="MSBuildTextMateTagger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MonoDevelop.MSBuild.Editor.VisualStudioPackage.cs" />
   </ItemGroup>
