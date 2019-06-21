@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Build.Framework;
 using MonoDevelop.MSBuild.Language;
 
@@ -21,7 +20,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public string SdksPath => null;
 
-		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
+		public IList<SdkResolution.SdkInfo> GetRegisteredSdks () => Array.Empty<SdkResolution.SdkInfo> ();
 
 		public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath) => null;
 	}

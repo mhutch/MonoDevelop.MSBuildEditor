@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static MSBuildRootDocument Parse (
-			string filename, ITextSource textSource, MSBuildRootDocument previous,
+			ITextSource textSource, MSBuildRootDocument previous,
 			MSBuildSchemaProvider schemaProvider, IRuntimeInformation runtimeInfo,
 			CancellationToken token)
 		{
@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var propVals = new PropertyValueCollector (true);
 
-			string projectPath = filename;
+			string filename = textSource.FileName;
 
 			var doc = new MSBuildRootDocument (filename) {
 				XDocument = xdocument,
@@ -87,7 +87,7 @@ namespace MonoDevelop.MSBuild.Language
 				doc,
 				previous,
 				importedFiles,
-				projectPath,
+				filename,
 				propVals,
 				taskBuilder,
 				schemaProvider,
@@ -160,7 +160,7 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error building document '{projectPath}'", ex);
+				LoggingService.LogError ($"Error building document '{filename}'", ex);
 			}
 
 			try {

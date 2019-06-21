@@ -8,11 +8,9 @@ using System.Reflection;
 
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
-
-using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.SdkResolution;
 
-namespace MonoDevelop.MSBuild.Editor.Completion
+namespace MonoDevelop.MSBuild
 {
 	class MSBuildEnvironmentRuntimeInformation : IRuntimeInformation
 	{
@@ -82,8 +80,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				if (key == "MSBuildExtensionsPath" || key == "MSBuildExtensionsPath32" || key == "MSBuildExtensionsPath64") {
 					var oldVal = val;
-					val = new List<string> (oldVal.Count + 1);
-					val.Add (msbuildExtensionsPath);
+					val = new List<string> (oldVal.Count + 1) { msbuildExtensionsPath };
 					val.AddRange (oldVal);
 				}
 

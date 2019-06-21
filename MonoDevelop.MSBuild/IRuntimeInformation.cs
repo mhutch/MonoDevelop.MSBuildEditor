@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuild
 		string ToolsPath { get; }
 		IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
 		string SdksPath { get; }
-		IList<SdkInfo> GetRegisteredSdks ();
+		IList<SdkResolution.SdkInfo> GetRegisteredSdks ();
 		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
 	}
 }

@@ -15,6 +15,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
 	{
 		readonly IRuntimeInformation runtimeInformation;
+		readonly MSBuildSchemaProvider schemaProvider = new MSBuildSchemaProvider ();
 
 		public MSBuildBackgroundParser ()
 		{
@@ -35,11 +36,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				//fixme
 				string filename = "foo.csproj";
-				var schemaProvider = new MSBuildSchemaProvider ();
 
 				MSBuildRootDocument doc = MSBuildRootDocument.Empty;
 				try {
-					doc = MSBuildRootDocument.Parse (filename, snapshot.GetTextSource (), oldDoc, schemaProvider, runtimeInformation, token);
+					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filename), oldDoc, schemaProvider, runtimeInformation, token);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;
