@@ -27,6 +27,32 @@ namespace MonoDevelop.MSBuild.Tests
 			var evaluated = context.Evaluate (expr);
 			Assert.AreEqual (expected, evaluated);
 		}
+
+
+		[Test]
+		public void TestRecursiveEvaluation ()
+		{
+			var context = new TestEvaluationContext {
+				{ "Foo", "$(Bar)" },
+				{ "Bar", "Hello $(Baz)" },
+				{ "Baz", "World" }
+			};
+
+			var evaluated = context.Evaluate ("$(Foo)");
+			Assert.AreEqual ("Hello World", evaluated);
+		}
+
+		[Test]
+		public void TestEndlessRecursiveEvaluation ()
+		{
+			var context = new TestEvaluationContext {
+				{ "Foo", "$(Bar)" },
+				{ "Bar", "Hello $(Baz)" },
+				{ "Baz", "$(Foo)" }
+			};
+
+			Assert.Throws<Exception> (() => context.Evaluate ("$(Foo)"));
+		}
 	}
 
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable

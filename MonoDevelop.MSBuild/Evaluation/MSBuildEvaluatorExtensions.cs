@@ -12,24 +12,36 @@ namespace MonoDevelop.MSBuild.Evaluation
 {
 	static class MSBuildEvaluatorExtensions
 	{
+		const int maxEvaluationDepth = 50;
+
 		public static string Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
 
-		public static string Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression)
+		public static string Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => Evaluate (context, expression, 0);
+
+		static string Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression, int depth)
 		{
+			if (depth == maxEvaluationDepth) {
+				throw new Exception ("Property evaluation exceeded maximum depth");
+			}
+
 			switch (expression) {
 			case ExpressionText text:
 				return text.Value;
+
 			case ExpressionProperty prop: {
 				if (!prop.IsSimpleProperty) {
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
 					return null;
 				}
 				if (context.TryGetProperty (prop.Name, out var value)) {
-					return value.Value;
+					return value.IsCollapsed
+						? value.Value
+						: Evaluate (context, ExpressionParser.Parse (value.Value), depth + 1);
 				}
-				return string.Empty;
+				return null;
 			}
+
 			case ComplexExpression expr: {
 				var sb = new StringBuilder ();
 				foreach (var n in expr.Nodes) {
@@ -43,7 +55,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 							return null;
 						}
 						if (context.TryGetProperty (p.Name, out var value)) {
-							sb.Append (value.Value);
+							sb.Append (value.IsCollapsed
+								? value.Value
+								: Evaluate (context, ExpressionParser.Parse (value.Value), depth + 1)
+							);
 						}
 						continue;
 					default:
