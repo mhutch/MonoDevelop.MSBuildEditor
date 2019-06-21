@@ -51,9 +51,17 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 
 			//these are read from a config file and may be described in terms of other properties
-			values["MSBuildExtensionsPath"] = values["MSBuildExtensionsPath"].Collapse (this);
-			values["MSBuildExtensionsPath32"] = values["MSBuildExtensionsPath32"].Collapse (this);
-			values["MSBuildExtensionsPath64"] = values["MSBuildExtensionsPath64"].Collapse (this);
+			void Collapse (string name)
+			{
+				if (values.TryGetValue (name, out var val)) {
+					values["name"] = val.Collapse (this);
+				}
+
+			}
+
+			Collapse ("MSBuildExtensionsPath");
+			Collapse ("MSBuildExtensionsPath32");
+			Collapse ("MSBuildExtensionsPath64");
 		}
 
 		public bool TryGetProperty (string name, out MSBuildPropertyValue value) => values.TryGetValue (name, out value);
