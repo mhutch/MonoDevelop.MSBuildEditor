@@ -6,7 +6,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Util;
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -75,6 +78,51 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (args.Length - 1, results.Count);
 			for (int i = 0; i < args.Length - 1; i++) {
 				Assert.AreEqual (args[i+1], results[i]);
+			}
+		}
+
+		[Test]
+		public void TestCommonTargetsImports ()
+		{
+			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
+			var textSource = TextSourceFactory.CreateNewDocument (
+				"<Project><Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" /></Project>",
+				"myfile.csproj"
+			);
+			var schemaProvider = new MSBuildSchemaProvider ();
+
+			var rootDoc = MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, default);
+			var imports = GetAllImports (rootDoc).ToList ();
+			Console.WriteLine (imports.Count);
+
+			IEnumerable<Import> GetAllImports (MSBuildDocument doc)
+			{
+				foreach (var import in doc.Imports) {
+					yield return import;
+					if (import.IsResolved) {
+						foreach (var childImport in GetAllImports (import.Document)) {
+							yield return childImport;
+						}
+					}
+				}
+			}
+		}
+
+		[OneTimeSetUp]
+		public void RegisterMSBuildAssemblies ()
+		{
+			if (Platform.IsWindows) {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+			}
+			else if (Platform.IsMac) {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath(
+					"/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/msbuild/Current/bin"
+				);
+			}
+			else {
+				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath(
+					"/usr/lib/mono/msbuild/Current/bin"
+				);
 			}
 		}
 	}
