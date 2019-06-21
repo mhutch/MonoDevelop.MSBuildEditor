@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
 
@@ -26,6 +28,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 
 			switch (expression) {
+
 			case ExpressionText text:
 				return text.Value;
 
@@ -68,8 +71,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 				}
 				return sb.ToString ();
 			}
+
 			default:
-				LoggingService.LogWarning ("Only simple properties are supported in imports");
+				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
 				return null;
 			}
 		}
@@ -95,116 +99,89 @@ namespace MonoDevelop.MSBuild.Evaluation
 			string pathExpression,
 			string baseDirectory)
 		{
-			var expression = ExpressionParser.Parse (pathExpression);
-
-			//fast path for imports without properties, will generally be true for SDK imports
-			if (expression is ExpressionText text) {
-				yield return context.EvaluatePath (text.Value, baseDirectory);
-				yield break;
+			foreach (var p in EvaluateWithPermutation (context, null, ExpressionParser.Parse (pathExpression), 0)) {
+				if (p == null) {
+					continue;
+				}
+				yield return MSBuildEscaping.FromMSBuildPath (context.Evaluate (p), baseDirectory);
 			}
+		}
 
-			//TODO: nested evaluation
-			if (expression is ExpressionProperty prop) {
+		static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
+		{
+			switch (expression) {
+			// yield plain text
+			case ExpressionText text:
+				yield return prefix + text.Value;
+				yield break;
+
+			// recursively yield evaluated property
+			case ExpressionProperty prop: {
 				if (!prop.IsSimpleProperty) {
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
-					yield break;
+					break;
 				}
 				if (context.TryGetProperty (prop.Name, out var value)) {
 					if (value.HasMultipleValues) {
-						foreach (var v in value.GetValues ()) {
-							yield return context.EvaluatePath (v, baseDirectory);
+						if (value.IsCollapsed) {
+							foreach (var v in value.GetValues ()) {
+								yield return prefix + v;
+							}
+						} else {
+							foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
+								yield return evaluated;
+							}
 						}
 					} else {
-						yield return context.EvaluatePath (value.Value, baseDirectory);
+						if (value.IsCollapsed) {
+							yield return prefix + value.Value;
+						} else {
+							foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
+								yield return evaluated;
+							}
+						}
+					}
+					break;
+				} else {
+					yield return prefix;
+				}
+				yield break;
+			}
+
+			case ComplexExpression expr: {
+
+				var nodes = expr.Nodes;
+
+				if (nodes.Count == 0) {
+					yield break;
+				}
+
+				if (nodes.Count == 1) {
+					foreach (var evaluated in EvaluateWithPermutation (context, prefix, nodes[0], depth + 1)) {
+						yield return evaluated;
+					}
+					yield break;
+				}
+
+				var zero = nodes[0];
+				var skip = new ExpressionNode[nodes.Count - 1];
+				for (int i = 1; i < nodes.Count; i++) {
+					skip[i - 1] = nodes[i];
+				}
+
+				foreach (var zeroVal in EvaluateWithPermutation (context, prefix, zero, depth + 1)) {
+					ExpressionNode inner = skip.Length == 1 ? skip[0] : new ComplexExpression (0, 0, skip);
+					foreach (var v in EvaluateWithPermutation (context, zeroVal, inner, depth + 1)) {
+						yield return v;
 					}
 				}
 				yield break;
 			}
 
-			yield return context.EvaluatePath (expression, baseDirectory);
-			yield break;
-
-			throw new NotSupportedException ();
-
-			/*
-			//ensure each of the properties is fully evaluated
-			//FIXME this is super hacky, use real MSBuild evaluation
-			foreach (var p in propVals) {
-				if (p.Value != null && !readonlyProps.Contains (p.Key)) {
-					for (int i = 0; i < p.Value.Count; i++) {
-						var val = p.Value[i];
-						int recDepth = 0;
-						try {
-							while (val.IndexOf ('$') > -1 && (recDepth++ < 10)) {
-								val = Evaluate (val);
-							}
-							if (val != null && val.IndexOf ('$') < 0) {
-								SetPropertyValue (p.Key, val);
-							}
-							if (string.IsNullOrEmpty (val)) {
-								p.Value.RemoveAt (i);
-								i--;
-							} else {
-								p.Value[i] = val;
-							}
-						} catch {
-							//this happens a lot with things like property functions that
-							//index into null values, so make it quiet
-							//LoggingService.LogDebug ($"Error evaluating property {p.Key}={val}");
-							//FIXME stop ignoring these errors
-						}
-					}
-				}
+			default:
+				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
+				yield break;
 			}
-
-			//permute on properties for which we have multiple values
-			var expr = ExpressionParser.Parse (path, ExpressionOptions.None);
-			var propsToPermute = new List<(string, List<string>)> ();
-			foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
-				if (readonlyProps.Contains (prop.Name)) {
-					continue;
-				}
-				if (propVals != null && propVals.TryGetValues (prop.Name, out List<string> values) && values != null) {
-					if (values.Count > 1) {
-						propsToPermute.Add ((prop.Name, values));
-					}
-				} else if (extensionPaths != null && string.Equals (prop.Name, "MSBuildExtensionsPath", StringComparison.OrdinalIgnoreCase) || string.Equals (prop.Name, "MSBuildExtensionsPath32", StringComparison.OrdinalIgnoreCase)) {
-					propsToPermute.Add ((prop.Name, extensionPaths));
-				}
-			}
-
-			if (propsToPermute.Count == 0) {
-				yield return EvaluatePath (path, basePath);
-			} else {
-				foreach (var ctx in PermuteProperties (this, propsToPermute)) {
-					yield return EvaluatePath (path, basePath);
-				}
-		}
-
-		//TODO: guard against excessive permutation
-		//TODO: return a new context instead of altering this one?
-		static IEnumerable<IMSBuildEvaluationContext> PermuteProperties (IMSBuildEvaluationContext evalCtx, List<(string, List<string>)> multivaluedProperties, int idx = 0)
-		{
-			var prop = multivaluedProperties[idx];
-			var name = prop.Item1;
-			// the list may contain multiple of the same item
-			// we don't just convert it into a hashset as it needs to preserve order
-			var seen = new HashSet<string> ();
-			foreach (var val in prop.Item2) {
-				if (!seen.Add (val) || string.IsNullOrEmpty (val)) {
-					continue;
-				}
-				evalCtx.SetPropertyValue (name, val);
-				if (idx + 1 == multivaluedProperties.Count) {
-					yield return evalCtx;
-				} else {
-					foreach (var permutation in PermuteProperties (evalCtx, multivaluedProperties, idx + 1)) {
-						yield return permutation;
-					}
-				}
-			}
-		}
-			}*/
 		}
 	}
 }
