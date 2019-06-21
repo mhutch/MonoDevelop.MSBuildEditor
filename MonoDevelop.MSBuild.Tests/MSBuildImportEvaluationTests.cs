@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
-		public void TestCommonTargetsImports ()
+		public void TestMicrosoftCSharpTargetsImports ()
 		{
 			var doc = ParseDoc (
 				"<Project><Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" /></Project>",
@@ -116,7 +116,29 @@ namespace MonoDevelop.MSBuild.Tests
 				"Microsoft.CSharp.CrossTargeting.targets",
 				"Microsoft.CSharp.CurrentVersion.targets",
 				"Microsoft.Common.CurrentVersion.targets",
-				"NuGet.targets"
+				"NuGet.targets",
+				"Microsoft.Common.tasks"
+			);
+		}
+
+		[Test]
+		public void TestNetSdkImports ()
+		{
+			var doc = ParseDoc (
+				"<Project Sdk=\"Microsoft.NET.Sdk\"></Project>",
+				"myfile.csproj"
+			);
+
+			AssertImportsExist (
+				doc,
+				"Microsoft.CSharp.CrossTargeting.targets",
+				"Microsoft.CSharp.CurrentVersion.targets",
+				"Microsoft.Common.CurrentVersion.targets",
+				"NuGet.targets",
+				"Microsoft.VisualBasic.Core.targets",
+				"NuGet.Build.Tasks.Pack.targets",
+				"Microsoft.NET.Sdk.DefaultItems.props",
+				"Microsoft.Common.tasks"
 			);
 		}
 
