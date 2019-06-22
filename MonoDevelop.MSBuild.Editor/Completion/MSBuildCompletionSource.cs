@@ -24,7 +24,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 		}
 
-
 		class MSBuildCompletionSessionContext
 		{
 			public MSBuildRootDocument doc;

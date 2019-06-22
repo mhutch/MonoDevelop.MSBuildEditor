@@ -51,19 +51,5 @@ namespace MonoDevelop.MSBuild.PackageSearch
 
 			return tcs.Task;
 		}
-
-		/*
-		public static TooltipInformation CreateTooltipInformation (IReadOnlyList<IPackageInfo> results)
-		{
-			var result = results.FirstOrDefault ();
-			if (result == null) {
-				return null;
-			}
-
-			return new TooltipInformation {
-				SignatureMarkup = $"{result.Id} {result.Version}",
-				SummaryMarkup = $"{result.Description}"
-			};
-		}*/
 	}
 }

@@ -225,7 +225,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return id.HasValue? new ImageElement (id.Value.ToImageId ()) : null;
 		}
 
-		static ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
+		public static ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
 
 		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
 		{

@@ -6,6 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedFileSystem.cs" Link="Exports\ExportedFileSystem.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedNuGetDiskFeedFactory.cs" Link="Exports\ExportedNuGetDiskFeedFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedNuGetV3ServiceFeedFactory.cs" Link="Exports\ExportedNuGetV3ServiceFeedFactory.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedPackageFeedFactorySelector.cs" Link="Exports\ExportedPackageFeedFactorySelector.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedPackageSearchManager.cs" Link="Exports\ExportedPackageSearchManager.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedWebRequestFactory.cs" Link="Exports\ExportedWebRequestFactory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
