@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, doc, rr, XmlImages.ElementImage));
+				items.Add (CreateCompletionItem (el, doc, rr));
 			}
 
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
@@ -82,17 +82,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, doc, rr, XmlImages.AttributeImage));
+					items.Add (CreateCompletionItem (att, doc, rr));
 				}
 			}
 
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, Microsoft.VisualStudio.Text.Adornments.ImageElement image)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
 		{
-			//FIXME add description etc
-			var item = new CompletionItem (info.Name, this);
+			var image = DisplayElementFactory.GetImageElement (info);
+			var item = new CompletionItem (info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof(BaseInfo), info);
 			return item;

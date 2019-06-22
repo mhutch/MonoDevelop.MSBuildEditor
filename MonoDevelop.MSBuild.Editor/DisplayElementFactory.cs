@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -16,13 +17,20 @@ namespace MonoDevelop.MSBuild.Editor
 	{
 		public static object GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
 		{
-			var nameElement = GetNameElement (info);
+			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
 				return null;
 			}
 
-			var elements = new List<object> ();
-			elements.Add (nameElement);
+			var imageElement = GetImageElement (info);
+			if (imageElement != null) {
+				nameElement = new ContainerElement (
+					ContainerElementStyle.Wrapped | ContainerElementStyle.VerticalPadding,
+					imageElement, nameElement
+				);
+			}
+
+			var elements = new List<object> { nameElement };
 
 			var desc = GetDescriptionElement (info, doc, rr);
 			if (desc != null) {
@@ -96,7 +104,7 @@ namespace MonoDevelop.MSBuild.Editor
 				return null;
 			}
 
-			Func<string, (string prefix, string remaining)?> shorten  = null;
+			Func<string, (string prefix, string remaining)?> shorten = null;
 
 			var elements = new List<ClassifiedTextElement> ();
 
@@ -106,6 +114,7 @@ namespace MonoDevelop.MSBuild.Editor
 					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "[more in Find References]")));
 					break;
 				}
+				count++;
 
 				//factor out some common prefixes into variables
 				//we do this instead of using the original string, as the result is simpler
@@ -209,6 +218,108 @@ namespace MonoDevelop.MSBuild.Editor
 
 			return null;
 		}
+
+		public static ImageElement GetImageElement (BaseInfo info)
+		{
+			var id = GetKnownImageIdForInfo (info, false);
+			return id.HasValue? new ImageElement (id.Value.ToImageId ()) : null;
+		}
+
+		static ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
+
+		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
+		{
+			switch (info) {
+			case MSBuildLanguageElement el:
+				if (!el.IsAbstract)
+					return KnownImages.IntellisenseKeyword;
+				break;
+			case MSBuildLanguageAttribute att:
+				if (!att.IsAbstract) {
+					return KnownImages.IntellisenseKeyword;
+				}
+				break;
+			case ItemInfo item:
+				return isPrivate ? KnownImages.MSBuildItemPrivate : KnownImages.MSBuildItem;
+			case PropertyInfo prop:
+				return isPrivate ? KnownImages.MSBuildPropertyPrivate : KnownImages.MSBuildProperty;
+			case TargetInfo prop:
+				return isPrivate ? KnownImages.MSBuildTargetPrivate : KnownImages.MSBuildTarget;
+			case MetadataInfo meta:
+				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
+			case TaskInfo task:
+				return KnownImages.MSBuildTask;
+			case ConstantInfo value:
+				return KnownImages.MSBuildConstant;
+			case FileOrFolderInfo value:
+				return value.IsFolder ? KnownImages.FolderClosed : KnownImages.GenericFile;
+			case FrameworkInfo fxi:
+				return KnownImages.MSBuildFrameworkId;
+			case TaskParameterInfo tpi:
+				return KnownImages.MSBuildTaskParameter;
+			case FunctionInfo fi:
+				if (fi.IsProperty) {
+					//FIXME: can we resolve the msbuild / .net property terminology overloading?
+					return KnownImages.Property;
+				}
+				return KnownImages.Method;
+			case ClassInfo ci:
+				return KnownImages.Class;
+			}
+			return null;
+		}
 	}
 
+	static class ImageExtensions
+	{
+		public static ImageId ToImageId (this KnownImages id) => new ImageId (KnownImagesGuid, (int)id);
+		static readonly Guid KnownImagesGuid = Guid.Parse ("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+	}
+
+	enum KnownImages
+	{
+		// these mirror the values from Microsoft.VisualStudio.Imaging.KnownImageIds
+		Property = 2429,
+		PropertyPrivate = 2434,
+		Method = 1874,
+		MethodPrivate = 1874,
+		Reference = 2521,
+		Add = 28,
+		NuGet = 3150,
+		PackageReference = 3574,
+		FolderClosed = 1294,
+		BinaryFile = 272,
+		Class = 463,
+		ClassPrivate = 471,
+		Field = 1217,
+		FieldPrivate = 1220,
+		Enumeration = 1120,
+		EnumerationPrivate = 1129,
+		Constant = 616,
+		ConstantPrivate = 618,
+		XMLAttribute = 3564,
+		XMLCDataTag = 3567,
+		XMLCommentTag = 3568,
+		XMLElement = 3573,
+		IntellisenseKeyword = 1589,
+		Assembly = 196,
+		Action = 13,
+		DotNETFrameworkDependency = 1019,
+		Parameter = 2242,
+
+		// this defines the mapping from the MSBuild usage to the icons we're re-using
+		MSBuildProperty = Property,
+		MSBuildPropertyPrivate = PropertyPrivate,
+		MSBuildItem = Class,
+		MSBuildItemPrivate = ClassPrivate,
+		MSBuildMetadata = Field,
+		MSBuildMetadataPrivate = FieldPrivate,
+		MSBuildConstant = Constant,
+		MSBuildTarget = Method,
+		MSBuildTargetPrivate = MethodPrivate,
+		MSBuildTask = Action,
+		MSBuildTaskParameter = Parameter,
+		MSBuildFrameworkId = DotNETFrameworkDependency,
+		GenericFile = BinaryFile
+	}
 }
