@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="MSBuildLanguageService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MonoDevelop.MSBuild.Editor.VisualStudioPackage.cs" />
+    <Compile Include="MSBuildEditorVisualStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="languages.pkgdef">
@@ -68,8 +68,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="16.1.28916.169" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.200" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.1.3132" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.2.3071" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">
