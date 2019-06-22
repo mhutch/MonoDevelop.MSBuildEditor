@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				} else {
 					var start = nodes [0].Offset;
 					var l = nodes [nodes.Count - 1].End - start;
-					splitList.Add (new ComplexExpression (start, l, nodes.ToArray ()));
+					splitList.Add (new ConcatExpression (start, l, nodes.ToArray ()));
 					nodes.Clear ();
 				}
 			}
@@ -134,7 +134,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					FlushNodesToSplitList (offset);
 				}
 				if (splitList != null) {
-					return new ComplexExpression (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
+					return new ListExpression (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
 				}
 				if (nodes.Count == 0) {
 					return new ExpressionText (baseOffset + startOffset, "", true);
@@ -142,7 +142,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				if (nodes.Count == 1) {
 					return nodes [0];
 				}
-				return new ComplexExpression (baseOffset + startOffset, endOffset - startOffset + 1, nodes.ToArray ());
+				return new ConcatExpression (baseOffset + startOffset, endOffset - startOffset + 1, nodes.ToArray ());
 			}
 		}
 

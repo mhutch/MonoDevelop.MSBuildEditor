@@ -80,7 +80,7 @@ namespace MonoDevelop.MSBuild.Language
 			const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
 			triggerExpression = ExpressionParser.Parse (expression, options);
 
-			if (triggerExpression is ComplexExpression el) {
+			if (triggerExpression is ListExpression el) {
 				//the last list entry is the thing that triggered it
 				triggerExpression = el.Nodes.Last ();
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {

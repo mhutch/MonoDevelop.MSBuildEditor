@@ -251,7 +251,7 @@ namespace MonoDevelop.MSBuild.Language
 					.Any (n => IsItemNameMatch (n.ItemName))
 				) {
 					switch (node) {
-					case ComplexExpression list:
+					case ListExpression list:
 						foreach (var c in list.Nodes) {
 							if (c is ExpressionText l) {
 								CheckMatch (l);
@@ -305,7 +305,7 @@ namespace MonoDevelop.MSBuild.Language
 			bool isDeclaration = !kind.AllowExpressions ();
 
 			switch (node) {
-			case ComplexExpression list:
+			case ListExpression list:
 				foreach (var c in list.Nodes) {
 					if (c is ExpressionText l) {
 						CheckMatch (l, isDeclaration);

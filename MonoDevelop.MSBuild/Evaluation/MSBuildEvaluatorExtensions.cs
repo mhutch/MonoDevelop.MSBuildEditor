@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return null;
 			}
 
-			case ComplexExpression expr: {
+			case ConcatExpression expr: {
 				var sb = new StringBuilder ();
 				foreach (var n in expr.Nodes) {
 					switch (n) {
@@ -156,7 +156,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				yield break;
 			}
 
-			case ComplexExpression expr: {
+			case ConcatExpression expr: {
 
 				var nodes = expr.Nodes;
 
@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				}
 
 				foreach (var zeroVal in EvaluateWithPermutation (context, prefix, zero, depth + 1)) {
-					ExpressionNode inner = skip.Length == 1 ? skip[0] : new ComplexExpression (0, 0, skip);
+					ExpressionNode inner = skip.Length == 1 ? skip[0] : new ConcatExpression (0, 0, skip);
 					foreach (var v in EvaluateWithPermutation (context, zeroVal, inner, depth + 1)) {
 						yield return v;
 					}

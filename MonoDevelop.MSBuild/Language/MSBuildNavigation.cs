@@ -147,7 +147,7 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.ProjectFile:
 				case MSBuildValueKind.TaskAssemblyFile:
 				case MSBuildValueKind.Unknown:
-					if (node is ComplexExpression list) {
+					if (node is ListExpression list) {
 						foreach (var n in list.Nodes) {
 							var p = GetPathFromNode (n, (MSBuildRootDocument)Document);
 							if (p != null) {

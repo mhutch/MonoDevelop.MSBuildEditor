@@ -14,7 +14,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 	{
 		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
-			if (triggerExpression is ComplexExpression expression) {
+			if (triggerExpression is ConcatExpression expression) {
 				triggerExpression = expression.Nodes.Last ();
 			}
 

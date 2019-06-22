@@ -190,7 +190,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc$(Foo)cde@(baritem)510",
-				 new ComplexExpression (
+				 new ConcatExpression (
 					0, 25,
 					new ExpressionText (0, "abc", false),
 					new ExpressionProperty (3, 6, "Foo"),
@@ -207,10 +207,10 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc;$(Foo)cde;@(baritem);stuff",
-				 new ComplexExpression (
+				 new ListExpression (
 					0, 30,
 					new ExpressionText (0, "abc", true),
-					new ComplexExpression (
+					new ConcatExpression (
 						4, 9,
 						new ExpressionProperty (4, 6, "Foo"),
 						new ExpressionText (10, "cde", false)
@@ -227,7 +227,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"abc;$(Foo)",
-				 new ComplexExpression (
+				 new ConcatExpression (
 					0, 10,
 					new ExpressionText (0, "abc;", false),
 					new ExpressionProperty (4, 6, "Foo")
@@ -276,7 +276,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"&quot;;d&foo;bar",
-				new ComplexExpression (
+				new ListExpression (
 					0, 16,
 					new ExpressionText (0, "&quot;", true),
 					new ExpressionText (7, "d&foo;bar", true)
@@ -484,11 +484,18 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
 			{
-			case ComplexExpression expr:
-				var expectedExpr = (ComplexExpression)expected;
+			case ConcatExpression expr:
+				var expectedExpr = (ConcatExpression)expected;
 				Assert.AreEqual (expectedExpr.Nodes.Count, expr.Nodes.Count);
 				for (int i = 0; i < expr.Nodes.Count; i++) {
 					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i], expectedOffset);
+				}
+				break;
+			case ListExpression listExpr:
+				var expectedListExpr = (ListExpression)expected;
+				Assert.AreEqual (expectedListExpr.Nodes.Count, listExpr.Nodes.Count);
+				for (int i = 0; i < listExpr.Nodes.Count; i++) {
+					AssertEqual (expectedListExpr.Nodes[i], listExpr.Nodes[i], expectedOffset);
 				}
 				break;
 			case ExpressionText literal:

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -6,12 +6,12 @@ using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	[DebuggerDisplay ("ComplexExpression ({Nodes.Count} nodes)")]
-	class ConcatExpression : ExpressionNode
+	[DebuggerDisplay ("ListExpression ({Nodes.Count} nodes)")]
+	class ListExpression : ExpressionNode
 	{
 		public IReadOnlyList<ExpressionNode> Nodes { get; }
 
-		public ConcatExpression (int offset, int length, params ExpressionNode [] nodes) : base (offset, length)
+		public ListExpression (int offset, int length, params ExpressionNode[] nodes) : base (offset, length)
 		{
 			Nodes = nodes;
 

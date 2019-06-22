@@ -414,7 +414,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
-				case ComplexExpression list:
+				case ListExpression list:
 					if (!allowLists) {
 						AddListWarning (list.Nodes[0].End, 1);
 					}

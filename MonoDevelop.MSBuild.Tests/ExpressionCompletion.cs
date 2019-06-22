@@ -64,6 +64,10 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(a->'%(", TriggerState.MetadataOrItem, 0)]
 		[TestCase ("@(a->'%(b", TriggerState.MetadataOrItem, 1)]
 		[TestCase ("$(a[0].", TriggerState.PropertyFunctionName, 0)]
+		[TestCase ("foo,", TriggerState.CommaValue, 0)]
+		[TestCase ("foo,a", TriggerState.CommaValue, 1)]
+		[TestCase ("foo;", TriggerState.SemicolonValue, 0)]
+		[TestCase ("foo;a", TriggerState.SemicolonValue, 1)]
 		public void TestTriggering (string expr, TriggerState expectedState, int expectedLength)
 		{
 			var state = GetTriggerState (
