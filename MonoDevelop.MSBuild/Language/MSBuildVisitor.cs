@@ -47,6 +47,9 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ResolveAndVisit (XElement element, MSBuildLanguageElement parent)
 		{
+			if (!element.Name.IsValid) {
+				return;
+			}
 			var resolved = MSBuildLanguageElement.Get (element.Name.Name, parent);
 			if (resolved != null) {
 				VisitResolvedElement (element, resolved);
