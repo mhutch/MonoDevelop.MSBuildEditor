@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.Language.StandardClassification;
+
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
+
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
@@ -16,20 +18,25 @@ namespace MonoDevelop.MSBuild.Editor
 	class MSBuildValidationTagger : ITagger<IErrorTag>, IDisposable
 	{
 		readonly MSBuildBackgroundParser parser;
+		readonly JoinableTaskContext joinableTaskContext;
 		ParseCompletedEventArgs<MSBuildParseResult> lastArgs;
 
-		public MSBuildValidationTagger (ITextBuffer buffer)
+		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext)
 		{
 			parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
 			parser.ParseCompleted += ParseCompleted;
+			this.joinableTaskContext = joinableTaskContext;
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> args)
 		{
 			lastArgs = args;
 
-			//FIXME: figure out which spans changed, if any, and only invalidate those
-			TagsChanged?.Invoke (this, new SnapshotSpanEventArgs (new SnapshotSpan (args.Snapshot, 0, args.Snapshot.Length)));
+			joinableTaskContext.Factory.Run (async delegate {
+				await joinableTaskContext.Factory.SwitchToMainThreadAsync ();
+				//FIXME: figure out which spans changed, if any, and only invalidate those
+				TagsChanged?.Invoke (this, new SnapshotSpanEventArgs (new SnapshotSpan (args.Snapshot, 0, args.Snapshot.Length)));
+			});
 		}
 
 		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
