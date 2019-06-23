@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuild.Language
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr);
-			rv.Run (el, languageElement, textSource.FileName, textSource, context);
+			rv.Run (el, languageElement, textSource, context);
 
 			return rr;
 

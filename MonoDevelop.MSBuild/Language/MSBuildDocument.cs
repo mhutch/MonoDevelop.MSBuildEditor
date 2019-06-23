@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.Build.Framework;
 
 using MonoDevelop.MSBuild.Language.Conditions;
@@ -15,8 +16,6 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	delegate IEnumerable<Import> ImportResolver (string import, string sdk);
-
 	class MSBuildDocument : IMSBuildSchema, IPropertyCollector
 	{
 		static readonly XName xnProject = new XName ("Project");
@@ -53,7 +52,7 @@ namespace MonoDevelop.MSBuild.Language
 			XDocument doc, ITextSource textSource,
 			IRuntimeInformation runtime, PropertyValueCollector propVals,
 			ITaskMetadataBuilder taskBuilder,
-			ImportResolver resolveImport)
+			MSBuildImportResolver resolveImport)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
@@ -70,7 +69,7 @@ namespace MonoDevelop.MSBuild.Language
 			AddSdkProps (sdks, propVals, resolveImport);
 
 			var resolver = new MSBuildSchemaBuilder (IsToplevel, runtime, propVals, taskBuilder, resolveImport);
-			resolver.Run (doc, Filename, textSource, this);
+			resolver.Run (doc, textSource, this);
 
 			AddSdkTargets (sdks, propVals, resolveImport);
 		}
@@ -201,22 +200,22 @@ namespace MonoDevelop.MSBuild.Language
 			Imports.Add (import);
 		}
 
-		void AddSdkProps (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkProps (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
 		{
 			foreach (var sdk in sdkPaths) {
 				var propsPath = $"{sdk.path}\\Sdk.props";
-				var sdkProps = resolveImport (propsPath, sdk.id).FirstOrDefault ();
+				var sdkProps = importResolver.Resolve (propsPath, sdk.id).FirstOrDefault ();
 				if (sdkProps != null) {
 					AddImport (sdkProps);
 				}
 			}
 		}
 
-		void AddSdkTargets (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, ImportResolver resolveImport)
+		void AddSdkTargets (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
 		{
 			foreach (var sdk in sdkPaths) {
 				var targetsPath = $"{sdk.path}\\Sdk.targets";
-				var sdkTargets = resolveImport (targetsPath, sdk.id).FirstOrDefault ();
+				var sdkTargets = importResolver.Resolve (targetsPath, sdk.id).FirstOrDefault ();
 				if (sdkTargets != null) {
 					AddImport (sdkTargets);
 				}
@@ -279,7 +278,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var files = new HashSet<string> ();
 			foreach (var doc in GetDescendentDocuments ()) {
-				if (doc.ContainsInfo (info)) {
+				if (doc.Filename != null && doc.ContainsInfo (info)) {
 					files.Add (doc.Filename);
 				}
 			}

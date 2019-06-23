@@ -61,24 +61,25 @@ namespace MonoDevelop.MSBuild.Language
 
 			var propVals = new PropertyValueCollector (true);
 
-			string filename = textSource.FileName;
+			string filepath = textSource.FileName;
 
-			var doc = new MSBuildRootDocument (filename) {
+			var doc = new MSBuildRootDocument (filepath) {
 				XDocument = xdocument,
 				Text = textSource,
 				RuntimeInformation = runtimeInfo
 			};
 			doc.Errors.AddRange (xmlParser.Diagnostics);
 
-			try {
-				doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filename, null);
-			} catch (Exception ex) {
-				LoggingService.LogError ("Error loading schema", ex);
-			}
+			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 
-			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase) {
-				filename
-			};
+			if (filepath != null) {
+				try {
+					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filepath, null);
+				} catch (Exception ex) {
+					LoggingService.LogError ("Error loading schema", ex);
+				}
+				importedFiles.Add (filepath);
+			}
 
 			var taskBuilder = MSBuildHost.CreateTaskMetadataBuilder (doc);
 
@@ -87,13 +88,11 @@ namespace MonoDevelop.MSBuild.Language
 				doc,
 				previous,
 				importedFiles,
-				filename,
+				filepath,
 				propVals,
 				taskBuilder,
 				schemaProvider,
 				token);
-
-			var extension = Path.GetExtension (filename);
 
 			string MakeRelativeMSBuildPathAbsolute (string path)
 			{
@@ -119,8 +118,12 @@ namespace MonoDevelop.MSBuild.Language
 
 			Import TryImportSibling (string ifHasThisExtension, string thenTryThisExtension)
 			{
+				if (filepath == null) {
+					return null;
+				}
+				var extension = Path.GetExtension (filepath);
 				if (string.Equals (ifHasThisExtension, extension, StringComparison.OrdinalIgnoreCase)) {
-					var siblingFilename = Path.ChangeExtension (filename, thenTryThisExtension);
+					var siblingFilename = Path.ChangeExtension (filepath, thenTryThisExtension);
 					return TryImportFile ("(implicit)", siblingFilename);
 				}
 				return null;
@@ -149,7 +152,7 @@ namespace MonoDevelop.MSBuild.Language
 
 				doc.Build (
 					xdocument, textSource, runtimeInfo, propVals, taskBuilder,
-					parseContext.CreateImportResolver (filename)
+					parseContext.CreateImportResolver (filepath)
 				);
 
 				//if this is a props file, try to import the targets _at the bottom_
@@ -160,7 +163,7 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error building document '{filename}'", ex);
+				LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
 			}
 
 			try {
@@ -195,7 +198,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				//this has to run in a second pass so that it runs after all the schemas are loaded
 				var validator = new MSBuildDocumentValidator ();
-				validator.Run (doc.XDocument, filename, textSource, doc);
+				validator.Run (doc.XDocument, textSource, doc);
 			} catch (Exception ex) {
 				LoggingService.LogError ("Error in validation", ex);
 			}

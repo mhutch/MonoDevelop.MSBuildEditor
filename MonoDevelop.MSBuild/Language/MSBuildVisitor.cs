@@ -19,19 +19,19 @@ namespace MonoDevelop.MSBuild.Language
 
 		public void Run (MSBuildRootDocument doc, int offset = 0, int length = 0)
 		{
-			Run (doc.XDocument, doc.Filename, doc.Text, doc, offset, length);
+			Run (doc.XDocument, doc.Text, doc, offset, length);
 		}
 
-		public void Run (XDocument xDocument, string filename, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0)
+		public void Run (XDocument xDocument, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0)
 		{
-			Run (xDocument.RootElement, null, filename, textSource, doc, offset, length);
+			Run (xDocument.RootElement, null, textSource, doc, offset, length);
 		}
 
-		public void Run (XElement element, MSBuildLanguageElement resolvedElement, string filename, ITextSource textSource, MSBuildDocument document, int offset = 0, int length = 0)
+		public void Run (XElement element, MSBuildLanguageElement resolvedElement, ITextSource textSource, MSBuildDocument document, int offset = 0, int length = 0)
 		{
-			Filename = filename;
+			Filename = textSource.FileName;
 			Document = document;
-			Extension = System.IO.Path.GetExtension (filename);
+			Extension = Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
 			TextSource = textSource;
 
 			range = new TextSpan (offset, length > 0 ? length + offset : int.MaxValue);

@@ -25,6 +25,20 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			this.runtimeContext = runtimeContext ?? throw new ArgumentNullException (nameof (runtimeContext));
 
+			// this file path properties
+			if (thisFilePath != null) {
+				values["MSBuildThisFile"] = MSBuildEscaping.EscapeString (Path.GetFileName (thisFilePath));
+				values["MSBuildThisFileDirectory"] = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName (thisFilePath)) + "\\";
+				//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
+				values["MSBuildThisFileExtension"] = MSBuildEscaping.EscapeString (Path.GetExtension (thisFilePath));
+				values["MSBuildThisFileFullPath"] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath (thisFilePath));
+				values["MSBuildThisFileName"] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath));
+			}
+
+			if (projectPath == null) {
+				return;
+			}
+
 			// project path properties
 			string escapedProjectDir = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName(projectPath));
 			values["MSBuildProjectDirectory"] = escapedProjectDir;
@@ -36,14 +50,6 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			//don't have a better value, this is as good as anything
 			values["MSBuildStartupDirectory"] = escapedProjectDir;
-
-			// this file path properties
-			values["MSBuildThisFile"] = MSBuildEscaping.EscapeString (Path.GetFileName (thisFilePath));
-			values["MSBuildThisFileDirectory"] = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName(thisFilePath)) + "\\";
-			//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
-			values["MSBuildThisFileExtension"] = MSBuildEscaping.EscapeString (Path.GetExtension (thisFilePath));
-			values["MSBuildThisFileFullPath"] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath(thisFilePath));
-			values["MSBuildThisFileName"] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath));
 
 			//HACK: we don't get a usable value for this without real evaluation so hardcode 'obj'
 			var projectExtensionsPath = Path.GetFullPath (Path.Combine (Path.GetDirectoryName (projectPath), "obj"));

@@ -16,9 +16,7 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference)
 		{
-			string filename = "test.csproj";
-
-			var textDoc = TextSourceFactory.CreateNewDocument (docString, filename);
+			var textDoc = TextSourceFactory.CreateNewDocument (docString, null);
 
 			var xmlParser = new XmlParser (new XmlRootState (), true);
 			xmlParser.Parse (new StringReader (docString));
@@ -27,13 +25,13 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
 			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null, null);
-			sb.Run (xdoc, filename, textDoc, doc);
+			sb.Run (xdoc, textDoc, doc);
 
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
 				Reference = reference,
 			});
-			collector.Run (xdoc, filename, textDoc, doc);
+			collector.Run (xdoc, textDoc, doc);
 			return collector.Results;
 		}
 

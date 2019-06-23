@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (resolved.Kind) {
 			case MSBuildKind.Project:
-				if (!Filename.EndsWith (".props", StringComparison.OrdinalIgnoreCase)) {
+				if (!IsPropsFile) {
 					ValidateProjectHasTarget (element);
 				}
 				break;

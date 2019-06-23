@@ -68,13 +68,13 @@ namespace MonoDevelop.MSBuild.Language
 
 			var doc = xmlParser.Nodes.GetRoot ();
 
-			var importResolver = new ImportResolver (this, import.Filename);
+			var importResolver = new MSBuildImportResolver (this, import.Filename);
 
 			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (
 				doc, textSource,
 				RuntimeInformation, PropertyCollector,
-				TaskBuilder, importResolver.Resolve
+				TaskBuilder, importResolver
 			);
 			import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
 
@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuild.Language
 			return ParseImport (new Import (importExpr, sdk, resolvedFilename, mtimeUtc));
 		}
 
-		IEnumerable<Import> ResolveImport (
+		internal IEnumerable<Import> ResolveImport (
 			MSBuildFileEvaluationContext fileContext,
 			string thisFilePath,
 			string importExpr,
@@ -199,35 +199,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		internal Language.ImportResolver CreateImportResolver (string filename)
-			=> new ImportResolver (this, filename).Resolve;
+		internal MSBuildImportResolver CreateImportResolver (string filename) => new MSBuildImportResolver (this, filename);
 
 		static readonly HashSet<string> failedImports = new HashSet<string> ();
-
-		class ImportResolver
-		{
-			MSBuildFileEvaluationContext fileEvalContext;
-			readonly MSBuildParserContext parseContext;
-			readonly string parentFilePath;
-
-			public ImportResolver (MSBuildParserContext parseContext, string parentFilePath)
-			{
-				this.parseContext = parseContext;
-				this.parentFilePath = parentFilePath;
-			}
-
-			public IEnumerable<Import> Resolve (string importExpr, string sdk)
-			{
-				fileEvalContext = fileEvalContext
-					?? new MSBuildFileEvaluationContext (
-						parseContext.RuntimeEvaluationContext,
-						parseContext.ProjectPath, parentFilePath);
-
-				return parseContext.ResolveImport (
-					fileEvalContext,
-					parentFilePath,
-					importExpr, sdk);
-			}
-		}
 	}
 }

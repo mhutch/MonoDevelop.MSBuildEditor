@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuild.Tests
 			treeParser.Parse (textDoc.CreateReader ());
 			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null, null);
 			var doc = CreateEmptyDocument ();
-			sb.Run (treeParser.Nodes.GetRoot (), filename, textDoc, doc);
+			sb.Run (treeParser.Nodes.GetRoot (), textDoc, doc);
 
 			var parser = new XmlParser (new XmlRootState (), false);
 

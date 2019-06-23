@@ -17,19 +17,19 @@ namespace MonoDevelop.MSBuild.Language
 		readonly IRuntimeInformation runtime;
 		readonly PropertyValueCollector propertyValues;
 		readonly ITaskMetadataBuilder taskMetadataBuilder;
-		readonly ImportResolver resolveImport;
+		readonly MSBuildImportResolver importResolver;
 
 		public MSBuildSchemaBuilder (
 			bool isToplevel, IRuntimeInformation runtime,
 			PropertyValueCollector propertyValues,
 			ITaskMetadataBuilder taskBuilder,
-			ImportResolver resolveImport)
+			MSBuildImportResolver resolveImport)
 		{
 			this.isToplevel = isToplevel;
 			this.runtime = runtime;
 			this.propertyValues = propertyValues;
 			this.taskMetadataBuilder = taskBuilder;
-			this.resolveImport = resolveImport;
+			this.importResolver = resolveImport;
 		}
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
@@ -121,7 +121,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (import != null) {
 				bool wasResolved = false;
 				var loc = importAtt.GetValueSpan ();
-				foreach (var resolvedImport in resolveImport (import, null)) {
+				foreach (var resolvedImport in importResolver.Resolve (import, null)) {
 					Document.AddImport (resolvedImport);
 					wasResolved |= resolvedImport.IsResolved;
 					if (isToplevel && wasResolved) {
@@ -346,7 +346,7 @@ namespace MonoDevelop.MSBuild.Language
 				var cond = ConditionParser.ParseCondition (value);
 				cond.CollectConditionProperties (Document);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild condition at {Filename}:{startOffset}", ex);
+				LoggingService.LogError ($"Error parsing MSBuild condition at {Filename ?? "[unnamed]"}:{startOffset}", ex);
 			}
 		}
 
@@ -393,7 +393,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild expression '{value}' in file {Filename} at {startOffset}", ex);
+				LoggingService.LogError ($"Error parsing MSBuild expression '{value}' in file {Filename ?? "[unnamed]"} at {startOffset}", ex);
 			}
 		}
 	}
