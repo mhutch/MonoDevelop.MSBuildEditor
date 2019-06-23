@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.IO;
 using MonoDevelop.MSBuild.Schema;
 using NUnit.Framework;
 
@@ -30,24 +31,51 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		MSBuildSchemaProvider provider = new MSBuildSchemaProvider ();
 
-		MSBuildSchema LoadCommonTargets () => provider.GetSchema ("microsoft.codeanalysis.targets", null);
-		MSBuildSchema LoadCodeAnalysisTargets () => provider.GetSchema ("microsoft.common.targets", null);
-		MSBuildSchema LoadVisualBasicTargets () => provider.GetSchema ("microsoft.visualbasic.currentversion.targets", null);
-		MSBuildSchema LoadCSharpTargets () => provider.GetSchema ("microsoft.csharp.currentversion.targets", null);
-		MSBuildSchema LoadCppTargets () => provider.GetSchema ("microsoft.cpp.targets", null);
-		MSBuildSchema LoadNuGetPackTargets () => provider.GetSchema ("nuget.build.tasks.pack.targets", null);
-		MSBuildSchema LoadNetSdkTargets () => provider.GetSchema ("sdk.targets", "microsoft.net.sdk");
+		[Test]
+		[TestCase("microsoft.codeanalysis.targets", null)]
+		[TestCase("microsoft.common.targets", null)]
+		[TestCase("microsoft.visualbasic.currentversion.targets", null)]
+		[TestCase("microsoft.csharp.currentversion.targets", null)]
+		[TestCase("microsoft.cpp.targets", null)]
+		[TestCase("nuget.build.tasks.pack.targets", null)]
+		[TestCase("sdk.targets", "microsoft.net.sdk")]
+		public void LoadCoreSchemas (string name, string sdk)
+		{
+			var schema = provider.GetSchema (name, sdk, out var loadErrors);
+			Assert.NotNull (schema);
+			Assert.Zero (loadErrors.Count);
+		}
 
 		[Test]
-		public void LoadCoreSchemas ()
+		public void CustomEnum ()
 		{
-			Assert.NotNull (LoadCommonTargets ());
-			Assert.NotNull (LoadCodeAnalysisTargets ());
-			Assert.NotNull (LoadVisualBasicTargets ());
-			Assert.NotNull (LoadCSharpTargets ());
-			Assert.NotNull (LoadCppTargets ());
-			Assert.NotNull (LoadNuGetPackTargets ());
-			Assert.NotNull (LoadNetSdkTargets ());
+			var schema = MSBuildSchema.Load (new StringReader (
+@"{
+	""properties"": {
+		""MyProp"": {
+			""kind"": ""enum-mycustom""
+		}
+	},
+	""enumKinds"": {
+		""mycustom"": {
+			""One"": ""x"",
+			""Two"": ""y""
+		}
+	}
+}"
+			), out var loadErrors);
+
+			Assert.Zero (loadErrors.Count);
+
+			var item = new[] { schema }.GetProperty ("MyProp");
+			Assert.NotNull (item);
+			Assert.AreEqual (MSBuildValueKind.CustomEnum, item.ValueKind);
+			Assert.NotNull (item.Values);
+			Assert.AreEqual (2, item.Values.Count);
+			Assert.AreEqual ("One", item.Values[0].Name);
+			Assert.AreEqual ("Two", item.Values[1].Name);
+			Assert.AreEqual ("x", item.Values[0].Description.Text);
+			Assert.AreEqual ("y", item.Values[1].Description.Text);
 		}
 	}
 }

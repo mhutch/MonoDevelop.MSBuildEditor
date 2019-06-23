@@ -1,26 +1,46 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using System.IO;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Schema
 {
 	class MSBuildSchemaProvider
 	{
-		public virtual MSBuildSchema GetSchema (string path, string sdk)
+		public MSBuildSchema GetSchema (string path, string sdk)
+		{
+			var schema = GetSchema (path, sdk, out var loadErrors);
+
+			if (loadErrors != null) {
+				foreach (var error in loadErrors) {
+					if (error.severity == DiagnosticSeverity.Warning) {
+						LoggingService.LogWarning (error.message);
+					} else {
+						LoggingService.LogError (error.message);
+					}
+				}
+			}
+
+			return schema;
+		}
+
+		public virtual MSBuildSchema GetSchema (string path, string sdk, out IList<(string message, DiagnosticSeverity severity)> loadErrors)
 		{
 			string filename = path + ".buildschema.json";
 			if (File.Exists (filename)) {
 				using (var reader = File.OpenText (filename)) {
-					return MSBuildSchema.Load (reader);
+					return MSBuildSchema.Load (reader, out loadErrors);
 				}
 			}
 
 			var resourceId = GetResourceForBuiltin (path, sdk);
 			if (resourceId != null) {
-				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json");
+				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
 			}
 
+			loadErrors = null;
 			return null;
 		}
 

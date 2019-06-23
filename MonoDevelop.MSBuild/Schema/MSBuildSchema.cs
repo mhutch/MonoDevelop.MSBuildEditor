@@ -2,9 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using MonoDevelop.Xml.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,25 +20,34 @@ namespace MonoDevelop.MSBuild.Schema
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 		public List<string> IntelliSenseImports { get; } = new List<string> ();
 
-		Dictionary<string,List<ConstantInfo>> customEnumKinds;
-
-		public static MSBuildSchema Load (TextReader reader)
+		public static MSBuildSchema Load (TextReader reader, out IList<(string, DiagnosticSeverity)> loadErrors)
 		{
 			var schema = new MSBuildSchema ();
-			schema.LoadInternal (reader);
+			schema.LoadInternal (reader, out loadErrors);
 			return schema;
 		}
 
-		public static MSBuildSchema LoadResource (string resourceId)
+		public static MSBuildSchema LoadResource (string resourceId, out IList<(string, DiagnosticSeverity)> loadErrors)
 		{
 			var asm = Assembly.GetCallingAssembly ();
 			using (var sr = new StreamReader (asm.GetManifestResourceStream (resourceId))) {
-				return Load (sr);
+				return Load (sr, out loadErrors);
 			}
 		}
 
-		void LoadInternal (TextReader reader)
+		class SchemaLoadState
 		{
+			public Dictionary<string, List<ConstantInfo>> CustomEnumKinds;
+			public IList<(string, DiagnosticSeverity)> Errors;
+			void AddError (string message, DiagnosticSeverity severity) => (Errors ?? (Errors = new List<(string, DiagnosticSeverity)> ())).Add ((message, severity));
+			public void AddError (string error) => AddError (error, DiagnosticSeverity.Error);
+			public void AddWarning (string error) => AddError (error, DiagnosticSeverity.Warning);
+		}
+
+		void LoadInternal (TextReader reader, out IList<(string, DiagnosticSeverity)> loadErrors)
+		{
+			var state = new SchemaLoadState ();
+
 			JObject doc;
 			using (var jr = new JsonTextReader (reader)) {
 				doc = JObject.Load (jr);
@@ -57,7 +68,6 @@ namespace MonoDevelop.MSBuild.Schema
 					break;
 				case "items":
 					items = (JObject)kv.Value;
-					LoadItems ((JObject)kv.Value);
 					break;
 				case "targets":
 					targets = (JObject)kv.Value;
@@ -74,7 +84,8 @@ namespace MonoDevelop.MSBuild.Schema
 					enumKinds = (JObject)kv.Value;
 					break;
 				default:
-					throw new Exception ($"Unknown property {kv.Key} in root");
+					state.AddWarning ($"Unknown property {kv.Key} in root");
+					break;
 				}
 			}
 
@@ -84,26 +95,26 @@ namespace MonoDevelop.MSBuild.Schema
 			// enumKinds must come before properties, items and metadataGroups
 			// as they may use the declared enum kinds
 			if (enumKinds != null) {
-				customEnumKinds = LoadEnumKinds (enumKinds);
+				state.CustomEnumKinds = LoadEnumKinds (enumKinds, state);
 			}
 			if (properties != null) {
-				LoadProperties (properties);
+				LoadProperties (properties, state);
 			}
 			if (items != null) {
-				LoadItems (items);
+				LoadItems (items, state);
 			}
 			// metadataGroups must come after items, as it may apply metadata to existing items
 			if (metadataGroups != null) {
-				LoadMetadataGroups (metadataGroups);
+				LoadMetadataGroups (metadataGroups, state);
 			}
 			if (targets != null) {
-				LoadTargets (targets);
+				LoadTargets (targets, state);
 			}
-			//we don't need it any more, free it up. kinda hacky, should really pass it down the call chain.
-			customEnumKinds = null;
+
+			loadErrors = state.Errors ?? Array.Empty<(string, DiagnosticSeverity)> ();
 		}
 
-		void LoadProperties (JObject properties)
+		void LoadProperties (JObject properties, SchemaLoadState state)
 		{
 			foreach (var kv in properties) {
 				var name = kv.Key;
@@ -120,10 +131,10 @@ namespace MonoDevelop.MSBuild.Schema
 						description = (string)pkv.Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)pkv.Value).Value, ref values);
+						kind = ParseValueKind ((string)((JValue)pkv.Value).Value, ref values, state);
 						break;
 					case "values":
-						values = LoadEnum (pkv.Value);
+						values = LoadEnum (pkv.Value, state);
 						break;
 					case "default":
 						defaultValue = (string)((JValue)pkv.Value).Value;
@@ -132,7 +143,8 @@ namespace MonoDevelop.MSBuild.Schema
 						valueSeparators = (string)((JValue)pkv.Value).Value;
 						break;
 					default:
-						throw new Exception ($"Unknown property {pkv.Key} in property {kv.Key}");
+						state.AddWarning ($"Unknown property {pkv.Key} in property {kv.Key}");
+						break;
 					}
 				}
 
@@ -158,7 +170,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return kind;
 		}
 
-		void LoadItems (JObject items)
+		void LoadItems (JObject items, SchemaLoadState state)
 		{
 			foreach (var kv in items) {
 				var name = kv.Key;
@@ -172,7 +184,10 @@ namespace MonoDevelop.MSBuild.Schema
 						description = (string)((JValue)ikv.Value).Value;
 						break;
 					case "kind":
-						kind = ParseValueKind ((string)((JValue)ikv.Value).Value, out _);
+						kind = ParseValueKind ((string)((JValue)ikv.Value).Value, out _, state);
+						if (kind == MSBuildValueKind.CustomEnum) {
+							state.AddError ($"Item '{name}' has custom enum value, which is not permitted for items");
+						}
 						break;
 					case "includeDescription":
 						includeDescription = (string)((JValue)ikv.Value).Value;
@@ -181,41 +196,45 @@ namespace MonoDevelop.MSBuild.Schema
 						metadata = (JObject)ikv.Value;
 						break;
 					default:
-						throw new Exception ($"Unknown property {ikv.Key} in item {kv.Key}");
+						state.AddWarning ($"Unknown property {ikv.Key} in item {kv.Key}");
+						break;
 					}
 				}
 				var item = new ItemInfo (name, description, includeDescription, kind);
 				if (metadata != null) {
-					AddMetadata (item, metadata);
+					AddMetadata (item, metadata, state);
 				}
 				Items[name] = item;
 			}
 		}
 
-		MSBuildValueKind ParseValueKind (string valueKind, ref List<ConstantInfo> enumValues)
+		MSBuildValueKind ParseValueKind (string valueKind, ref List<ConstantInfo> enumValues, SchemaLoadState state)
 		{
-			var kind = ParseValueKind (valueKind, out var enumName);
+			var kind = ParseValueKind (valueKind, out var enumName, state);
 			if (kind == MSBuildValueKind.CustomEnum && enumValues == null) {
-				if (!customEnumKinds.TryGetValue (enumName, out enumValues)) {
-					throw new Exception ($"Unknown custom enum '{enumName}'");
+				if (state.CustomEnumKinds == null || !state.CustomEnumKinds.TryGetValue (enumName, out enumValues)) {
+					state.AddError ($"Undefined custom enum '{enumName}'");
 				}
 			}
 			return kind;
 		}
 
-		static MSBuildValueKind ParseValueKind (string valueKind, out string enumName)
+		static MSBuildValueKind ParseValueKind (string valueKind, out string enumName, SchemaLoadState state)
 		{
 			var split = valueKind.Split ('-');
+
+			if (split[0] == "enum") {
+				enumName = split[1];
+				return AddModifiers (MSBuildValueKind.CustomEnum, 2);
+			}
 
 			enumName = null;
 
 			if (!Enum.TryParse (split[0], true, out MSBuildValueKind result)) {
-				//accept unknown values in case we run into newer schema formats
-				LoggingService.LogDebug ($"Unknown value kind '{valueKind}'");
+				state.AddWarning ($"Unknown value kind '{valueKind}'");
 				return MSBuildValueKind.Unknown;
 			}
 
-			int modifiersIdx = 1;
 
 			//explicitly define permitted values
 			switch (result) {
@@ -252,33 +271,32 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.Configuration:
 			case MSBuildValueKind.Platform:
 			case MSBuildValueKind.ProjectKindGuid:
-				break;
-			case MSBuildValueKind.CustomEnum:
-				enumName = split[1];
-				modifiersIdx++;
-				break;
+				return AddModifiers (result, 1);
 			default:
-				LoggingService.LogDebug ($"Value '{result}' not permitted in schema");
+				state.AddWarning ($"Value '{result}' not permitted in schema");
 				return MSBuildValueKind.Unknown;
 			}
 
-			for (int i = modifiersIdx; i < split.Length; i++) {
-				switch (split[i]) {
-				case "list":
-					result = result.List ();
-					continue;
-				case "const":
-					result = result.Literal ();
-					continue;
-				default:
-					LoggingService.LogDebug ($"Unknown value suffix '{split[i]}'");
-					continue;
+			MSBuildValueKind AddModifiers (MSBuildValueKind kind, int modifiersIdx)
+			{
+				for (int i = modifiersIdx; i < split.Length; i++) {
+					switch (split[i]) {
+					case "list":
+						kind = kind.List ();
+						continue;
+					case "const":
+						kind = kind.Literal ();
+						continue;
+					default:
+						state.AddWarning ($"Unknown value suffix '{split[i]}'");
+						continue;
+					}
 				}
+				return kind;
 			}
-			return result;
 		}
 
-		MetadataInfo LoadMetadata (string name, JToken value)
+		MetadataInfo LoadMetadata (string name, JToken value, SchemaLoadState state)
 		{
 			//simple version, just a description string
 			if (value is JValue v) {
@@ -296,7 +314,7 @@ namespace MonoDevelop.MSBuild.Schema
 					description = (string)((JValue)mkv.Value).Value;
 					break;
 				case "kind":
-					kind = ParseValueKind ((string)((JValue)mkv.Value).Value, ref values);
+					kind = ParseValueKind ((string)((JValue)mkv.Value).Value, ref values, state);
 					break;
 				case "values":
 					values = GetValues ((JObject)mkv.Value);
@@ -311,7 +329,8 @@ namespace MonoDevelop.MSBuild.Schema
 					required = (bool)((JValue)mkv.Value).Value;
 					break;
 				default:
-					throw new Exception ($"Unknown property {mkv.Key} in metadata {name}");
+					state.AddWarning ($"Unknown property {mkv.Key} in metadata {name}");
+					break;
 				}
 			}
 
@@ -323,17 +342,17 @@ namespace MonoDevelop.MSBuild.Schema
 			);
 		}
 
-		void AddMetadata (ItemInfo item, JObject metaObj)
+		void AddMetadata (ItemInfo item, JObject metaObj, SchemaLoadState state)
 		{
 			foreach (var kv in metaObj) {
 				var name = kv.Key;
-				var val = LoadMetadata (name, kv.Value);
+				var val = LoadMetadata (name, kv.Value, state);
 				val.Item = item;
 				item.Metadata.Add (name, val);
 			}
 		}
 
-		static List<ConstantInfo> LoadEnum (JToken value)
+		static List<ConstantInfo> LoadEnum (JToken value, SchemaLoadState state)
 		{
 			if (value is JObject valuesObj) {
 				return GetValues (valuesObj);
@@ -365,7 +384,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return false;
 		}
 
-		void LoadTargets (JObject items)
+		void LoadTargets (JObject items, SchemaLoadState state)
 		{
 			foreach (var kv in items) {
 				var name = kv.Key;
@@ -384,23 +403,23 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		Dictionary<string, List<ConstantInfo>> LoadEnumKinds (JObject value)
+		Dictionary<string, List<ConstantInfo>> LoadEnumKinds (JObject value, SchemaLoadState state)
 		{
 			var dict = new Dictionary<string, List<ConstantInfo>> ();
 			foreach (var kv in value) {
-				dict.Add (kv.Key, LoadEnum (kv.Value));
+				dict.Add (kv.Key, LoadEnum (kv.Value, state));
 			}
 			return dict;
 		}
 
-		void LoadMetadataGroups (JArray value)
+		void LoadMetadataGroups (JArray value, SchemaLoadState state)
 		{
 			foreach (var val in value) {
-				LoadMetadataGroup ((JObject)val);
+				LoadMetadataGroup ((JObject)val, state);
 			}
 		}
 
-		void LoadMetadataGroup (JObject obj)
+		void LoadMetadataGroup (JObject obj, SchemaLoadState state)
 		{
 			string[] appliesTo = null;
 			var metadata = new List<MetadataInfo> ();
@@ -421,11 +440,12 @@ namespace MonoDevelop.MSBuild.Schema
 					}
 					continue;
 				}
-				metadata.Add (LoadMetadata (kv.Key, kv.Value));
+				metadata.Add (LoadMetadata (kv.Key, kv.Value, state));
 			}
 
 			if (appliesTo == null) {
-				throw new Exception ("Metadata groups must have $appliesTo keys");
+				state.AddError ("Metadata groups must have $appliesTo keys");
+				return;
 			}
 
 			bool isFirstItem = true;
