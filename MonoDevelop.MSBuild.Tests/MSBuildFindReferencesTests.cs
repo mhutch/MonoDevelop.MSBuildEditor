@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
+
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -24,7 +27,8 @@ namespace MonoDevelop.MSBuild.Tests
 
 
 			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
-			var sb = new MSBuildSchemaBuilder (true, null, new PropertyValueCollector (false), null, null);
+			var parseContext = new MSBuildParserContext (new NullRuntimeInformation (), null, null, null, null, new PropertyValueCollector (false), null, null, default);
+			var sb = new MSBuildSchemaBuilder (true, parseContext, null);
 			sb.Run (xdoc, textDoc, doc);
 
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {

@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoDevelop.MSBuild.Language;
+
 using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -20,6 +20,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		public MSBuildRuntimeEvaluationContext (IRuntimeInformation runtime)
 		{
+			if (runtime is Editor.Completion.NullRuntimeInformation) {
+				return;
+			}
+
 			string binPath = MSBuildEscaping.ToMSBuildPath (runtime.BinPath);
 			string toolsPath = MSBuildEscaping.ToMSBuildPath (runtime.ToolsPath);
 

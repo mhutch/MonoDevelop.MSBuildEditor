@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Build.Framework;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
+using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
@@ -68,14 +70,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			var doc = xmlParser.Nodes.GetRoot ();
 
-			var importResolver = new MSBuildImportResolver (this, import.Filename);
-
 			import.Document = new MSBuildDocument (import.Filename, false);
-			import.Document.Build (
-				doc, textSource,
-				RuntimeInformation, PropertyCollector,
-				TaskBuilder, importResolver
-			);
+			import.Document.Build (doc, textSource, this);
 			import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
 
 			return import;
@@ -202,5 +198,36 @@ namespace MonoDevelop.MSBuild.Language
 		internal MSBuildImportResolver CreateImportResolver (string filename) => new MSBuildImportResolver (this, filename);
 
 		static readonly HashSet<string> failedImports = new HashSet<string> ();
+
+		public string GetSdkPath (MSBuildDocument doc, string sdk, TextSpan loc)
+		{
+			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
+				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
+				LoggingService.LogError (parseErrorMsg);
+				if (doc.IsToplevel) {
+					AddError (parseErrorMsg);
+				}
+				return null;
+			}
+
+			try {
+				var sdkPath = RuntimeInformation.GetSdkPath (sdkRef, ProjectPath, null);
+				if (sdk != null) {
+					return sdkPath;
+				}
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error in SDK resolver", ex);
+				return null;
+			}
+
+			string notFoundMsg = $"Did not find SDK '{sdk}'";
+			LoggingService.LogError (notFoundMsg);
+			if (doc.IsToplevel) {
+				AddError (notFoundMsg);
+			}
+			return null;
+
+			void AddError (string msg) => doc.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, msg, loc));
+		}
 	}
 }

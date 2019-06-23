@@ -14,21 +14,15 @@ namespace MonoDevelop.MSBuild.Language
 	class MSBuildSchemaBuilder : MSBuildVisitor
 	{
 		readonly bool isToplevel;
-		readonly IRuntimeInformation runtime;
-		readonly PropertyValueCollector propertyValues;
-		readonly ITaskMetadataBuilder taskMetadataBuilder;
+		readonly MSBuildParserContext parseContext;
 		readonly MSBuildImportResolver importResolver;
 
 		public MSBuildSchemaBuilder (
-			bool isToplevel, IRuntimeInformation runtime,
-			PropertyValueCollector propertyValues,
-			ITaskMetadataBuilder taskBuilder,
+			bool isToplevel, MSBuildParserContext parseContext,
 			MSBuildImportResolver resolveImport)
 		{
 			this.isToplevel = isToplevel;
-			this.runtime = runtime;
-			this.propertyValues = propertyValues;
-			this.taskMetadataBuilder = taskBuilder;
+			this.parseContext = parseContext;
 			this.importResolver = resolveImport;
 		}
 
@@ -110,7 +104,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
 				var loc = sdkAtt.GetValueSpan ();
-				sdkPath = Document.GetSdkPath (runtime, sdkAtt.Value, loc);
+				sdkPath = parseContext.GetSdkPath (Document, sdkAtt.Value, loc);
 				import = import == null ? null : sdkPath + "\\" + import;
 
 				if (isToplevel && sdkPath != null) {
@@ -141,7 +135,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (resolved.Kind == MSBuildKind.Property) {
 				var name = element.Name.Name;
-				propertyValues.Collect (name, value);
+				parseContext.PropertyCollector.Collect (name, value);
 
 				switch (element.Name.Name.ToLowerInvariant ()) {
 				case "configuration":
@@ -318,7 +312,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
-				TaskInfo info = taskMetadataBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Span.Start, propertyValues);
+				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Span.Start, parseContext.PropertyCollector);
 				if (info != null) {
 					Document.Tasks[info.Name] = info;
 					return;

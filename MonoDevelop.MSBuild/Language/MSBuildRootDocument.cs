@@ -150,10 +150,7 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (doc.Schema);
 				}
 
-				doc.Build (
-					xdocument, textSource, runtimeInfo, propVals, taskBuilder,
-					parseContext.CreateImportResolver (filepath)
-				);
+				doc.Build (xdocument, textSource, parseContext);
 
 				//if this is a props file, try to import the targets _at the bottom_
 				var targetsImport = TryImportSibling (".props", ".targets");

@@ -50,9 +50,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public void Build (
 			XDocument doc, ITextSource textSource,
-			IRuntimeInformation runtime, PropertyValueCollector propVals,
-			ITaskMetadataBuilder taskBuilder,
-			MSBuildImportResolver resolveImport)
+			MSBuildParserContext context)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name == xnProject);
 			if (project == null) {
@@ -60,18 +58,20 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
-			var sdks = ResolveSdks (runtime, project).ToList ();
+			var sdks = ResolveSdks (context, project).ToList ();
 
 			var pel = MSBuildLanguageElement.Get ("Project");
 
-			GetPropertiesToTrack (propVals, project);
+			GetPropertiesToTrack (context.PropertyCollector, project);
 
-			AddSdkProps (sdks, propVals, resolveImport);
+			var importResolver = context.CreateImportResolver (Filename);
 
-			var resolver = new MSBuildSchemaBuilder (IsToplevel, runtime, propVals, taskBuilder, resolveImport);
+			AddSdkProps (sdks, context.PropertyCollector, importResolver);
+
+			var resolver = new MSBuildSchemaBuilder (IsToplevel, context, importResolver);
 			resolver.Run (doc, textSource, this);
 
-			AddSdkTargets (sdks, propVals, resolveImport);
+			AddSdkTargets (sdks, context.PropertyCollector, importResolver);
 		}
 
 		static void GetPropertiesToTrack (PropertyValueCollector propertyVals, XElement project)
@@ -97,38 +97,6 @@ namespace MonoDevelop.MSBuild.Language
 					propertyVals.Mark (prop.Name);
 				}
 			}
-		}
-
-		internal string GetSdkPath (IRuntimeInformation runtime, string sdk, TextSpan loc)
-		{
-			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
-				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
-				LoggingService.LogError (parseErrorMsg);
-				if (IsToplevel) {
-					AddError (parseErrorMsg);
-				}
-				return null;
-			}
-
-			//FIXME: filename should be the root project, not this file
-			try {
-				var sdkPath = runtime.GetSdkPath (sdkRef, Filename, null);
-				if (sdk != null) {
-					return sdkPath;
-				}
-			} catch (Exception ex) {
-				LoggingService.LogError ("Error in SDK resolver", ex);
-				return null;
-			}
-
-			string notFoundMsg = $"Did not find SDK '{sdk}'";
-			LoggingService.LogError (notFoundMsg);
-			if (IsToplevel) {
-				AddError (notFoundMsg);
-			}
-			return null;
-
-			void AddError (string msg) => Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, msg, loc));
 		}
 
 		IEnumerable<(string id, TextSpan span)> SplitSdkValue (int offset, string value)
@@ -163,7 +131,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		IEnumerable<(string id, string path, TextSpan span)> ResolveSdks (IRuntimeInformation runtime, XElement project)
+		IEnumerable<(string id, string path, TextSpan span)> ResolveSdks (MSBuildParserContext context, XElement project)
 		{
 			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
 			if (sdksAtt == null) {
@@ -184,7 +152,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 				else {
-					var sdkPath = GetSdkPath (runtime, sdk.id, sdk.span);
+					var sdkPath = context.GetSdkPath (this, sdk.id, sdk.span);
 					if (sdkPath != null) {
 						yield return (sdk.id, sdkPath, sdk.span);
 					}
