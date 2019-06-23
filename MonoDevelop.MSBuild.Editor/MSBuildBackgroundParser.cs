@@ -4,8 +4,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
+
 using Microsoft.VisualStudio.Text;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
@@ -34,12 +35,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.Run (() => {
 				var oldDoc = previousParse?.MSBuildDocument;
 
-				//fixme
-				string filename = "foo.csproj";
+				var filepath = TryGetFilePath ();
 
 				MSBuildRootDocument doc = MSBuildRootDocument.Empty;
 				try {
-					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filename), oldDoc, schemaProvider, runtimeInformation, token);
+					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filepath), oldDoc, schemaProvider, runtimeInformation, token);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;
