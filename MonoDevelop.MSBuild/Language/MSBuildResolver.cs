@@ -128,7 +128,7 @@ namespace MonoDevelop.MSBuild.Language
 			protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 			{
 				var start = element.NameOffset;
-				bool inName = IsIn (start, element.Name.Name.Length);
+				bool inName = element.IsNamed && IsIn (start, element.Name.Name.Length);
 				if (inName) {
 					rr.ReferenceOffset = start;
 					rr.Reference = element.Name.Name;
