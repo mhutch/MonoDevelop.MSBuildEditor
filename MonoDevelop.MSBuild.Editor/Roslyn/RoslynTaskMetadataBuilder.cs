@@ -69,9 +69,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return null;
 			}
 
-			var desc = new DisplayText (Ambience.GetSummaryMarkup (type), true);
-
-			var ti = new TaskInfo (type.Name, desc, type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtOffset);
+			var ti = new TaskInfo (type.Name, RoslynHelpers.GetDescription (type), type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtOffset);
 			PopulateTaskInfoFromType (ti, type);
 			return ti;
 		}
@@ -106,8 +104,6 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
-			var propDesc = new DisplayText (Ambience.GetSummaryMarkup (prop), true);
-
 			bool isOutput = false, isRequired = false;
 			foreach (var att in prop.GetAttributes ()) {
 				switch (att.AttributeClass.GetFullName ()) {
@@ -161,7 +157,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				kind = kind.List ();
 			}
 
-			return new TaskParameterInfo (prop.Name, propDesc, isRequired, isOutput, kind);
+			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind);
 		}
 
 		protected abstract (string path, IAssemblySymbol assembly)? GetTaskAssembly (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals);

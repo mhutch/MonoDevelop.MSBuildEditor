@@ -1,9 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 
@@ -13,31 +18,73 @@ using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
-	//FIXME: ideally the host would use Microsoft.CodeAnalysis.Host.IMetadataService to look up the shared instance
 	[Export (typeof (IFunctionTypeProvider))]
-	class ExportedRoslynFunctionTypeProvider : RoslynFunctionTypeProvider
-	{
-		public ExportedRoslynFunctionTypeProvider () : base (CreateCoreCompilation ())
-		{
-		}
-		static Compilation CreateCoreCompilation ()
-		{
-			return Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create (
-				"FunctionCompletion",
-				references: new[] {
-					MetadataReference.CreateFromFile (typeof(string).Assembly.Location),
-				}
-			);
-		}
-	}
-
 	class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
-		readonly Compilation msbuildCompilation;
+		[Import (AllowDefault=true)]
+		public IRoslynCompilationProvider AssemblyLoader { get; set; }
 
-		public RoslynFunctionTypeProvider (Compilation msbuildCompilation)
+		readonly object locker = new object ();
+		Compilation compilation;
+		Task compilationLoadTask;
+
+		public RoslynFunctionTypeProvider ()
 		{
-			this.msbuildCompilation = msbuildCompilation;
+		}
+
+		public RoslynFunctionTypeProvider (Compilation compilation)
+		{
+			if (compilation == null) {
+				this.compilation = compilation;
+				compilationLoadTask = Task.CompletedTask;
+			}
+		}
+
+		//we need the reference assembly to get docs
+		static string GetMscorlibReferenceAssembly ()
+		{
+			if (Util.Platform.IsWindows) {
+				//FIXME: enumerate installed frameworks
+				var programFiles86 = Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86);
+				var file = Path.Combine (programFiles86, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\mscorlib.dll");
+				if (File.Exists (file)) {
+					return file;
+				}
+			}
+			return typeof (string).Assembly.Location;
+		}
+
+		Task LoadCoreCompilation ()
+		{
+			return Task.Run (() => {
+				try {
+					var mscorlibPath = GetMscorlibReferenceAssembly ();
+					compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create (
+						"FunctionCompletion",
+						references: new[] {
+							AssemblyLoader.CreateReference (mscorlibPath)
+						});
+				} catch (Exception ex) {
+					LoggingService.LogError ("Failed to load roslyn compilation for function completion", ex);
+				}
+			});
+		}
+
+		public Task EnsureInitialized (CancellationToken token)
+		{
+			if (compilationLoadTask == null) {
+				lock (locker) {
+					if (compilationLoadTask == null) {
+						compilationLoadTask = LoadCoreCompilation ();
+					}
+				}
+			}
+			if (compilationLoadTask.IsCompleted || !token.CanBeCanceled) {
+				return compilationLoadTask;
+			}
+
+			//allow aborting the await without cancelling the loader task
+			return Task.WhenAny (compilationLoadTask, Task.Delay (-1, token));
 		}
 
 		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
@@ -106,7 +153,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		public IEnumerable<ClassInfo> GetClassNameCompletions ()
 		{
 			foreach (var kv in permittedFunctions) {
-				var type = msbuildCompilation.GetTypeByMetadataName (kv.Key);
+				var type = compilation?.GetTypeByMetadataName (kv.Key);
 				if (type != null) {
 					yield return new RoslynClassInfo (kv.Key, type);
 				} else {
@@ -178,8 +225,11 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
 		{
-			var type = msbuildCompilation.GetTypeByMetadataName ("System.String");
-			return GetInstanceFunctions (type, includeProperties, includeIndexers);
+			var type = compilation?.GetTypeByMetadataName ("System.String");
+			if (type != null) {
+				return GetInstanceFunctions (type, includeProperties, includeIndexers);
+			}
+			return Array.Empty<FunctionInfo> ();
 		}
 
 		IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
@@ -188,13 +238,15 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 			INamedTypeSymbol type = null;
 			if (dotNetType != null) {
-				type = msbuildCompilation.GetTypeByMetadataName (dotNetType);
+				type = compilation?.GetTypeByMetadataName (dotNetType);
 			}
 			if (type == null) {
-				type = msbuildCompilation.GetTypeByMetadataName ("System.String");
+				type = compilation?.GetTypeByMetadataName ("System.String");
 			}
-
-			return GetInstanceFunctions (type, includeProperties, includeIndexers);
+			if (type != null) {
+				return GetInstanceFunctions (type, includeProperties, includeIndexers);
+			}
+			return Array.Empty<FunctionInfo> ();
 		}
 
 		static IEnumerable<FunctionInfo> GetInstanceFunctions (INamedTypeSymbol type, bool includeProperties, bool includeIndexers)
@@ -241,7 +293,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
 		{
-			var type = msbuildCompilation.GetTypeByMetadataName (className);
+			var type = compilation?.GetTypeByMetadataName (className);
 			if (type == null) {
 				yield break;
 			}

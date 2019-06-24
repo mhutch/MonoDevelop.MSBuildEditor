@@ -4,6 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -15,7 +19,7 @@ namespace MonoDevelop.MSBuild.Editor
 {
 	static class DisplayElementFactory
 	{
-		public static object GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
+		public static async Task<object> GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -32,9 +36,23 @@ namespace MonoDevelop.MSBuild.Editor
 
 			var elements = new List<object> { nameElement };
 
-			var desc = GetDescriptionElement (info, doc, rr);
-			if (desc != null) {
-				elements.Add (desc);
+			var desc = info.Description;
+			var descEl = desc.DisplayElement;
+
+			if (descEl != null) {
+				if (descEl is ISymbol symbol) {
+					descEl = await GetSymbolDescriptionElement (symbol, token);
+				}
+				if (descEl != null) {
+					elements.Add (descEl);
+				}
+			}
+
+			if (descEl == null) {
+				var descStr = DescriptionFormatter.GetDescription (info, doc, rr);
+				if (!string.IsNullOrEmpty (descStr)) {
+					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, desc.Text)));
+				}
 			}
 
 			var seenIn = GetSeenInElement (info, doc);
@@ -165,17 +183,6 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ContainerElement (ContainerElementStyle.Stacked, elements);
 		}
 
-		public static object GetDescriptionElement (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
-		{
-			var desc = DescriptionFormatter.GetDescription (info, doc, rr);
-			if (desc.DisplayElement != null) {
-				return desc.DisplayElement;
-			} else if (!desc.IsEmpty) {
-				return new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, desc.Text));
-			}
-			return null;
-		}
-
 		/// <summary>
 		/// Shortens filenames by extracting common prefixes into MSBuild properties. Returns null if the name could not be shortened in this way.
 		/// </summary>
@@ -222,7 +229,7 @@ namespace MonoDevelop.MSBuild.Editor
 		public static ImageElement GetImageElement (BaseInfo info)
 		{
 			var id = GetKnownImageIdForInfo (info, false);
-			return id.HasValue? new ImageElement (id.Value.ToImageId ()) : null;
+			return id.HasValue ? new ImageElement (id.Value.ToImageId ()) : null;
 		}
 
 		public static ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
@@ -267,6 +274,59 @@ namespace MonoDevelop.MSBuild.Editor
 				return KnownImages.Class;
 			}
 			return null;
+		}
+
+		static Task<object> GetSymbolDescriptionElement (ISymbol symbol, CancellationToken token)
+		{
+			return Task.Run (() => {
+				try {
+					var docs = symbol.GetDocumentationCommentXml (expandIncludes: true, cancellationToken: token);
+					if (!string.IsNullOrEmpty (docs)) {
+						return (object)GetDocsXmlSummaryElement (docs);
+					}
+				} catch (Exception ex) {
+					LoggingService.LogError ("Error loading docs summary", ex);
+				}
+				return null;
+			}, token);
+		}
+
+		// roslyn's IDocumentationCommentFormattingService seems to be basically unusable
+		// without internals access, so it some basic formatting ourselves
+		static object GetDocsXmlSummaryElement (string docs)
+		{
+			var docsXml = XDocument.Parse (docs);
+			var summaryEl = docsXml.Root?.Element ("summary");
+			var runs = new List<ClassifiedTextRun> ();
+			foreach (var node in summaryEl.Nodes ()) {
+				switch (node) {
+				case XText text:
+					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, text.Value));
+					break;
+				case XElement el:
+					if (el.Name == "see") {
+						var cref = (string)el.Attribute ("cref");
+						if (cref != null) {
+							var colonIdx = cref.IndexOf (':');
+							if (colonIdx > -1) {
+								cref = cref.Substring (colonIdx + 1);
+							}
+							if (!string.IsNullOrEmpty (cref)) {
+								runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, cref));
+							}
+						} else {
+							LoggingService.LogDebug ("Docs 'see' element is missing cref attribute");
+						}
+						break;
+					}
+					LoggingService.LogDebug ($"Docs summary has unexpected '{el.Name}' element");
+					goto default;
+				default:
+					LoggingService.LogDebug ($"Docs summary has unexpected '{node.NodeType}' node");
+					break;
+				}
+			}
+			return runs == null ? null : (object)new ClassifiedTextElement (runs);
 		}
 	}
 

@@ -9,10 +9,10 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	static class DescriptionFormatter
 	{
-		public static DisplayText GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
+		public static string GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
 		{
 			if (doc == null) {
-				return info.Description;
+				return info.Description.Text;
 			}
 
 			//construct a customized version of the include/exclude/etc attribute if appropriate
@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			return info.Description;
+			return info.Description.Text;
 		}
 
 		public static (string kind, string name) GetTitle (BaseInfo info)

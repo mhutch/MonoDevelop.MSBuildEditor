@@ -127,7 +127,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return Task.FromResult<object> (null);
 			}
 
-			return Task.FromResult (DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr));
+			return DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
 		}
 
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
@@ -249,12 +249,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.FromResult (CompletionContext.Empty);
 		}
 
-		Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
 			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, kind)) {
-				return Task.FromResult (CompletionContext.Empty);
+				return CompletionContext.Empty;
 			}
 
 			bool allowExpressions = kind.AllowExpressions ();
@@ -262,7 +262,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			kind = kind.GetScalarType ();
 
 			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
-				return Task.FromResult (CompletionContext.Empty);
+				return CompletionContext.Empty;
 			}
 
 			var list = new List<CompletionItem> ();// CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
@@ -276,12 +276,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (triggerState == ExpressionCompletion.TriggerState.Value) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
 				case MSBuildValueKind.NuGetVersion:
-					return GetPackageVersionCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageVersionCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
 				case MSBuildValueKind.Sdk:
 				case MSBuildValueKind.SdkWithVersion:
-					return GetSdkCompletions (triggerLength, token);
+					return await GetSdkCompletions (triggerLength, token);
 				case MSBuildValueKind.Guid:
 					//FIXME: implement GUID completion
 					//list.Add (new GenerateGuidCompletionData ());
@@ -305,6 +305,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
 				cinfos = info.Values;
 			} else {
+				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
+				await provider.FunctionTypeProvider.EnsureInitialized (token);
 				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider);
 			}
 
@@ -321,10 +323,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if (list.Count > 0) {
-				return Task.FromResult (new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (list)));
+				return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (list));
 			}
 
-			return Task.FromResult (CompletionContext.Empty);
+			return CompletionContext.Empty;
 		}
 	}
 }

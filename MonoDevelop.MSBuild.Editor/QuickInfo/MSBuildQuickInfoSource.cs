@@ -56,6 +56,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				return CreateQuickInfo (snapshot, annotations);
 			}
 
+			//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
+			await provider.FunctionTypeProvider.EnsureInitialized (cancellationToken);
+
 			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
@@ -63,16 +66,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				}
 				var info = rr.GetResolvedReference (doc, provider.FunctionTypeProvider);
 				if (info != null) {
-					return CreateQuickInfo (snapshot, doc, info, rr);
+					var element = await DisplayElementFactory.GetInfoTooltipElement (doc, info, rr, cancellationToken);
+					return new QuickInfoItem (
+						snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),
+						element);
 				}
 			}
 			return null;
 		}
-
-		static QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr)
-			=> new QuickInfoItem (
-				snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),
-				DisplayElementFactory.GetInfoTooltipElement (doc, info, rr));
 
 		static QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)
 		{
