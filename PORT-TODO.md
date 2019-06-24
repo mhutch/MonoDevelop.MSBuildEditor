@@ -2,14 +2,12 @@ Things that still need to be ported:
 
 MSBuild:
 
-* value completion
-* expression completion
 * highlight references
 * find references command
 * go to definition command
 * switch between related files command
-* fix squiggle tooltips
 * ctrl-click to navigate
+* nuget completion
 
 Xml:
 
