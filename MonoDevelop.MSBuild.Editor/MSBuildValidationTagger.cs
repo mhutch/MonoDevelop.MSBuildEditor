@@ -20,12 +20,14 @@ namespace MonoDevelop.MSBuild.Editor
 		readonly MSBuildBackgroundParser parser;
 		readonly JoinableTaskContext joinableTaskContext;
 		ParseCompletedEventArgs<MSBuildParseResult> lastArgs;
+		ITextBuffer buffer;
 
 		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext)
 		{
 			parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
 			parser.ParseCompleted += ParseCompleted;
 			this.joinableTaskContext = joinableTaskContext;
+			this.buffer = buffer;
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> args)
@@ -51,28 +53,30 @@ namespace MonoDevelop.MSBuild.Editor
 			//this may be assigned from another thread so capture a consistent value
 			var args = lastArgs;
 
-			if (args == null || spans.Count == 0 || spans[0].IsEmpty)
+			if (args == null || spans.Count == 0)
 				yield break;
 
 			var parse = args.ParseResult;
 			var snapshot = args.Snapshot;
 
-			//FIXME how do errors that span multiple spans work?
+			//FIXME is this correct handling of errors that span multiple spans?
 			foreach (var taggingSpan in spans) {
 				foreach (var diag in parse.Diagnostics) {
-					var diagSpan = diag.Span;
-					if (diagSpan.Start >= taggingSpan.Start && diagSpan.Start <= taggingSpan.End) {
-						yield return CreateErrorTag (diag, snapshot);
+					var diagSpan = new SnapshotSpan (snapshot, diag.Span.Start, diag.Span.Length);
+
+					//if the parse was from an older snapshot, map the positions into the current snapshot
+					if (snapshot != taggingSpan.Snapshot) {
+						var trackingSpan = snapshot.CreateTrackingSpan (diagSpan, SpanTrackingMode.EdgeInclusive);
+						diagSpan = trackingSpan.GetSpan (taggingSpan.Snapshot);
+						continue;
+					}
+
+					if (diagSpan.IntersectsWith (taggingSpan)) {
+						var errorType = GetErrorTypeName (diag.Severity);
+						yield return new TagSpan<ErrorTag> (diagSpan, new ErrorTag (errorType, diag.Message));
 					}
 				}
 			}
-		}
-
-		TagSpan<ErrorTag> CreateErrorTag (XmlDiagnosticInfo diag, ITextSnapshot snapshot)
-		{
-			var errorType = GetErrorTypeName (diag.Severity);
-			var span = new SnapshotSpan (snapshot, diag.Span.Start, diag.Span.Length);
-			return new TagSpan<ErrorTag> (span, new ErrorTag (errorType, diag.Message));
 		}
 
 		static string GetErrorTypeName (DiagnosticSeverity severity)
