@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -13,6 +14,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	static class MSBuildResolver
 	{
+		//FIXME: push down to MonoDevelop.Xml
 		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
 
 		public static MSBuildResolveResult Resolve (

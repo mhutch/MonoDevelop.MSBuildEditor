@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Schema
 			if (expression is ExpressionText lit) {
 				var path = TrimEndChars (lit.GetUnescapedValue ());
 				//FIXME handle encoding
-				yield return MSBuildEscaping.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
+				yield return MSBuildEscaping.FromMSBuildPath (path, Path.GetDirectoryName (doc.Filename));
 				yield break;
 			}
 
