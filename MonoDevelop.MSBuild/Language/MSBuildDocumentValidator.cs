@@ -37,7 +37,10 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			try {
 				ValidateResolvedElement (element, resolved);
-				base.VisitResolvedElement (element, resolved);
+				//don't validate children of incomplete elements
+				if (!element.IsComplete) {
+					base.VisitResolvedElement (element, resolved);
+				}
 			} catch (Exception ex) {
 				AddError ($"Internal error: {ex.Message}", element.NameSpan);
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
