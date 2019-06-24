@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -283,8 +282,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.SdkWithVersion:
 					return await GetSdkCompletions (triggerLength, token);
 				case MSBuildValueKind.Guid:
-					//FIXME: implement GUID completion
-					//list.Add (new GenerateGuidCompletionData ());
+					list.Add (CreateNewGuidCompletionItem ());
 					break;
 				case MSBuildValueKind.Lcid:
 					foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
@@ -328,6 +326,19 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			return CompletionContext.Empty;
 		}
+
+		CompletionItem CreateNewGuidCompletionItem ()
+		{
+			var item = new CompletionItem ("New GUID", this, DisplayElementFactory.GetImageElement (KnownImages.Add));
+			item.Properties.AddProperty (typeof (MSBuildSpecialCompletionKind), MSBuildSpecialCompletionKind.NewGuid);
+			item.AddDocumentation ("Inserts a new GUID");
+			return item;
+		}
+	}
+
+	enum MSBuildSpecialCompletionKind
+	{
+		NewGuid
 	}
 }
  

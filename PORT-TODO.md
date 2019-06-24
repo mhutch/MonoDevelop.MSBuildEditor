@@ -8,6 +8,9 @@ MSBuild:
 * switch between related files command
 * ctrl-click to navigate
 * nuget completion
+* automatically insert () when triggering with after @/$/%
+* lcid completion items
+* sdk completion items
 
 Xml:
 
