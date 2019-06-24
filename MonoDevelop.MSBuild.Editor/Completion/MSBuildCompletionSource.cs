@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
+using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -22,8 +23,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
-		public MSBuildCompletionSource (ITextView textView) : base (textView)
+		readonly MSBuildCompletionSourceProvider provider;
+
+		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider) : base (textView)
 		{
+			this.provider = provider;
 		}
 
 		class MSBuildCompletionSessionContext
@@ -46,7 +50,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = parser.GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc);
+			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;
@@ -130,10 +134,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty);
+			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null);
 			if (rr?.LanguageElement != null) {
 				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
-					//FIXME cache the trigger state on the session
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
 					var triggerState = ExpressionCompletion.GetTriggerState (
 						expression,
@@ -142,7 +145,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						out ExpressionNode triggerExpression,
 						out IReadOnlyList<ExpressionNode> comparandVariables
 					);
-					return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
+					if (triggerState != ExpressionCompletion.TriggerState.None) {
+						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
+					}
 				}
 			}
 
@@ -158,7 +163,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (rr?.LanguageElement != null) {
 				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
-					return await GetExpressionCompletionsAsync (rr, spine, triggerLocation, doc, token);
+					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
+					var triggerState = ExpressionCompletion.GetTriggerState (
+						expression,
+						rr.IsCondition (),
+						out int triggerLength,
+						out ExpressionNode triggerExpression,
+						out IReadOnlyList<ExpressionNode> comparandVariables
+					);
+					if (triggerState != ExpressionCompletion.TriggerState.None) {
+						var info = rr.GetElementOrAttributeValueInfo (doc);
+						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
+							return await GetExpressionCompletionsAsync (info, triggerState, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
+						}
+					}
 				}
 			}
 
@@ -231,31 +249,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.FromResult (CompletionContext.Empty);
 		}
 
-		Task<CompletionContext> GetExpressionCompletionsAsync (MSBuildResolveResult rr, XmlParser spine, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
 		{
-			string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
-
-			var triggerState = ExpressionCompletion.GetTriggerState (
-				expression,
-				rr.IsCondition (),
-				out int triggerLength,
-				out ExpressionNode triggerExpression,
-				out IReadOnlyList<ExpressionNode> comparandVariables
-			);
-
-			if (triggerState == ExpressionCompletion.TriggerState.None) {
-				return null;
-			}
-
-			var info = rr.GetElementOrAttributeValueInfo (doc);
-			if (info == null) {
-				return null;
-			}
-
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
 			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, kind)) {
-				return null;
+				return Task.FromResult (CompletionContext.Empty);
 			}
 
 			bool allowExpressions = kind.AllowExpressions ();
@@ -263,7 +262,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			kind = kind.GetScalarType ();
 
 			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
-				return null;
+				return Task.FromResult (CompletionContext.Empty);
 			}
 
 			var list = new List<CompletionItem> ();// CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
@@ -302,12 +301,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			//TODO: better metadata support
-
 			IEnumerable<BaseInfo> cinfos;
 			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
 				cinfos = info.Values;
 			} else {
-				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc);
+				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider);
 			}
 
 			if (cinfos != null) {

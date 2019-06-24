@@ -23,12 +23,12 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 	class MSBuildQuickInfoSource : IAsyncQuickInfoSource
 	{
 		readonly ITextBuffer textBuffer;
-		readonly IPackageSearchManager packageSearchManager;
+		readonly MSBuildQuickInfoSourceProvider provider;
 
-		public MSBuildQuickInfoSource (ITextBuffer textBuffer, IPackageSearchManager packageSearchManager)
+		public MSBuildQuickInfoSource (ITextBuffer textBuffer, MSBuildQuickInfoSourceProvider provider)
 		{
 			this.textBuffer = textBuffer;
-			this.packageSearchManager = packageSearchManager;
+			this.provider = provider;
 		}
 
 		protected MSBuildBackgroundParser GetParser () => BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)textBuffer);
@@ -56,12 +56,12 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				return CreateQuickInfo (snapshot, annotations);
 			}
 
-			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc);
+			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
 					return await CreateNuGetQuickInfo (snapshot, doc, rr, cancellationToken);
 				}
-				var info = rr.GetResolvedReference (doc);
+				var info = rr.GetResolvedReference (doc, provider.FunctionTypeProvider);
 				if (info != null) {
 					return CreateQuickInfo (snapshot, doc, info, rr);
 				}
@@ -91,7 +91,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 			try {
 				info = (await PackageSearchHelpers.SearchPackageInfo (
-					packageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
+					provider.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
 				)).FirstOrDefault ();
 			}
 			catch (Exception ex) {

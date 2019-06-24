@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
@@ -31,10 +32,12 @@ namespace MonoDevelop.MSBuild.Tests
 			var sb = new MSBuildSchemaBuilder (true, parseContext, null);
 			sb.Run (xdoc, textDoc, doc);
 
+			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
+
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
 				Reference = reference,
-			});
+			}, functionTypeProvider);
 			collector.Run (xdoc, textDoc, doc);
 			return collector.Results;
 		}

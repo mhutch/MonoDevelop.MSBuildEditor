@@ -29,11 +29,6 @@ namespace MonoDevelop.MSBuild
 
 		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => new NoopTaskMetadataBuilder ();
 
-		public static IFunctionTypeProvider GetFunctionTypeProvider () => FunctionTypeProvider;
-
-		// hack for tests
-		public static IFunctionTypeProvider FunctionTypeProvider { get; set; }
-
 		//FIXME
 		class NoopTaskMetadataBuilder : ITaskMetadataBuilder
 		{

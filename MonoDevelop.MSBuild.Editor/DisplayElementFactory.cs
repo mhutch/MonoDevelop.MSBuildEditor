@@ -71,7 +71,7 @@ namespace MonoDevelop.MSBuild.Editor
 			if (info is FunctionInfo fi) {
 				typeInfo = fi.ReturnTypeString;
 				if (!fi.IsProperty) {
-					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, ")"));
+					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "("));
 
 					bool first = true;
 					foreach (var p in fi.Parameters) {

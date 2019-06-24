@@ -39,8 +39,9 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		List<(int offset, MSBuildResolveResult result)> Resolve (string doc)
 		{
+			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.textSource, state.doc))
+				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.textSource, state.doc, functionTypeProvider))
 				.ToList ();
 		}
 
@@ -217,9 +218,6 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public void PropertyFunctionResolution ()
 		{
-			// HACK
-			MSBuildHost.FunctionTypeProvider = new RoslynFunctionTypeProvider ();
-
 			var doc = @"
 <project>
   <propertygroup>

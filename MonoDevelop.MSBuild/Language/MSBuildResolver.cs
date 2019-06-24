@@ -16,7 +16,10 @@ namespace MonoDevelop.MSBuild.Language
 		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
 
 		public static MSBuildResolveResult Resolve (
-			XmlParser parser, ITextSource textSource, MSBuildDocument context)
+			XmlParser parser,
+			ITextSource textSource,
+			MSBuildDocument context,
+			IFunctionTypeProvider functionTypeProvider)
 		{
 			int offset = parser.Position;
 
@@ -91,7 +94,7 @@ namespace MonoDevelop.MSBuild.Language
 				XAttribute = att
 			};
 
-			var rv = new MSBuildResolveVisitor (offset, rr);
+			var rv = new MSBuildResolveVisitor (offset, rr, functionTypeProvider);
 			rv.Run (el, languageElement, textSource, context);
 
 			return rr;
@@ -111,11 +114,13 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			int offset;
 			readonly MSBuildResolveResult rr;
+			readonly IFunctionTypeProvider functionTypeProvider;
 
-			public MSBuildResolveVisitor (int offset, MSBuildResolveResult rr)
+			public MSBuildResolveVisitor (int offset, MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider)
 			{
 				this.offset = offset;
 				this.rr = rr;
+				this.functionTypeProvider = functionTypeProvider;
 			}
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
@@ -243,7 +248,7 @@ namespace MonoDevelop.MSBuild.Language
 							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
 							rr.Reference = (classRef.Name, name.Name);
 						} else {
-							var type = MSBuildHost.GetFunctionTypeProvider ().ResolveType (prop.Target);
+							var type = functionTypeProvider?.ResolveType (prop.Target) ?? MSBuildValueKind.Unknown;
 							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
 							rr.Reference = (type, name.Name);
 						}

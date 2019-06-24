@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Language
 			return false;
 		}
 
-		public static MSBuildReferenceCollector Create (MSBuildResolveResult rr)
+		public static MSBuildReferenceCollector Create (MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Property:
@@ -79,7 +79,7 @@ namespace MonoDevelop.MSBuild.Language
 				return new MSBuildStaticPropertyFunctionReferenceCollector (className, name);
 			case MSBuildReferenceKind.PropertyFunction:
 				(MSBuildValueKind valueKind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
-				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName);
+				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName, functionTypeProvider);
 			case MSBuildReferenceKind.ClassName:
 				return new MSBuildClassReferenceCollector ((string)rr.Reference);
 			case MSBuildReferenceKind.Enum:
@@ -387,14 +387,16 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		readonly MSBuildValueKind valueKind;
+		readonly IFunctionTypeProvider functionTypeProvider;
 
-		public MSBuildPropertyFunctionReferenceCollector (MSBuildValueKind valueKind, string functionName)
+		public MSBuildPropertyFunctionReferenceCollector (MSBuildValueKind valueKind, string functionName, IFunctionTypeProvider functionTypeProvider)
 			: base (StripGetPrefix (functionName))
 		{
 			if (valueKind == MSBuildValueKind.Unknown) {
 				valueKind = MSBuildValueKind.String;
 			}
 			this.valueKind = valueKind;
+			this.functionTypeProvider = functionTypeProvider;
 		}
 
 		protected override void VisitValueExpression (
@@ -409,7 +411,7 @@ namespace MonoDevelop.MSBuild.Language
 						string baseName = StripGetPrefix (func.Name);
 						if (IsMatch (baseName)) {
 							//TODO: should we be fuzzy here and accept "unknown"?
-							var resolvedKind = MSBuildHost.GetFunctionTypeProvider ().ResolveType (inv);
+							var resolvedKind = functionTypeProvider.ResolveType (inv);
 							if (resolvedKind == MSBuildValueKind.Unknown) {
 								resolvedKind = MSBuildValueKind.String;
 							}

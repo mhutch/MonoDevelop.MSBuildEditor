@@ -370,7 +370,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildResolveResult rr,
 			TriggerState trigger, MSBuildValueKind kind,
 			ExpressionNode triggerExpression, int triggerLength,
-			MSBuildRootDocument doc)
+			MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider)
 		{
 			switch (trigger) {
 			case TriggerState.Value:
@@ -386,11 +386,11 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.DirectorySeparator:
 				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
 			case TriggerState.PropertyFunctionName:
-				return MSBuildHost.GetFunctionTypeProvider ().GetPropertyFunctionNameCompletions (triggerExpression);
+				return functionTypeProvider.GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:
-				return MSBuildHost.GetFunctionTypeProvider ().GetItemFunctionNameCompletions ();
+				return functionTypeProvider.GetItemFunctionNameCompletions ();
 			case TriggerState.PropertyFunctionClassName:
-				return MSBuildHost.GetFunctionTypeProvider ().GetClassNameCompletions ();
+				return functionTypeProvider.GetClassNameCompletions ();
 			}
 			throw new InvalidOperationException ();
 		}

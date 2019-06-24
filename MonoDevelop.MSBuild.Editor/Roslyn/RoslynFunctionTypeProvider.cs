@@ -2,16 +2,44 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
+	//FIXME: ideally the host would use Microsoft.CodeAnalysis.Host.IMetadataService to look up the shared instance
+	[Export (typeof (IFunctionTypeProvider))]
+	class ExportedRoslynFunctionTypeProvider : RoslynFunctionTypeProvider
+	{
+		public ExportedRoslynFunctionTypeProvider () : base (CreateCoreCompilation ())
+		{
+		}
+		static Compilation CreateCoreCompilation ()
+		{
+			return Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create (
+				"FunctionCompletion",
+				references: new[] {
+					MetadataReference.CreateFromFile (typeof(string).Assembly.Location),
+				}
+			);
+		}
+	}
+
 	class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
+		readonly Compilation msbuildCompilation;
+
+		public RoslynFunctionTypeProvider (Compilation msbuildCompilation)
+		{
+			this.msbuildCompilation = msbuildCompilation;
+		}
+
 		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is ConcatExpression expression) {
@@ -77,9 +105,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		public IEnumerable<ClassInfo> GetClassNameCompletions ()
 		{
-			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 			foreach (var kv in permittedFunctions) {
-				var type = compilation.GetTypeByMetadataName (kv.Key);
+				var type = msbuildCompilation.GetTypeByMetadataName (kv.Key);
 				if (type != null) {
 					yield return new RoslynClassInfo (kv.Key, type);
 				} else {
@@ -149,24 +176,22 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return new ConstantInfo (reference, null);
 		}
 
-		static IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
+		IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)
 		{
-			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
-			var type = compilation.GetTypeByMetadataName ("System.String");
+			var type = msbuildCompilation.GetTypeByMetadataName ("System.String");
 			return GetInstanceFunctions (type, includeProperties, includeIndexers);
 		}
 
-		static IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
+		IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
 		{
 			var dotNetType = GetDotNetTypeName (kind);
-			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
 
 			INamedTypeSymbol type = null;
 			if (dotNetType != null) {
-				type = compilation.GetTypeByMetadataName (dotNetType);
+				type = msbuildCompilation.GetTypeByMetadataName (dotNetType);
 			}
 			if (type == null) {
-				type = compilation.GetTypeByMetadataName ("System.String");
+				type = msbuildCompilation.GetTypeByMetadataName ("System.String");
 			}
 
 			return GetInstanceFunctions (type, includeProperties, includeIndexers);
@@ -214,10 +239,9 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 		}
 
-		static IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
+		IEnumerable<FunctionInfo> GetStaticFunctions (string className, HashSet<string> members)
 		{
-			var compilation = MSBuildEditorHost.GetMSBuildCompilation ();
-			var type = compilation.GetTypeByMetadataName (className);
+			var type = msbuildCompilation.GetTypeByMetadataName (className);
 			if (type == null) {
 				yield break;
 			}

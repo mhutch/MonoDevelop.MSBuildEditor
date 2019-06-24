@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using MonoDevelop.MSBuild.Language;
 using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
@@ -15,15 +16,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 	[Order]
 	class MSBuildQuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
 	{
-		readonly IPackageSearchManager packageSearchManager;
+		[Import (typeof (IFunctionTypeProvider))]
+		public IFunctionTypeProvider FunctionTypeProvider { get; set; }
 
-		[ImportingConstructor]
-		public MSBuildQuickInfoSourceProvider (IPackageSearchManager packageSearchManager)
-		{
-			this.packageSearchManager = packageSearchManager;
-		}
+
+		[Import (typeof (IPackageSearchManager))]
+		public IPackageSearchManager PackageSearchManager { get; set; }
 
 		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer)
-			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildQuickInfoSource (textBuffer, packageSearchManager));
+			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildQuickInfoSource (textBuffer, this));
 	}
 }
