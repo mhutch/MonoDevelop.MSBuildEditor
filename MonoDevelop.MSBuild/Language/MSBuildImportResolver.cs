@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016 Xamarin Inc.
+// Copyright (c) 2016 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -9,14 +9,20 @@ namespace MonoDevelop.MSBuild.Language
 {
 	class MSBuildImportResolver
 	{
-		MSBuildFileEvaluationContext fileEvalContext;
+		IMSBuildEvaluationContext fileEvalContext;
 		readonly MSBuildParserContext parseContext;
 		readonly string parentFilePath;
 
 		public MSBuildImportResolver (MSBuildParserContext parseContext, string parentFilePath)
+			: this (parseContext, parentFilePath, null)
+		{
+		}
+
+		public MSBuildImportResolver (MSBuildParserContext parseContext, string parentFilePath, IMSBuildEvaluationContext fileEvalContext)
 		{
 			this.parseContext = parseContext;
 			this.parentFilePath = parentFilePath;
+			this.fileEvalContext = fileEvalContext;
 		}
 
 		public IEnumerable<Import> Resolve (string importExpr, string sdk)

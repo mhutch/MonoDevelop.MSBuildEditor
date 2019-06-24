@@ -5,8 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Util;
+
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -197,21 +202,23 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
 		{
-			throw new NotImplementedException ();
-			/*
 			if (expression == null) {
 				yield return Path.GetDirectoryName (doc.Filename);
 				yield break;
 			}
 
+			if (expression is ListExpression list) {
+				expression = list.Nodes[list.Nodes.Count - 1];
+			}
+
 			if (expression is ExpressionText lit) {
 				var path = TrimEndChars (lit.GetUnescapedValue ());
 				//FIXME handle encoding
-				yield return Projects.MSBuild.MSBuildProjectService.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
+				yield return MSBuildEscaping.FromMSBuildPath (Path.GetDirectoryName (doc.Filename), path);
 				yield break;
 			}
 
-			if (!(expression is Expression expr)) {
+			if (!(expression is ConcatExpression expr)) {
 				yield break;
 			}
 
@@ -232,13 +239,11 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			var evalCtx = MSBuildEvaluationContext.Create (doc.RuntimeInformation, doc.Filename, doc.Filename);
-			foreach (var variant in evalCtx.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename), null)) {
+			foreach (var variant in doc.FileEvaluationContext.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename))) {
 				yield return variant;
 			}
 
 			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
-			*/
 		}
 
 		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, List<string> completionBasePaths, bool includeFiles)

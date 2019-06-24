@@ -89,7 +89,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		internal IEnumerable<Import> ResolveImport (
-			MSBuildFileEvaluationContext fileContext,
+			IMSBuildEvaluationContext fileContext,
 			string thisFilePath,
 			string importExpr,
 			string sdk)
@@ -195,7 +195,13 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		internal MSBuildImportResolver CreateImportResolver (string filename) => new MSBuildImportResolver (this, filename);
+		internal MSBuildImportResolver CreateImportResolver (string filename)
+		{
+			if (filename == ProjectPath) {
+				return new MSBuildImportResolver (this, filename, RootDocument.FileEvaluationContext);
+			}
+			return new MSBuildImportResolver (this, filename);
+		}
 
 		static readonly HashSet<string> failedImports = new HashSet<string> ();
 

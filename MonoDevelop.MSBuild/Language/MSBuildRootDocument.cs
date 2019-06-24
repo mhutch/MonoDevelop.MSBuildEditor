@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -24,6 +25,8 @@ namespace MonoDevelop.MSBuild.Language
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; internal set; }
 		public IRuntimeInformation RuntimeInformation { get; private set; }
+
+		public IMSBuildEvaluationContext FileEvaluationContext { get; private set; }
 
 		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), RuntimeInformation = new NullRuntimeInformation () };
 
@@ -93,6 +96,12 @@ namespace MonoDevelop.MSBuild.Language
 				taskBuilder,
 				schemaProvider,
 				token);
+
+			if (filepath != null) {
+				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, filepath, filepath);
+			} else {
+				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
+			}
 
 			string MakeRelativeMSBuildPathAbsolute (string path)
 			{
