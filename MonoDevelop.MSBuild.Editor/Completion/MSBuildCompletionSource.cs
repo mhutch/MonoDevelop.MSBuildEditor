@@ -12,9 +12,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -28,18 +30,26 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			public MSBuildRootDocument doc;
 			public MSBuildResolveResult rr;
+			public XmlParser spine;
 		}
 
-		async Task<(MSBuildRootDocument doc, MSBuildResolveResult rr)> GetSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
+		// this is primarily used to pass info from GetCompletionContextAsync to GetDocumentationAsync
+		// but also reuses the values calculated for expression completion in GetCompletionContextAsync
+		// if it's determined not be be expression completion but actually ends up
+		// in GetElementCompletionsAsync or GetAttributeCompletionsAsync
+		async Task<MSBuildCompletionSessionContext> GetSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
 		{
 			if (session.Properties.TryGetProperty<MSBuildCompletionSessionContext> (typeof (MSBuildCompletionSessionContext), out var context)) {
-				return (context.doc, context.rr);
+				return context;
 			}
-			var parseResult = await GetParseAsync (triggerLocation.Snapshot, token);
+			var parser = GetParser ();
+			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-			var rr = ResolveAt (triggerLocation, doc);
-			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), new MSBuildCompletionSessionContext { doc = doc, rr = rr });
-			return (doc, rr);
+			var spine = parser.GetSpineParser (triggerLocation);
+			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc);
+			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
+			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
+			return context;
 		}
 
 		protected override async Task<CompletionContext> GetElementCompletionsAsync (
@@ -49,7 +59,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			bool includeBracket,
 			CancellationToken token)
 		{
-			(var doc, var rr) = await GetSessionContext (session, triggerLocation, token);
+			var context = await GetSessionContext (session, triggerLocation, token);
+			var rr = context.rr;
+			var doc = context.doc;
+
 			if (rr == null) {
 				return CompletionContext.Empty;
 			}
@@ -72,7 +85,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Dictionary<string, string> existingAtts,
 			CancellationToken token)
 		{
-			(var doc, var rr) = await GetSessionContext (session, triggerLocation, token);
+			var context = await GetSessionContext (session, triggerLocation, token);
+			var rr = context.rr;
+			var doc = context.doc;
+
 			if (rr?.LanguageElement == null) {
 				return CompletionContext.Empty;
 			}
@@ -97,11 +113,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		MSBuildResolveResult ResolveAt (SnapshotPoint point, MSBuildDocument context) =>
-			MSBuildResolver.Resolve (GetSpineParser (point), point.Snapshot.GetTextSource (), context);
-
-		Task<MSBuildParseResult> GetParseAsync (ITextSnapshot snapshot, CancellationToken cancellationToken) => GetParser ().GetOrParseAsync ((ITextSnapshot2) snapshot, cancellationToken);
-
 		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
 		{
 			if (!item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) || info == null) {
@@ -114,5 +125,212 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			return Task.FromResult (DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr));
 		}
+
+		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
+		{
+			//we don't care need a real document here we're doing very basic resolution for triggering
+			var spine = GetSpineParser (triggerLocation);
+			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty);
+			if (rr?.LanguageElement != null) {
+				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+					//FIXME cache the trigger state on the session
+					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
+					var triggerState = ExpressionCompletion.GetTriggerState (
+						expression,
+						rr.IsCondition (),
+						out int triggerLength,
+						out ExpressionNode triggerExpression,
+						out IReadOnlyList<ExpressionNode> comparandVariables
+					);
+					return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
+				}
+			}
+
+			return base.InitializeCompletion (trigger, triggerLocation, token);
+		}
+
+		public override async Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
+		{
+			var context = await GetSessionContext (session, triggerLocation, token);
+			var rr = context.rr;
+			var doc = context.doc;
+			var spine = context.spine;
+
+			if (rr?.LanguageElement != null) {
+				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+					return await GetExpressionCompletionsAsync (rr, spine, triggerLocation, doc, token);
+				}
+			}
+
+			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
+		}
+
+		Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, int startIdx, int triggerLength)
+		{
+			/*
+			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
+			if (string.IsNullOrWhiteSpace (name)) {
+				return null;
+			}
+
+			return Task.FromResult<ICompletionDataList> (
+				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter ()) {
+					TriggerWordStart = startIdx,
+					TriggerWordLength = triggerLength
+				}
+			);
+			*/
+			return Task.FromResult (CompletionContext.Empty);
+		}
+
+		Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
+		{
+			/*
+			var name = rr.XElement.Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
+			if (string.IsNullOrEmpty (name)) {
+				return null;
+			}
+			return Task.FromResult<ICompletionDataList> (
+				new PackageVersionSearchCompletionDataList (PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter (), name) {
+					TriggerWordStart = startIdx,
+					TriggerWordLength = triggerLength
+				}
+			);
+			*/
+			return Task.FromResult (CompletionContext.Empty);
+		}
+
+		Task<CompletionContext> GetSdkCompletions (int triggerLength, CancellationToken token)
+		{
+			/*
+			var list = new CompletionDataList { TriggerWordLength = triggerLength };
+			var doc = GetDocument ();
+			if (doc == null) {
+				return null;
+			}
+
+			var sdks = new HashSet<string> ();
+
+			foreach (var sdk in doc.RuntimeInformation.GetRegisteredSdks ()) {
+				if (sdks.Add (sdk.Name)) {
+					list.Add (Path.GetFileName (sdk.Name));
+				}
+			}
+
+			//TODO: how can we find SDKs in the non-default locations?
+			return Task.Run<ICompletionDataList> (() => {
+				foreach (var d in Directory.GetDirectories (doc.RuntimeInformation.GetSdksPath ())) {
+					string name = Path.GetFileName (d);
+					if (sdks.Add (name)) {
+						list.Add (name);
+					}
+				}
+				return list;
+			}, token);
+			*/
+			return Task.FromResult (CompletionContext.Empty);
+		}
+
+		Task<CompletionContext> GetExpressionCompletionsAsync (MSBuildResolveResult rr, XmlParser spine, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		{
+			string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
+
+			var triggerState = ExpressionCompletion.GetTriggerState (
+				expression,
+				rr.IsCondition (),
+				out int triggerLength,
+				out ExpressionNode triggerExpression,
+				out IReadOnlyList<ExpressionNode> comparandVariables
+			);
+
+			if (triggerState == ExpressionCompletion.TriggerState.None) {
+				return null;
+			}
+
+			var info = rr.GetElementOrAttributeValueInfo (doc);
+			if (info == null) {
+				return null;
+			}
+
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+
+			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, kind)) {
+				return null;
+			}
+
+			bool allowExpressions = kind.AllowExpressions ();
+
+			kind = kind.GetScalarType ();
+
+			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
+				return null;
+			}
+
+			var list = new List<CompletionItem> ();// CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
+
+			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
+					list.Add (CreateCompletionItem (ci, doc, rr));
+				}
+			}
+
+			if (triggerState == ExpressionCompletion.TriggerState.Value) {
+				switch (kind) {
+				case MSBuildValueKind.NuGetID:
+					return GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
+				case MSBuildValueKind.NuGetVersion:
+					return GetPackageVersionCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
+				case MSBuildValueKind.Sdk:
+				case MSBuildValueKind.SdkWithVersion:
+					return GetSdkCompletions (triggerLength, token);
+				case MSBuildValueKind.Guid:
+					//FIXME: implement GUID completion
+					//list.Add (new GenerateGuidCompletionData ());
+					break;
+				case MSBuildValueKind.Lcid:
+					foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
+						string name = culture.Name;
+						string id = culture.LCID.ToString ();
+						string display = culture.DisplayName;
+						//TODO: LCID values
+						//insert multiple versions for matching on both the name and the number
+						//list.Add (new CompletionData (id, null, display));
+						//list.Add (new CompletionData (display, null, id, id));
+					}
+					break;
+				}
+			}
+
+			//TODO: better metadata support
+
+			IEnumerable<BaseInfo> cinfos;
+			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
+				cinfos = info.Values;
+			} else {
+				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc);
+			}
+
+			if (cinfos != null) {
+				foreach (var ci in cinfos) {
+					list.Add (CreateCompletionItem (ci, doc, rr));
+				}
+			}
+
+			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
+				//TODO port this
+				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("$(", "md-variable", "Property value reference", "$(|)", ')'));
+				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("@(", "md-variable", "Item list reference", "@(|)", ')'));
+			}
+
+			if (list.Count > 0) {
+				return Task.FromResult (new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (list)));
+			}
+
+			return Task.FromResult (CompletionContext.Empty);
+		}
 	}
 }
+ 
+ 
+ 
+ 
