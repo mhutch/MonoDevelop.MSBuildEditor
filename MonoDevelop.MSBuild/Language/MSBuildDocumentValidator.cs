@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				ValidateResolvedElement (element, resolved);
 				//don't validate children of incomplete elements
-				if (!element.IsComplete) {
+				if (element.IsComplete) {
 					base.VisitResolvedElement (element, resolved);
 				}
 			} catch (Exception ex) {
