@@ -21,7 +21,6 @@ namespace MonoDevelop.MSBuild.Language
 		void AddWarning (string message, TextSpan span) => AddError (DiagnosticSeverity.Warning, message, span);
 		void AddWarning (string message, int offset, int length) => AddError (DiagnosticSeverity.Warning, message, offset, length);
 
-
 		protected override void VisitUnknownElement (XElement element)
 		{
 			AddError ($"Unknown element '{element.Name.FullName}'", element.Span);
@@ -40,7 +39,7 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateResolvedElement (element, resolved);
 				base.VisitResolvedElement (element, resolved);
 			} catch (Exception ex) {
-				AddError ($"Internal error: {ex.Message}", element.GetNameSpan ());
+				AddError ($"Internal error: {ex.Message}", element.NameSpan);
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
 			}
 		}
@@ -51,7 +50,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (new XName (rat.Name), true);
 					if (xat == null) {
-						AddError ($"{element.Name.Name} must have attribute {rat.Name}", element.GetNameSpan ());
+						AddError ($"{element.Name.Name} must have attribute {rat.Name}", element.NameSpan);
 					}
 				}
 			}
@@ -102,25 +101,25 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			AddWarning ($"Project should have Sdk, Target or Import", element.GetNameSpan ());
+			AddWarning ($"Project should have Sdk, Target or Import", element.NameSpan);
 		}
 
 		void ValidateOnErrorOnlyFollowedByOnError (XElement element)
 		{
-			var nextSibling = element.NextSiblingElement ();
+			var nextSibling = element.GetNextSiblingElement ();
 			if (nextSibling != null && !nextSibling.NameEquals ("OnError", true)) {
 				AddError (
 					$"OnError may only be followed by other OnError elements",
-					element.NextSiblingElement ().GetNameSpan ());
+					element.GetNextSiblingElement ().NameSpan);
 			}
 		}
 
 		void ValidateOtherwiseIsLastElement (XElement element)
 		{
-			if (element.NextSiblingElement () != null) {
+			if (element.GetNextSiblingElement () != null) {
 				AddError (
 					$"Otherwise must be the last element in a Choose",
-					element.NextSiblingElement ().GetNameSpan ());
+					element.GetNextSiblingElement ().NameSpan);
 			}
 		}
 
@@ -136,7 +135,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (!foundItemOrPropertyName) {
 				AddError (
 					$"Output element must have PropertyName or ItemName attribute",
-					element.GetNameSpan ());
+					element.NameSpan);
 			}
 		}
 
@@ -163,19 +162,19 @@ namespace MonoDevelop.MSBuild.Language
 			if (asmNameAtt == null && asmFileAtt == null) {
 				AddError (
 					$"UsingTask must have AssemblyName or AssemblyFile attribute",
-					element.GetNameSpan ());
+					element.NameSpan);
 			} else if (taskFactoryAtt != null && asmNameAtt != null) {
 				AddError (
 					$"UsingTask with TaskFactory cannot have AssemblyName attribute",
-					asmNameAtt.GetNameSpan ());
+					asmNameAtt.NameSpan);
 			} else if (taskFactoryAtt != null && asmFileAtt == null) {
 				AddError (
 					$"UsingTask with TaskFactory must have AssemblyFile attribute",
-					element.GetNameSpan ());
+					element.NameSpan);
 			} else if (asmNameAtt != null && asmFileAtt != null) {
 				AddError (
 					$"UsingTask may not have both AssemblyName and AssemblyFile attributes",
-					asmNameAtt.GetNameSpan ());
+					asmNameAtt.NameSpan);
 			}
 
 			XElement parameterGroup = null, taskBody = null;
@@ -184,7 +183,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (parameterGroup != null) {
 						AddError (
 							$"UsingTask may only have one ParameterGroup",
-							child.GetNameSpan ());
+							child.NameSpan);
 					}
 					parameterGroup = child;
 				}
@@ -192,7 +191,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (taskBody != null) {
 						AddError (
 							$"UsingTask may only have one Task body",
-							child.GetNameSpan ());
+							child.NameSpan);
 					}
 					taskBody = child;
 				}
@@ -202,17 +201,17 @@ namespace MonoDevelop.MSBuild.Language
 				if (taskBody != null) {
 					AddError (
 						$"UsingTask without TaskFactory attribute cannot have Task element",
-						taskBody.GetNameSpan ());
+						taskBody.NameSpan);
 				} else if (parameterGroup != null) {
 					AddError (
 						$"UsingTask without TaskFactory attribute cannot have ParameterGroup element",
-						parameterGroup.GetNameSpan ());
+						parameterGroup.NameSpan);
 				}
 			} else {
 				if (taskBody == null) {
 					AddError (
 						$"UsingTask with TaskFactory attribute must have Task element",
-						element.GetNameSpan ());
+						element.NameSpan);
 				}
 
 				if (taskBody != null) {
@@ -228,7 +227,7 @@ namespace MonoDevelop.MSBuild.Language
 					case null:
 						AddError (
 							$"UsingTask with Task element must have TaskFactory attribute",
-							taskBody.GetNameSpan ());
+							taskBody.NameSpan);
 						break;
 					}
 				}
@@ -242,7 +241,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (code == null) {
 				AddError (
 					$"RoslynCodeTaskFactory requires Code element in Task body",
-					taskBody.GetNameSpan ());
+					taskBody.NameSpan);
 				return;
 			}
 			var typeAtt = code.Attributes.Get (new XName ("Type"), true);
@@ -251,7 +250,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (parameterGroup != null) {
 					AddError (
 						$"RoslynCodeTaskFactory with class ignores ParameterGroup",
-						parameterGroup.GetNameSpan ());
+						parameterGroup.NameSpan);
 				}
 			}
 		}
@@ -266,12 +265,12 @@ namespace MonoDevelop.MSBuild.Language
 				if (att.NameEquals ("Version", true)) {
 					AddError (
 						$"Import may only have a Version if it has an Sdk",
-						att.GetNameSpan ());
+						att.NameSpan);
 				}
 				if (att.NameEquals ("MinVersion", true)) {
 					AddError (
 						$"Import may only have a MinVersion if it has an Sdk",
-						att.GetNameSpan ());
+						att.NameSpan);
 				}
 			}
 		}
@@ -288,14 +287,14 @@ namespace MonoDevelop.MSBuild.Language
 					if (isInTarget) {
 						AddError (
 							$"{att.Name.Name} is only valid outside of a target",
-							att.GetNameSpan ());
+							att.NameSpan);
 					}
 				}
 				if (att.NameEquals ("KeepMetadata", true) || att.NameEquals ("RemoveMetadata", true) || att.NameEquals ("KeepDuplicates", true)) {
 					if (!isInTarget) {
 						AddError (
 							$"{att.Name.Name} is only valid within a target",
-							att.GetNameSpan ());
+							att.NameSpan);
 					}
 				}
 			}
@@ -303,7 +302,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (!hasInclude && !hasRemove && !hasUpdate && !isInTarget) {
 				AddError (
 					$"Items outside of targets must have Include, Update or Remove attributes",
-					element.GetNameSpan ());
+					element.NameSpan);
 			}
 		}
 
@@ -311,7 +310,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var info = Document.GetSchemas ().GetTask (element.Name.Name);
 			if (info.IsInferred) {
-				AddWarning ($"Task {element.Name.Name} is not defined", element.GetNameSpan ());
+				AddWarning ($"Task {element.Name.Name} is not defined", element.NameSpan);
 				return;
 			}
 
@@ -327,13 +326,13 @@ namespace MonoDevelop.MSBuild.Language
 					continue;
 				}
 				if (!info.Parameters.TryGetValue (att.Name.Name, out TaskParameterInfo pi)) {
-					AddWarning ($"Unknown parameter {att.Name.Name}", att.GetNameSpan ());
+					AddWarning ($"Unknown parameter {att.Name.Name}", att.NameSpan);
 					continue;
 				}
 				if (pi.IsRequired) {
 					required.Remove (pi.Name);
 					if (String.IsNullOrWhiteSpace (att.Value)) {
-						AddError ($"Required parameter has empty value", att.GetNameSpan ());
+						AddError ($"Required parameter has empty value", att.NameSpan);
 					}
 				}
 			}
@@ -344,7 +343,7 @@ namespace MonoDevelop.MSBuild.Language
 					required.Count == 1
 						? $"Task {element.Name.Name} is missing the following required attribute: {missingAtts}"
 						: $"Task {element.Name.Name} is missing the following required attributes: {missingAtts}",
-					element.GetNameSpan ());
+					element.NameSpan);
 			}
 
 			foreach (var child in element.Elements) {
@@ -355,11 +354,11 @@ namespace MonoDevelop.MSBuild.Language
 						continue;
 					}
 					if (!info.Parameters.TryGetValue (paramName, out TaskParameterInfo pi)) {
-						AddWarning ($"Unknown parameter {paramName}", paramNameAtt.GetValueSpan ());
+						AddWarning ($"Unknown parameter {paramName}", paramNameAtt.ValueSpan);
 						continue;
 					}
 					if (!pi.IsOutput) {
-						AddWarning ($"Parameter {paramName} is not an output parameter", paramNameAtt.GetValueSpan ());
+						AddWarning ($"Parameter {paramName} is not an output parameter", paramNameAtt.ValueSpan);
 						continue;
 					}
 				}
@@ -376,9 +375,9 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
 				if (resolvedAttribute.Required) {
-					AddError ($"Required attribute has empty value", attribute.GetNameSpan ());
+					AddError ($"Required attribute has empty value", attribute.NameSpan);
 				} else {
-					AddWarning ($"Attribute has empty value", attribute.GetNameSpan ());
+					AddWarning ($"Attribute has empty value", attribute.NameSpan);
 				}
 				return;
 			}

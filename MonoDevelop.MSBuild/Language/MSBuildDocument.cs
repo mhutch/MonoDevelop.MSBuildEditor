@@ -143,7 +143,7 @@ namespace MonoDevelop.MSBuild.Language
 				yield break;
 			}
 
-			int offset = IsToplevel ? sdksAtt.GetValueOffset () : sdksAtt.Span.Start;
+			int offset = IsToplevel ? sdksAtt.ValueOffset : sdksAtt.Span.Start;
 
 			foreach (var sdk in SplitSdkValue (offset, sdksAtt.Value)) {
 				if (sdk.id == null) {

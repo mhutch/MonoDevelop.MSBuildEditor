@@ -122,7 +122,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 			{
-				var start = element.GetNameOffset ();
+				var start = element.NameOffset;
 				bool inName = IsIn (start, element.Name.Name.Length);
 				if (inName) {
 					rr.ReferenceOffset = start;
@@ -135,13 +135,13 @@ namespace MonoDevelop.MSBuild.Language
 						return;
 					case MSBuildKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.Reference = (element.ParentElement ().Name.Name, element.Name.Name);
+						rr.Reference = (element.ParentElement.Name.Name, element.Name.Name);
 						return;
 					case MSBuildKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
 						return;
 					case MSBuildKind.Parameter:
-						var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+						var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
 						if (!string.IsNullOrEmpty (taskName)) {
 							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
@@ -174,7 +174,7 @@ namespace MonoDevelop.MSBuild.Language
 				rr.LanguageAttribute = resolvedAttribute
 					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
 
-				bool inName = attribute.GetNameSpan ().Contains (offset);
+				bool inName = attribute.NameSpan.Contains (offset);
 
 				if (inName) {
 					rr.ReferenceOffset = attribute.Span.Start;
@@ -271,7 +271,7 @@ namespace MonoDevelop.MSBuild.Language
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
 							rr.ReferenceLength = lit.Value.Length;
-							rr.Reference = (element.ParentElement ().Name.Name, lit.Value);
+							rr.Reference = (element.ParentElement.Name.Name, lit.Value);
 							break;
 						}
 					}

@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (attribute.Value != null) {
-				VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute, attribute.Value, attribute.GetValueOffset ());
+				VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute, attribute.Value, attribute.ValueOffset);
 			}
 		}
 

@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			VisitValue (
 				element, attribute, resolvedElement, resolvedAttribute,
-				info, attribute.Value, attribute.GetValueOffset ());
+				info, attribute.Value, attribute.ValueOffset);
 		}
 
 		protected virtual void VisitValue (

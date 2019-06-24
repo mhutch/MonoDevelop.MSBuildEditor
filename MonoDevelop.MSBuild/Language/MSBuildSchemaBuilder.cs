@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuild.Language
 				CollectResolvedElement (element, resolved);
 				base.VisitResolvedElement (element, resolved);
 			} catch (Exception ex) when (isToplevel) {
-				Document.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, $"Internal error: {ex.Message}", element.GetNameSpan ()));
+				Document.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, $"Internal error: {ex.Message}", element.NameSpan));
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
 			}
 		}
@@ -62,13 +62,13 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildKind.Parameter:
-				var taskName = element.ParentElement ().ParentElement ().Attributes.Get (new XName ("TaskName"), true)?.Value;
+				var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
 				if (!string.IsNullOrEmpty (taskName)) {
 					CollectTaskParameterDefinition (taskName, element);
 				}
 				break;
 			case MSBuildKind.Metadata:
-				CollectMetadata (element.ParentElement ().Name.Name, element.Name.Name);
+				CollectMetadata (element.ParentElement.Name.Name, element.Name.Name);
 				break;
 			}
 		}
@@ -86,7 +86,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
-				CollectTaskParameter (element.ParentElement ().Name.Name, attribute.Value, true);
+				CollectTaskParameter (element.ParentElement.Name.Name, attribute.Value, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
-				var loc = sdkAtt.GetValueSpan ();
+				var loc = sdkAtt.ValueSpan;
 				sdkPath = parseContext.GetSdkPath (Document, sdkAtt.Value, loc);
 				import = import == null ? null : sdkPath + "\\" + import;
 
@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (import != null) {
 				bool wasResolved = false;
-				var loc = importAtt.GetValueSpan ();
+				var loc = importAtt.ValueSpan;
 				foreach (var resolvedImport in importResolver.Resolve (import, null)) {
 					Document.AddImport (resolvedImport);
 					wasResolved |= resolvedImport.IsResolved;
@@ -151,7 +151,7 @@ namespace MonoDevelop.MSBuild.Language
 					kind = MSBuildValueKind.Platform.List ();
 					break;
 				}
-			} else if (resolved.Kind == MSBuildKind.Metadata && element.ParentElement ().NameEquals ("ProjectConfiguration", true)) {
+			} else if (resolved.Kind == MSBuildKind.Metadata && element.ParentElement.NameEquals ("ProjectConfiguration", true)) {
 				if (element.NameEquals ("Configuration", true)) {
 					kind = MSBuildValueKind.Configuration;
 				} else if (element.NameEquals ("Platform", true)) {

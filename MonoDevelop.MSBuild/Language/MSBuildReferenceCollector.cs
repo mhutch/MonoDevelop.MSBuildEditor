@@ -97,7 +97,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
+				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -140,7 +140,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if ((resolved.Kind == MSBuildKind.Property) && IsMatch (element.Name.Name)) {
-				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
+				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -179,7 +179,7 @@ namespace MonoDevelop.MSBuild.Language
 			switch (resolved.Kind) {
 			case MSBuildKind.Task:
 				if (IsMatch (element.Name.Name)) {
-					Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Read));
+					Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Read));
 				}
 				break;
 			case MSBuildKind.UsingTask:
@@ -188,7 +188,7 @@ namespace MonoDevelop.MSBuild.Language
 					var nameIdx = nameAtt.Value.LastIndexOf ('.') + 1;
 					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : nameAtt.Value;
 					if (IsMatch (name)) {
-						Results.Add ((nameAtt.GetValueOffset () + nameIdx, name.Length, ReferenceUsage.Declaration));
+						Results.Add ((nameAtt.ValueOffset + nameIdx, name.Length, ReferenceUsage.Declaration));
 					}
 				}
 				break;
@@ -208,8 +208,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement ().Name.Name)) {
-				Results.Add ((element.GetNameOffset (), element.Name.Name.Length, ReferenceUsage.Write));
+			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement.Name.Name)) {
+				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
 		}

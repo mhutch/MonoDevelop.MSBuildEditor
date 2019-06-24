@@ -57,15 +57,15 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			switch (resolvedElement.Kind) {
 			case MSBuildKind.Metadata:
-				element = element?.ParentElement ();
+				element = element?.ParentElement;
 				goto case MSBuildKind.Item;
 			case MSBuildKind.Property:
 			case MSBuildKind.Item:
-				element = element?.ParentElement ();
+				element = element?.ParentElement;
 				goto case MSBuildKind.ItemGroup;
 			case MSBuildKind.ItemGroup:
 			case MSBuildKind.PropertyGroup:
-				var name = element?.ParentElement ()?.Name.Name;
+				var name = element?.ParentElement?.Name.Name;
 				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
 			}
 			return false;
