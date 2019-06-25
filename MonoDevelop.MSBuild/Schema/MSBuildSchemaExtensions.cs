@@ -257,6 +257,8 @@ namespace MonoDevelop.MSBuild.Schema
 					return schemas.GetMetadata (parentName, elementName, false);
 				case MSBuildKind.Property:
 					return schemas.GetProperty (elementName);
+				case MSBuildKind.Task:
+					return null;
 				case MSBuildKind.Parameter:
 					if (omitEmpty) {
 						return null;
