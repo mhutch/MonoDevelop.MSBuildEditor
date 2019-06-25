@@ -199,7 +199,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				LoggingService.LogError ("Task resolver could not get MSBuildBinPath value from evaluationContext");
 				return null;
 			}
-			string binPath = binPathProp.Value;
+			string binPath = MSBuildEscaping.FromMSBuildPath (binPathProp.Value, null);
 
 			if (!string.IsNullOrEmpty (assemblyName)) {
 				var name = new AssemblyName (assemblyName);
