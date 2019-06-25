@@ -331,7 +331,7 @@ namespace MonoDevelop.MSBuild.Language
 				)) &&
 				!element.Elements.Any (n => n.Name.Name == "ParameterGroup"));
 
-			Document.Tasks[taskName] = new TaskInfo (taskName, null, null, null, null, Filename, element.Span.Start) {
+			Document.Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.Span.Start) {
 				ForceInferAttributes = forceInferAttributes
 			};
 		}
