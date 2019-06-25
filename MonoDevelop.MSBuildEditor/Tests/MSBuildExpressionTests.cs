@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using NUnit.Framework;
 using MonoDevelop.MSBuildEditor.Language;
+using MonoDevelop.MSBuildEditor.Language.Expressions;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -301,7 +302,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("$(Foo.Bar())", "Foo", "Bar")]
 		[TestCase ("$(   Foo  .  Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("$(Foo.A(5))", "Foo", "A", 5)]
 		[TestCase ("$(Foo.A(true))", "Foo", "A", true)]
 		[TestCase ("$(Foo.A(true,   20 ))", "Foo", "A", true, 20)]
@@ -333,7 +334,6 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("$([Foo]::Bar())", "Foo", "Bar")]
 		[TestCase ("$(   [Foo]::    Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("$(Foo.Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("$([Foo]::A(5))", "Foo", "A", 5)]
 		[TestCase ("$([Foo]::A(true))", "Foo", "A", true)]
 		[TestCase ("$([Foo]::A(true,   20 ))", "Foo", "A", true, 20)]
@@ -365,7 +365,7 @@ namespace MonoDevelop.MSBuildEditor.Tests
 
 		[TestCase ("@(Foo->Bar())", "Foo", "Bar")]
 		[TestCase ("@(   Foo  ->  Bar  (  )  )", "Foo", "Bar")]
-		//[TestCase ("@(Foo->Baz('Hello'))", "Foo", "Baz", "Hello")]
+		[TestCase ("@(Foo->Baz('Hello'))", "Foo", "Baz", "Hello")]
 		[TestCase ("@(Foo->A(5))", "Foo", "A", 5)]
 		[TestCase ("@(Foo->A(true))", "Foo", "A", true)]
 		[TestCase ("@(Foo->A(true,   20 ))", "Foo", "A", true, 20)]

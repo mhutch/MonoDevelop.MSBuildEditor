@@ -57,8 +57,5 @@
     <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.PackageManagement" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Infrastructure\" />
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

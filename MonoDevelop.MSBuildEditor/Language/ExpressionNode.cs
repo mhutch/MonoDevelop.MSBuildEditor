@@ -377,7 +377,7 @@ namespace MonoDevelop.MSBuildEditor.Language
 			Target = target;
 			target.SetParent (this);
 			Transform = transform;
-			transform.SetParent (this);
+			transform?.SetParent (this);
 			Separator = separator;
 			separator?.SetParent (this);
 		}

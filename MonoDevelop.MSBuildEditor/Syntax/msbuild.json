@@ -1,13 +1,20 @@
-﻿{
-  "version": "1.0",
+{
+  "$schema": "https://raw.githubusercontent.com/Septh/tmlanguage/master/tmLanguage.schema.json",
   "scopeName": "text.msbuild",
   "name": "MSBuild",
+  "uuid": "4675e0d6-7db4-4036-8b75-b53c51464b17",
   "fileTypes": [
-    "props",
     "targets",
+    "props",
+    "tasks",
+    "overridetasks",
     "csproj",
+    "vbproj",
     "fsproj",
-    "vbproj"
+    "xproj",
+    "vcxproj",
+    "proj",
+    "user"
   ],
   "firstLineMatch": "(?x)\n# XML declaration\n(?:\n  ^ <\\? xml\n\n  # VersionInfo\n  \\s+ version\n  \\s* = \\s*\n  (['\"])\n    1 \\. [0-9]+\n  \\1\n\n  # EncodingDecl\n  (?:\n    \\s+ encoding\n    \\s* = \\s*\n\n    # EncName\n    (['\"])\n      [A-Za-z]\n      [-A-Za-z0-9._]*\n    \\2\n  )?\n\n  # SDDecl\n  (?:\n    \\s+ standalone\n    \\s* = \\s*\n    (['\"])\n      (?:yes|no)\n    \\3\n  )?\n\n  \\s* \\?>\n)\n|\n# Modeline\n(?i:\n  # Emacs\n  -\\*-(?:\\s*(?=[^:;\\s]+\\s*-\\*-)|(?:.*?[;\\s]|(?<=-\\*-))mode\\s*:\\s*)\n    xml\n  (?=[\\s;]|(?<![-*])-\\*-).*?-\\*-\n  |\n  # Vim\n  (?:(?:\\s|^)vi(?:m[<=>]?\\d+|m)?|\\sex)(?=:(?=\\s*set?\\s[^\\n:]+:)|:(?!\\s*set?\\s))(?:(?:\\s|\\s*:\\s*)\\w*(?:\\s*=(?:[^\\n\\\\\\s]|\\\\.)*)?)*[\\s:](?:filetype|ft|syntax)\\s*=\n    xml\n  (?=\\s|:|$)\n)",
   "patterns": [

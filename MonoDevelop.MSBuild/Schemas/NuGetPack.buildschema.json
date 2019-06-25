@@ -1,0 +1,164 @@
+﻿{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "items": {
+    "ProjectReference":  {
+      "metadata": {
+        "TreatAsPackageReference": {
+          "description": "Whether to treat this project reference as a project reference in the output package",
+          "kind": "bool"
+        }
+      }
+    }
+  },
+  "properties": {
+    "Authors": "A comma-separated list of NuGet packages authors",
+    "Company": "Company name for the assembly manifest",
+    "Copyright": "Copyright details for the NuGet package",
+    "Description": "A long description of the NuGet package for UI display",
+    "FileVersion": {
+      "description": "Numeric value of the version for the assembly manifest in the format major.minor.build.revision (e.g. 2.4.0.1)",
+      "kind": "version"
+    },
+    "InformationalVersion": "Product version of the assembly for UI display (e.g. 1.0 Beta)",
+    "NeutralLanguage": {
+      "description": "The locale ID for the NuGet package",
+      "kind": "lcid"
+    },
+    "PackageIconUrl": {
+      "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
+      "kind": "url"
+    },
+    "PackageId": "The case-insensitive NuGet package identifier, which must be unique across nuget.org or whatever gallery the NuGet package will reside in. IDs may not contain spaces or characters that are not valid for a URL, and generally follow .NET namespace rules.",
+    "Title": "A human-friendly title of the package, typically used in UI displays as on nuget.org and the Package Manager in Visual Studio. If not specified, the package ID is used instead.",
+    "PackageLicenseUrl": {
+      "description": "The URL for the NuGet package's license, often shown in UI displays as well as nuget.org",
+      "kind": "url"
+    },
+    "PackageProjectUrl": {
+      "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
+      "kind": "url"
+    },
+    "PackageReleaseNotes": "A description of the changes made in this release of the NuGet package, often used in UI like the Updates tab of the Visual Studio Package Manager in place of the package description",
+    "PackageRequireLicenseAcceptance": {
+      "description": "Value indicating whether the client must prompt the consumer to accept the NuGet package license before installing the package",
+      "kind": "bool"
+    },
+    "PackageTags": "A space-delimited list of tags and keywords that describe the NuGet package and aid discoverability of NuGet packages through search and filtering mechanisms",
+    "PackageVersion": {
+      "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1). Version numbers may include a pre-release suffix (e.g. 1.0.1-beta)",
+      "kind": "suffixedversion"
+    },
+    "Product": "Product name information for the assembly manifest",
+    "Version": {
+      "description": "Numeric value of the version in the format major.minor.patch (e.g. 2.4.0)",
+      "kind": "version"
+    },
+    "VersionPrefix": "When Version is not specified, VersionPrefix represents the first fragment of the version string (e.g. 1.0.0). The syntax is VersionPrefix[-VersionSuffix].",
+    "VersionSuffix": "When Version is not specified, VersionSuffix represents the second fragment of the version string (e.g. beta). The syntax is VersionPrefix[-VersionSuffix].",
+    "PackageType": {
+      "description": "The type of the package",
+      "values": [ "DotNetCliTool", "Dependency" ]
+    },
+    "IncludeBuildOutput": {
+      "description": "Whether to include the build output in the package",
+      "kind": "bool"
+    },
+    "BuildOutputTargetFolder": {
+      "description": "The package folder into which the build output should be placed",
+      "kind": "folder"
+    },
+    "IncludeSymbols": {
+      "description": "Whether to include symbols in the NuGet package",
+      "kind": "bool"
+    },
+    "IncludeSource": {
+      "description": "Whether to include source files in the NuGet package",
+      "kind": "bool",
+      "default": "false"
+    },
+    "IsTool": {
+      "description": "Whether to place output files in the tools folder instead of the lib folder",
+      "kind": "bool"
+    },
+    "NuspecFile": {
+      "description": "Relative or absolute path to a custom .nuspec package manifest",
+      "kind": "file"
+    },
+    "NuspecProperties": {
+      "description": "Semicolon-separated list of key=value pairs to be set in a custom .nuspec manifest",
+      "kind": "string-list"
+    },
+    "NuspecBasePath": {
+      "description": "Base path for the custom .nuspec manifest",
+      "kind": "folder"
+    },
+    "IncludeContentInPack": {
+      "description": "Whether to include Content files in the package",
+      "kind": "bool",
+      "default": "true"
+    }
+  },
+    "metadata": [
+    {
+      "#": "Metadata that controls how an item is packaged",
+      "$appliesTo": [
+        "Content", "Compile", "EmbeddedResource", "ApplicationDefinition", "Page", "Resource",
+          "SplashScreen", "DesignData", "DesignDataWithDesignTimeCreateableTypes", "CodeAnalysisDictionary",
+          "AndroidAsset", "AndroidResource", "BundleResource", "None"
+      ],
+      "Pack": {
+        "description": "Whether to include the item in the NuGet package",
+        "kind": "bool"
+      },
+      "PackagePath": {
+        "description": "The item's path within the package. If it has a trailing slash, the filename will be appended.",
+        "kind": "fileorfolder-list"
+      },
+      "PackageCopyToOutput": {
+        "description": "Sets CopyToOutput on the contentFiles entry in the output nuspec",
+        "kind": "bool"
+      },
+      "PackageFlatten": {
+        "description": "Sets Flatten on the contentFiles entry in the output nuspec",
+        "kind": "bool"
+      }
+    },
+    {
+      "#": "Metadata that controls how assets are consumed/propagated from a reference",
+      "$appliesTo": "ProjectReference",
+      "IncludeAssets": {
+        "description": "Assets that will be consumed by the project",
+        "default": "all",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "ExcludeAssets": {
+        "description": "Assets that will not be consumed by the project",
+        "default": "none",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      },
+      "PrivateAssets": {
+        "description": "Assets that will be consumed by the project but won't flow to its parent",
+        "default": "contentfiles,analyzers,build",
+        "kind": "enum-asset-list",
+        "valueSeparators": ","
+      }
+    }
+  ],
+  "enumKinds": {
+    "asset": {
+      "compile": "Libraries from the `lib` folder",
+      "runtime": "Contents of the `runtime` folder",
+      "contentFiles": "All of the assets",
+      "build": "MSBuild targets",
+      "analyzers": "Code analyzers",
+      "native": "Contents of the `native` folder",
+      "none": "None of the assets",
+      "all": "All of the assets"
+    }
+  },
+  "targets": {
+    "Pack": "Pack the project's outputs into a NuGet package"
+  }
+}

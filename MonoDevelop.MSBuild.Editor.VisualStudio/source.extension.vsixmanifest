@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="MonoDevelop.MSBuild.Editor.VisualStudio.7badbb47-7faf-4264-b15d-3b6b23da44fe" Version="1.0" Language="en-US" Publisher="Mikayla Hutchinson" />
+        <DisplayName>MonoDevelop.MSBuild.Editor.VisualStudio</DisplayName>
+        <Description xml:space="preserve">MSBuild Editor</Description>
+        <Preview>true</Preview>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.1, 17.0)" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.1.28811.260,17.0)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[16.1.28829.92,17.0)" DisplayName="C# and Visual Basic" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="MonoDevelop.MSBuild.Editor" Path="|MonoDevelop.MSBuild.Editor|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.MSBuild" Path="|MonoDevelop.MSBuild|" AssemblyName="|MonoDevelop.MSBuild;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.Xml" Path="|MonoDevelop.Xml|" AssemblyName="|MonoDevelop.Xml;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.Xml.Editor" Path="|MonoDevelop.Xml.Editor|" AssemblyName="|MonoDevelop.Xml.Editor;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="languages.pkgdef" />
+    </Assets>
+</PackageManifest>

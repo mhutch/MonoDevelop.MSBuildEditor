@@ -1,4 +1,4 @@
-# MonoDevelop.MSBuildEditor
+﻿# MonoDevelop.MSBuildEditor
 
 The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio for Mac and MonoDevelop. It can be installed from the Extension Manager.
 
@@ -97,3 +97,28 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * add documentation for task parameters
 * fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
 * Fix MSBuildProjectExtensionsPath eval with nonstandard intermediate dir
+* Analyzer that finds DefaultItemExcludes assignment that doesn't include previous value
+* API to dump undocumented items/properties/metadata/tasks
+* Go to definition on tasks
+* Infer default values from <foo condition="$(foo)==''">default</foo>
+* Basic checking on item and property functions
+* Infer bool type from bool assignment or comparison
+* Do some perf work, cache inferred schemas?
+* Expression type resolution (including coercion e.g. string+path = path?)
+* Validate invalid chars in paths
+* Warn on assigning wrong typed expression to property or task arg
+* Evaluation context selection toolbar
+* Go to definition on nuget goes to nuget.org or package folder?
+* Publish json schema
+* Metadata groups
+* Enum kinds
+* Test schema loader
+* Test schema composition
+* Test schema inference
+
+## Build Status
+
+Status | Platform | Runtimes
+--- | --- | ---
+[![Build Status](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor.svg?branch=library)](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor) | Linux | Mono
+[![Build status](https://ci.appveyor.com/api/projects/status/bil5oj1e45xis98h/branch/library?svg=true)](https://ci.appveyor.com/project/mhutch/monodevelop-msbuildeditor/branch/library) | Windows | .NET Framework
