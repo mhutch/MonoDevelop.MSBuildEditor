@@ -1,4 +1,4 @@
-Things that still need to be ported:
+Things that still need to be ported from the MonoDevelop version:
 
 MSBuild:
 
