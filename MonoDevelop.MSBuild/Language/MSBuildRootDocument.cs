@@ -8,11 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Language
@@ -46,6 +48,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static MSBuildRootDocument Parse (
 			ITextSource textSource, MSBuildRootDocument previous,
 			MSBuildSchemaProvider schemaProvider, IRuntimeInformation runtimeInfo,
+			ITaskMetadataBuilder taskBuilder,
 			CancellationToken token)
 		{
 			var xmlParser = new XmlParser (new XmlRootState (), true);
@@ -83,8 +86,6 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				importedFiles.Add (filepath);
 			}
-
-			var taskBuilder = MSBuildHost.CreateTaskMetadataBuilder (doc);
 
 			var parseContext = new MSBuildParserContext (
 				runtimeInfo,

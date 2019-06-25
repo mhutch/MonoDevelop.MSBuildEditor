@@ -4,7 +4,6 @@
 using System;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Schema;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo ("MonoDevelop.MSBuild.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo ("MonoDevelop.MSBuild.Editor")]
@@ -25,17 +24,6 @@ namespace MonoDevelop.MSBuild
 		public static class Options
 		{
 			public static bool ShowPrivateSymbols => false;
-		}
-
-		public static ITaskMetadataBuilder CreateTaskMetadataBuilder (MSBuildRootDocument doc) => new NoopTaskMetadataBuilder ();
-
-		//FIXME
-		class NoopTaskMetadataBuilder : ITaskMetadataBuilder
-		{
-			public TaskInfo CreateTaskInfo (string typeName, string assemblyName, string assemblyFile, string declaredInFile, int declaredAtOffset, PropertyValueCollector propVals)
-			{
-				return null;
-			}
 		}
 	}
 }

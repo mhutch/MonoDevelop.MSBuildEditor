@@ -147,8 +147,9 @@ namespace MonoDevelop.MSBuild.Tests
 			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
 			var textSource = TextSourceFactory.CreateNewDocument (contents, filename);
 			var schemaProvider = new MSBuildSchemaProvider ();
+			var taskBuilder = new NoopTaskMetadataBuilder ();
 
-			return MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, default);
+			return MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, taskBuilder, default);
 		}
 
 		static void AssertImportsExist (MSBuildRootDocument rootDoc, params string[] filenames)

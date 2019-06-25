@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor
@@ -18,16 +19,23 @@ namespace MonoDevelop.MSBuild.Editor
 	[TextViewRole (PredefinedTextViewRoles.Editable)]
 	sealed class MSBuildTextViewCreationListener : ITextViewCreationListener
 	{
-		public MSBuildTextViewCreationListener ()
-		{
-		}
+		[Import (typeof (ITaskMetadataBuilder))]
+		public ITaskMetadataBuilder TaskMetadataBuilder { get; set; }
 
 		public void TextViewCreated (ITextView textView)
 		{
 			var buffer = (ITextBuffer2)textView.TextBuffer;
 
-			// attach the parser to the buffer so it's ready when other things need it
+			// attach the parser to the buffer and initialize it
 			var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> (buffer);
+
+			IRuntimeInformation runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
+			MSBuildSchemaProvider schemaProvider = new MSBuildSchemaProvider ();
+			ITaskMetadataBuilder taskMetadataBuilder = TaskMetadataBuilder;
+
+			parser.Initialize (runtimeInformation, schemaProvider, taskMetadataBuilder);
+
+			//kick off a parse so it's ready when other things need it
 			parser.GetOrParseAsync ((ITextSnapshot2)buffer.CurrentSnapshot, CancellationToken.None);
 		}
 	}

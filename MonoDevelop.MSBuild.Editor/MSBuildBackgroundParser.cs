@@ -15,16 +15,32 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
 	{
-		readonly IRuntimeInformation runtimeInformation;
-		readonly MSBuildSchemaProvider schemaProvider = new MSBuildSchemaProvider ();
+		object initLocker = new object ();
+		IRuntimeInformation runtimeInformation;
+		MSBuildSchemaProvider schemaProvider;
+		ITaskMetadataBuilder taskMetadataBuilder;
 
-		public MSBuildBackgroundParser ()
+		internal void Initialize (IRuntimeInformation runtimeInformation, MSBuildSchemaProvider schemaProvider, ITaskMetadataBuilder taskMetadataBuilder)
 		{
-			try {
-				runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
-			} catch (Exception ex) {
-				LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
-				runtimeInformation = new NullRuntimeInformation ();
+			this.runtimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
+			this.schemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
+			this.taskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
+		}
+
+		void EnsureInitialized ()
+		{
+			lock (initLocker) {
+				if (runtimeInformation != null) {
+					return;
+				}
+				try {
+					runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
+				} catch (Exception ex) {
+					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
+					runtimeInformation = new NullRuntimeInformation ();
+				}
+				schemaProvider = new MSBuildSchemaProvider ();
+				taskMetadataBuilder = new NoopTaskMetadataBuilder ();
 			}
 		}
 
@@ -32,6 +48,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
 			ITextSnapshot2 previousSnapshot, CancellationToken token)
 		{
+			if (runtimeInformation == null) {
+				EnsureInitialized ();
+			}
+
 			return Task.Run (() => {
 				var oldDoc = previousParse?.MSBuildDocument;
 
@@ -39,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				MSBuildRootDocument doc = MSBuildRootDocument.Empty;
 				try {
-					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filepath), oldDoc, schemaProvider, runtimeInformation, token);
+					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filepath), oldDoc, schemaProvider, runtimeInformation, taskMetadataBuilder, token);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;

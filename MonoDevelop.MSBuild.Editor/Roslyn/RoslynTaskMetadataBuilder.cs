@@ -2,27 +2,40 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Primitives;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
-	public abstract class TaskMetadataBuilder : ITaskMetadataBuilder
+	[Export (typeof (ITaskMetadataBuilder))]
+	class TaskMetadataBuilder : ITaskMetadataBuilder
 	{
+		[Import]
+		public IRoslynCompilationProvider CompilationProvider { get; set; }
+
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, string assemblyFile,
 			string declaredInFile, int declaredAtOffset,
-			PropertyValueCollector propVals)
+			IMSBuildEvaluationContext evaluationContext)
 		{
 			//ignore this, it's redundant
 			if (assemblyName != null && assemblyName.StartsWith ("Microsoft.Build.Tasks.v", StringComparison.Ordinal)) {
 				return null;
 			}
 
-			var tasks = GetTaskAssembly (assemblyName, assemblyFile, declaredInFile, propVals);
+			var tasks = GetTaskAssembly (assemblyName, assemblyFile, declaredInFile, evaluationContext);
 			IAssemblySymbol assembly = tasks?.assembly;
 			if (assembly == null) {
 				//TODO log this?
@@ -160,6 +173,100 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind);
 		}
 
-		protected abstract (string path, IAssemblySymbol assembly)? GetTaskAssembly (string assemblyName, string assemblyFile, string declaredInFile, PropertyValueCollector propVals);
+		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies
+			= new Dictionary<(string, string, string), (string, IAssemblySymbol)?> ();
+
+		protected (string path, IAssemblySymbol assembly)? GetTaskAssembly (string assemblyName, string assemblyFile, string declaredInFile, IMSBuildEvaluationContext evaluationContext)
+		{
+			var key = (assemblyName?.ToLowerInvariant (), assemblyFile?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
+			if (resolvedAssemblies.TryGetValue (key, out (string, IAssemblySymbol)? r)) {
+				return r;
+			}
+			(string, IAssemblySymbol)? taskFile = null;
+			try {
+				taskFile = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile, evaluationContext);
+			} catch (Exception ex) {
+				LoggingService.LogError ($"Error loading tasks assembly name='{assemblyName}' file='{taskFile}' in '{declaredInFile}'", ex);
+			}
+			resolvedAssemblies[key] = taskFile;
+			return taskFile;
+		}
+
+
+		(string path, IAssemblySymbol compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile, IMSBuildEvaluationContext evaluationContext)
+		{
+			if (!evaluationContext.TryGetProperty ("MSBuildBinPath", out var binPathProp)) {
+				LoggingService.LogError ("Task resolver could not get MSBuildBinPath value from evaluationContext");
+				return null;
+			}
+			string binPath = binPathProp.Value;
+
+			if (!string.IsNullOrEmpty (assemblyName)) {
+				var name = new AssemblyName (assemblyName);
+				string path = Path.Combine (binPath, $"{name.Name}.dll");
+				if (!File.Exists (path)) {
+					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyName}'");
+					return null;
+				}
+				return CreateResult (path);
+			}
+
+			if (!string.IsNullOrEmpty (assemblyFile)) {
+				string path = null;
+				if (assemblyFile.IndexOf ('$') < 0) {
+					path = MSBuildEscaping.FromMSBuildPath (assemblyFile, Path.GetDirectoryName (declaredInFile));
+					if (!File.Exists (path)) {
+						path = null;
+					}
+				} else {
+					var permutations = evaluationContext.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile));
+					foreach (var p in permutations) {
+						if (path == null && File.Exists (p)) {
+							path = p;
+						}
+					}
+				}
+				if (path == null) {
+					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
+					return null;
+				}
+				return CreateResult (path);
+			}
+
+			return null;
+
+			(string, IAssemblySymbol) CreateResult (string path)
+			{
+				var name = Path.GetFileNameWithoutExtension (path);
+
+				//FIXME: we need to bundle the xml docs files for these as they are not shipped beside the assemblies in VS
+				var refs = new List<MetadataReference> {
+					CompilationProvider.CreateReference (path),
+					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
+					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
+					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
+					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
+					CompilationProvider.CreateReference (typeof (object).Assembly.Location)
+				};
+
+				if (name != "Microsoft.Build.Tasks.Core") {
+					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.Core.dll")));
+					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v4.0.dll")));
+					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v12.0.dll")));
+				}
+
+				var compilation = CSharpCompilation.Create (
+					"__MSBuildEditorTaskResolver",
+					references: refs.ToArray ()
+				);
+
+				IAssemblySymbol asm = compilation
+					.SourceModule
+					.ReferencedAssemblySymbols
+					.FirstOrDefault (a => string.Equals (a.Name, name, StringComparison.OrdinalIgnoreCase));
+
+				return (path, asm);
+			}
+		}
 	}
 }

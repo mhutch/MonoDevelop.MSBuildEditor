@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Evaluation;
 
 namespace MonoDevelop.MSBuild.Schema
 {
@@ -10,6 +10,6 @@ namespace MonoDevelop.MSBuild.Schema
 		TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, string assemblyFile,
 			string declaredInFile, int declaredAtOffset,
-			PropertyValueCollector propVals);
+			IMSBuildEvaluationContext evaluationContext);
 	}
 }
