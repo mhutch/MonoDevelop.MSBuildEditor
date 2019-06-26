@@ -3,10 +3,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
@@ -228,35 +230,47 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items);
 		}
 
-		Task<CompletionContext> GetSdkCompletions (int triggerLength, CancellationToken token)
+		//FIXME: SDK version completion
+		//FIXME: enumerate SDKs from NuGet
+		Task<CompletionContext> GetSdkCompletions (MSBuildRootDocument doc, CancellationToken token)
 		{
-			/*
-			var list = new CompletionDataList { TriggerWordLength = triggerLength };
-			var doc = GetDocument ();
-			if (doc == null) {
-				return null;
-			}
+			return Task.Run (() => {
+				var items = new List<CompletionItem> ();
+				var sdks = new HashSet<string> ();
 
-			var sdks = new HashSet<string> ();
-
-			foreach (var sdk in doc.RuntimeInformation.GetRegisteredSdks ()) {
-				if (sdks.Add (sdk.Name)) {
-					list.Add (Path.GetFileName (sdk.Name));
-				}
-			}
-
-			//TODO: how can we find SDKs in the non-default locations?
-			return Task.Run<ICompletionDataList> (() => {
-				foreach (var d in Directory.GetDirectories (doc.RuntimeInformation.GetSdksPath ())) {
-					string name = Path.GetFileName (d);
-					if (sdks.Add (name)) {
-						list.Add (name);
+				foreach (var sdk in doc.RuntimeInformation.GetRegisteredSdks ()) {
+					if (sdks.Add (sdk.Name)) {
+						items.Add (CreateSdkCompletionItem (sdk));
 					}
 				}
-				return list;
-			}, token);
-			*/
-			return Task.FromResult (CompletionContext.Empty);
+
+				//FIXME we should be able to cache these
+				var sdksPath = doc.RuntimeInformation.SdksPath;
+				if (sdksPath != null) {
+					AddSdksFromDir (sdksPath);
+				}
+
+				var dotNetSdkPath = doc.RuntimeInformation.GetSdkPath (new SdkReference ("Microsoft.NET.Sdk", null, null), null, null);
+				if (dotNetSdkPath != null) {
+					dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (dotNetSdkPath));
+					if (sdksPath == null || Path.GetFullPath (dotNetSdkPath) != Path.GetFullPath (sdksPath)) {
+						AddSdksFromDir (dotNetSdkPath);
+					}
+				}
+
+				void AddSdksFromDir (string sdkDir)
+				{
+					foreach (var dir in Directory.GetDirectories (sdkDir)) {
+						string name = Path.GetFileName (dir);
+						var targetsFileExists = File.Exists (Path.Combine (dir, "Sdk", "Sdk.targets"));
+							if (targetsFileExists && sdks.Add (name)) {
+								items.Add (CreateSdkCompletionItem (new SdkInfo (name, null, Path.Combine (dir, name))));
+							}
+						}
+					}
+
+					return CreateCompletionContext (items);
+				}, token);
 		}
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
@@ -291,7 +305,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					return await GetPackageVersionCompletions (doc, rr);
 				case MSBuildValueKind.Sdk:
 				case MSBuildValueKind.SdkWithVersion:
-					return await GetSdkCompletions (triggerLength, token);
+					return await GetSdkCompletions (doc, token);
 				case MSBuildValueKind.Guid:
 					items.Add (CreateNewGuidCompletionItem ());
 					break;
@@ -359,6 +373,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (version, this, kindImage);
+			return item;
+		}
+
+		CompletionItem CreateSdkCompletionItem (SdkInfo info)
+		{
+			var img = DisplayElementFactory.GetImageElement (KnownImages.Sdk);
+			var item = new CompletionItem (info.Name, this, img);
+			//FIXME better tooltips for SDKs
+			item.AddDocumentation (info.Path);
 			return item;
 		}
 	}
