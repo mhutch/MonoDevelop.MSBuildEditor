@@ -62,12 +62,12 @@ namespace MonoDevelop.MSBuild.Language
 			return GetTriggerState (expression, typedChar, out triggerLength, out triggerExpression);
 		}
 
-		static TriggerState GetTriggerState (string expression, char typedChar, out int triggerLength, out ExpressionNode triggerExpression)
+		static TriggerState GetTriggerState (string expression, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, bool triggerCharAlreadyAppended = false)
 		{
 			var isExplicit = typedChar == '\0';
 
 			//FIXME: perf, can we pass this to a parser overload?
-			if (!isExplicit) {
+			if (!isExplicit && !triggerCharAlreadyAppended) {
 				expression += typedChar;
 			}
 
@@ -206,12 +206,7 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionText expressionText: {
 						if (error.Kind == ExpressionErrorKind.IncompleteString && expressionText.Parent is ExpressionArgumentList) {
-							//FIXME pass a param saying the char has already been appended?
-							var expr = expressionText.Value;
-							if (!isExplicit) {
-								expr = expr.Substring (0, expr.Length - 1);
-							}
-							return GetTriggerState (expr, typedChar, out triggerLength, out triggerExpression);
+							return GetTriggerState (expressionText.Value, typedChar, out triggerLength, out triggerExpression, true);
 						}
 					}
 					break;
