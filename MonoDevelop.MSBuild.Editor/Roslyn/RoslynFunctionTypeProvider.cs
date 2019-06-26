@@ -56,6 +56,9 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		Task LoadCoreCompilation ()
 		{
+			if (AssemblyLoader == null) {
+				return Task.CompletedTask;
+			}
 			return Task.Run (() => {
 				try {
 					var mscorlibPath = GetMscorlibReferenceAssembly ();
