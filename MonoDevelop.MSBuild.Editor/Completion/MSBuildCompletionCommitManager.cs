@@ -22,13 +22,19 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
-			if (!item.Properties.TryGetProperty<MSBuildSpecialCompletionKind> (typeof (MSBuildSpecialCompletionKind), out var kind)) {
+			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}
 
 			switch (kind) {
-			case MSBuildSpecialCompletionKind.NewGuid:
+			case MSBuildSpecialCommitKind.NewGuid:
 				InsertGuid (session, buffer);
+				return CommitResult.Handled;
+			case MSBuildSpecialCommitKind.ItemReference:
+			case MSBuildSpecialCommitKind.PropertyReference:
+				Insert (session, buffer, item.InsertText);
+				//TODO: retrigger completion
+				//TODO: insert trailing )
 				return CommitResult.Handled;
 			}
 
@@ -36,12 +42,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CommitResult.Unhandled;
 		}
 
-		void InsertGuid (IAsyncCompletionSession session, ITextBuffer buffer)
+		void InsertGuid (IAsyncCompletionSession session, ITextBuffer buffer) => Insert (session, buffer, Guid.NewGuid ().ToString ("B").ToUpper ());
+
+		void Insert (IAsyncCompletionSession session, ITextBuffer buffer, string text)
 		{
 			var span = session.ApplicableToSpan.GetSpan (buffer.CurrentSnapshot);
 
 			var bufferEdit = buffer.CreateEdit ();
-			bufferEdit.Replace (span, Guid.NewGuid ().ToString ("B").ToUpper ());
+			bufferEdit.Replace (span, text);
 			bufferEdit.Apply ();
 		}
 	}

@@ -309,7 +309,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.SdkWithVersion:
 					return await GetSdkCompletions (doc, token);
 				case MSBuildValueKind.Guid:
-					items.Add (CreateNewGuidCompletionItem ());
+					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
 					break;
 				case MSBuildValueKind.Lcid:
 					items.AddRange (GetLcidCompletions ());
@@ -334,9 +334,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
-				//FIXME port this
-				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("$(", "md-variable", "Property value reference", "$(|)", ')'));
-				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("@(", "md-variable", "Item list reference", "@(|)", ')'));
+				items.Add (CreateSpecialItem ("$(", "Property reference", KnownImages.MSBuildProperty, MSBuildSpecialCommitKind.PropertyReference));
+				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
+				//FIXME metadata
 			}
 
 			if (items.Count > 0) {
@@ -346,11 +346,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CompletionContext.Empty;
 		}
 
-		CompletionItem CreateNewGuidCompletionItem ()
+		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildSpecialCommitKind kind)
 		{
-			var item = new CompletionItem ("New GUID", this, DisplayElementFactory.GetImageElement (KnownImages.Add));
-			item.Properties.AddProperty (typeof (MSBuildSpecialCompletionKind), MSBuildSpecialCompletionKind.NewGuid);
-			item.AddDocumentation ("Inserts a new GUID");
+			var item = new CompletionItem (text, this, DisplayElementFactory.GetImageElement (image));
+			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), kind);
+			item.AddDocumentation (description);
 			return item;
 		}
 
@@ -392,9 +392,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 	}
 
-	enum MSBuildSpecialCompletionKind
+	enum MSBuildSpecialCommitKind
 	{
-		NewGuid
+		NewGuid,
+		PropertyReference,
+		ItemReference
 	}
 }
  
