@@ -86,6 +86,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(abc", '$', TriggerState.None },
 
 			// --- metadata --
+			// note metadata allows a surprising amount of whitespace, unlike properties and items
 
 			//start typing metadata
 			new object[] { "", '%', TriggerState.Value, 1 },
@@ -96,10 +97,13 @@ namespace MonoDevelop.MSBuild.Tests
 			//auto trigger metadata name on typing
 			new object[] { "%", '(', TriggerState.MetadataOrItemName },
 			new object[] { "%(", 'a', TriggerState.MetadataOrItemName, 1 },
+			new object[] { "%(  ", 'a', TriggerState.MetadataOrItemName, 1 },
 
 			//explicit trigger in metadata name
 			new object[] { "%(", TriggerState.MetadataOrItemName },
+			new object[] { "%(   ", TriggerState.MetadataOrItemName },
 			new object[] { "%(abc", TriggerState.MetadataOrItemName, 3 },
+			new object[] { "%(  abc", TriggerState.MetadataOrItemName, 3 },
 			new object[] { "%(abcefgh", TriggerState.MetadataOrItemName, 7 },
 
 			//explicit trigger after invalid char in metadata name
@@ -110,19 +114,23 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%(abc", '$', TriggerState.None },
 
 			// --- qualified metadata ---
+			// note metadata allows a surprising amount of whitespace, unlike properties and items
 
 			// explicit trigger qualified metadata name
 			new object[] { "%(foo.", TriggerState.MetadataName },
+			new object[] { "%(  foo.", TriggerState.MetadataName },
 			new object[] { "%(foo .", TriggerState.MetadataName },
 			new object[] { "%(foo.ab", TriggerState.MetadataName, 2 },
 			new object[] { "%(foo.abcde", TriggerState.MetadataName, 5 },
 			new object[] { "%(foo  .abcd", TriggerState.MetadataName, 4 },
+			new object[] { "%(foo  .  abc", TriggerState.MetadataName, 3 },
 
 			// automatic trigger qualified metadata name
 			new object[] { "%(foo", '.', TriggerState.MetadataName },
 			new object[] { "%(foo ", '.', TriggerState.MetadataName },
 			new object[] { "%(foo.", 'a', TriggerState.MetadataName, 1 },
 			new object[] { "%(foo  .", 'a', TriggerState.MetadataName, 1 },
+			new object[] { "%(foo  .  ", 'a', TriggerState.MetadataName, 1 },
 
 			//explicit trigger after invalid char in qualified metadata name
 			new object[] { "%(a.b-", TriggerState.None },

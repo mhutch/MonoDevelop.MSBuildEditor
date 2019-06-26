@@ -177,6 +177,13 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("%(Foo.Bar)", "Foo", "Bar")]
 		[TestCase ("%(_Foo._Bar)", "_Foo", "_Bar")]
 		[TestCase ("%(_Foo12_3._Bar3_4)", "_Foo12_3", "_Bar3_4")]
+		[TestCase ("%(_Foo._Bar)", "_Foo", "_Bar")]
+		//surprisingly, this whitespace is permitted, unlike properties and items
+		[TestCase ("%( Foo.Bar)", "Foo", "Bar")]
+		[TestCase ("%(Foo .Bar)", "Foo", "Bar")]
+		[TestCase ("%(Foo. Bar)", "Foo", "Bar")]
+		[TestCase ("%(Foo.Bar )", "Foo", "Bar")]
+		[TestCase ("%( Foo . Bar )", "Foo", "Bar")]
 		public void TestQualifiedMetadata (string expression, string itemName, string metaName)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);

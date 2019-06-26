@@ -831,10 +831,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		{
 			int start = offset - 2;
 
+			ConsumeSpace (buffer, ref offset, endOffset);
+
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataOrItemName);
 			}
+
+			ConsumeSpace (buffer, ref offset, endOffset);
 
 			if (offset <= endOffset && buffer [offset] == ')') {
 				return new ExpressionMetadata (baseOffset + start, offset - start, null, name);
@@ -848,6 +852,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			offset++;
+
+			ConsumeSpace (buffer, ref offset, endOffset);
+
 			string metadataName = ReadName (buffer, ref offset, endOffset);
 			if (metadataName == null) {
 				return new IncompleteExpressionError (
@@ -855,6 +862,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null)
 				);
 			}
+
+			ConsumeSpace (buffer, ref offset, endOffset);
 
 			if (offset > endOffset || buffer [offset] != ')') {
 				return new IncompleteExpressionError (
