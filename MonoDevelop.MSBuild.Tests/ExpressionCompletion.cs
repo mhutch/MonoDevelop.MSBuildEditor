@@ -234,19 +234,6 @@ namespace MonoDevelop.MSBuild.Tests
 		};
 
 		/*
-		new object[] { "$(foo.bar($(", TriggerState.PropertyName },
-		new object[] { "$(foo.bar($(a", TriggerState.Property, 1 },
-		new object[] { "$(foo.bar('$(", TriggerState.Property },
-		new object[] { "$(foo.bar('$(a", TriggerState.Property, 1 },
-		new object[] { "$(foo.bar('%(", TriggerState.MetadataOrItemName },
-		new object[] { "$(foo.bar('%(a", TriggerState.MetadataOrItemName, 1 },
-		new object[] { "$(foo.bar(1, '$(", TriggerState.Property },
-		new object[] { "$(foo.bar(1, '$(a", TriggerState.Property, 1 },
-		new object[] { "@(a->'$(", TriggerState.Property },
-		new object[] { "@(a->'$(b", TriggerState.Property, 1 },
-		new object[] { "@(a->'$(b)','$(a", TriggerState.Property, 1 },
-		new object[] { "@(a->'%(", TriggerState.MetadataOrItemName },
-		new object[] { "@(a->'%(b", TriggerState.MetadataOrItemName, 1 },
 		new object[] { "$(a[0].", TriggerState.PropertyFunctionName },*/
 
 		/*
@@ -271,7 +258,6 @@ namespace MonoDevelop.MSBuild.Tests
 		new object[] { "a;", TriggerState.SemicolonValue },
 		new object[] { "a;b", TriggerState.SemicolonValue, 1 },
 		*/
-		// --- property functions ---
 
 		static object[] PrependExpression (string v, object[] arr)
 			=> arr.Select (a => {
@@ -285,7 +271,16 @@ namespace MonoDevelop.MSBuild.Tests
 		static object[] PropertyFunctionArgumentTestCases = new object[][] {
 			PrependExpression ("$(foo.bar('", BareValueTestCases),
 			PrependExpression ("$(foo.bar('", PropertyTestCases),
+			PrependExpression ("$(foo.bar('", MetadataTestCases),
+			PrependExpression ("$(foo.bar('", QualifiedMetadataTestCases),
 			PrependExpression ("$(foo.bar(", PropertyTestCases),
+			PrependExpression ("$(foo.bar(1, '", BareValueTestCases),
+			PrependExpression ("$(foo.bar(1, '", PropertyTestCases),
+		}.SelectMany (x => x).ToArray ();
+
+		static object[] ItemFunctionArgumentTestCases = new object[][] {
+			PrependExpression ("@(a->'", PropertyTestCases),
+			PrependExpression ("@(a->'", MetadataTestCases),
 		}.SelectMany (x => x).ToArray ();
 
 		static object[] ExpressionTestCases = new object[][] {
@@ -298,6 +293,7 @@ namespace MonoDevelop.MSBuild.Tests
 			ItemFunctionTestCases,
 			StaticPropertyFunctionNameTestCases,
 			PropertyFunctionArgumentTestCases,
+			ItemFunctionArgumentTestCases
 		}.SelectMany (x => x).ToArray ();
 
 		[Test]
