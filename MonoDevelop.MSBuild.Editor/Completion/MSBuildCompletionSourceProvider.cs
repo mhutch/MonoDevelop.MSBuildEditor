@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Language;
 
+using ProjectFileTools.NuGetSearch.Contracts;
+
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export (typeof (IAsyncCompletionSourceProvider))]
@@ -18,6 +20,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		[Import (typeof (IFunctionTypeProvider))]
 		internal IFunctionTypeProvider FunctionTypeProvider { get; set; }
+
+
+		[Import (typeof (IPackageSearchManager))]
+		public IPackageSearchManager PackageSearchManager { get; set; }
 
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (

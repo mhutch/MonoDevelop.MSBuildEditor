@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
+
+using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -203,21 +206,26 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.FromResult (CompletionContext.Empty);
 		}
 
-		Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
+		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr)
 		{
-			/*
-			var name = rr.XElement.Attributes.FirstOrDefault (a => a.Name.FullName == "Include")?.Value;
-			if (string.IsNullOrEmpty (name)) {
+			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
+			if (string.IsNullOrEmpty (packageId)) {
 				return null;
 			}
-			return Task.FromResult<ICompletionDataList> (
-				new PackageVersionSearchCompletionDataList (PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter (), name) {
-					TriggerWordStart = startIdx,
-					TriggerWordLength = triggerLength
-				}
-			);
-			*/
-			return Task.FromResult (CompletionContext.Empty);
+
+			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+			var search = provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm);
+			var tcs = new TaskCompletionSource<object> ();
+			search.Updated += (s, e) => { if (search.RemainingFeeds.Count == 0) tcs.TrySetResult (null); };
+			await tcs.Task;
+
+			//FIXME should we deduplicate?
+			var items = new List<CompletionItem> ();
+			foreach (var result in search.Results) {
+				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2));
+			}
+
+			return CreateCompletionContext (items);
 		}
 
 		Task<CompletionContext> GetSdkCompletions (int triggerLength, CancellationToken token)
@@ -280,7 +288,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.NuGetID:
 					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
 				case MSBuildValueKind.NuGetVersion:
-					return await GetPackageVersionCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageVersionCompletions (doc, rr);
 				case MSBuildValueKind.Sdk:
 				case MSBuildValueKind.SdkWithVersion:
 					return await GetSdkCompletions (triggerLength, token);
@@ -335,6 +343,22 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var item = new CompletionItem ("New GUID", this, DisplayElementFactory.GetImageElement (KnownImages.Add));
 			item.Properties.AddProperty (typeof (MSBuildSpecialCompletionKind), MSBuildSpecialCompletionKind.NewGuid);
 			item.AddDocumentation ("Inserts a new GUID");
+			return item;
+		}
+
+		KnownImages GetPackageImageId (FeedKind kind)
+		{
+			switch (kind) {
+			case FeedKind.Local: return KnownImages.FolderClosed;
+			case FeedKind.NuGet: return KnownImages.NuGet;
+			default: return KnownImages.GenericNuGetPackage;
+			}
+		}
+
+		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind)
+		{
+			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
+			var item = new CompletionItem (version, this, kindImage);
 			return item;
 		}
 	}

@@ -427,6 +427,7 @@ namespace MonoDevelop.MSBuild.Editor
 		Parameter = 2242,
 
 		// this defines the mapping from the MSBuild usage to the icons we're re-using
+		// FIXME: improve these icons
 		MSBuildProperty = Property,
 		MSBuildPropertyPrivate = PropertyPrivate,
 		MSBuildItem = Class,
@@ -439,6 +440,8 @@ namespace MonoDevelop.MSBuild.Editor
 		MSBuildTask = Action,
 		MSBuildTaskParameter = Parameter,
 		MSBuildFrameworkId = DotNETFrameworkDependency,
-		GenericFile = BinaryFile
+		GenericFile = BinaryFile,
+		Sdk = FolderClosed,
+		GenericNuGetPackage = NuGet
 	}
 }
