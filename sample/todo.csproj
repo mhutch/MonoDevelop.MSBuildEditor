@@ -7,8 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <A Include="one;two;three" />
+    <B Include="1;2;3" />
   </ItemGroup>
-  <Target Name="Build">
+  <Target Name="Build" DependsOnTargets="Batch">
     <Message Text="$([System.String]::new('hello').Substring('$(Foo)').Substring($(Foo)))" />
     <Message Text="$([System.String]::new(`hello $(Hello.Substring('$(Foo)'))`))" />
     <Message Text="$([System.DateTime]::Now.ToString().Length)" />
@@ -23,6 +24,19 @@
     <Message Text="@(A->Metadata('$(MetadataName)'))" />
     <Message Text="@(A->Metadata($(MetadataName)))" />
     <Message Text="@(A->get_Length())" />
+    <Message Text="1$(Hello)" />
+    <Message Text="2$(Hello   )" />
+    <Message Text="3$(  Hello   )" />
     <!-- note: item functions cannot be chained and cannot use properties -->
+  </Target>
+  <Target Name="Batch" Inputs="@(A)" Outputs="@(B)">
+    <Message Text="x%(A.Identity)x" />
+    <Message Text="y%(A .Identity)y" />
+    <Message Text="z%(A. Identity)z" />
+    <Message Text="w%(A. Identity )w" />
+    <Message Text="m%( A. Identity )m" />
+    <!-- this is invalid
+    <Message Text="w%(Identity)w" />
+    -->
   </Target>
 </Project>

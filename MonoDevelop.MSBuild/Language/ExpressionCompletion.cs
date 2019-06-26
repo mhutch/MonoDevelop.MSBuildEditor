@@ -204,6 +204,17 @@ namespace MonoDevelop.MSBuild.Language
 						return TriggerState.None;
 					}
 					break;
+				case ExpressionText expressionText: {
+						if (error.Kind == ExpressionErrorKind.IncompleteString && expressionText.Parent is ExpressionArgumentList) {
+							//FIXME pass a param saying the char has already been appended?
+							var expr = expressionText.Value;
+							if (!isExplicit) {
+								expr = expr.Substring (0, expr.Length - 1);
+							}
+							return GetTriggerState (expr, typedChar, out triggerLength, out triggerExpression);
+						}
+					}
+					break;
 				}
 				return TriggerState.None;
 			}

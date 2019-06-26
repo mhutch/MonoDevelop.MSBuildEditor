@@ -18,10 +18,8 @@ namespace MonoDevelop.MSBuild.Tests
 		//    typedChar and length can be omitted and default to \0 and zero
 		//	  if typedChar is \0, it's treated as explicitly invoking the command
 		//    if typedChar is provided, it's added to the document text
-		static object[] ExpressionTestCases =
-		{
-			// --- bare values --
 
+		static object[] BareValueTestCases = {
 			//explicitly trigger in bare value
 			new object[] { "", TriggerState.Value },
 			new object[] { "abc", TriggerState.Value, 3 },
@@ -36,9 +34,9 @@ namespace MonoDevelop.MSBuild.Tests
 			//typing within bare value
 			new object[] { "a", 'x', TriggerState.None },
 			new object[] { "$", 'x', TriggerState.None },
+		};
 
-			// --- properties --
-
+		static object[] PropertyTestCases = {
 			//start typing property
 			new object[] { "", '$', TriggerState.Value, 1 },
 
@@ -60,9 +58,9 @@ namespace MonoDevelop.MSBuild.Tests
 			//type char in property name
 			new object[] { "$(a", 'b', TriggerState.None },
 			new object[] { "$(abc", '$', TriggerState.None },
+		};
 
-			// --- items --
-
+		static object[] ItemTestCases = {
 			//start typing item
 			new object[] { "", '@', TriggerState.Value, 1 },
 
@@ -84,10 +82,10 @@ namespace MonoDevelop.MSBuild.Tests
 			//type char in item name
 			new object[] { "@(a", 'b', TriggerState.None },
 			new object[] { "@(abc", '$', TriggerState.None },
+		};
 
-			// --- metadata --
+		static object[] MetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
-
 			//start typing metadata
 			new object[] { "", '%', TriggerState.Value, 1 },
 
@@ -112,8 +110,9 @@ namespace MonoDevelop.MSBuild.Tests
 			//type char in metadata name
 			new object[] { "%(a", 'b', TriggerState.None },
 			new object[] { "%(abc", '$', TriggerState.None },
+		};
 
-			// --- qualified metadata ---
+		static object[] QualifiedMetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
 
 			// explicit trigger qualified metadata name
@@ -141,9 +140,9 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%(ab.cd", '$', TriggerState.None },
 			new object[] { "%(ab .cd", 'e', TriggerState.None },
 			new object[] { "%(ab  .cd", '$', TriggerState.None },
+		};
 
-			// --- property function name ---
-
+		static object[] PropertyFunctionTestCases = {
 			// explicit trigger property function name
 			new object[] { "$(foo.", TriggerState.PropertyFunctionName },
 			new object[] { "$(foo .", TriggerState.PropertyFunctionName },
@@ -166,9 +165,9 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(ab.cd", '$', TriggerState.None },
 			new object[] { "$(ab .cd", 'e', TriggerState.None },
 			new object[] { "$(ab  .cd", '$', TriggerState.None },
+		};
 
-			// --- item function name ---
-
+		static object[] ItemFunctionTestCases = {
 			// explicit trigger item function name
 			new object[] { "@(foo->", TriggerState.ItemFunctionName },
 			new object[] { "@(foo ->", TriggerState.ItemFunctionName },
@@ -190,9 +189,9 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(ab->cd", '$', TriggerState.None },
 			new object[] { "@(ab ->cd", 'e', TriggerState.None },
 			new object[] { "@(ab  ->cd", '$', TriggerState.None },
+		};
 
-			// --- static property function names
-
+		static object[] StaticPropertyFunctionTestCases = {
 			// explicit trigger static property function name
 			new object[] { "$([Foo]::", TriggerState.PropertyFunctionName },
 			new object[] { "$([Foo]  ::", TriggerState.None }, //space between ] and :: is invalid
@@ -214,9 +213,9 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([Foo]::cd", '$', TriggerState.None },
 			new object[] { "$([Foo] ::cd", 'e', TriggerState.None },
 			new object[] { "$([Foo]   :: cd", '$', TriggerState.None },
+		};
 
-			// --- static property function class name ---
-
+		static object[] StaticPropertyFunctionNameTestCases = {
 			//auto trigger static property function class name on typing
 			new object[] { "$(", '[', TriggerState.PropertyFunctionClassName },
 			new object[] { "$([", 'a', TriggerState.PropertyFunctionClassName, 1 },
@@ -231,9 +230,10 @@ namespace MonoDevelop.MSBuild.Tests
 
 			//type char in static property function class name
 			new object[] { "$([a", 'b', TriggerState.None },
-			new object[] { "$([abc", '$', TriggerState.None },
+			new object[] { "$([abc", '$', TriggerState.None }
+		};
 
-			/*
+		/*
 		new object[] { "$(foo.bar($(", TriggerState.PropertyName },
 		new object[] { "$(foo.bar($(a", TriggerState.Property, 1 },
 		new object[] { "$(foo.bar('$(", TriggerState.Property },
@@ -248,7 +248,6 @@ namespace MonoDevelop.MSBuild.Tests
 		new object[] { "@(a->'%(", TriggerState.MetadataOrItemName },
 		new object[] { "@(a->'%(b", TriggerState.MetadataOrItemName, 1 },
 		new object[] { "$(a[0].", TriggerState.PropertyFunctionName },*/
-		};
 
 		/*
 		// --- lists ---
@@ -274,9 +273,33 @@ namespace MonoDevelop.MSBuild.Tests
 		*/
 		// --- property functions ---
 
+		static object[] PrependExpression (string v, object[] arr)
+			=> arr.Select (a => {
+				var testCase = (object[])a;
+				var newTestCase = new object[testCase.Length];
+				newTestCase[0] = v + (string)testCase[0];
+				Array.Copy (testCase, 1, newTestCase, 1, testCase.Length - 1);
+				return newTestCase;
+			}).ToArray ();
 
-		
-		
+		static object[] PropertyFunctionArgumentTestCases = new object[][] {
+			PrependExpression ("$(foo.bar('", BareValueTestCases),
+			PrependExpression ("$(foo.bar('", PropertyTestCases),
+			PrependExpression ("$(foo.bar(", PropertyTestCases),
+		}.SelectMany (x => x).ToArray ();
+
+		static object[] ExpressionTestCases = new object[][] {
+			BareValueTestCases,
+			PropertyTestCases,
+			ItemTestCases,
+			MetadataTestCases,
+			QualifiedMetadataTestCases,
+			PropertyFunctionTestCases,
+			ItemFunctionTestCases,
+			StaticPropertyFunctionNameTestCases,
+			PropertyFunctionArgumentTestCases,
+		}.SelectMany (x => x).ToArray ();
+
 		[Test]
 		[TestCaseSource ("ExpressionTestCases")]
 		public void TestTriggering (object[] args)
@@ -285,10 +308,6 @@ namespace MonoDevelop.MSBuild.Tests
 			char typedChar = (args[1] as char?) ?? '\0';
 			var expectedState = (TriggerState)(args[1] is char ? args[2] : args[1]);
 			int expectedLength = args[args.Length - 1] as int? ?? 0;
-
-		//	if (typedChar != '\0') {
-		//		expr += typedChar;
-		//	}
 
 			var state = GetTriggerState (
 				expr, typedChar, false,
