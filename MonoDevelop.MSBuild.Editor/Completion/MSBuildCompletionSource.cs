@@ -312,15 +312,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					items.Add (CreateNewGuidCompletionItem ());
 					break;
 				case MSBuildValueKind.Lcid:
-					foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
-						string name = culture.Name;
-						string id = culture.LCID.ToString ();
-						string display = culture.DisplayName;
-						//TODO: LCID values
-						//insert multiple versions for matching on both the name and the number
-						//list.Add (new CompletionData (id, null, display));
-						//list.Add (new CompletionData (display, null, id, id));
-					}
+					items.AddRange (GetLcidCompletions ());
 					break;
 				}
 			}
@@ -385,6 +377,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME better tooltips for SDKs
 			item.AddDocumentation (info.Path);
 			return item;
+		}
+
+		IEnumerable<CompletionItem> GetLcidCompletions ()
+		{
+			var imageEl = DisplayElementFactory.GetImageElement (KnownImages.Constant);
+			foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
+				string name = culture.Name;
+				string id = culture.LCID.ToString ();
+				string display = culture.DisplayName;
+				string displayText = $"{id} - ({display})";
+				yield return new CompletionItem (displayText, this, imageEl, ImmutableArray<CompletionFilter>.Empty, string.Empty, id, id, displayText, ImmutableArray<ImageElement>.Empty);
+			}
 		}
 	}
 
