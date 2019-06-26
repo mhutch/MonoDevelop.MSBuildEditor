@@ -55,6 +55,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return context;
 		}
 
+		CompletionContext CreateCompletionContext (List<CompletionItem> items)
+			=> new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items), null, InitialSelectionHint.SoftSelection);
+
 		protected override async Task<CompletionContext> GetElementCompletionsAsync (
 			IAsyncCompletionSession session,
 			SnapshotPoint triggerLocation,
@@ -77,7 +80,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				items.Add (CreateCompletionItem (el, doc, rr));
 			}
 
-			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+			return CreateCompletionContext (items);
 		}
 
 		protected override async Task<CompletionContext> GetAttributeCompletionsAsync (
@@ -104,7 +107,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+			return CreateCompletionContext (items); ;
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
@@ -264,11 +267,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
-			var list = new List<CompletionItem> ();// CompletionDataList { TriggerWordLength = triggerLength, AutoSelect = false };
+			var items = new List<CompletionItem> ();
 
 			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
-					list.Add (CreateCompletionItem (ci, doc, rr));
+					items.Add (CreateCompletionItem (ci, doc, rr));
 				}
 			}
 
@@ -282,7 +285,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.SdkWithVersion:
 					return await GetSdkCompletions (triggerLength, token);
 				case MSBuildValueKind.Guid:
-					list.Add (CreateNewGuidCompletionItem ());
+					items.Add (CreateNewGuidCompletionItem ());
 					break;
 				case MSBuildValueKind.Lcid:
 					foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
@@ -310,18 +313,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					list.Add (CreateCompletionItem (ci, doc, rr));
+					items.Add (CreateCompletionItem (ci, doc, rr));
 				}
 			}
 
 			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
-				//TODO port this
+				//FIXME port this
 				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("$(", "md-variable", "Property value reference", "$(|)", ')'));
 				//list.Add (new CompletionDataWithSkipCharAndRetrigger ("@(", "md-variable", "Item list reference", "@(|)", ')'));
 			}
 
-			if (list.Count > 0) {
-				return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (list));
+			if (items.Count > 0) {
+				return CreateCompletionContext (items);
 			}
 
 			return CompletionContext.Empty;
