@@ -147,6 +147,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
 					var triggerState = ExpressionCompletion.GetTriggerState (
 						expression,
+						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
 						out ExpressionNode triggerExpression,
@@ -173,6 +174,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
 					var triggerState = ExpressionCompletion.GetTriggerState (
 						expression,
+						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
 						out ExpressionNode triggerExpression,
