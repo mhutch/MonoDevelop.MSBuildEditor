@@ -5,10 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoDevelop.MSBuild.Schema;
+
 using MonoDevelop.MSBuild.Language.Conditions;
-using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -25,18 +26,16 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
-		public static bool ValidateListPermitted (ref TriggerState triggerState, MSBuildValueKind kind)
+		public static bool ValidateListPermitted (ListKind listKind, MSBuildValueKind kind)
 		{
-			switch (triggerState) {
-			case TriggerState.CommaValue:
+			switch (listKind) {
+			case ListKind.Comma:
 				if (kind.AllowCommaLists ()) {
-					triggerState = TriggerState.Value;
 					return true;
 				}
 				return false;
-			case TriggerState.SemicolonValue:
+			case ListKind.Semicolon:
 				if (kind.AllowLists ()) {
-					triggerState = TriggerState.Value;
 					return true;
 				}
 				return false;
@@ -52,26 +51,30 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static TriggerState GetTriggerState (
 			string expression, char typedChar, bool isCondition,
-			out int triggerLength, out ExpressionNode triggerExpression,
+			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind,
 			out IReadOnlyList<ExpressionNode> comparandVariables)
 		{
 			comparandVariables = null;
 			if (isCondition) {
+				listKind = ListKind.None;
 				return GetConditionTriggerState (expression, typedChar, out triggerLength, out triggerExpression, out comparandVariables);
 			}
-			return GetTriggerState (expression, typedChar, out triggerLength, out triggerExpression);
+			return GetTriggerState (expression, typedChar, out triggerLength, out triggerExpression, out listKind);
 		}
 
-		static TriggerState GetTriggerState (string expression, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, bool triggerCharAlreadyAppended = false)
+		static TriggerState GetTriggerState (string expression, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
 		{
 			var isExplicit = typedChar == '\0';
-
-			//FIXME: perf, can we pass this to a parser overload?
-			if (!isExplicit && !triggerCharAlreadyAppended) {
-				expression += typedChar;
-			}
+			var isNewline = typedChar == '\n';
 
 			triggerLength = 0;
+			listKind = ListKind.None;
+
+			if (!isExplicit && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
+				triggerExpression = null;
+				LoggingService.LogWarning ($"Expression text '{expression}' is not consistent with typed character '{typedChar}'");
+				return TriggerState.None;
+			}
 
 			if (expression.Length == 0) {
 				triggerExpression = new ExpressionText (0, expression, true);
@@ -80,26 +83,57 @@ namespace MonoDevelop.MSBuild.Language
 				triggerExpression = ExpressionParser.Parse (expression, options);
 			}
 
-			if (triggerExpression is ExpressionText text) {
-				if (isExplicit || triggerExpression.Length == 1) {
-					triggerLength = triggerExpression.Length;
-					return TriggerState.Value;
-				}
-				return TriggerState.None;
-			}
-
 			if (triggerExpression is ListExpression el) {
 				//the last list entry is the thing that triggered it
 				triggerExpression = el.Nodes.Last ();
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
-					return LastChar () == ',' ? TriggerState.CommaValue : TriggerState.SemicolonValue;
+					triggerLength = 0;
+					listKind = LastChar () == ',' ? ListKind.Comma : ListKind.Semicolon;
+					return TriggerState.Value;
 				}
-				if (triggerExpression is ExpressionText l) {
-					if (l.Length == 1) {
-						triggerLength = 1;
-						return PenultimateChar () == ',' ? TriggerState.CommaValue : TriggerState.SemicolonValue;
+				var separator = expression[triggerExpression.Offset - 1];
+				listKind = separator == ',' ? ListKind.Comma : ListKind.Semicolon;
+			}
+
+			if (triggerExpression is ExpressionText text) {
+				var val = text.Value;
+				int leadingWhitespace = 0;
+				for (int i = 0; i < val.Length; i++) {
+					if (char.IsWhiteSpace (val[i])) {
+						leadingWhitespace++;
+					} else {
+						break;
 					}
 				}
+
+				var length = val.Length - leadingWhitespace;
+				if (length == 0) {
+					triggerLength = 0;
+					return isExplicit ? TriggerState.Value : TriggerState.None;
+				}
+
+				var firstChar = val[leadingWhitespace];
+
+				if (length == 1) {
+					triggerLength = 1;
+					switch (firstChar) {
+					case '$': return TriggerState.PropertyOrValue;
+					case '@': return TriggerState.ItemOrValue;
+					case '%': return TriggerState.MetadataOrValue;
+					default:
+						if (char.IsLetterOrDigit (firstChar)) {
+							return TriggerState.Value;
+						}
+						break;
+					}
+				}
+				else if (isExplicit && char.IsLetterOrDigit (firstChar)) {
+					triggerLength = length;
+					return TriggerState.Value;
+				}
+
+				triggerLength = 0;
+				return TriggerState.None;
 			}
 
 			//find the deepest node that touches the end
@@ -177,10 +211,12 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionClassReference cr:
-					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon) {
+					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
+						|| ((iee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || iee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && cr.Parent is ExpressionArgumentList)
+						) {
 						if (isExplicit || cr.Name.Length == 1) {
 							triggerLength = cr.Name.Length;
-							return TriggerState.PropertyFunctionClassName;
+							return cr.Parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
 						}
 						return TriggerState.None;
 					}
@@ -205,13 +241,21 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionText expressionText: {
-						if (error.Kind == ExpressionErrorKind.IncompleteString && expressionText.Parent is ExpressionArgumentList) {
-							return GetTriggerState (expressionText.Value, typedChar, out triggerLength, out triggerExpression, true);
+						if (
+							(error.Kind == ExpressionErrorKind.IncompleteString && (expressionText.Parent is ExpressionArgumentList || expressionText.Parent is ExpressionItemTransform))
+							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && expressionText.Parent is ExpressionArgumentList)
+							) {
+							return GetTriggerState (expressionText.Value, typedChar, out triggerLength, out triggerExpression, out _);
+						}
+					}
+					break;
+				case ExpressionArgumentList argList: {
+						if (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue) {
+							return TriggerState.BareFunctionArgumentValue;
 						}
 					}
 					break;
 				}
-				return TriggerState.None;
 			}
 
 			if (error != null) {
@@ -237,8 +281,6 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			None,
 			Value,
-			SemicolonValue,
-			CommaValue,
 			ItemName,
 			PropertyName,
 			MetadataName,
@@ -247,6 +289,21 @@ namespace MonoDevelop.MSBuild.Language
 			PropertyFunctionName,
 			ItemFunctionName,
 			PropertyFunctionClassName,
+			/// <summary>Value prefiltered to metadata</summary>
+			MetadataOrValue,
+			/// <summary>Value prefiltered to item</summary>
+			ItemOrValue,
+			/// <summary>Value prefiltered to property</summary>
+			PropertyOrValue,
+			/// <summary>Bare function argument</summary>
+			BareFunctionArgumentValue,
+		}
+
+		public enum ListKind
+		{
+			None,
+			Comma,
+			Semicolon
 		}
 
 		public static TriggerState GetConditionTriggerState (
@@ -301,7 +358,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var subexpr = expression.Substring (lastExpressionStart);
-			return GetTriggerState (subexpr, typedChar, out triggerLength, out triggerExpression);
+			return GetTriggerState (subexpr, typedChar, out triggerLength, out triggerExpression, out _);
 		}
 
 		static bool TokenIsCondition (TokenType type)

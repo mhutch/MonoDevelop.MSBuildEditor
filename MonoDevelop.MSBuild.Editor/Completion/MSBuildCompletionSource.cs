@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -151,6 +153,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						rr.IsCondition (),
 						out int triggerLength,
 						out ExpressionNode triggerExpression,
+						out var listKind,
 						out IReadOnlyList<ExpressionNode> comparandVariables
 					);
 					if (triggerState != ExpressionCompletion.TriggerState.None) {
@@ -178,12 +181,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						rr.IsCondition (),
 						out int triggerLength,
 						out ExpressionNode triggerExpression,
+						out var listKind,
 						out IReadOnlyList<ExpressionNode> comparandVariables
 					);
 					if (triggerState != ExpressionCompletion.TriggerState.None) {
 						var info = rr.GetElementOrAttributeValueInfo (doc);
 						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
-							return await GetExpressionCompletionsAsync (info, triggerState, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
+							return await GetExpressionCompletionsAsync (info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
 						}
 					}
 				}
@@ -275,11 +279,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}, token);
 		}
 
-		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, ExpressionCompletion.ListKind listKind, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
-			if (!ExpressionCompletion.ValidateListPermitted (ref triggerState, kind)) {
+			if (!ExpressionCompletion.ValidateListPermitted (listKind, kind)) {
 				return CompletionContext.Empty;
 			}
 
@@ -291,15 +295,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
+			bool isValue = triggerState == ExpressionCompletion.TriggerState.Value
+				|| triggerState == ExpressionCompletion.TriggerState.PropertyOrValue
+				|| triggerState == ExpressionCompletion.TriggerState.ItemOrValue
+				|| triggerState == ExpressionCompletion.TriggerState.MetadataOrValue;
+
 			var items = new List<CompletionItem> ();
 
-			if (comparandVariables != null && triggerState == ExpressionCompletion.TriggerState.Value) {
+			if (comparandVariables != null && isValue) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
 					items.Add (CreateCompletionItem (ci, doc, rr));
 				}
 			}
 
-			if (triggerState == ExpressionCompletion.TriggerState.Value) {
+			if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
@@ -319,7 +328,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			//TODO: better metadata support
 			IEnumerable<BaseInfo> cinfos;
-			if (info.Values != null && info.Values.Count > 0 && triggerState == ExpressionCompletion.TriggerState.Value) {
+			if (info.Values != null && info.Values.Count > 0 && isValue) {
 				cinfos = info.Values;
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
@@ -333,7 +342,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (allowExpressions && triggerState == ExpressionCompletion.TriggerState.Value) {
+			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("$(", "Property reference", KnownImages.MSBuildProperty, MSBuildSpecialCommitKind.PropertyReference));
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
 				//FIXME metadata

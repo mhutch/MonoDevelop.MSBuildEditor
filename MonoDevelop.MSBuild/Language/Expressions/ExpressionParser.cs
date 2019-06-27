@@ -644,11 +644,12 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			error = null;
 			if (result is ExpressionError ee) {
 				var iee = ee as IncompleteExpressionError;
+				var node = iee?.IncompleteNode as T;
 				error = new IncompleteExpressionError (
 					ee.Offset,
 					ee.WasEOF,
 					ee.Kind,
-					wrap (iee?.IncompleteNode as T, ee.Offset)
+					wrap (node, node?.End ?? ee.Offset)
 				);
 				return true;
 			}
@@ -757,7 +758,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						if (n != null) {
 							values.Add (n);
 						}
-						return new ExpressionArgumentList (baseOffset + start, o - baseOffset - start, values);
+						return new ExpressionArgumentList (baseOffset + start, o - start - baseOffset, values);
 						})
 				   ) {
 					return err;
@@ -786,23 +787,34 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return ReadArgumentString (ch, buffer, ref offset, endOffset, baseOffset);
 			}
 
-			if (ch == '$' && offset < endOffset && buffer [offset + 1] == '(') {
-				offset += 2;
-				var prop = ParseProperty (buffer, ref offset, endOffset, baseOffset);
-				offset++;
-				return prop;
-			}
+			bool wasEOF = false;
 
-			if (char.IsLetter (ch)) {
+			if (ch == '$') {
+				if (offset < endOffset) {
+					if (buffer[offset + 1] == '(') {
+						offset += 2;
+						var prop = ParseProperty (buffer, ref offset, endOffset, baseOffset);
+						offset++;
+						return prop;
+					}
+				} else {
+					wasEOF = true;
+				}
+			}
+			else if (char.IsLetter (ch)) {
 				var crNode = ReadClassReference (buffer, ref offset, endOffset, baseOffset);
 				if (crNode is ExpressionClassReference classRef && bool.TryParse (classRef.Name, out bool boolVal)) {
 					return new ExpressionArgumentBool (classRef.Offset, classRef.Length, boolVal);
 				}
 				return crNode;
 			}
-			offset = start;
 
-			return new ExpressionError (baseOffset + offset, wasFirst? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue);
+			//the token didn't start with any character we expected
+			//consume the character anyway so the completion trigger can use it
+			offset++;
+			var expr = new ExpressionText (baseOffset + start, buffer.Substring (baseOffset + start, offset - start), true);
+			var kind = wasFirst ? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue;
+			return new IncompleteExpressionError (baseOffset + start, wasEOF, kind, expr);
 		}
 
 		static ExpressionNode ReadArgumentString (char terminator, string buffer, ref int offset, int endOffset, int baseOffset)

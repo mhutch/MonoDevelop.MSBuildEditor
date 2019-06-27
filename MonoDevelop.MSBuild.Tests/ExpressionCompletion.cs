@@ -1,13 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-using MonoDevelop.MSBuild.Language;
-using NUnit.Framework;
-using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using MonoDevelop.MSBuild.Language.Expressions;
+
+using NUnit.Framework;
+
+using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Tests
 {
@@ -24,12 +26,14 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "", TriggerState.Value },
 			new object[] { "abc", TriggerState.Value, 3 },
 			new object[] { "abcde", TriggerState.Value, 5 },
-			new object[] { " ", TriggerState.Value, 1 },
-			new object[] { "  xyz", TriggerState.Value, 5 },
+			new object[] { " ", TriggerState.Value },
+			new object[] { "  xyz", TriggerState.Value, 3 },
 
 			//start typing new bare value
 			new object[] { "", 'a', TriggerState.Value, 1 },
-			new object[] { "", '/', TriggerState.Value, 1 },
+
+			//start typing invalid char
+			new object[] { "", '/', TriggerState.None },
 
 			//typing within bare value
 			new object[] { "a", 'x', TriggerState.None },
@@ -38,10 +42,10 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static object[] PropertyTestCases = {
 			//start typing property
-			new object[] { "", '$', TriggerState.Value, 1 },
+			new object[] { "", '$', TriggerState.PropertyOrValue, 1 },
 
 			//explicit trigger after property start
-			new object[] { "$", TriggerState.Value, 1 },
+			new object[] { "$", TriggerState.PropertyOrValue, 1 },
 
 			//auto trigger property name on typing
 			new object[] { "$", '(', TriggerState.PropertyName },
@@ -62,10 +66,10 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static object[] ItemTestCases = {
 			//start typing item
-			new object[] { "", '@', TriggerState.Value, 1 },
+			new object[] { "", '@', TriggerState.ItemOrValue, 1 },
 
 			//explicit trigger after item start
-			new object[] { "@", TriggerState.Value, 1 },
+			new object[] { "@", TriggerState.ItemOrValue, 1 },
 
 			//auto trigger item name on typing
 			new object[] { "@", '(', TriggerState.ItemName },
@@ -87,10 +91,10 @@ namespace MonoDevelop.MSBuild.Tests
 		static object[] MetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
 			//start typing metadata
-			new object[] { "", '%', TriggerState.Value, 1 },
+			new object[] { "", '%', TriggerState.MetadataOrValue, 1 },
 
 			//explicit trigger after metadata start
-			new object[] { "%", TriggerState.Value, 1 },
+			new object[] { "%", TriggerState.MetadataOrValue, 1 },
 
 			//auto trigger metadata name on typing
 			new object[] { "%", '(', TriggerState.MetadataOrItemName },
@@ -165,6 +169,14 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(ab.cd", '$', TriggerState.None },
 			new object[] { "$(ab .cd", 'e', TriggerState.None },
 			new object[] { "$(ab  .cd", '$', TriggerState.None },
+
+			//explicit trigger after indexer
+			new object[] { "$(a[0].", TriggerState.PropertyFunctionName },
+			new object[] { "$(a[0].bcd", TriggerState.PropertyFunctionName, 3 },
+
+			//automatic trigger after indexer
+			new object[] { "$(a[0]", '.', TriggerState.PropertyFunctionName },
+			new object[] { "$(a[0].", 'a', TriggerState.PropertyFunctionName, 1 },
 		};
 
 		static object[] ItemFunctionTestCases = {
@@ -233,31 +245,39 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([abc", '$', TriggerState.None }
 		};
 
-		/*
-		new object[] { "$(a[0].", TriggerState.PropertyFunctionName },*/
+		static object[] SemicolonListValueTestCases = new object[][] {
+			new[] {
+				// automatic trigger after list separator
+				new object[] { "foo", ';', TriggerState.Value},
+				// explicit trigger after list separator
+				new object[] { "foo;", TriggerState.Value},
+			},
+			PrependExpression ("foo;", BareValueTestCases),
+			PrependExpression ("foo;", PropertyTestCases)
+		}.SelectMany (x => x).ToArray ();
 
-		/*
-		// --- lists ---
+		static object[] CommaListValueTestCases = new object[][] {
+			new[] {
+				// automatic trigger after list separator
+				new object[] { "foo", ',', TriggerState.Value},
+				// explicit trigger after list separator
+				new object[] { "foo,", TriggerState.Value},
+			},
+			PrependExpression ("foo,", BareValueTestCases),
+			PrependExpression ("foo,", PropertyTestCases)
+		}.SelectMany (x => x).ToArray ();
 
-		// explicit trigger after list separator
-		new object[] { "a,", TriggerState.CommaValue },
-		new object[] { "a;", TriggerState.SemicolonValue },
-
-		// automatic trigger after list separator
-		new object[] { "a", ',', TriggerState.CommaValue },
-		new object[] { "a", ';', TriggerState.SemicolonValue },
-
-		// explicit trigger in value after list separator
-		new object[] { "a,b", TriggerState.CommaValue, 1 },
-		new object[] { "a;b", TriggerState.SemicolonValue, 1 },
-		new object[] { "a,bc", TriggerState.CommaValue, 2 },
-		new object[] { "a;bcd", TriggerState.SemicolonValue, 3 },
-
-		//type char in list value
-		new object[] { "a,b", TriggerState.CommaValue, 1 },
-		new object[] { "a;", TriggerState.SemicolonValue },
-		new object[] { "a;b", TriggerState.SemicolonValue, 1 },
-		*/
+		static object[] ChangeTriggers (object [] arr, TriggerState from, TriggerState to)
+		{
+			foreach (object[] subArr in arr) {
+				for (var i = 0; i < subArr.Length; i++) {
+					if (subArr[i] is TriggerState t && t == from) {
+						subArr[i] = to;
+					}
+				}
+			}
+			return arr;
+		}
 
 		static object[] PrependExpression (string v, object[] arr)
 			=> arr.Select (a => {
@@ -273,7 +293,8 @@ namespace MonoDevelop.MSBuild.Tests
 			PrependExpression ("$(foo.bar('", PropertyTestCases),
 			PrependExpression ("$(foo.bar('", MetadataTestCases),
 			PrependExpression ("$(foo.bar('", QualifiedMetadataTestCases),
-			PrependExpression ("$(foo.bar(", PropertyTestCases),
+			ChangeTriggers (PrependExpression ("$(foo.bar(", PropertyTestCases), TriggerState.Value, TriggerState.BareFunctionArgumentValue),
+			ChangeTriggers (PrependExpression ("$(foo.bar(", BareValueTestCases), TriggerState.Value, TriggerState.BareFunctionArgumentValue),
 			PrependExpression ("$(foo.bar(1, '", BareValueTestCases),
 			PrependExpression ("$(foo.bar(1, '", PropertyTestCases),
 		}.SelectMany (x => x).ToArray ();
@@ -291,9 +312,12 @@ namespace MonoDevelop.MSBuild.Tests
 			QualifiedMetadataTestCases,
 			PropertyFunctionTestCases,
 			ItemFunctionTestCases,
+			StaticPropertyFunctionTestCases,
 			StaticPropertyFunctionNameTestCases,
 			PropertyFunctionArgumentTestCases,
-			ItemFunctionArgumentTestCases
+			ItemFunctionArgumentTestCases,
+			SemicolonListValueTestCases,
+			CommaListValueTestCases,
 		}.SelectMany (x => x).ToArray ();
 
 		[Test]
@@ -305,9 +329,14 @@ namespace MonoDevelop.MSBuild.Tests
 			var expectedState = (TriggerState)(args[1] is char ? args[2] : args[1]);
 			int expectedLength = args[args.Length - 1] as int? ?? 0;
 
+			if (typedChar != '\0') {
+				expr += typedChar;
+			}
+
 			var state = GetTriggerState (
 				expr, typedChar, false,
 				out int triggerLength, out ExpressionNode triggerNode,
+				out ListKind listKind,
 				out IReadOnlyList<ExpressionNode> comparandVariables
 			);
 
@@ -315,19 +344,11 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (expectedLength, triggerLength);
 		}
 
-		public void TestCommaListTriggering (object[] args)
-		{
-		}
-
-		public void TestSemicolonListTriggering (object[] args)
-		{
-		}
-		/*
 		[TestCase ("", TriggerState.Value, 0)]
-		[TestCase ("$(", TriggerState.Property, 0)]
+		[TestCase ("$(", TriggerState.PropertyName, 0)]
 		[TestCase ("$(Foo) == '", TriggerState.Value, 0, "Foo")]
-		[TestCase ("$(Foo) == '$(", TriggerState.Property, 0, "Foo")]
-		[TestCase ("$(Foo) == '$(a", TriggerState.Property, 1, "Foo")]
+		[TestCase ("$(Foo) == '$(", TriggerState.PropertyName, 0, "Foo")]
+		[TestCase ("$(Foo) == '$(a", TriggerState.PropertyName, 1, "Foo")]
 		[TestCase ("$(Foo) == 'a", TriggerState.Value, 1, "Foo")]
 		[TestCase ("'$(Foo)' == 'a", TriggerState.Value, 1, "Foo")]
 		[TestCase ("'$(Foo)|$(Bar)' == 'a", TriggerState.Value, 1, "Foo", "Bar")]
@@ -342,7 +363,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var state = GetTriggerState (
 				expr, '\0', true,
-				out int triggerLength, out ExpressionNode triggerNode,
+				out int triggerLength, out _, out _,
 				out IReadOnlyList<ExpressionNode> comparandVariables
 			);
 
@@ -352,6 +373,6 @@ namespace MonoDevelop.MSBuild.Tests
 			for (int i = 0; i < expectedComparands.Count; i++) {
 				Assert.AreEqual (expectedComparands[i], ((ExpressionProperty)comparandVariables[i]).Name);
 			}
-		}*/
+		}
 	}
 }

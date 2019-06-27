@@ -99,6 +99,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			var incomplete = (triggerExpression as IncompleteExpressionError)?.IncompleteNode;
 			incomplete = incomplete?.Find (incomplete.End);
 
+			if (incomplete is ExpressionFunctionName pn) {
+				incomplete = pn.Parent;
+			}
+
 			if (!(incomplete is ExpressionPropertyFunctionInvocation node)) {
 				return null;
 			}
