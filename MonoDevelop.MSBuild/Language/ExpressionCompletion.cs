@@ -466,6 +466,9 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			switch (trigger) {
 			case TriggerState.Value:
+			case TriggerState.MetadataOrValue:
+			case TriggerState.ItemOrValue:
+			case TriggerState.PropertyOrValue:
 				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr);
 			case TriggerState.ItemName:
 				return doc.GetItems ();
@@ -483,8 +486,13 @@ namespace MonoDevelop.MSBuild.Language
 				return functionTypeProvider.GetItemFunctionNameCompletions ();
 			case TriggerState.PropertyFunctionClassName:
 				return functionTypeProvider.GetClassNameCompletions ();
+			case TriggerState.None:
+				break;
+			case TriggerState.BareFunctionArgumentValue:
+				//FIXME: enum completion etc
+				return MSBuildValueKind.Bool.GetSimpleValues (true);
 			}
-			throw new InvalidOperationException ();
+			throw new InvalidOperationException ($"Unhandled trigger type {trigger}");
 		}
 	}
 }

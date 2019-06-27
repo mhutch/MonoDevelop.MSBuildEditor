@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -25,6 +24,8 @@ using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Feeds;
+
+using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -343,8 +344,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (allowExpressions && isValue) {
+			if ((allowExpressions && isValue) || triggerState == TriggerState.BareFunctionArgumentValue) {
 				items.Add (CreateSpecialItem ("$(", "Property reference", KnownImages.MSBuildProperty, MSBuildSpecialCommitKind.PropertyReference));
+			}
+
+			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
 				//FIXME metadata
 			}
