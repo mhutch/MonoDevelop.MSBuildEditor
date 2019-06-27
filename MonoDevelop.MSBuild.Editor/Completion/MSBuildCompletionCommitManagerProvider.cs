@@ -5,6 +5,8 @@ using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
@@ -14,9 +16,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	[ContentType (MSBuildContentType.Name)]
 	class MSBuildCompletionCommitManagerProvider : IAsyncCompletionCommitManagerProvider
 	{
+		[Import]
+		public JoinableTaskContext JoinableTaskContext { get; set; }
+
+		[Import]
+		public IEditorCommandHandlerServiceFactory CommandServiceFactory { get; set; }
+
 		public IAsyncCompletionCommitManager GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
-				typeof (MSBuildCompletionCommitManager), () => new MSBuildCompletionCommitManager ()
+				typeof (MSBuildCompletionCommitManager), () => new MSBuildCompletionCommitManager (this)
 			);
 	}
 }
