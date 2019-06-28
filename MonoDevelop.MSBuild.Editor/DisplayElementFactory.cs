@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -334,10 +335,19 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public static object GetPackageInfoTooltip (string packageId, IPackageInfo package)
 		{
-			var nameEl = new ClassifiedTextElement (
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.Keyword, "package"),
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, package?.Id ?? packageId)
+
+			var stackedElements = new List<object> ();
+
+			stackedElements.Add (
+				new ContainerElement (
+					ContainerElementStyle.Wrapped,
+					GetImageElement (KnownImages.NuGet),
+					new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Keyword, "package"),
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, package?.Id ?? packageId)
+					)
+				)
 			);
 
 			ClassifiedTextElement descEl;
@@ -361,15 +371,20 @@ namespace MonoDevelop.MSBuild.Editor
 				);
 			}
 
+			stackedElements.Add (descEl);
+
+			if (package.SourceKind == ProjectFileTools.NuGetSearch.Feeds.FeedKind.NuGet) {
+				var url = $"https://www.nuget.org/packages/{Uri.EscapeUriString (package.Id)}";
+				stackedElements.Add (
+					new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, url)
+					)
+				);
+			}
+
 			return new ContainerElement (
 				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
-				new ContainerElement (
-					ContainerElementStyle.Wrapped,
-					DisplayElementFactory.GetImageElement (KnownImages.NuGet),
-					nameEl
-				),
-				descEl
-			);
+				stackedElements);
 		}
 	}
 

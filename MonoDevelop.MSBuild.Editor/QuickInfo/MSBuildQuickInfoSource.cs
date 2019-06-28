@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Packaging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,9 +92,11 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			IPackageInfo info = null;
 
 			try {
-				info = (await PackageSearchHelpers.SearchPackageInfo (
+				var infos = (await PackageSearchHelpers.SearchPackageInfo (
 					provider.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
-				)).FirstOrDefault ();
+				));
+				//prefer non-local results as they will have more metadata
+				info = infos.FirstOrDefault (p => p.SourceKind != ProjectFileTools.NuGetSearch.Feeds.FeedKind.Local) ?? infos.FirstOrDefault ();
 			}
 			catch (Exception ex) {
 				LoggingService.LogError ("Error loading package description", ex);
