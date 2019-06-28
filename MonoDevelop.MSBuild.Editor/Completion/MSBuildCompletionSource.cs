@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text.RegularExpressions;
 
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -14,6 +16,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -22,6 +25,12 @@ using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
+using System;
+using System.IO;
+using Newtonsoft.Json.Linq;
+using System.Runtime.InteropServices;
+using System.Net.Http.Headers;
+using Microsoft.Build.Framework;
 
 using ProjectFileTools.NuGetSearch.Feeds;
 
@@ -29,6 +38,12 @@ using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
+	class BaseInfoHelper : BaseInfo
+	{
+		public BaseInfoHelper (string name, DisplayText description) : base (name, description)
+		{
+		}
+	}
 	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
 		readonly MSBuildCompletionSourceProvider provider;
@@ -119,12 +134,101 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items); ;
 		}
 
+		protected override async Task<CompletionContext> GetAttributeValueCompletionsAsync (
+			IAsyncCompletionSession session,
+			SnapshotPoint triggerLocation,
+			List<XObject> nodePath,
+			IAttributedXObject attributedObject,
+			XAttribute attribute,
+			CancellationToken token)
+		{
+			/*if (!attribute.NameEquals ("include", true)) {
+				return CompletionContext.Empty;
+			}*/
+
+			var context = await GetSessionContext (session, triggerLocation, token);
+			var rr = context.rr;
+			var doc = context.doc;
+
+			if (rr == null) {
+				return CompletionContext.Empty;
+			}
+
+			if (attributedObject is XElement xElement &&
+				xElement.NameEquals ("PackageReference", true)) {
+
+				var items = new List<CompletionItem> ();
+				var httpClient = new HttpClient (); ;
+				string result;
+
+				switch (Regex.Replace (attribute.FriendlyPathRepresentation.ToLower (), @"[^0-9a-zA-Z]+", "")) {
+				case "include":
+					var searchQuery = rr.Reference.ToString ().ToLower ();
+					/*if (searchQuery == " ") {//whitespace
+						return CompletionContext.Empty;
+					}*/
+					try {
+						var cancellationPackage = new CancellationTokenSource (TimeSpan.FromSeconds (10));
+						var packageResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/autocomplete?q={searchQuery}&skip=0&take=100", cancellationPackage.Token);
+						result = await packageResponse.Content.ReadAsStringAsync ();
+
+					} catch (Exception) {
+						return CompletionContext.Empty;
+					}
+
+					var packageJSONObject = JObject.Parse (result);
+					var packageArray = (JArray)packageJSONObject["data"];
+
+					foreach (var package in packageArray) {
+						var info = package.ToString ();
+						items.Add (CreateCompletionItem (new BaseInfoHelper (info, new DisplayText ("description", true)),
+									doc, rr));
+					}
+					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+
+				case "version":
+					var packageName = attributedObject.Attributes.Last.Value;
+					try {
+						//includes pre-release: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
+						var cancellationVersion = new CancellationTokenSource (TimeSpan.FromSeconds (100));
+						var versionResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/query?q={packageName}&prerelease=true", cancellationVersion.Token);
+						result = await versionResponse.Content.ReadAsStringAsync ();
+
+					} catch (Exception) {
+						return CompletionContext.Empty;
+					}
+
+					var versionJSONObject = JObject.Parse (result);
+					var versionArray = (JArray)versionJSONObject["data"];
+					//var totalHits = (int)versionJSONObject["totalHits"];
+
+					//Normally, it would be versionArray[0]->id == packageName
+					//If it doesn't, the for loop will make sure that correct versions of that exact packageName are listed
+					foreach (var version in versionArray) {
+						var info = version["id"].ToString ().ToLower ();
+						if (info == packageName.ToLower ()) {
+							var description = version["description"].ToString ();
+							foreach (var ver in version["versions"]) {
+								items.Add (CreateCompletionItem (new BaseInfoHelper (ver["version"].ToString (), new DisplayText (description, true)),
+									doc, rr));
+							}
+							break;
+						}
+					}
+
+					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+				}
+			}
+
+			return CompletionContext.Empty;
+		}
+
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (info.Name, this, image);
 			item.AddDocumentationProvider (this);
-			item.Properties.AddProperty (typeof(BaseInfo), info);
+			item.Properties.AddProperty (typeof (BaseInfo), info);
 			return item;
 		}
 
@@ -413,7 +517,3 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ItemReference
 	}
 }
- 
- 
- 
- 
