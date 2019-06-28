@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -14,6 +15,8 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
+
+using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -328,7 +331,48 @@ namespace MonoDevelop.MSBuild.Editor
 			}
 			return runs == null ? null : (object)new ClassifiedTextElement (runs);
 		}
+
+		public static object GetPackageInfoTooltip (string packageId, IPackageInfo package)
+		{
+			var nameEl = new ClassifiedTextElement (
+				new ClassifiedTextRun (PredefinedClassificationTypeNames.Keyword, "package"),
+				new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),
+				new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, package?.Id ?? packageId)
+			);
+
+			ClassifiedTextElement descEl;
+			if (package != null) {
+				var description = !string.IsNullOrWhiteSpace (package.Description) ? package.Description : package.Summary;
+				if (string.IsNullOrWhiteSpace (description)) {
+					description = package.Summary;
+				}
+				if (!string.IsNullOrWhiteSpace (description)) {
+					descEl = new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description)
+					);
+				} else {
+					descEl = new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Comment, "[no description]")
+					);
+				}
+			} else {
+				descEl = new ClassifiedTextElement (
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.Comment, "Could not load package information")
+				);
+			}
+
+			return new ContainerElement (
+				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
+				new ContainerElement (
+					ContainerElementStyle.Wrapped,
+					DisplayElementFactory.GetImageElement (KnownImages.NuGet),
+					nameEl
+				),
+				descEl
+			);
+		}
 	}
+
 
 	static class ImageExtensions
 	{

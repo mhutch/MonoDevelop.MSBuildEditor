@@ -100,47 +100,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
-			return new QuickInfoItem (span, CreatePackageInfoElement ((string)rr.Reference, info));
-		}
-
-		static ContainerElement CreatePackageInfoElement (string id, IPackageInfo package)
-		{
-			var nameEl = new ClassifiedTextElement (
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.Keyword, "package"),
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),
-				new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, package?.Id ?? id)
-			);
-
-			ClassifiedTextElement descEl;
-			if (package != null) {
-				var description = !string.IsNullOrWhiteSpace (package.Description) ? package.Description : package.Summary;
-				if (string.IsNullOrWhiteSpace (description)) {
-					description = package.Summary;
-				}
-				if (!string.IsNullOrWhiteSpace (description)) {
-					descEl = new ClassifiedTextElement (
-						new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description)
-					);
-				} else {
-					descEl = new ClassifiedTextElement (
-						new ClassifiedTextRun (PredefinedClassificationTypeNames.Comment, "[no description]")
-					);
-				}
-			} else {
-				descEl = new ClassifiedTextElement (
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.Comment, "Could not load package information")
-				);
-			}
-
-			return new ContainerElement (
-				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
-				new ContainerElement (
-					ContainerElementStyle.Wrapped,
-					DisplayElementFactory.GetImageElement (KnownImages.NuGet),
-					nameEl
-				),
-				descEl
-			);
+			return new QuickInfoItem (span, DisplayElementFactory.GetPackageInfoTooltip ((string)rr.Reference, info));
 		}
 
 		public void Dispose ()
