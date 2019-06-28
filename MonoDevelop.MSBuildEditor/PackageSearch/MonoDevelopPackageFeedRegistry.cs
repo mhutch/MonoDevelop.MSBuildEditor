@@ -3,14 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+
 using MonoDevelop.Core;
 using NuGet.Protocol.Core.Types;
 using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuildEditor.PackageSearch
 {
+	[Export(typeof (IPackageFeedRegistryProvider))]
 	class MonoDevelopPackageFeedRegistry : IPackageFeedRegistryProvider
 	{
 		public MonoDevelopPackageFeedRegistry ()

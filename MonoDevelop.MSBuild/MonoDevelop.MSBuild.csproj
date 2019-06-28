@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

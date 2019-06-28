@@ -3,7 +3,7 @@
 
 using System;
 using MonoDevelop.Core;
-using MonoDevelop.MSBuildEditor.Language;
+using MonoDevelop.MSBuild.Language;
 using Xwt;
 
 namespace MonoDevelop.MSBuildEditor.Pads
@@ -34,6 +34,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 
 			DocumentChanged (documentTracker, new DocumentChangedEventArgs (documentTracker.Document, null));
 		}
+
 		void DocumentChanged (object sender, DocumentChangedEventArgs e)
 		{
 			if (e.OldDocument != null) {
@@ -54,7 +55,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		{
 			store.Clear ();
 			if (documentTracker.Document?.DocumentContext.ParsedDocument is MSBuildParsedDocument doc) {
-				var shorten = DescriptionMarkupFormatter.CreateFilenameShortener (doc.Document.RuntimeInformation);
+				var shorten = DisplayElementFactory.CreateFilenameShortener (doc.Document.RuntimeInformation);
 				AddNode (store.AddNode (), doc.Document, shorten);
 				ExpandAll ();
 			}

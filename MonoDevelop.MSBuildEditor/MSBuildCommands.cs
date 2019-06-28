@@ -24,6 +24,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		protected override void Update (CommandArrayInfo info)
 		{
+			/*
 			var doc = IdeApp.Workbench.ActiveDocument;
 			if (doc == null || doc.FileName == FilePath.Null || doc.DocumentContext.ParsedDocument == null)
 				return;
@@ -43,6 +44,7 @@ namespace MonoDevelop.MSBuildEditor
 			if (findReferenceCommand.Enabled) {
 				info.Add (findReferenceCommand, new Action (() => IdeApp.CommandService.DispatchCommand (RefactoryCommands.FindReferences)));
 			}
+			*/
 		}
 	}
 

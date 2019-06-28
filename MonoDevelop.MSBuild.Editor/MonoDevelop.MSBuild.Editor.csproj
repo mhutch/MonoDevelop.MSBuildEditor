@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.0.0" />

@@ -98,7 +98,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\MonoDevelop.Xml\Xml\MonoDevelop.Xml.csproj">
+    <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj">
       <Project>{87DE05FC-4B18-4C21-8AA5-237CB5B97780}</Project>
       <Name>MonoDevelop.Xml</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

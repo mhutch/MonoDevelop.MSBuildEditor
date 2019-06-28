@@ -32,166 +32,25 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AddinInfo.cs" />
-    <Compile Include="MSBuildTextEditorExtension.cs" />
-    <Compile Include="Evaluation\MSBuildEvaluationContext.cs" />
-    <Compile Include="Evaluation\EscapingUtilities.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionAndExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionFactorExpresion.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionFunctionExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionNotExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionOrExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionParser.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionRelationalExpression.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionTokenizer.cs" />
-    <Compile Include="Evaluation\Conditions\ExpressionEvaluationException.cs" />
-    <Compile Include="Evaluation\Conditions\ExpressionParseException.cs" />
-    <Compile Include="Evaluation\Conditions\InvalidProjectFileException.cs" />
-    <Compile Include="Evaluation\Conditions\Token.cs" />
-    <Compile Include="MSBuildSdkResolver.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" Link="ProjectFileTools.NuGetSearch\SemanticVersion.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" Link="ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" Link="ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\FileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\FileSystem.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
-    <Compile Include="MSBuildCommands.cs" />
-    <Compile Include="Language\Annotations.cs" />
-    <Compile Include="Language\AnnotationTable.cs" />
-    <Compile Include="Language\Import.cs" />
-    <Compile Include="Language\MSBuildDocumentValidator.cs" />
-    <Compile Include="Language\MSBuildDocument.cs" />
-    <Compile Include="Language\MSBuildResolver.cs" />
-    <Compile Include="Language\PropertyValueCollector.cs" />
-    <Compile Include="Language\MSBuildVisitor.cs" />
-    <Compile Include="Language\MSBuildToolsVersion.cs" />
     <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
-    <Compile Include="PackageSearch\PackageSearchCompletionDataList.cs" />
-    <Compile Include="Language\MSBuildReferenceCollector.cs" />
-    <Compile Include="Language\XmlExtensions.cs" />
-    <Compile Include="Schema\BaseInfo.cs" />
-    <Compile Include="Schema\PropertyInfo.cs" />
-    <Compile Include="Schema\ItemInfo.cs" />
-    <Compile Include="Schema\Builtins.cs" />
-    <Compile Include="Schema\MetadataInfo.cs" />
-    <Compile Include="MSBuildCompletionData.cs" />
-    <Compile Include="Schema\MSBuildLanguageElement.cs" />
-    <Compile Include="Schema\MSBuildSchema.cs" />
-    <Compile Include="Schema\ConstantInfo.cs" />
-    <Compile Include="Schema\MSBuildSchemaProvider.cs" />
-    <Compile Include="Schema\IMSBuildSchema.cs" />
-    <Compile Include="Schema\MSBuildSchemaExtensions.cs" />
-    <Compile Include="Schema\MSBuildCompletionExtensions.cs" />
-    <Compile Include="MSBuildTooltipProvider.cs" />
-    <Compile Include="Schema\MSBuildLanguageAttribute.cs" />
-    <Compile Include="Schema\MSBuildKind.cs" />
-    <Compile Include="Schema\MSBuildValueKind.cs" />
-    <Compile Include="Schema\DescriptionFormatter.cs" />
-    <Compile Include="LabelTooltipWindow.cs" />
-    <Compile Include="Language\ExpressionCompletion.cs" />
-    <Compile Include="CompletionDataWithSuffixAndRetrigger.cs" />
-    <Compile Include="Schema\TargetInfo.cs" />
-    <Compile Include="Language\IRuntimeInformation.cs" />
-    <Compile Include="MSBuildRuntimeInformation.cs" />
-    <Compile Include="DescriptionMarkupFormatter.cs" />
-    <Compile Include="PackageSearch\PackageSearchCompletionData.cs" />
-    <Compile Include="GenerateGuidCompletionData.cs" />
-    <Compile Include="Schema\ElementDescriptions.Designer.cs">
-      <DependentUpon>ElementDescriptions.resx</DependentUpon>
-    </Compile>
-    <Compile Include="MSBuildParsedDocument.cs" />
-    <Compile Include="MSBuildDocumentParser.cs" />
-    <Compile Include="MonoDevelopMSBuildSchemaProvider.cs" />
-    <Compile Include="Language\MSBuildSchemaBuilder.cs" />
-    <Compile Include="Schema\ValueKindExtensions.cs" />
-    <Compile Include="Language\MSBuildResolvingVisitor.cs" />
-    <Compile Include="Language\ExpressionParser.cs" />
-    <Compile Include="Language\ExpressionNode.cs" />
-    <Compile Include="MSBuildNavigationExtension.cs" />
-    <Compile Include="Language\MSBuildNavigation.cs" />
-    <Compile Include="PackageSearch\PackageSearchHelpers.cs" />
-    <Compile Include="MSBuildHighlightUsagesExtension.cs" />
-    <Compile Include="Schema\FrameworkInfoProvider.cs" />
-    <Compile Include="Language\MSBuildRootDocument.cs" />
-    <Compile Include="Evaluation\Conditions\ConditionExpressionExtensions.cs" />
-    <Compile Include="Evaluation\Conditions\IPropertyCollector.cs" />
-    <Compile Include="Schema\TaskMetadataBuilder.cs" />
-    <Compile Include="Schema\TaskInfo.cs" />
-    <Compile Include="Language\XmlEscaping.cs" />
-    <Compile Include="Analysis\MSBuildAnalyzer.cs" />
-    <Compile Include="Analysis\MSBuildAnalysisContext.cs" />
-    <Compile Include="Analysis\MSBuildDiagnostic.cs" />
-    <Compile Include="Analysis\MSBuildRefactoringContext.cs" />
-    <Compile Include="Analysis\MSBuildFixContext.cs" />
-    <Compile Include="Analysis\MSBuildFixProvider.cs" />
-    <Compile Include="Analysis\MSBuildRefactoringProvider.cs" />
-    <Compile Include="Analysis\MSBuildActionOperation.cs" />
-    <Compile Include="Analysis\MSBuildAction.cs" />
-    <Compile Include="Analysis\MSBuildDiagnosticDescriptor.cs" />
-    <Compile Include="Analysis\MSBuildDiagnosticSeverity.cs" />
-    <Compile Include="Language\FunctionCompletion.cs" />
-    <Compile Include="Schema\RoslynHelpers.cs" />
-    <Compile Include="DisplayText.cs" />
-    <Compile Include="Pads\MSBuildImportNavigatorPad.cs" />
-    <Compile Include="Pads\MSBuildImportNavigator.cs" />
-    <Compile Include="Pads\DocumentWithMimeTypeTracker.cs" />
-    <Compile Include="Schema\FunctionInfo.cs" />
-    <Compile Include="Schema\RoslynFunctionInfo.cs" />
+    <Compile Include="MSBuildCommands.cs" />
+    <Compile Include="MonoDevelopCompilationProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <AddinReference Include="MonoDevelop.Xml" />
     <AddinReference Include="MonoDevelop.DesignerSupport" />
     <AddinReference Include="MonoDevelop.SourceEditor2" />
     <AddinReference Include="MonoDevelop.DotNetCore" />
-    <AddinReference Include="MonoDevelop.AspNet" />
-    <AddinReference Include="MonoDevelop.Refactoring" />
     <AddinReference Include="MonoDevelop.PackageManagement" />
     <PackageReference Include="Microsoft.Build" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.9.20" />
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
+    <AddinReference Include="MonoDevelop.TextEditor" />
+    <AddinReference Include="MonoDevelop.Refactoring" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
     <EmbeddedResource Include="MSBuildStylePolicy.xml">
       <LogicalName>MSBuildStylePolicy.xml</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
-    <EmbeddedResource Include="Schemas\VisualBasic.buildschema.json" />
-    <EmbeddedResource Include="Schemas\CodeAnalysis.buildschema.json" />
-    <EmbeddedResource Include="Schemas\Cpp.buildschema.json" />
-    <EmbeddedResource Include="Schemas\CSharp.buildschema.json" />
-    <EmbeddedResource Include="Schemas\NetSdk.buildschema.json" />
-    <EmbeddedResource Include="Schemas\NuGetPack.buildschema.json" />
-    <EmbeddedResource Include="Schema\ElementDescriptions.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Syntax\msbuild.json" />
   </ItemGroup>
@@ -204,7 +63,43 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Syntax\OSSREADME.json" />
-    <None Include="Schemas\buildschema.json" />
+    <None Include="MSBuildTextEditorExtension.cs" />
+    <None Include="MSBuildRuntimeInformation.cs" />
+    <None Include="MSBuildCompletionData.cs" />
+    <None Include="MSBuildParsedDocument.cs" />
+    <None Include="MSBuildDocumentParser.cs" />
+    <None Include="MSBuildNavigationExtension.cs" />
+    <None Include="MSBuildHighlightUsagesExtension.cs" />
+    <None Include="MSBuildTooltipProvider.cs" />
+    <None Include="MSBuildSdkResolver.cs" />
+    <None Include="Pads\MSBuildImportNavigator.cs" />
+    <None Include="Pads\MSBuildImportNavigatorPad.cs" />
+    <None Include="Pads\DocumentWithMimeTypeTracker.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj">
+      <Project>{E30D9BF7-2840-4274-A8A6-58D34295C6C8}</Project>
+      <Name>MonoDevelop.MSBuild</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">
+      <Project>{17E0FE72-B6D9-4187-BD80-D8A27BC74533}</Project>
+      <Name>MonoDevelop.MSBuild.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj">
+      <Project>{87DE05FC-4B18-4C21-8AA5-237CB5B97780}</Project>
+      <Name>MonoDevelop.Xml.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj">
+      <Project>{563FFDF7-0739-42DF-B987-B804A26D1E0B}</Project>
+      <Name>MonoDevelop.Xml.Editor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="RemoveMonoDevelopRoslynAssemblies" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference-&gt;WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.Common'))" />
+      <Reference Remove="@(Reference-&gt;WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.CSharp'))" />
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionModel>
+    <!--
 	<Extension path = "/MonoDevelop/Ide/TextEditorExtensions">
-		<Class id = "EnhancedMSBuildTextEditorExtension"
-		       class = "MonoDevelop.MSBuildEditor.MSBuildTextEditorExtension"
-		       mimeTypes ="application/x-msbuild"
-		       insertbefore="MSBuildTextEditorExtension" />
         <Class id = "MSBuildNavigationExtension"
                class = "MonoDevelop.MSBuildEditor.MSBuildNavigationExtension"
                mimeTypes ="application/x-msbuild" />
@@ -12,13 +9,14 @@
                class = "MonoDevelop.MSBuildEditor.MSBuildHighlightUsagesExtension"
                mimeTypes ="application/x-msbuild" />
 	</Extension>
+    -->
 
 	<Extension path = "/MonoDevelop/Core/MimeTypes">
 		<!--
 		We can't extend the existing mimetype, so re-define it.
 		This particular system will use the first thing defined, so insert it way up the list.
 		-->
-		<MimeType id="application/x-msbuild" _description="MSBuild file" baseType="application/xml" insertbefore="application/xml">
+		<MimeType id="application/x-msbuild" _description="MSBuild file" baseType="application/xml" insertbefore="application/xml" contentType="MSBuild">
             <File pattern="*.targets" />
             <File pattern="*.props" />
             <File pattern="*.tasks" />
@@ -34,6 +32,18 @@
 		</MimeType>
 	</Extension>
 
+    <Extension path="/MonoDevelop/TextEditor/SupportedFileTypes">
+        <SupportedFileType id="MSBuild" mimeTypes="application/x-msbuild" extensions=".csproj,.targets,.props"  />
+    </Extension>
+
+    <Extension path="/MonoDevelop/Ide/Composition">
+        <Assembly file="MonoDevelop.MSBuildEditor.dll" />
+        <Assembly file="MonoDevelop.MSBuild.Editor.dll" />
+        <Assembly file="MonoDevelop.MSBuild.dll" />
+        <Assembly file="MonoDevelop.Xml.Editor.dll" />
+        <Assembly file="MonoDevelop.Xml.Core.dll" />
+    </Extension>
+
     <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Mono" >
         <Policies resource="MSBuildStylePolicy.xml" />
     </Extension>
@@ -42,20 +52,13 @@
         <Policies resource="MSBuildStylePolicy.xml" />
     </Extension>
 
-	<Extension path = "/MonoDevelop/TypeSystem/Parser">
-		<Parser
-			class = "MonoDevelop.MSBuildEditor.MSBuildDocumentParser"
-			mimeType = "application/x-msbuild"
-			id = "MSBuildDocumentParser"
-			insertbefore="MSBuildParser" />
- 	</Extension>
-
 	<Extension path = "/MonoDevelop/Ide/FileTemplates">
 		<FileTemplate
 			id = "MSBuildProject"
 			file = "Templates/Project.xft.xml" />
 	</Extension>
 
+    <!--
     <Extension path = "/MonoDevelop/Ide/Commands/Refactoring">
         <Command id = "MonoDevelop.MSBuildEditor.MSBuildCommands.NavigationOperations"
             defaultHandler = "MonoDevelop.MSBuildEditor.MSBuildNavigationOperationsCommandHandler"
@@ -71,10 +74,7 @@
                 insertbefore="MonoDevelop.Debugger.DebugCommands.ExpressionEvaluator" />
         </Condition>
     </Extension>
-
-    <Extension path = "/MonoDevelop/Ide/Editor/TooltipProviders">
-        <Provider id="MSBuild" class="MonoDevelop.MSBuildEditor.MSBuildTooltipProvider" mimeType="application/x-msbuild" />
-    </Extension>
+    -->
 
     <Extension path="/MonoDevelop/Ide/Editor/Bundles">
         <Bundle resource = "MonoDevelop.MSBuildEditor.Syntax.msbuild.json" />
