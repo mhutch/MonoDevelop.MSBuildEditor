@@ -12,41 +12,36 @@ namespace MonoDevelop.MSBuild.PackageSearch
 {
 	public static class PackageSearchHelpers
 	{
-		public static Task<IReadOnlyList<IPackageInfo>> SearchPackageInfo (
-			this IPackageSearchManager manager,
-			string packageId, string packageVersion, string tfm,
-			CancellationToken cancelToken)
+		public static Task<IReadOnlyList<T>> ToTask<T> (this IPackageFeedSearchJob<T> searchJob, CancellationToken cancelToken = CancellationToken.None)
 		{
-			var search = manager.SearchPackageInfo (packageId, packageVersion, tfm);
-
-			if (search.RemainingFeeds.Count == 0) {
-				return Task.FromResult (search.Results);
+			if (searchJob.RemainingFeeds.Count == 0) {
+				return Task.FromResult (searchJob.Results);
 			}
 
-			var tcs = new TaskCompletionSource<IReadOnlyList<IPackageInfo>> ();
+			var tcs = new TaskCompletionSource<IReadOnlyList<T>> ();
 
 			//making sure we actually unregister the eventhandler is kinda tricky
 			//it could be already completed, or it could complete after we check but before we register
 			EventHandler handleSearchUpdated = null;
 
 			cancelToken.Register (() => {
-				search.Cancel ();
+				searchJob.Cancel ();
 				if (tcs.TrySetCanceled ()) {
-					search.Updated -= handleSearchUpdated;
+					searchJob.Updated -= handleSearchUpdated;
 				}
 			});
 
 			handleSearchUpdated = (s, a) => {
-				if (!cancelToken.IsCancellationRequested && search.RemainingFeeds.Count == 0) {
-					if (tcs.TrySetResult (search.Results)) {
-						search.Updated -= handleSearchUpdated;
+				if (!cancelToken.IsCancellationRequested && searchJob.RemainingFeeds.Count == 0) {
+					if (tcs.TrySetResult (searchJob.Results)) {
+						searchJob.Updated -= handleSearchUpdated;
 					}
 				}
 			};
-			search.Updated += handleSearchUpdated;
+			searchJob.Updated += handleSearchUpdated;
 
-			if (search.RemainingFeeds.Count == 0) {
-				handleSearchUpdated (search, EventArgs.Empty);
+			if (searchJob.RemainingFeeds.Count == 0) {
+				handleSearchUpdated (searchJob, EventArgs.Empty);
 			}
 
 			return tcs.Task;

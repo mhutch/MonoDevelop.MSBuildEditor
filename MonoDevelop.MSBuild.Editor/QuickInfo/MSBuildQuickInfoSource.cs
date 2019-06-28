@@ -92,11 +92,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			IPackageInfo info = null;
 
 			try {
-				var infos = (await PackageSearchHelpers.SearchPackageInfo (
-					provider.PackageSearchManager, (string)rr.Reference, null, doc.GetTargetFrameworkNuGetSearchParameter (), CancellationToken.None
-				));
+				var packageId = (string)rr.Reference;
+				var frameworkId = doc.GetTargetFrameworkNuGetSearchParameter ();
+				var infos = await provider.PackageSearchManager.SearchPackageInfo (packageId, null, frameworkId).ToTask (token);
+
 				//prefer non-local results as they will have more metadata
-				info = infos.FirstOrDefault (p => p.SourceKind != ProjectFileTools.NuGetSearch.Feeds.FeedKind.Local) ?? infos.FirstOrDefault ();
+				info = infos
+					.FirstOrDefault (p => p.SourceKind != ProjectFileTools.NuGetSearch.Feeds.FeedKind.Local)
+					?? infos.FirstOrDefault ();
 			}
 			catch (Exception ex) {
 				LoggingService.LogError ("Error loading package description", ex);
