@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuild.PackageSearch
 {
 	public static class PackageSearchHelpers
 	{
-		public static Task<IReadOnlyList<T>> ToTask<T> (this IPackageFeedSearchJob<T> searchJob, CancellationToken cancelToken = CancellationToken.None)
+		public static Task<IReadOnlyList<T>> ToTask<T> (this IPackageFeedSearchJob<T> searchJob, CancellationToken cancelToken = default)
 		{
 			if (searchJob.RemainingFeeds.Count == 0) {
 				return Task.FromResult (searchJob.Results);
