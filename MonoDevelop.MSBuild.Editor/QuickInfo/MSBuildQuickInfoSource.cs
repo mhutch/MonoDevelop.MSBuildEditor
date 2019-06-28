@@ -90,9 +90,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		async Task<QuickInfoItem> CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			IPackageInfo info = null;
+			var packageId = (string)rr.Reference;
 
 			try {
-				var packageId = (string)rr.Reference;
 				var frameworkId = doc.GetTargetFrameworkNuGetSearchParameter ();
 				var infos = await provider.PackageSearchManager.SearchPackageInfo (packageId, null, frameworkId).ToTask (token);
 
@@ -106,7 +106,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
-			return new QuickInfoItem (span, DisplayElementFactory.GetPackageInfoTooltip ((string)rr.Reference, info));
+			return new QuickInfoItem (span, DisplayElementFactory.GetPackageInfoTooltip (packageId, info));
 		}
 
 		public void Dispose ()
