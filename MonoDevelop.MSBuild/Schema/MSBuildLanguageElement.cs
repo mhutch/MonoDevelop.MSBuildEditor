@@ -118,127 +118,127 @@ namespace MonoDevelop.MSBuild.Schema
 			parameterGroup.AbstractChild = parameter;
 
 			import.attributes = new[] {
-				new MSBuildLanguageAttribute ("Project", ElementDescriptions.Import_Project, MSBuildValueKind.ProjectFile, true),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Import_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Import_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Sdk", ElementDescriptions.Import_Sdk, MSBuildValueKind.Sdk),
-				new MSBuildLanguageAttribute ("Version", ElementDescriptions.Import_Version, MSBuildValueKind.SdkVersion),
-				new MSBuildLanguageAttribute ("MinimumVersion", ElementDescriptions.Import_MinimumVersion, MSBuildValueKind.SdkVersion),
+				new MSBuildLanguageAttribute (import, "Project", ElementDescriptions.Import_Project, MSBuildValueKind.ProjectFile, true),
+				new MSBuildLanguageAttribute (import, "Condition", ElementDescriptions.Import_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (import, "Label", ElementDescriptions.Import_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (import, "Sdk", ElementDescriptions.Import_Sdk, MSBuildValueKind.Sdk),
+				new MSBuildLanguageAttribute (import, "Version", ElementDescriptions.Import_Version, MSBuildValueKind.SdkVersion),
+				new MSBuildLanguageAttribute (import, "MinimumVersion", ElementDescriptions.Import_MinimumVersion, MSBuildValueKind.SdkVersion),
 			};
 
-			var itemMetadataAtt = new MSBuildLanguageAttribute ("Metadata", ElementDescriptions.Metadata, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Metadata);
+			var itemMetadataAtt = new MSBuildLanguageAttribute (item, "Metadata", ElementDescriptions.Metadata, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Metadata);
 			item.AbstractAttribute = itemMetadataAtt;
 
 			item.attributes = new[] {
-				new MSBuildLanguageAttribute ("Exclude", ElementDescriptions.Item_Exclude, MSBuildValueKind.MatchItem),
-				new MSBuildLanguageAttribute ("Include", ElementDescriptions.Item_Include, MSBuildValueKind.MatchItem),
-				new MSBuildLanguageAttribute ("Remove", ElementDescriptions.Item_Remove, MSBuildValueKind.MatchItem),
-				new MSBuildLanguageAttribute ("Update", ElementDescriptions.Item_Update, MSBuildValueKind.MatchItem),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Item_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Item_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("KeepMetadata", ElementDescriptions.Item_KeepMetadata, MSBuildValueKind.MetadataName.List ()),
-				new MSBuildLanguageAttribute ("RemoveMetadata", ElementDescriptions.Item_RemoveMetadata, MSBuildValueKind.MetadataName.List ()),
-				new MSBuildLanguageAttribute ("KeepDuplicates", ElementDescriptions.Item_KeepDuplicates, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute (item, "Exclude", ElementDescriptions.Item_Exclude, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute (item, "Include", ElementDescriptions.Item_Include, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute (item, "Remove", ElementDescriptions.Item_Remove, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute (item, "Update", ElementDescriptions.Item_Update, MSBuildValueKind.MatchItem),
+				new MSBuildLanguageAttribute (item, "Condition", ElementDescriptions.Item_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (item, "Label", ElementDescriptions.Item_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (item, "KeepMetadata", ElementDescriptions.Item_KeepMetadata, MSBuildValueKind.MetadataName.List ()),
+				new MSBuildLanguageAttribute (item, "RemoveMetadata", ElementDescriptions.Item_RemoveMetadata, MSBuildValueKind.MetadataName.List ()),
+				new MSBuildLanguageAttribute (item, "KeepDuplicates", ElementDescriptions.Item_KeepDuplicates, MSBuildValueKind.Bool),
 				itemMetadataAtt
 			};
 
 			parameter.attributes = new[] {
-				new MSBuildLanguageAttribute ("Output", ElementDescriptions.Parameter_Output, MSBuildValueKind.Bool.Literal()),
-				new MSBuildLanguageAttribute ("ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
-				new MSBuildLanguageAttribute ("Required", ElementDescriptions.Parameter_Required, MSBuildValueKind.Bool.Literal()),
+				new MSBuildLanguageAttribute (parameter, "Output", ElementDescriptions.Parameter_Output, MSBuildValueKind.Bool.Literal()),
+				new MSBuildLanguageAttribute (parameter, "ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
+				new MSBuildLanguageAttribute (parameter, "Required", ElementDescriptions.Parameter_Required, MSBuildValueKind.Bool.Literal()),
 			};
 
 			project.attributes = new[] {
-				new MSBuildLanguageAttribute ("DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildValueKind.TargetName.List ().Literal ()),
-				new MSBuildLanguageAttribute ("InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildValueKind.TargetName.List ().Literal ()),
-				new MSBuildLanguageAttribute ("ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal ()),
-				new MSBuildLanguageAttribute ("TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.List ().Literal ()),
-				new MSBuildLanguageAttribute ("xmlns", ElementDescriptions.Project_xmlns, MSBuildValueKind.Xmlns.Literal ()),
-				new MSBuildLanguageAttribute ("Sdk", ElementDescriptions.Project_Sdk, MSBuildValueKind.SdkWithVersion.List().Literal ()),
+				new MSBuildLanguageAttribute (project, "DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildValueKind.TargetName.List ().Literal ()),
+				new MSBuildLanguageAttribute (project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildValueKind.TargetName.List ().Literal ()),
+				new MSBuildLanguageAttribute (project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal ()),
+				new MSBuildLanguageAttribute (project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.List ().Literal ()),
+				new MSBuildLanguageAttribute (project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildValueKind.Xmlns.Literal ()),
+				new MSBuildLanguageAttribute (project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildValueKind.SdkWithVersion.List().Literal ()),
 			};
 
 			target.attributes = new[] {
-				new MSBuildLanguageAttribute ("Name", ElementDescriptions.Target_Name, MSBuildValueKind.TargetName.Literal (), true),
-				new MSBuildLanguageAttribute ("DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildValueKind.TargetName.List()),
-				new MSBuildLanguageAttribute ("Inputs", ElementDescriptions.Target_Inputs, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("Outputs", ElementDescriptions.Target_Outputs, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Target_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildValueKind.Bool),
-				new MSBuildLanguageAttribute ("Returns", ElementDescriptions.Target_Returns, MSBuildValueKind.Unknown),
-				new MSBuildLanguageAttribute ("BeforeTargets", ElementDescriptions.Target_BeforeTargets, MSBuildValueKind.TargetName.List ()),
-				new MSBuildLanguageAttribute ("AfterTargets", ElementDescriptions.Target_AfterTargets, MSBuildValueKind.TargetName.List ()),
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Target_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (target, "Name", ElementDescriptions.Target_Name, MSBuildValueKind.TargetName.Literal (), true),
+				new MSBuildLanguageAttribute (target, "DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildValueKind.TargetName.List()),
+				new MSBuildLanguageAttribute (target, "Inputs", ElementDescriptions.Target_Inputs, MSBuildValueKind.Unknown),
+				new MSBuildLanguageAttribute (target, "Outputs", ElementDescriptions.Target_Outputs, MSBuildValueKind.Unknown),
+				new MSBuildLanguageAttribute (target, "Condition", ElementDescriptions.Target_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (target, "KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildValueKind.Bool),
+				new MSBuildLanguageAttribute (target, "Returns", ElementDescriptions.Target_Returns, MSBuildValueKind.Unknown),
+				new MSBuildLanguageAttribute (target, "BeforeTargets", ElementDescriptions.Target_BeforeTargets, MSBuildValueKind.TargetName.List ()),
+				new MSBuildLanguageAttribute (target, "AfterTargets", ElementDescriptions.Target_AfterTargets, MSBuildValueKind.TargetName.List ()),
+				new MSBuildLanguageAttribute (target, "Label", ElementDescriptions.Target_Label, MSBuildValueKind.Label),
 			};
 
 			property.attributes = new[] {
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.Property_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Property_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (property, "Label", ElementDescriptions.Property_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (property, "Condition", ElementDescriptions.Property_Condition, MSBuildValueKind.Condition),
 			};
 
 			propertyGroup.attributes = new[] {
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.PropertyGroup_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.PropertyGroup_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (propertyGroup, "Label", ElementDescriptions.PropertyGroup_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (propertyGroup, "Condition", ElementDescriptions.PropertyGroup_Condition, MSBuildValueKind.Condition),
 			};
 
 			importGroup.attributes = new[] {
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ImportGroup_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ImportGroup_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (importGroup, "Label", ElementDescriptions.ImportGroup_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (importGroup, "Condition", ElementDescriptions.ImportGroup_Condition, MSBuildValueKind.Condition),
 			};
 
 			itemGroup.attributes = new[] {
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ItemGroup_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ItemGroup_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (itemGroup, "Label", ElementDescriptions.ItemGroup_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (itemGroup, "Condition", ElementDescriptions.ItemGroup_Condition, MSBuildValueKind.Condition),
 			};
 
 			itemDefinitionGroup.attributes = new[] {
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.ItemDefinitionGroup_Label, MSBuildValueKind.Label),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.ItemDefinitionGroup_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (itemDefinitionGroup, "Label", ElementDescriptions.ItemDefinitionGroup_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (itemDefinitionGroup, "Condition", ElementDescriptions.ItemDefinitionGroup_Condition, MSBuildValueKind.Condition),
 			};
 
 			when.attributes = new[] {
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.When_Condition, MSBuildValueKind.Condition, true),
+				new MSBuildLanguageAttribute (when, "Condition", ElementDescriptions.When_Condition, MSBuildValueKind.Condition, true),
 			};
 
 			onError.attributes = new[] {
-				new MSBuildLanguageAttribute ("ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildValueKind.TargetName.List (), true),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.OnError_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("Label", ElementDescriptions.OnError_Label, MSBuildValueKind.Label),
+				new MSBuildLanguageAttribute (onError, "ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildValueKind.TargetName.List (), true),
+				new MSBuildLanguageAttribute (onError, "Condition", ElementDescriptions.OnError_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (onError, "Label", ElementDescriptions.OnError_Label, MSBuildValueKind.Label),
 			};
 
 			usingTask.attributes = new[] {
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.UsingTask_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
-				new MSBuildLanguageAttribute ("AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
-				new MSBuildLanguageAttribute ("TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildValueKind.TaskName, true),
-				new MSBuildLanguageAttribute ("TaskFactory", ElementDescriptions.UsingTask_TaskFactory, MSBuildValueKind.TaskFactory),
-				new MSBuildLanguageAttribute ("Architecture", ElementDescriptions.UsingTask_Architecture, MSBuildValueKind.TaskArchitecture),
-				new MSBuildLanguageAttribute ("Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
+				new MSBuildLanguageAttribute (usingTask, "Condition", ElementDescriptions.UsingTask_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (usingTask, "AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
+				new MSBuildLanguageAttribute (usingTask, "AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
+				new MSBuildLanguageAttribute (usingTask, "TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildValueKind.TaskName, true),
+				new MSBuildLanguageAttribute (usingTask, "TaskFactory", ElementDescriptions.UsingTask_TaskFactory, MSBuildValueKind.TaskFactory),
+				new MSBuildLanguageAttribute (usingTask, "Architecture", ElementDescriptions.UsingTask_Architecture, MSBuildValueKind.TaskArchitecture),
+				new MSBuildLanguageAttribute (usingTask, "Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
 			};
 
 			taskBody.attributes = new[] {
-				new MSBuildLanguageAttribute ("Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildValueKind.Bool.Literal ()),
+				new MSBuildLanguageAttribute (taskBody, "Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildValueKind.Bool.Literal ()),
 			};
 
 			output.attributes = new[] {
-				new MSBuildLanguageAttribute ("TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.Literal (), true),
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Output, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("ItemName", ElementDescriptions.Output_ItemName, MSBuildValueKind.ItemName.Literal ()),
-				new MSBuildLanguageAttribute ("PropertyName", ElementDescriptions.Output_PropertyName, MSBuildValueKind.PropertyName.Literal ()),
+				new MSBuildLanguageAttribute (output, "TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.Literal (), true),
+				new MSBuildLanguageAttribute (output, "Condition", ElementDescriptions.Output, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (output, "ItemName", ElementDescriptions.Output_ItemName, MSBuildValueKind.ItemName.Literal ()),
+				new MSBuildLanguageAttribute (output, "PropertyName", ElementDescriptions.Output_PropertyName, MSBuildValueKind.PropertyName.Literal ()),
 			};
 
-			var taskParameterAtt = new MSBuildLanguageAttribute ("Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Parameter);
+			var taskParameterAtt = new MSBuildLanguageAttribute (task, "Parameter", ElementDescriptions.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildKind.Parameter);
 			task.AbstractAttribute = taskParameterAtt;
 
 			task.attributes = new[] {
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Task_Condition, MSBuildValueKind.Condition),
-				new MSBuildLanguageAttribute ("ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
-				new MSBuildLanguageAttribute ("Architecture", ElementDescriptions.Task_Architecture, MSBuildValueKind.TaskArchitecture),
-				new MSBuildLanguageAttribute ("Runtime", ElementDescriptions.Task_Runtime, MSBuildValueKind.TaskRuntime),
+				new MSBuildLanguageAttribute (task, "Condition", ElementDescriptions.Task_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (task, "ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
+				new MSBuildLanguageAttribute (task, "Architecture", ElementDescriptions.Task_Architecture, MSBuildValueKind.TaskArchitecture),
+				new MSBuildLanguageAttribute (task, "Runtime", ElementDescriptions.Task_Runtime, MSBuildValueKind.TaskRuntime),
 				taskParameterAtt
 			};
 
 			metadata.attributes = new[] {
-				new MSBuildLanguageAttribute ("Condition", ElementDescriptions.Metadata_Condition, MSBuildValueKind.Condition),
+				new MSBuildLanguageAttribute (metadata, "Condition", ElementDescriptions.Metadata_Condition, MSBuildValueKind.Condition),
 			};
 		}
 	}
