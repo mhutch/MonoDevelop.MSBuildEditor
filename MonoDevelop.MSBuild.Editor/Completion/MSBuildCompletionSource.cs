@@ -38,12 +38,12 @@ using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class BaseInfoHelper : BaseInfo
+	/*class BaseInfoHelper : BaseInfo
 	{
 		public BaseInfoHelper (string name, DisplayText description) : base (name, description)
 		{
 		}
-	}
+	}*/
 	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
 		readonly MSBuildCompletionSourceProvider provider;
@@ -181,7 +181,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 					foreach (var package in packageArray) {
 						var info = package.ToString ();
-						items.Add (CreateCompletionItem (new BaseInfoHelper (info, new DisplayText ("description", true)),
+						items.Add (CreateCompletionItem (new ItemInfo (info, new DisplayText ("description", true)),
 									doc, rr));
 					}
 					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
@@ -209,7 +209,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						if (info == packageName.ToLower ()) {
 							var description = version["description"].ToString ();
 							foreach (var ver in version["versions"]) {
-								items.Add (CreateCompletionItem (new BaseInfoHelper (ver["version"].ToString (), new DisplayText (description, true)),
+								items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), new DisplayText (description, true)),
 									doc, rr));
 							}
 							break;
