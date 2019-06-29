@@ -19,6 +19,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public ExpressionError (int offset, ExpressionErrorKind kind) : this (offset, false, kind)
 		{
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.Error;
 	}
 
 	[DebuggerDisplay ("Error ({Kind}): {IncompleteNode}")]
@@ -32,6 +34,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			IncompleteNode = incompleteNode;
 			incompleteNode.SetParent (this);
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.IncompleteExpressionError;
 	}
 
 	enum ExpressionErrorKind

@@ -24,6 +24,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public override string ItemName => Name;
 		public override int ItemNameOffset => Offset;
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ItemName;
 	}
 
 	class ExpressionItemFunctionInvocation : ExpressionItemNode
@@ -46,6 +48,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			Arguments = arguments;
 			arguments?.SetParent (this);
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ItemFunctionInvocation;
 	}
 
 	class ExpressionItemTransform : ExpressionItemNode
@@ -67,5 +71,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			Separator = separator;
 			separator?.SetParent (this);
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ItemTransform;
 	}
 }

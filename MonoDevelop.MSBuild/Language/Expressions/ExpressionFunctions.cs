@@ -17,6 +17,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				a.SetParent (this);
 			}
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
 	}
 
 	class ExpressionFunctionName : ExpressionNode
@@ -27,6 +29,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		{
 			Name = name;
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.FunctionName;
 	}
 	abstract class ExpressionArgumentLiteral : ExpressionNode
 	{
@@ -49,24 +53,32 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
 		public ExpressionArgumentBool (int offset, int length, bool value) : base (offset, length, value) { }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
 	}
 
 	class ExpressionArgumentInt : ExpressionArgumentLiteral<long>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Int;
 		public ExpressionArgumentInt (int offset, int length, long value) : base (offset, length, value) { }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralInt;
 	}
 
 	class ExpressionArgumentFloat : ExpressionArgumentLiteral<double>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Float;
 		public ExpressionArgumentFloat (int offset, int length, double value) : base (offset, length, value) { }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralFloat;
 	}
 
 	class ExpressionArgumentString : ExpressionArgumentLiteral<string>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
 		public ExpressionArgumentString (int offset, int length, string value) : base (offset, length, value) { }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralString;
 	}
 
 	enum ExpressionArgumentLiteralKind

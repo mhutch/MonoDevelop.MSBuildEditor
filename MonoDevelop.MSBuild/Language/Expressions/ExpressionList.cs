@@ -19,5 +19,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				n.SetParent (this);
 			}
 		}
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.Concat;
 	}
 }

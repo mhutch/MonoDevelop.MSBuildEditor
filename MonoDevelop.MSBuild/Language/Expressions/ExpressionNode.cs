@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	abstract class ExpressionNode
@@ -19,5 +17,31 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		}
 
 		internal void SetParent (ExpressionNode parent) => Parent = parent;
-    }
+
+		public abstract ExpressionNodeKind NodeKind { get; }
+	}
+
+	enum ExpressionNodeKind
+	{
+		IncompleteExpressionError,
+		Error,
+		ArgumentLiteralBool,
+		FunctionName,
+		ArgumentLiteralInt,
+		ArgumentLiteralFloat,
+		ArgumentLiteralString,
+		Item,
+		ItemName,
+		ItemFunctionInvocation,
+		ItemTransform,
+		Concat,
+		Metadata,
+		PropertyFunctionInvocation,
+		PropertyName,
+		PropertyRegistryValue,
+		ClassReference,
+		List,
+		Text,
+		Property
+	}
 }
