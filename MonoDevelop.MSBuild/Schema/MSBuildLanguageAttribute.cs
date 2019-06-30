@@ -9,14 +9,17 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public MSBuildLanguageAttribute (
 			MSBuildLanguageElement element,
-			string name, DisplayText description, MSBuildValueKind valueKind,
+			string name, DisplayText description, MSBuildKind kind, MSBuildValueKind valueKind,
 			bool required = false, MSBuildKind? abstractKind = null)
 			: base (name, description, valueKind)
 		{
+			Kind = kind;
 			Element = element;
 			Required = required;
 			AbstractKind = abstractKind;
 		}
+
+		public MSBuildKind Kind { get; }
 
 		public MSBuildLanguageElement Element { get; }
 

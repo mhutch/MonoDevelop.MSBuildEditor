@@ -237,6 +237,7 @@ namespace MonoDevelop.MSBuild.Schema
 				var item = schemas.GetItem (elementName);
 				return new MSBuildLanguageAttribute (
 					attribute.Element, attribute.Name, attribute.Description,
+					attribute.Kind,
 					item?.ValueKind ?? MSBuildValueKind.Unknown,
 					attribute.Required, attribute.AbstractKind
 				);
