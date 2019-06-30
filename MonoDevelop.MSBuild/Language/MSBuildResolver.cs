@@ -135,19 +135,19 @@ namespace MonoDevelop.MSBuild.Language
 					rr.ReferenceOffset = start;
 					rr.Reference = element.Name.Name;
 					rr.ReferenceLength = element.Name.Name.Length;
-					switch (resolved.Kind) {
-					case MSBuildKind.Item:
-					case MSBuildKind.ItemDefinition:
+					switch (resolved.SyntaxKind) {
+					case MSBuildSyntaxKind.Item:
+					case MSBuildSyntaxKind.ItemDefinition:
 						rr.ReferenceKind = MSBuildReferenceKind.Item;
 						return;
-					case MSBuildKind.Metadata:
+					case MSBuildSyntaxKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.Reference = (element.ParentElement.Name.Name, element.Name.Name);
 						return;
-					case MSBuildKind.Task:
+					case MSBuildSyntaxKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
 						return;
-					case MSBuildKind.Parameter:
+					case MSBuildSyntaxKind.Parameter:
 						var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
 						if (!string.IsNullOrEmpty (taskName)) {
 							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
@@ -155,7 +155,7 @@ namespace MonoDevelop.MSBuild.Language
 							rr.Reference = (taskName, element.Name.Name);
 						}
 						return;
-					case MSBuildKind.Property:
+					case MSBuildSyntaxKind.Property:
 						rr.ReferenceKind = MSBuildReferenceKind.Property;
 						return;
 					default:
@@ -187,11 +187,11 @@ namespace MonoDevelop.MSBuild.Language
 					rr.ReferenceOffset = attribute.Span.Start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
 					switch (resolvedAttribute.AbstractKind) {
-					case MSBuildKind.Metadata:
+					case MSBuildSyntaxKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;
-					case MSBuildKind.Parameter:
+					case MSBuildSyntaxKind.Parameter:
 						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;

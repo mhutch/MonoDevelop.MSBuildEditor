@@ -58,31 +58,31 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			switch (resolved.Kind) {
-			case MSBuildKind.Project:
+			switch (resolved.SyntaxKind) {
+			case MSBuildSyntaxKind.Project:
 				if (!IsPropsFile) {
 					ValidateProjectHasTarget (element);
 				}
 				break;
-			case MSBuildKind.OnError:
+			case MSBuildSyntaxKind.OnError:
 				ValidateOnErrorOnlyFollowedByOnError (element);
 				break;
-			case MSBuildKind.Otherwise:
+			case MSBuildSyntaxKind.Otherwise:
 				ValidateOtherwiseIsLastElement (element);
 				break;
-			case MSBuildKind.Output:
+			case MSBuildSyntaxKind.Output:
 				ValidateOutputHasPropertyOrItemName (element);
 				break;
-			case MSBuildKind.UsingTask:
+			case MSBuildSyntaxKind.UsingTask:
 				ValidateUsingTaskHasAssembly (element);
 				break;
-			case MSBuildKind.Import:
+			case MSBuildSyntaxKind.Import:
 				ValidateImportOnlyHasVersionIfHasSdk (element);
 				break;
-			case MSBuildKind.Item:
+			case MSBuildSyntaxKind.Item:
 				ValidateItemAttributes (resolved, element);
 				break;
-			case MSBuildKind.Task:
+			case MSBuildSyntaxKind.Task:
 				ValidateTaskParameters (resolved, element);
 				break;
 			}

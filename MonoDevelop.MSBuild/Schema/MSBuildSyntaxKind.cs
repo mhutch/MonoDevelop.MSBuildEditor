@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuild.Schema
 	/// The {element}_Label values are formed by ORing the element value with LabelAttribute, and similarly {element}_Condition and ConditionAttribute.
 	/// This means that any condition or label attribute can be recognized by ANDing with ~0xFFFF
 	/// </remarks>
-	enum MSBuildKind
+	enum MSBuildSyntaxKind
 	{
 		Unknown = 0,
 		Choose = 1,

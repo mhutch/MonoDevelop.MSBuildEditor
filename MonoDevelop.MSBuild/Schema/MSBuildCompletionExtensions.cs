@@ -21,14 +21,14 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<BaseInfo> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
 		{
 			bool isInTarget = false;
-			if (rr.LanguageElement.Kind == MSBuildKind.Item) {
+			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item) {
 				isInTarget = rr.LanguageElement.IsInTarget (rr.XElement);
 			}
 
 			foreach (var att in rr.LanguageElement.Attributes) {
 				var spat = schemas.SpecializeAttribute (att, rr.ElementName);
 				if (!spat.IsAbstract) {
-					if (rr.LanguageElement.Kind == MSBuildKind.Item) {
+					if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item) {
 						if (isInTarget) {
 							if (spat.Name == "Update") {
 								continue;
@@ -44,13 +44,13 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 
-			if (rr.LanguageElement.Kind == MSBuildKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
+			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
 				foreach (var item in schemas.GetMetadata (rr.ElementName, false)) {
 					yield return item;
 				}
 			}
 
-			if (rr.LanguageElement.Kind == MSBuildKind.Task) {
+			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Task) {
 				foreach (var parameter in schemas.GetTaskParameters (rr.ElementName)) {
 					yield return parameter;
 
@@ -60,32 +60,32 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static bool IsInTarget (this MSBuildLanguageElement resolvedElement, Xml.Dom.XElement element)
 		{
-			switch (resolvedElement.Kind) {
-			case MSBuildKind.Metadata:
+			switch (resolvedElement.SyntaxKind) {
+			case MSBuildSyntaxKind.Metadata:
 				element = element?.ParentElement;
-				goto case MSBuildKind.Item;
-			case MSBuildKind.Property:
-			case MSBuildKind.Item:
+				goto case MSBuildSyntaxKind.Item;
+			case MSBuildSyntaxKind.Property:
+			case MSBuildSyntaxKind.Item:
 				element = element?.ParentElement;
-				goto case MSBuildKind.ItemGroup;
-			case MSBuildKind.ItemGroup:
-			case MSBuildKind.PropertyGroup:
+				goto case MSBuildSyntaxKind.ItemGroup;
+			case MSBuildSyntaxKind.ItemGroup:
+			case MSBuildSyntaxKind.PropertyGroup:
 				var name = element?.ParentElement?.Name.Name;
 				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
 			}
 			return false;
 		}
 
-		static IEnumerable<BaseInfo> GetAbstractAttributes (this IEnumerable<IMSBuildSchema> schemas, MSBuildKind kind, string elementName)
+		static IEnumerable<BaseInfo> GetAbstractAttributes (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
 		{
 			switch (kind) {
-			case MSBuildKind.Item:
+			case MSBuildSyntaxKind.Item:
 				return schemas.GetItems ();
-			case MSBuildKind.Task:
+			case MSBuildSyntaxKind.Task:
 				return schemas.GetTasks ();
-			case MSBuildKind.Property:
+			case MSBuildSyntaxKind.Property:
 				return schemas.GetProperties (false);
-			case MSBuildKind.Metadata:
+			case MSBuildSyntaxKind.Metadata:
 				return schemas.GetMetadata (elementName, false);
 			}
 			return null;
@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			foreach (var c in rr.LanguageElement.Children) {
 				if (c.IsAbstract) {
-					var abstractChildren = GetAbstractChildren (schemas, rr.LanguageElement.AbstractChild.Kind, rr.ElementName);
+					var abstractChildren = GetAbstractChildren (schemas, rr.LanguageElement.AbstractChild.SyntaxKind, rr.ElementName);
 					if (abstractChildren != null) {
 						foreach (var child in abstractChildren) {
 							yield return child;
@@ -116,16 +116,16 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		static IEnumerable<BaseInfo> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildKind kind, string elementName)
+		static IEnumerable<BaseInfo> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
 		{
 			switch (kind) {
-			case MSBuildKind.Item:
+			case MSBuildSyntaxKind.Item:
 				return schemas.GetItems ();
-			case MSBuildKind.Task:
+			case MSBuildSyntaxKind.Task:
 				return schemas.GetTasks ();
-			case MSBuildKind.Property:
+			case MSBuildSyntaxKind.Property:
 				return schemas.GetProperties (false);
-			case MSBuildKind.Metadata:
+			case MSBuildSyntaxKind.Metadata:
 				return schemas.GetMetadata (elementName, false);
 			}
 			return null;

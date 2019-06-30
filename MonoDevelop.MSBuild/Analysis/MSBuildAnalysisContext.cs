@@ -13,12 +13,12 @@ namespace MonoDevelop.MSBuild.Analysis
 {
 	abstract class MSBuildAnalysisContext
 	{
-		public abstract void RegisterResolvedElementAction(Action<ResolvedElementDiagnosticContext> action, ImmutableArray<MSBuildKind> elementKinds);
-		public abstract void RegisterResolvedAttributeAction (Action<ResolvedAttributeDiagnosticContext> action, ImmutableArray<(MSBuildKind elementKind, string attributeName)> attributeNames);
+		public abstract void RegisterResolvedElementAction(Action<ResolvedElementDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds);
+		public abstract void RegisterResolvedAttributeAction (Action<ResolvedAttributeDiagnosticContext> action, ImmutableArray<(MSBuildSyntaxKind elementKind, string attributeName)> attributeNames);
 		public abstract void RegisterUnknownElementAction (Action<UnknownElementDiagnosticContext> action);
 		public abstract void RegisterUnknownAttributeAction (Action<UnknownAttributeDiagnosticContext> action);
-		public abstract void RegisterResolvedElementValueAction (Action<ElementValueDiagnosticContext> action, ImmutableArray<MSBuildKind> elementKinds);
-		public abstract void RegisterResolvedAttributeValueAction (Action<AttributeValueDiagnosticContext> action, ImmutableArray<(MSBuildKind elementKind, string attributeName)> attributeNames);
+		public abstract void RegisterResolvedElementValueAction (Action<ElementValueDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds);
+		public abstract void RegisterResolvedAttributeValueAction (Action<AttributeValueDiagnosticContext> action, ImmutableArray<(MSBuildSyntaxKind elementKind, string attributeName)> attributeNames);
 		public abstract void RegisterResolvedTypedValueAction (Action<TypedValueDiagnosticContext> action, ImmutableArray<MSBuildValueKind> valueKind);
 		public abstract void RegisterExpressionNodeAction (Action<ExpressionNodeDiagnosticContext> action, ImmutableArray<ExpressionNodeKind> nodeKind);
 	}

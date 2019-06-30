@@ -219,9 +219,9 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
-				case MSBuildKind.Parameter:
+				case MSBuildSyntaxKind.Parameter:
 					return schemas.GetTaskParameter (elementName, attributeName);
-				case MSBuildKind.Metadata:
+				case MSBuildSyntaxKind.Metadata:
 					return schemas.GetMetadata (elementName, attributeName, false);
 				default:
 					throw new InvalidOperationException ($"Unsupported abstract attribute kind {attribute.AbstractKind}");
@@ -237,7 +237,7 @@ namespace MonoDevelop.MSBuild.Schema
 				var item = schemas.GetItem (elementName);
 				return new MSBuildLanguageAttribute (
 					attribute.Element, attribute.Name, attribute.Description,
-					attribute.Kind,
+					attribute.SyntaxKind,
 					item?.ValueKind ?? MSBuildValueKind.Unknown,
 					attribute.Required, attribute.AbstractKind
 				);
@@ -249,26 +249,26 @@ namespace MonoDevelop.MSBuild.Schema
 		public static ValueInfo GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildLanguageElement element, string parentName, string elementName, bool omitEmpty = false)
 		{
 			if (element.IsAbstract) {
-				switch (element.Kind) {
-				case MSBuildKind.Item:
-				case MSBuildKind.ItemDefinition:
+				switch (element.SyntaxKind) {
+				case MSBuildSyntaxKind.Item:
+				case MSBuildSyntaxKind.ItemDefinition:
 					if (omitEmpty) {
 						return null;
 					}
 					return schemas.GetItem (elementName);
-				case MSBuildKind.Metadata:
+				case MSBuildSyntaxKind.Metadata:
 					return schemas.GetMetadata (parentName, elementName, false);
-				case MSBuildKind.Property:
+				case MSBuildSyntaxKind.Property:
 					return schemas.GetProperty (elementName);
-				case MSBuildKind.Task:
+				case MSBuildSyntaxKind.Task:
 					return null;
-				case MSBuildKind.Parameter:
+				case MSBuildSyntaxKind.Parameter:
 					if (omitEmpty) {
 						return null;
 					}
 					return new TaskParameterInfo (elementName, null, false, false, MSBuildValueKind.Unknown);
 				default:
-					throw new InvalidOperationException ($"Unsupported abstract element kind {element.Kind}");
+					throw new InvalidOperationException ($"Unsupported abstract element kind {element.SyntaxKind}");
 				}
 			}
 

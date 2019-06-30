@@ -101,13 +101,13 @@ namespace MonoDevelop.MSBuild.Language
 				XElement element, XAttribute attribute,
 				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 			{
-				switch (resolvedElement.Kind) {
-				case MSBuildKind.Import:
+				switch (resolvedElement.SyntaxKind) {
+				case MSBuildSyntaxKind.Import:
 					if (attribute.NameEquals ("Project", true)) {
 						CaptureAnnotations ();
 					}
 					break;
-				case MSBuildKind.Project:
+				case MSBuildSyntaxKind.Project:
 					if (attribute.NameEquals ("Sdk", true)) {
 						CaptureAnnotations ();
 					}

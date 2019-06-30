@@ -40,35 +40,35 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CollectResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			switch (resolved.Kind) {
-			case MSBuildKind.Import:
+			switch (resolved.SyntaxKind) {
+			case MSBuildSyntaxKind.Import:
 				ResolveImport (element);
 				break;
-			case MSBuildKind.Item:
+			case MSBuildSyntaxKind.Item:
 				CollectItem (element.Name.Name);
 				break;
-			case MSBuildKind.Property:
+			case MSBuildSyntaxKind.Property:
 				CollectProperty (element.Name.Name);
 				break;
-			case MSBuildKind.UsingTask:
+			case MSBuildSyntaxKind.UsingTask:
 				CollectTaskDefinition (element);
 				break;
-			case MSBuildKind.Task:
+			case MSBuildSyntaxKind.Task:
 				CollectTask (element.Name.Name);
 				break;
-			case MSBuildKind.Target:
+			case MSBuildSyntaxKind.Target:
 				var targetName = element.Attributes.Get (new XName ("name"), true)?.Value;
 				if (targetName != null) {
 					CollectTarget (targetName);
 				}
 				break;
-			case MSBuildKind.Parameter:
+			case MSBuildSyntaxKind.Parameter:
 				var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
 				if (!string.IsNullOrEmpty (taskName)) {
 					CollectTaskParameterDefinition (taskName, element);
 				}
 				break;
-			case MSBuildKind.Metadata:
+			case MSBuildSyntaxKind.Metadata:
 				CollectMetadata (element.ParentElement.Name.Name, element.Name.Name);
 				break;
 			}
@@ -77,16 +77,16 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
 			if (resolvedAttribute.IsAbstract) {
-				switch (resolvedElement.Kind) {
-				case MSBuildKind.Item:
+				switch (resolvedElement.SyntaxKind) {
+				case MSBuildSyntaxKind.Item:
 					CollectMetadata (element.Name.Name, attribute.Name.Name);
 					break;
-				case MSBuildKind.Task:
+				case MSBuildSyntaxKind.Task:
 					CollectTaskParameter (element.Name.Name, attribute.Name.Name, false);
 					break;
 				}
 			}
-			if (resolvedElement.Kind == MSBuildKind.Output && resolvedAttribute.Name == "TaskParameter") {
+			if (resolvedElement.SyntaxKind == MSBuildSyntaxKind.Output && resolvedAttribute.Name == "TaskParameter") {
 				CollectTaskParameter (element.ParentElement.Name.Name, attribute.Value, true);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
@@ -134,7 +134,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var kind = resolved.ValueKind;
 
-			if (resolved.Kind == MSBuildKind.Property) {
+			if (resolved.SyntaxKind == MSBuildSyntaxKind.Property) {
 				var name = element.Name.Name;
 				parseContext.PropertyCollector.Collect (name, value);
 
@@ -152,7 +152,7 @@ namespace MonoDevelop.MSBuild.Language
 					kind = MSBuildValueKind.Platform.List ();
 					break;
 				}
-			} else if (resolved.Kind == MSBuildKind.Metadata && element.ParentElement.NameEquals ("ProjectConfiguration", true)) {
+			} else if (resolved.SyntaxKind == MSBuildSyntaxKind.Metadata && element.ParentElement.NameEquals ("ProjectConfiguration", true)) {
 				if (element.NameEquals ("Configuration", true)) {
 					kind = MSBuildValueKind.Configuration;
 				} else if (element.NameEquals ("Platform", true)) {
@@ -172,7 +172,7 @@ namespace MonoDevelop.MSBuild.Language
 				ExtractConfigurations (value, offset);
 			}
 
-			if (resolvedElement.Kind == MSBuildKind.Item && element.NameEquals ("ProjectConfiguration", true)) {
+			if (resolvedElement.SyntaxKind == MSBuildSyntaxKind.Item && element.NameEquals ("ProjectConfiguration", true)) {
 				if (attribute.NameEquals ("Configuration", true)) {
 					kind = MSBuildValueKind.Configuration;
 				} else if (attribute.NameEquals ("Platform", true)) {

@@ -96,7 +96,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if ((resolved.Kind == MSBuildKind.Item || resolved.Kind == MSBuildKind.ItemDefinition) && IsMatch (element.Name.Name)) {
+			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Item || resolved.SyntaxKind == MSBuildSyntaxKind.ItemDefinition) && IsMatch (element.Name.Name)) {
 				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -139,7 +139,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if ((resolved.Kind == MSBuildKind.Property) && IsMatch (element.Name.Name)) {
+			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Property) && IsMatch (element.Name.Name)) {
 				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -176,13 +176,13 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			switch (resolved.Kind) {
-			case MSBuildKind.Task:
+			switch (resolved.SyntaxKind) {
+			case MSBuildSyntaxKind.Task:
 				if (IsMatch (element.Name.Name)) {
 					Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Read));
 				}
 				break;
-			case MSBuildKind.UsingTask:
+			case MSBuildSyntaxKind.UsingTask:
 				var nameAtt = element.Attributes.Get (new XName ("TaskName"), true);
 				if (nameAtt != null && !string.IsNullOrEmpty (nameAtt.Value)) {
 					var nameIdx = nameAtt.Value.LastIndexOf ('.') + 1;
@@ -208,7 +208,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (resolved.Kind == MSBuildKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement.Name.Name)) {
+			if (resolved.SyntaxKind == MSBuildSyntaxKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement.Name.Name)) {
 				Results.Add ((element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -216,7 +216,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
 		{
-			if (resolvedAttribute.AbstractKind == MSBuildKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
+			if (resolvedAttribute.AbstractKind == MSBuildSyntaxKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
 				Results.Add ((attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write));
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
@@ -333,7 +333,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (resolved.Kind == MSBuildKind.Target) {
+			if (resolved.SyntaxKind == MSBuildSyntaxKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
 					Results.Add ((nameAtt.Span.Start, nameAtt.Span.Length, ReferenceUsage.Declaration));
