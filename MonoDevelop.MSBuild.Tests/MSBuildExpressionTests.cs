@@ -2,10 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using NUnit.Framework;
-using MonoDevelop.MSBuild.Language.Expressions;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using MonoDevelop.MSBuild.Language.Expressions;
+using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
 {
@@ -90,11 +90,17 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$([a]:: b", ExpressionErrorKind.IncompleteProperty)]
 		[TestCase ("$([a]::b ", ExpressionErrorKind.IncompleteProperty)]
 		[TestCase ("$([a]::b(", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b($", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b(  $", ExpressionErrorKind.ExpectingRightParenOrValue)]
+		[TestCase ("$([a]::b(  %", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b (", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b( ", ExpressionErrorKind.ExpectingRightParenOrValue)]
 		[TestCase ("$([a]::b()", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("$([a]::b().", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$([a]::b(1,", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$([a]::b(1,$", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$([a]::b(1,%", ExpressionErrorKind.ExpectingValue)]
+		[TestCase ("$([a]::b(1,   %", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$([a]::b(true,", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("$([a]::b(1,1", ExpressionErrorKind.ExpectingRightParenOrComma)]
 		[TestCase ("$([a]::b(1,1)", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
@@ -116,7 +122,8 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(foo->'x', ''", ExpressionErrorKind.ExpectingRightParen)]
 		public void TestSimpleError (string expression, ExpressionErrorKind error)
 		{
-			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
+			//the huge baseOffset can expose parser bugs
+			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata, 1000);
 			var err = AssertCast<ExpressionError> (expr);
 			Assert.AreEqual (error, err.Kind);
 		}
@@ -292,16 +299,47 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
-		static void CheckArgs (List<object> expected, ExpressionArgumentList actual)
+		static void CheckArgs (List<object> expectedArgs, ExpressionArgumentList actualArgs)
 		{
-			Assert.AreEqual (expected.Count, actual.Arguments.Count);
-			for (int i = 0; i < expected.Count; i++) {
-				var arg = actual.Arguments [i];
-				if (arg is ExpressionText et) {
-					Assert.AreEqual (expected [i], et.Value);
-				} else {
-					var lit = AssertCast<ExpressionArgumentLiteral> (arg);
-					Assert.AreEqual (expected [i], lit.Value);
+			Assert.AreEqual (expectedArgs.Count, actualArgs.Arguments.Count);
+			for (int i = 0; i < expectedArgs.Count; i++) {
+				var expected = expectedArgs[i];
+				var actual = actualArgs.Arguments[i];
+
+				void AssertLiteral<T> (T expectedLit)
+					=> Assert.AreEqual (expectedLit, AssertCast<ExpressionArgumentLiteral<T>> (actual).Value);
+
+				switch (expected) {
+				case int intVal:
+					AssertLiteral<long> (intVal);
+					break;
+				case bool boolVal:
+					AssertLiteral<bool> (boolVal);
+					break;
+				case float floatVal:
+					AssertLiteral<double> (floatVal);
+					break;
+				case string stringVal:
+					if (stringVal.Length > 0) {
+						if (stringVal[0] == '$') {
+							var prop = AssertCast<ExpressionProperty> (actual);
+							Assert.IsTrue (prop.IsSimpleProperty, "Expected property to be simple");
+							Assert.AreEqual (stringVal.Substring (1), prop.Name);
+							break;
+						}
+						if (stringVal[0] == '%') {
+							var meta = AssertCast<ExpressionMetadata> (actual);
+							var metaName = meta.IsQualified ? meta.ItemName + meta.MetadataName : meta.MetadataName;
+							Assert.AreEqual (stringVal.Substring (1), metaName);
+							break;
+						}
+					}
+					if (actual is ExpressionText txt) {
+						Assert.AreEqual (expected, txt.Value);
+						break;
+					}
+					AssertLiteral<string> (stringVal);
+					break;
 				}
 			}
 		}
@@ -321,7 +359,8 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$(a['hello',true])", "a", null, "hello", true)]
 		public void TestSimplePropertyFunctions(object[] args)
 		{
-			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 0);
+			//the huge baseOffset can also expose parser bugs
+			var expr = ExpressionParser.Parse ((string)args[0], ExpressionOptions.None, 1000);
 			var targetName = (string)args [1];
 			var funcName = (string)args [2];
 			var funcArgs = args.Skip (3).ToList ();
@@ -350,9 +389,13 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$([  Foo  .  Bar  ]::A())", "Foo.Bar", "A")]
 		[TestCase ("$([Foo.Bar]::A ( 'bees' , 2 , 'more bees' ) )", "Foo.Bar", "A", "bees", 2, "more bees")]
 		[TestCase ("$([Foo.Bar]::A ( 'bees' ,  `more bees` ) )", "Foo.Bar", "A", "bees", "more bees")]
+		[TestCase ("$([Foo]::Bar($(Baz)))", "Foo", "Bar", "$Baz")]
+		[TestCase ("$([Foo]::Bar(%(Baz)))", "Foo", "Bar", "%Baz")]
+		[TestCase ("$([Foo]::Bar('baz', $(abc), %(xyz), 1))", "Foo", "Bar", "baz", "$abc", "%xyz", 1)]
 		public void TestStaticPropertyFunctions (object [] args)
 		{
-			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 0);
+			//the huge baseOffset can expose parser bugs
+			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.None, 1000);
 			var targetName = (string)args [1];
 			var funcName = (string)args [2];
 			var funcArgs = args.Skip (3).ToList ();
@@ -381,7 +424,8 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(Foo->A(`bees`, 'more bees'))", "Foo", "A", "bees", "more bees")]
 		public void TestSimpleItemFunctions (object [] args)
 		{
-			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.ItemsMetadataAndLists, 0);
+			//the huge baseOffset can expose parser bugs
+			var expr = ExpressionParser.Parse ((string)args [0], ExpressionOptions.ItemsMetadataAndLists, 1000);
 			var targetName = (string)args [1];
 			var funcName = (string)args [2];
 			var funcArgs = args.Skip (3).ToList ();
@@ -578,13 +622,16 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static T AssertCast<T> (object o)
 		{
-			if (o != null && typeof (T).IsAssignableFrom (o.GetType ())) {
-				return (T)o;
-			}
-			if (o is ExpressionError err) {
+			Assert.IsNotNull (o);
+
+			Type tType = typeof (T);
+			Type oType = o.GetType ();
+			Assert.IsTrue (tType.IsAssignableFrom (oType), "Cannot assign {0} from {1}", tType, oType);
+
+			if (o is ExpressionError err && !tType.IsAssignableFrom (typeof (ExpressionError))) {
 				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
 			}
-			Assert.IsInstanceOf<T> (o);
+
 			return (T)o;
 		}
 	}

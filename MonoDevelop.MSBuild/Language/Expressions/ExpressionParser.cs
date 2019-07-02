@@ -789,13 +789,15 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			bool wasEOF = false;
 
-			if (ch == '$') {
+			if (ch == '$' || ch == '%') {
 				if (offset < endOffset) {
 					if (buffer[offset + 1] == '(') {
 						offset += 2;
-						var prop = ParseProperty (buffer, ref offset, endOffset, baseOffset);
+						ExpressionNode node = ch == '$'
+							? ParseProperty (buffer, ref offset, endOffset, baseOffset)
+							: ParseMetadata (buffer, ref offset, endOffset, baseOffset);
 						offset++;
-						return prop;
+						return node;
 					}
 				} else {
 					wasEOF = true;
@@ -812,7 +814,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			//the token didn't start with any character we expected
 			//consume the character anyway so the completion trigger can use it
 			offset++;
-			var expr = new ExpressionText (baseOffset + start, buffer.Substring (baseOffset + start, offset - start), true);
+			var expr = new ExpressionText (baseOffset + start, buffer.Substring (start, offset - start), true);
 			var kind = wasFirst ? ExpressionErrorKind.ExpectingRightParenOrValue : ExpressionErrorKind.ExpectingValue;
 			return new IncompleteExpressionError (baseOffset + start, wasEOF, kind, expr);
 		}
