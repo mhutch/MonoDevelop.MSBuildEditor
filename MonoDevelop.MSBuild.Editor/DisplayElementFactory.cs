@@ -40,23 +40,23 @@ namespace MonoDevelop.MSBuild.Editor
 
 			var elements = new List<object> { nameElement };
 
-			var desc = info.Description;
-			var descEl = desc.DisplayElement;
-
-			if (descEl != null) {
-				if (descEl is ISymbol symbol) {
-					descEl = await GetSymbolDescriptionElement (symbol, token);
-				}
-				if (descEl != null) {
-					elements.Add (descEl);
-				}
-			}
-
-			if (descEl == null) {
+			switch (info.Description.DisplayElement) {
+			case ISymbol symbol:
+				await AddSymbolDescriptionElements (symbol, elements.Add, token);
+				break;
+			case object obj:
+				elements.Add (obj);
+				break;
+			default:
 				var descStr = DescriptionFormatter.GetDescription (info, doc, rr);
 				if (!string.IsNullOrEmpty (descStr)) {
-					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, desc.Text)));
+					elements.Add (
+						new ClassifiedTextElement (
+							new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, descStr)
+						)
+					);
 				}
+				break;
 			}
 
 			var seenIn = GetSeenInElement (info, doc);
@@ -216,7 +216,7 @@ namespace MonoDevelop.MSBuild.Editor
 		{
 			(string prefix, string subst)? longestReplacement = null;
 			foreach (var replacement in replacements) {
-				if (val.StartsWith (replacement.prefix, System.StringComparison.OrdinalIgnoreCase)) {
+				if (val.StartsWith (replacement.prefix, StringComparison.OrdinalIgnoreCase)) {
 					if (!longestReplacement.HasValue || longestReplacement.Value.prefix.Length < replacement.prefix.Length) {
 						longestReplacement = replacement;
 					}
@@ -280,62 +280,121 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		static Task<object> GetSymbolDescriptionElement (ISymbol symbol, CancellationToken token)
+		static Task AddSymbolDescriptionElements (ISymbol symbol, Action<ClassifiedTextElement> add, CancellationToken token)
 		{
 			return Task.Run (() => {
 				try {
+					// MSBuild uses property getters directly but they don't typically have docs.
+					// Use the docs from the property instead.
+					// FIXME: this doesn't seem to work for the indexer string[]get_Chars, at least on Mono
+					if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.PropertyGet) {
+						symbol = method.AssociatedSymbol ?? symbol;
+					}
 					var docs = symbol.GetDocumentationCommentXml (expandIncludes: true, cancellationToken: token);
 					if (!string.IsNullOrEmpty (docs)) {
-						return (object)GetDocsXmlSummaryElement (docs);
+						GetDocsXmlSummaryElement (docs, add);
 					}
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error loading docs summary", ex);
 				}
-				return null;
 			}, token);
 		}
 
 		// roslyn's IDocumentationCommentFormattingService seems to be basically unusable
 		// without internals access, so it some basic formatting ourselves
-		static object GetDocsXmlSummaryElement (string docs)
+		static void GetDocsXmlSummaryElement (string docs, Action<ClassifiedTextElement> addTextElement)
 		{
 			var docsXml = XDocument.Parse (docs);
 			var summaryEl = docsXml.Root?.Element ("summary");
+			if (summaryEl == null) {
+				return;
+			}
+
 			var runs = new List<ClassifiedTextRun> ();
+
 			foreach (var node in summaryEl.Nodes ()) {
 				switch (node) {
 				case XText text:
 					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, text.Value));
 					break;
 				case XElement el:
-					if (el.Name == "see") {
-						var cref = (string)el.Attribute ("cref");
-						if (cref != null) {
-							var colonIdx = cref.IndexOf (':');
-							if (colonIdx > -1) {
-								cref = cref.Substring (colonIdx + 1);
-							}
-							if (!string.IsNullOrEmpty (cref)) {
-								runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, cref));
-							}
-						} else {
-							LoggingService.LogDebug ("Docs 'see' element is missing cref attribute");
+					switch (el.Name.LocalName) {
+					case "see":
+						ConvertSeeCrefElement (el, runs.Add);
+						continue;
+					case "attribution":
+						continue;
+					case "para":
+						FlushRuns ();
+						var para = RenderXmlDocsPara (el);
+						if (para != null) {
+							addTextElement (para);
 						}
-						break;
+						continue;
+					default:
+						LoggingService.LogDebug ($"Docs summary has unexpected '{el.Name}' element");
+						continue;
 					}
-					LoggingService.LogDebug ($"Docs summary has unexpected '{el.Name}' element");
-					goto default;
 				default:
 					LoggingService.LogDebug ($"Docs summary has unexpected '{node.NodeType}' node");
-					break;
+					continue;
 				}
 			}
-			return runs == null ? null : (object)new ClassifiedTextElement (runs);
+
+			void FlushRuns ()
+			{
+				if (runs.Count > 0) {
+					if (!runs.All (r => r is ClassifiedTextRun cr && string.IsNullOrWhiteSpace (cr.Text))) {
+						addTextElement (new ClassifiedTextElement (runs));
+						runs.Clear ();
+					}
+				}
+			}
+		}
+
+		static void ConvertSeeCrefElement (XElement el, Action<ClassifiedTextRun> add)
+		{
+			var cref = (string)el.Attribute ("cref");
+			if (cref != null) {
+				var colonIdx = cref.IndexOf (':');
+				if (colonIdx > -1) {
+					cref = cref.Substring (colonIdx + 1);
+				}
+				if (!string.IsNullOrEmpty (cref)) {
+					add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, cref));
+				}
+			} else {
+				LoggingService.LogDebug ("Docs 'see' element is missing cref attribute");
+			}
+		}
+
+		static ClassifiedTextElement RenderXmlDocsPara (XElement para)
+		{
+			var runs = new List<ClassifiedTextRun> ();
+			foreach (var node in para.Nodes ()) {
+				switch (node) {
+				case XText text:
+					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, text.Value));
+					continue;
+				case XElement el:
+					switch (el.Name.LocalName) {
+					case "see":
+						ConvertSeeCrefElement (el, runs.Add);
+						continue;
+					default:
+						LoggingService.LogDebug ($"Docs summary para has unexpected '{el.Name}' element");
+						continue;
+					}
+				default:
+					LoggingService.LogDebug ($"Docs summary para has unexpected '{node.NodeType}' node");
+					continue;
+				}
+			}
+			return runs.Count > 0 ? new ClassifiedTextElement (runs) : null;
 		}
 
 		public static object GetPackageInfoTooltip (string packageId, IPackageInfo package)
 		{
-
 			var stackedElements = new List<object> ();
 
 			stackedElements.Add (
