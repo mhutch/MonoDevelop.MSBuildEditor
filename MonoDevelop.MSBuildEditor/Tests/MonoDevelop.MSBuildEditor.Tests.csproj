@@ -33,23 +33,6 @@
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MSBuildEditorTesting.cs" />
-    <Compile Include="Infrastructure\TestBase.cs" />
-    <Compile Include="Infrastructure\TestDocument.cs" />
-    <Compile Include="Infrastructure\TestViewContent.cs" />
-    <Compile Include="Infrastructure\TestWorkbenchWindow.cs" />
-    <Compile Include="Infrastructure\Util.cs" />
-    <Compile Include="MSBuildCompletionTests.cs" />
-    <Compile Include="Infrastructure\IdeTestBase.cs" />
-    <Compile Include="MSBuildFindReferencesTests.cs" />
-    <Compile Include="MSBuildResolverTests.cs" />
-    <Compile Include="MSBuildTestHelpers.cs" />
-    <Compile Include="MSBuildExpressionTests.cs" />
-    <Compile Include="MSBuildImportTests.cs" />
-    <Compile Include="ExpressionCompletion.cs" />
-    <Compile Include="XmlEscapingTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuildEditor.csproj">
       <Project>{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}</Project>
       <Name>MonoDevelop.MSBuildEditor</Name>

@@ -131,15 +131,26 @@ namespace MonoDevelop.MSBuild.Tests
 
 			AssertImportsExist (
 				doc,
+				//these come from a multivalued import
 				"Microsoft.CSharp.CrossTargeting.targets",
 				"Microsoft.CSharp.CurrentVersion.targets",
+				// this checks we import both VB and C# targets
+				"Microsoft.VisualBasic.Core.targets",
+				// this comes from a wildcard import
+				"Microsoft.NuGet.targets",
+				// these are just generally important not to break
 				"Microsoft.Common.CurrentVersion.targets",
 				"NuGet.targets",
-				"Microsoft.VisualBasic.Core.targets",
 				"NuGet.Build.Tasks.Pack.targets",
 				"Microsoft.NET.Sdk.DefaultItems.props",
 				"Microsoft.Common.tasks"
 			);
+
+			// check schemas are loaded
+			var packageRefItem = doc.GetSchemas ().GetItem ("PackageReference");
+			Assert.NotNull (packageRefItem);
+			Assert.NotNull (packageRefItem.Description);
+			Assert.AreEqual (MSBuildValueKind.NuGetID, packageRefItem.ValueKind);
 		}
 
 		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
