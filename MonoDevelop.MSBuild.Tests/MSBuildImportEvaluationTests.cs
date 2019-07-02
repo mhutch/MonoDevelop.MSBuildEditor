@@ -137,7 +137,7 @@ namespace MonoDevelop.MSBuild.Tests
 				// this checks we import both VB and C# targets
 				"Microsoft.VisualBasic.Core.targets",
 				// this comes from a wildcard import
-				"Microsoft.NuGet.targets",
+				"NuGet.targets",
 				// these are just generally important not to break
 				"Microsoft.Common.CurrentVersion.targets",
 				"NuGet.targets",

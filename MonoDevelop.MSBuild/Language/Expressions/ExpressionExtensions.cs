@@ -13,6 +13,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			yield return node;
 
 			switch (node) {
+			case ListExpression list:
+				foreach (var c in list.Nodes) {
+					foreach (var n in c.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
 			case ConcatExpression expr:
 				foreach (var c in expr.Nodes) {
 					foreach (var n in c.WithAllDescendants ()) {
