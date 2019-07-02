@@ -181,7 +181,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 					foreach (var package in packageArray) {
 						var info = package.ToString ();
-						items.Add (CreateCompletionItem (new ItemInfo (info, new DisplayText ("description", true)),
+						items.Add (CreateCompletionItem (new ItemInfo (info, new DisplayText ("description 1", false), "description 2"),
 									doc, rr));
 					}
 					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
@@ -209,7 +209,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						if (info == packageName.ToLower ()) {
 							var description = version["description"].ToString ();
 							foreach (var ver in version["versions"]) {
-								items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), new DisplayText (description, true)),
+								items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), new DisplayText (description, false), description),
 									doc, rr));
 							}
 							break;
