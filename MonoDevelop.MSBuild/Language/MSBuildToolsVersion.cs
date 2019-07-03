@@ -73,14 +73,14 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static bool IsAtLeast (this MSBuildToolsVersion version, MSBuildToolsVersion other)
+		public static bool IsAtLeast (this MSBuildToolsVersion currentVersion, MSBuildToolsVersion minimumVersion)
 		{
 
-			if (version == MSBuildToolsVersion.Unknown) {
-				version = DEFAULT;
+			if (currentVersion == MSBuildToolsVersion.Unknown) {
+				currentVersion = DEFAULT;
 			}
 
-			return (int)other >= (int)version;
+			return (int)currentVersion >= (int)minimumVersion;
 		}
 	}
 }

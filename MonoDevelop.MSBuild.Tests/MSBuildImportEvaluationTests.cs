@@ -140,7 +140,6 @@ namespace MonoDevelop.MSBuild.Tests
 				"NuGet.targets",
 				// these are just generally important not to break
 				"Microsoft.Common.CurrentVersion.targets",
-				"NuGet.targets",
 				"NuGet.Build.Tasks.Pack.targets",
 				"Microsoft.NET.Sdk.DefaultItems.props",
 				"Microsoft.Common.tasks"

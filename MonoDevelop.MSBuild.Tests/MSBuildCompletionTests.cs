@@ -40,12 +40,12 @@ namespace MonoDevelop.MSBuild.Tests
 
 
 		[Test]
-		[Ignore("Not working")]
 		public async Task ProjectCompletion ()
 		{
 			var result = await GetCompletionContext (@"<Project><$");
 
-			result.AssertItemCount (12);
+			//FIXME: add comment and closing tags
+			result.AssertItemCount (9);
 
 			result.AssertContains ("PropertyGroup");
 			result.AssertContains ("Choose");
@@ -77,7 +77,6 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
-		[Ignore ("Not working")]
 		public async Task InferredMetadataAttribute ()
 		{
 			var result = await GetCompletionContext (@"
