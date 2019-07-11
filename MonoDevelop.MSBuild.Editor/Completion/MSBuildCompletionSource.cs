@@ -31,6 +31,7 @@ using Newtonsoft.Json.Linq;
 using System.Runtime.InteropServices;
 using System.Net.Http.Headers;
 using Microsoft.Build.Framework;
+using ProjectFileTools.NuGetSearch.Feeds;
 
 using ProjectFileTools.NuGetSearch.Feeds;
 
@@ -134,6 +135,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items); ;
 		}
 
+		//Dictionary<int, string> cache = new Dictionary<int, string> ();
+
 		protected override async Task<CompletionContext> GetAttributeValueCompletionsAsync (
 			IAsyncCompletionSession session,
 			SnapshotPoint triggerLocation,
@@ -157,70 +160,99 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (attributedObject is XElement xElement &&
 				xElement.NameEquals ("PackageReference", true)) {
 
-				var items = new List<CompletionItem> ();
-				var httpClient = new HttpClient (); ;
-				string result;
-
 				switch (Regex.Replace (attribute.FriendlyPathRepresentation.ToLower (), @"[^0-9a-zA-Z]+", "")) {
 				case "include":
-					var searchQuery = rr.Reference.ToString ().ToLower ();
-					/*if (searchQuery == " ") {//whitespace
-						return CompletionContext.Empty;
-					}*/
-					try {
-						var cancellationPackage = new CancellationTokenSource (TimeSpan.FromSeconds (10));
-						var packageResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/autocomplete?q={searchQuery}&skip=0&take=100", cancellationPackage.Token);
-						result = await packageResponse.Content.ReadAsStringAsync ();
-
-					} catch (Exception) {
-						return CompletionContext.Empty;
-					}
-
-					var packageJSONObject = JObject.Parse (result);
-					var packageArray = (JArray)packageJSONObject["data"];
-
-					foreach (var package in packageArray) {
-						var info = package.ToString ();
-						items.Add (CreateCompletionItem (new ItemInfo (info, new DisplayText ("description 1", false), "description 2"),
-									doc, rr));
-					}
-					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+					return await GetPackageNamesAsync (doc, rr);
 
 				case "version":
-					var packageName = attributedObject.Attributes.Last.Value;
-					try {
-						//includes pre-release: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
-						var cancellationVersion = new CancellationTokenSource (TimeSpan.FromSeconds (100));
-						var versionResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/query?q={packageName}&prerelease=true", cancellationVersion.Token);
-						result = await versionResponse.Content.ReadAsStringAsync ();
-
-					} catch (Exception) {
-						return CompletionContext.Empty;
-					}
-
-					var versionJSONObject = JObject.Parse (result);
-					var versionArray = (JArray)versionJSONObject["data"];
-					//var totalHits = (int)versionJSONObject["totalHits"];
-
-					//Normally, it would be versionArray[0]->id == packageName
-					//If it doesn't, the for loop will make sure that correct versions of that exact packageName are listed
-					foreach (var version in versionArray) {
-						var info = version["id"].ToString ().ToLower ();
-						if (info == packageName.ToLower ()) {
-							var description = version["description"].ToString ();
-							foreach (var ver in version["versions"]) {
-								items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), new DisplayText (description, false), description),
-									doc, rr));
-							}
-							break;
-						}
-					}
-
-					return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+					return await GetPackageVersionsAsync (doc, rr);
 				}
 			}
 
 			return CompletionContext.Empty;
+		}
+
+		private async Task<CompletionContext> GetPackageNamesAsync(MSBuildRootDocument doc,
+																MSBuildResolveResult rr)
+        {
+			if (rr == null) {
+				return CompletionContext.Empty;
+			}
+
+			var items = new List<CompletionItem> ();
+			var httpClient = new HttpClient ();
+			string result = null;
+			var searchQuery = rr.Reference.ToString ().ToLower ();
+			if (string.IsNullOrEmpty (searchQuery)) {
+				return CompletionContext.Empty;
+			}
+
+			try {
+				var cancellationPackage = new CancellationTokenSource (TimeSpan.FromSeconds (10));
+				var packageResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/autocomplete?q={searchQuery}&skip=0&take=100", cancellationPackage.Token);
+				result = await packageResponse.Content.ReadAsStringAsync ();
+
+			} catch (Exception) {
+				return CompletionContext.Empty;
+			}
+
+			var packageJSONObject = JObject.Parse (result);
+			var packageArray = (JArray)packageJSONObject["data"];
+
+			foreach (var package in packageArray) {
+				var info = package.ToString ();
+				items.Add (CreateCompletionItem (new ItemInfo (info, "description 1", "description 2"),
+							doc, rr));
+			}
+			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+		}
+
+		private async Task<CompletionContext> GetPackageVersionsAsync (MSBuildRootDocument doc,
+																MSBuildResolveResult rr)
+		{
+			if (rr == null) {
+				return CompletionContext.Empty;
+			}
+
+			var items = new List<CompletionItem> ();
+			var httpClient = new HttpClient (); ;
+			string result = null;
+			var packageName = rr.XElement.Attributes.First.Value.ToLower ();
+
+			if (string.IsNullOrEmpty (packageName)) {
+				return CompletionContext.Empty;
+			}
+
+			try {
+				//includes pre-release: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
+				var cancellationVersion = new CancellationTokenSource (TimeSpan.FromSeconds (100));
+				var versionResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/query?q={packageName}&prerelease=true", cancellationVersion.Token);
+				result = await versionResponse.Content.ReadAsStringAsync ();
+
+			} catch (Exception) {
+				return CompletionContext.Empty;
+			}
+
+			var versionJSONObject = JObject.Parse (result);
+			var versionArray = (JArray)versionJSONObject["data"];
+
+			//var totalHits = (int)versionJSONObject["totalHits"];
+
+			//Normally, it would be versionArray[0]->id == packageName
+			//If it doesn't, the for loop will make sure that correct versions of that exact packageName are listed
+			foreach (var version in versionArray) {
+				var id = version["id"].ToString ().ToLower ();
+				if (id == packageName.ToLower ()) {
+					var description = version["description"].ToString ();
+					foreach (var ver in version["versions"]) {
+						items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), description, description),
+							doc, rr));
+					}
+					break;
+				}
+			}
+
+			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
@@ -301,25 +333,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
-
-		Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, int startIdx, int triggerLength)
+		/*
+		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
 		{
-			/*
-			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
-			if (string.IsNullOrWhiteSpace (name)) {
-				return null;
-			}
+			return await GetPackageNamesAsync (rr, doc);
+		}*/
 
-			return Task.FromResult<ICompletionDataList> (
-				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter ()) {
-					TriggerWordStart = startIdx,
-					TriggerWordLength = triggerLength
-				}
-			);
-			*/
-			return Task.FromResult (CompletionContext.Empty);
-		}
-
+		
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr)
 		{
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
@@ -417,7 +437,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageNamesAsync (doc, rr);//GetPackageNameCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
 				case MSBuildValueKind.NuGetVersion:
 					return await GetPackageVersionCompletions (doc, rr);
 				case MSBuildValueKind.Sdk:
