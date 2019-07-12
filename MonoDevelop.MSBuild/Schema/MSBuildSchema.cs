@@ -73,6 +73,7 @@ namespace MonoDevelop.MSBuild.Schema
 					targets = (JObject)kv.Value;
 					break;
 				case "license":
+				case "$schema":
 					break;
 				case "intellisenseImports":
 					intellisenseImports = (JArray)kv.Value;
