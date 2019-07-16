@@ -111,10 +111,13 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Go to definition on nuget goes to nuget.org or package folder?
 * Publish json schema
 * Metadata groups
-* Enum kinds
 * Test schema loader
 * Test schema composition
 * Test schema inference
+* Classname kind with metadata for which msbuild metadata/property points to the assembly
+* Additional schema metadata for expected extensions for files
+* Additional schema metadata for which msbuild metadata/property points to the base directory for filenames
+* Squiggle assignments to nonexistent task params
 
 ## Build Status
 
