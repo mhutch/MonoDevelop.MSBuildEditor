@@ -47,10 +47,10 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var results = DisplayElementFactory.FormatDescriptionText ("foo `bar` baz `z`").ToList ();
 
-			Assert.AreEqual (3, results.Count);
+			Assert.AreEqual (4, results.Count);
 			AssertTextAndClassification (results[0], "foo ");
 			AssertTextAndClassification (results[1], "bar", PredefinedClassificationTypeNames.SymbolReference);
-			AssertTextAndClassification (results[2], " baz");
+			AssertTextAndClassification (results[2], " baz ");
 			AssertTextAndClassification (results[3], "z", PredefinedClassificationTypeNames.SymbolReference);
 		}
 

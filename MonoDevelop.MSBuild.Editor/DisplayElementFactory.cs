@@ -455,7 +455,7 @@ namespace MonoDevelop.MSBuild.Editor
 				if (endTickIndex < 0) {
 					break;
 				}
-				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, tickIndex));
+				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, tickIndex - startIndex));
 
 				string codeSegment = description.Substring (tickIndex + 1, endTickIndex - tickIndex - 1);
 				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.SymbolReference, codeSegment);
@@ -463,7 +463,10 @@ namespace MonoDevelop.MSBuild.Editor
 				startIndex = endTickIndex + 1;
 			}
 
-			yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, description.Length - startIndex));
+			var length = description.Length - startIndex;
+			if (length > 0) {
+				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, length));
+			}
 		}
 	}
 
