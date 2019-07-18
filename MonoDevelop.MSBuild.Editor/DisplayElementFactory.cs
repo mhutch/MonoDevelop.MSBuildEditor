@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -50,11 +50,7 @@ namespace MonoDevelop.MSBuild.Editor
 			default:
 				var descStr = DescriptionFormatter.GetDescription (info, doc, rr);
 				if (!string.IsNullOrEmpty (descStr)) {
-					elements.Add (
-						new ClassifiedTextElement (
-							new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, descStr)
-						)
-					);
+					elements.Add (new ClassifiedTextElement (FormatDescriptionText (descStr)));
 				}
 				break;
 			}
@@ -250,23 +246,23 @@ namespace MonoDevelop.MSBuild.Editor
 					return KnownImages.IntellisenseKeyword;
 				}
 				break;
-			case ItemInfo item:
+			case ItemInfo _:
 				return isPrivate ? KnownImages.MSBuildItemPrivate : KnownImages.MSBuildItem;
-			case PropertyInfo prop:
+			case PropertyInfo _:
 				return isPrivate ? KnownImages.MSBuildPropertyPrivate : KnownImages.MSBuildProperty;
-			case TargetInfo prop:
+			case TargetInfo _:
 				return isPrivate ? KnownImages.MSBuildTargetPrivate : KnownImages.MSBuildTarget;
-			case MetadataInfo meta:
+			case MetadataInfo _:
 				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
-			case TaskInfo task:
+			case TaskInfo _:
 				return KnownImages.MSBuildTask;
-			case ConstantInfo value:
+			case ConstantInfo _:
 				return KnownImages.MSBuildConstant;
 			case FileOrFolderInfo value:
 				return value.IsFolder ? KnownImages.FolderClosed : KnownImages.GenericFile;
-			case FrameworkInfo fxi:
+			case FrameworkInfo _:
 				return KnownImages.MSBuildFrameworkId;
-			case TaskParameterInfo tpi:
+			case TaskParameterInfo _:
 				return KnownImages.MSBuildTaskParameter;
 			case FunctionInfo fi:
 				if (fi.IsProperty) {
@@ -274,7 +270,7 @@ namespace MonoDevelop.MSBuild.Editor
 					return KnownImages.Property;
 				}
 				return KnownImages.Method;
-			case ClassInfo ci:
+			case ClassInfo _:
 				return KnownImages.Class;
 			}
 			return null;
@@ -315,7 +311,7 @@ namespace MonoDevelop.MSBuild.Editor
 			foreach (var node in summaryEl.Nodes ()) {
 				switch (node) {
 				case XText text:
-					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, text.Value));
+					runs.AddRange (FormatDescriptionText (text.Value));
 					break;
 				case XElement el:
 					switch (el.Name.LocalName) {
@@ -374,7 +370,7 @@ namespace MonoDevelop.MSBuild.Editor
 			foreach (var node in para.Nodes ()) {
 				switch (node) {
 				case XText text:
-					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, text.Value));
+					runs.AddRange (FormatDescriptionText (text.Value));
 					continue;
 				case XElement el:
 					switch (el.Name.LocalName) {
@@ -444,6 +440,30 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ContainerElement (
 				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
 				stackedElements);
+		}
+		// converts text with `` markup into classified runs
+		internal static IEnumerable<ClassifiedTextRun> FormatDescriptionText (string description)
+		{
+			int startIndex = 0;
+
+			while (startIndex < description.Length - 2) {
+				int tickIndex = description.IndexOf ('`', startIndex);
+				if (tickIndex < 0 || description.Length < tickIndex + 2) {
+					break;
+				}
+				int endTickIndex = description.IndexOf ('`', tickIndex + 1);
+				if (endTickIndex < 0) {
+					break;
+				}
+				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, tickIndex));
+
+				string codeSegment = description.Substring (tickIndex + 1, endTickIndex - tickIndex - 1);
+				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.SymbolReference, codeSegment);
+
+				startIndex = endTickIndex + 1;
+			}
+
+			yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, description.Length - startIndex));
 		}
 	}
 
