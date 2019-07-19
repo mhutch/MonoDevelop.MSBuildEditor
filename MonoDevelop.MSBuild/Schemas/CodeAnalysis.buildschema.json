@@ -37,7 +37,7 @@
       "kind": "bool"
     },
     "CodeAnalysisGenerateSuccessFile": {
-      "description": "Indicates whether Code Analysis generates a '$(CodeAnalysisInputAssembly).lastcodeanalysissucceeded' file in the output folder when no build-breaking errors occur.",
+      "description": "Indicates whether Code Analysis generates a `$(CodeAnalysisInputAssembly).lastcodeanalysissucceeded` file in the output folder when no build-breaking errors occur.",
       "default": "true",
       "kind": "bool"
     },
@@ -72,7 +72,7 @@
       "default": "$(CodeAnalysisInputAssembly).CodeAnalysisLog.xml"
     },
     "CodeAnalysisLogFileXsl": {
-      "description": "Path to the XSL style sheet to reference in the Code Analysis output report. This report is specified in $(CodeAnalysisLogFile).",
+      "description": "Path to the XSL style sheet to reference in the Code Analysis output report. This report is specified in `$(CodeAnalysisLogFile)`.",
       "kind": "file-list",
       "default": ""
     },
@@ -111,7 +111,7 @@
       "default": "true"
     },
     "CodeAnalysisQuiet": {
-      "description": "Indicates whether to suppress all Code Analysis console output other than errors and warnings. This applies when $(CodeAnalysisOutputToConsole) is true.",
+      "description": "Indicates whether to suppress all Code Analysis console output other than errors and warnings. This applies when `$(CodeAnalysisOutputToConsole)` is true.",
       "kind": "bool",
       "default": "false"
     },
@@ -119,13 +119,13 @@
       "description": "Semicolon-separated list of paths either to Code Analysis rule assemblies or to folders that contain Code Analysis rule assemblies. The paths are in the form '[+|-][!][file|folder]', where '+' enables all rules in rule assembly, '-' disables all rules in rule assembly, and '!' causes all rules in rule assembly to be treated as errors. For example '+D:\\Projects\\Rules\\NamingRules.dll;+!D:\\Projects\\Rules\\SecurityRules.dll'.",
       "default": "$(CodeAnalysisPath)\\Rules"
     },
-    "CodeAnalysisRuleDirectories": "Semicolon-separated list of directories in which to search for rules when resolving a rule set. The default is '$(CodeAnalysisPath)\\Rules' unless the CodeAnalysisIgnoreBuiltInRules property is set to true.",
+    "CodeAnalysisRuleDirectories": "Semicolon-separated list of directories in which to search for rules when resolving a rule set. The default is `$(CodeAnalysisPath)\\Rules` unless the CodeAnalysisIgnoreBuiltInRules property is set to true.",
     "CodeAnalysisRules": "Semicolon-separated list of Code Analysis rules. The rules are in the form '[+|-][!]Category#CheckId', where '+' enables the rule, '-' disables the rule, and '!' causes the rule to be treated as an error. For example, '-Microsoft.Naming#CA1700;+!Microsoft.Naming#CA1701'. The default is an empty string ('') which enables all rules.",
     "CodeAnalysisRuleSet": {
       "description": "A .ruleset file which contains a list of rules to run during analysis. The string can be a full path, a path relative to the project file, or a file name. If a file name is specified, the CodeAnalysisRuleSetDirectories property will be searched to find the file.",
       "default": ""
     },
-    "CodeAnalysisRuleSetDirectories": "Semicolon-separated list of directories in which to search for rule sets. The default is '$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\Rule Sets' unless the CodeAnalysisIgnoreBuiltInRuleSets property is set to true.",
+    "CodeAnalysisRuleSetDirectories": "Semicolon-separated list of directories in which to search for rule sets. The default is `$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\Rule Sets` unless the CodeAnalysisIgnoreBuiltInRuleSets property is set to true.",
     "CodeAnalysisSaveMessagesToReport": {
       "description": "Comma-separated list of the type of warnings and errors to save to the output report file.",
       "kind": "bool",
@@ -158,7 +158,7 @@
       "default": "false"
     },
     "CodeAnalysisUpdateProject": {
-      "description": "Indicates whether to update the Code Analysis project (*.fxcop) specified in $(CodeAnalysisProject). This applies when there are changes during analysis.",
+      "description": "Indicates whether to update the Code Analysis project (*.fxcop) specified in `$(CodeAnalysisProject)`. This applies when there are changes during analysis.",
       "kind": "bool",
       "default": "false"
     },

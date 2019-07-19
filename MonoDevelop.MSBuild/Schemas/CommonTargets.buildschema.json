@@ -148,7 +148,7 @@
           "default": "true"
         },
         "Targets": {
-          "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of $(ProjectReferenceBuildTargets) whose default is blank, indicating the default targets.",
+          "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of `$(ProjectReferenceBuildTargets)` whose default is blank, indicating the default targets.",
           "kind": "targetname-list"
         },
         "OutputItemType": {
@@ -757,11 +757,11 @@
       "kind": "bool"
     },
     "Configurations": {
-      "description": "The values that the IDE should list for the `Configuration` property",
+      "description": "The values that the IDE should list for the `$(Configuration)` property",
       "kind": "configuration-list"
     },
     "Platforms": {
-      "description": "The values that the IDE should list for the `Platform` property",
+      "description": "The values that the IDE should list for the `$(Platform)` property",
       "kind": "platform-list"
     }
   },
@@ -868,7 +868,7 @@
     "AssignProjectConfiguration": "Assigns configurations to project references based on the solutiom configuration mappings",
     "GetTargetPath": "Called by a referencing project to determine the path to the project's output",
     "PrepareResources": "Prepares resources for the Compile step",
-    "AssignTargetPaths": "Assigns `TargetPath` metadata on several item types",
+    "AssignTargetPaths": "Assigns `%(TargetPath)` metadata on several item types",
     "ResGen": "Compiles resx resource files",
     "Compile": "Resolves references and compiles the assembly",
     "CoreCompile": "Invokes the compiler to compile the assembly",
