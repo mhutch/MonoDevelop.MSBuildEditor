@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -32,6 +34,27 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
+			var completionKind = item.Properties.PropertyList[2].Value;
+			string insertionText;
+			switch (completionKind) {
+			case MSBuildSpecialCommitKind.Element:
+				if (item.InsertText.ToLower () == "packagereference") {
+					insertionText = item.InsertText + ' ' + '/' + '>';
+				} else {
+					insertionText = item.InsertText + '>' + '<' + '/' + item.InsertText + '>';
+				}
+				Insert (session, buffer, insertionText);
+				return CommitResult.Handled;
+			case MSBuildSpecialCommitKind.Attribute:
+				insertionText = item.InsertText + '=' + '"' + '"';
+				Insert (session, buffer, insertionText);
+				return CommitResult.Handled;
+			case MSBuildSpecialCommitKind.AttributeValue:
+				return CommitResult.Unhandled;
+			}
+
+			/*if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var baseInfo)) {
+			}*/
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}
