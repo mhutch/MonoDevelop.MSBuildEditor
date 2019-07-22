@@ -100,6 +100,13 @@ namespace MonoDevelop.MSBuild.Schema
 					new ConstantInfo ("true", "Equivalent to `ErrorAndStop`"),
 
 				};
+			case MSBuildValueKind.SkipNonexistentProjectsBehavior:
+				return new ConstantInfo[] {
+					new ConstantInfo ("True", "Skip the project if the project file does not exist"),
+					new ConstantInfo ("False", "Output an error if the project file does not exist"),
+					new ConstantInfo ("Build", "Build the project even if the project file does not exist")
+
+				};
 			case MSBuildValueKind.ToolsVersion:
 				return new ConstantInfo [] {
 					new ConstantInfo ("2.0", "MSBuild 2.0, included in .NET Framework 2.0"),

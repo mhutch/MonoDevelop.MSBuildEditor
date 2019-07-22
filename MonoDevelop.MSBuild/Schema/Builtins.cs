@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 Xamarin Inc.
+// Copyright (c) 2015 Xamarin Inc.
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -11,6 +11,7 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public static Dictionary<string, MetadataInfo> Metadata { get; } = new Dictionary<string, MetadataInfo> ();
 		public static Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> ();
+		public static Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> ();
 
 		static void AddMetadata (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, bool notReserved = false)
 		{
@@ -21,6 +22,8 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			Properties.Add (name, new PropertyInfo (name, description, !notReserved, kind));
 		}
+
+		static void AddTask (TaskInfo task) => Tasks.Add (task.Name, task);
 
 		static Builtins ()
 		{
@@ -74,6 +77,36 @@ namespace MonoDevelop.MSBuild.Schema
 			AddProperty ("MSBuildTreatWarningsAsErrors", "Name of the property that indicates that all warnings should be treated as errors", MSBuildValueKind.PropertyName, true);
 			AddProperty ("MSBuildWarningsAsErrors", "Name of the property that indicates a list of warnings to treat as errors", MSBuildValueKind.PropertyName, true);
 			AddProperty ("MSBuildWarningsAsMessages", "Name of the property that indicates the list of warnings to treat as messages", MSBuildValueKind.PropertyName, true);
+
+			AddTask (new TaskInfo (
+				"CallTarget",
+				"Invokes the specified targets in the current file",
+				true,
+				new TaskParameterInfo ("RunEachTargetSeparately", "Whether the MSBuild engine should be called once per target", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.List ()),
+				new TaskParameterInfo ("Targets", "The targets to be invoked", true, false, MSBuildValueKind.TargetName.List ()),
+				new TaskParameterInfo ("UseResultsCache", "Whether to use existing cached target outputs", true, false, MSBuildValueKind.Bool)
+			));
+
+			AddTask (new TaskInfo (
+				"MSBuild",
+				"Invokes the specified targets on the specified MSBuild projects",
+				true,
+				new TaskParameterInfo ("BuildInParallel", "Whether to build the projects in parallel", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("Projects", "The project files on which to invoke the targets", true, false, MSBuildValueKind.ProjectFile.List ()),
+				new TaskParameterInfo ("Properties", "Semicolon-separated list of `PropertyName=Value` values to pass to the child projects", false, false, MSBuildValueKind.String.List ()),
+				new TaskParameterInfo ("RebaseOutputs", "Rebases returned items with relative paths to be relative to the current project", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("RemoveProperties", "Semicolon-separated list of global properties to remove when invoking the child projects", false, false, MSBuildValueKind.PropertyName.List ()),
+				new TaskParameterInfo ("RunEachTargetSeparately", "Whether the MSBuild engine should be called once per target", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("SkipNonexistentProjects", "Skip nonexistent projects instead of erroring out", false, false, MSBuildValueKind.SkipNonexistentProjectsBehavior),
+				new TaskParameterInfo ("StopOnFirstFailure", "If target invocation fails on one project, do not continue with any other projects. Does not work with parallel builds.", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("TargetAndPropertyListSeparators", "Additional custom separators to use for splitting `Properties` and `Targets` parameters into lists.", false, false, MSBuildValueKind.String.List ()),
+				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.List ()),
+				new TaskParameterInfo ("Targets", "The targets to be invoked", false, false, MSBuildValueKind.TargetName.List ()),
+				new TaskParameterInfo ("ToolsVersion", "Override the ToolsVersion used to build the projects", false, false, MSBuildValueKind.ToolsVersion),
+				new TaskParameterInfo ("UnloadProjectsOnCompletion", "Unload the projects after invoking targets on them", false, false, MSBuildValueKind.Bool),
+				new TaskParameterInfo ("UseResultsCache", "Whether to use existing cached target outputs", true, false, MSBuildValueKind.Bool)
+			));
 		}
 	}
 }
