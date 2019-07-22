@@ -22,8 +22,11 @@ namespace MonoDevelop.MSBuild.Schema
 		public MSBuildLanguageElement AbstractChild { get; private set; }
 		public MSBuildLanguageAttribute AbstractAttribute { get; private set; }
 
-		MSBuildLanguageElement (string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false)
-			: base (name, description, valueKind)
+		MSBuildLanguageElement (
+			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
+			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
+			bool isAbstract = false, bool isDeprecated = false, string deprecationMessage = null)
+			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;
@@ -151,7 +154,7 @@ namespace MonoDevelop.MSBuild.Schema
 			project.attributes = new[] {
 				new MSBuildLanguageAttribute (project, "DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildSyntaxKind.Project_DefaultTargets, MSBuildValueKind.TargetName.List ().Literal ()),
 				new MSBuildLanguageAttribute (project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildSyntaxKind.Project_InitialTargets, MSBuildValueKind.TargetName.List ().Literal ()),
-				new MSBuildLanguageAttribute (project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal ()),
+				new MSBuildLanguageAttribute (project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.Literal (), isDeprecated: true),
 				new MSBuildLanguageAttribute (project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildSyntaxKind.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.List ().Literal ()),
 				new MSBuildLanguageAttribute (project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildSyntaxKind.Project_xmlns, MSBuildValueKind.Xmlns.Literal ()),
 				new MSBuildLanguageAttribute (project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.List().Literal ()),

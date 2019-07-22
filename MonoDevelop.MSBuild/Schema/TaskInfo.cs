@@ -48,7 +48,10 @@ namespace MonoDevelop.MSBuild.Schema
 		public bool IsOutput { get; }
 		public bool IsRequired { get; }
 
-		public TaskParameterInfo (string name, DisplayText description, bool isRequired, bool isOutput, MSBuildValueKind kind) : base (name, description, kind)
+		public TaskParameterInfo (
+			string name, DisplayText description, bool isRequired,
+			bool isOutput, MSBuildValueKind kind, bool isDeprecated = false, string deprecationMessage = null)
+			: base (name, description, kind, null, null, isDeprecated, deprecationMessage)
 		{
 			IsOutput = isOutput;
 			IsRequired = isRequired;

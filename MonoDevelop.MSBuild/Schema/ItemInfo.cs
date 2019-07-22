@@ -11,8 +11,9 @@ namespace MonoDevelop.MSBuild.Schema
 		public ItemInfo (
 			string name, DisplayText description, string includeDescription = null,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			Dictionary<string, MetadataInfo> metadata = null)
-			: base (name, description, valueKind)
+			Dictionary<string, MetadataInfo> metadata = null,
+			bool isDeprecated = false, string deprecationMessage = null)
+			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
 		{
 			Metadata = metadata ?? new Dictionary<string, MetadataInfo> ();
 			IncludeDescription = includeDescription;

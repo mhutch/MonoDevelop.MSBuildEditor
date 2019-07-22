@@ -60,9 +60,23 @@ namespace MonoDevelop.MSBuild.Editor
 				elements.Add (seenIn);
 			}
 
+			var deprecationMessage = GetDeprecationMessage (info);
+			if (deprecationMessage != null) {
+				elements.Add (deprecationMessage);
+			}
+
 			return elements.Count == 1
 				? elements[0]
 				: new ContainerElement (ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
+		}
+
+		static ClassifiedTextElement GetDeprecationMessage (BaseInfo info)
+		{
+			if (info is ValueInfo val && val.IsDeprecated) {
+				var msg = string.IsNullOrEmpty (val.DeprecationMessage) ? "Deprecated" : $"Deprecated: {val.DeprecationMessage}";
+				return new ClassifiedTextElement (new ClassifiedTextRun ("syntax error", msg));
+			}
+			return null;
 		}
 
 		public static ClassifiedTextElement GetNameElement (BaseInfo info)

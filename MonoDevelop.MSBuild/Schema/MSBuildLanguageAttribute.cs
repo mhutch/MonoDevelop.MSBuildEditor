@@ -10,8 +10,9 @@ namespace MonoDevelop.MSBuild.Schema
 		public MSBuildLanguageAttribute (
 			MSBuildLanguageElement element,
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind,
-			bool required = false, MSBuildSyntaxKind? abstractKind = null)
-			: base (name, description, valueKind)
+			bool required = false, MSBuildSyntaxKind? abstractKind = null,
+			bool isDeprecated = false, string deprecationMessage = null)
+			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
 		{
 			SyntaxKind = syntaxKind;
 			Element = element;
