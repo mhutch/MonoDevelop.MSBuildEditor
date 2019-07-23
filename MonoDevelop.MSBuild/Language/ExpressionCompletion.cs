@@ -98,6 +98,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (triggerExpression is ExpressionText text) {
+				if (!isExplicit && typedChar == '\\') {
+					triggerLength = 0;
+					return TriggerState.DirectorySeparator;
+				}
+
 				var val = text.Value;
 				int leadingWhitespace = 0;
 				for (int i = 0; i < val.Length; i++) {
@@ -122,14 +127,11 @@ namespace MonoDevelop.MSBuild.Language
 					case '$': return TriggerState.PropertyOrValue;
 					case '@': return TriggerState.ItemOrValue;
 					case '%': return TriggerState.MetadataOrValue;
-					default:
-						if (char.IsLetterOrDigit (firstChar)) {
-							return TriggerState.Value;
-						}
-						break;
+					default: return TriggerState.Value;
 					}
 				}
-				else if (isExplicit && char.IsLetterOrDigit (firstChar)) {
+				else if (isExplicit) {
+					//TODO: explicit triggering of directory path segments
 					triggerLength = length;
 					return TriggerState.Value;
 				}
@@ -471,7 +473,7 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.MetadataOrValue:
 			case TriggerState.ItemOrValue:
 			case TriggerState.PropertyOrValue:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr, triggerExpression);
 			case TriggerState.ItemName:
 				return doc.GetItems ();
 			case TriggerState.MetadataName:
@@ -481,7 +483,7 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.MetadataOrItemName:
 				return ((IEnumerable<BaseInfo>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
-				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength); ;
+				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength, rr);
 			case TriggerState.PropertyFunctionName:
 				return functionTypeProvider.GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:
