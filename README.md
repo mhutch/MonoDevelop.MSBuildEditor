@@ -117,7 +117,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Additional schema metadata for which msbuild metadata/property points to the base directory for filenames
 * Squiggle assignments to nonexistent task params
 * Metadata to mark symbols as aliases for another
-* Make expression triggering more eager
 * Improve implicit and explicit triggering for file path segments
 
 ## Build Status

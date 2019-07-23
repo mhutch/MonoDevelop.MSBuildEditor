@@ -80,6 +80,13 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (expression.Length == 0) {
 				triggerExpression = new ExpressionText (0, expression, true);
+
+				//automatically trigger on starting an attribute or closing a start tag
+				if (!isExplicit && (typedChar == '"' || typedChar == '\'' || typedChar == '>')) {
+					triggerLength = 0;
+					return TriggerState.Value;
+				}
+
 			} else {
 				const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
 				triggerExpression = ExpressionParser.Parse (expression, options);
