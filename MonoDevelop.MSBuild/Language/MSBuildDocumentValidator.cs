@@ -86,6 +86,12 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateTaskParameters (resolved, element);
 				break;
 			}
+
+			if (resolved.ValueKind == MSBuildValueKind.Nothing) {
+				foreach (var txt in element.Nodes.OfType<XText> ()) {
+					AddError ($"{element.Name.Name} does not allow text", txt.Span);
+				}
+			}
 		}
 
 		void CheckDeprecated (ValueInfo info, INamedXObject namedObj)

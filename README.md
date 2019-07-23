@@ -118,8 +118,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Additional schema metadata for expected extensions for files
 * Additional schema metadata for which msbuild metadata/property points to the base directory for filenames
 * Squiggle assignments to nonexistent task params
-* Squiggle stray text in unexpected locations, MSBuild doesn't like this
-* Metadata to mark symbols as deprecated
 * Metadata to mark symbols as aliases for another
 
 ## Build Status
