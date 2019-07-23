@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Linq;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -18,17 +19,18 @@ namespace MonoDevelop.MSBuild.Language
 
 		void VisitElementValue (XElement element, MSBuildLanguageElement resolved)
 		{
-			if (element.FirstChild != null || resolved.ValueKind == MSBuildValueKind.Data || resolved.ValueKind == MSBuildValueKind.Nothing) {
+			if (resolved.ValueKind == MSBuildValueKind.Data || resolved.ValueKind == MSBuildValueKind.Nothing || element.IsSelfClosing) {
 				return;
 			}
 
-			if (element.IsSelfClosing || !(element.ClosingTag is XClosingTag closing)) {
-				return;
-			}
-
+			//FIXME: handle multiple text nodes with comments between them
+			string value = string.Empty;
 			var begin = element.Span.End;
-			int end = element.ClosingTag.Span.Start;
-			var value = TextSource.GetTextBetween (begin, end);
+			var textNode = element.Nodes.OfType<XText> ().FirstOrDefault ();
+			if (textNode != null) {
+				begin = textNode.Span.Start;
+				value = TextSource.GetTextBetween (begin, textNode.Span.End);
+			}
 
 			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
 			if (info == null) {

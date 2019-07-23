@@ -9,6 +9,7 @@ using System.Linq;
 using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
@@ -22,6 +23,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var state = parser.CurrentState;
 			return state is XmlAttributeValueState
+				|| state is XmlTextState
 				|| (state is XmlRootState && ((IXmlParserContext)parser).StateTag == ROOT_STATE_FREE);
 		}
 
