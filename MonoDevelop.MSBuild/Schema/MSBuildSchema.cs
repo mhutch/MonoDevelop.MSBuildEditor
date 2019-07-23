@@ -6,13 +6,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using MonoDevelop.Xml.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	class MSBuildSchema : IMSBuildSchema
+	class MSBuildSchema : IMSBuildSchema, IEnumerable<BaseInfo>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -485,6 +486,44 @@ namespace MonoDevelop.MSBuild.Schema
 					toAdd.Item = item;
 				}
 				isFirstItem = false;
+			}
+		}
+
+		IEnumerator<BaseInfo> IEnumerable<BaseInfo>.GetEnumerator ()
+		{
+			foreach (var item in Items.Values) {
+				yield return item;
+			}
+			foreach (var prop in Properties.Values) {
+				yield return prop;
+			}
+			foreach (var task in Tasks.Values) {
+				yield return task;
+			}
+			foreach (var target in Targets.Values) {
+				yield return target;
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<BaseInfo>)this).GetEnumerator ();
+
+		public void Add (BaseInfo info)
+		{
+			switch (info) {
+			case ItemInfo item:
+				Items.Add (item.Name, item);
+				break;
+			case PropertyInfo prop:
+				Properties.Add (prop.Name, prop);
+				break;
+			case TaskInfo task:
+				Tasks.Add (task.Name, task);
+				break;
+			case TargetInfo target:
+				Targets.Add (target.Name, target);
+				break;
+			default:
+				throw new ArgumentException ($"Only items, properties, tasks and targets are allowed");
 			}
 		}
 	}
