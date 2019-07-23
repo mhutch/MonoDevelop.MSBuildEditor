@@ -44,11 +44,12 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var result = await GetCompletionContext (@"<Project><$");
 
-			//FIXME: add comment and closing tags
-			result.AssertItemCount (9);
+			result.AssertItemCount (11);
 
 			result.AssertContains ("PropertyGroup");
 			result.AssertContains ("Choose");
+			result.AssertContains ("/Project");
+			result.AssertContains ("!--");
 		}
 
 		[Test]
@@ -57,11 +58,13 @@ namespace MonoDevelop.MSBuild.Tests
 			var result = await GetCompletionContext (@"
 <Project><ItemGroup><Foo /><Bar /><$");
 
-			// FIXME: add comment, cdata, closing tags for Project/ItemGroup
-			result.AssertItemCount (2);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
+			result.AssertContains ("/ItemGroup");
+			result.AssertContains ("/Project");
+			result.AssertContains ("!--");
 		}
 
 		[Test]
@@ -70,8 +73,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var result = await GetCompletionContext (@"
 <Project><ItemGroup><Foo><Bar>a</Bar></Foo><Foo><$");
 
-			// FIXME: add comment, cdata, closing tags for Project/ItemGroup/Foo
-			result.AssertItemCount (1);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Bar");
 		}

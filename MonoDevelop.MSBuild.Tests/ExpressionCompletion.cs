@@ -32,8 +32,8 @@ namespace MonoDevelop.MSBuild.Tests
 			//start typing new bare value
 			new object[] { "", 'a', TriggerState.Value, 1 },
 
-			//start typing invalid char
-			new object[] { "", '/', TriggerState.None },
+			//punctuation can trigger too, some completions start with punctuation
+			new object[] { "", '*', TriggerState.Value, 1 },
 
 			//typing within bare value
 			new object[] { "a", 'x', TriggerState.None },
@@ -288,14 +288,23 @@ namespace MonoDevelop.MSBuild.Tests
 				return newTestCase;
 			}).ToArray ();
 
+		static object[] Filter (object[] input, Func<string, bool> predicate) => input.Where (i => predicate ((string)((object[])i)[0])).ToArray ();
+
+		// * is not a valid trigger in bare function values
+		static object[] BareValueTestCasesNoTrailingPunctuation = BareValueTestCases.Where (i => {
+			var arr = (object[])i;
+			var s = (string)arr[0];
+			return (s.Length == 0 || s[s.Length - 1] != '*') && !(arr[1] is char c && c == '*');
+		}).ToArray ();
+
 		static object[] PropertyFunctionArgumentTestCases = new object[][] {
 			PrependExpression ("$(foo.bar('", BareValueTestCases),
 			PrependExpression ("$(foo.bar('", PropertyTestCases),
 			PrependExpression ("$(foo.bar('", MetadataTestCases),
 			PrependExpression ("$(foo.bar('", QualifiedMetadataTestCases),
+			ChangeTriggers (PrependExpression ("$(foo.bar(", BareValueTestCasesNoTrailingPunctuation), TriggerState.Value, TriggerState.BareFunctionArgumentValue),
 			ChangeTriggers (PrependExpression ("$(foo.bar(", PropertyTestCases), TriggerState.Value, TriggerState.BareFunctionArgumentValue),
-			ChangeTriggers (PrependExpression ("$(foo.bar(", BareValueTestCases), TriggerState.Value, TriggerState.BareFunctionArgumentValue),
-			PrependExpression ("$(foo.bar(1, '", BareValueTestCases),
+			PrependExpression ("$(foo.bar(1, '", BareValueTestCasesNoTrailingPunctuation),
 			PrependExpression ("$(foo.bar(1, '", PropertyTestCases),
 		}.SelectMany (x => x).ToArray ();
 
@@ -321,7 +330,7 @@ namespace MonoDevelop.MSBuild.Tests
 		}.SelectMany (x => x).ToArray ();
 
 		[Test]
-		[TestCaseSource ("ExpressionTestCases")]
+		[TestCaseSource (nameof (ExpressionTestCases))]
 		public void TestTriggering (object[] args)
 		{
 			string expr = (string)args[0];
