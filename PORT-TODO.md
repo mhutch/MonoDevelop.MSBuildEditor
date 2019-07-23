@@ -9,14 +9,11 @@ MSBuild:
 * ctrl-click to navigate
 * nuget completion
 * automatically insert () when triggering with after @/$/%
-* lcid completion items
-* sdk completion items
 * polish the completion trigger/commit behavior
 
 Xml:
 
 * improve the background parser scheduling
-* smart indenter
 * formatter
 * convert parser errors to squiggles
 * polish the completion trigger/commit behavior
