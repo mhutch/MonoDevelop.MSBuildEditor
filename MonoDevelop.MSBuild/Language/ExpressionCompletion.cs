@@ -134,11 +134,19 @@ namespace MonoDevelop.MSBuild.Language
 					case '$': return TriggerState.PropertyOrValue;
 					case '@': return TriggerState.ItemOrValue;
 					case '%': return TriggerState.MetadataOrValue;
+					case '\\':
+						triggerLength = 0;
+						return TriggerState.DirectorySeparator;
 					default: return TriggerState.Value;
 					}
 				}
-				else if (isExplicit) {
-					//TODO: explicit triggering of directory path segments
+
+				if (isExplicit) {
+					var lastSlash = text.Value.LastIndexOf ('\\');
+					if (lastSlash != -1) {
+						triggerLength = text.Length - lastSlash - 1;
+						return TriggerState.DirectorySeparator;
+					}
 					triggerLength = length;
 					return TriggerState.Value;
 				}
@@ -158,7 +166,17 @@ namespace MonoDevelop.MSBuild.Language
 					return TriggerState.DirectorySeparator;
 				}
 
-				if (lit.Value.Length >= 2 && PenultimateChar () == '\\' && IsPossiblePathSegment (LastChar ())) {
+				//explict trigger grabs back to last slash, if any
+				if (isExplicit) {
+					var lastSlash = lit.Value.LastIndexOf ('\\');
+					if (lastSlash != -1) {
+						triggerLength = lit.Length - lastSlash - 1;
+						return TriggerState.DirectorySeparator;
+					}
+				}
+
+				//eager trigger on first char after /
+				if (!isExplicit && PenultimateChar () == '\\' && IsPossiblePathSegmentStart (typedChar)) {
 					triggerLength = 1;
 					return TriggerState.DirectorySeparator;
 				}
@@ -285,7 +303,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			char LastChar () => expression[expression.Length - 1];
 			char PenultimateChar () => expression[expression.Length - 2];
-			bool IsPossiblePathSegment (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
+			bool IsPossiblePathSegmentStart (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
 		}
 
 		public enum TriggerState

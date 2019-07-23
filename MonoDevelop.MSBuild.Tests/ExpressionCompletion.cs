@@ -40,6 +40,24 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$", 'x', TriggerState.None },
 		};
 
+		static object[] PathTestCases = {
+			//explicitly with directory separator
+			new object[] { "\\", TriggerState.DirectorySeparator },
+			new object[] { "\\foo\\abc", TriggerState.DirectorySeparator, 3 },
+			new object[] { "abcde\\a", TriggerState.DirectorySeparator, 1 },
+			new object[] { "$(foo)bar\\", TriggerState.DirectorySeparator },
+			new object[] { "$(foo)bar\\abcdef", TriggerState.DirectorySeparator, 6 },
+
+			//auto trigger after separator
+			new object[] { "", '\\', TriggerState.DirectorySeparator },
+			new object[] { "\\foo", '\\', TriggerState.DirectorySeparator },
+			new object[] { "abcde", '\\', TriggerState.DirectorySeparator },
+			new object[] { "$(foo)bar", '\\', TriggerState.DirectorySeparator },
+
+			//eager trigger on first char after /
+			new object[] { "$(foo)bar\\", 'x', TriggerState.DirectorySeparator, 1 },
+		};
+
 		static object[] PropertyTestCases = {
 			//start typing property
 			new object[] { "", '$', TriggerState.PropertyOrValue, 1 },
@@ -315,6 +333,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static object[] ExpressionTestCases = new object[][] {
 			BareValueTestCases,
+			PathTestCases,
 			PropertyTestCases,
 			ItemTestCases,
 			MetadataTestCases,
