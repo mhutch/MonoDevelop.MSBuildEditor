@@ -83,10 +83,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var items = new List<CompletionItem> ();
-			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
 				items.Add (CreateCompletionItem (el, doc, rr));
+			}
+
+			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
+			foreach (var c in GetMiscellaneousTags (context.spine.Nodes, allowcData)) {
+				items.Add (c);
 			}
 
 			return CreateCompletionContext (items);
@@ -116,7 +120,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return CreateCompletionContext (items); ;
+			return CreateCompletionContext (items);
+		}
+
+		protected override Task<CompletionContext> GetEntityCompletionsAsync (IAsyncCompletionSession session, SnapshotPoint triggerLocation, List<XObject> nodePath, CancellationToken token)
+		{
+			var items = new List<CompletionItem> ();
+			foreach (var entity in GetBuiltInEntityItems ()) {
+				items.Add (entity);
+			}
+			return Task.FromResult (CreateCompletionContext (items));
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
