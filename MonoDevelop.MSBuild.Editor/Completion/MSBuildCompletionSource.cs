@@ -426,7 +426,3 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ItemReference
 	}
 }
- 
- 
- 
- 
