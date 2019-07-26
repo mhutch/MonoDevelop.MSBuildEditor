@@ -9,7 +9,6 @@ using System.Linq;
 using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
@@ -52,25 +51,25 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static TriggerState GetTriggerState (
-			string expression, char typedChar, bool isCondition,
+			string expression, TriggerReason reason, char typedChar, bool isCondition,
 			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind,
 			out IReadOnlyList<ExpressionNode> comparandVariables)
 		{
 			comparandVariables = null;
 			if (isCondition) {
 				listKind = ListKind.None;
-				return GetConditionTriggerState (expression, typedChar, out triggerLength, out triggerExpression, out comparandVariables);
+				return GetConditionTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out comparandVariables);
 			}
-			return GetTriggerState (expression, typedChar, out triggerLength, out triggerExpression, out listKind);
+			return GetTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out listKind);
 		}
 
-		static TriggerState GetTriggerState (string expression, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
+		static TriggerState GetTriggerState (string expression, TriggerReason reason, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
 		{
-			var isExplicit = typedChar == '\0';
-			var isNewline = typedChar == '\n';
-
 			triggerLength = 0;
 			listKind = ListKind.None;
+
+			var isExplicit = reason == TriggerReason.Invocation;
+			var isNewline = typedChar == '\n';
 
 			if (!isExplicit && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
@@ -79,18 +78,13 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (expression.Length == 0) {
+				//automatically trigger at the start of an expression regardless
 				triggerExpression = new ExpressionText (0, expression, true);
-
-				//automatically trigger on starting an attribute or closing a start tag
-				if (!isExplicit && (typedChar == '"' || typedChar == '\'' || typedChar == '>')) {
-					triggerLength = 0;
-					return TriggerState.Value;
-				}
-
-			} else {
-				const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
-				triggerExpression = ExpressionParser.Parse (expression, options);
+				return TriggerState.Value;
 			}
+
+			const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
+			triggerExpression = ExpressionParser.Parse (expression, options);
 
 			if (triggerExpression is ListExpression el) {
 				//the last list entry is the thing that triggered it
@@ -274,7 +268,7 @@ namespace MonoDevelop.MSBuild.Language
 							(error.Kind == ExpressionErrorKind.IncompleteString && (expressionText.Parent is ExpressionArgumentList || expressionText.Parent is ExpressionItemTransform))
 							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && expressionText.Parent is ExpressionArgumentList)
 							) {
-							return GetTriggerState (expressionText.Value, typedChar, out triggerLength, out triggerExpression, out _);
+							return GetTriggerState (expressionText.Value, reason, typedChar, out triggerLength, out triggerExpression, out _);
 						}
 					}
 					break;
@@ -328,6 +322,13 @@ namespace MonoDevelop.MSBuild.Language
 			BareFunctionArgumentValue,
 		}
 
+		public enum TriggerReason
+		{
+			Invocation,
+			TypedChar,
+			Backspace
+		}
+
 		public enum ListKind
 		{
 			None,
@@ -337,12 +338,12 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static TriggerState GetConditionTriggerState (
 			string expression,
-			char typedChar, out int triggerLength, out ExpressionNode triggerExpression,
+			TriggerReason reason, char typedChar,
+			out int triggerLength, out ExpressionNode triggerExpression,
 			out IReadOnlyList<ExpressionNode> comparandValues
 		)
 		{
 			triggerLength = 0;
-			triggerExpression = null;
 			comparandValues = null;
 
 			if (expression.Length == 0 || (expression.Length == 0 && expression[0] == '\'')) {
@@ -387,7 +388,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var subexpr = expression.Substring (lastExpressionStart);
-			return GetTriggerState (subexpr, typedChar, out triggerLength, out triggerExpression, out _);
+			return GetTriggerState (subexpr, reason, typedChar, out triggerLength, out triggerExpression, out _);
 		}
 
 		static bool TokenIsCondition (TokenType type)

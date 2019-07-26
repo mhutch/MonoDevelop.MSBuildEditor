@@ -361,11 +361,13 @@ namespace MonoDevelop.MSBuild.Tests
 				expr += typedChar;
 			}
 
+			var reason = typedChar == '\0' ? TriggerReason.Invocation : TriggerReason.TypedChar;
+
 			var state = GetTriggerState (
-				expr, typedChar, false,
-				out int triggerLength, out ExpressionNode triggerNode,
-				out ListKind listKind,
-				out IReadOnlyList<ExpressionNode> comparandVariables
+				expr, reason, typedChar, false,
+				out int triggerLength, out ExpressionNode _,
+				out ListKind _,
+				out IReadOnlyList<ExpressionNode> _
 			);
 
 			Assert.AreEqual (expectedState, state);
@@ -390,7 +392,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var expectedComparands = args.Skip (3).Cast<string> ().ToList ();
 
 			var state = GetTriggerState (
-				expr, '\0', true,
+				expr, TriggerReason.Invocation, '\0', true,
 				out int triggerLength, out _, out _,
 				out IReadOnlyList<ExpressionNode> comparandVariables
 			);

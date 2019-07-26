@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.MiniEditor;
 
 using MonoDevelop.MSBuild.Editor;
@@ -318,6 +319,29 @@ namespace MonoDevelop.MSBuild.Tests
 
 			result.AssertNonEmpty ();
 			result.AssertContains ("True");
+		}
+
+		[Test]
+		public async Task TriggerOnBackspace ()
+		{
+			var result = await GetCompletionContext (
+				@"<Project><PropertyGroup><Foo>$",
+				CompletionTriggerReason.Backspace,
+				filename: "EagerElementTrigger.csproj");
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("True");
+		}
+
+		[Test]
+		public async Task NoTriggerOnBackspaceMidExpression ()
+		{
+			var result = await GetCompletionContext (
+				@"<Project><PropertyGroup><Foo>true$",
+				CompletionTriggerReason.Backspace,
+				filename: "EagerElementTrigger.csproj");
+
+			Assert.Zero (result.Items.Length);
 		}
 	}
 
