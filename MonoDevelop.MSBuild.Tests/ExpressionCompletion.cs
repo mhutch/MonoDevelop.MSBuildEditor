@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "", TriggerReason.Backspace, TriggerState.Value },
 
 			// don't auto trigger after backspacing in random places
-			new object[] { "dffdf", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "d", TriggerReason.Backspace, TriggerState.None },
 			new object[] { "dffdf ", TriggerReason.Backspace, TriggerState.None },
 
 			//start typing new bare value
@@ -75,10 +75,10 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static readonly object[] PropertyTestCases = {
 			//start typing property
-			new object[] { "", '$', TriggerState.PropertyOrValue, 1 },
+			new object[] { "", '$', TriggerState.Value, 1 },
 
 			//explicit trigger after property start
-			new object[] { "$", TriggerState.PropertyOrValue, 1 },
+			new object[] { "$", TriggerState.Value, 1 },
 
 			//auto trigger property name on typing
 			new object[] { "$", '(', TriggerState.PropertyName },
@@ -106,10 +106,10 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static readonly object[] ItemTestCases = {
 			//start typing item
-			new object[] { "", '@', TriggerState.ItemOrValue, 1 },
+			new object[] { "", '@', TriggerState.Value, 1 },
 
 			//explicit trigger after item start
-			new object[] { "@", TriggerState.ItemOrValue, 1 },
+			new object[] { "@", TriggerState.Value, 1 },
 
 			//auto trigger item name on typing
 			new object[] { "@", '(', TriggerState.ItemName },
@@ -138,10 +138,10 @@ namespace MonoDevelop.MSBuild.Tests
 		static readonly object[] MetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
 			//start typing metadata
-			new object[] { "", '%', TriggerState.MetadataOrValue, 1 },
+			new object[] { "", '%', TriggerState.Value, 1 },
 
 			//explicit trigger after metadata start
-			new object[] { "%", TriggerState.MetadataOrValue, 1 },
+			new object[] { "%", TriggerState.Value, 1 },
 
 			//auto trigger metadata name on typing
 			new object[] { "%", '(', TriggerState.MetadataOrItemName },

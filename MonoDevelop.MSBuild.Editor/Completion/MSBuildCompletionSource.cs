@@ -141,7 +141,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
+		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (
+			IAsyncCompletionSession session, CompletionItem item,
+			CancellationToken token)
 		{
 			if (!item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) || info == null) {
 				return Task.FromResult<object> (null);
@@ -314,11 +316,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}, token);
 		}
 
-		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, ExpressionCompletion.ListKind listKind, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		async Task<CompletionContext> GetExpressionCompletionsAsync (
+			ValueInfo info, TriggerState triggerState, ListKind listKind,
+			int triggerLength, ExpressionNode triggerExpression,
+			IReadOnlyList<ExpressionNode> comparandVariables,
+			MSBuildResolveResult rr, SnapshotPoint triggerLocation,
+			MSBuildRootDocument doc, CancellationToken token)
 		{
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var kind = info.InferValueKindIfUnknown ();
 
-			if (!ExpressionCompletion.ValidateListPermitted (listKind, kind)) {
+			if (!ValidateListPermitted (listKind, kind)) {
 				return CompletionContext.Empty;
 			}
 
@@ -330,15 +337,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
-			bool isValue = triggerState == ExpressionCompletion.TriggerState.Value
-				|| triggerState == ExpressionCompletion.TriggerState.PropertyOrValue
-				|| triggerState == ExpressionCompletion.TriggerState.ItemOrValue
-				|| triggerState == ExpressionCompletion.TriggerState.MetadataOrValue;
+			bool isValue = triggerState == TriggerState.Value;
 
 			var items = new List<CompletionItem> ();
 
 			if (comparandVariables != null && isValue) {
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
+				foreach (var ci in GetComparandCompletions (doc, comparandVariables)) {
 					items.Add (CreateCompletionItem (ci, doc, rr));
 				}
 			}
