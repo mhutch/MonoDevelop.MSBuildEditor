@@ -71,8 +71,9 @@ namespace MonoDevelop.MSBuild.Language
 			var isExplicit = reason == TriggerReason.Invocation;
 			var isNewline = typedChar == '\n';
 			var isBackspace = reason == TriggerReason.Backspace;
+			var isTypedChar = reason == TriggerReason.TypedChar;
 
-			if (reason == TriggerReason.TypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
+			if (isTypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
 				LoggingService.LogWarning ($"Expression text '{expression}' is not consistent with typed character '{typedChar}'");
 				return TriggerState.None;
@@ -194,7 +195,7 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionItemName ein:
 					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
-						if (isExplicit || ein.Name.Length == 1) {
+						if (ShouldTriggerName (ein.Name)) {
 							triggerLength = ein.Name.Length;
 							return TriggerState.ItemName;
 						}
@@ -203,7 +204,7 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionPropertyName pn:
 					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
-						if (isExplicit || pn.Name.Length == 1) {
+						if (ShouldTriggerName (pn.Name)) {
 							triggerLength = pn.Name.Length;
 							return TriggerState.PropertyName;
 						}
@@ -212,14 +213,14 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionFunctionName fn:
 					if (iee.Kind == ExpressionErrorKind.IncompleteProperty) {
-						if (isExplicit || fn.Name.Length == 1) {
+						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.PropertyFunctionName;
 						}
 						return TriggerState.None;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
-						if (isExplicit || fn.Name.Length == 1) {
+						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.ItemFunctionName;
 						}
@@ -238,7 +239,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
 						|| ((iee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || iee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && cr.Parent is ExpressionArgumentList)
 						) {
-						if (isExplicit || cr.Name.Length == 1) {
+						if (ShouldTriggerName (cr.Name)) {
 							triggerLength = cr.Name.Length;
 							return cr.Parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
 						}
@@ -250,14 +251,14 @@ namespace MonoDevelop.MSBuild.Language
 						return TriggerState.MetadataName;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
-						if (m.ItemName.Length == 1 || isExplicit) {
+						if (ShouldTriggerName (m.ItemName)) {
 							triggerLength = m.ItemName.Length;
 							return TriggerState.MetadataOrItemName;
 						}
 						return TriggerState.None;
 					}
 					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen) {
-						if (m.MetadataName.Length == 1 || isExplicit) {
+						if (ShouldTriggerName (m.MetadataName)) {
 							triggerLength = m.MetadataName.Length;
 							return TriggerState.MetadataName;
 						}
@@ -299,6 +300,10 @@ namespace MonoDevelop.MSBuild.Language
 			char LastChar () => expression[expression.Length - 1];
 			char PenultimateChar () => expression[expression.Length - 2];
 			bool IsPossiblePathSegmentStart (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
+			bool ShouldTriggerName (string n) =>
+				isExplicit
+				|| (isTypedChar && n.Length == 1)
+				|| (isBackspace && n.Length == 0);
 		}
 
 		public enum TriggerState

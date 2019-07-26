@@ -32,6 +32,10 @@ namespace MonoDevelop.MSBuild.Tests
 			// auto trigger after backspacing down to nothing
 			new object[] { "", TriggerReason.Backspace, TriggerState.Value },
 
+			// don't auto trigger after backspacing in random places
+			new object[] { "dffdf", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "dffdf ", TriggerReason.Backspace, TriggerState.None },
+
 			//start typing new bare value
 			new object[] { "", 'a', TriggerState.Value, 1 },
 
@@ -58,8 +62,12 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(foo)bar", '\\', TriggerState.DirectorySeparator },
 
 			//auto trigger after backspace after separator
-			new object[] { "\\", TriggerState.DirectorySeparator, TriggerReason.Backspace },
-			new object[] { "foo\\", TriggerState.DirectorySeparator, TriggerReason.Backspace },
+			new object[] { "\\", TriggerReason.Backspace, TriggerState.DirectorySeparator },
+			new object[] { "foo\\", TriggerReason.Backspace, TriggerState.DirectorySeparator },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "foo\\b", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "foo\\bar", TriggerReason.Backspace, TriggerState.None },
 
 			//eager trigger on first char after /
 			new object[] { "$(foo)bar\\", 'x', TriggerState.DirectorySeparator, 1 },
@@ -80,6 +88,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(", TriggerState.PropertyName },
 			new object[] { "$(abc", TriggerState.PropertyName, 3 },
 			new object[] { "$(abcefgh", TriggerState.PropertyName, 7 },
+
+			//auto trigger after backspacing down to no name
+			new object[] { "$(", TriggerReason.Backspace, TriggerState.PropertyName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "$(a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "$(abcd", TriggerReason.Backspace, TriggerState.None },
 
 			//explicit trigger after invalid char in property name
 			new object[] { "$(a-", TriggerState.None },
@@ -105,6 +120,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(abc", TriggerState.ItemName, 3 },
 			new object[] { "@(abcefgh", TriggerState.ItemName, 7 },
 
+			//auto trigger after backspacing down to no name
+			new object[] { "@(", TriggerReason.Backspace, TriggerState.ItemName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "@(f", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "@(fdf", TriggerReason.Backspace, TriggerState.None },
+
 			//explicit trigger after invalid char in item name
 			new object[] { "@(a-", TriggerState.None },
 
@@ -125,6 +147,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%", '(', TriggerState.MetadataOrItemName },
 			new object[] { "%(", 'a', TriggerState.MetadataOrItemName, 1 },
 			new object[] { "%(  ", 'a', TriggerState.MetadataOrItemName, 1 },
+
+			//auto trigger after backspacing down to no name
+			new object[] { "%(", TriggerReason.Backspace, TriggerState.MetadataOrItemName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "%(a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "%(aaa", TriggerReason.Backspace, TriggerState.None },
 
 			//explicit trigger in metadata name
 			new object[] { "%(", TriggerState.MetadataOrItemName },
@@ -160,6 +189,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%(foo  .", 'a', TriggerState.MetadataName, 1 },
 			new object[] { "%(foo  .  ", 'a', TriggerState.MetadataName, 1 },
 
+			//auto trigger after backspacing down to no name
+			new object[] { "%(foo.", TriggerReason.Backspace, TriggerState.MetadataName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "%(foo.a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "%(foo.as", TriggerReason.Backspace, TriggerState.None },
+
 			//explicit trigger after invalid char in qualified metadata name
 			new object[] { "%(a.b-", TriggerState.None },
 			new object[] { "%(a  .b-", TriggerState.None },
@@ -185,6 +221,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(foo.", 'a', TriggerState.PropertyFunctionName, 1 },
 			new object[] { "$(foo  .", 'a', TriggerState.PropertyFunctionName, 1 },
 
+			//auto trigger after backspacing down to no name
+			new object[] { "$(foo.", TriggerReason.Backspace, TriggerState.PropertyFunctionName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "$(foo.a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "$(foo.abc", TriggerReason.Backspace, TriggerState.None },
+
 			//explicit trigger after invalid char in property function name
 			new object[] { "$(a.b-", TriggerState.None },
 			new object[] { "$(a  .b-", TriggerState.None },
@@ -198,6 +241,13 @@ namespace MonoDevelop.MSBuild.Tests
 			//explicit trigger after indexer
 			new object[] { "$(a[0].", TriggerState.PropertyFunctionName },
 			new object[] { "$(a[0].bcd", TriggerState.PropertyFunctionName, 3 },
+
+			//auto trigger after backspacing down to no name after indexer
+			new object[] { "$(a[0].", TriggerReason.Backspace, TriggerState.PropertyFunctionName },
+
+			// don't auto trigger after backspacing in random places after indexer
+			new object[] { "$(a[0].q", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "$(a[0].qwerty", TriggerReason.Backspace, TriggerState.None },
 
 			//automatic trigger after indexer
 			new object[] { "$(a[0]", '.', TriggerState.PropertyFunctionName },
@@ -217,6 +267,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(foo -", '>', TriggerState.ItemFunctionName },
 			new object[] { "@(foo->", 'a', TriggerState.ItemFunctionName, 1 },
 			new object[] { "@(foo  ->", 'a', TriggerState.ItemFunctionName, 1 },
+
+			//auto trigger after backspacing down to no name
+			new object[] { "@(foo->", TriggerReason.Backspace, TriggerState.ItemFunctionName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "@(foo->a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "@(foo->aaa", TriggerReason.Backspace, TriggerState.None },
 
 			//explicit trigger after invalid char in item function name
 			new object[] { "@(a->b/", TriggerState.None },
@@ -241,6 +298,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([Foo]::", 'a', TriggerState.PropertyFunctionName, 1 },
 			new object[] { "$([Foo]  ::", 'a', TriggerState.None },
 
+			//auto trigger after backspacing down to no name
+			new object[] { "$([Foo]::", TriggerReason.Backspace, TriggerState.PropertyFunctionName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "$([Foo]::a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "$([Foo]::abc", TriggerReason.Backspace, TriggerState.None },
+
 			//explicit trigger after invalid char in static property function name
 			new object[] { "$([Foo]::b-", TriggerState.None },
 			new object[] { "$([Foo]  ::b-", TriggerState.None },
@@ -261,6 +325,13 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([", TriggerState.PropertyFunctionClassName },
 			new object[] { "$([abc", TriggerState.PropertyFunctionClassName, 3 },
 			new object[] { "$([abcefgh", TriggerState.PropertyFunctionClassName, 7 },
+
+			//auto trigger after backspacing down to no name
+			new object[] { "$([", TriggerReason.Backspace, TriggerState.PropertyFunctionClassName },
+
+			// don't auto trigger after backspacing in random places
+			new object[] { "$([a", TriggerReason.Backspace, TriggerState.None },
+			new object[] { "$([aaa", TriggerReason.Backspace, TriggerState.None },
 
 			//explicit trigger after invalid char in static property function class name
 			new object[] { "$([a-", TriggerState.None },
