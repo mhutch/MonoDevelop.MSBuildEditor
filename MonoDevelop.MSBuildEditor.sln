@@ -20,13 +20,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Tests", "Mo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.MSBuild", "MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj", "{E30D9BF7-2840-4274-A8A6-58D34295C6C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.MSBuild.Tests", "MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj", "{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Tests", "MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj", "{6F309F85-A9C2-4DEB-B96C-6BC9C21917D1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Editor", "MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj", "{563FFDF7-0739-42DF-B987-B804A26D1E0B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.MSBuild.Editor", "MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj", "{17E0FE72-B6D9-4187-BD80-D8A27BC74533}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Editor.VisualStudio", "MonoDevelop.MSBuild.Editor.VisualStudio\MonoDevelop.MSBuild.Editor.VisualStudio.csproj", "{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.MiniEditor", "MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj", "{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +106,14 @@ Global
 		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
 		{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.DebugMac|Any CPU.Build.0 = Debug|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
