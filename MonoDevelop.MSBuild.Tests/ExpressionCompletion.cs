@@ -21,13 +21,16 @@ namespace MonoDevelop.MSBuild.Tests
 		//	  if typedChar is \0, it's treated as explicitly invoking the command
 		//    if typedChar is provided, it's added to the document text
 
-		static object[] BareValueTestCases = {
+		static readonly object[] BareValueTestCases = {
 			//explicitly trigger in bare value
 			new object[] { "", TriggerState.Value },
 			new object[] { "abc", TriggerState.Value, 3 },
 			new object[] { "abcde", TriggerState.Value, 5 },
 			new object[] { " ", TriggerState.Value },
 			new object[] { "  xyz", TriggerState.Value, 3 },
+
+			// auto trigger after backspacing down to nothing
+			new object[] { "", TriggerReason.Backspace, TriggerState.Value },
 
 			//start typing new bare value
 			new object[] { "", 'a', TriggerState.Value, 1 },
@@ -40,7 +43,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$", 'x', TriggerState.None },
 		};
 
-		static object[] PathTestCases = {
+		static readonly object[] PathTestCases = {
 			//explicitly with directory separator
 			new object[] { "\\", TriggerState.DirectorySeparator },
 			new object[] { "\\foo\\abc", TriggerState.DirectorySeparator, 3 },
@@ -54,11 +57,15 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "abcde", '\\', TriggerState.DirectorySeparator },
 			new object[] { "$(foo)bar", '\\', TriggerState.DirectorySeparator },
 
+			//auto trigger after backspace after separator
+			new object[] { "\\", TriggerState.DirectorySeparator, TriggerReason.Backspace },
+			new object[] { "foo\\", TriggerState.DirectorySeparator, TriggerReason.Backspace },
+
 			//eager trigger on first char after /
 			new object[] { "$(foo)bar\\", 'x', TriggerState.DirectorySeparator, 1 },
 		};
 
-		static object[] PropertyTestCases = {
+		static readonly object[] PropertyTestCases = {
 			//start typing property
 			new object[] { "", '$', TriggerState.PropertyOrValue, 1 },
 
@@ -82,7 +89,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(abc", '$', TriggerState.None },
 		};
 
-		static object[] ItemTestCases = {
+		static readonly object[] ItemTestCases = {
 			//start typing item
 			new object[] { "", '@', TriggerState.ItemOrValue, 1 },
 
@@ -106,7 +113,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(abc", '$', TriggerState.None },
 		};
 
-		static object[] MetadataTestCases = {
+		static readonly object[] MetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
 			//start typing metadata
 			new object[] { "", '%', TriggerState.MetadataOrValue, 1 },
@@ -134,7 +141,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%(abc", '$', TriggerState.None },
 		};
 
-		static object[] QualifiedMetadataTestCases = {
+		static readonly object[] QualifiedMetadataTestCases = {
 			// note metadata allows a surprising amount of whitespace, unlike properties and items
 
 			// explicit trigger qualified metadata name
@@ -164,7 +171,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "%(ab  .cd", '$', TriggerState.None },
 		};
 
-		static object[] PropertyFunctionTestCases = {
+		static readonly object[] PropertyFunctionTestCases = {
 			// explicit trigger property function name
 			new object[] { "$(foo.", TriggerState.PropertyFunctionName },
 			new object[] { "$(foo .", TriggerState.PropertyFunctionName },
@@ -197,7 +204,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$(a[0].", 'a', TriggerState.PropertyFunctionName, 1 },
 		};
 
-		static object[] ItemFunctionTestCases = {
+		static readonly object[] ItemFunctionTestCases = {
 			// explicit trigger item function name
 			new object[] { "@(foo->", TriggerState.ItemFunctionName },
 			new object[] { "@(foo ->", TriggerState.ItemFunctionName },
@@ -221,7 +228,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "@(ab  ->cd", '$', TriggerState.None },
 		};
 
-		static object[] StaticPropertyFunctionTestCases = {
+		static readonly object[] StaticPropertyFunctionTestCases = {
 			// explicit trigger static property function name
 			new object[] { "$([Foo]::", TriggerState.PropertyFunctionName },
 			new object[] { "$([Foo]  ::", TriggerState.None }, //space between ] and :: is invalid
@@ -245,7 +252,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([Foo]   :: cd", '$', TriggerState.None },
 		};
 
-		static object[] StaticPropertyFunctionNameTestCases = {
+		static readonly object[] StaticPropertyFunctionNameTestCases = {
 			//auto trigger static property function class name on typing
 			new object[] { "$(", '[', TriggerState.PropertyFunctionClassName },
 			new object[] { "$([", 'a', TriggerState.PropertyFunctionClassName, 1 },
@@ -263,7 +270,7 @@ namespace MonoDevelop.MSBuild.Tests
 			new object[] { "$([abc", '$', TriggerState.None }
 		};
 
-		static object[] SemicolonListValueTestCases = new object[][] {
+		static readonly object[] SemicolonListValueTestCases = new object[][] {
 			new[] {
 				// automatic trigger after list separator
 				new object[] { "foo", ';', TriggerState.Value},
@@ -274,7 +281,7 @@ namespace MonoDevelop.MSBuild.Tests
 			PrependExpression ("foo;", PropertyTestCases)
 		}.SelectMany (x => x).ToArray ();
 
-		static object[] CommaListValueTestCases = new object[][] {
+		static readonly object[] CommaListValueTestCases = new object[][] {
 			new[] {
 				// automatic trigger after list separator
 				new object[] { "foo", ',', TriggerState.Value},
@@ -306,16 +313,14 @@ namespace MonoDevelop.MSBuild.Tests
 				return newTestCase;
 			}).ToArray ();
 
-		static object[] Filter (object[] input, Func<string, bool> predicate) => input.Where (i => predicate ((string)((object[])i)[0])).ToArray ();
-
 		// * is not a valid trigger in bare function values
-		static object[] BareValueTestCasesNoTrailingPunctuation = BareValueTestCases.Where (i => {
+		static readonly object[] BareValueTestCasesNoTrailingPunctuation = BareValueTestCases.Where (i => {
 			var arr = (object[])i;
 			var s = (string)arr[0];
 			return (s.Length == 0 || s[s.Length - 1] != '*') && !(arr[1] is char c && c == '*');
 		}).ToArray ();
 
-		static object[] PropertyFunctionArgumentTestCases = new object[][] {
+		static readonly object[] PropertyFunctionArgumentTestCases = new object[][] {
 			PrependExpression ("$(foo.bar('", BareValueTestCases),
 			PrependExpression ("$(foo.bar('", PropertyTestCases),
 			PrependExpression ("$(foo.bar('", MetadataTestCases),
@@ -326,12 +331,12 @@ namespace MonoDevelop.MSBuild.Tests
 			PrependExpression ("$(foo.bar(1, '", PropertyTestCases),
 		}.SelectMany (x => x).ToArray ();
 
-		static object[] ItemFunctionArgumentTestCases = new object[][] {
+		static readonly object[] ItemFunctionArgumentTestCases = new object[][] {
 			PrependExpression ("@(a->'", PropertyTestCases),
 			PrependExpression ("@(a->'", MetadataTestCases),
 		}.SelectMany (x => x).ToArray ();
 
-		static object[] ExpressionTestCases = new object[][] {
+		static readonly object[] ExpressionTestCases = new object[][] {
 			BareValueTestCases,
 			PathTestCases,
 			PropertyTestCases,
@@ -352,16 +357,34 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCaseSource (nameof (ExpressionTestCases))]
 		public void TestTriggering (object[] args)
 		{
+			//firstarg is the expression
 			string expr = (string)args[0];
-			char typedChar = (args[1] as char?) ?? '\0';
-			var expectedState = (TriggerState)(args[1] is char ? args[2] : args[1]);
+
+			TriggerReason reason;
+			char typedChar;
+
+			//next arg can be typed char or a trigger reason
+			//this would make a nice switch expression w/c#8
+			if (args[1] is TriggerReason r) {
+				reason = r;
+				typedChar = '\0';
+			} else if (args[1] is char c) {
+				reason = TriggerReason.TypedChar;
+				typedChar = c;
+			} else {
+				reason = TriggerReason.Invocation;
+				typedChar = '\0';
+			}
+
+			//expected state will be last unless length is provided, then it's penultimate
+			var expectedState = args[args.Length - 1] is TriggerState? args[args.Length - 1] : args[args.Length - 2];
+
+			//length is optional, but if provided it's always last
 			int expectedLength = args[args.Length - 1] as int? ?? 0;
 
 			if (typedChar != '\0') {
 				expr += typedChar;
 			}
-
-			var reason = typedChar == '\0' ? TriggerReason.Invocation : TriggerReason.TypedChar;
 
 			var state = GetTriggerState (
 				expr, reason, typedChar, false,

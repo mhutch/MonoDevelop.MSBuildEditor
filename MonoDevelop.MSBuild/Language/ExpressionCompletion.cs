@@ -70,8 +70,9 @@ namespace MonoDevelop.MSBuild.Language
 
 			var isExplicit = reason == TriggerReason.Invocation;
 			var isNewline = typedChar == '\n';
+			var isBackspace = reason == TriggerReason.Backspace;
 
-			if (!isExplicit && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
+			if (reason == TriggerReason.TypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
 				LoggingService.LogWarning ($"Expression text '{expression}' is not consistent with typed character '{typedChar}'");
 				return TriggerState.None;
@@ -99,7 +100,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (triggerExpression is ExpressionText text) {
-				if (!isExplicit && typedChar == '\\') {
+				if (typedChar == '\\' || (isBackspace && LastChar () == '\\')) {
 					triggerLength = 0;
 					return TriggerState.DirectorySeparator;
 				}
@@ -160,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language
 					return TriggerState.DirectorySeparator;
 				}
 
-				//explict trigger grabs back to last slash, if any
+				//explicit trigger grabs back to last slash, if any
 				if (isExplicit) {
 					var lastSlash = lit.Value.LastIndexOf ('\\');
 					if (lastSlash != -1) {
