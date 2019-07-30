@@ -447,6 +447,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		NewGuid,
 		PropertyReference,
-		ItemReference
+		ItemReference,
+		MetadataReference
 	}
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,11 +24,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			this.provider = provider;
 		}
 
-		public IEnumerable<char> PotentialCommitCharacters => Array.Empty<char> ();
+		public IEnumerable<char> PotentialCommitCharacters => new[] { ' ', '(', ')', '.', '-', ';', '[' };
 
 		public bool ShouldCommitCompletion (IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken token)
 		{
-			return false;
+			return PotentialCommitCharacters.Contains (typedChar);
 		}
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
@@ -40,11 +41,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			case MSBuildSpecialCommitKind.NewGuid:
 				InsertGuid (session, buffer);
 				return CommitResult.Handled;
+
 			case MSBuildSpecialCommitKind.ItemReference:
 			case MSBuildSpecialCommitKind.PropertyReference:
-				Insert (session, buffer, item.InsertText);
+				var str = item.InsertText;
+				//avoid the double paren
+				if (typedChar == '(') {
+					str = str.Substring (0, str.Length - 1);
+				}
+				Insert (session, buffer, str);
 				RetriggerCompletion (session.TextView);
-				//TODO: insert trailing )
+				//TODO: insert overtypeable closing paren
 				return CommitResult.Handled;
 			}
 
