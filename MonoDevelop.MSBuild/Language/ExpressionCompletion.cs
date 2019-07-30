@@ -63,7 +63,9 @@ namespace MonoDevelop.MSBuild.Language
 			return GetTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out listKind);
 		}
 
-		static TriggerState GetTriggerState (string expression, TriggerReason reason, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
+		static TriggerState GetTriggerState (
+			string expression, TriggerReason reason, char typedChar,
+			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
 		{
 			triggerLength = 0;
 			listKind = ListKind.None;

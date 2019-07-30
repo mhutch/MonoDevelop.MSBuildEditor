@@ -126,6 +126,6 @@ namespace MonoDevelop.MSBuild.Schema
 		Task_Architecture = Output + (44 << 16),
 		Task_Runtime = Output + (45 << 16),
 
-		Metadata_Condition = Metadata| LabelAttribute,
+		Metadata_Condition = Metadata | ConditionAttribute,
 	}
 }

@@ -44,6 +44,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			case MSBuildSpecialCommitKind.ItemReference:
 			case MSBuildSpecialCommitKind.PropertyReference:
+			case MSBuildSpecialCommitKind.MetadataReference:
 				var str = item.InsertText;
 				//avoid the double paren
 				if (typedChar == '(') {

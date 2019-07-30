@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -387,7 +389,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
-				//FIXME metadata
+				if (IsMetadataAllowed (triggerExpression, rr)) {
+					items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
+				}
 			}
 
 			if (items.Count > 0) {
@@ -395,6 +399,46 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			return CompletionContext.Empty;
+		}
+
+		//FIXME: improve logic for determining where metadata is permitted
+		bool IsMetadataAllowed (ExpressionNode triggerExpression, MSBuildResolveResult rr)
+		{
+			//if any a parent node is an item transform or function, metadata is allowed
+			if (triggerExpression != null) {
+				var node = triggerExpression.Find (triggerExpression.Length);
+				while (node != null) {
+					if (node is ExpressionItemTransform || node is ExpressionItemFunctionInvocation) {
+						return true;
+					}
+					node = node.Parent;
+				}
+			}
+
+			if (rr.LanguageAttribute != null) {
+				switch (rr.LanguageAttribute.SyntaxKind) {
+				// metadata attributes on items can refer to other metadata on the items
+				case MSBuildSyntaxKind.Item_Metadata:
+				// task params can refer to metadata in batched items
+				case MSBuildSyntaxKind.Task_Parameter:
+				// target inputs and outputs can use metadata from each other's items
+				case MSBuildSyntaxKind.Target_Inputs:
+				case MSBuildSyntaxKind.Target_Outputs:
+					return true;
+				//conditions on metadata elements can refer to metadata on the items
+				case MSBuildSyntaxKind.Metadata_Condition:
+					return true;
+				}
+			}
+
+			if (rr.LanguageElement != null) {
+				switch (rr.LanguageElement.SyntaxKind) {
+				// metadata elements can refer to other metadata in the items
+				case MSBuildSyntaxKind.Metadata:
+					return true;
+				}
+			}
+			return false;
 		}
 
 		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildSpecialCommitKind kind)
