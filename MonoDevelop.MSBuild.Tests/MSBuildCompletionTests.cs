@@ -38,9 +38,9 @@ namespace MonoDevelop.MSBuild.Tests
 
 			result.AssertNonEmpty ();
 
-			result.AssertContains ("ItemGroup");
-			result.AssertContains ("Choose");
-			result.AssertContains ("Import");
+			result.AssertContains ("<ItemGroup");
+			result.AssertContains ("<Choose");
+			result.AssertContains ("<Import");
 		}
 
 

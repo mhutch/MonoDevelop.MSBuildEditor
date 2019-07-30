@@ -87,11 +87,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, doc, rr));
+				items.Add (CreateCompletionItem (el, includeBracket? "<" : null));
 			}
 
 			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
-			foreach (var c in GetMiscellaneousTags (context.spine.Nodes, allowcData)) {
+			foreach (var c in GetMiscellaneousTags (triggerLocation, nodePath, includeBracket, allowcData)) {
 				items.Add (c);
 			}
 
@@ -118,26 +118,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, doc, rr));
+					items.Add (CreateCompletionItem (att));
 				}
 			}
 
 			return CreateCompletionContext (items);
 		}
 
-		protected override Task<CompletionContext> GetEntityCompletionsAsync (IAsyncCompletionSession session, SnapshotPoint triggerLocation, List<XObject> nodePath, CancellationToken token)
-		{
-			var items = new List<CompletionItem> ();
-			foreach (var entity in GetBuiltInEntityItems ()) {
-				items.Add (entity);
-			}
-			return Task.FromResult (CreateCompletionContext (items));
-		}
-
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
+		CompletionItem CreateCompletionItem (BaseInfo info, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
-			var item = new CompletionItem (info.Name, this, image);
+			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof(BaseInfo), info);
 			return item;
@@ -345,7 +336,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (comparandVariables != null && isValue) {
 				foreach (var ci in GetComparandCompletions (doc, comparandVariables)) {
-					items.Add (CreateCompletionItem (ci, doc, rr));
+					items.Add (CreateCompletionItem (ci));
 				}
 			}
 
@@ -379,7 +370,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci, doc, rr));
+					items.Add (CreateCompletionItem (ci));
 				}
 			}
 
