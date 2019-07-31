@@ -40,12 +40,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	/*class BaseInfoHelper : BaseInfo
-	{
-		public BaseInfoHelper (string name, DisplayText description) : base (name, description)
-		{
-		}
-	}*/
 	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
 		readonly MSBuildCompletionSourceProvider provider;
@@ -103,7 +97,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, doc, rr, MSBuildSpecialCommitKind.Element));
+				items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element));
 			}
 
 			return CreateCompletionContext (items);
@@ -129,7 +123,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, doc, rr, MSBuildSpecialCommitKind.Attribute));
+					items.Add (CreateCompletionItem (att, MSBuildSpecialCommitKind.Attribute));
 				}
 			}
 
@@ -168,7 +162,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					return await GetPackageNamesAsync (doc, rr);
 
 				case "version":
-					return await GetPackageVersionsAsync (doc, rr);
+					return await GetPackageVersionCompletions (doc, rr);//GetPackageVersionsAsync (doc, rr);
 				}
 			}
 
@@ -204,8 +198,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var package in packageArray) {
 				var info = package.ToString ();
-				items.Add (CreateCompletionItem (new ItemInfo (info, "description 1", "description 2"),
-							doc, rr, MSBuildSpecialCommitKind.AttributeValue));
+				items.Add (CreateCompletionItem (new ItemInfo (info, null, null),
+						MSBuildSpecialCommitKind.AttributeValue));
 			}
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
@@ -249,7 +243,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					var description = version["description"].ToString ();
 					foreach (var ver in version["versions"]) {
 						items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), description, description),
-							doc, rr, MSBuildSpecialCommitKind.AttributeValue));
+							MSBuildSpecialCommitKind.AttributeValue));
 					}
 					break;
 				}
@@ -258,7 +252,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr, MSBuildSpecialCommitKind kind)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind kind)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (info.Name, this, image);
@@ -361,7 +355,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in search.Results) {
-				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2));
+				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -435,7 +429,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (comparandVariables != null && isValue) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
-					items.Add (CreateCompletionItem (ci, doc, rr, MSBuildSpecialCommitKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue));
 				}
 			}
 
@@ -469,7 +463,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci, doc, rr, MSBuildSpecialCommitKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue));
 				}
 			}
 
@@ -506,10 +500,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
-		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind)
+		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (version, this, kindImage);
+			item.Properties.AddProperty (this, mSBuildSpecialCommitKind);
 			return item;
 		}
 
