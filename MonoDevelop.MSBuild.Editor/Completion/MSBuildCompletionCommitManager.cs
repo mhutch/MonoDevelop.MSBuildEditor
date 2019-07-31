@@ -49,11 +49,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					ShiftCaret (session, item.InsertText.Length + 3, CaretDirection.Left);
 				}
 				return CommitResult.Handled;
+
 			case MSBuildSpecialCommitKind.Attribute:
 				insertionText = item.InsertText + '=' + '"' + '"';
 				Insert (session, buffer, insertionText);
 				ShiftCaret (session, 1, CaretDirection.Left);
 				return CommitResult.Handled;
+
 			case MSBuildSpecialCommitKind.AttributeValue:
 				insertionText = item.InsertText;
 				Insert (session, buffer, insertionText);
@@ -61,8 +63,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CommitResult.Handled;
 			}
 
-			/*if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var baseInfo)) {
-			}*/
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}

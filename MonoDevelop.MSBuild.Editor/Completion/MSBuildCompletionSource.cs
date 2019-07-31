@@ -169,8 +169,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CompletionContext.Empty;
 		}
 
-		private async Task<CompletionContext> GetPackageNamesAsync(MSBuildRootDocument doc,
-																MSBuildResolveResult rr)
+		async Task<CompletionContext> GetPackageNamesAsync(MSBuildRootDocument doc,
+														MSBuildResolveResult rr)
         {
 			if (rr == null) {
 				return CompletionContext.Empty;
@@ -204,7 +204,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
-		private async Task<CompletionContext> GetPackageVersionsAsync (MSBuildRootDocument doc,
+		async Task<CompletionContext> GetPackageVersionsAsync (MSBuildRootDocument doc,
 																MSBuildResolveResult rr)
 		{
 			if (rr == null) {
