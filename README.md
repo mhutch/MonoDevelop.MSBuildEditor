@@ -1,4 +1,4 @@
-﻿# MonoDevelop.MSBuildEditor
+# MonoDevelop.MSBuildEditor
 
 The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio for Mac and MonoDevelop. It can be installed from the Extension Manager.
 
@@ -89,7 +89,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
   for example when multivalued language imports cause
   multiple imports of common targets
 * project kind completion
-* Include.Project filename completion should be relative to SDK, if any
 * support encoding all over
 * better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
 * trigger intellisense on |, indexed against | separated comparands
@@ -110,7 +109,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Evaluation context selection toolbar
 * Go to definition on nuget goes to nuget.org or package folder?
 * Publish json schema
-* Metadata groups
 * Test schema loader
 * Test schema composition
 * Test schema inference
@@ -118,6 +116,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Additional schema metadata for expected extensions for files
 * Additional schema metadata for which msbuild metadata/property points to the base directory for filenames
 * Squiggle assignments to nonexistent task params
+* Metadata to mark symbols as aliases for another
+* Improve implicit and explicit triggering for file path segments
 
 ## Build Status
 

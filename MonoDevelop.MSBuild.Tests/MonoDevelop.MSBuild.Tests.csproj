@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj" />
   </ItemGroup>
 
 </Project>

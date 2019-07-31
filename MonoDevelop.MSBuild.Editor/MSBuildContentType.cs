@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
+using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -13,7 +14,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export]
 		[Name (Name)]
-		[BaseDefinition (StandardContentTypeNames.Code)]
+		[BaseDefinition (XmlContentTypeNames.XmlCore)]
 		internal static readonly ContentTypeDefinition XmlContentTypeDefinition;
 
 		[Export]

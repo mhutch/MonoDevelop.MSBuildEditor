@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -127,14 +128,9 @@ namespace MonoDevelop.MSBuild.Language
 			if (element.IsClosed && element.FirstChild == null) {
 				end = element.ClosingTag.Span.Start;
 			} else {
-				//HACK: in some cases GetCharAt can throw at the end of the document even with TextDocument.Length check
-				try {
-					for (; end < (TextSource.Length + 1) && TextSource.GetCharAt (end) != '<'; end++) { }
-				} catch {
-					end--;
-				}
+				for (; end < (TextSource.Length - 1) && TextSource.GetCharAt (end) != '<'; end++) { }
 			}
-			var text = TextSource.GetTextBetween (begin, end);
+			var text = begin == end ? "" : TextSource.GetTextBetween (begin, end);
 
 			VisitElementValue (element, resolved, text, begin);
 		}

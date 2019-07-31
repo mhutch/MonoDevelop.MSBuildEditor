@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Evaluation;
@@ -170,7 +171,9 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
+				if (!(ex is TaskCanceledException)) {
+					LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
+				}
 			}
 
 			try {
@@ -182,7 +185,9 @@ namespace MonoDevelop.MSBuild.Language
 					doc.LoadTasks (parseContext, "(core overridetasks)", t);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ("Error resolving tasks", ex);
+				if (!(ex is TaskCanceledException)) {
+					LoggingService.LogError ("Error resolving tasks", ex);
+				}
 			}
 
 			try {
@@ -207,7 +212,9 @@ namespace MonoDevelop.MSBuild.Language
 				var validator = new MSBuildDocumentValidator ();
 				validator.Run (doc.XDocument, textSource, doc);
 			} catch (Exception ex) {
-				LoggingService.LogError ("Error in validation", ex);
+				if (!(ex is TaskCanceledException)) {
+					LoggingService.LogError ("Error in validation", ex);
+				}
 			}
 
 			return doc;
@@ -219,7 +226,9 @@ namespace MonoDevelop.MSBuild.Language
 				var import = context.GetCachedOrParse (label, filename, null, File.GetLastWriteTimeUtc (filename));
 				AddImport (import);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
+				if (!(ex is TaskCanceledException)) {
+					LoggingService.LogError ($"Error loading tasks file {filename}", ex);
+				}
 			}
 		}
 

@@ -86,6 +86,23 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateTaskParameters (resolved, element);
 				break;
 			}
+
+			if (resolved.ValueKind == MSBuildValueKind.Nothing) {
+				foreach (var txt in element.Nodes.OfType<XText> ()) {
+					AddError ($"{element.Name.Name} does not allow text", txt.Span);
+				}
+			}
+		}
+
+		void CheckDeprecated (ValueInfo info, INamedXObject namedObj)
+		{
+			if (info.IsDeprecated) {
+				AddWarning (
+					string.IsNullOrEmpty (info.DeprecationMessage)
+						? $"{info.Name} is deprecated"
+						: $"{info.Name} is deprecated: {info.DeprecationMessage}",
+					namedObj.NameSpan);
+			}
 		}
 
 		void ValidateProjectHasTarget (XElement element)
@@ -397,6 +414,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			//NOTE: doing this here means we can't check for deprecated constructs that don't have values, but there aren't any yet
+			CheckDeprecated (info, (INamedXObject)attribute ?? element);
+
 			// we skip calling base, and instead parse the expression with more options enabled
 			// so that we can warn if the user is doing something likely invalid
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
@@ -438,6 +458,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					//TODO: can we validate property/metadata/items refs?
 					//maybe warn if they're not used anywhere outside of this expression?
+					//TODO: deprecation squiggles in expressions
 					break;
 				case ExpressionText lit:
 					VisitPureLiteral (info, kind, lit.GetUnescapedValue (), lit.Offset);

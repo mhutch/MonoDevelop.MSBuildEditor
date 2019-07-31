@@ -78,21 +78,21 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			foreach (var el in project.Elements) {
 				if (el.NameEquals ("Import", true)) {
-					var impAtt = el.Attributes.Get (new XName ("Project"), true);
+					var impAtt = el.Attributes.Get (new XName ("Project"), true)?.Value;
 					if (impAtt != null) {
 						MarkProperties (impAtt);
 					}
 				} else if (el.NameEquals ("UsingTask", true)) {
-					var afAtt = el.Attributes.Get (new XName ("AssemblyFile"), true);
+					var afAtt = el.Attributes.Get (new XName ("AssemblyFile"), true)?.Value;
 					if (afAtt != null) {
 						MarkProperties (afAtt);
 					}
 				}
 			}
 
-			void MarkProperties (XAttribute att)
+			void MarkProperties (string val)
 			{
-				var expr = ExpressionParser.Parse (att.Value, ExpressionOptions.None);
+				var expr = ExpressionParser.Parse (val, ExpressionOptions.None);
 				foreach (var prop in expr.WithAllDescendants ().OfType<ExpressionProperty> ()) {
 					propertyVals.Mark (prop.Name);
 				}

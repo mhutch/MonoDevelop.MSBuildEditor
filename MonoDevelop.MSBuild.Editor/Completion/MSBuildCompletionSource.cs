@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -11,6 +12,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -25,14 +27,9 @@ using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
-using System;
-using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Runtime.InteropServices;
 using System.Net.Http.Headers;
-using Microsoft.Build.Framework;
-using ProjectFileTools.NuGetSearch.Feeds;
-
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
@@ -94,10 +91,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var items = new List<CompletionItem> ();
-			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element));
+				items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, includeBracket? "<" : null));
+			}
+
+			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
+			foreach (var c in GetMiscellaneousTags (triggerLocation, nodePath, includeBracket, allowcData)) {
+				items.Add (c);
 			}
 
 			return CreateCompletionContext (items);
@@ -127,10 +128,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return CreateCompletionContext (items); ;
+			return CreateCompletionContext (items);
 		}
-
-
 
 		//Dictionary<int, string> cache = new Dictionary<int, string> ();
 
@@ -252,10 +251,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind kind)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind kind, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
-			var item = new CompletionItem (info.Name, this, image);
+			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof (BaseInfo), info);
 			item.Properties.AddProperty (this, kind);
@@ -263,7 +262,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
+		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (
+			IAsyncCompletionSession session, CompletionItem item,
+			CancellationToken token)
 		{
 			if (!item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) || info == null) {
 				return Task.FromResult<object> (null);
@@ -282,24 +283,42 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null);
 			if (rr?.LanguageElement != null) {
-				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+				var reason = ConvertReason (trigger.Reason, trigger.Character);
+				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
-					var triggerState = ExpressionCompletion.GetTriggerState (
+					var triggerState = GetTriggerState (
 						expression,
+						reason.Value,
 						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
-						out ExpressionNode triggerExpression,
-						out var listKind,
-						out IReadOnlyList<ExpressionNode> comparandVariables
+						out ExpressionNode _,
+						out var _,
+						out IReadOnlyList<ExpressionNode> _
 					);
-					if (triggerState != ExpressionCompletion.TriggerState.None) {
+					if (triggerState != TriggerState.None) {
 						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
 					}
 				}
 			}
 
 			return base.InitializeCompletion (trigger, triggerLocation, token);
+		}
+
+		static TriggerReason? ConvertReason (CompletionTriggerReason reason, char typedChar)
+		{
+			switch (reason) {
+			case CompletionTriggerReason.Insertion:
+				if (typedChar != '\0')
+					return TriggerReason.TypedChar;
+				break;
+			case CompletionTriggerReason.Backspace:
+				return TriggerReason.Backspace;
+			case CompletionTriggerReason.Invoke:
+			case CompletionTriggerReason.InvokeAndCommitIfUnique:
+				return TriggerReason.Invocation;
+			}
+			return null;
 		}
 
 		public override async Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
@@ -310,10 +329,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var spine = context.spine;
 
 			if (rr?.LanguageElement != null) {
-				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+				var reason = ConvertReason (trigger.Reason, trigger.Character);
+				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
-					var triggerState = ExpressionCompletion.GetTriggerState (
+					var triggerState = GetTriggerState (
 						expression,
+						reason.Value,
 						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
@@ -321,7 +342,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						out var listKind,
 						out IReadOnlyList<ExpressionNode> comparandVariables
 					);
-					if (triggerState != ExpressionCompletion.TriggerState.None) {
+					if (triggerState != TriggerState.None) {
 						var info = rr.GetElementOrAttributeValueInfo (doc);
 						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
 							return await GetExpressionCompletionsAsync (info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
@@ -404,11 +425,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}, token);
 		}
 
-		async Task<CompletionContext> GetExpressionCompletionsAsync (ValueInfo info, ExpressionCompletion.TriggerState triggerState, ExpressionCompletion.ListKind listKind, int triggerLength, ExpressionNode triggerExpression, IReadOnlyList<ExpressionNode> comparandVariables, MSBuildResolveResult rr, SnapshotPoint triggerLocation, MSBuildRootDocument doc, CancellationToken token)
+		async Task<CompletionContext> GetExpressionCompletionsAsync (
+			ValueInfo info, TriggerState triggerState, ListKind listKind,
+			int triggerLength, ExpressionNode triggerExpression,
+			IReadOnlyList<ExpressionNode> comparandVariables,
+			MSBuildResolveResult rr, SnapshotPoint triggerLocation,
+			MSBuildRootDocument doc, CancellationToken token)
 		{
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var kind = info.InferValueKindIfUnknown ();
 
-			if (!ExpressionCompletion.ValidateListPermitted (listKind, kind)) {
+			if (!ValidateListPermitted (listKind, kind)) {
 				return CompletionContext.Empty;
 			}
 
@@ -420,10 +446,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
-			bool isValue = triggerState == ExpressionCompletion.TriggerState.Value
-				|| triggerState == ExpressionCompletion.TriggerState.PropertyOrValue
-				|| triggerState == ExpressionCompletion.TriggerState.ItemOrValue
-				|| triggerState == ExpressionCompletion.TriggerState.MetadataOrValue;
+			bool isValue = triggerState == TriggerState.Value;
 
 			var items = new List<CompletionItem> ();
 
@@ -473,7 +496,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
-				//FIXME metadata
+				if (IsMetadataAllowed (triggerExpression, rr)) {
+					items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
+				}
 			}
 
 			if (items.Count > 0) {
@@ -481,6 +506,46 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			return CompletionContext.Empty;
+		}
+
+		//FIXME: improve logic for determining where metadata is permitted
+		bool IsMetadataAllowed (ExpressionNode triggerExpression, MSBuildResolveResult rr)
+		{
+			//if any a parent node is an item transform or function, metadata is allowed
+			if (triggerExpression != null) {
+				var node = triggerExpression.Find (triggerExpression.Length);
+				while (node != null) {
+					if (node is ExpressionItemTransform || node is ExpressionItemFunctionInvocation) {
+						return true;
+					}
+					node = node.Parent;
+				}
+			}
+
+			if (rr.LanguageAttribute != null) {
+				switch (rr.LanguageAttribute.SyntaxKind) {
+				// metadata attributes on items can refer to other metadata on the items
+				case MSBuildSyntaxKind.Item_Metadata:
+				// task params can refer to metadata in batched items
+				case MSBuildSyntaxKind.Task_Parameter:
+				// target inputs and outputs can use metadata from each other's items
+				case MSBuildSyntaxKind.Target_Inputs:
+				case MSBuildSyntaxKind.Target_Outputs:
+					return true;
+				//conditions on metadata elements can refer to metadata on the items
+				case MSBuildSyntaxKind.Metadata_Condition:
+					return true;
+				}
+			}
+
+			if (rr.LanguageElement != null) {
+				switch (rr.LanguageElement.SyntaxKind) {
+				// metadata elements can refer to other metadata in the items
+				case MSBuildSyntaxKind.Metadata:
+					return true;
+				}
+			}
+			return false;
 		}
 
 		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildSpecialCommitKind kind)
@@ -537,6 +602,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ItemReference,
 		Element,
 		Attribute,
-		AttributeValue
+		AttributeValue,
+		MetadataReference
 	}
 }

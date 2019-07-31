@@ -36,16 +36,21 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		protected ValueInfo (
 			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			List<ConstantInfo> values = null, string defaultValue = null)
+			List<ConstantInfo> values = null, string defaultValue = null, bool isDeprecated = false, string deprecationMessage = null)
 			: base (name, description)
 		{
 			Values = values;
 			DefaultValue = defaultValue;
+			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
+			DeprecationMessage = deprecationMessage;
 			ValueKind = valueKind;
 		}
 
 		public MSBuildValueKind ValueKind { get; }
 		public List<ConstantInfo> Values { get; }
 		public string DefaultValue { get; }
+
+		public bool IsDeprecated { get; }
+		public string DeprecationMessage { get; }
 	}
 }

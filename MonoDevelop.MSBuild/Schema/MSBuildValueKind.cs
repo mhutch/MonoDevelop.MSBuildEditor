@@ -64,6 +64,8 @@ namespace MonoDevelop.MSBuild.Schema
 		HostOS,
 		HostRuntime,
 		ContinueOnError,
+		//used by SkipNonexistentProjects property on MSBuild task
+		SkipNonexistentProjectsBehavior,
 
 		Condition,
 

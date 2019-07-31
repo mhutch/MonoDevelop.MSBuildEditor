@@ -1,14 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.MiniEditor;
 
 using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Roslyn;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests.Completion;
 using MonoDevelop.Xml.Tests.EditorTestHelpers;
 
@@ -33,9 +38,9 @@ namespace MonoDevelop.MSBuild.Tests
 
 			result.AssertNonEmpty ();
 
-			result.AssertContains ("ItemGroup");
-			result.AssertContains ("Choose");
-			result.AssertContains ("Import");
+			result.AssertContains ("<ItemGroup");
+			result.AssertContains ("<Choose");
+			result.AssertContains ("<Import");
 		}
 
 
@@ -44,11 +49,12 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var result = await GetCompletionContext (@"<Project><$");
 
-			//FIXME: add comment and closing tags
-			result.AssertItemCount (9);
+			result.AssertItemCount (11);
 
 			result.AssertContains ("PropertyGroup");
 			result.AssertContains ("Choose");
+			result.AssertContains ("/Project");
+			result.AssertContains ("!--");
 		}
 
 		[Test]
@@ -57,11 +63,13 @@ namespace MonoDevelop.MSBuild.Tests
 			var result = await GetCompletionContext (@"
 <Project><ItemGroup><Foo /><Bar /><$");
 
-			// FIXME: add comment, cdata, closing tags for Project/ItemGroup
-			result.AssertItemCount (2);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
+			result.AssertContains ("/ItemGroup");
+			result.AssertContains ("/Project");
+			result.AssertContains ("!--");
 		}
 
 		[Test]
@@ -70,8 +78,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var result = await GetCompletionContext (@"
 <Project><ItemGroup><Foo><Bar>a</Bar></Foo><Foo><$");
 
-			// FIXME: add comment, cdata, closing tags for Project/ItemGroup/Foo
-			result.AssertItemCount (1);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Bar");
 		}
@@ -295,6 +302,47 @@ namespace MonoDevelop.MSBuild.Tests
 			result.AssertContains ("CompareTo");
 			result.AssertDoesNotContain ("Substring");
 		}
+
+		[Test]
+		public async Task EagerAttributeTrigger ()
+		{
+			var result = await GetCompletionContext (@"<Project ToolsVersion=$", triggerChar: '"');
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("4.0");
+		}
+
+		[Test]
+		public async Task EagerElementTrigger ()
+		{
+			var result = await GetCompletionContext (@"<Project><PropertyGroup><Foo$", triggerChar: '>', filename: "EagerElementTrigger.csproj");
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("True");
+		}
+
+		[Test]
+		public async Task TriggerOnBackspace ()
+		{
+			var result = await GetCompletionContext (
+				@"<Project><PropertyGroup><Foo>$",
+				CompletionTriggerReason.Backspace,
+				filename: "EagerElementTrigger.csproj");
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("True");
+		}
+
+		[Test]
+		public async Task NoTriggerOnBackspaceMidExpression ()
+		{
+			var result = await GetCompletionContext (
+				@"<Project><PropertyGroup><Foo>true$",
+				CompletionTriggerReason.Backspace,
+				filename: "EagerElementTrigger.csproj");
+
+			Assert.Zero (result.Items.Length);
+		}
 	}
 
 	[Export (typeof (IRoslynCompilationProvider))]
@@ -302,5 +350,23 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		public MetadataReference CreateReference (string assemblyPath)
 			=> MetadataReference.CreateFromFile (assemblyPath);
+	}
+
+	[Export(typeof(MSBuildSchemaProvider))]
+	class TestSchemaProvider : MSBuildSchemaProvider
+	{
+		public override MSBuildSchema GetSchema (string path, string sdk, out IList<(string message, Xml.Parser.DiagnosticSeverity severity)> loadErrors)
+		{
+			loadErrors = Array.Empty<(string message, Xml.Parser.DiagnosticSeverity severity)> ();
+
+			switch (path) {
+			case "EagerElementTrigger.csproj":
+				return new MSBuildSchema {
+					new PropertyInfo ("Foo", null, valueKind: MSBuildValueKind.Bool)
+				};
+			}
+
+			return base.GetSchema (path, sdk, out loadErrors);
+		}
 	}
 }

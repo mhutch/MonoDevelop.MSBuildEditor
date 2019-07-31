@@ -6,13 +6,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using MonoDevelop.Xml.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	class MSBuildSchema : IMSBuildSchema
+	class MSBuildSchema : IMSBuildSchema, IEnumerable<BaseInfo>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -123,7 +124,8 @@ namespace MonoDevelop.MSBuild.Schema
 					Properties[name] = new PropertyInfo (name, (string)val.Value);
 					continue;
 				}
-				string description = null, valueSeparators = null, defaultValue = null;
+				string description = null, valueSeparators = null, defaultValue = null, deprecationMessage = null;
+				bool deprecated = false;
 				var kind = MSBuildValueKind.Unknown;
 				List<ConstantInfo> values = null;
 				foreach (var pkv in (JObject)kv.Value) {
@@ -143,6 +145,12 @@ namespace MonoDevelop.MSBuild.Schema
 					case "valueSeparators":
 						valueSeparators = (string)((JValue)pkv.Value).Value;
 						break;
+					case "deprecated":
+						deprecated = (bool)((JValue)pkv.Value).Value;
+						break;
+					case "deprecationMessage":
+						deprecationMessage = (string)((JValue)pkv.Value).Value;
+						break;
 					default:
 						state.AddWarning ($"Unknown property {pkv.Key} in property {kv.Key}");
 						break;
@@ -151,7 +159,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 				kind = CheckKind (kind, valueSeparators, values);
 
-				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue);
+				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue, deprecated, deprecationMessage);
 			}
 		}
 
@@ -176,9 +184,10 @@ namespace MonoDevelop.MSBuild.Schema
 			foreach (var kv in items) {
 				var name = kv.Key;
 
-				string description = null, includeDescription = null;
+				string description = null, includeDescription = null, deprecationMessage = null;
 				var kind = MSBuildValueKind.Unknown;
 				JObject metadata = null;
+				bool isDeprecated= false;
 				foreach (var ikv in (JObject)kv.Value) {
 					switch (ikv.Key) {
 					case "description":
@@ -196,12 +205,18 @@ namespace MonoDevelop.MSBuild.Schema
 					case "metadata":
 						metadata = (JObject)ikv.Value;
 						break;
+					case "deprecated":
+						isDeprecated = (bool)((JValue)ikv.Value).Value;
+						break;
+					case "deprecationMessage":
+						deprecationMessage = (string)((JValue)ikv.Value).Value;
+						break;
 					default:
 						state.AddWarning ($"Unknown property {ikv.Key} in item {kv.Key}");
 						break;
 					}
 				}
-				var item = new ItemInfo (name, description, includeDescription, kind);
+				var item = new ItemInfo (name, description, includeDescription, kind, null, isDeprecated, deprecationMessage);
 				if (metadata != null) {
 					AddMetadata (item, metadata, state);
 				}
@@ -305,10 +320,11 @@ namespace MonoDevelop.MSBuild.Schema
 				return new MetadataInfo (name, desc);
 			}
 
-			string description = null, valueSeparators = null, defaultValue = null;
+			string description = null, valueSeparators = null, defaultValue = null, deprecationMessage = null;
 			bool required = false;
 			MSBuildValueKind kind = MSBuildValueKind.Unknown;
 			List<ConstantInfo> values = null;
+			bool isDeprecated = false;
 			foreach (var mkv in (JObject)value) {
 				switch (mkv.Key) {
 				case "description":
@@ -329,6 +345,12 @@ namespace MonoDevelop.MSBuild.Schema
 				case "required":
 					required = (bool)((JValue)mkv.Value).Value;
 					break;
+				case "deprecated":
+					isDeprecated = (bool)((JValue)mkv.Value).Value;
+					break;
+				case "deprecationMessage":
+					deprecationMessage = (string)((JValue)mkv.Value).Value;
+					break;
 				default:
 					state.AddWarning ($"Unknown property {mkv.Key} in metadata {name}");
 					break;
@@ -339,7 +361,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			return new MetadataInfo (
 				name, description, false, required, kind, null,
-				values, defaultValue
+				values, defaultValue, isDeprecated, deprecationMessage
 			);
 		}
 
@@ -464,6 +486,44 @@ namespace MonoDevelop.MSBuild.Schema
 					toAdd.Item = item;
 				}
 				isFirstItem = false;
+			}
+		}
+
+		IEnumerator<BaseInfo> IEnumerable<BaseInfo>.GetEnumerator ()
+		{
+			foreach (var item in Items.Values) {
+				yield return item;
+			}
+			foreach (var prop in Properties.Values) {
+				yield return prop;
+			}
+			foreach (var task in Tasks.Values) {
+				yield return task;
+			}
+			foreach (var target in Targets.Values) {
+				yield return target;
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<BaseInfo>)this).GetEnumerator ();
+
+		public void Add (BaseInfo info)
+		{
+			switch (info) {
+			case ItemInfo item:
+				Items.Add (item.Name, item);
+				break;
+			case PropertyInfo prop:
+				Properties.Add (prop.Name, prop);
+				break;
+			case TaskInfo task:
+				Tasks.Add (task.Name, task);
+				break;
+			case TargetInfo target:
+				Targets.Add (target.Name, target);
+				break;
+			default:
+				throw new ArgumentException ($"Only items, properties, tasks and targets are allowed");
 			}
 		}
 	}

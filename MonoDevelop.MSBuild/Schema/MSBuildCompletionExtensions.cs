@@ -134,7 +134,8 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IReadOnlyList<BaseInfo> GetValueCompletions (
 			MSBuildValueKind kind,
 			MSBuildRootDocument doc,
-			MSBuildResolveResult rr = null)
+			MSBuildResolveResult rr = null,
+			ExpressionNode triggerExpression = null)
 		{
 			var simple = kind.GetSimpleValues (true);
 			if (simple != null) {
@@ -168,7 +169,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return doc.GetPlatforms ().Select (c => new ConstantInfo (c, "")).ToList ();
 			}
 
-			var fileCompletions = GetFilenameCompletions (kind, doc, null, 0);
+			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, rr);
 			if (fileCompletions != null) {
 				return fileCompletions;
 			}
@@ -178,7 +179,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static IReadOnlyList<BaseInfo> GetFilenameCompletions (
 			MSBuildValueKind kind, MSBuildRootDocument doc,
-			ExpressionNode triggerExpression, int triggerLength)
+			ExpressionNode triggerExpression, int triggerLength, MSBuildResolveResult rr = null)
 		{
 			bool includeFiles = false;
 			switch (kind) {
@@ -196,14 +197,30 @@ namespace MonoDevelop.MSBuild.Schema
 				return null;
 			}
 
-			var basePaths = EvaluateExpressionAsPaths (triggerExpression, doc, triggerLength + 1).ToList ();
-			return basePaths.Count == 0 ? null : GetPathCompletions (doc.Filename, basePaths, includeFiles);
+			string baseDir = null;
+
+			if (rr.LanguageAttribute != null && rr.LanguageAttribute.SyntaxKind == MSBuildSyntaxKind.Import_Project) {
+				if (rr.XElement != null) {
+					var sdkAtt = rr.XElement.Attributes.Get (new Xml.Dom.XName ("Sdk"), true)?.Value;
+					if (!string.IsNullOrEmpty (sdkAtt) && Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
+						var sdkPath = doc.RuntimeInformation.GetSdkPath (sdkRef, doc.Filename, null);
+						if (!string.IsNullOrEmpty (sdkPath)) {
+							baseDir = sdkPath;
+						}
+					}
+				}
+			}
+
+			var basePaths = EvaluateExpressionAsPaths (triggerExpression, doc, triggerLength + 1, baseDir).ToList ();
+			return basePaths.Count == 0 ? null : GetPathCompletions (basePaths, includeFiles);
 		}
 
-		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0)
+		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0, string baseDir = null)
 		{
+			baseDir = baseDir ?? Path.GetDirectoryName (doc.Filename);
+
 			if (expression == null) {
-				yield return Path.GetDirectoryName (doc.Filename);
+				yield return baseDir;
 				yield break;
 			}
 
@@ -212,9 +229,19 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			if (expression is ExpressionText lit) {
+				if (lit.Length == 0) {
+					yield return baseDir;
+					yield break;
+				}
 				var path = TrimEndChars (lit.GetUnescapedValue ());
+				if (string.IsNullOrEmpty (path)) {
+					yield return baseDir;
+					yield break;
+				}
 				//FIXME handle encoding
-				yield return MSBuildEscaping.FromMSBuildPath (path, Path.GetDirectoryName (doc.Filename));
+				if (MSBuildEscaping.FromMSBuildPath (path, baseDir, out var res)) {
+					yield return res;
+				}
 				yield break;
 			}
 
@@ -239,33 +266,39 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			foreach (var variant in doc.FileEvaluationContext.EvaluatePathWithPermutation (sb.ToString (), Path.GetDirectoryName (doc.Filename))) {
+			foreach (var variant in doc.FileEvaluationContext.EvaluatePathWithPermutation (sb.ToString (), baseDir)) {
 				yield return variant;
 			}
 
 			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
 		}
 
-		static IReadOnlyList<BaseInfo> GetPathCompletions (string projectPath, List<string> completionBasePaths, bool includeFiles)
+		static IReadOnlyList<BaseInfo> GetPathCompletions (List<string> completionBasePaths, bool includeFiles)
 		{
 			var infos = new List<BaseInfo> ();
 
-			var projectBaseDir = Path.GetDirectoryName (projectPath);
-			foreach (var p in completionBasePaths) {
-				var basePath = Path.GetFullPath (Path.Combine (projectBaseDir, p));
-
-				foreach (var e in Directory.GetDirectories (basePath)) {
-					var name = Path.GetFileName (e);
-					infos.Add (new FileOrFolderInfo (name, true, e));
-				}
-
-				if (includeFiles) {
-					foreach (var e in Directory.GetFiles (basePath)) {
-						var name = Path.GetFileName (e);
-						infos.Add (new FileOrFolderInfo (name, false, e));
+			foreach (var basePath in completionBasePaths) {
+				try {
+					if (!Directory.Exists (basePath)) {
+						continue;
 					}
+					foreach (var e in Directory.GetDirectories (basePath)) {
+						var name = Path.GetFileName (e);
+						infos.Add (new FileOrFolderInfo (name, true, e));
+					}
+
+					if (includeFiles) {
+						foreach (var e in Directory.GetFiles (basePath)) {
+							var name = Path.GetFileName (e);
+							infos.Add (new FileOrFolderInfo (name, false, e));
+						}
+					}
+				} catch (Exception ex) {
+					LoggingService.LogError ($"Error enumerating paths under '{basePath}'", ex);
 				}
 			}
+
+			infos.Add (new FileOrFolderInfo ("..", true, "The parent directory"));
 
 			return infos;
 		}

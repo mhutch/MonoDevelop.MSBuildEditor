@@ -32,14 +32,28 @@ namespace MonoDevelop.MSBuild.Language
 			nodePath.Reverse ();
 
 			//capture incomplete names, attributes and element values
-			int i = offset;
-			if (parser.CurrentState is XmlRootState && parser.Nodes.Peek () is XElement unclosedEl) {
-				while (i < textSource.Length && InRootOrClosingTagState () && !unclosedEl.IsClosed) {
+
+			//first find the parent element, if any, and its position in the stack
+			XElement elementToComplete = null;
+			int elementToCompleteIdx = 0;
+			for (int n = 0; n < parser.Nodes.Count; n++) {
+				if (parser.Nodes.Peek (n) is XElement xel) {
+					elementToComplete = xel;
+					elementToCompleteIdx = parser.Nodes.Count - n;
+					break;
+				}
+			}
+
+			// while it's still in the stack, advance the parser
+			if (elementToComplete != null) {
+				int i = offset;
+				while (!(parser.CurrentState is XmlRootState) && i < textSource.Length && parser.Nodes.Peek (parser.Nodes.Count - elementToCompleteIdx) == elementToComplete) {
 					parser.Push (textSource.GetCharAt (i++));
 				}
-			} else {
-				while (i < textSource.Length && InNameOrAttributeState ()) {
-					parser.Push (textSource.GetCharAt (i++));
+				if (i == textSource.Length && parser.CurrentState is XmlTextState) {
+					var txtNode = (XText)parser.Nodes.Peek ();
+					txtNode.End (i);
+					((XContainer)parser.Nodes.Peek (1)).AddChildNode (txtNode);
 				}
 			}
 
@@ -82,6 +96,10 @@ namespace MonoDevelop.MSBuild.Language
 						continue;
 				}
 
+				if (node is XText) {
+					continue;
+				}
+
 				languageElement = null;
 			}
 
@@ -100,16 +118,6 @@ namespace MonoDevelop.MSBuild.Language
 			rv.Run (el, languageElement, textSource, context);
 
 			return rr;
-
-			bool InNameOrAttributeState () =>
-				parser.CurrentState is XmlNameState
-				|| parser.CurrentState is XmlAttributeState
-				|| parser.CurrentState is XmlAttributeValueState;
-
-			bool InRootOrClosingTagState () =>
-				parser.CurrentState is XmlRootState
-				|| parser.CurrentState is XmlNameState
-				|| parser.CurrentState is XmlClosingTagState;
 		}
 
 		class MSBuildResolveVisitor : MSBuildResolvingVisitor
