@@ -32,6 +32,14 @@ namespace MonoDevelop.MSBuild.Language
 				return true;
 			}
 
+			if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
+				return true;
+			}
+
+			if (rr.ReferenceKind == MSBuildReferenceKind.Task) {
+				return true;
+			}
+
 			return false;
 		}
 
@@ -51,9 +59,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
-				return new MSBuildNavigationResult (
-					MSBuildReferenceKind.Target, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength
-				);
+				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, (string)rr.Reference);
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.FileOrFolder) {
@@ -70,6 +76,10 @@ namespace MonoDevelop.MSBuild.Language
 						task.DeclaredInFile, task.DeclaredAtOffset
 					);
 				}
+			}
+
+			if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
+				return new MSBuildNavigationResult (MSBuildReferenceKind.NuGetID, (string)rr.Reference);
 			}
 
 			return null;
@@ -190,7 +200,14 @@ namespace MonoDevelop.MSBuild.Language
 			Name = name;
 			Offset = offset;
 			Length = length;
+			DestFile = destFile;
 			DestOffset = destOffset;
+		}
+
+		public MSBuildNavigationResult (MSBuildReferenceKind kind, string nuGetID)
+		{
+			NuGetID = nuGetID;
+			Kind = kind;
 		}
 
 		public MSBuildNavigationResult (string[] paths, int offset, int length)
@@ -208,5 +225,7 @@ namespace MonoDevelop.MSBuild.Language
 		public string[] Paths { get; }
 		public string DestFile { get; }
 		public int DestOffset { get; }
+
+		public string NuGetID { get;  }
 	}
 }
