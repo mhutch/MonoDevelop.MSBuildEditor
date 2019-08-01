@@ -361,10 +361,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr)
-		{
+	{
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
-				return null;
+				return CompletionContext.Empty;//return null
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
@@ -456,7 +456,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (isValue) {
+		if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					return await GetPackageNamesAsync (doc, rr);//GetPackageNameCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);

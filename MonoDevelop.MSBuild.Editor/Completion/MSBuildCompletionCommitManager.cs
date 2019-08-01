@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			switch (completionKind) {
 			case MSBuildSpecialCommitKind.Element:
 				if (item.InsertText.ToLower () == "packagereference") {
-					insertionText = item.InsertText + ' ' + '/' + '>';
+					insertionText = item.InsertText + '/' + '>';
 					Insert (session, buffer, insertionText);
 					ShiftCaret (session, 2, CaretDirection.Left);
 				} else {
@@ -100,6 +100,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 				if (caretDirection == CaretDirection.Right) {
 					session.TextView.Caret.MoveToNextCaretPosition ();
+				}
+				if (caretDirection == CaretDirection.Top) {
+					//To Implement
+					break;
+				}
+				if (caretDirection == CaretDirection.Down) {
+					//To Implement
+					break;
 				}
 			}
 		}
