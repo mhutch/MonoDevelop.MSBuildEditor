@@ -442,7 +442,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 			stackedElements.Add (descEl);
 
-			if (package.SourceKind == ProjectFileTools.NuGetSearch.Feeds.FeedKind.NuGet) {
+			if (package?.SourceKind == ProjectFileTools.NuGetSearch.Feeds.FeedKind.NuGet) {
 				var url = $"https://www.nuget.org/packages/{Uri.EscapeUriString (package.Id)}";
 				stackedElements.Add (
 					new ClassifiedTextElement (
