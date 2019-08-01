@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
@@ -244,7 +245,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return Task.FromResult (CompletionContext.Empty);
 		}
 
-		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr)
+		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
@@ -252,14 +253,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-			var search = provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm);
-			var tcs = new TaskCompletionSource<object> ();
-			search.Updated += (s, e) => { if (search.RemainingFeeds.Count == 0) tcs.TrySetResult (null); };
-			await tcs.Task;
+
+			var results = await provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm).ToTask (token);
 
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
-			foreach (var result in search.Results) {
+			foreach (var result in results) {
 				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2));
 			}
 
@@ -345,7 +344,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.NuGetID:
 					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
 				case MSBuildValueKind.NuGetVersion:
-					return await GetPackageVersionCompletions (doc, rr);
+					return await GetPackageVersionCompletions (doc, rr, token);
 				case MSBuildValueKind.Sdk:
 				case MSBuildValueKind.SdkWithVersion:
 					return await GetSdkCompletions (doc, token);
