@@ -199,7 +199,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			foreach (var package in packageArray) {
 				var info = package.ToString ();
 				items.Add (CreateCompletionItem (new ItemInfo (info, null, null),
-						MSBuildSpecialCommitKind.AttributeValue));
+						MSBuildSpecialCommitKind.AttributeValueSpecial));
 			}
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
 		}
@@ -243,7 +243,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					var description = version["description"].ToString ();
 					foreach (var ver in version["versions"]) {
 						items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), description, description),
-							MSBuildSpecialCommitKind.AttributeValue));
+							MSBuildSpecialCommitKind.AttributeValueSpecial));
 					}
 					break;
 				}
@@ -375,7 +375,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValue));
+				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValueSpecial));
 			}
 
 			return CreateCompletionContext (items);
@@ -602,6 +602,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		Element,
 		Attribute,
 		AttributeValue,
+		AttributeValueSpecial, //for package reference attribute values specifically
 		MetadataReference
 	}
 }

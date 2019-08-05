@@ -57,7 +57,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				ShiftCaret (session, 1, CaretDirection.Left);
 				return CommitResult.Handled;
 
-			case MSBuildSpecialCommitKind.AttributeValue:
+			case MSBuildSpecialCommitKind.AttributeValueSpecial:
 				insertionText = item.InsertText;
 				Insert (session, buffer, insertionText);
 				ShiftCaret (session, 1, CaretDirection.Right);
