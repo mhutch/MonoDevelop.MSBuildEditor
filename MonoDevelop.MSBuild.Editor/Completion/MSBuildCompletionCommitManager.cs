@@ -7,12 +7,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Editor.Completion;
-
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,29 +33,28 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
-			string insertionText;
 			var completionKind = item.Properties.PropertyList[item.Properties.PropertyList.Count - 1].Value;
 			switch (completionKind) {
 			case MSBuildSpecialCommitKind.Element: {
 					if (item.InsertText.Equals ("packagereference", StringComparison.OrdinalIgnoreCase)) {
-						insertionText = $"{item.InsertText}/>";
+						string insertionText = $"{item.InsertText}/>";
 						Insert (session, buffer, insertionText);
 						ShiftCaret (session, 2, CaretDirection.Left);
 					} else {
-						insertionText = $"{item.InsertText}></{item.InsertText}>";
+						string insertionText = $"{item.InsertText}></{item.InsertText}>";
 						Insert (session, buffer, insertionText);
 						ShiftCaret (session, item.InsertText.Length + 3, CaretDirection.Left);
 					}
 					return CommitResult.Handled;
 				}
 			case MSBuildSpecialCommitKind.Attribute: {
-					insertionText = $"{item.InsertText}=" + @"""""";
+					string insertionText = $"{item.InsertText}=" + @"""""";
 					Insert (session, buffer, insertionText);
 					ShiftCaret (session, 1, CaretDirection.Left);
 					return CommitResult.Handled;
 				}
-			case MSBuildSpecialCommitKind.AttributeValueSpecial: {
-					insertionText = $"{item.InsertText}";
+			case MSBuildSpecialCommitKind.PackageReferenceValue: {
+					string insertionText = $"{item.InsertText}";
 					Insert (session, buffer, insertionText);
 					ShiftCaret (session, 1, CaretDirection.Right);
 					return CommitResult.Handled;

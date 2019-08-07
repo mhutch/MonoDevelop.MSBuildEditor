@@ -2,14 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -21,20 +18,13 @@ using MonoDevelop.Xml.Editor.Completion;
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 using MonoDevelop.Xml.Parser;
 
-using Newtonsoft.Json.Linq;
-
 using ProjectFileTools.NuGetSearch.Feeds;
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
@@ -131,36 +121,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			return CreateCompletionContext (items);
-		}
-
-		protected override async Task<CompletionContext> GetAttributeValueCompletionsAsync (
-			IAsyncCompletionSession session,
-			SnapshotPoint triggerLocation,
-			List<XObject> nodePath,
-			IAttributedXObject attributedObject,
-			XAttribute attribute,
-			CancellationToken token)
-		{
-			var context = await GetSessionContext (session, triggerLocation, token);
-			var rr = context.rr;
-			var doc = context.doc;
-
-			if (rr == null) {
-				return CompletionContext.Empty;
-			}
-
-			if (attributedObject is XElement xElement &&
-				xElement.NameEquals ("PackageReference", true)) {
-				switch (attribute.Name.Name.ToLower ()) {
-				case "include":
-					return await GetPackageNameCompletions (doc, rr, token);
-
-				case "version":
-					return await GetPackageVersionCompletions (doc, rr, token);
-				}
-			}
-
-			return CompletionContext.Empty;
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind kind, string prefix = null)
@@ -271,7 +231,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
-			var searchQuery = rr.Reference.ToString ().ToLower ();
+			var searchQuery = rr.Reference.ToString ();
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return CompletionContext.Empty;
 			}
@@ -282,7 +242,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetPackageNameCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValueSpecial));
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.PackageReferenceValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -306,7 +266,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValueSpecial));
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.PackageReferenceValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -495,18 +455,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
-		CompletionItem CreateNuGetPackageNameCompletionItem (string name, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
+		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
-			var item = new CompletionItem (name, this, kindImage);
-			item.Properties.AddProperty (this, mSBuildSpecialCommitKind);
-			return item;
-		}
-
-		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
-		{
-			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
-			var item = new CompletionItem (version, this, kindImage);
+			var item = new CompletionItem (info, this, kindImage);
 			item.Properties.AddProperty (this, mSBuildSpecialCommitKind);
 			return item;
 		}
@@ -541,7 +493,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		Element,
 		Attribute,
 		AttributeValue,
-		AttributeValueSpecial,
+		PackageReferenceValue,
 		MetadataReference
 	}
 }
