@@ -1,18 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -27,14 +18,24 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
+using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 using MonoDevelop.Xml.Parser;
+
 using Newtonsoft.Json.Linq;
-using System.Runtime.InteropServices;
-using System.Net.Http.Headers;
+
 using ProjectFileTools.NuGetSearch.Feeds;
 
-using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -132,8 +133,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items);
 		}
 
-		//Dictionary<int, string> cache = new Dictionary<int, string> ();
-
 		protected override async Task<CompletionContext> GetAttributeValueCompletionsAsync (
 			IAsyncCompletionSession session,
 			SnapshotPoint triggerLocation,
@@ -142,10 +141,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			XAttribute attribute,
 			CancellationToken token)
 		{
-			/*if (!attribute.NameEquals ("include", true)) {
-				return CompletionContext.Empty;
-			}*/
-
 			var context = await GetSessionContext (session, triggerLocation, token);
 			var rr = context.rr;
 			var doc = context.doc;
@@ -156,21 +151,19 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (attributedObject is XElement xElement &&
 				xElement.NameEquals ("PackageReference", true)) {
-
-				switch (Regex.Replace (attribute.FriendlyPathRepresentation.ToLower (), @"[^0-9a-zA-Z]+", "")) {
+				switch (attribute.Name.Name.ToLower ()) {
 				case "include":
-					return await GetPackageNamesAsync (doc, rr);
+					return await GetPackageNameCompletions (doc, rr, token);
 
 				case "version":
-					return await GetPackageVersionCompletions (doc, rr, token);//GetPackageVersionsAsync (doc, rr);
+					return await GetPackageVersionCompletions (doc, rr, token);
 				}
 			}
 
 			return CompletionContext.Empty;
 		}
 
-		async Task<CompletionContext> GetPackageNamesAsync(MSBuildRootDocument doc,
-														MSBuildResolveResult rr)
+		async Task<CompletionContext> GetPackageNamesAsync(MSBuildRootDocument doc, MSBuildResolveResult rr)
         {
 			if (rr == null) {
 				return CompletionContext.Empty;
@@ -179,6 +172,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 			var httpClient = new HttpClient ();
 			string result = null;
+
 			var searchQuery = rr.Reference.ToString ().ToLower ();
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return CompletionContext.Empty;
@@ -202,6 +196,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						MSBuildSpecialCommitKind.AttributeValueSpecial));
 			}
 			return new CompletionContext (ImmutableArray<CompletionItem>.Empty.AddRange (items));
+
 		}
 
 		async Task<CompletionContext> GetPackageVersionsAsync (MSBuildRootDocument doc,
@@ -212,7 +207,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var items = new List<CompletionItem> ();
-			var httpClient = new HttpClient (); ;
+			var httpClient = new HttpClient ();
 			string result = null;
 			var packageName = rr.XElement.Attributes.First.Value.ToLower ();
 
@@ -221,8 +216,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			try {
-				//includes pre-release: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
 				var cancellationVersion = new CancellationTokenSource (TimeSpan.FromSeconds (100));
+				// Includes Prerelease
 				var versionResponse = await httpClient.GetAsync ($"https://api-v2v3search-0.nuget.org/query?q={packageName}&prerelease=true", cancellationVersion.Token);
 				result = await versionResponse.Content.ReadAsStringAsync ();
 
@@ -233,13 +228,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var versionJSONObject = JObject.Parse (result);
 			var versionArray = (JArray)versionJSONObject["data"];
 
-			//var totalHits = (int)versionJSONObject["totalHits"];
-
-			//Normally, it would be versionArray[0]->id == packageName
-			//If it doesn't, the for loop will make sure that correct versions of that exact packageName are listed
 			foreach (var version in versionArray) {
 				var id = version["id"].ToString ().ToLower ();
-				if (id == packageName.ToLower ()) {
+				if (packageName.Equals (id, StringComparison.OrdinalIgnoreCase)) {
 					var description = version["description"].ToString ();
 					foreach (var ver in version["versions"]) {
 						items.Add (CreateCompletionItem (new ItemInfo (ver["version"].ToString (), description, description),
@@ -259,7 +250,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof (BaseInfo), info);
 			item.Properties.AddProperty (this, kind);
-			//var kind = item.Properties.TryGetProperty (typeof (XmlCompletionItemKind), out XmlCompletionItemKind kind);
 			return item;
 		}
 
@@ -354,18 +344,39 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
-		/*
-		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, int startIdx, int triggerLength)
-		{
-			return await GetPackageNamesAsync (rr, doc);
-		}*/
 
+		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
+		{
+			if (rr == null) {
+				return CompletionContext.Empty;
+			}
+
+			var searchQuery = rr.Reference.ToString ().ToLower ();
+			if (string.IsNullOrEmpty (searchQuery)) {
+				return CompletionContext.Empty;
+			}
+
+			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+
+			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
+
+			var items = new List<CompletionItem> ();
+			foreach (var result in results) {
+				items.Add (CreateNuGetPackageNameCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.AttributeValueSpecial));
+			}
+
+			return CreateCompletionContext (items);
+		}
 
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
+			if (rr == null) {
+				return CompletionContext.Empty;
+			}
+
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
-				return CompletionContext.Empty;//return null
+				return CompletionContext.Empty;
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
@@ -458,7 +469,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return await GetPackageNamesAsync (doc, rr);//GetPackageNameCompletions (doc, rr, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageNameCompletions (doc, rr, token);
 				case MSBuildValueKind.NuGetVersion:
 					return await GetPackageVersionCompletions (doc, rr, token);
 				case MSBuildValueKind.Sdk:
@@ -564,6 +575,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
+		CompletionItem CreateNuGetPackageNameCompletionItem (string name, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
+		{
+			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
+			var item = new CompletionItem (name, this, kindImage);
+			item.Properties.AddProperty (this, mSBuildSpecialCommitKind);
+			return item;
+		}
+
 		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
@@ -602,7 +621,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		Element,
 		Attribute,
 		AttributeValue,
-		AttributeValueSpecial, //for package reference attribute values specifically
+		AttributeValueSpecial,
 		MetadataReference
 	}
 }

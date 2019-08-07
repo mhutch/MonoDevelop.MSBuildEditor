@@ -1,20 +1,21 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Editor.Completion;
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -39,31 +40,31 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			string insertionText;
 			var completionKind = item.Properties.PropertyList[item.Properties.PropertyList.Count - 1].Value;
 			switch (completionKind) {
-			case MSBuildSpecialCommitKind.Element:
-				if (item.InsertText.ToLower () == "packagereference") {
-					insertionText = item.InsertText + '/' + '>';
-					Insert (session, buffer, insertionText);
-					ShiftCaret (session, 2, CaretDirection.Left);
-				} else {
-					insertionText = item.InsertText + '>' + '<' + '/' + item.InsertText + '>';
-					Insert (session, buffer, insertionText);
-					ShiftCaret (session, item.InsertText.Length + 3, CaretDirection.Left);
+			case MSBuildSpecialCommitKind.Element: {
+					if (item.InsertText.Equals ("packagereference", StringComparison.OrdinalIgnoreCase)) {
+						insertionText = $"{item.InsertText}/>";
+						Insert (session, buffer, insertionText);
+						ShiftCaret (session, 2, CaretDirection.Left);
+					} else {
+						insertionText = $"{item.InsertText}></{item.InsertText}>";
+						Insert (session, buffer, insertionText);
+						ShiftCaret (session, item.InsertText.Length + 3, CaretDirection.Left);
+					}
+					return CommitResult.Handled;
 				}
-				return CommitResult.Handled;
-
-			case MSBuildSpecialCommitKind.Attribute:
-				insertionText = item.InsertText + '=' + '"' + '"';
-				Insert (session, buffer, insertionText);
-				ShiftCaret (session, 1, CaretDirection.Left);
-				return CommitResult.Handled;
-
-			case MSBuildSpecialCommitKind.AttributeValueSpecial:
-				insertionText = item.InsertText;
-				Insert (session, buffer, insertionText);
-				ShiftCaret (session, 1, CaretDirection.Right);
-				return CommitResult.Handled;
+			case MSBuildSpecialCommitKind.Attribute: {
+					insertionText = $"{item.InsertText}=" + @"""""";
+					Insert (session, buffer, insertionText);
+					ShiftCaret (session, 1, CaretDirection.Left);
+					return CommitResult.Handled;
+				}
+			case MSBuildSpecialCommitKind.AttributeValueSpecial: {
+					insertionText = $"{item.InsertText}";
+					Insert (session, buffer, insertionText);
+					ShiftCaret (session, 1, CaretDirection.Right);
+					return CommitResult.Handled;
+				}
 			}
-
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}
@@ -93,23 +94,25 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		private static void ShiftCaret (IAsyncCompletionSession session, int len, CaretDirection caretDirection)
 		{
-			int i;
-			for (i = 0; i < len; i++) {
-				if (caretDirection == CaretDirection.Left) {
+			switch (caretDirection) {
+			case CaretDirection.Left:
+				for (int i = 0; i < len; i++) {
 					session.TextView.Caret.MoveToPreviousCaretPosition ();
 				}
-				if (caretDirection == CaretDirection.Right) {
+				return;
+			case CaretDirection.Right:
+				for (int i = 0; i < len; i++) {
 					session.TextView.Caret.MoveToNextCaretPosition ();
 				}
-				if (caretDirection == CaretDirection.Top) {
-					//To Implement
-					break;
-				}
-				if (caretDirection == CaretDirection.Down) {
-					//To Implement
-					break;
-				}
+				return;
+			case CaretDirection.Top:
+				//TO DO
+				return;
+			case CaretDirection.Down:
+				//TO DO
+				return;
 			}
+			return;
 		}
 
 		void RetriggerCompletion (ITextView textView)
