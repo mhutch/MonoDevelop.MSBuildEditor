@@ -33,7 +33,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
-			var completionKind = item.Properties.PropertyList[item.Properties.PropertyList.Count - 1].Value;
+			//var completionKind = item.Properties.PropertyList[item.Properties.PropertyList.Count - 1].Value;
+			var completionKind = item.Properties.GetProperty (typeof (MSBuildSpecialCommitKind));
 			switch (completionKind) {
 			case MSBuildSpecialCommitKind.Element: {
 					if (item.InsertText.Equals ("packagereference", StringComparison.OrdinalIgnoreCase)) {

@@ -123,13 +123,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind kind, string prefix = null)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind mSBuildSpecialCommitKind, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof (BaseInfo), info);
-			item.Properties.AddProperty (this, kind);
+			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), mSBuildSpecialCommitKind);
 			return item;
 		}
 
@@ -459,7 +459,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (info, this, kindImage);
-			item.Properties.AddProperty (this, mSBuildSpecialCommitKind);
+			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), mSBuildSpecialCommitKind);
 			return item;
 		}
 
