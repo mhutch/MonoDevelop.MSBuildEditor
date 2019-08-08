@@ -61,6 +61,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					return CommitResult.Handled;
 				}
 			}
+
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}

@@ -228,12 +228,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			if (rr == null) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			var searchQuery = rr.Reference.ToString ();
 			if (string.IsNullOrEmpty (searchQuery)) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
@@ -251,12 +251,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			if (rr == null) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
