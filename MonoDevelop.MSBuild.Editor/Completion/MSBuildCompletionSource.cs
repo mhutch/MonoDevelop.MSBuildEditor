@@ -85,7 +85,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, includeBracket? "<" : null));
+				if (el is ItemInfo) {
+					items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
+				} else {
+					items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
+				}
 			}
 
 			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
@@ -116,20 +120,21 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, MSBuildSpecialCommitKind.Attribute));
+					items.Add (CreateCompletionItem (att, MSBuildSpecialCommitKind.Attribute, XmlCompletionItemKind.Attribute));
 				}
 			}
 
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind mSBuildSpecialCommitKind, string prefix = null)
+		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind mSBuildSpecialCommitKind, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.Properties.AddProperty (typeof (BaseInfo), info);
 			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), mSBuildSpecialCommitKind);
+			item.Properties.AddProperty (typeof (XmlCompletionItemKind), xmlCompletionItemKind);
 			return item;
 		}
 
@@ -242,7 +247,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.PackageReferenceValue));
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -266,7 +271,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, MSBuildSpecialCommitKind.PackageReferenceValue));
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -342,7 +347,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (comparandVariables != null && isValue) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
-					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -376,7 +381,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -455,11 +460,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
-		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, MSBuildSpecialCommitKind mSBuildSpecialCommitKind)
+		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, XmlCompletionItemKind xmlCompletionItemKind)
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (info, this, kindImage);
-			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), mSBuildSpecialCommitKind);
+			item.Properties.AddProperty (typeof (XmlCompletionItemKind), xmlCompletionItemKind);
 			return item;
 		}
 

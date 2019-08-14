@@ -33,35 +33,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
-			//var completionKind = item.Properties.PropertyList[item.Properties.PropertyList.Count - 1].Value;
-			var completionKind = item.Properties.GetProperty (typeof (MSBuildSpecialCommitKind));
-			switch (completionKind) {
-			case MSBuildSpecialCommitKind.Element: {
-					if (item.InsertText.Equals ("packagereference", StringComparison.OrdinalIgnoreCase)) {
-						string insertionText = $"{item.InsertText}/>";
-						Insert (session, buffer, insertionText);
-						ShiftCaret (session, 2, CaretDirection.Left);
-					} else {
-						string insertionText = $"{item.InsertText}></{item.InsertText}>";
-						Insert (session, buffer, insertionText);
-						ShiftCaret (session, item.InsertText.Length + 3, CaretDirection.Left);
-					}
-					return CommitResult.Handled;
-				}
-			case MSBuildSpecialCommitKind.Attribute: {
-					string insertionText = $"{item.InsertText}=" + @"""""";
-					Insert (session, buffer, insertionText);
-					ShiftCaret (session, 1, CaretDirection.Left);
-					return CommitResult.Handled;
-				}
-			case MSBuildSpecialCommitKind.PackageReferenceValue: {
-					string insertionText = $"{item.InsertText}";
-					Insert (session, buffer, insertionText);
-					ShiftCaret (session, 1, CaretDirection.Right);
-					return CommitResult.Handled;
-				}
-			}
-
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
 			}
