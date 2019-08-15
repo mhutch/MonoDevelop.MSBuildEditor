@@ -75,10 +75,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return;
 			case CaretDirection.Top:
 				//TO DO
-				return;
+				throw new ArgumentException ($"Unsupported value '{caretDirection}'");
 			case CaretDirection.Down:
 				//TO DO
-				return;
+				throw new ArgumentException ($"Unsupported value '{caretDirection}'");
 			}
 			return;
 		}
