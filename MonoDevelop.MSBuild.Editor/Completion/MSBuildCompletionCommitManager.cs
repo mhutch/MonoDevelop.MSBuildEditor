@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -60,29 +60,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CommitResult.Unhandled;
 		}
 
-		private static void ShiftCaret (IAsyncCompletionSession session, int len, CaretDirection caretDirection)
-		{
-			switch (caretDirection) {
-			case CaretDirection.Left:
-				for (int i = 0; i < len; i++) {
-					session.TextView.Caret.MoveToPreviousCaretPosition ();
-				}
-				return;
-			case CaretDirection.Right:
-				for (int i = 0; i < len; i++) {
-					session.TextView.Caret.MoveToNextCaretPosition ();
-				}
-				return;
-			case CaretDirection.Top:
-				//TO DO
-				throw new ArgumentException ($"Unsupported value '{caretDirection}'");
-			case CaretDirection.Down:
-				//TO DO
-				throw new ArgumentException ($"Unsupported value '{caretDirection}'");
-			}
-			return;
-		}
-
 		void RetriggerCompletion (ITextView textView)
 		{
 			Task.Run (async () => {
@@ -100,14 +77,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var bufferEdit = buffer.CreateEdit ();
 			bufferEdit.Replace (span, text);
 			bufferEdit.Apply ();
-		}
-
-		enum CaretDirection
-		{
-			Left,
-			Right,
-			Top,
-			Down
 		}
 	}
 }

@@ -1,6 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -15,17 +22,11 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
-using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Feeds;
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -86,9 +87,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
 				if (el is ItemInfo) {
-					items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
+					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
 				} else {
-					items.Add (CreateCompletionItem (el, MSBuildSpecialCommitKind.Element, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
+					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
 				}
 			}
 
@@ -120,21 +121,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, MSBuildSpecialCommitKind.Attribute, XmlCompletionItemKind.Attribute));
+					items.Add (CreateCompletionItem (att, XmlCompletionItemKind.Attribute));
 				}
 			}
 
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildSpecialCommitKind mSBuildSpecialCommitKind, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
+		CompletionItem CreateCompletionItem (BaseInfo info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
+			item.AddKind (xmlCompletionItemKind);
 			item.Properties.AddProperty (typeof (BaseInfo), info);
-			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), mSBuildSpecialCommitKind);
-			item.Properties.AddProperty (typeof (XmlCompletionItemKind), xmlCompletionItemKind);
 			return item;
 		}
 
@@ -347,7 +347,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (comparandVariables != null && isValue) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
-					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue, XmlCompletionItemKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -381,7 +381,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci, MSBuildSpecialCommitKind.AttributeValue, XmlCompletionItemKind.AttributeValue));
+					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -464,7 +464,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (info, this, kindImage);
-			item.Properties.AddProperty (typeof (XmlCompletionItemKind), xmlCompletionItemKind);
+			item.AddKind(xmlCompletionItemKind);
 			return item;
 		}
 
@@ -495,10 +495,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		NewGuid,
 		PropertyReference,
 		ItemReference,
-		Element,
-		Attribute,
-		AttributeValue,
-		PackageReferenceValue,
 		MetadataReference
 	}
 }
