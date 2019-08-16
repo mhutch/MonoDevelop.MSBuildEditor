@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -88,7 +86,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
-				items.Add (CreateCompletionItem (el, includeBracket? "<" : null));
+				if (el is ItemInfo) {
+					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
+				} else {
+					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
+				}
 			}
 
 			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
@@ -119,19 +121,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
 				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att));
+					items.Add (CreateCompletionItem (att, XmlCompletionItemKind.Attribute));
 				}
 			}
 
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, string prefix = null)
+		CompletionItem CreateCompletionItem (BaseInfo info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
 			var image = DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
-			item.Properties.AddProperty (typeof(BaseInfo), info);
+			item.AddKind (xmlCompletionItemKind);
+			item.Properties.AddProperty (typeof (BaseInfo), info);
 			return item;
 		}
 
@@ -227,26 +230,35 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
 
-		Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, int startIdx, int triggerLength)
+		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
-			/*
-			string name = ((IXmlParserContext)Tracker.Engine).KeywordBuilder.ToString ();
-			if (string.IsNullOrWhiteSpace (name)) {
+			if (rr == null) {
 				return null;
 			}
 
-			return Task.FromResult<ICompletionDataList> (
-				new PackageNameSearchCompletionDataList (name, PackageSearchManager, doc.GetTargetFrameworkNuGetSearchParameter ()) {
-					TriggerWordStart = startIdx,
-					TriggerWordLength = triggerLength
-				}
-			);
-			*/
-			return Task.FromResult (CompletionContext.Empty);
+			var searchQuery = rr.Reference.ToString ();
+			if (string.IsNullOrEmpty (searchQuery)) {
+				return null;
+			}
+
+			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+
+			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
+
+			var items = new List<CompletionItem> ();
+			foreach (var result in results) {
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
+			}
+
+			return CreateCompletionContext (items);
 		}
 
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
+			if (rr == null) {
+				return null;
+			}
+
 			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
 				return null;
@@ -259,7 +271,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetVersionCompletionItem (result.Item1, result.Item2));
+				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -334,15 +346,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			if (comparandVariables != null && isValue) {
-				foreach (var ci in GetComparandCompletions (doc, comparandVariables)) {
-					items.Add (CreateCompletionItem (ci));
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
+					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
-			if (isValue) {
+		if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return await GetPackageNameCompletions (doc, triggerLocation.Position - triggerLength, triggerLength);
+					return await GetPackageNameCompletions (doc, rr, token);
 				case MSBuildValueKind.NuGetVersion:
 					return await GetPackageVersionCompletions (doc, rr, token);
 				case MSBuildValueKind.Sdk:
@@ -369,7 +381,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (cinfos != null) {
 				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci));
+					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -448,10 +460,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
-		CompletionItem CreateNuGetVersionCompletionItem (string version, FeedKind kind)
+		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, XmlCompletionItemKind xmlCompletionItemKind)
 		{
 			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
-			var item = new CompletionItem (version, this, kindImage);
+			var item = new CompletionItem (info, this, kindImage);
+			item.AddKind(xmlCompletionItemKind);
 			return item;
 		}
 

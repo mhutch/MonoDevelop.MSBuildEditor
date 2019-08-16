@@ -6,7 +6,7 @@ using System;
 namespace MonoDevelop.MSBuild
 {
 	/// <summary>
-	/// Represents texts that can be displated to the user
+	/// Represents texts that can be displayed to the user
 	/// </summary>
 	public struct DisplayText
 	{
