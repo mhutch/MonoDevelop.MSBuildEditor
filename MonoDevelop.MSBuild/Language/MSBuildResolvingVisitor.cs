@@ -23,6 +23,11 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
+			string elementName = element.Name.Name;
+			if (elementName == null) {
+				return;
+			}
+
 			//FIXME: handle multiple text nodes with comments between them
 			string value = string.Empty;
 			var begin = element.Span.End;
@@ -32,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language
 				value = TextSource.GetTextBetween (begin, textNode.Span.End);
 			}
 
-			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
+			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, elementName, true);
 			if (info == null) {
 				return;
 			}
