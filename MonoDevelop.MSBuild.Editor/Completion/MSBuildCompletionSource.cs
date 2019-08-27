@@ -76,16 +76,30 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			CancellationToken token)
 		{
 			var context = await GetSessionContext (session, triggerLocation, token);
-			var rr = context.rr;
 			var doc = context.doc;
 
-			if (rr == null) {
+			// we can't use the LanguageElement from the resolveresult here.
+			// if completion is triggered in an existing element's name, the resolveresult
+			// will be for that element, so completion will be for the element's children
+			// rather than for the element itself.
+			MSBuildLanguageElement languageElement = null;
+			string elName = null;
+			for (int i = 0; i < nodePath.Count; i++) {
+				if (nodePath[i] is XElement el) {
+					elName = el.Name.Name;
+					languageElement = MSBuildLanguageElement.Get (elName, languageElement);
+					continue;
+				}
+				return CompletionContext.Empty;
+			}
+
+			if (languageElement == null && nodePath.Count > 0) {
 				return CompletionContext.Empty;
 			}
 
 			var items = new List<CompletionItem> ();
 
-			foreach (var el in rr.GetElementCompletions (doc)) {
+			foreach (var el in doc.GetElementCompletions (languageElement, elName)) {
 				if (el is ItemInfo) {
 					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
 				} else {
@@ -93,7 +107,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
+			bool allowcData = languageElement != null && languageElement.ValueKind != MSBuildValueKind.Nothing;
 			foreach (var c in GetMiscellaneousTags (triggerLocation, nodePath, includeBracket, allowcData)) {
 				items.Add (c);
 			}

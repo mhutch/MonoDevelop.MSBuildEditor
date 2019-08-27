@@ -91,20 +91,21 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		public static IEnumerable<BaseInfo> GetElementCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
+		public static IEnumerable<BaseInfo> GetElementCompletions (this IEnumerable<IMSBuildSchema> schemas,
+			MSBuildLanguageElement languageElement, string elementName)
 		{
-			if (rr?.LanguageElement == null) {
+			if (languageElement == null) {
 				yield return MSBuildLanguageElement.Get ("Project");
 				yield break;
 			}
 
-			if (rr.LanguageElement.Children == null) {
+			if (languageElement.Children == null) {
 				yield break;
 			}
 
-			foreach (var c in rr.LanguageElement.Children) {
+			foreach (var c in languageElement.Children) {
 				if (c.IsAbstract) {
-					var abstractChildren = GetAbstractChildren (schemas, rr.LanguageElement.AbstractChild.SyntaxKind, rr.ElementName);
+					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName);
 					if (abstractChildren != null) {
 						foreach (var child in abstractChildren) {
 							yield return child;
