@@ -343,6 +343,18 @@ namespace MonoDevelop.MSBuild.Tests
 
 			Assert.Zero (result.Items.Length);
 		}
+
+		[Test]
+		public async Task TriggerOnFirstNameChar ()
+		{
+			var result = await GetCompletionContext (
+				@"<Project><PropertyGroup><$",
+				CompletionTriggerReason.Insertion, 'F',
+				filename: "EagerElementTrigger.csproj");
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("Foo");
+		}
 	}
 
 	[Export (typeof (IRoslynCompilationProvider))]
