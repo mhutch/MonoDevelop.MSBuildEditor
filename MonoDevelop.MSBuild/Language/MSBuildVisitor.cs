@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Threading;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -14,26 +15,36 @@ namespace MonoDevelop.MSBuild.Language
 		protected string Filename { get; private set; }
 		protected ITextSource TextSource { get; private set; }
 		protected string Extension { get; private set; }
+		protected CancellationToken CancellationToken { get; private set; }
+		protected void CheckCancellation () => CancellationToken.ThrowIfCancellationRequested ();
 
-		protected bool IsTargetsFile => string.Equals (Extension, ".targets", System.StringComparison.OrdinalIgnoreCase);
-		protected bool IsPropsFile => string.Equals (Extension, ".props", System.StringComparison.OrdinalIgnoreCase);
+		protected bool IsTargetsFile => string.Equals (Extension, ".targets", StringComparison.OrdinalIgnoreCase);
+		protected bool IsPropsFile => string.Equals (Extension, ".props", StringComparison.OrdinalIgnoreCase);
 
-		public void Run (MSBuildRootDocument doc, int offset = 0, int length = 0)
+		public void Run (MSBuildRootDocument doc, int offset = 0, int length = 0, CancellationToken token = default)
 		{
-			Run (doc.XDocument, doc.Text, doc, offset, length);
+			Run (doc.XDocument, doc.Text, doc, offset, length, token);
 		}
 
-		public void Run (XDocument xDocument, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0)
+		public void Run (
+			XDocument xDocument, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0,
+			CancellationToken token = default
+			)
 		{
-			Run (xDocument.RootElement, null, textSource, doc, offset, length);
+			Run (xDocument.RootElement, null, textSource, doc, offset, length, token);
 		}
 
-		public void Run (XElement element, MSBuildLanguageElement resolvedElement, ITextSource textSource, MSBuildDocument document, int offset = 0, int length = 0)
+		public void Run (
+			XElement element, MSBuildLanguageElement resolvedElement,
+			ITextSource textSource, MSBuildDocument document,
+			int offset = 0, int length = 0,
+			CancellationToken token = default)
 		{
 			Filename = textSource.FileName;
 			Document = document;
 			Extension = Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
 			TextSource = textSource;
+			CancellationToken = token;
 
 			range = new TextSpan (offset, length > 0 ? length + offset : int.MaxValue);
 
@@ -48,6 +59,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ResolveAndVisit (XElement element, MSBuildLanguageElement parent)
 		{
+			CheckCancellation ();
+
 			if (!element.Name.IsValid) {
 				return;
 			}
