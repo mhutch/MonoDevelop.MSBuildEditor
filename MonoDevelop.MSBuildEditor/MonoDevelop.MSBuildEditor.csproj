@@ -35,6 +35,8 @@
     <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
     <Compile Include="MSBuildCommands.cs" />
     <Compile Include="MonoDevelopCompilationProvider.cs" />
+    <Compile Include="MonoDevelopRuntimeInformation.cs" />
+    <Compile Include="MonoDevelopSdkResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.DesignerSupport" />
@@ -64,8 +66,6 @@
   <ItemGroup>
     <None Include="Syntax\OSSREADME.json" />
     <None Include="MSBuildTextEditorExtension.cs" />
-    <None Include="MSBuildRuntimeInformation.cs" />
-    <None Include="MSBuildSdkResolver.cs" />
     <None Include="Pads\MSBuildImportNavigator.cs" />
     <None Include="Pads\MSBuildImportNavigatorPad.cs" />
     <None Include="Pads\DocumentWithMimeTypeTracker.cs" />

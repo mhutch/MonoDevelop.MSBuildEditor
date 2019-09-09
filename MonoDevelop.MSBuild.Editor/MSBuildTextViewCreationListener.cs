@@ -25,6 +25,9 @@ namespace MonoDevelop.MSBuild.Editor
 		[Import (typeof (MSBuildSchemaProvider), AllowDefault = true)]
 		public MSBuildSchemaProvider SchemaProvider { get; set; }
 
+		[Import (typeof (IRuntimeInformation), AllowDefault = true)]
+		public IRuntimeInformation RuntimeInformation { get; set; }
+
 		public void TextViewCreated (ITextView textView)
 		{
 			var buffer = (ITextBuffer2)textView.TextBuffer;
@@ -32,7 +35,7 @@ namespace MonoDevelop.MSBuild.Editor
 			// attach the parser to the buffer and initialize it
 			var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> (buffer);
 
-			IRuntimeInformation runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
+			IRuntimeInformation runtimeInformation = RuntimeInformation ?? new MSBuildEnvironmentRuntimeInformation ();
 			MSBuildSchemaProvider schemaProvider = SchemaProvider ?? new MSBuildSchemaProvider ();
 			ITaskMetadataBuilder taskMetadataBuilder = TaskMetadataBuilder;
 

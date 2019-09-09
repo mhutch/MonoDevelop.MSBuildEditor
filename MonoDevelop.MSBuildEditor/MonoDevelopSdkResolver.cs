@@ -2,21 +2,22 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using MonoDevelop.Core;
-using BF = System.Reflection.BindingFlags;
-using MonoDevelop.Projects.MSBuild;
-using System.Collections.Generic;
-using MonoDevelop.Core.Assemblies;
 using System.Collections;
-using Microsoft.Build.Framework;
+using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.Build.Framework;
+using MonoDevelop.Core;
+using MonoDevelop.Core.Assemblies;
+using MonoDevelop.MSBuild.SdkResolution;
+using MonoDevelop.Projects.MSBuild;
+using BF = System.Reflection.BindingFlags;
 
 namespace MonoDevelop.MSBuildEditor
 {
 	/// <summary>
 	/// Exposes internal resolver APIs from MD core.
 	/// </summary>
-	class MSBuildSdkResolver
+	class MonoDevelopSdkResolver
 	{
 		TargetRuntime runtime;
 		List<SdkInfo> registeredSdks;
@@ -25,7 +26,7 @@ namespace MonoDevelop.MSBuildEditor
 
 		public string DefaultSdkPath { get; }
 
-		public MSBuildSdkResolver (TargetRuntime runtime)
+		public MonoDevelopSdkResolver (TargetRuntime runtime)
 		{
 			this.runtime = runtime;
 
@@ -74,9 +75,17 @@ namespace MonoDevelop.MSBuildEditor
 				var registeredSdksEnumerable = (IEnumerable)registeredSdksMeth.Invoke (null, null);
 				foreach (var sdkInfo in registeredSdksEnumerable) {
 					var name = (string)sdkInfoNameProp.GetValue (sdkInfo);
-					var version = (SdkVersion)sdkInfoVersionProp.GetValue (sdkInfo);
+					var version = (MonoDevelop.Projects.MSBuild.SdkVersion)sdkInfoVersionProp.GetValue (sdkInfo);
 					var path = (string)sdkInfoPathProp.GetValue (sdkInfo);
-					registeredSdks.Add (new SdkInfo (name, version, path));
+
+					//FIXME convert the version
+					registeredSdks.Add (
+						new SdkInfo (
+							name,
+							new MSBuild.SdkResolution.SdkVersion (),
+							path
+						)
+					);
 				}
 			} catch (Exception ex) {
 				LoggingService.LogError ("Failed to find registered MSBuild SDKs", ex);
@@ -89,20 +98,6 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			// GetSdkPath (SdkReference sdk, ILoggingService logger, MSBuildContext buildEventContext, string projectFile, string solutionPath)
 			return (string) getSdkMeth.Invoke (resolver, new [] { sdk, logger, null, projectFile, solutionPath });
-		}
-
-		public class SdkInfo
-		{
-			public SdkInfo (string name, SdkVersion version, string path)
-			{
-				Name = name;
-				Version = version;
-				Path = path;
-			}
-
-			public string Name { get; }
-			public SdkVersion Version { get; }
-			public string Path { get; }
 		}
 	}
 }

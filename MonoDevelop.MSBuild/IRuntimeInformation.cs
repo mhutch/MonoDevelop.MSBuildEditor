@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild
 {
-	interface IRuntimeInformation
+	public interface IRuntimeInformation
 	{
 		string ToolsVersion { get; }
 		string BinPath { get; }
