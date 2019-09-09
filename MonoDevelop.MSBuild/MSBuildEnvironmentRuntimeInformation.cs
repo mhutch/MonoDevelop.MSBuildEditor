@@ -22,7 +22,6 @@ namespace MonoDevelop.MSBuild
 		{
 			var projectCollection = ProjectCollection.GlobalProjectCollection;
 			toolset = projectCollection.GetToolset (projectCollection.DefaultToolsVersion);
-			sdkResolver = new MSBuildSdkResolver (BinPath, SdksPath);
 
 			var envHelperType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Shared.BuildEnvironmentHelper");
 			var envHelperInstanceProp = envHelperType.GetProperty ("Instance", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
@@ -39,6 +38,8 @@ namespace MonoDevelop.MSBuild
 			SdksPath = GetEnvHelperVal<string> ("MSBuildSDKsPath");
 
 			SearchPaths = GetImportSearchPathsTable (toolset, msbuildExtensionsPath);
+
+			sdkResolver = new MSBuildSdkResolver (BinPath, SdksPath);
 		}
 
 		public string ToolsVersion => toolset.ToolsVersion;
