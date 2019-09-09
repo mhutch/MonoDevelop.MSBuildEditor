@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("ComplexExpression ({Nodes.Count} nodes)")]
-	class ConcatExpression : ExpressionNode
+	class ConcatExpression : ExpressionNode, IContainerExpression
 	{
 		public IReadOnlyList<ExpressionNode> Nodes { get; }
 

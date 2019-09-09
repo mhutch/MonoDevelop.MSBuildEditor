@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		static ExpressionNode FindInternal (this ExpressionNode node, int offset)
 		{
 			switch (node) {
-			case ConcatExpression expr:
+			case IContainerExpression expr:
 				//TODO: binary search?
 				foreach (var c in expr.Nodes) {
 					var n = (c as IncompleteExpressionError)?.IncompleteNode ?? c;

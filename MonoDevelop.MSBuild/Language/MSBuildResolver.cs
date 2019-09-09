@@ -221,7 +221,8 @@ namespace MonoDevelop.MSBuild.Language
 				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
 				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
-				switch (node.Find (offset)) {
+				var nodeAtOffset = node.Find (offset);
+				switch (nodeAtOffset) {
 				case ExpressionItemName ei:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
 					rr.ReferenceOffset = ei.Offset;

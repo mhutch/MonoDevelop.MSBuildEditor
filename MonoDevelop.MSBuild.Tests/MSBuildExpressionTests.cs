@@ -535,14 +535,7 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
 			{
-			case ConcatExpression expr:
-				var expectedExpr = (ConcatExpression)expected;
-				Assert.AreEqual (expectedExpr.Nodes.Count, expr.Nodes.Count);
-				for (int i = 0; i < expr.Nodes.Count; i++) {
-					AssertEqual (expectedExpr.Nodes [i], expr.Nodes [i], expectedOffset);
-				}
-				break;
-			case ListExpression listExpr:
+			case IContainerExpression listExpr:
 				var expectedListExpr = (ListExpression)expected;
 				Assert.AreEqual (expectedListExpr.Nodes.Count, listExpr.Nodes.Count);
 				for (int i = 0; i < listExpr.Nodes.Count; i++) {
