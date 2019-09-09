@@ -11,12 +11,11 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor.HighlightReferences;
-using MSBuildRefUsage = MonoDevelop.MSBuild.Language.ReferenceUsage;
-using ReferenceUsage = MonoDevelop.Xml.Editor.HighlightReferences.ReferenceUsage;
+using MonoDevelop.Xml.Editor.Tags;
 
 namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 {
-	class MSBuildHighlightReferencesTagger : HighlightReferencesTagger
+	class MSBuildHighlightReferencesTagger : HighlightTagger<NavigableHighlightTag, ReferenceUsage>
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly MSBuildHighlightReferencesTaggerProvider provider;
@@ -31,9 +30,11 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			this.provider = provider;
 		}
 
-		protected override async Task<ImmutableArray<(ReferenceUsage type, SnapshotSpan location)>> GetReferencesAsync (
-			SnapshotPoint caretLocation,
-			CancellationToken token)
+		protected override bool RemainsValidIfCaretMovesBetweenHighlights => true;
+
+		protected async override
+			Task<(SnapshotSpan sourceSpan, ImmutableArray<(ReferenceUsage kind, SnapshotSpan location)> highlights)>
+			GetHighlightsAsync (SnapshotPoint caretLocation, CancellationToken token)
 		{
 			var snapshot = caretLocation.Snapshot;
 			var spineParser = parser.GetSpineParser (caretLocation);
@@ -42,13 +43,13 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 
 			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider);
 			if (rr == null || rr.ReferenceKind == MSBuildReferenceKind.None) {
-				return ImmutableArray<(ReferenceUsage type, SnapshotSpan location)>.Empty;
+				return Empty;
 			}
 
 			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, token);
 			doc = parseResult?.MSBuildDocument;
 			if (doc == null) {
-				return ImmutableArray<(ReferenceUsage type, SnapshotSpan location)>.Empty;
+				return Empty;
 			}
 
 			var collector = MSBuildReferenceCollector.Create (rr, provider.FunctionTypeProvider);
@@ -58,24 +59,25 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			var references = new List<(ReferenceUsage type, SnapshotSpan location)> (collector.Results.Count);
 
 			foreach (var reference in collector.Results) {
-				var usage = ConvertUsage (reference.Usage);
-				references.Add ((usage, new SnapshotSpan (snapshot, reference.Offset, reference.Length)));
+				references.Add ((reference.Usage, new SnapshotSpan (snapshot, reference.Offset, reference.Length)));
 			}
 
-			return references.ToImmutableArray ();
+			return (
+				new SnapshotSpan (caretLocation.Snapshot, rr.ReferenceOffset, rr.ReferenceLength),
+				references.ToImmutableArray ());
 		}
 
-		static ReferenceUsage ConvertUsage (MSBuildRefUsage usage)
+		protected override NavigableHighlightTag GetTag (ReferenceUsage kind)
 		{
-			switch (usage) {
-			case MSBuildRefUsage.Write:
-				return ReferenceUsage.Write;
-			case MSBuildRefUsage.Declaration:
-				return ReferenceUsage.Definition;
-			case MSBuildRefUsage.Read:
-				return ReferenceUsage.Read;
+			switch (kind) {
+			case ReferenceUsage.Write:
+				return WrittenReferenceHighlightTag.Instance;
+			case ReferenceUsage.Declaration:
+				return DefinitionHighlightTag.Instance;
+			case ReferenceUsage.Read:
+				return ReferenceHighlightTag.Instance;
 			default:
-				throw new ArgumentException ($"Unsupported value {usage}");
+				throw new ArgumentException ($"Unsupported value {kind}");
 			}
 		}
 	}
