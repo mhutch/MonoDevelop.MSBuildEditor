@@ -65,11 +65,6 @@
     <None Include="Syntax\OSSREADME.json" />
     <None Include="MSBuildTextEditorExtension.cs" />
     <None Include="MSBuildRuntimeInformation.cs" />
-    <None Include="MSBuildCompletionData.cs" />
-    <None Include="MSBuildParsedDocument.cs" />
-    <None Include="MSBuildDocumentParser.cs" />
-    <None Include="MSBuildNavigationExtension.cs" />
-    <None Include="MSBuildTooltipProvider.cs" />
     <None Include="MSBuildSdkResolver.cs" />
     <None Include="Pads\MSBuildImportNavigator.cs" />
     <None Include="Pads\MSBuildImportNavigatorPad.cs" />
