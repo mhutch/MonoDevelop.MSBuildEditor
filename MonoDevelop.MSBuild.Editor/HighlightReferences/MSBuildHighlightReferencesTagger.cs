@@ -42,7 +42,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			var doc = parser.LastParseResult?.MSBuildDocument;
 
 			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider);
-			if (rr == null || rr.ReferenceKind == MSBuildReferenceKind.None) {
+			if (!MSBuildReferenceCollector.CanCreate (rr)) {
 				return Empty;
 			}
 
