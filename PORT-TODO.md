@@ -2,13 +2,11 @@ Things that still need to be ported from the MonoDevelop version:
 
 MSBuild:
 
-* highlight references
 * find references command
 * go to definition command
 * switch between related files command
 * ctrl-click to navigate
 * nuget completion
-* automatically insert () when triggering with after @/$/%
 * polish the completion trigger/commit behavior
 
 Xml:
@@ -20,6 +18,8 @@ Xml:
 * outlining tagger that's better than the one from textmate
 * brace matching and auto-insertion
 * closing element completion
+* closing element matching
+* implement overtype on auto-inserted =""
 * auto-insertion of closing element and attribute =""
 * document outline tool window
 * breadcrumbs bar
