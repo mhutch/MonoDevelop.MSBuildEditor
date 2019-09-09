@@ -44,6 +44,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
+		public static MSBuildBackgroundParser GetParser (ITextBuffer buffer)
+			=> GetParser<MSBuildBackgroundParser>((ITextBuffer2)buffer);
+
 		protected override Task<MSBuildParseResult> StartParseAsync (
 			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
 			ITextSnapshot2 previousSnapshot, CancellationToken token)
