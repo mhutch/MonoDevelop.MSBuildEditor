@@ -35,6 +35,7 @@
     <Compile Include="PackageSearch\MonoDevelopPackageFeedRegistry.cs" />
     <Compile Include="MSBuildCommands.cs" />
     <Compile Include="MonoDevelopCompilationProvider.cs" />
+    <Compile Include="MonoDevelopMSBuildEditorHost.cs" />
     <Compile Include="MonoDevelopRuntimeInformation.cs" />
     <Compile Include="MonoDevelopSdkResolver.cs" />
   </ItemGroup>
