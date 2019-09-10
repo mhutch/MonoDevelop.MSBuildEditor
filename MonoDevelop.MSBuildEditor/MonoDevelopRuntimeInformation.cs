@@ -27,11 +27,12 @@ namespace MonoDevelop.MSBuildEditor
 			ToolsPath = runtime.GetMSBuildToolsPath (ToolsVersion);
 			sdkResolver = new MonoDevelopSdkResolver (runtime);
 
-			var searchPaths = new Dictionary<string, IReadOnlyList<string>> ();
 			var extensionPaths = GetExtensionsPaths (runtime).ToList ();
-			searchPaths.Add ("MSBuildExtensionsPath", extensionPaths);
-			searchPaths.Add ("MSBuildExtensionsPath32", extensionPaths);
-			searchPaths.Add ("MSBuildExtensionsPath64", extensionPaths);
+			SearchPaths = new Dictionary<string, IReadOnlyList<string>> {
+				{ "MSBuildExtensionsPath", extensionPaths },
+				{ "MSBuildExtensionsPath32", extensionPaths },
+				{ "MSBuildExtensionsPath64", extensionPaths }
+			};
 		}
 
 		IEnumerable<string> GetExtensionsPaths (TargetRuntime runtime)
