@@ -60,7 +60,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 			await provider.FunctionTypeProvider.EnsureInitialized (cancellationToken);
 
-			var rr = MSBuildResolver.Resolve (spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider);
+			var rr = MSBuildResolver.Resolve (
+				spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, cancellationToken
+			);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
 					return await CreateNuGetQuickInfo (snapshot, doc, rr, cancellationToken);

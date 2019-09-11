@@ -47,7 +47,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 				return Empty;
 			}
 
-			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider);
+			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider, token);
 			if (!MSBuildReferenceCollector.CanCreate (rr)) {
 				return Empty;
 			}

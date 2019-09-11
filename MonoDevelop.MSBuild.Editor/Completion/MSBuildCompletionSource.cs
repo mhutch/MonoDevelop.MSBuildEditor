@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = parser.GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider);
+			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;
@@ -171,7 +171,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null);
+			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
 			if (rr?.LanguageElement != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {

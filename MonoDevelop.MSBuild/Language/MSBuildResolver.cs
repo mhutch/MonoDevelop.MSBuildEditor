@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -15,13 +16,14 @@ namespace MonoDevelop.MSBuild.Language
 	static class MSBuildResolver
 	{
 		//FIXME: push down to MonoDevelop.Xml
-		static System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
+		static readonly System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
 
 		public static MSBuildResolveResult Resolve (
 			XmlParser parser,
 			ITextSource textSource,
 			MSBuildDocument context,
-			IFunctionTypeProvider functionTypeProvider)
+			IFunctionTypeProvider functionTypeProvider,
+			CancellationToken cancellationToken = default)
 		{
 			int offset = parser.Position;
 
@@ -55,6 +57,7 @@ namespace MonoDevelop.MSBuild.Language
 					txtNode.End (i);
 					((XContainer)parser.Nodes.Peek (1)).AddChildNode (txtNode);
 				}
+				cancellationToken.ThrowIfCancellationRequested ();
 			}
 
 			//if nodes are incomplete, they won't get connected
@@ -115,7 +118,7 @@ namespace MonoDevelop.MSBuild.Language
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr, functionTypeProvider);
-			rv.Run (el, languageElement, textSource, context);
+			rv.Run (el, languageElement, textSource, context, token: cancellationToken);
 
 			return rr;
 		}

@@ -74,7 +74,8 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			var rr = MSBuildResolver.Resolve (
 				parser.GetSpineParser (pos.BufferPosition),
 				pos.BufferPosition.Snapshot.GetTextSource (),
-				doc, FunctionTypeProvider);
+				doc, FunctionTypeProvider,
+				executionContext.OperationContext.UserCancellationToken);
 
 			var nav = MSBuildNavigation.GetNavigation (doc, pos.BufferPosition, rr);
 
