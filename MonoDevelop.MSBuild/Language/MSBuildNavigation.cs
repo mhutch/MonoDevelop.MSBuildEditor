@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
-				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, (string)rr.Reference);
+				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength);
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.FileOrFolder) {
@@ -79,7 +79,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
-				return new MSBuildNavigationResult (MSBuildReferenceKind.NuGetID, (string)rr.Reference);
+				return new MSBuildNavigationResult (MSBuildReferenceKind.NuGetID, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength);
 			}
 
 			return null;
@@ -204,10 +204,12 @@ namespace MonoDevelop.MSBuild.Language
 			DestOffset = destOffset;
 		}
 
-		public MSBuildNavigationResult (MSBuildReferenceKind kind, string nuGetID)
+		public MSBuildNavigationResult (MSBuildReferenceKind kind, string nuGetID, int offset, int length)
 		{
 			NuGetID = nuGetID;
 			Kind = kind;
+			Offset = offset;
+			Length = length;
 		}
 
 		public MSBuildNavigationResult (string[] paths, int offset, int length)

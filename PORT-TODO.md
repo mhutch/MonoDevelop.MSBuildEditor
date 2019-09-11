@@ -3,9 +3,7 @@ Things that still need to be ported from the MonoDevelop version:
 MSBuild:
 
 * find references command
-* go to definition command
 * switch between related files command
-* ctrl-click to navigate
 * nuget completion
 * polish the completion trigger/commit behavior
 
