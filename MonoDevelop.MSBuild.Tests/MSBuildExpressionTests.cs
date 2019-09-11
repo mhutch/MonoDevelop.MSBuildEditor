@@ -536,7 +536,7 @@ namespace MonoDevelop.MSBuild.Tests
 			switch (actual)
 			{
 			case IContainerExpression listExpr:
-				var expectedListExpr = (ListExpression)expected;
+				var expectedListExpr = (IContainerExpression)expected;
 				Assert.AreEqual (expectedListExpr.Nodes.Count, listExpr.Nodes.Count);
 				for (int i = 0; i < listExpr.Nodes.Count; i++) {
 					AssertEqual (expectedListExpr.Nodes[i], listExpr.Nodes[i], expectedOffset);
