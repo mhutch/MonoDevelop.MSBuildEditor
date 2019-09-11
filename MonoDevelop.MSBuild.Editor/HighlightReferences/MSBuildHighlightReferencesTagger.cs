@@ -36,17 +36,23 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			Task<(SnapshotSpan sourceSpan, ImmutableArray<(ReferenceUsage kind, SnapshotSpan location)> highlights)>
 			GetHighlightsAsync (SnapshotPoint caretLocation, CancellationToken token)
 		{
+			// parser is not currently threadsafe
+			await JoinableTaskContext.Factory.SwitchToMainThreadAsync (token);
+
 			var snapshot = caretLocation.Snapshot;
 			var spineParser = parser.GetSpineParser (caretLocation);
 			var textSource = snapshot.GetTextSource ();
 			var doc = parser.LastParseResult?.MSBuildDocument;
+			if (doc == null) {
+				return Empty;
+			}
 
 			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider);
 			if (!MSBuildReferenceCollector.CanCreate (rr)) {
 				return Empty;
 			}
 
-			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, token);
+			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, token).ConfigureAwait (false);
 			doc = parseResult?.MSBuildDocument;
 			if (doc == null) {
 				return Empty;
