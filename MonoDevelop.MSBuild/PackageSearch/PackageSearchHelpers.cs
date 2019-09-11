@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ProjectFileTools.NuGetSearch.Contracts;
+using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.PackageSearch
 {
@@ -46,5 +47,10 @@ namespace MonoDevelop.MSBuild.PackageSearch
 
 			return tcs.Task;
 		}
+
+		public static string GetNuGetOrgUrl (this IPackageInfo package)
+			=> package.SourceKind == FeedKind.NuGet
+				? $"https://www.nuget.org/packages/{Uri.EscapeUriString (package.Id)}"
+				: null;
 	}
 }

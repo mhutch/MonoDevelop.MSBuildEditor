@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;
 
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 
 using ProjectFileTools.NuGetSearch.Contracts;
@@ -442,11 +443,21 @@ namespace MonoDevelop.MSBuild.Editor
 
 			stackedElements.Add (descEl);
 
-			if (package?.SourceKind == ProjectFileTools.NuGetSearch.Feeds.FeedKind.NuGet) {
-				var url = $"https://www.nuget.org/packages/{Uri.EscapeUriString (package.Id)}";
-				stackedElements.Add (
+			if (package != null) {
+				var nugetOrgUrl = package.GetNuGetOrgUrl ();
+				if (nugetOrgUrl != null) {
+					AddUrlElement (nugetOrgUrl, "Go to package on NuGet.org");
+				}
+
+				var projectUrl = package.ProjectUrl != null && Uri.TryCreate (package.ProjectUrl, UriKind.Absolute, out var parsedUrl) && parsedUrl.Scheme == Uri.UriSchemeHttps
+					? package.ProjectUrl : null;
+				if (projectUrl != null) {
+					AddUrlElement (projectUrl, "Go to project URL");
+				}
+
+				void AddUrlElement (string url, string linkText) => stackedElements.Add (
 					new ClassifiedTextElement (
-						new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, url)
+						new ClassifiedTextRun ("navigableSymbol", linkText, () => Process.Start (url), url)
 					)
 				);
 			}
