@@ -63,7 +63,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				MSBuildRootDocument doc = MSBuildRootDocument.Empty;
 				try {
 					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filepath), oldDoc, schemaProvider, runtimeInformation, taskMetadataBuilder, token);
-				} catch (Exception ex) {
+				} catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;
 				}

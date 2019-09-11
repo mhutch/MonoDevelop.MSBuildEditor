@@ -304,7 +304,7 @@ namespace MonoDevelop.MSBuild.Editor
 					if (!string.IsNullOrEmpty (docs)) {
 						GetDocsXmlSummaryElement (docs, add);
 					}
-				} catch (Exception ex) {
+				} catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LoggingService.LogError ("Error loading docs summary", ex);
 				}
 			}, token);

@@ -121,7 +121,7 @@ namespace MonoDevelop.MSBuild.Language
 						doc.AddImport (imp);
 						return imp;
 					}
-				} catch (Exception ex) {
+				} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
 					LoggingService.LogError ($"Error importing '{possibleFile}'", ex);
 				}
 				return null;
@@ -170,10 +170,8 @@ namespace MonoDevelop.MSBuild.Language
 				if (schema == null && targetsImport?.Document?.Schema != null) {
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
-			} catch (Exception ex) {
-				if (!(ex is TaskCanceledException)) {
-					LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
-				}
+			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
+				LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
 			}
 
 			try {
@@ -184,10 +182,8 @@ namespace MonoDevelop.MSBuild.Language
 				foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
 					doc.LoadTasks (parseContext, "(core overridetasks)", t);
 				}
-			} catch (Exception ex) {
-				if (!(ex is TaskCanceledException)) {
-					LoggingService.LogError ("Error resolving tasks", ex);
-				}
+			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
+				LoggingService.LogError ("Error resolving tasks", ex);
 			}
 
 			try {
@@ -211,10 +207,8 @@ namespace MonoDevelop.MSBuild.Language
 				//this has to run in a second pass so that it runs after all the schemas are loaded
 				var validator = new MSBuildDocumentValidator ();
 				validator.Run (doc.XDocument, textSource, doc);
-			} catch (Exception ex) {
-				if (!(ex is TaskCanceledException)) {
-					LoggingService.LogError ("Error in validation", ex);
-				}
+			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
+				LoggingService.LogError ("Error in validation", ex);
 			}
 
 			return doc;
@@ -225,10 +219,8 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				var import = context.GetCachedOrParse (label, filename, null, File.GetLastWriteTimeUtc (filename));
 				AddImport (import);
-			} catch (Exception ex) {
-				if (!(ex is TaskCanceledException)) {
-					LoggingService.LogError ($"Error loading tasks file {filename}", ex);
-				}
+			} catch (Exception ex) when (context.IsNotCancellation (ex)) {
+				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
 			}
 		}
 

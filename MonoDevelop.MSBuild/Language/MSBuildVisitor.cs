@@ -17,6 +17,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected string Extension { get; private set; }
 		protected CancellationToken CancellationToken { get; private set; }
 		protected void CheckCancellation () => CancellationToken.ThrowIfCancellationRequested ();
+		protected bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && CancellationToken.IsCancellationRequested);
 
 		protected bool IsTargetsFile => string.Equals (Extension, ".targets", StringComparison.OrdinalIgnoreCase);
 		protected bool IsPropsFile => string.Equals (Extension, ".props", StringComparison.OrdinalIgnoreCase);

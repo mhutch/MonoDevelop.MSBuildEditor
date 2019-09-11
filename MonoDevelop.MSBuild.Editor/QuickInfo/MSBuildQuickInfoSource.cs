@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 					.FirstOrDefault (p => p.SourceKind != ProjectFileTools.NuGetSearch.Feeds.FeedKind.Local)
 					?? infos.FirstOrDefault ();
 			}
-			catch (Exception ex) {
+			catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 				LoggingService.LogError ("Error loading package description", ex);
 			}
 

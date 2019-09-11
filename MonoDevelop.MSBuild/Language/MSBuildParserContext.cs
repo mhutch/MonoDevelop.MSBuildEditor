@@ -54,6 +54,8 @@ namespace MonoDevelop.MSBuild.Language
 			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (runtimeInformation);
 		}
 
+		public bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && Token.IsCancellationRequested);
+
 		public Import ParseImport (Import import)
 		{
 			Token.ThrowIfCancellationRequested ();
@@ -63,7 +65,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				textSource = TextSourceFactory.CreateNewDocument (import.Filename);
 				xmlParser.Parse (textSource.CreateReader ());
-			} catch (Exception ex) {
+			} catch (Exception ex) when (IsNotCancellation (ex)) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
 				return import;
 			}
@@ -145,7 +147,7 @@ namespace MonoDevelop.MSBuild.Language
 						var pattern = filename.Substring (lastSlash + 1);
 
 						files = Directory.GetFiles (dir, pattern);
-					} catch (Exception ex) {
+					} catch (Exception ex) when (IsNotCancellation (ex)) {
 						LoggingService.LogError ($"Error evaluating wildcard in import candidate '{filename}'", ex);
 						continue;
 					}
@@ -154,7 +156,7 @@ namespace MonoDevelop.MSBuild.Language
 						Import wildImport;
 						try {
 							wildImport = GetCachedOrParse (importExpr, f, sdk, File.GetLastWriteTimeUtc (f));
-						} catch (Exception ex) {
+						} catch (Exception ex) when (IsNotCancellation (ex)) {
 							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
 							continue;
 						}
@@ -171,7 +173,7 @@ namespace MonoDevelop.MSBuild.Language
 						continue;
 					}
 					import = GetCachedOrParse (importExpr, filename, sdk, fi.LastWriteTimeUtc);
-				} catch (Exception ex) {
+				} catch (Exception ex) when (IsNotCancellation (ex)) {
 					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
 				}
@@ -221,7 +223,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (sdk != null) {
 					return sdkPath;
 				}
-			} catch (Exception ex) {
+			} catch (Exception ex) when (IsNotCancellation (ex)) {
 				LoggingService.LogError ("Error in SDK resolver", ex);
 				return null;
 			}

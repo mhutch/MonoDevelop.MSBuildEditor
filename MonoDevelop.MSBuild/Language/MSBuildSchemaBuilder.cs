@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				CollectResolvedElement (element, resolved);
 				base.VisitResolvedElement (element, resolved);
-			} catch (Exception ex) when (isToplevel) {
+			} catch (Exception ex) when (isToplevel && IsNotCancellation (ex)) {
 				Document.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, $"Internal error: {ex.Message}", element.NameSpan));
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
 			}

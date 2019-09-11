@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (element.IsComplete) {
 					base.VisitResolvedElement (element, resolved);
 				}
-			} catch (Exception ex) {
+			} catch (Exception ex) when (!(ex is OperationCanceledException && CancellationToken.IsCancellationRequested)) {
 				AddError ($"Internal error: {ex.Message}", element.NameSpan);
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
 			}
