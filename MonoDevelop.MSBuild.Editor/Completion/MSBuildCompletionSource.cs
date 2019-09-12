@@ -235,6 +235,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					if (triggerState != TriggerState.None) {
 						var info = rr.GetElementOrAttributeValueInfo (doc);
 						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
+							session.Properties.AddProperty (typeof (TriggerState), triggerState);
 							return await GetExpressionCompletionsAsync (info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
 						}
 					}

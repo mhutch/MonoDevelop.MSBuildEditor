@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -24,11 +25,26 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			this.provider = provider;
 		}
 
-		public IEnumerable<char> PotentialCommitCharacters => new[] { ' ', '(', ')', '.', '-', ';', '[' };
+		static readonly char[] commitChars = new[] { ' ', '(', ')', '.', '-', ';', '[' };
+
+		public IEnumerable<char> PotentialCommitCharacters => commitChars;
 
 		public bool ShouldCommitCompletion (IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken token)
 		{
-			return PotentialCommitCharacters.Contains (typedChar);
+			if (!PotentialCommitCharacters.Contains (typedChar)) {
+				return false;
+			}
+
+			// only handle sessions that MSBuild completion triggering participated in.
+			// the XML commit manager will handle sessions triggered by the base XML completion source.
+			// although we aren't told what exact item we might be committing yet, the trigger tells us enough
+			// about the kind of item to allow us to specialize the commit chars
+			if (!session.Properties.TryGetProperty (typeof (TriggerState), out TriggerState triggerState)) {
+				return false;
+			}
+
+			//TODO: further refine this based on the trigger
+			return true;
 		}
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
