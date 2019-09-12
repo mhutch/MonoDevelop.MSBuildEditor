@@ -19,9 +19,11 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		[Import (typeof (IFunctionTypeProvider))]
 		public IFunctionTypeProvider FunctionTypeProvider { get; set; }
 
-
 		[Import (typeof (IPackageSearchManager))]
 		public IPackageSearchManager PackageSearchManager { get; set; }
+
+		[Import]
+		public DisplayElementFactory DisplayElementFactory { get; set; }
 
 		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer)
 			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildQuickInfoSource (textBuffer, this));

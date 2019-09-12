@@ -144,7 +144,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		CompletionItem CreateCompletionItem (BaseInfo info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
-			var image = DisplayElementFactory.GetImageElement (info);
+			var image = provider.DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.AddKind (xmlCompletionItemKind);
@@ -164,7 +164,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return Task.FromResult<object> (null);
 			}
 
-			return DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
+			return provider.DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
 		}
 
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
@@ -459,7 +459,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildSpecialCommitKind kind)
 		{
-			var item = new CompletionItem (text, this, DisplayElementFactory.GetImageElement (image));
+			var item = new CompletionItem (text, this, provider.DisplayElementFactory.GetImageElement (image));
 			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), kind);
 			item.AddDocumentation (description);
 			return item;
@@ -476,7 +476,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, XmlCompletionItemKind xmlCompletionItemKind)
 		{
-			var kindImage = DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
+			var kindImage = provider.DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
 			var item = new CompletionItem (info, this, kindImage);
 			item.AddKind(xmlCompletionItemKind);
 			return item;
@@ -484,7 +484,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		CompletionItem CreateSdkCompletionItem (SdkInfo info)
 		{
-			var img = DisplayElementFactory.GetImageElement (KnownImages.Sdk);
+			var img = provider.DisplayElementFactory.GetImageElement (KnownImages.Sdk);
 			var item = new CompletionItem (info.Name, this, img);
 			//FIXME better tooltips for SDKs
 			item.AddDocumentation (info.Path);
@@ -493,7 +493,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		IEnumerable<CompletionItem> GetLcidCompletions ()
 		{
-			var imageEl = DisplayElementFactory.GetImageElement (KnownImages.Constant);
+			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
 			foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
 				string name = culture.Name;
 				string id = culture.LCID.ToString ();

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;
-
+using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
@@ -22,9 +23,13 @@ using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor
 {
-	static class DisplayElementFactory
+	[Export, PartCreationPolicy (CreationPolicy.Shared)]
+	class DisplayElementFactory
 	{
-		public static async Task<object> GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
+		[Import]
+		IMSBuildEditorHost Host { get; set; }
+
+		public async Task<object> GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -80,7 +85,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		public static ClassifiedTextElement GetNameElement (BaseInfo info)
+		public ClassifiedTextElement GetNameElement (BaseInfo info)
 		{
 			var label = DescriptionFormatter.GetTitle (info);
 			if (label.kind == null) {
@@ -130,7 +135,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ClassifiedTextElement (runs);
 		}
 
-		public static ContainerElement GetSeenInElement (BaseInfo info, MSBuildRootDocument doc)
+		public ContainerElement GetSeenInElement (BaseInfo info, MSBuildRootDocument doc)
 		{
 			var seenIn = doc.GetFilesSeenIn (info).ToList ();
 			if (seenIn.Count == 0) {
@@ -161,7 +166,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 				elements.Add (new ClassifiedTextElement (
 					new ClassifiedTextRun (PredefinedClassificationTypeNames.SymbolReference, replacement.Value.prefix),
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, replacement.Value.remaining)
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, replacement.Value.remaining, () => OpenFile (s), s)
 				));
 			}
 
@@ -173,13 +178,22 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ContainerElement (ContainerElementStyle.Stacked, elements);
 		}
 
-		public static object GetResolvedPathElement (List<NavigationAnnotation> navs)
+		void OpenFile (string path)
+		{
+			if (System.IO.File.Exists (path)) {
+				Host.OpenFile (path, 0);
+			} else if (System.IO.Directory.Exists (path)) {
+				Process.Start (path);
+			}
+		}
+
+		public object GetResolvedPathElement (List<NavigationAnnotation> navs)
 		{
 			if (navs.Count == 1) {
 				return new ClassifiedTextElement (
 					new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "Resolved Path:"),
 					new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.Literal, navs[0].Path)
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.Literal, navs[0].Path, () => OpenFile (navs[0].Path))
 				);
 			}
 
@@ -188,7 +202,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 			int i = 0;
 			foreach (var location in navs) {
-				elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Literal, location.Path)));
+				elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Literal, location.Path, () => OpenFile (location.Path))));
 				if (i == 5) {
 					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "[more in Go to Definition]")));
 					break;
@@ -201,7 +215,7 @@ namespace MonoDevelop.MSBuild.Editor
 		/// <summary>
 		/// Shortens filenames by extracting common prefixes into MSBuild properties. Returns null if the name could not be shortened in this way.
 		/// </summary>
-		public static Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
+		Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
 		{
 			var prefixes = GetPrefixes (runtimeInfo);
 			return s => GetLongestReplacement (s, prefixes);
@@ -241,13 +255,13 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		public static ImageElement GetImageElement (BaseInfo info)
+		public ImageElement GetImageElement (BaseInfo info)
 		{
 			var id = GetKnownImageIdForInfo (info, false);
 			return id.HasValue ? new ImageElement (id.Value.ToImageId ()) : null;
 		}
 
-		public static ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
+		public ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
 
 		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
 		{
@@ -312,7 +326,7 @@ namespace MonoDevelop.MSBuild.Editor
 		}
 
 		// roslyn's IDocumentationCommentFormattingService seems to be basically unusable
-		// without internals access, so it some basic formatting ourselves
+		// without internals access, so do some basic formatting ourselves
 		static void GetDocsXmlSummaryElement (string docs, Action<ClassifiedTextElement> addTextElement)
 		{
 			var docsXml = XDocument.Parse (docs);
@@ -404,7 +418,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return runs.Count > 0 ? new ClassifiedTextElement (runs) : null;
 		}
 
-		public static object GetPackageInfoTooltip (string packageId, IPackageInfo package)
+		public object GetPackageInfoTooltip (string packageId, IPackageInfo package)
 		{
 			var stackedElements = new List<object> ();
 

@@ -3,20 +3,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Packaging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
+
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
+
 using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
@@ -69,7 +68,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				}
 				var info = rr.GetResolvedReference (doc, provider.FunctionTypeProvider);
 				if (info != null) {
-					var element = await DisplayElementFactory.GetInfoTooltipElement (doc, info, rr, cancellationToken);
+					var element = await provider.DisplayElementFactory.GetInfoTooltipElement (doc, info, rr, cancellationToken);
 					return new QuickInfoItem (
 						snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),
 						element);
@@ -78,14 +77,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			return null;
 		}
 
-		static QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)
+		QuickInfoItem CreateQuickInfo (ITextSnapshot snapshot, IEnumerable<NavigationAnnotation> annotations)
 		{
 			var navs = annotations.ToList ();
 
 			var first = navs.First ();
 			var span = snapshot.CreateTrackingSpan (first.Span.Start, first.Span.Length, SpanTrackingMode.EdgeInclusive);
 
-			return new QuickInfoItem (span, DisplayElementFactory.GetResolvedPathElement (navs));
+			return new QuickInfoItem (span, provider.DisplayElementFactory.GetResolvedPathElement (navs));
 		}
 
 		//FIXME: can we display some kind of "loading" message while it loads?
@@ -108,7 +107,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
-			return new QuickInfoItem (span, DisplayElementFactory.GetPackageInfoTooltip (packageId, info));
+			return new QuickInfoItem (span, provider.DisplayElementFactory.GetPackageInfoTooltip (packageId, info));
 		}
 
 		public void Dispose ()

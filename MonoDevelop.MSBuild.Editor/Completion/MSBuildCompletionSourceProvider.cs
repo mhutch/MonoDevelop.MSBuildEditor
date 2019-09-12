@@ -25,6 +25,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[Import (typeof (IPackageSearchManager))]
 		public IPackageSearchManager PackageSearchManager { get; set; }
 
+		[Import]
+		public DisplayElementFactory DisplayElementFactory { get; set; }
+
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
 				typeof (MSBuildCompletionSource),
