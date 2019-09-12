@@ -20,6 +20,7 @@ using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 
 using ProjectFileTools.NuGetSearch.Contracts;
+using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -263,6 +264,17 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
 
+		public ImageElement GetImageElement (FeedKind kind) => GetImageElement (GetPackageImageId (kind));
+
+		KnownImages GetPackageImageId (FeedKind kind)
+		{
+			switch (kind) {
+			case FeedKind.Local: return KnownImages.FolderClosed;
+			case FeedKind.NuGet: return KnownImages.NuGet;
+			default: return KnownImages.GenericNuGetPackage;
+			}
+		}
+
 		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
 		{
 			switch (info) {
@@ -418,14 +430,14 @@ namespace MonoDevelop.MSBuild.Editor
 			return runs.Count > 0 ? new ClassifiedTextElement (runs) : null;
 		}
 
-		public object GetPackageInfoTooltip (string packageId, IPackageInfo package)
+		public object GetPackageInfoTooltip (string packageId, IPackageInfo package, FeedKind feedKind)
 		{
 			var stackedElements = new List<object> ();
 
 			stackedElements.Add (
 				new ContainerElement (
 					ContainerElementStyle.Wrapped,
-					GetImageElement (KnownImages.NuGet),
+					GetImageElement (feedKind),
 					new ClassifiedTextElement (
 						new ClassifiedTextRun (PredefinedClassificationTypeNames.Keyword, "package"),
 						new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "),

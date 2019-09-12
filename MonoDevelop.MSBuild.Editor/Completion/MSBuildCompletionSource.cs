@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -23,7 +24,7 @@ using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
-
+using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
@@ -156,15 +157,31 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			IAsyncCompletionSession session, CompletionItem item,
 			CancellationToken token)
 		{
-			if (!item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) || info == null) {
-				return Task.FromResult<object> (null);
-			}
-
 			if (!session.Properties.TryGetProperty<MSBuildCompletionSessionContext> (typeof (MSBuildCompletionSessionContext), out var context)) {
 				return Task.FromResult<object> (null);
 			}
 
-			return provider.DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
+			// note that the value is a tuple despite the key
+			if (item.Properties.TryGetProperty<Tuple<string, FeedKind>> (typeof (Tuple<string, FeedKind>), out var packageSearchResult)) {
+				return GetPackageDocumentationAsync (context.doc, packageSearchResult.Item1, packageSearchResult.Item2, token);
+			}
+
+			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) && info != null) {
+				return provider.DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
+			}
+
+			return Task.FromResult<object> (null);
+		}
+
+		async Task<object> GetPackageDocumentationAsync (MSBuildRootDocument doc, string packageId, FeedKind feedKind, CancellationToken token)
+		{
+			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+			var packageInfos = await provider.PackageSearchManager.SearchPackageInfo (packageId, null, tfm).ToTask (token);
+			var packageInfo = packageInfos.FirstOrDefault (p => p.SourceKind == feedKind) ?? packageInfos.FirstOrDefault ();
+			if (packageInfo != null) {
+				return provider.DisplayElementFactory.GetPackageInfoTooltip (packageId, packageInfo, feedKind);
+			}
+			return null;
 		}
 
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
@@ -251,7 +268,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			var searchQuery = rr.Reference.ToString ();
+			var searchQuery = (string) rr.Reference;
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;
 			}
@@ -261,8 +278,22 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
 
 			var items = new List<CompletionItem> ();
-			foreach (var result in results) {
-				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
+			var dedup = new HashSet<string> ();
+
+			// dedup, preferring nuget -> myget -> local
+			AddItems (FeedKind.NuGet);
+			AddItems (FeedKind.MyGet);
+			AddItems (FeedKind.Local);
+
+			void AddItems (FeedKind kind)
+			{
+				foreach (var result in results) {
+					if (result.Item2 == kind) {
+						if (dedup.Add (result.Item1)) {
+							items.Add (CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
+						}
+					}
+				}
 			}
 
 			return CreateCompletionContext (items);
@@ -286,7 +317,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
 			foreach (var result in results) {
-				items.Add (CreateNuGetCompletionItem (result.Item1, result.Item2, XmlCompletionItemKind.AttributeValue));
+				items.Add (CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
 			}
 
 			return CreateCompletionContext (items);
@@ -466,20 +497,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		KnownImages GetPackageImageId (FeedKind kind)
+		CompletionItem CreateNuGetCompletionItem (Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind)
 		{
-			switch (kind) {
-			case FeedKind.Local: return KnownImages.FolderClosed;
-			case FeedKind.NuGet: return KnownImages.NuGet;
-			default: return KnownImages.GenericNuGetPackage;
-			}
-		}
-
-		CompletionItem CreateNuGetCompletionItem (string info, FeedKind kind, XmlCompletionItemKind xmlCompletionItemKind)
-		{
-			var kindImage = provider.DisplayElementFactory.GetImageElement (GetPackageImageId (kind));
-			var item = new CompletionItem (info, this, kindImage);
-			item.AddKind(xmlCompletionItemKind);
+			var kindImage = provider.DisplayElementFactory.GetImageElement (info.Item2);
+			var item = new CompletionItem (info.Item1, this, kindImage);
+			item.AddKind (xmlCompletionItemKind);
+			item.Properties.AddProperty (typeof (Tuple<string, FeedKind>), info);
+			item.AddDocumentationProvider (this);
 			return item;
 		}
 

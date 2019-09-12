@@ -17,6 +17,7 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Completion;
 
 using ProjectFileTools.NuGetSearch.Contracts;
+using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
@@ -95,6 +96,8 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 			try {
 				var frameworkId = doc.GetTargetFrameworkNuGetSearchParameter ();
+
+				//FIXME: can we use the correct version here?
 				var infos = await provider.PackageSearchManager.SearchPackageInfo (packageId, null, frameworkId).ToTask (token);
 
 				//prefer non-local results as they will have more metadata
@@ -107,7 +110,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
-			return new QuickInfoItem (span, provider.DisplayElementFactory.GetPackageInfoTooltip (packageId, info));
+			return new QuickInfoItem (span, provider.DisplayElementFactory.GetPackageInfoTooltip (packageId, info, FeedKind.NuGet));
 		}
 
 		public void Dispose ()
