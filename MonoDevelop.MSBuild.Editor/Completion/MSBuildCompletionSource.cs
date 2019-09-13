@@ -24,14 +24,13 @@ using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
-using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
+	partial class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
 	{
 		readonly MSBuildCompletionSourceProvider provider;
 
@@ -253,7 +252,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						var info = rr.GetElementOrAttributeValueInfo (doc);
 						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
 							session.Properties.AddProperty (typeof (TriggerState), triggerState);
-							return await GetExpressionCompletionsAsync (info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
+							return await GetExpressionCompletionsAsync (
+								session, info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
 						}
 					}
 				}
@@ -262,7 +262,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
 
-		async Task<CompletionContext> GetPackageNameCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
+		async Task<CompletionContext> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			if (rr == null) {
 				return null;
@@ -274,6 +274,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+
+			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm));
 
 			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
 
@@ -367,6 +369,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (
+			IAsyncCompletionSession session,
 			ValueInfo info, TriggerState triggerState, ListKind listKind,
 			int triggerLength, ExpressionNode triggerExpression,
 			IReadOnlyList<ExpressionNode> comparandVariables,
@@ -400,7 +403,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return await GetPackageNameCompletions (doc, rr, token);
+					return await GetPackageNameCompletions (session, doc, rr, token);
 				case MSBuildValueKind.NuGetVersion:
 					return await GetPackageVersionCompletions (doc, rr, token);
 				case MSBuildValueKind.Sdk:

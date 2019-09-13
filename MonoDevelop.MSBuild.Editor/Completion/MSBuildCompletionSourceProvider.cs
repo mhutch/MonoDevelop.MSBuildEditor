@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Language;
@@ -27,6 +28,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		[Import]
 		public DisplayElementFactory DisplayElementFactory { get; set; }
+
+		[Import]
+		public JoinableTaskContext JoinableTaskContext { get; set; }
 
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
