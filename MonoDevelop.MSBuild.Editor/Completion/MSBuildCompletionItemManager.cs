@@ -24,9 +24,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	[Order (Before = PredefinedCompletionNames.DefaultCompletionItemManager)]
 	internal sealed class MSBuildCompletionItemManagerProvider : IAsyncCompletionItemManagerProvider
 	{
-		[Import]
-		IContentTypeRegistryService ContentTypeRegistry;
-
 		[ImportMany]
 		IEnumerable<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> UnorderedCompletionItemManagerProviders;
 
@@ -34,33 +31,38 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		IList<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> OrderedCompletionItemManagerProviders
 			=> _orderedCompletionItemManagerProviders ?? (_orderedCompletionItemManagerProviders = Orderer.Order (UnorderedCompletionItemManagerProviders));
 
-		MSBuildCompletionItemManager _instance;
-
 		IAsyncCompletionItemManager IAsyncCompletionItemManagerProvider.GetOrCreate (ITextView textView)
 		{
-			if (_instance == null) {
+			return textView.Properties.GetOrCreateSingletonProperty (typeof (MSBuildCompletionItemManagerProvider), () => {
 				// each content type can only have a single item manager. we don't want to replace the item manager as
 				// the existing one provides important functionality. instead, we find the next provider after this one
 				// that's valid for MSBuild, which should be the XML one, but should fall back to the default one
-				var contentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
-				bool foundThis = false;
-				var nextProvider = OrderedCompletionItemManagerProviders
-					.Where (p => {
-						if (!foundThis) {
-							if (p.Metadata.Name == nameof (MSBuildCompletionItemManagerProvider)) {
-								foundThis = true;
-							}
-							return false;
+				IAsyncCompletionItemManager nextManager = GetNextProvider (textView, textView.TextSnapshot.ContentType, textView.Roles);
+				return new MSBuildCompletionItemManager (nextManager, this);
+			});
+		}
+
+		IAsyncCompletionItemManager GetNextProvider (ITextView textView, IContentType contentType, ITextViewRoleSet roles)
+		{
+			bool foundThis = false;
+			var nextProvider = OrderedCompletionItemManagerProviders
+				.Where (p => {
+					if (!foundThis) {
+						if (p.Metadata.Name == nameof (MSBuildCompletionItemManagerProvider)) {
+							foundThis = true;
 						}
-						if (!p.Metadata.ContentTypes.Any (c => contentType.IsOfType (c))) {
-							return false;
-						}
-						return true;
-					}).First ();
-				var nextManager = nextProvider.Value.GetOrCreate (textView);
-				_instance = new MSBuildCompletionItemManager (nextManager, this);
-			}
-			return _instance;
+						return false;
+					}
+					if (!p.Metadata.ContentTypes.Any (c => contentType.IsOfType (c))) {
+						return false;
+					}
+					if (p.Metadata.TextViewRoles != null && roles != null && !roles.ContainsAny (p.Metadata.TextViewRoles)) {
+						return false;
+					}
+					return true;
+				}).First ();
+			var nextManager = nextProvider.Value.GetOrCreate (textView);
+			return nextManager;
 		}
 	}
 
@@ -103,8 +105,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				Next ();
 			}
 
-			var filterText = session.ApplicableToSpan.GetText (data.Snapshot);
-			var newList = searchInfo.Update (data, filterText, this, token);
+			//don't pass the CancellationToken to the search job, else filtering operations will cancel searches
+			var newList = searchInfo.Update (this, data);
+
 			if (newList.Length != data.InitialSortedList.Length) {
 				data = new AsyncCompletionSessionDataSnapshot (
 					newList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters, data.IsSoftSelected, data.DisplaySuggestionItem

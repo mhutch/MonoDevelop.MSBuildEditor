@@ -19,8 +19,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		public class NuGetSearchUpdater
 		{
-			IAsyncCompletionSession session;
-
 			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm)
 			{
 				this.tfm = tfm;
@@ -29,57 +27,119 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			string tfm;
+			IAsyncCompletionSession session;
 			MSBuildCompletionSource parent;
-			ITextSnapshot snapshot;
-			IPackageFeedSearchJob<Tuple<string, FeedKind>> search;
+			MSBuildCompletionItemManager completionItemManager;
 
-			ImmutableArray<CompletionItem> updatedList;
-			MSBuildCompletionItemManager itemManager;
-			AsyncCompletionSessionDataSnapshot data;
+			// these fields are protected by the locker
+			object locker = new object ();
+			NuGetSearchJob searchJob;
+			ImmutableArray<CompletionItem>? updatedList;
+			AsyncCompletionSessionDataSnapshot updatedListData;
+			bool isUpdatedListEnqueued;
 
 			public ImmutableArray<CompletionItem> Update (
-				AsyncCompletionSessionDataSnapshot data, string filterText,
-				MSBuildCompletionItemManager itemManager, CancellationToken token)
+				MSBuildCompletionItemManager completionItemManager,
+				AsyncCompletionSessionDataSnapshot data)
 			{
-				lock (this) {
-					if (this.data == null || this.data.Snapshot.Version.VersionNumber < data.Snapshot.Version.VersionNumber) {
-						if (updatedList == null) {
-							updatedList = data.InitialSortedList;
-							this.itemManager = itemManager;
-						}
-						search = parent.provider.PackageSearchManager.SearchPackageNames (filterText, tfm);
-						search.Updated += SearchUpdated;
+				lock (locker) {
+					// kick off an updated search if we need one
+					if (searchJob == null || searchJob.IsOutdated (data)) {
+						this.completionItemManager = completionItemManager;
+						searchJob?.Cancel ();
+						searchJob = new NuGetSearchJob (this, data);
 					}
-					this.data = data;
-
-					return updatedList;
+					// apply the updated list if there is one
+					isUpdatedListEnqueued = false;
+					return updatedList ?? data.InitialSortedList;
 				}
 			}
 
-			void SearchUpdated (object sender, EventArgs e)
+			void EnqueueUpdate (ImmutableArray<CompletionItem> newList, AsyncCompletionSessionDataSnapshot data, CancellationToken token)
 			{
-				var search = (IPackageFeedSearchJob<Tuple<string, FeedKind>>) sender;
-				if (search.RemainingFeeds.Count == 0) {
-					search.Updated -= SearchUpdated;
+				lock (locker) {
+					if (token.IsCancellationRequested) {
+						return;
+					}
+					updatedList = newList;
+					updatedListData = data;
+					if (isUpdatedListEnqueued) {
+						return;
+					}
+					isUpdatedListEnqueued = true;
 				}
-
-				var items = new List<CompletionItem> ();
-				foreach (var result in search.Results) {
-					items.Add (parent.CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
-				}
-
-				updatedList = updatedList.AddRange (items);
 
 				var jtf = parent.provider.JoinableTaskContext.Factory;
 				jtf.Run (async delegate {
 					await jtf.SwitchToMainThreadAsync ();
 					if (!session.IsDismissed) {
 						session.OpenOrUpdate (
-							new CompletionTrigger (CompletionTriggerReason.Insertion, data.Snapshot),
-							session.ApplicableToSpan.GetStartPoint (data.Snapshot),
+							new CompletionTrigger (CompletionTriggerReason.Invoke, updatedListData.Snapshot),
+							session.ApplicableToSpan.GetStartPoint (updatedListData.Snapshot),
 							CancellationToken.None);
 					}
 				});
+			}
+
+			class NuGetSearchJob
+			{
+				readonly IPackageFeedSearchJob<Tuple<string, FeedKind>> search;
+				readonly NuGetSearchUpdater parent;
+				readonly CancellationTokenSource cts = new CancellationTokenSource ();
+				readonly AsyncCompletionSessionDataSnapshot data;
+
+				public NuGetSearchJob (NuGetSearchUpdater parent, AsyncCompletionSessionDataSnapshot data)
+				{
+					this.parent = parent;
+					this.data = data;
+
+					var filterText = parent.session.ApplicableToSpan.GetText (data.Snapshot);
+					search = parent.parent.provider.PackageSearchManager.SearchPackageNames (filterText, parent.tfm);
+					search.Updated += SearchUpdated;
+					cts.Token.Register (search.Cancel);
+				}
+
+				public bool IsOutdated (AsyncCompletionSessionDataSnapshot data)
+					=> data.Snapshot.Version.VersionNumber > this.data.Snapshot.Version.VersionNumber;
+
+				public void Cancel () => cts.Cancel ();
+
+				void SearchUpdated (object sender, EventArgs e)
+				{
+					var token = cts.Token;
+
+					int remainingFeeds = search.RemainingFeeds.Count;
+					if (remainingFeeds == 0 || token.IsCancellationRequested) {
+						search.Updated -= SearchUpdated;
+					}
+
+					if (token.IsCancellationRequested) {
+						return;
+					}
+
+					var items = new List<CompletionItem> ();
+					foreach (var result in search.Results) {
+						items.Add (parent.parent.CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
+					}
+
+					// if remainingFeeds has changed, an new event has fired, bail out and let it do the work
+					if (token.IsCancellationRequested || remainingFeeds != search.RemainingFeeds.Count) {
+						return;
+					}
+
+					var newList = data.InitialSortedList.AddRange (items);
+					parent.completionItemManager.SortCompletionListAsync (
+						parent.session,
+						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Insertion, data.Snapshot)),
+						CancellationToken.None
+					);
+
+					if (token.IsCancellationRequested || remainingFeeds != search.RemainingFeeds.Count) {
+						return;
+					}
+
+					parent.EnqueueUpdate (newList, data, token);
+				}
 			}
 		}
 	}
