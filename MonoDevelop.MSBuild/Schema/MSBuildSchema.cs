@@ -227,7 +227,7 @@ namespace MonoDevelop.MSBuild.Schema
 		MSBuildValueKind ParseValueKind (string valueKind, ref List<ConstantInfo> enumValues, SchemaLoadState state)
 		{
 			var kind = ParseValueKind (valueKind, out var enumName, state);
-			if (kind == MSBuildValueKind.CustomEnum && enumValues == null) {
+			if (kind.IsCustomEnum () && enumValues == null) {
 				if (state.CustomEnumKinds == null || !state.CustomEnumKinds.TryGetValue (enumName, out enumValues)) {
 					state.AddError ($"Undefined custom enum '{enumName}'");
 				}

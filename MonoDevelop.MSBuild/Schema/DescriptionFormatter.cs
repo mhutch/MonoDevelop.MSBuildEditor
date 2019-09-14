@@ -262,6 +262,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return "nuget-version";
 			case MSBuildValueKind.ProjectKindGuid:
 				return "flavor-guid";
+			case MSBuildValueKind.CustomEnum:
+				return "enum";
 			}
 			return null;
 		}

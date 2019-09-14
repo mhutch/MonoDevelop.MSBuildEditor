@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public static MSBuildValueKind GetScalarType (this MSBuildValueKind value)
 		{
-			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal);
+			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal | MSBuildValueKind.CommaList);
 		}
 
 		public static bool AllowExpressions (this MSBuildValueKind value)
@@ -36,6 +36,8 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			return (value & MSBuildValueKind.CommaList) != 0 || value == MSBuildValueKind.Unknown;
 		}
+
+		public static bool IsCustomEnum (this MSBuildValueKind value) => value.GetScalarType() == MSBuildValueKind.CustomEnum;
 
 		public static MSBuildValueKind List (this MSBuildValueKind value)
 		{
