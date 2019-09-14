@@ -50,6 +50,7 @@
     <Compile Include="MSBuildLanguageService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MSBuildEditorVisualStudioPackage.cs" />
+    <Compile Include="SetRegistrationOptionAttribute.cs" />
     <Compile Include="VisualStudioCompilationProvider.cs" />
     <Compile Include="VisualStudioMSBuildEditorHost.cs" />
   </ItemGroup>
