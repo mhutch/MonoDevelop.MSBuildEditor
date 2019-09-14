@@ -43,6 +43,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return false;
 			}
 
+			if (typedChar == '.') {
+				if (session.Properties.TryGetProperty (typeof (MSBuildCompletionSource.NuGetSearchUpdater), out MSBuildCompletionSource.NuGetSearchUpdater searchInfo)) {
+					return false;
+				}
+			}
+
 			//TODO: further refine this based on the trigger
 			return true;
 		}

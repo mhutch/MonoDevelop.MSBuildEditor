@@ -268,7 +268,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			var searchQuery = (string) rr.Reference;
+			var searchQuery = (string)rr.Reference;
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;
 			}
@@ -279,6 +279,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
 
+			return CreateCompletionContext (CreateNuGetItemsFromSearchResults (results));
+		}
+
+		List<CompletionItem> CreateNuGetItemsFromSearchResults (IReadOnlyList<Tuple<string, FeedKind>> results)
+		{
 			var items = new List<CompletionItem> ();
 			var dedup = new HashSet<string> ();
 
@@ -298,7 +303,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return CreateCompletionContext (items);
+			return items;
 		}
 
 		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
@@ -441,7 +446,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
 				if (IsMetadataAllowed (triggerExpression, rr)) {
-					items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
+					items.Add (CreateSpecialItem ("%(", "Metadata reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.MetadataReference));
 				}
 			}
 

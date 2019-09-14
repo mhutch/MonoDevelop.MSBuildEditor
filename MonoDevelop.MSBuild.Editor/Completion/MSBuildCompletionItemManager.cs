@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -96,13 +94,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			case CompletionTriggerReason.Deletion:
 			case CompletionTriggerReason.Insertion:
 			case CompletionTriggerReason.Backspace:
+			case CompletionTriggerReason.Invoke:
 				break;
 			default:
 				return Next ();
 			}
 
 			if (!session.Properties.TryGetProperty (typeof (MSBuildCompletionSource.NuGetSearchUpdater), out MSBuildCompletionSource.NuGetSearchUpdater searchInfo)) {
-				Next ();
+				return Next ();
 			}
 
 			//don't pass the CancellationToken to the search job, else filtering operations will cancel searches
@@ -113,12 +112,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					newList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters, data.IsSoftSelected, data.DisplaySuggestionItem
 				);
 			}
-			return nextManager.UpdateCompletionListAsync (session, data, token);
-		}
 
-		ImmutableArray<CompletionItem> GetNewItems (IAsyncCompletionSession session)
-		{
-			throw new NotImplementedException ();
+			return Next ();
 		}
 	}
 }

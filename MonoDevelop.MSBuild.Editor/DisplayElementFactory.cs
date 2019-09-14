@@ -262,7 +262,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return id.HasValue ? new ImageElement (id.Value.ToImageId ()) : null;
 		}
 
-		public ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId ());
+		public ImageElement GetImageElement (KnownImages image) => new ImageElement (image.ToImageId (), image.ToString ());
 
 		public ImageElement GetImageElement (FeedKind kind) => GetImageElement (GetPackageImageId (kind));
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -35,7 +36,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			object locker = new object ();
 			NuGetSearchJob searchJob;
 			ImmutableArray<CompletionItem>? updatedList;
-			AsyncCompletionSessionDataSnapshot updatedListData;
+			ImmutableArray<CompletionItem> nonNuGetItems;
 			bool isUpdatedListEnqueued;
 
 			public ImmutableArray<CompletionItem> Update (
@@ -45,7 +46,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				lock (locker) {
 					// kick off an updated search if we need one
 					if (searchJob == null || searchJob.IsOutdated (data)) {
-						this.completionItemManager = completionItemManager;
+						if (this.completionItemManager == null) {
+							this.completionItemManager = completionItemManager;
+							nonNuGetItems = ImmutableArray.CreateRange (
+								data.InitialSortedList.Where (i => !i.Properties.TryGetProperty (typeof (Tuple<string, FeedKind>), out Tuple<string, FeedKind> info))
+							);
+						}
 						searchJob?.Cancel ();
 						searchJob = new NuGetSearchJob (this, data);
 					}
@@ -55,14 +61,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			void EnqueueUpdate (ImmutableArray<CompletionItem> newList, AsyncCompletionSessionDataSnapshot data, CancellationToken token)
+			void EnqueueUpdate (ImmutableArray<CompletionItem> newList, CancellationToken token)
 			{
 				lock (locker) {
 					if (token.IsCancellationRequested) {
 						return;
 					}
 					updatedList = newList;
-					updatedListData = data;
 					if (isUpdatedListEnqueued) {
 						return;
 					}
@@ -73,9 +78,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				jtf.Run (async delegate {
 					await jtf.SwitchToMainThreadAsync ();
 					if (!session.IsDismissed) {
+						var snapshot = session.TextView.TextSnapshot;
 						session.OpenOrUpdate (
-							new CompletionTrigger (CompletionTriggerReason.Invoke, updatedListData.Snapshot),
-							session.ApplicableToSpan.GetStartPoint (updatedListData.Snapshot),
+							new CompletionTrigger (CompletionTriggerReason.Invoke, snapshot),
+							session.ApplicableToSpan.GetStartPoint (snapshot),
 							CancellationToken.None);
 					}
 				});
@@ -95,8 +101,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 					var filterText = parent.session.ApplicableToSpan.GetText (data.Snapshot);
 					search = parent.parent.provider.PackageSearchManager.SearchPackageNames (filterText, parent.tfm);
-					search.Updated += SearchUpdated;
 					cts.Token.Register (search.Cancel);
+
+					search.Updated += SearchUpdated;
+
+					// it may have cached results, and SearchUpdated may never fire
+					if (search.Results.Count > 0) {
+						SearchUpdated (search, EventArgs.Empty);
+					}
 				}
 
 				public bool IsOutdated (AsyncCompletionSessionDataSnapshot data)
@@ -117,28 +129,25 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						return;
 					}
 
-					var items = new List<CompletionItem> ();
-					foreach (var result in search.Results) {
-						items.Add (parent.parent.CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
-					}
+					var items = parent.parent.CreateNuGetItemsFromSearchResults (search.Results);
 
-					// if remainingFeeds has changed, an new event has fired, bail out and let it do the work
-					if (token.IsCancellationRequested || remainingFeeds != search.RemainingFeeds.Count) {
+					// if remainingFeeds has changed, a new event has fired, bail out and let it do the work
+					if (token.IsCancellationRequested || remainingFeeds > search.RemainingFeeds.Count) {
 						return;
 					}
 
-					var newList = data.InitialSortedList.AddRange (items);
+					var newList = parent.nonNuGetItems.AddRange (items);
 					parent.completionItemManager.SortCompletionListAsync (
 						parent.session,
-						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Insertion, data.Snapshot)),
-						CancellationToken.None
+						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Invoke, data.Snapshot)),
+						token
 					);
 
-					if (token.IsCancellationRequested || remainingFeeds != search.RemainingFeeds.Count) {
+					if (token.IsCancellationRequested || remainingFeeds > search.RemainingFeeds.Count) {
 						return;
 					}
 
-					parent.EnqueueUpdate (newList, data, token);
+					parent.EnqueueUpdate (newList, token);
 				}
 			}
 		}
