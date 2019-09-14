@@ -69,7 +69,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 
 				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors);
-			});
+			}, token);
 		}
 	}
 }
