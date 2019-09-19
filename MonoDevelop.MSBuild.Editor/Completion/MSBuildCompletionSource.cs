@@ -262,24 +262,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
 
-		async Task<CompletionContext> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
+		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, CancellationToken token)
 		{
-			if (rr == null) {
-				return null;
-			}
+			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm));
 
-			var searchQuery = (string)rr.Reference;
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;
 			}
 
-			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-
-			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm));
-
 			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
 
-			return CreateCompletionContext (CreateNuGetItemsFromSearchResults (results));
+			return CreateNuGetItemsFromSearchResults (results);
 		}
 
 		List<CompletionItem> CreateNuGetItemsFromSearchResults (IReadOnlyList<Tuple<string, FeedKind>> results)
@@ -306,7 +300,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
-		async Task<CompletionContext> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
+		async Task<List<CompletionItem>> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			if (rr == null) {
 				return null;
@@ -327,12 +321,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				items.Add (CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
 			}
 
-			return CreateCompletionContext (items);
+			return items;
 		}
 
 		//FIXME: SDK version completion
 		//FIXME: enumerate SDKs from NuGet
-		Task<CompletionContext> GetSdkCompletions (MSBuildRootDocument doc, CancellationToken token)
+		Task<List<CompletionItem>> GetSdkCompletions (MSBuildRootDocument doc, CancellationToken token)
 		{
 			return Task.Run (() => {
 				var items = new List<CompletionItem> ();
@@ -369,7 +363,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						}
 					}
 
-					return CreateCompletionContext (items);
+					return items;
 				}, token);
 		}
 
@@ -408,12 +402,28 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					return await GetPackageNameCompletions (session, doc, rr, token);
-				case MSBuildValueKind.NuGetVersion:
-					return await GetPackageVersionCompletions (doc, rr, token);
+					if (triggerExpression is ExpressionText t) {
+						var packageNameItems = await GetPackageNameCompletions (session, doc, t.Value, token);
+						if (packageNameItems != null) {
+							items.AddRange (packageNameItems);
+						}
+					}
+					break;
+				case MSBuildValueKind.NuGetVersion: {
+						var packageVersionItems = await GetPackageVersionCompletions (doc, rr, token);
+						if (packageVersionItems != null) {
+							items.AddRange (packageVersionItems);
+						}
+						break;
+					}
 				case MSBuildValueKind.Sdk:
-				case MSBuildValueKind.SdkWithVersion:
-					return await GetSdkCompletions (doc, token);
+				case MSBuildValueKind.SdkWithVersion: {
+					var sdkItems = await GetSdkCompletions (doc, token);
+						if (sdkItems != null) {
+							items.AddRange (sdkItems);
+						}
+						break;
+					}
 				case MSBuildValueKind.Guid:
 					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
 					break;
