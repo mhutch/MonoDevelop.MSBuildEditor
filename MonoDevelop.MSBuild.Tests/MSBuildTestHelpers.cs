@@ -73,7 +73,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var nextIndex = indices.Dequeue ();
 			for (int i = 0; i < docString.Length; i++) {
 				parser.Push (docString [i]);
-				if (i != nextIndex) {
+				if (parser.Position != nextIndex) {
 					continue;
 				}
 

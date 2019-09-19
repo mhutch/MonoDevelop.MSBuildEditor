@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					doc = MSBuildRootDocument.Empty;
 				}
 
-				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors);
+				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors, snapshot);
 			}, token);
 		}
 	}

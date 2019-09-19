@@ -36,9 +36,6 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			Task<(SnapshotSpan sourceSpan, ImmutableArray<(ReferenceUsage kind, SnapshotSpan location)> highlights)>
 			GetHighlightsAsync (SnapshotPoint caretLocation, CancellationToken token)
 		{
-			// parser is not currently threadsafe
-			await JoinableTaskContext.Factory.SwitchToMainThreadAsync (token);
-
 			var snapshot = caretLocation.Snapshot;
 			var spineParser = parser.GetSpineParser (caretLocation);
 			var textSource = snapshot.GetTextSource ();

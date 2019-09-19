@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = parser.GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (GetSpineParser (triggerLocation), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
+			var rr = MSBuildResolver.Resolve ((XmlParser)((ICloneable)spine).Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;

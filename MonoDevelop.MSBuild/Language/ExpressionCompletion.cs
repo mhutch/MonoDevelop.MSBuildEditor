@@ -23,7 +23,7 @@ namespace MonoDevelop.MSBuild.Language
 			var state = parser.CurrentState;
 			return state is XmlAttributeValueState
 				|| state is XmlTextState
-				|| (state is XmlRootState && ((IXmlParserContext)parser).StateTag == ROOT_STATE_FREE);
+				|| (state is XmlRootState && parser.GetContext ().StateTag == ROOT_STATE_FREE);
 		}
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
