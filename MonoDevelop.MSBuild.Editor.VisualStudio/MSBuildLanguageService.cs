@@ -43,7 +43,6 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 					preferences.IndentStyle = IndentingStyle.Smart;
 					preferences.TabSize = 2;
 					preferences.InsertTabs = false;
-					preferences.VirtualSpace = true;
 
 					preferences.WordWrap = false;
 					preferences.WordWrapGlyphs = true;

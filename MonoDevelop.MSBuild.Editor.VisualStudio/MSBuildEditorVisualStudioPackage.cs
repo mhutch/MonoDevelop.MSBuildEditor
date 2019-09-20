@@ -22,7 +22,18 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		ShowSmartIndent = true
 		)]
 	// dunno why this isn't part of ProvideLanguageService 🤷‍
-	[SetRegistrationOptionAttribute (LanguageServiceKey, "ShowBraceCompletion", 1)]
+	[SetRegistrationOption (LanguageServiceKey, "ShowBraceCompletion", 1)]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".targets")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".props")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".tasks")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".overridetasks")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".csproj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".vbproj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".fsproj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".xproj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".vcxproj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".proj")]
+	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".user")]
 	public sealed class MSBuildEditorVisualStudioPackage : AsyncPackage
 	{
 		public const string PackageGuidString = "6c7bd60d-5321-4fb0-8684-9736003d64ad";
