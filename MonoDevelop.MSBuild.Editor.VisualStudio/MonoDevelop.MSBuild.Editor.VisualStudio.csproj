@@ -92,7 +92,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="16.1.28916.169" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="16.4.29313.133" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
       <Version>3.0.0</Version>
     </PackageReference>

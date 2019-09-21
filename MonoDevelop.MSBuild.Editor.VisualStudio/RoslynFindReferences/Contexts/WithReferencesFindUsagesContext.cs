@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Language;
+using Roslyn.Utilities;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 {
@@ -92,7 +93,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 				// Normal references go into both sets of entries.
 				return OnEntryFoundAsync (
-					reference.Definition,
+					reference,
 					bucket => TryCreateDocumentSpanEntryAsync (
 						bucket, reference.Location,
 						reference.Kind,

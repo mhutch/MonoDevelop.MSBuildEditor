@@ -55,15 +55,12 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 				return Empty;
 			}
 
-			var collector = MSBuildReferenceCollector.Create (rr, provider.FunctionTypeProvider);
+			var references = new List<(ReferenceUsage usage, SnapshotSpan span)> ();
+			var collector = MSBuildReferenceCollector.Create (
+				rr, provider.FunctionTypeProvider,
+				r => references.Add ((r.Usage, new SnapshotSpan (snapshot, r.Offset, r.Length))));
 
 			await Task.Run (() => collector.Run (doc, token: token), token);
-
-			var references = new List<(ReferenceUsage type, SnapshotSpan location)> (collector.Results.Count);
-
-			foreach (var reference in collector.Results) {
-				references.Add ((reference.Usage, new SnapshotSpan (snapshot, reference.Offset, reference.Length)));
-			}
 
 			return (
 				new SnapshotSpan (caretLocation.Snapshot, rr.ReferenceOffset, rr.ReferenceLength),
