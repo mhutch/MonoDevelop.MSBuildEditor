@@ -47,10 +47,27 @@
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\PackageFeedRegistryProvider.cs">
       <Link>PackageFeedRegistryProvider.cs</Link>
     </Compile>
+    <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />
     <Compile Include="MSBuildLanguageService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MSBuildEditorVisualStudioPackage.cs" />
     <Compile Include="SetRegistrationOptionAttribute.cs" />
+    <Compile Include="RoslynFindReferences\AbstractFindUsagesCustomColumnDefinition.cs" />
+    <Compile Include="RoslynFindReferences\Contexts\AbstractTableDataSourceFindUsagesContext.cs" />
+    <Compile Include="RoslynFindReferences\Contexts\WithoutReferencesFindUsagesContext.cs" />
+    <Compile Include="RoslynFindReferences\Contexts\WithReferencesFindUsagesContext.cs" />
+    <Compile Include="RoslynFindReferences\Entries\AbstractDocumentSpanEntry.cs" />
+    <Compile Include="RoslynFindReferences\Entries\DefinitionItemEntry.cs" />
+    <Compile Include="RoslynFindReferences\Entries\DocumentSpanEntry.cs" />
+    <Compile Include="RoslynFindReferences\Entries\Entry.cs" />
+    <Compile Include="RoslynFindReferences\Entries\SimpleMessageEntry.cs" />
+    <Compile Include="RoslynFindReferences\IFindAllReferencesWindowExtensions.cs" />
+    <Compile Include="RoslynFindReferences\ISupportNavigation.cs" />
+    <Compile Include="RoslynFindReferences\NameMetadata.cs" />
+    <Compile Include="RoslynFindReferences\Placeholders.cs" />
+    <Compile Include="RoslynFindReferences\RoslynDefinitionBucket.cs" />
+    <Compile Include="RoslynFindReferences\StreamingFindUsagesPresenter.cs" />
+    <Compile Include="RoslynFindReferences\TableEntriesSnapshot.cs" />
     <Compile Include="VisualStudioCompilationProvider.cs" />
     <Compile Include="VisualStudioMSBuildEditorHost.cs" />
   </ItemGroup>
@@ -71,6 +88,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

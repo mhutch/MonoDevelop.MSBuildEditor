@@ -12,6 +12,7 @@ using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;
 using MonoDevelop.MSBuild.Editor.Host;
@@ -525,39 +526,41 @@ namespace MonoDevelop.MSBuild.Editor
 	static class ImageExtensions
 	{
 		public static ImageId ToImageId (this KnownImages id) => new ImageId (KnownImagesGuid, (int)id);
-		static readonly Guid KnownImagesGuid = Guid.Parse ("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+		static readonly Guid KnownImagesGuid = KnownImageIds.ImageCatalogGuid;
 	}
 
 	enum KnownImages
 	{
-		// these mirror the values from Microsoft.VisualStudio.Imaging.KnownImageIds
-		Property = 2429,
-		PropertyPrivate = 2434,
-		Method = 1874,
-		MethodPrivate = 1874,
-		Reference = 2521,
-		Add = 28,
-		NuGet = 3150,
-		PackageReference = 3574,
-		FolderClosed = 1294,
-		BinaryFile = 272,
-		Class = 463,
-		ClassPrivate = 471,
-		Field = 1217,
-		FieldPrivate = 1220,
-		Enumeration = 1120,
-		EnumerationPrivate = 1129,
-		Constant = 616,
-		ConstantPrivate = 618,
-		XMLAttribute = 3564,
-		XMLCDataTag = 3567,
-		XMLCommentTag = 3568,
-		XMLElement = 3573,
-		IntellisenseKeyword = 1589,
-		Assembly = 196,
-		Action = 13,
-		DotNETFrameworkDependency = 1019,
-		Parameter = 2242,
+		// mirror values from Microsoft.VisualStudio.Imaging.KnownImageIds into a limited set
+		//so we know which ones we need to ensure exist in VSMac
+		Property = KnownImageIds.Property,
+		PropertyPrivate = KnownImageIds.PropertyPrivate,
+		Method = KnownImageIds.Method,
+		MethodPrivate = KnownImageIds.MethodPrivate,
+		Reference = KnownImageIds.Reference,
+		Add = KnownImageIds.Add,
+		NuGet = KnownImageIds.NuGet,
+		PackageReference = KnownImageIds.PackageReference,
+		FolderClosed = KnownImageIds.FolderClosed,
+		BinaryFile = KnownImageIds.BinaryFile,
+		Class = KnownImageIds.Class,
+		ClassPrivate = KnownImageIds.ClassPrivate,
+		Field = KnownImageIds.Field,
+		FieldPrivate = KnownImageIds.FieldPrivate,
+		Enumeration = KnownImageIds.Enumeration,
+		EnumerationPrivate = KnownImageIds.EnumerationPrivate,
+		Constant = KnownImageIds.Constant,
+		ConstantPrivate = KnownImageIds.ConstantPrivate,
+		XMLAttribute = KnownImageIds.XMLAttribute,
+		XMLCDataTag = KnownImageIds.XMLCDataTag,
+		XMLCommentTag = KnownImageIds.XMLCommentTag,
+		XMLElement = KnownImageIds.XMLElement,
+		IntellisenseKeyword = KnownImageIds.IntellisenseKeyword,
+		Assembly = KnownImageIds.Assembly,
+		Action = KnownImageIds.Action,
+		DotNETFrameworkDependency = KnownImageIds.DotNETFrameworkDependency,
+		Parameter = KnownImageIds.Parameter,
+		StatusInformation = KnownImageIds.StatusInformation,
 
 		// this defines the mapping from the MSBuild usage to the icons we're re-using
 		// FIXME: improve these icons

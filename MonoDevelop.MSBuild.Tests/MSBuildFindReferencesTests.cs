@@ -34,12 +34,13 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 
+			var results = new List<(int Offset, int Length, ReferenceUsage Usage)> ();
 			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
 				ReferenceKind = kind,
 				Reference = reference,
-			}, functionTypeProvider);
+			}, functionTypeProvider, results.Add);
 			collector.Run (xdoc, textDoc, doc);
-			return collector.Results;
+			return results;
 		}
 
 		void AssertLocations (

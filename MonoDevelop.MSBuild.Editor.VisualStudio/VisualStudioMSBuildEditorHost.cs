@@ -2,14 +2,17 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 
 using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 using MonoDevelop.MSBuild.Editor.Host;
@@ -22,12 +25,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		[Import]
 		internal SVsServiceProvider ServiceProvider { get; set; }
 
-		public void OpenFile (string destFile, int destOffset)
+		[Import] IVsEditorAdaptersFactoryService EditorAdapter { get; set; }
+
+		public bool OpenFile (string destFile, int destOffset, bool isPreview = false)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
-			var openDoc = ServiceProvider.GetService (typeof (SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
-			Assumes.Present (openDoc);
+			var openDoc = ServiceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument> (true);
 
 			var logViewGuid = VSConstants.LOGVIEWID.Code_guid;
 
@@ -43,8 +47,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 				throw new Exception ("Did not get text lines for view");
 			}
 
-			var textMgr = ServiceProvider.GetService (typeof (SVsTextManager)) as IVsTextManager;
-			Assumes.Present (textMgr);
+			var textMgr = ServiceProvider.GetService<SVsTextManager, IVsTextManager> ();
 
 			Check (textMgr.GetActiveView (0, textLines, out var textView));
 
@@ -53,12 +56,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 				Check (textView.SetCaretPos (line, col));
 			}
 
-			void Check (int result)
-			{
-				if (result != VSConstants.S_OK) {
-					throw new Exception ($"Unexpected result {result}");
-				}
-			}
+			return true;
 		}
 
 		//TODO: handle multiple paths
@@ -75,10 +73,50 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
-			var statusBar = (IVsStatusbar)ServiceProvider.GetService (typeof (SVsStatusbar));
+			var statusBar = ServiceProvider.GetService<SVsStatusbar, IVsStatusbar> (true);
 			Assumes.Present (statusBar);
 
 			statusBar.SetText (v);
+		}
+
+		public Dictionary<string,ITextBuffer> GetOpenDocuments ()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread ();
+
+			var rdt = ServiceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable> (true);
+			var rdt4 = ServiceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4> (true);
+
+			Check (rdt.GetRunningDocumentsEnum (out var runningDocuments));
+
+			var documents = new Dictionary<string, ITextBuffer> ();
+
+			var cookies = new uint[64];
+			while (Check (runningDocuments.Next ((uint)cookies.Length, cookies, out var fetched)) && fetched > 0) {
+				for (int i = 0; i < fetched; i++) {
+					uint cookie = cookies[i];
+					var moniker = rdt4.GetDocumentMoniker (cookie);
+					if (string.IsNullOrEmpty (moniker)) {
+						continue;
+					}
+					//object cast avoids unnecessary dynamic code
+					if ((object)rdt4.GetDocumentData (cookie) is IVsTextBuffer bufferAdapter) {
+						var buffer = EditorAdapter.GetDataBuffer (bufferAdapter);
+						if (buffer != null) {
+							documents.Add (moniker, buffer);
+						}
+					}
+				}
+			}
+
+			return documents;
+		}
+
+		bool Check (int result)
+		{
+			if (result != VSConstants.S_OK) {
+				throw new Exception ($"Unexpected result {result}");
+			}
+			return true;
 		}
 	}
 }
