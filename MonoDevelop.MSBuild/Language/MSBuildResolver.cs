@@ -399,6 +399,23 @@ namespace MonoDevelop.MSBuild.Language
 
 		public (string itemName, string metaName) ReferenceAsMetadata => (ValueTuple<string, string>)Reference;
 		public (string taskName, string paramName) ReferenceAsTaskParameter => (ValueTuple<string, string>)Reference;
+		public (MSBuildValueKind type, string functionName) ReferenceAsPropertyFunction => (ValueTuple<MSBuildValueKind, string>)Reference;
+		public (string className, string functionName) ReferenceAsStaticPropertyFunction => (ValueTuple<string, string>)Reference;
+
+		public string GetReferenceName ()
+		{
+			switch (ReferenceKind) {
+			case MSBuildReferenceKind.TaskParameter:
+				return ReferenceAsTaskParameter.paramName;
+			case MSBuildReferenceKind.Metadata:
+				return ReferenceAsMetadata.metaName;
+			case MSBuildReferenceKind.PropertyFunction:
+				return ReferenceAsPropertyFunction.functionName;
+			case MSBuildReferenceKind.StaticPropertyFunction:
+				return ReferenceAsStaticPropertyFunction.functionName;
+			}
+			return Reference is BaseInfo info ? info.Name : (string)Reference;
+		}
 	}
 
 	enum MSBuildReferenceKind

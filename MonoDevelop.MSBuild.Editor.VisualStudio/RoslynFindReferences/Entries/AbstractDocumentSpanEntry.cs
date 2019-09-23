@@ -23,16 +23,16 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 		{
 			private readonly AbstractTableDataSourceFindUsagesContext _context;
 
-			protected SourceLocation Span { get;  }
+			protected FoundReference Reference { get;  }
 
 			protected AbstractDocumentSpanEntry (
 				AbstractTableDataSourceFindUsagesContext context,
 				RoslynDefinitionBucket definitionBucket,
-				SourceLocation span)
+				FoundReference reference)
 				: base (definitionBucket)
 			{
 				_context = context;
-				Span = span;
+				Reference = reference;
 			}
 
 			protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
@@ -41,13 +41,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			{
 				switch (keyName) {
 				case StandardTableKeyNames.DocumentName:
-					return Span.FilePath;
+					return Reference.FilePath;
 				case StandardTableKeyNames.Line:
-					return Span.StartLine;
+					return Reference.StartLine;
 				case StandardTableKeyNames.Column:
-					return Span.StartCol;
+					return Reference.StartCol;
 				case StandardTableKeyNames.Text:
-					return Span.LineText.ToString ().Trim ();
+					return Reference.ClassifiedSpans.JoinText ().Trim ();
 				}
 
 				return null;

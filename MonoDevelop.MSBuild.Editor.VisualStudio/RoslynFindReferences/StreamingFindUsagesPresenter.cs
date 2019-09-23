@@ -27,6 +27,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 		public readonly IEditorFormatMapService FormatMapService;
 		public readonly IClassificationFormatMap ClassificationFormatMap;
+		public readonly IClassificationTypeRegistryService ClassificationTypeRegistry;
 
 		private readonly IFindAllReferencesService _vsFindAllReferencesService;
 
@@ -42,12 +43,14 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			SVsServiceProvider serviceProvider,
 			IEditorFormatMapService formatMapService,
 			IClassificationFormatMapService classificationFormatMapService,
+			IClassificationTypeRegistryService classificationTypeRegistry,
 			[ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
 			: this (
 				  host,
 				   serviceProvider,
 				   formatMapService,
 				   classificationFormatMapService,
+				   classificationTypeRegistry,
 				   columns.Where (c => c.Metadata.Name == FindUsagesValueUsageInfoColumnDefinition.ColumnName).Select (c => c.Value))
 		{
 		}
@@ -60,6 +63,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				  exportProvider.GetExportedValue<SVsServiceProvider> (),
 				  exportProvider.GetExportedValue<IEditorFormatMapService> (),
 				  exportProvider.GetExportedValue<IClassificationFormatMapService> (),
+				  exportProvider.GetExportedValue<IClassificationTypeRegistryService> (),
 				  exportProvider.GetExportedValues<ITableColumnDefinition> ())
 		{
 		}
@@ -69,12 +73,14 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			Microsoft.VisualStudio.Shell.SVsServiceProvider serviceProvider,
 			IEditorFormatMapService formatMapService,
 			IClassificationFormatMapService classificationFormatMapService,
+			IClassificationTypeRegistryService classificationTypeRegistry,
 			IEnumerable<ITableColumnDefinition> columns)
 		{
 			Host = host;
 			_serviceProvider = serviceProvider;
 			FormatMapService = formatMapService;
 			ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap ("tooltip");
+			ClassificationTypeRegistry = classificationTypeRegistry;
 
 			_vsFindAllReferencesService = serviceProvider.GetService<SVsFindAllReferences, IFindAllReferencesService> (true);
 			_customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition> ().ToImmutableArray ();
@@ -89,11 +95,11 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			}
 		}
 
-		public FindReferencesContext StartSearch (string title, bool supportsReferences)
+		public FindReferencesContext StartSearch (string title, string referenceName, bool supportsReferences)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
-			var context = StartSearchWorker (title, supportsReferences);
+			var context = StartSearchWorker (title, referenceName, supportsReferences);
 
 			// Keep track of this context object as long as it is being displayed in the UI.
 			// That way we can Clear it out if requested by a client.  When the context is
@@ -103,7 +109,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			return context;
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWorker (string title, bool supportsReferences)
+		private AbstractTableDataSourceFindUsagesContext StartSearchWorker (string title, string referenceName, bool supportsReferences)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -119,12 +125,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				StoreCurrentGroupingPriority (window);
 			}
 
-			return supportsReferences
-				? StartSearchWithReferences (window, desiredGroupingPriority)
-				: StartSearchWithoutReferences (window);
+			return StartSearchWithoutReferences (window, referenceName);
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences (IFindAllReferencesWindow window, int desiredGroupingPriority)
+		private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences (IFindAllReferencesWindow window, string referenceName, int desiredGroupingPriority)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -140,10 +144,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			var tableControl = (IWpfTableControl2)window.TableControl;
 			tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority (window);
 
-			return new WithReferencesFindUsagesContext (this, window, _customColumns);
+			return new WithReferencesFindUsagesContext (this, window, referenceName, _customColumns);
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window)
+		private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window, string referenceName)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -151,7 +155,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			// just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
 			// with the same items showing underneath them.
 			SetDefinitionGroupingPriority (window, 0);
-			return new WithoutReferencesFindUsagesContext (this, window, _customColumns);
+			return new WithoutReferencesFindUsagesContext (this, window, referenceName, _customColumns);
 		}
 
 		private void StoreCurrentGroupingPriority (IFindAllReferencesWindow window)

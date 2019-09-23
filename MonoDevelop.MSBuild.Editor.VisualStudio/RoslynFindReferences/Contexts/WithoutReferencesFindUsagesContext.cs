@@ -20,8 +20,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			public WithoutReferencesFindUsagesContext (
 				StreamingFindUsagesPresenter presenter,
 				IFindAllReferencesWindow findReferencesWindow,
+				string referenceName,
 				ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-				: base (presenter, findReferencesWindow, customColumns)
+				: base (presenter, findReferencesWindow, referenceName, customColumns)
 			{
 			}
 
@@ -35,9 +36,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 			protected override Task OnDefinitionFoundWorkerAsync (FoundReference definition)
 			{
-				var definitionBucket = GetOrCreateDefinitionBucket (definition);
+				RoslynDefinitionBucket definitionBucket = GetOrCreateDefinitionBucket (definition);
 
-				var entry = new DefinitionItemEntry (this, definitionBucket, definition.Location);
+				var entry = new DefinitionItemEntry (this, definitionBucket, definition);
 
 				if (entry != null) {
 					lock (Gate) {

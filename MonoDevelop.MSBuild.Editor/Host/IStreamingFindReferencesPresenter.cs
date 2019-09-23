@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Editor.Host
 		/// It can also show messages about no references being found at the end of the search.
 		/// If false, the presenter will not group by definitions, and will show the definition
 		/// items in isolation.</param>
-		FindReferencesContext StartSearch (string title, bool supportsReferences);
+		FindReferencesContext StartSearch (string title, string referenceName, bool supportsReferences);
 
 		/// <summary>
 		/// Clears all the items from the presenter.

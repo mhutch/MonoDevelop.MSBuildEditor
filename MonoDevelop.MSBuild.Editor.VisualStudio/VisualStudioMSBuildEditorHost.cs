@@ -113,10 +113,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 
 		bool Check (int result)
 		{
-			if (result != VSConstants.S_OK) {
-				throw new Exception ($"Unexpected result {result}");
+			if (result == VSConstants.S_FALSE) {
+				return false;
 			}
-			return true;
+			if (result == VSConstants.S_OK) {
+				return true;
+			}
+			throw new Exception ($"Unexpected result {result}");
 		}
 	}
 }

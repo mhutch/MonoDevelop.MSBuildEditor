@@ -13,55 +13,75 @@ namespace MonoDevelop.MSBuild.Editor.Host
 {
 	public class FoundReference
 	{
-		private string filename;
-		private int offset;
-		private int length;
-		private ReferenceUsage usage;
-
-		public FoundReference (string filename, int offset, int length, ReferenceUsage usage)
+		public FoundReference (
+			string filePath,
+			int startOffset,
+			int startLine,
+			int startCol,
+			ReferenceUsage usage,
+			ImageId imageId,
+			ImmutableArray<ClassifiedText> classifiedSpans,
+			TextSpan highlight)
 		{
-			this.filename = filename;
-			this.offset = offset;
-			this.length = length;
-			this.usage = usage;
+			FilePath = filePath;
+			StartOffset = startOffset;
+			StartLine = startLine;
+			StartCol = startCol;
+			Usage = usage;
+			ImageId = imageId;
+			ClassifiedSpans = classifiedSpans;
+			Highlight = highlight;
 		}
 
-		FoundReference () { }
+		FoundReference (ImageId imageId, ImmutableArray<ClassifiedText> classifiedSpans)
+		{
+			ImageId = imageId;
+			ClassifiedSpans = classifiedSpans;
+		}
 
-		public SourceLocation Location { get; set; }
-		public ImageId ImageId { get; set; }
-		public ImmutableArray<TaggedText> DisplayParts { get; set; }
-		public ImmutableArray<TaggedText> NameDisplayParts { get; set; }
-		public ReferenceUsage Kind { get; set; }
+		public string FilePath { get; }
+		public int StartOffset { get; }
+		public int StartLine { get; }
+		public int StartCol { get; }
+		public ReferenceUsage Usage { get; }
+		public ImageId ImageId { get; }
+		public ImmutableArray<ClassifiedText> ClassifiedSpans { get; }
+		public TextSpan Highlight { get; }
+		public string Name { get; }
 
-		public bool CanNavigateTo (IMSBuildEditorHost host) => Location.CanNavigateTo (host);
-		public bool TryNavigateTo (IMSBuildEditorHost host, bool isPreview) => Location.TryNavigateTo (host, isPreview);
 
-		public static FoundReference NoResults { get; } = new FoundReference {
-			ImageId = KnownImages.StatusInformation.ToImageId (),
-			DisplayParts = ImmutableArray.Create (new TaggedText(
+		public bool CanNavigateTo (IMSBuildEditorHost host)
+			=> host != null && System.IO.File.Exists(FilePath);
+
+		public bool TryNavigateTo (IMSBuildEditorHost host, bool isPreview)
+			=> host.OpenFile (FilePath, StartOffset, isPreview);
+
+		public static FoundReference NoResults { get; } = new FoundReference (
+			KnownImages.StatusInformation.ToImageId (),
+			ImmutableArray.Create (new ClassifiedText(
                     "Search found no results",
                 PredefinedClassificationTypeNames.NaturalLanguage))
-			};
+			);
 
 		public bool DisplayIfNoReferences { get; set; }
+		public string ProjectName { get; set; }
 	}
 
-	public struct TaggedText
+	public struct ClassifiedText
 	{
 		public string Text { get; }
 		public string ClassificationType { get; }
 
-		public TaggedText(string text, string classificationType)
+		public ClassifiedText(string text, string classificationType)
         {
 			Text = text;
 			ClassificationType = classificationType;
 		}
 	}
 
-	public static class TaggedTextExtensions
+	public static class ClassifiedTextExtensions
 	{
-		public static string JoinText (this ImmutableArray<TaggedText> taggedText)
+		public static string JoinText (this ImmutableArray<ClassifiedText> taggedText)
 			=> string.Concat (taggedText.Select (t => t.Text));
 
 		public static ImmutableArray<T> WhereAsArray<T> (this ImmutableArray<T> array, Func<T, bool> predicate)
@@ -69,28 +89,5 @@ namespace MonoDevelop.MSBuild.Editor.Host
 
 		public static ImmutableArray<TOut> SelectAsArray<TIn, TOut> (this ImmutableArray<TIn> array, Func<TIn, TOut> selector)
 			=> ImmutableArray<TOut>.Empty.AddRange (array.Select (selector));
-	}
-
-	public struct SourceLocation
-	{
-		public TextSpan SourceSpan { get; internal set; }
-		public string FilePath { get; internal set; }
-		public int StartOffset { get; internal set; }
-		public int StartLine { get; internal set; }
-		public int StartCol { get; internal set; }
-		public string ProjectName { get; internal set; }
-		public string LineText { get; internal set; }
-		public ImmutableArray<TaggedText> ClassifiedSpans { get; internal set; }
-		public TextSpan Highlight { get; set; }
-
-		public bool CanNavigateTo (IMSBuildEditorHost host)
-		{
-			return host !=null && System.IO.File.Exists (FilePath);
-		}
-
-		public bool TryNavigateTo (IMSBuildEditorHost host, bool isPreview)
-		{
-			return host.OpenFile (FilePath, StartOffset, isPreview);
-		}
 	}
 }

@@ -15,16 +15,6 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 	static class FindReferencesExtensions
 	{
-		public static IList<Inline> ToInlines (this ImmutableArray<TaggedText> taggedText, IClassificationFormatMap classificationFormatMap)
-		{
-			throw new NotImplementedException ();
-		}
-
-		public static TextBlock ToTextBlock (this IList<Inline> inlines, IClassificationFormatMap classificationFormatMap, bool wrap = true)
-		{
-			throw new NotImplementedException ();
-		}
-
 		public static HashSet<T> ToSet<T> (this IEnumerable<T> items) => new HashSet<T> (items);
 	}
 }

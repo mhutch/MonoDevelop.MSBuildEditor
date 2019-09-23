@@ -26,8 +26,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			public WithReferencesFindUsagesContext (
 				StreamingFindUsagesPresenter presenter,
 				IFindAllReferencesWindow findReferencesWindow,
+				string referenceName,
 				ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-				: base (presenter, findReferencesWindow, customColumns)
+				: base (presenter, findReferencesWindow, referenceName, customColumns)
 			{
 			}
 
@@ -58,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				// work if multiple threads end up down this path.  But only one of them will
 				// win when we access the lock below.
 				var definitionEntry = await TryCreateDocumentSpanEntryAsync (
-					definitionBucket, definition.Location, ReferenceUsage.Declaration, customColumnsDataOpt: null).ConfigureAwait (false);
+					definitionBucket, definition, customColumnsDataOpt: null).ConfigureAwait (false);
 
 				var changed = false;
 				lock (Gate) {
@@ -95,8 +96,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				return OnEntryFoundAsync (
 					reference,
 					bucket => TryCreateDocumentSpanEntryAsync (
-						bucket, reference.Location,
-						reference.Kind,
+						bucket, reference,
 						columnOptions),
 					addToEntriesWhenGroupingByDefinition: true,
 					addToEntriesWhenNotGroupingByDefinition: true);
@@ -174,9 +174,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				}
 			}
 
-			private static string GetMessage (FoundReference definition)
+			private string GetMessage (FoundReference definition)
 			{
-				return string.Format ("No references found to '{0}'", definition.NameDisplayParts.JoinText ());
+				return string.Format ("No references found to '{0}'", ReferenceName);
 			}
 
 			private ImmutableArray<FoundReference> GetDefinitionsToCreateMissingReferenceItemsFor (

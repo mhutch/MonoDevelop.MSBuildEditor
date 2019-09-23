@@ -26,7 +26,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				StreamingFindUsagesPresenter presenter,
 				AbstractTableDataSourceFindUsagesContext context,
 				FoundReference definitionItem)
-				: base (name: definitionItem.DisplayParts.JoinText () + " " + definitionItem.GetHashCode (),
+				: base (name: definitionItem.ClassifiedSpans.JoinText () + " " + definitionItem.GetHashCode (),
 					   sourceTypeIdentifier: context.SourceTypeIdentifier,
 					   identifier: context.Identifier)
 			{
@@ -49,11 +49,11 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				switch (key) {
 				case StandardTableKeyNames.Text:
 				case StandardTableKeyNames.FullText:
-					return DefinitionItem.DisplayParts.JoinText ();
+					return DefinitionItem.ClassifiedSpans.JoinText ();
 
 				case StandardTableKeyNames2.TextInlines:
 					var inlines = new List<Inline> { new Run (" ") };
-					inlines.AddRange (DefinitionItem.DisplayParts.ToInlines (_presenter.ClassificationFormatMap));
+					inlines.AddRange (DefinitionItem.ClassifiedSpans.ToInlines (_presenter.ClassificationFormatMap, _presenter.ClassificationTypeRegistry));
 					foreach (var inline in inlines) {
 						inline.SetValue (TextElement.FontWeightProperty, FontWeights.Bold);
 					}

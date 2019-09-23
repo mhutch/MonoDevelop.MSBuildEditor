@@ -29,6 +29,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			public readonly StreamingFindUsagesPresenter Presenter;
 			private readonly IFindAllReferencesWindow _findReferencesWindow;
 			protected readonly IWpfTableControl2 TableControl;
+			protected string ReferenceName { get; }
 
 			protected readonly object Gate = new object ();
 
@@ -84,10 +85,12 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			protected AbstractTableDataSourceFindUsagesContext (
 				 StreamingFindUsagesPresenter presenter,
 				 IFindAllReferencesWindow findReferencesWindow,
+				 string referenceName,
 				 ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
 			{
 				Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
 
+				ReferenceName = referenceName;
 				Presenter = presenter;
 				_findReferencesWindow = findReferencesWindow;
 				TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
@@ -284,7 +287,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 			public override Task OnReferenceFoundAsync (FoundReference reference)
 			{
-				if (reference.Kind == ReferenceUsage.Declaration) {
+				if (reference.Usage == ReferenceUsage.Declaration) {
 					lock (Gate) {
 						Definitions.Add (reference);
 					}
@@ -295,13 +298,12 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			protected abstract Task OnDefinitionFoundWorkerAsync (FoundReference definition);
 			protected async Task<Entry> TryCreateDocumentSpanEntryAsync (
 				RoslynDefinitionBucket definitionBucket,
-				SourceLocation documentSpan,
-				ReferenceUsage spanKind,
+				FoundReference reference,
 				ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
 			{
 				return new DocumentSpanEntry (
-					this, definitionBucket, spanKind,
-					documentSpan, GetAggregatedCustomColumnsData (customColumnsDataOpt));
+					this, definitionBucket,
+					reference, GetAggregatedCustomColumnsData (customColumnsDataOpt));
 			}
 
 			private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData (ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
@@ -337,6 +339,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 			protected RoslynDefinitionBucket GetOrCreateDefinitionBucket (FoundReference definition)
 			{
+				return null;
+
 				lock (Gate) {
 					if (!_definitionToBucket.TryGetValue (definition, out var bucket)) {
 						bucket = new RoslynDefinitionBucket (Presenter, this, definition);

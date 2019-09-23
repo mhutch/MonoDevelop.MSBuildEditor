@@ -31,9 +31,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			{
 				switch (keyName) {
 				case StandardTableKeyNames.DocumentName:
-					return DefinitionBucket.DefinitionItem.Location.FilePath;
+					return DefinitionBucket.DefinitionItem.FilePath;
 				case StandardTableKeyNames.ProjectName:
-					return DefinitionBucket.DefinitionItem.Location.ProjectName;
+					return DefinitionBucket.DefinitionItem.ProjectName;
 				case StandardTableKeyNames.Text:
 					return _message;
 				}

@@ -1,11 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Windows.Documents;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 using MonoDevelop.MSBuild.Editor.Host;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
@@ -22,13 +18,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			public DefinitionItemEntry (
 				AbstractTableDataSourceFindUsagesContext context,
 				RoslynDefinitionBucket definitionBucket,
-				SourceLocation span)
-				: base (context, definitionBucket, span)
+				FoundReference reference)
+				: base (context, definitionBucket, reference)
 			{
 			}
 
 			protected override IList<Inline> CreateLineTextInlines ()
-				=> DefinitionBucket.DefinitionItem.DisplayParts.ToInlines (Presenter.ClassificationFormatMap);
+				=> DefinitionBucket.DefinitionItem.ClassifiedSpans.ToInlines (Presenter.ClassificationFormatMap, Presenter.ClassificationTypeRegistry);
 		}
 	}
 }

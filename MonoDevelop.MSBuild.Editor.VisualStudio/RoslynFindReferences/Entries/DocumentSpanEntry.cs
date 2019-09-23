@@ -26,14 +26,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			public DocumentSpanEntry (
 				AbstractTableDataSourceFindUsagesContext context,
 				RoslynDefinitionBucket definitionBucket,
-				ReferenceUsage spanKind,
-				SourceLocation span,
+				FoundReference reference,
 				ImmutableDictionary<string, string> customColumnsData)
 				: base (context,
 					  definitionBucket,
-					  span)
+					  reference)
 			{
-				_spanKind = spanKind;
+				_spanKind = reference.Usage;
 				_customColumnsData = customColumnsData;
 			}
 
@@ -50,20 +49,12 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 										  .GetProperties (propertyId);
 				var highlightBrush = properties["Background"] as Brush;
 
-				// Remove additive classified spans before creating classified text.
-				// Otherwise the text will be repeated since there are two classifications
-				// for the same span. Additive classifications should not change the foreground
-				// color, so the resulting classified text will retain the proper look.
-				var classifiedSpans = Span.ClassifiedSpans.WhereAsArray (
-					cs => !ClassificationTypeNames.AdditiveTypeNames.Contains (cs.ClassificationType));
-				var classifiedTexts = classifiedSpans.SelectAsArray (
-					cs => new ClassifiedText (cs.ClassificationType, _excerptResult.Content.ToString (cs.TextSpan)));
-
-				var inlines = classifiedTexts.ToInlines (
+				var inlines = Reference.ClassifiedSpans.ToInlines (
 					Presenter.ClassificationFormatMap,
+					Presenter.ClassificationTypeRegistry,
 					runCallback: (run, classifiedText, position) => {
 						if (highlightBrush != null) {
-							if (position == Span.Highlight.Start) {
+							if (position == Reference.Highlight.Start) {
 								run.SetValue (
 									System.Windows.Documents.TextElement.BackgroundProperty,
 									highlightBrush);

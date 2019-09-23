@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.TextFormatting;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Editor.Completion;
@@ -28,7 +31,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	class MSBuildFindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
 	{
 		[Import]
-		MSBuildCachingResolver Resolver { get; }
+		MSBuildCachingResolver Resolver { get; set; }
 
 		[Import]
 		public IStreamingFindReferencesPresenter Presenter { get; set; }
@@ -67,14 +70,15 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			return new CommandState (true, false, false, true);
 		}
 
-		void FindReferences (MSBuildResolveResult reference, MSBuildRootDocument doc, bool docIsUpToDate, ITextBuffer buffer)
+		async void FindReferences (MSBuildResolveResult reference, MSBuildRootDocument doc, bool docIsUpToDate, ITextBuffer buffer)
 		{
-			var searchCtx = Presenter.StartSearch ("Find References", true);
-			FindReferences (searchCtx, reference, doc, docIsUpToDate, buffer).ContinueWith (t => {
-				if (t.IsFaulted) {
-					LoggingService.LogError ($"Error in find references", t.Exception);
-				}
-			});
+			var searchCtx = Presenter.StartSearch ("Find References", reference.GetReferenceName (), true);
+			try {
+				await FindReferences (searchCtx, reference, doc, docIsUpToDate, buffer);
+			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
+				LoggingService.LogError ($"Error in find references", ex);
+			}
+			await searchCtx.OnCompletedAsync ();
 		}
 
 		async Task FindReferences (FindReferencesContext searchCtx, MSBuildResolveResult reference, MSBuildRootDocument doc, bool docIsUpToDate, ITextBuffer buffer)
@@ -106,8 +110,8 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 						if (!openDocuments.TryGetValue (job.Filename, out var buf)) {
 							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
 						}
-						var textSource = buf.CurrentSnapshot.GetTextSource (job.Filename);
-						xmlParser.Parse (textSource.CreateReader ());
+						job.TextSource = buf.CurrentSnapshot.GetTextSource (job.Filename);
+						xmlParser.Parse (job.TextSource.CreateReader ());
 						job.Document = xmlParser.Nodes.GetRoot ();
 					}
 
@@ -121,7 +125,8 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 					void ReportResult ((int Offset, int Length, ReferenceUsage Usage) result)
 					{
-						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, result.Offset, result.Length, result.Usage));
+						var classifiedSpans = ImmutableArray<ClassifiedText>.Empty.Add (new ClassifiedText ("Hello", PredefinedClassificationTypeNames.NaturalLanguage));
+						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, result.Offset, 0, 0, result.Usage, default, classifiedSpans, new TextSpan (0,0)));
 					}
 
 				} catch (Exception ex) {
@@ -129,8 +134,6 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 					LoggingService.LogError ($"Error searching MSBuild file {job.Filename}", ex);
 				}
 			}, searchCtx.CancellationToken);
-
-			await searchCtx.OnCompletedAsync ();
 		}
 
 		class FindReferencesSearchJob
