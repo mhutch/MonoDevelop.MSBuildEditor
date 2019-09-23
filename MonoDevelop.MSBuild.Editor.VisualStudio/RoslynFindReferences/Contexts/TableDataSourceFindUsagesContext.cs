@@ -12,14 +12,13 @@ using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Editor.Host;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 {
 	internal partial class StreamingFindUsagesPresenter
 	{
-		private abstract class AbstractTableDataSourceFindUsagesContext :
+		private class TableDataSourceFindUsagesContext :
 			FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
 		{
 			private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource ();
@@ -41,36 +40,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			/// </summary>
 			private bool _cleared;
 
-			/// <summary>
-			/// The list of all definitions we've heard about.  This may be a superset of the
-			/// keys in <see cref="_definitionToBucket"/> because we may encounter definitions
-			/// we don't create definition buckets for.  For example, if the definition asks
-			/// us to not display it if it has no references, and we don't run into any 
-			/// references for it (common with implicitly declared symbols).
-			/// </summary>
-			protected readonly List<FoundReference> Definitions = new List<FoundReference> ();
-
-			/// <summary>
-			/// We will hear about the same definition over and over again.  i.e. for each reference 
-			/// to a definition, we will be told about the same definition.  However, we only want to
-			/// create a single actual <see cref="DefinitionBucket"/> for the definition. To accomplish
-			/// this we keep a map from the definition to the task that we're using to create the 
-			/// bucket for it.  The first time we hear about a definition we'll make a single task
-			/// and then always return that for all future references found.
-			/// </summary>
-			private readonly Dictionary<FoundReference, RoslynDefinitionBucket> _definitionToBucket =
-				new Dictionary<FoundReference, RoslynDefinitionBucket> ();
-
-			/// <summary>
-			/// We want to hide declarations of a symbol if the user is grouping by definition.
-			/// With such grouping on, having both the definition group and the declaration item
-			/// is just redundant.  To make life easier we keep around two groups of entries.
-			/// One group for when we are grouping by definition, and one when we're not.
-			/// </summary>
-			private bool _currentlyGroupingByDefinition;
-
-			protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
-			protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+			protected ImmutableList<Entry> Entries = ImmutableList<Entry>.Empty;
 
 			private TableEntriesSnapshot _lastSnapshot;
 			public int CurrentVersionNumber { get; protected set; }
@@ -82,7 +52,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 			#endregion
 
-			protected AbstractTableDataSourceFindUsagesContext (
+			public TableDataSourceFindUsagesContext (
 				 StreamingFindUsagesPresenter presenter,
 				 IFindAllReferencesWindow findReferencesWindow,
 				 string referenceName,
@@ -94,12 +64,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				Presenter = presenter;
 				_findReferencesWindow = findReferencesWindow;
 				TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
-				TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
 				// If the window is closed, cancel any work we're doing.
 				_findReferencesWindow.Closed += OnFindReferencesWindowClosed;
-
-				DetermineCurrentGroupingByDefinitionState ();
 
 				Debug.Assert (_findReferencesWindow.Manager.Sources.Count == 0);
 
@@ -168,45 +135,6 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				CancelSearch ();
 
 				_findReferencesWindow.Closed -= OnFindReferencesWindowClosed;
-				TableControl.GroupingsChanged -= OnTableControlGroupingsChanged;
-			}
-
-			private void OnTableControlGroupingsChanged (object sender, EventArgs e)
-			{
-				Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
-				UpdateGroupingByDefinition ();
-			}
-
-			private void UpdateGroupingByDefinition ()
-			{
-				Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
-				var changed = DetermineCurrentGroupingByDefinitionState ();
-
-				if (changed) {
-					// We changed from grouping-by-definition to not (or vice versa).
-					// Change which list we show the user.
-					lock (Gate) {
-						CurrentVersionNumber++;
-					}
-
-					// Let all our subscriptions know that we've updated.  That way they'll refresh
-					// and we'll show/hide declarations as appropriate.
-					NotifyChange ();
-				}
-			}
-
-			private bool DetermineCurrentGroupingByDefinitionState ()
-			{
-				Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
-
-				var definitionColumn = _findReferencesWindow.GetDefinitionColumn ();
-
-				lock (Gate) {
-					var oldGroupingByDefinition = _currentlyGroupingByDefinition;
-					_currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
-
-					return oldGroupingByDefinition != _currentlyGroupingByDefinition;
-				}
 			}
 
 			private void CancelSearch ()
@@ -276,79 +204,25 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				return Task.CompletedTask;
 			}
 
-			public sealed override async Task OnCompletedAsync ()
+			public sealed override Task OnCompletedAsync ()
 			{
-				await OnCompletedAsyncWorkerAsync ().ConfigureAwait (false);
-
 				_tableDataSink.IsStable = true;
+				return Task.CompletedTask;
 			}
-
-			protected abstract Task OnCompletedAsyncWorkerAsync ();
 
 			public override Task OnReferenceFoundAsync (FoundReference reference)
 			{
-				if (reference.Usage == ReferenceUsage.Declaration) {
+				var entry = new FoundReferenceEntry (this, reference);
+
+				if (entry != null) {
 					lock (Gate) {
-						Definitions.Add (reference);
-					}
-				}
-				return OnReferenceFoundWorkerAsync (reference);
-			}
-
-			protected abstract Task OnDefinitionFoundWorkerAsync (FoundReference definition);
-			protected async Task<Entry> TryCreateDocumentSpanEntryAsync (
-				RoslynDefinitionBucket definitionBucket,
-				FoundReference reference,
-				ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
-			{
-				return new DocumentSpanEntry (
-					this, definitionBucket,
-					reference, GetAggregatedCustomColumnsData (customColumnsDataOpt));
-			}
-
-			private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData (ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
-			{
-				// Aggregate dictionary values to get column display values. For example, below input:
-				//
-				// {
-				//   { "Column1", {"Value1", "Value2"} },
-				//   { "Column2", {"Value3", "Value4"} }
-				// }
-				//
-				// will transform to:
-				//
-				// {
-				//   { "Column1", "Value1, Value2" },
-				//   { "Column2", "Value3, Value4" }
-				// }
-
-				if (customColumnsDataOpt == null || customColumnsDataOpt.Count == 0) {
-					return ImmutableDictionary<string, string>.Empty;
-				}
-
-				return customColumnsDataOpt.Where (kvp => _customColumnTitleToStatesMap.ContainsKey (kvp.Key)).ToImmutableDictionary (
-					keySelector: kvp => kvp.Key,
-					elementSelector: kvp => GetCustomColumn (kvp.Key).GetDisplayStringForColumnValues (kvp.Value));
-
-				// Local functions.
-				AbstractFindUsagesCustomColumnDefinition GetCustomColumn (string columnName)
-					=> (AbstractFindUsagesCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition (columnName);
-			}
-
-			protected abstract Task OnReferenceFoundWorkerAsync (FoundReference reference);
-
-			protected RoslynDefinitionBucket GetOrCreateDefinitionBucket (FoundReference definition)
-			{
-				return null;
-
-				lock (Gate) {
-					if (!_definitionToBucket.TryGetValue (definition, out var bucket)) {
-						bucket = new RoslynDefinitionBucket (Presenter, this, definition);
-						_definitionToBucket.Add (definition, bucket);
+						Entries = Entries.Add (entry);
 					}
 
-					return bucket;
+					NotifyChange ();
 				}
+
+				return Task.CompletedTask;
 			}
 
 			public sealed override Task ReportProgressAsync (int current, int maximum)
@@ -385,13 +259,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 					// our version.
 					if (_lastSnapshot?.VersionNumber != CurrentVersionNumber) {
 						// If we've been cleared, then just return an empty list of entries.
-						// Otherwise return the appropriate list based on how we're currently
-						// grouping.
-						var entries = _cleared
-							? ImmutableList<Entry>.Empty
-							: _currentlyGroupingByDefinition
-								? EntriesWhenGroupingByDefinition
-								: EntriesWhenNotGroupingByDefinition;
+						var entries = _cleared ? ImmutableList<Entry>.Empty : Entries;
 
 						_lastSnapshot = new TableEntriesSnapshot (entries, CurrentVersionNumber);
 					}

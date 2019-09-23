@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.IO;
@@ -9,23 +9,23 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class SnapshotTextSource : ITextSource
 	{
-		readonly ITextSnapshot snapshot;
-
 		public SnapshotTextSource (ITextSnapshot snapshot, string filename)
 		{
-			this.snapshot = snapshot;
+			Snapshot = snapshot;
 			FileName = filename;
 		}
 
+		public ITextSnapshot Snapshot { get; }
+
 		public string FileName { get; }
 
-		public int Length => snapshot.Length;
+		public int Length => Snapshot.Length;
 
-		public TextReader CreateReader () => new SnapshotTextReader (snapshot);
+		public TextReader CreateReader () => new SnapshotTextReader (Snapshot);
 
-		public char GetCharAt (int offset) => snapshot[offset];
+		public char GetCharAt (int offset) => Snapshot[offset];
 
-		public string GetTextBetween (int begin, int end) => snapshot.GetText (new Span (begin, end - begin));
+		public string GetTextBetween (int begin, int end) => Snapshot.GetText (new Span (begin, end - begin));
 
 		class SnapshotTextReader : TextReader
 		{

@@ -26,8 +26,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 		{
 		}
 
-		// Allow filtering of the column by each allowed SymbolUsageInfo kind.
-		public override IEnumerable<string> FilterPresets { get; } = new[] { "Read", "Write", "Definition" };
+		// Allow filtering of the column by each allowed ReferenceUsage kind.
+		public override IEnumerable<string> FilterPresets { get; } = new[] { "Read", "Write", "Declaration" };
 		public override bool IsFilterable => true;
 
 		public override string Name => ColumnName;

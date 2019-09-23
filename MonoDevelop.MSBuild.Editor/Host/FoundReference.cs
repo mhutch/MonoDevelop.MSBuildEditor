@@ -15,55 +15,28 @@ namespace MonoDevelop.MSBuild.Editor.Host
 	{
 		public FoundReference (
 			string filePath,
-			int startOffset,
 			int startLine,
 			int startCol,
 			ReferenceUsage usage,
-			ImageId imageId,
 			ImmutableArray<ClassifiedText> classifiedSpans,
 			TextSpan highlight)
 		{
 			FilePath = filePath;
-			StartOffset = startOffset;
 			StartLine = startLine;
 			StartCol = startCol;
 			Usage = usage;
-			ImageId = imageId;
 			ClassifiedSpans = classifiedSpans;
 			Highlight = highlight;
 		}
 
-		FoundReference (ImageId imageId, ImmutableArray<ClassifiedText> classifiedSpans)
-		{
-			ImageId = imageId;
-			ClassifiedSpans = classifiedSpans;
-		}
-
 		public string FilePath { get; }
-		public int StartOffset { get; }
 		public int StartLine { get; }
 		public int StartCol { get; }
 		public ReferenceUsage Usage { get; }
-		public ImageId ImageId { get; }
 		public ImmutableArray<ClassifiedText> ClassifiedSpans { get; }
 		public TextSpan Highlight { get; }
 		public string Name { get; }
 
-
-		public bool CanNavigateTo (IMSBuildEditorHost host)
-			=> host != null && System.IO.File.Exists(FilePath);
-
-		public bool TryNavigateTo (IMSBuildEditorHost host, bool isPreview)
-			=> host.OpenFile (FilePath, StartOffset, isPreview);
-
-		public static FoundReference NoResults { get; } = new FoundReference (
-			KnownImages.StatusInformation.ToImageId (),
-			ImmutableArray.Create (new ClassifiedText(
-                    "Search found no results",
-                PredefinedClassificationTypeNames.NaturalLanguage))
-			);
-
-		public bool DisplayIfNoReferences { get; set; }
 		public string ProjectName { get; set; }
 	}
 

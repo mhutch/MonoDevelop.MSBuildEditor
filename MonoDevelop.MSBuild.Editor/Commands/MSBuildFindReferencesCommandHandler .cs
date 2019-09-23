@@ -95,7 +95,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			var jobs = doc.GetDescendentImports ()
 				.Where (imp => imp.IsResolved)
 				.Select (imp => new FindReferencesSearchJob (imp.Filename, null, null))
-				.Prepend (new FindReferencesSearchJob (doc.Filename, doc.XDocument, doc.Text))
+				.Prepend (new FindReferencesSearchJob (doc.Filename, doc.XDocument, doc.Text as SnapshotTextSource))
 				.ToList ();
 
 			int jobsCompleted = jobs.Count;
@@ -110,7 +110,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 						if (!openDocuments.TryGetValue (job.Filename, out var buf)) {
 							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
 						}
-						job.TextSource = buf.CurrentSnapshot.GetTextSource (job.Filename);
+						job.TextSource = (SnapshotTextSource) buf.CurrentSnapshot.GetTextSource (job.Filename);
 						xmlParser.Parse (job.TextSource.CreateReader ());
 						job.Document = xmlParser.Nodes.GetRoot ();
 					}
@@ -125,12 +125,20 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 					void ReportResult ((int Offset, int Length, ReferenceUsage Usage) result)
 					{
-						var classifiedSpans = ImmutableArray<ClassifiedText>.Empty.Add (new ClassifiedText ("Hello", PredefinedClassificationTypeNames.NaturalLanguage));
-						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, result.Offset, 0, 0, result.Usage, default, classifiedSpans, new TextSpan (0,0)));
+						var line = job.TextSource.Snapshot.GetLineFromPosition (result.Offset);
+						var col = result.Offset - line.Start.Position;
+						var lineText = line.GetText ();
+						var highlight = new TextSpan (col, result.Length);
+
+						var classifiedSpans = ImmutableArray<ClassifiedText>.Empty;
+						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (0, highlight.Start), PredefinedClassificationTypeNames.NaturalLanguage));
+						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.Start, highlight.Length), PredefinedClassificationTypeNames.NaturalLanguage));
+						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.End), PredefinedClassificationTypeNames.NaturalLanguage));
+
+						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, line.LineNumber, col, result.Usage, classifiedSpans, highlight));
 					}
 
 				} catch (Exception ex) {
-					//monitor.ReportError ($"Error searching file {Path.GetFileName (import.Filename)}", ex);
 					LoggingService.LogError ($"Error searching MSBuild file {job.Filename}", ex);
 				}
 			}, searchCtx.CancellationToken);
@@ -138,7 +146,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 		class FindReferencesSearchJob
 		{
-			public FindReferencesSearchJob (string filename, XDocument document, ITextSource textSource)
+			public FindReferencesSearchJob (string filename, XDocument document, SnapshotTextSource textSource)
 			{
 				Filename = filename;
 				Document = document;
@@ -147,7 +155,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 			public string Filename { get; }
 			public XDocument Document { get; set; }
-			public ITextSource TextSource { get; set; }
+			public SnapshotTextSource TextSource { get; set; }
 		}
 
 		// based on https://blogs.msdn.microsoft.com/pfxteam/2012/03/05/implementing-a-simple-foreachasync-part-2/

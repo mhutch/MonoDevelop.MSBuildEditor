@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Windows;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 {
@@ -13,30 +11,14 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 		/// </summary>
 		private abstract class Entry
 		{
-			public readonly RoslynDefinitionBucket DefinitionBucket;
-
-			protected Entry (RoslynDefinitionBucket definitionBucket)
+			protected Entry ()
 			{
-				DefinitionBucket = definitionBucket;
 			}
 
 			public bool TryGetValue (string keyName, out object content)
 			{
-				content = GetValue (keyName);
+				content = GetValueWorker (keyName);
 				return content != null;
-			}
-
-			private object GetValue (string keyName)
-			{
-				switch (keyName) {
-				case StandardTableKeyNames2.Definition:
-					return DefinitionBucket;
-
-				case StandardTableKeyNames2.DefinitionIcon:
-					return DefinitionBucket.DefinitionItem.ImageId.ToImageMoniker ();
-				}
-
-				return GetValueWorker (keyName);
 			}
 
 			protected abstract object GetValueWorker (string keyName);

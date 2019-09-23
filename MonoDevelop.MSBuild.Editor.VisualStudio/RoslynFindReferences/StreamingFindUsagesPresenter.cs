@@ -31,8 +31,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 
 		private readonly IFindAllReferencesService _vsFindAllReferencesService;
 
-		private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
-			new HashSet<AbstractTableDataSourceFindUsagesContext> ();
+		private readonly HashSet<TableDataSourceFindUsagesContext> _currentContexts =
+			new HashSet<TableDataSourceFindUsagesContext> ();
 		private readonly ImmutableArray<AbstractFindUsagesCustomColumnDefinition> _customColumns;
 
 		public IMSBuildEditorHost Host { get; private set; }
@@ -109,7 +109,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			return context;
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWorker (string title, string referenceName, bool supportsReferences)
+		private TableDataSourceFindUsagesContext StartSearchWorker (string title, string referenceName, bool supportsReferences)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -128,7 +128,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			return StartSearchWithoutReferences (window, referenceName);
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences (IFindAllReferencesWindow window, string referenceName, int desiredGroupingPriority)
+		private TableDataSourceFindUsagesContext StartSearchWithReferences (IFindAllReferencesWindow window, string referenceName, int desiredGroupingPriority)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -144,10 +144,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			var tableControl = (IWpfTableControl2)window.TableControl;
 			tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority (window);
 
-			return new WithReferencesFindUsagesContext (this, window, referenceName, _customColumns);
+			return new TableDataSourceFindUsagesContext (this, window, referenceName, _customColumns);
 		}
 
-		private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window, string referenceName)
+		private TableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window, string referenceName)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -155,7 +155,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			// just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
 			// with the same items showing underneath them.
 			SetDefinitionGroupingPriority (window, 0);
-			return new WithoutReferencesFindUsagesContext (this, window, referenceName, _customColumns);
+			return new TableDataSourceFindUsagesContext (this, window, referenceName, _customColumns);
 		}
 
 		private void StoreCurrentGroupingPriority (IFindAllReferencesWindow window)

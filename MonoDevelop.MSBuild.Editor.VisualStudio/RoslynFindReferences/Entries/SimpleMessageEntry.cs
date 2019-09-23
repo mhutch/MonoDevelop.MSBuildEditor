@@ -12,28 +12,22 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			private readonly string _message;
 
 			private SimpleMessageEntry (
-				RoslynDefinitionBucket definitionBucket,
 				string message)
-				: base (definitionBucket)
+				: base ()
 			{
 				_message = message;
 			}
 
 			public static Task<Entry> CreateAsync (
-				RoslynDefinitionBucket definitionBucket,
 				string message)
 			{
-				var referenceEntry = new SimpleMessageEntry (definitionBucket, message);
+				var referenceEntry = new SimpleMessageEntry (message);
 				return Task.FromResult<Entry> (referenceEntry);
 			}
 
 			protected override object GetValueWorker (string keyName)
 			{
 				switch (keyName) {
-				case StandardTableKeyNames.DocumentName:
-					return DefinitionBucket.DefinitionItem.FilePath;
-				case StandardTableKeyNames.ProjectName:
-					return DefinitionBucket.DefinitionItem.ProjectName;
 				case StandardTableKeyNames.Text:
 					return _message;
 				}
