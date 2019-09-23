@@ -109,7 +109,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			return context;
 		}
 
-		private TableDataSourceFindUsagesContext StartSearchWorker (string title, string referenceName, bool supportsReferences)
+		private TableDataSourceFindUsagesContext StartSearchWorker (string title, string referenceName, bool showUsage)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -125,29 +125,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 				StoreCurrentGroupingPriority (window);
 			}
 
-			return StartSearchWithoutReferences (window, referenceName);
+			return StartSearchWithoutReferences (window, referenceName, showUsage);
 		}
 
-		private TableDataSourceFindUsagesContext StartSearchWithReferences (IFindAllReferencesWindow window, string referenceName, int desiredGroupingPriority)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread ();
-
-			// Ensure that the window's definition-grouping reflects what the user wants.
-			// i.e. we may have disabled this column for a previous GoToImplementation call. 
-			// We want to still show the column as long as the user has not disabled it themselves.
-			var definitionColumn = window.GetDefinitionColumn ();
-			if (definitionColumn.GroupingPriority != desiredGroupingPriority) {
-				SetDefinitionGroupingPriority (window, desiredGroupingPriority);
-			}
-
-			// If the user changes the grouping, then store their current preference.
-			var tableControl = (IWpfTableControl2)window.TableControl;
-			tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority (window);
-
-			return new TableDataSourceFindUsagesContext (this, window, referenceName, _customColumns);
-		}
-
-		private TableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window, string referenceName)
+		private TableDataSourceFindUsagesContext StartSearchWithoutReferences (IFindAllReferencesWindow window, string referenceName, bool showUsage)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
@@ -155,7 +136,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			// just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
 			// with the same items showing underneath them.
 			SetDefinitionGroupingPriority (window, 0);
-			return new TableDataSourceFindUsagesContext (this, window, referenceName, _customColumns);
+			return new TableDataSourceFindUsagesContext (this, window, referenceName, showUsage? _customColumns : ImmutableArray<AbstractFindUsagesCustomColumnDefinition>.Empty);
 		}
 
 		private void StoreCurrentGroupingPriority (IFindAllReferencesWindow window)

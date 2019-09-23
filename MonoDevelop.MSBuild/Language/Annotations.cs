@@ -21,5 +21,6 @@ namespace MonoDevelop.MSBuild.Language
 
 		public TextSpan Span { get; }
 		public string Path { get; }
+		public bool IsSdk { get; set; }
 	}
 }

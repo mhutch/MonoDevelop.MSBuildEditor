@@ -53,9 +53,23 @@ namespace MonoDevelop.MSBuild.Language
 			var annotations = GetAnnotationsAtOffset<NavigationAnnotation> (doc, offset);
 			var firstAnnotation = annotations.FirstOrDefault ();
 			if (firstAnnotation != null) {
-				return new MSBuildNavigationResult (
-					annotations.Select (a => a.Path).ToArray (), firstAnnotation.Span.Start, firstAnnotation.Span.Length
-				);
+				var arr = GetAnnotatedPaths ().ToArray ();
+				if (arr.Length == 0) {
+					return null;
+				}
+				return new MSBuildNavigationResult (arr, firstAnnotation.Span.Start, firstAnnotation.Span.Length);
+			}
+
+			IEnumerable<string> GetAnnotatedPaths ()
+			{
+				foreach (var a in annotations) {
+					if (a.IsSdk) {
+						yield return Path.Combine (a.Path, "Sdk.props");
+						yield return Path.Combine (a.Path, "Sdk.targets");
+					} else {
+						yield return a.Path;
+					}
+				}
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
@@ -204,14 +218,6 @@ namespace MonoDevelop.MSBuild.Language
 			DestOffset = destOffset;
 		}
 
-		public MSBuildNavigationResult (MSBuildReferenceKind kind, string nuGetID, int offset, int length)
-		{
-			NuGetID = nuGetID;
-			Kind = kind;
-			Offset = offset;
-			Length = length;
-		}
-
 		public MSBuildNavigationResult (string[] paths, int offset, int length)
 		{
 			Kind = MSBuildReferenceKind.None;
@@ -227,7 +233,5 @@ namespace MonoDevelop.MSBuild.Language
 		public string[] Paths { get; }
 		public string DestFile { get; }
 		public int DestOffset { get; }
-
-		public string NuGetID { get;  }
 	}
 }

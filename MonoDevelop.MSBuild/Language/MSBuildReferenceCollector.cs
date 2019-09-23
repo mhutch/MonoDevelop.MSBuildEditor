@@ -345,7 +345,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Target) {
 				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					AddResult (nameAtt.Span.Start, nameAtt.Span.Length, ReferenceUsage.Declaration);
+					AddResult (nameAtt.ValueSpan.Start, nameAtt.ValueSpan.Length, ReferenceUsage.Declaration);
 				}
 			}
 			base.VisitResolvedElement (element, resolved);

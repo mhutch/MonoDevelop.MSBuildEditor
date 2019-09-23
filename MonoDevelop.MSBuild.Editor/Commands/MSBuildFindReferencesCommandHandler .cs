@@ -1,27 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Media.TextFormatting;
+
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using MonoDevelop.MSBuild.Editor.Completion;
+
 using MonoDevelop.MSBuild.Editor.Host;
+using MonoDevelop.MSBuild.Editor.Navigation;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor.Completion;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.Commands
 {
@@ -31,149 +20,22 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	class MSBuildFindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
 	{
 		[Import]
-		MSBuildCachingResolver Resolver { get; set; }
-
-		[Import]
-		public IStreamingFindReferencesPresenter Presenter { get; set; }
-
-		[Import]
-		public ITextBufferFactoryService BufferFactory { get; set; }
-
-		[Import]
-		public IContentTypeRegistryService ContentTypeRegistry { get; set; }
-
-		[Import]
-		public IMSBuildEditorHost EditorHost { get; set; }
+		internal MSBuildNavigationService NavigationService { get; set; }
 
 		public string DisplayName { get; } = "Find References";
 
 		public bool ExecuteCommand (FindReferencesCommandArgs args, CommandExecutionContext executionContext)
-		{
-			var pos = args.TextView.Caret.Position.BufferPosition;
-			bool docIsUpToDate = Resolver.GetResolvedReference (args.SubjectBuffer, pos, out var doc, out var rr);
-
-			FindReferences (rr, doc, docIsUpToDate, args.SubjectBuffer);
-
-			return true;
-		}
+			=> NavigationService.FindReferences (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition);
 
 		public CommandState GetCommandState (FindReferencesCommandArgs args)
 		{
 			var pos = args.TextView.Caret.Position.BufferPosition;
-			Resolver.GetResolvedReference (args.SubjectBuffer, pos, out var _, out var rr);
-
-			if (MSBuildReferenceCollector.CanCreate (rr)) {
+			if (NavigationService.CanFindReferences (args.SubjectBuffer, pos)) {
 				return CommandState.Available;
 			}
 
 			// visible but disabled
 			return new CommandState (true, false, false, true);
-		}
-
-		async void FindReferences (MSBuildResolveResult reference, MSBuildRootDocument doc, bool docIsUpToDate, ITextBuffer buffer)
-		{
-			var searchCtx = Presenter.StartSearch ("Find References", reference.GetReferenceName (), true);
-			try {
-				await FindReferences (searchCtx, reference, doc, docIsUpToDate, buffer);
-			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
-				LoggingService.LogError ($"Error in find references", ex);
-			}
-			await searchCtx.OnCompletedAsync ();
-		}
-
-		async Task FindReferences (FindReferencesContext searchCtx, MSBuildResolveResult reference, MSBuildRootDocument doc, bool docIsUpToDate, ITextBuffer buffer)
-		{
-			var openDocuments = EditorHost.GetOpenDocuments ();
-
-			var msbuildContentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
-
-			if (!docIsUpToDate) {
-				var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
-				await parser.GetOrParseAsync ((ITextSnapshot2)buffer.CurrentSnapshot, searchCtx.CancellationToken);
-			}
-
-			var jobs = doc.GetDescendentImports ()
-				.Where (imp => imp.IsResolved)
-				.Select (imp => new FindReferencesSearchJob (imp.Filename, null, null))
-				.Prepend (new FindReferencesSearchJob (doc.Filename, doc.XDocument, doc.Text as SnapshotTextSource))
-				.ToList ();
-
-			int jobsCompleted = jobs.Count;
-
-			await ParallelAsync.ForEach (jobs, Environment.ProcessorCount, async (job, token) => {
-				try {
-					if (job.TextSource == null) {
-						if (!File.Exists (job.Filename)) {
-							return;
-						}
-						var xmlParser = new XmlParser (new XmlRootState (), true);
-						if (!openDocuments.TryGetValue (job.Filename, out var buf)) {
-							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
-						}
-						job.TextSource = (SnapshotTextSource) buf.CurrentSnapshot.GetTextSource (job.Filename);
-						xmlParser.Parse (job.TextSource.CreateReader ());
-						job.Document = xmlParser.Nodes.GetRoot ();
-					}
-
-					token.ThrowIfCancellationRequested ();
-
-					var collector = MSBuildReferenceCollector.Create (reference, Resolver.FunctionTypeProvider, ReportResult);
-					collector.Run (job.Document, job.TextSource, doc);
-
-					var progress = Interlocked.Increment (ref jobsCompleted);
-					await searchCtx.ReportProgressAsync (progress, jobs.Count);
-
-					void ReportResult ((int Offset, int Length, ReferenceUsage Usage) result)
-					{
-						var line = job.TextSource.Snapshot.GetLineFromPosition (result.Offset);
-						var col = result.Offset - line.Start.Position;
-						var lineText = line.GetText ();
-						var highlight = new TextSpan (col, result.Length);
-
-						var classifiedSpans = ImmutableArray<ClassifiedText>.Empty;
-						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (0, highlight.Start), PredefinedClassificationTypeNames.NaturalLanguage));
-						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.Start, highlight.Length), PredefinedClassificationTypeNames.NaturalLanguage));
-						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.End), PredefinedClassificationTypeNames.NaturalLanguage));
-
-						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, line.LineNumber, col, result.Usage, classifiedSpans, highlight));
-					}
-
-				} catch (Exception ex) {
-					LoggingService.LogError ($"Error searching MSBuild file {job.Filename}", ex);
-				}
-			}, searchCtx.CancellationToken);
-		}
-
-		class FindReferencesSearchJob
-		{
-			public FindReferencesSearchJob (string filename, XDocument document, SnapshotTextSource textSource)
-			{
-				Filename = filename;
-				Document = document;
-				TextSource = textSource;
-			}
-
-			public string Filename { get; }
-			public XDocument Document { get; set; }
-			public SnapshotTextSource TextSource { get; set; }
-		}
-
-		// based on https://blogs.msdn.microsoft.com/pfxteam/2012/03/05/implementing-a-simple-foreachasync-part-2/
-		// cam be removed when https://github.com/dotnet/corefx/issues/34233 is fixed
-		static class ParallelAsync
-		{
-			public static Task ForEach<T> (IEnumerable<T> source, int dop, Func<T, CancellationToken, Task> body, CancellationToken token)
-			{
-				return Task.WhenAll (
-					from partition in System.Collections.Concurrent.Partitioner.Create (source).GetPartitions (dop)
-					select Task.Run (async delegate {
-						using (partition)
-							while (partition.MoveNext ()) {
-								token.ThrowIfCancellationRequested ();
-								await body (partition.Current, token);
-							}
-					}));
-			}
 		}
 	}
 }

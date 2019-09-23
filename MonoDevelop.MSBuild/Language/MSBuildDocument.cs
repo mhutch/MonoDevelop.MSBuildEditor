@@ -157,7 +157,7 @@ namespace MonoDevelop.MSBuild.Language
 						yield return (sdk.id, sdkPath, sdk.span);
 					}
 					if (IsToplevel) {
-						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span));
+						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span) { IsSdk = true });
 					}
 				}
 			}

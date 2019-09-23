@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+
 using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Editor.Navigation
@@ -27,7 +28,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		public void Navigate (INavigableRelationship relationship)
 		{
-			service.Navigate (result);
+			service.Navigate (result, SymbolSpan.Snapshot.TextBuffer);
 		}
 	}
 }

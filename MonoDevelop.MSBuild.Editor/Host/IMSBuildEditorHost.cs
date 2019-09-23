@@ -11,7 +11,6 @@ namespace MonoDevelop.MSBuild.Editor.Host
 	/// </summary>
 	public interface IMSBuildEditorHost
 	{
-		void ShowGoToDefinitionResults (string[] paths);
 		bool OpenFile (string destFile, int destOffset, bool isPreview = false);
 		void ShowStatusBarMessage (string v);
 		Dictionary<string, ITextBuffer> GetOpenDocuments ();
