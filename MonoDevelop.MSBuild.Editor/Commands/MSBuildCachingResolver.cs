@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 				return true;
 			}
 
-			var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
+			var parser = MSBuildBackgroundParser.GetParser (buffer);
 			var lastResult = parser.LastParseResult;
 
 			// if it's still at the same position and the last result is the same stale version, there's no point trying again

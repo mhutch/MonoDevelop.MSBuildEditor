@@ -30,10 +30,10 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public void TextViewCreated (ITextView textView)
 		{
-			var buffer = (ITextBuffer2)textView.TextBuffer;
+			var buffer = textView.TextBuffer;
 
 			// attach the parser to the buffer and initialize it
-			var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> (buffer);
+			var parser = MSBuildBackgroundParser.GetParser (buffer);
 
 			IRuntimeInformation runtimeInformation = RuntimeInformation ?? new MSBuildEnvironmentRuntimeInformation ();
 			MSBuildSchemaProvider schemaProvider = SchemaProvider ?? new MSBuildSchemaProvider ();
@@ -42,7 +42,7 @@ namespace MonoDevelop.MSBuild.Editor
 			parser.Initialize (runtimeInformation, schemaProvider, taskMetadataBuilder);
 
 			//kick off a parse so it's ready when other things need it
-			parser.GetOrParseAsync ((ITextSnapshot2)buffer.CurrentSnapshot, CancellationToken.None);
+			parser.GetOrParseAsync (buffer.CurrentSnapshot, CancellationToken.None);
 		}
 	}
 }

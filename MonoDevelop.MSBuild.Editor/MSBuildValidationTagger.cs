@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext)
 		{
-			parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
+			parser = MSBuildBackgroundParser.GetParser (buffer);
 			parser.ParseCompleted += ParseCompleted;
 			this.joinableTaskContext = joinableTaskContext;
 			this.buffer = buffer;

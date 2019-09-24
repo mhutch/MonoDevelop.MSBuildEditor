@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 				return Empty;
 			}
 
-			var parseResult = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, token).ConfigureAwait (false);
+			var parseResult = await parser.GetOrParseAsync (snapshot, token).ConfigureAwait (false);
 			doc = parseResult?.MSBuildDocument;
 			if (doc == null) {
 				return Empty;

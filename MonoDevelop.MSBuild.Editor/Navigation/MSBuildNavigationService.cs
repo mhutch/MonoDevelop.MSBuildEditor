@@ -209,8 +209,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 			var msbuildContentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
 
-			var parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)buffer);
-			var r = await parser.GetOrParseAsync ((ITextSnapshot2)buffer.CurrentSnapshot, searchCtx.CancellationToken);
+			var parser = MSBuildBackgroundParser.GetParser (buffer);
+			var r = await parser.GetOrParseAsync (buffer.CurrentSnapshot, searchCtx.CancellationToken);
 			var doc = r.MSBuildDocument;
 
 			var jobs = doc.GetDescendentImports ()

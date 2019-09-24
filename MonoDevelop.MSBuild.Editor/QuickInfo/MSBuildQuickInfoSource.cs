@@ -32,14 +32,12 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			this.provider = provider;
 		}
 
-		protected MSBuildBackgroundParser GetParser () => BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> ((ITextBuffer2)textBuffer);
-
 		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
 		{
-			var parser = GetParser ();
+			var parser = MSBuildBackgroundParser.GetParser (textBuffer);
 			var snapshot = textBuffer.CurrentSnapshot;
 
-			var result = await parser.GetOrParseAsync ((ITextSnapshot2)snapshot, cancellationToken);
+			var result = await parser.GetOrParseAsync (snapshot, cancellationToken);
 			var doc = result.MSBuildDocument;
 			//.LastParseResult?.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
 
