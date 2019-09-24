@@ -26,22 +26,28 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 		[Import]
 		public JoinableTaskContext JoinableTaskContext { get; set; }
 
-		SnapshotPoint cachedPosition;
-		MSBuildRootDocument cachedDoc;
-		MSBuildResolveResult cachedResult;
-		bool cachedIsUpToDate;
+		struct CachedResult
+		{
+			public SnapshotPoint Position;
+			public MSBuildRootDocument Doc;
+			public MSBuildResolveResult Result;
+			public bool IsUpToDate;
+		}
+
+		CachedResult cached;
 
 		/// <summary>
 		/// Gets a resolved reference from the document. The schema may be stale, in which case it returns false.
 		/// </summary>
 		public bool GetResolvedReference (ITextBuffer buffer, SnapshotPoint position, out MSBuildRootDocument doc, out MSBuildResolveResult rr)
 		{
-			Debug.Assert (JoinableTaskContext.IsOnMainThread);
+			// grab the field into a local to make this thread safe
+			var cached = this.cached;
 
 			// if the cached result is up to date, return it
-			if (cachedPosition == position && cachedIsUpToDate) {
-				doc = cachedDoc;
-				rr = cachedResult;
+			if (cached.Position == position && cached.IsUpToDate) {
+				doc = cached.Doc;
+				rr = cached.Result;
 				return true;
 			}
 
@@ -49,20 +55,23 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			var lastResult = parser.LastParseResult;
 
 			// if it's still at the same position and the last result is the same stale version, there's no point trying again
-			if (cachedPosition == position && lastResult.MSBuildDocument == cachedDoc) {
-				doc = cachedDoc;
-				rr = cachedResult;
+			if (cached.Position == position && lastResult.MSBuildDocument == cached.Doc) {
+				doc = cached.Doc;
+				rr = cached.Result;
 				return false;
 			}
 
 			// actually do the work
-			cachedDoc = doc = lastResult.MSBuildDocument;
-			cachedResult = rr = MSBuildResolver.Resolve (
+			cached.Doc = doc = lastResult.MSBuildDocument;
+			cached.Result = rr = MSBuildResolver.Resolve (
 				parser.GetSpineParser (position),
 				position.Snapshot.GetTextSource (),
 				doc, FunctionTypeProvider);
-			cachedPosition = position;
-			return cachedIsUpToDate = lastResult.Snapshot == position.Snapshot;
+			cached.Position = position;
+
+			this.cached = cached;
+
+			return cached.IsUpToDate = lastResult.Snapshot == position.Snapshot;
 		}
 	}
 }
