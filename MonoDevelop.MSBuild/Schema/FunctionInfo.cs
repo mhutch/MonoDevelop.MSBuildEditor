@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ namespace MonoDevelop.MSBuild.Schema
 	class FunctionInfo : BaseInfo
 	{
 		readonly FunctionParameterInfo [] arguments;
-		readonly MSBuildValueKind returnType;
 
 		public virtual MSBuildValueKind ReturnType { get; }
 		public string ReturnTypeString => string.Join (" ", ReturnType.GetTypeDescription ());
@@ -23,7 +22,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public FunctionInfo (string name, DisplayText description, MSBuildValueKind returnType, params FunctionParameterInfo [] arguments) : base (name, description)
 		{
 			this.arguments = arguments;
-			this.returnType = returnType;
+			this.ReturnType = returnType;
 		}
 	}
 
