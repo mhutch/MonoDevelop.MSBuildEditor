@@ -356,33 +356,39 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var tokens = new List<Token> ();
-			var tokenizer = new ConditionTokenizer ();
-			tokenizer.Tokenize (expression);
-
 			int lastExpressionStart = 0;
 
-			while (tokenizer.Token.Type != TokenType.EOF) {
-				switch (tokenizer.Token.Type) {
-				case TokenType.And:
-				case TokenType.Or:
-					lastExpressionStart = tokenizer.Token.Position + tokenizer.Token.Value.Length;
-					break;
-				}
-				tokens.Add (tokenizer.Token);
-				tokenizer.GetNextToken ();
-			}
+			try {
+				var tokenizer = new ConditionTokenizer ();
+				tokenizer.Tokenize (expression);
 
-			int last = tokens.Count - 1;
-			if (last >= 2 && TokenIsCondition (tokens[last - 1].Type)) {
-				var lt = tokens[last];
-				if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position + lt.Value.Length] != '\''))) {
-					lastExpressionStart = lt.Position;
-					comparandValues = ReadPrecedingComparandVariables (tokens, last - 2);
-				} else {
-					triggerLength = 0;
-					triggerExpression = null;
-					return TriggerState.None;
+
+				while (tokenizer.Token.Type != TokenType.EOF) {
+					switch (tokenizer.Token.Type) {
+					case TokenType.And:
+					case TokenType.Or:
+						lastExpressionStart = tokenizer.Token.Position + tokenizer.Token.Value.Length;
+						break;
+					}
+					tokens.Add (tokenizer.Token);
+					tokenizer.GetNextToken ();
 				}
+
+				int last = tokens.Count - 1;
+				if (last >= 2 && TokenIsCondition (tokens[last - 1].Type)) {
+					var lt = tokens[last];
+					if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position + lt.Value.Length] != '\''))) {
+						lastExpressionStart = lt.Position;
+						comparandValues = ReadPrecedingComparandVariables (tokens, last - 2);
+					} else {
+						triggerLength = 0;
+						triggerExpression = null;
+						return TriggerState.None;
+					}
+				}
+			} catch (Exception ex) {
+				lastExpressionStart = 0;
+				LoggingService.LogError ("Error in condition tokenizer", ex);
 			}
 
 			var subexpr = expression.Substring (lastExpressionStart);
