@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildSyntaxKind.Target:
 				var targetName = element.Attributes.Get (new XName ("name"), true)?.Value;
-				if (targetName != null) {
+				if (!string.IsNullOrEmpty (targetName)) {
 					CollectTarget (targetName);
 				}
 				break;
