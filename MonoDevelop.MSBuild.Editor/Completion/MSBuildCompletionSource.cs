@@ -355,14 +355,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 				void AddSdksFromDir (string sdkDir)
 				{
+					if (!Directory.Exists (sdkDir)) {
+						return;
+					}
 					foreach (var dir in Directory.GetDirectories (sdkDir)) {
 						string name = Path.GetFileName (dir);
 						var targetsFileExists = File.Exists (Path.Combine (dir, "Sdk", "Sdk.targets"));
-							if (targetsFileExists && sdks.Add (name)) {
-								items.Add (CreateSdkCompletionItem (new SdkInfo (name, null, Path.Combine (dir, name))));
-							}
+						if (targetsFileExists && sdks.Add (name)) {
+							items.Add (CreateSdkCompletionItem (new SdkInfo (name, null, Path.Combine (dir, name))));
 						}
 					}
+				}
 
 					return items;
 				}, token);
