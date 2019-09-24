@@ -17,13 +17,10 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		public static bool IsPossibleExpressionCompletionContext (XmlParser parser)
 		{
-			//FIXME fragile, should expose this properly somehow
-			const int ROOT_STATE_FREE = 0;
-
 			var state = parser.CurrentState;
 			return state is XmlAttributeValueState
 				|| state is XmlTextState
-				|| (state is XmlRootState && parser.GetContext ().StateTag == ROOT_STATE_FREE);
+				|| XmlRootState.IsFree (parser);
 		}
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
