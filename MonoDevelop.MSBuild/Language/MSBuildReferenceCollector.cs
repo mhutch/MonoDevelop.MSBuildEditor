@@ -34,6 +34,26 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
+
+		protected bool IsPureMatchIgnoringWhitespace (ExpressionText t, out int offset, out int length)
+		{
+			offset = 0;
+			length = 0;
+			if (!t.IsPure) {
+				return false;
+			}
+
+			//FIXME do this more efficiently than trimming
+			var trimmed = t.Value.Trim ();
+			if (IsMatch (trimmed)) {
+				offset = t.Offset + (t.Value.Length - t.Value.TrimStart ().Length);
+				length = trimmed.Length;
+				return true;
+			}
+
+			return false;
+		}
+
 		protected void AddResult (XElement el, ReferenceUsage usage) => reportResult ((el.Span.Start + 1, el.Name.Name.Length, usage));
 		protected void AddResult (XAttribute att, ReferenceUsage usage) => reportResult ((att.Span.Start, att.Name.Name.Length, usage));
 		protected void AddResult (int offset, int length, ReferenceUsage usage) => reportResult ((offset, length, usage));
@@ -274,9 +294,8 @@ namespace MonoDevelop.MSBuild.Language
 
 				void CheckMatch (ExpressionText t)
 				{
-					//FIXME: get rid of this trim
-					if (t.IsPure && IsMatch (t.Value.Trim ())) {
-						AddResult (t.Offset, t.Length, ReferenceUsage.Read);
+					if (IsPureMatchIgnoringWhitespace (t, out int offset, out int length)) {
+						AddResult (offset, length, ReferenceUsage.Read);
 					}
 				}
 				return;
@@ -310,7 +329,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
 				return;
 			}
-			bool isDeclaration = !kind.AllowExpressions ();
+			bool isDeclaration = resolvedAttribute?.SyntaxKind == MSBuildSyntaxKind.Target_Name;
 
 			switch (node) {
 			case ListExpression list:
@@ -328,9 +347,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CheckMatch (ExpressionText node, bool isDeclaration)
 		{
-			//FIXME: get rid of this trim
-			if (IsMatch (node.Value.Trim ())) {
-				AddResult (node.Offset, node.Length, isDeclaration ? ReferenceUsage.Declaration : ReferenceUsage.Read);
+			if (IsPureMatchIgnoringWhitespace (node, out int offset, out int length)) {
+				AddResult (offset, length, isDeclaration ? ReferenceUsage.Declaration : ReferenceUsage.Read);
 			}
 		}
 	}
