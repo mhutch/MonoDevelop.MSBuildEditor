@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		async void FindReferences (MSBuildResolveResult reference, ITextBuffer buffer)
 		{
 			var referenceName = reference.GetReferenceName ();
-			var searchCtx = Presenter.StartSearch ($"{referenceName} references", referenceName, true);
+			var searchCtx = Presenter.StartSearch ($"'{referenceName}' references", referenceName, true);
 			try {
 				await FindReferences (searchCtx, a => MSBuildReferenceCollector.Create (reference, Resolver.FunctionTypeProvider, a), buffer);
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
@@ -189,7 +189,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		async void FindTargetDefinitions (string targetName, ITextBuffer buffer)
 		{
-			var searchCtx = Presenter.StartSearch ($"{targetName} definitions", targetName, true);
+			var searchCtx = Presenter.StartSearch ($"'{targetName}' definitions", targetName, true);
 			try {
 				await FindReferences (searchCtx, (a) => new MSBuildTargetDefinitionCollector (targetName, a), buffer);
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
