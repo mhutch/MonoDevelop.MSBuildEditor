@@ -57,7 +57,9 @@ namespace MonoDevelop.MSBuild.Language
 					txtNode.End (i);
 					((XContainer)parser.Nodes.Peek (1)).AddChildNode (txtNode);
 				}
-				cancellationToken.ThrowIfCancellationRequested ();
+				if (cancellationToken.IsCancellationRequested) {
+					return null;
+				}
 			}
 
 			//if nodes are incomplete, they won't get connected
@@ -118,7 +120,14 @@ namespace MonoDevelop.MSBuild.Language
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr, functionTypeProvider);
-			rv.Run (el, languageElement, textSource, context, token: cancellationToken);
+
+			try {
+				rv.Run (el, languageElement, textSource, context, token: cancellationToken);
+			} catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+				// callers always have to handle the possibility this returns null
+				// so this means callers don't need to handle cancellation exceptions explciitly
+				return null;
+			}
 
 			return rr;
 		}
