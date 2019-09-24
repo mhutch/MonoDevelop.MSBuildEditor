@@ -305,7 +305,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				yield break;
 			}
 			foreach (var member in type.GetMembers ()) {
-				if (!member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
+				if (!member.IsStatic || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
 				if (members != null && !members.Contains (member.Name)) {
