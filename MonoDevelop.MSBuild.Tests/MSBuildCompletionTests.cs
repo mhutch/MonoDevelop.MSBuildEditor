@@ -240,6 +240,8 @@ namespace MonoDevelop.MSBuild.Tests
 			result.AssertContains ("Length");
 			//indexers should be filtered out
 			result.AssertDoesNotContain ("this[]");
+			// ctors should be filtered out, cannot call on existing instance
+			result.AssertDoesNotContain ("new");
 		}
 
 		[Test]
