@@ -101,7 +101,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static IEnumerable<T> GetAnnotationsAtOffset<T> (MSBuildRootDocument doc, int offset)
 		{
-			var xobj = doc.XDocument.FindNodeAtOffset (offset);
+			var xobj = doc.XDocument.FindAtOffset (offset);
 			if (xobj == null) {
 				return null;
 			}

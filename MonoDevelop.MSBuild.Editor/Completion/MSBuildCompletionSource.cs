@@ -87,7 +87,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			// rather than for the element itself.
 			MSBuildLanguageElement languageElement = null;
 			string elName = null;
-			for (int i = 0; i < nodePath.Count; i++) {
+			for (int i = 1; i < nodePath.Count; i++) {
 				if (nodePath[i] is XElement el) {
 					elName = el.Name.Name;
 					languageElement = MSBuildLanguageElement.Get (elName, languageElement);
