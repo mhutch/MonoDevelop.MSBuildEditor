@@ -22,8 +22,10 @@ using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
+
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
@@ -60,7 +62,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = parser.GetSpineParser (triggerLocation);
 			// clone the spine because the resolver alters it
-			var rr = MSBuildResolver.Resolve ((XmlParser)((ICloneable)spine).Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
+			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;
@@ -192,7 +194,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (rr?.LanguageElement != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
-					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
+					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
 					var triggerState = GetTriggerState (
 						expression,
 						reason.Value,
@@ -238,7 +240,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (rr?.LanguageElement != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
-					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
+					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
 					var triggerState = GetTriggerState (
 						expression,
 						reason.Value,
