@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuild.Tests
 			// can be awaited instead if your framework supports it
 			EditorEnvironment = EditorEnvironment.InitializeAsync (
 				typeof (XmlParser).Assembly.Location,
-				typeof (XmlCompletionSource<,>).Assembly.Location,
+				typeof (XmlCompletionSource).Assembly.Location,
 				typeof (MSBuildCompletionSource).Assembly.Location,
 				typeof (TestEnvironment).Assembly.Location
 			).Result;

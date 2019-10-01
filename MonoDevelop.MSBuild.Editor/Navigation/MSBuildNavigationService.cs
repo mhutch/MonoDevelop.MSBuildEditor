@@ -22,7 +22,6 @@ using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Contracts;
@@ -53,6 +52,9 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		[Import]
 		public ITextBufferFactoryService BufferFactory { get; set; }
+
+		[Import]
+		public MSBuildParserProvider ParserProvider { get; set; }
 
 		public bool CanNavigate (ITextBuffer buffer, SnapshotPoint point) => CanNavigate (buffer, point, out _);
 
@@ -209,8 +211,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 			var msbuildContentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
 
-			var parser = MSBuildBackgroundParser.GetParser (buffer);
-			var r = await parser.GetOrParseAsync (buffer.CurrentSnapshot, searchCtx.CancellationToken);
+			var parser = ParserProvider.GetParser (buffer);
+			var r = await parser.GetOrProcessAsync (buffer.CurrentSnapshot, searchCtx.CancellationToken);
 			var doc = r.MSBuildDocument;
 
 			var jobs = doc.GetDescendentImports ()

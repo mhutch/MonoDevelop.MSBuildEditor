@@ -26,6 +26,9 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 		[Import]
 		public JoinableTaskContext JoinableTaskContext { get; set; }
 
+		[Import]
+		public MSBuildParserProvider ParserProvider { get; set; }
+
 		struct CachedResult
 		{
 			public SnapshotPoint Position;
@@ -51,8 +54,8 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 				return true;
 			}
 
-			var parser = MSBuildBackgroundParser.GetParser (buffer);
-			var lastResult = parser.LastParseResult;
+			var parser = ParserProvider.GetParser (buffer);
+			var lastResult = parser.LastOutput;
 
 			// if it's still at the same position and the last result is the same stale version, there's no point trying again
 			if (cached.Position == position && lastResult.MSBuildDocument == cached.Doc) {
@@ -64,7 +67,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			// actually do the work
 			cached.Doc = doc = lastResult.MSBuildDocument;
 			cached.Result = rr = MSBuildResolver.Resolve (
-				parser.GetSpineParser (position),
+				parser.XmlParser.GetSpineParser (position),
 				position.Snapshot.GetTextSource (),
 				doc, FunctionTypeProvider);
 			cached.Position = position;

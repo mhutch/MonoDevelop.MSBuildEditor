@@ -13,63 +13,92 @@ using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildBackgroundParser : XmlBackgroundParser<MSBuildParseResult>
+	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
-		object initLocker = new object ();
-		IRuntimeInformation runtimeInformation;
-		MSBuildSchemaProvider schemaProvider;
-		ITaskMetadataBuilder taskMetadataBuilder;
+		string filepath;
 
-		internal void Initialize (IRuntimeInformation runtimeInformation, MSBuildSchemaProvider schemaProvider, ITaskMetadataBuilder taskMetadataBuilder)
-		{
-			this.runtimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
-			this.schemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
-			this.taskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
-		}
+		public IRuntimeInformation RuntimeInformation { get; }
+		public MSBuildSchemaProvider SchemaProvider { get; }
+		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
 
-		void EnsureInitialized ()
+		public XmlBackgroundParser XmlParser { get; }
+
+		public MSBuildBackgroundParser (
+			ITextBuffer buffer,
+			IRuntimeInformation runtimeInformation,
+			MSBuildSchemaProvider schemaProvider,
+			ITaskMetadataBuilder taskMetadataBuilder)
 		{
-			lock (initLocker) {
-				if (runtimeInformation != null) {
-					return;
-				}
-				try {
-					runtimeInformation = new MSBuildEnvironmentRuntimeInformation ();
-				} catch (Exception ex) {
-					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
-					runtimeInformation = new NullRuntimeInformation ();
-				}
-				schemaProvider = new MSBuildSchemaProvider ();
-				taskMetadataBuilder = new NoopTaskMetadataBuilder ();
+			RuntimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
+			SchemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
+			TaskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
+
+			XmlParser = XmlBackgroundParser.GetParser (buffer);
+			XmlParser.ParseCompleted += XmlParseCompleted;
+
+			if (buffer.Properties.TryGetProperty<ITextDocument> (typeof (ITextDocument), out var doc)) {
+				filepath = doc.FilePath;
+				doc.FileActionOccurred += OnFileAction;
 			}
 		}
 
-		public static MSBuildBackgroundParser GetParser (ITextBuffer buffer)
-			=> GetParser<MSBuildBackgroundParser>((ITextBuffer2)buffer);
-
-		protected override Task<MSBuildParseResult> StartParseAsync (
-			ITextSnapshot2 snapshot, MSBuildParseResult previousParse,
-			ITextSnapshot2 previousSnapshot, CancellationToken token)
+		void OnFileAction (object sender, TextDocumentFileActionEventArgs e)
 		{
-			if (runtimeInformation == null) {
-				EnsureInitialized ();
+			if (e.FileActionType == FileActionTypes.DocumentRenamed) {
+				filepath = ((ITextDocument)sender).FilePath;
 			}
+		}
 
+		void XmlParseCompleted (object sender, ParseCompletedEventArgs<XmlParseResult> e)
+		{
+			StartProcessing (e.ParseResult);
+		}
+
+		protected override Task<MSBuildParseResult> StartOperationAsync (
+			XmlParseResult input,
+			MSBuildParseResult previousOutput,
+			XmlParseResult previousInput,
+			CancellationToken token)
+		{
 			return Task.Run (() => {
-				var oldDoc = previousParse?.MSBuildDocument;
+				var oldDoc = previousOutput?.MSBuildDocument;
 
-				var filepath = TryGetFilePath ();
-
-				MSBuildRootDocument doc = MSBuildRootDocument.Empty;
+				MSBuildRootDocument doc;
 				try {
-					doc = MSBuildRootDocument.Parse (snapshot.GetTextSource (filepath), oldDoc, schemaProvider, runtimeInformation, taskMetadataBuilder, token);
+					doc = MSBuildRootDocument.Parse (
+						input.TextSnapshot.GetTextSource (filepath),
+						oldDoc,
+						SchemaProvider,
+						RuntimeInformation,
+						TaskMetadataBuilder,
+						token);
 				} catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;
 				}
+				// for some reason the VS debugger thinks cancellation exceptions aren't handled?
+				catch (OperationCanceledException) when (token.IsCancellationRequested) {
+					return null;
+				}
 
-				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors, snapshot);
+				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors, input.TextSnapshot);
 			}, token);
 		}
+
+		protected override int CompareInputs (XmlParseResult a, XmlParseResult b)
+			=> a.TextSnapshot.Version.VersionNumber.CompareTo (b.TextSnapshot.Version.VersionNumber);
+
+		public async Task<MSBuildParseResult> GetOrProcessAsync (ITextSnapshot snapshot, CancellationToken token)
+		{
+			var xmlResult = await XmlParser.GetOrProcessAsync (snapshot, token);
+			return await GetOrProcessAsync (xmlResult, token);
+		}
+
+		protected override void OnOperationCompleted (XmlParseResult input, MSBuildParseResult output)
+		{
+			ParseCompleted?.Invoke (this, new ParseCompletedEventArgs<MSBuildParseResult> (output, output.Snapshot));
+		}
+
+		public event EventHandler<ParseCompletedEventArgs<MSBuildParseResult>> ParseCompleted;
 	}
 }

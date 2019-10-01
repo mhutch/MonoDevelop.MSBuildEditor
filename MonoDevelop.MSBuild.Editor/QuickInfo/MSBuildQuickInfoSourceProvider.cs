@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using ProjectFileTools.NuGetSearch.Contracts;
 
@@ -24,6 +25,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 
 		[Import]
 		public DisplayElementFactory DisplayElementFactory { get; set; }
+
+		[Import]
+		public MSBuildParserProvider ParserProvider { get; set; }
 
 		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer)
 			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildQuickInfoSource (textBuffer, this));

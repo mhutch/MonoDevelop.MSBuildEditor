@@ -6,10 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.HighlightReferences;
 using MonoDevelop.Xml.Editor.Tags;
 
@@ -26,7 +29,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			)
 			: base (textView, provider.JoinableTaskContext)
 		{
-			parser = MSBuildBackgroundParser.GetParser (textView.TextBuffer);
+			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 			this.provider = provider;
 		}
 
@@ -37,9 +40,9 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			GetHighlightsAsync (SnapshotPoint caretLocation, CancellationToken token)
 		{
 			var snapshot = caretLocation.Snapshot;
-			var spineParser = parser.GetSpineParser (caretLocation);
+			var spineParser = parser.XmlParser.GetSpineParser (caretLocation);
 			var textSource = snapshot.GetTextSource ();
-			var doc = parser.LastParseResult?.MSBuildDocument;
+			var doc = parser.LastOutput?.MSBuildDocument;
 			if (doc == null) {
 				return Empty;
 			}
@@ -49,7 +52,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 				return Empty;
 			}
 
-			var parseResult = await parser.GetOrParseAsync (snapshot, token).ConfigureAwait (false);
+			var parseResult = await parser.GetOrProcessAsync (snapshot, token).ConfigureAwait (false);
 			doc = parseResult?.MSBuildDocument;
 			if (doc == null) {
 				return Empty;

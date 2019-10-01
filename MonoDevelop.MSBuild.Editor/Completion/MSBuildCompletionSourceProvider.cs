@@ -32,10 +32,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[Import]
 		public JoinableTaskContext JoinableTaskContext { get; set; }
 
+		[Import]
+		public MSBuildParserProvider ParserProvider { get; set; }
+
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
 				typeof (MSBuildCompletionSource),
-				() => new MSBuildCompletionSource (textView, this)
+				() => new MSBuildCompletionSource (textView, this, ParserProvider.GetParser (textView.TextBuffer))
 			);
 	}
 }

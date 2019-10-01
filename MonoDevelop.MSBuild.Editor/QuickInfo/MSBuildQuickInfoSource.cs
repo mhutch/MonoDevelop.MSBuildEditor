@@ -23,6 +23,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
 	class MSBuildQuickInfoSource : IAsyncQuickInfoSource
 	{
+		readonly MSBuildBackgroundParser parser;
 		readonly ITextBuffer textBuffer;
 		readonly MSBuildQuickInfoSourceProvider provider;
 
@@ -30,16 +31,15 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		{
 			this.textBuffer = textBuffer;
 			this.provider = provider;
+			parser = provider.ParserProvider.GetParser (textBuffer);
 		}
 
 		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
 		{
-			var parser = MSBuildBackgroundParser.GetParser (textBuffer);
 			var snapshot = textBuffer.CurrentSnapshot;
 
-			var result = await parser.GetOrParseAsync (snapshot, cancellationToken);
+			var result = await parser.GetOrProcessAsync (snapshot, cancellationToken);
 			var doc = result.MSBuildDocument;
-			//.LastParseResult?.MSBuildDocument ?? MSBuildRootDocument.CreateTestDocument ();
 
 			if (doc == null) {
 				return null;
@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			var trigger = session.GetTriggerPoint (textBuffer);
 			var offset = trigger.GetPosition (snapshot);
 
-			var spine = parser.GetSpineParser (new SnapshotPoint (snapshot, offset));
+			var spine = parser.XmlParser.GetSpineParser (new SnapshotPoint (snapshot, offset));
 
 			var annotations = MSBuildNavigation.GetAnnotationsAtOffset<NavigationAnnotation> (doc, offset)?.ToList ();
 			if (annotations != null && annotations.Count > 0) {

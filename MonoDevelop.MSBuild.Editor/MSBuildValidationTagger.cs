@@ -20,14 +20,12 @@ namespace MonoDevelop.MSBuild.Editor
 		readonly MSBuildBackgroundParser parser;
 		readonly JoinableTaskContext joinableTaskContext;
 		ParseCompletedEventArgs<MSBuildParseResult> lastArgs;
-		ITextBuffer buffer;
 
-		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext)
+		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext, MSBuildParserProvider parserProvider)
 		{
-			parser = MSBuildBackgroundParser.GetParser (buffer);
+			parser = parserProvider.GetParser (buffer);
 			parser.ParseCompleted += ParseCompleted;
 			this.joinableTaskContext = joinableTaskContext;
-			this.buffer = buffer;
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> args)

@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor.Tags;
 
@@ -23,6 +24,9 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 
 		[Import]
 		public IFunctionTypeProvider FunctionTypeProvider { get; set; }
+
+		[Import]
+		public MSBuildParserProvider ParserProvider { get; set; }
 
 		public ITagger<T> CreateTagger<T> (ITextView textView, ITextBuffer buffer) where T : ITag
 			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (

@@ -32,12 +32,14 @@ using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	partial class MSBuildCompletionSource : XmlCompletionSource<MSBuildBackgroundParser, MSBuildParseResult>, ICompletionDocumentationProvider
+	partial class MSBuildCompletionSource : XmlCompletionSource, ICompletionDocumentationProvider
 	{
+		readonly MSBuildBackgroundParser parser;
 		readonly MSBuildCompletionSourceProvider provider;
 
-		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider) : base (textView)
+		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, MSBuildBackgroundParser parser) : base (textView)
 		{
+			this.parser = parser;
 			this.provider = provider;
 		}
 
@@ -57,10 +59,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (session.Properties.TryGetProperty<MSBuildCompletionSessionContext> (typeof (MSBuildCompletionSessionContext), out var context)) {
 				return context;
 			}
-			var parser = GetParser ();
-			var parseResult = await parser.GetOrParseAsync (triggerLocation.Snapshot, token);
+
+			MSBuildParseResult parseResult = parser.LastOutput ?? await parser.GetOrProcessAsync (triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-			var spine = parser.GetSpineParser (triggerLocation);
+			var spine = XmlParser.GetSpineParser (triggerLocation);
 			// clone the spine because the resolver alters it
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
@@ -189,7 +191,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
-			var spine = GetSpineParser (triggerLocation);
+			var spine = XmlParser.GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
 			if (rr?.LanguageElement != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
