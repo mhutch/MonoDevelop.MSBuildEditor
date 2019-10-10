@@ -538,6 +538,49 @@ namespace MonoDevelop.MSBuild.Language
 					AddError ("Invalid LCID");
 				}
 				break;
+			case MSBuildValueKind.TargetFramework:
+				if (!FrameworkInfoProvider.Instance.IsFrameworkShortNameValid (value)) {
+					AddError ("Unknown target framework");
+				}
+				break;
+			case MSBuildValueKind.TargetFrameworkIdentifier:
+				if (!FrameworkInfoProvider.Instance.IsFrameworkIdentifierValid (value)) {
+					AddError ("Unknown target framework identifier");
+				}
+				break;
+			case MSBuildValueKind.TargetFrameworkVersion: {
+					if (!Version.TryParse (value.TrimStart ('v', 'V'), out Version fxv)) {
+						AddError ("Invalid version");
+						break;
+					}
+					fxv = new Version (Math.Max (fxv.Major, 0), Math.Max (fxv.Minor, 0), Math.Max (fxv.Revision, 0), Math.Max (fxv.Build, 0));
+					if (Document is MSBuildRootDocument d && d.Frameworks.Count > 0) {
+						bool foundMatch = false;
+						foreach (var fx in d.Frameworks) {
+							if (FrameworkInfoProvider.AreVersionsEquivalent (fx.Version, fxv) && FrameworkInfoProvider.Instance.IsFrameworkVersionValid (fx.Framework, fxv)) {
+								foundMatch = true;
+							}
+						}
+						if (!foundMatch) {
+							AddError ($"Unknown version for target framework identifier '{d.Frameworks[0].Framework}'");
+						}
+					}
+					break;
+				}
+			case MSBuildValueKind.TargetFrameworkProfile: {
+					if (Document is MSBuildRootDocument d && d.Frameworks.Count > 0) {
+						bool foundMatch = false;
+						foreach (var fx in d.Frameworks) {
+							if (fx.Profile == value && FrameworkInfoProvider.Instance.IsFrameworkProfileValid (fx.Framework, fx.Version, value)) {
+								foundMatch = true;
+							}
+						}
+						if (!foundMatch) {
+							AddError ($"Unknown profile for target framework '{d.Frameworks[0].Framework},Version={d.Frameworks[0].Version}'");
+						}
+					}
+					break;
+				}
 			}
 
 			void AddError (string e) => this.AddError (e, offset, value.Length);

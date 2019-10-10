@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -15,7 +15,9 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public static FrameworkInfoProvider Instance { get; } = new FrameworkInfoProvider ();
 
-		List<IdentifierInfo> frameworks = new List<IdentifierInfo> ();
+		readonly List<IdentifierInfo> frameworks = new List<IdentifierInfo> ();
+		readonly Dictionary<string,(IdentifierInfo,VersionInfo)> frameworkByShortName = new Dictionary<string,(IdentifierInfo, VersionInfo)> ();
+		readonly Dictionary<string,IdentifierInfo> frameworkByMoniker = new Dictionary<string,IdentifierInfo> ();
 
 		public FrameworkInfoProvider ()
 		{
@@ -135,7 +137,27 @@ namespace MonoDevelop.MSBuild.Schema
 			frameworks.Add (new IdentifierInfo ("Xamarin.WatchOS", new VersionInfo (new Version (1, 0))));
 			frameworks.Add (new IdentifierInfo ("Xamarin.iOS", new VersionInfo (new Version (1, 0))));
 			frameworks.Add (new IdentifierInfo ("MonoUE", new VersionInfo (new Version (1, 0))));
+
+			foreach (var fx in frameworks) {
+				frameworkByMoniker.Add (fx.Identifier, fx);
+				foreach (var v in fx.Versions) {
+					if (v.ShortName != null) {
+						frameworkByShortName.Add (v.ShortName, (fx, v));
+					}
+				}
+			}
 		}
+
+		public bool IsFrameworkShortNameValid (string shortName) => frameworkByShortName.ContainsKey (shortName);
+		public bool IsFrameworkIdentifierValid (string moniker) => frameworkByMoniker.ContainsKey (moniker);
+
+		public bool IsFrameworkVersionValid (string moniker, Version version)
+			=> frameworkByMoniker.TryGetValue (moniker, out var fx) && fx.Versions.Any (v => AreVersionsEquivalent (v.Version, version));
+
+		public bool IsFrameworkProfileValid (string moniker, Version version, string profile)
+			=> frameworkByMoniker.TryGetValue (moniker, out var fx)
+			&& fx.Versions.FirstOrDefault (v => AreVersionsEquivalent (v.Version, version)) is VersionInfo versionInfo
+			&& versionInfo.Profiles != null && versionInfo.Profiles.Any (p => p == profile);
 
 		public IEnumerable<FrameworkInfo> GetFrameworksWithShortNames ()
 		{
@@ -181,6 +203,21 @@ namespace MonoDevelop.MSBuild.Schema
 					}
 				}
 			}
+		}
+
+		// some sources of version data use -1 for empty revision and build, some use 0
+		public static bool AreVersionsEquivalent (Version v1, Version v2)
+		{
+			if (v1.Major != v2.Major || v1.Minor != v2.Minor) {
+				return false;
+			}
+			if (v1.Revision > 0 && v1.Revision != v2.Revision) {
+				return false;
+			}
+			if (v1.Build > 0 && v1.Build != v2.Build) {
+				return false;
+			}
+			return true;
 		}
 
 		public static string FormatDisplayVersion (Version version)
