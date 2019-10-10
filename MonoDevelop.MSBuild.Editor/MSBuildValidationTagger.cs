@@ -66,7 +66,6 @@ namespace MonoDevelop.MSBuild.Editor
 					if (snapshot != taggingSpan.Snapshot) {
 						var trackingSpan = snapshot.CreateTrackingSpan (diagSpan, SpanTrackingMode.EdgeInclusive);
 						diagSpan = trackingSpan.GetSpan (taggingSpan.Snapshot);
-						continue;
 					}
 
 					if (diagSpan.IntersectsWith (taggingSpan)) {
