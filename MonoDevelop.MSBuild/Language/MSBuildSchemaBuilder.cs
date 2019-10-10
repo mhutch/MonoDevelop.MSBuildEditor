@@ -57,13 +57,13 @@ namespace MonoDevelop.MSBuild.Language
 				CollectTask (element.Name.Name);
 				break;
 			case MSBuildSyntaxKind.Target:
-				var targetName = element.Attributes.Get (new XName ("name"), true)?.Value;
+				var targetName = element.Attributes.Get ("name", true)?.Value;
 				if (!string.IsNullOrEmpty (targetName)) {
 					CollectTarget (targetName);
 				}
 				break;
 			case MSBuildSyntaxKind.Parameter:
-				var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
+				var taskName = element.ParentElement.ParentElement.Attributes.Get ("TaskName", true)?.Value;
 				if (!string.IsNullOrEmpty (taskName)) {
 					CollectTaskParameterDefinition (taskName, element);
 				}
@@ -94,10 +94,10 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ResolveImport (XElement element)
 		{
-			var importAtt = element.Attributes[new XName ("Project")];
-			var sdkAtt = element.Attributes[new XName ("Sdk")];
+			var importAtt = element.Attributes["Project"];
+			var sdkAtt = element.Attributes["Sdk"];
 
-			string sdkPath = null, import = null;
+			string import = null;
 
 			if (!string.IsNullOrWhiteSpace (importAtt?.Value)) {
 				import = importAtt.Value;
@@ -105,7 +105,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (!string.IsNullOrWhiteSpace (sdkAtt?.Value)) {
 				var loc = sdkAtt.ValueSpan;
-				sdkPath = parseContext.GetSdkPath (Document, sdkAtt.Value, loc);
+				string sdkPath = parseContext.GetSdkPath (Document, sdkAtt.Value, loc);
 				import = import == null ? null : sdkPath + "\\" + import;
 
 				if (isToplevel && sdkPath != null) {
@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 				if (!wasResolved && isToplevel) {
-					DiagnosticSeverity type = element.Attributes.Get (new XName ("Condition"), true) == null ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
+					DiagnosticSeverity type = element.Attributes.Get ("Condition", true) == null ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
 					Document.Errors.Add (new XmlDiagnosticInfo (type, "Could not resolve import", loc));
 				}
 			}
@@ -249,7 +249,7 @@ namespace MonoDevelop.MSBuild.Language
 			var kind = MSBuildValueKind.Unknown;
 			bool isList = false;
 
-			var type = def.Attributes.Get (new XName ("ParameterType"), true)?.Value;
+			var type = def.Attributes.Get ("ParameterType", true)?.Value;
 			if (type != null) {
 				if (type.EndsWith ("[]", StringComparison.Ordinal)) {
 					type = type.Substring (0, type.Length - 2);

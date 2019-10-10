@@ -237,13 +237,13 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (XDocument.RootElement != null) {
-					var sdkAtt = XDocument.RootElement.Attributes[new XName ("Sdk")];
+					var sdkAtt = XDocument.RootElement.Attributes["Sdk"];
 					if (sdkAtt != null) {
 						toolsVersion = MSBuildToolsVersion.V15_0;
 						return toolsVersion.Value;
 					}
 
-					var tvAtt = XDocument.RootElement.Attributes[new XName ("ToolsVersion")];
+					var tvAtt = XDocument.RootElement.Attributes["ToolsVersion"];
 					if (tvAtt != null) {
 						var val = tvAtt.Value;
 						if (MSBuildToolsVersionExtensions.TryParse (val, out MSBuildToolsVersion tv)) {

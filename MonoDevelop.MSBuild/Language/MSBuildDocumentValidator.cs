@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			foreach (var rat in resolved.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
-					var xat = element.Attributes.Get (new XName (rat.Name), true);
+					var xat = element.Attributes.Get (rat.Name, true);
 					if (xat == null) {
 						AddError ($"{element.Name.Name} must have attribute {rat.Name}", element.NameSpan);
 					}
@@ -107,7 +107,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ValidateProjectHasTarget (XElement element)
 		{
-			if (element.Attributes.Get (new XName ("Sdk"), true) != null) {
+			if (element.Attributes.Get ("Sdk", true) != null) {
 				return;
 			}
 
@@ -264,8 +264,8 @@ namespace MonoDevelop.MSBuild.Language
 					taskBody.NameSpan);
 				return;
 			}
-			var typeAtt = code.Attributes.Get (new XName ("Type"), true);
-			var sourceAtt = code.Attributes.Get (new XName ("Source"), true);
+			var typeAtt = code.Attributes.Get ("Type", true);
+			var sourceAtt = code.Attributes.Get ("Source", true);
 			if (sourceAtt != null || string.Equals (typeAtt?.Value, "Class", StringComparison.OrdinalIgnoreCase)) {
 				if (parameterGroup != null) {
 					AddError (
@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ValidateImportOnlyHasVersionIfHasSdk (XElement element)
 		{
-			if (element.Attributes.Get (new XName ("Sdk"), true) != null) {
+			if (element.Attributes.Get ("Sdk", true) != null) {
 				return;
 			}
 
@@ -368,7 +368,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			foreach (var child in element.Elements) {
 				if (child.NameEquals ("Output", true)) {
-					var paramNameAtt = child.Attributes.Get (new XName ("TaskParameter"), true);
+					var paramNameAtt = child.Attributes.Get ("TaskParameter", true);
 					var paramName = paramNameAtt?.Value;
 					if (string.IsNullOrEmpty (paramName)) {
 						continue;

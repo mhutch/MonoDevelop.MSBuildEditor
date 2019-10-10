@@ -125,7 +125,7 @@ namespace MonoDevelop.MSBuild.Language
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
 						return;
 					case MSBuildSyntaxKind.Parameter:
-						var taskName = element.ParentElement.ParentElement.Attributes.Get (new XName ("TaskName"), true)?.Value;
+						var taskName = element.ParentElement.ParentElement.Attributes.Get ("TaskName", true)?.Value;
 						if (!string.IsNullOrEmpty (taskName)) {
 							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;

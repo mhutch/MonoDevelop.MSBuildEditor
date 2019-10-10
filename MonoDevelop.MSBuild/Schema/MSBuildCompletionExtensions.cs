@@ -202,7 +202,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			if (rr.LanguageAttribute != null && rr.LanguageAttribute.SyntaxKind == MSBuildSyntaxKind.Import_Project) {
 				if (rr.XElement != null) {
-					var sdkAtt = rr.XElement.Attributes.Get (new Xml.Dom.XName ("Sdk"), true)?.Value;
+					var sdkAtt = rr.XElement.Attributes.Get ("Sdk", true)?.Value;
 					if (!string.IsNullOrEmpty (sdkAtt) && Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
 						var sdkPath = doc.RuntimeInformation.GetSdkPath (sdkRef, doc.Filename, null);
 						if (!string.IsNullOrEmpty (sdkPath)) {

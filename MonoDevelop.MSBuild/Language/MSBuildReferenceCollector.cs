@@ -209,7 +209,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildSyntaxKind.UsingTask:
-				var nameAtt = element.Attributes.Get (new XName ("TaskName"), true);
+				var nameAtt = element.Attributes.Get ("TaskName", true);
 				if (nameAtt != null && !string.IsNullOrEmpty (nameAtt.Value)) {
 					var nameIdx = nameAtt.Value.LastIndexOf ('.') + 1;
 					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : nameAtt.Value;
@@ -361,7 +361,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
 		{
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Target) {
-				var nameAtt = element.Attributes.Get (new XName ("Name"), true);
+				var nameAtt = element.Attributes.Get ("Name", true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
 					AddResult (nameAtt.ValueSpan.Start, nameAtt.ValueSpan.Length, ReferenceUsage.Declaration);
 				}

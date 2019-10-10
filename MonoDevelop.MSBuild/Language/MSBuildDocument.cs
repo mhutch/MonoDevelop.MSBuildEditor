@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	class MSBuildDocument : IMSBuildSchema, IPropertyCollector
 	{
-		static readonly XName xnProject = new XName ("Project");
+		static readonly XName xnProject = "Project";
 
 		//NOTE: this is keyed on the filepath of resolved imports and original expression of unresolved imports
 		//the reason for this is that a single expression can resolve to multiple imports
@@ -78,12 +78,12 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			foreach (var el in project.Elements) {
 				if (el.NameEquals ("Import", true)) {
-					var impAtt = el.Attributes.Get (new XName ("Project"), true)?.Value;
+					var impAtt = el.Attributes.Get (xnProject, true)?.Value;
 					if (impAtt != null) {
 						MarkProperties (impAtt);
 					}
 				} else if (el.NameEquals ("UsingTask", true)) {
-					var afAtt = el.Attributes.Get (new XName ("AssemblyFile"), true)?.Value;
+					var afAtt = el.Attributes.Get ("AssemblyFile", true)?.Value;
 					if (afAtt != null) {
 						MarkProperties (afAtt);
 					}
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		IEnumerable<(string id, string path, TextSpan span)> ResolveSdks (MSBuildParserContext context, XElement project)
 		{
-			var sdksAtt = project.Attributes.Get (new XName ("Sdk"), true);
+			var sdksAtt = project.Attributes.Get ("Sdk", true);
 			if (sdksAtt == null) {
 				yield break;
 			}
