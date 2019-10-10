@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser, state.textSource, state.doc, functionTypeProvider))
+				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider))
 				.ToList ();
 		}
 

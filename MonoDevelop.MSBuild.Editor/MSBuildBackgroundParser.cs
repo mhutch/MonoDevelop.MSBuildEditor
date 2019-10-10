@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
@@ -66,7 +67,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				MSBuildRootDocument doc;
 				try {
 					doc = MSBuildRootDocument.Parse (
-						input.TextSnapshot.GetTextSource (filepath),
+						input.TextSnapshot.GetTextSource (),
+						filepath,
 						oldDoc,
 						SchemaProvider,
 						RuntimeInformation,

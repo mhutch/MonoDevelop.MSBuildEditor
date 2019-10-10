@@ -60,17 +60,16 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			Token.ThrowIfCancellationRequested ();
 
-			var xmlParser = new XmlParser (new XmlRootState (), true);
+			var xmlParser = new XmlTreeParser (new XmlRootState ());
 			ITextSource textSource;
+			XDocument doc;
 			try {
-				textSource = TextSourceFactory.CreateNewDocument (import.Filename);
-				xmlParser.Parse (textSource.CreateReader ());
+				textSource = new StringTextSource (File.ReadAllText (import.Filename));
+				(doc, _) = xmlParser.Parse (textSource.CreateReader ());
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
 				LoggingService.LogError ("Unhandled error parsing xml document", ex);
 				return import;
 			}
-
-			var doc = xmlParser.Nodes.GetRoot ();
 
 			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (doc, textSource, this);

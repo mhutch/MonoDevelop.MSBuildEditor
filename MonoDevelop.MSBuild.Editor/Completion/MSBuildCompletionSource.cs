@@ -47,7 +47,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			public MSBuildRootDocument doc;
 			public MSBuildResolveResult rr;
-			public XmlParser spine;
+			public XmlSpineParser spine;
 		}
 
 		// this is primarily used to pass info from GetCompletionContextAsync to GetDocumentationAsync

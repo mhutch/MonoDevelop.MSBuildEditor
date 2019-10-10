@@ -65,10 +65,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			protected IList<System.Windows.Documents.Inline> CreateLineTextInlines ()
 			{
 				var propertyId = Reference.Usage == ReferenceUsage.Declaration
-					? Xml.Editor.Tags.DefinitionHighlightTag.TagId
+					? Xml.Editor.Tagging.DefinitionHighlightTag.TagId
 					: Reference.Usage == ReferenceUsage.Write
-						? Xml.Editor.Tags.WrittenReferenceHighlightTag.TagId
-						: Xml.Editor.Tags.ReferenceHighlightTag.TagId;
+						? Xml.Editor.Tagging.WrittenReferenceHighlightTag.TagId
+						: Xml.Editor.Tagging.ReferenceHighlightTag.TagId;
 
 				var properties = Presenter.FormatMapService
 										  .GetEditorFormatMap ("text")

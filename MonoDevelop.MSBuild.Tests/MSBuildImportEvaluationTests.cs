@@ -10,6 +10,7 @@ using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
+using MonoDevelop.Xml.Parser;
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -155,11 +156,11 @@ namespace MonoDevelop.MSBuild.Tests
 		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
 		{
 			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
-			var textSource = TextSourceFactory.CreateNewDocument (contents, filename);
+			var textSource = new StringTextSource (contents);
 			var schemaProvider = new MSBuildSchemaProvider ();
 			var taskBuilder = new NoopTaskMetadataBuilder ();
 
-			return MSBuildRootDocument.Parse (textSource, null, schemaProvider, runtimeInfo, taskBuilder, default);
+			return MSBuildRootDocument.Parse (textSource, filename, null, schemaProvider, runtimeInfo, taskBuilder, default);
 		}
 
 		static void AssertImportsExist (MSBuildRootDocument rootDoc, params string[] filenames)

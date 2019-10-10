@@ -12,9 +12,10 @@ using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.HighlightReferences;
-using MonoDevelop.Xml.Editor.Tags;
+using MonoDevelop.Xml.Editor.Tagging;
 
 namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 {

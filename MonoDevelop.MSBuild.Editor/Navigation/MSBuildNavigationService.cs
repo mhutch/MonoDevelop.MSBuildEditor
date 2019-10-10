@@ -22,6 +22,7 @@ using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Contracts;
@@ -229,13 +230,12 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 						if (!File.Exists (job.Filename)) {
 							return;
 						}
-						var xmlParser = new XmlParser (new XmlRootState (), true);
+						var xmlParser = new XmlTreeParser (new XmlRootState ());
 						if (!openDocuments.TryGetValue (job.Filename, out var buf)) {
 							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
 						}
-						job.TextSource = (SnapshotTextSource)buf.CurrentSnapshot.GetTextSource (job.Filename);
-						xmlParser.Parse (job.TextSource.CreateReader ());
-						job.Document = xmlParser.Nodes.GetRoot ();
+						job.TextSource = buf.CurrentSnapshot.GetTextSource ();
+						(job.Document, _) = xmlParser.Parse (job.TextSource.CreateReader ());
 					}
 
 					token.ThrowIfCancellationRequested ();

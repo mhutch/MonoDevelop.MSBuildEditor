@@ -20,12 +20,10 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference)
 		{
-			var textDoc = TextSourceFactory.CreateNewDocument (docString, null);
+			var textDoc = new StringTextSource (docString);
 
-			var xmlParser = new XmlParser (new XmlRootState (), true);
-			xmlParser.Parse (new StringReader (docString));
-			var xdoc = xmlParser.Nodes.GetRoot ();
-
+			var xmlParser = new XmlTreeParser (new XmlRootState ());
+			var (xdoc, _) = xmlParser.Parse (new StringReader (docString));
 
 			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
 			var parseContext = new MSBuildParserContext (new NullRuntimeInformation (), null, null, null, null, new PropertyValueCollector (false), null, null, default);

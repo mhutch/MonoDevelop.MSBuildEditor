@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Evaluation;
@@ -47,45 +46,31 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static MSBuildRootDocument Parse (
-			ITextSource textSource, MSBuildRootDocument previous,
+			ITextSource textSource, string filePath, MSBuildRootDocument previous,
 			MSBuildSchemaProvider schemaProvider, IRuntimeInformation runtimeInfo,
 			ITaskMetadataBuilder taskBuilder,
 			CancellationToken token)
 		{
-			var xmlParser = new XmlParser (new XmlRootState (), true);
-			try {
-				xmlParser.Parse (textSource.CreateReader ());
-			} catch (Exception ex) {
-				LoggingService.LogError ("Unhandled error parsing xml document", ex);
-			}
-
-			var xdocument = xmlParser.Nodes.GetRoot ();
-
-			if (xdocument != null && xdocument.RootElement != null) {
-				if (!xdocument.RootElement.IsEnded)
-					xdocument.RootElement.End (xmlParser.Position);
-			}
+			var xmlParser = new XmlTreeParser (new XmlRootState ());
+			var (xdocument, _) = xmlParser.Parse (textSource.CreateReader ());
 
 			var propVals = new PropertyValueCollector (true);
 
-			string filepath = textSource.FileName;
-
-			var doc = new MSBuildRootDocument (filepath) {
+			var doc = new MSBuildRootDocument (filePath) {
 				XDocument = xdocument,
 				Text = textSource,
 				RuntimeInformation = runtimeInfo
 			};
-			doc.Errors.AddRange (xmlParser.Diagnostics);
 
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 
-			if (filepath != null) {
+			if (filePath != null) {
 				try {
-					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filepath, null);
+					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filePath, null);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error loading schema", ex);
 				}
-				importedFiles.Add (filepath);
+				importedFiles.Add (filePath);
 			}
 
 			var parseContext = new MSBuildParserContext (
@@ -93,14 +78,14 @@ namespace MonoDevelop.MSBuild.Language
 				doc,
 				previous,
 				importedFiles,
-				filepath,
+				filePath,
 				propVals,
 				taskBuilder,
 				schemaProvider,
 				token);
 
-			if (filepath != null) {
-				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, filepath, filepath);
+			if (filePath != null) {
+				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, filePath, filePath);
 			} else {
 				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
 			}
@@ -129,12 +114,12 @@ namespace MonoDevelop.MSBuild.Language
 
 			Import TryImportSibling (string ifHasThisExtension, string thenTryThisExtension)
 			{
-				if (filepath == null) {
+				if (filePath == null) {
 					return null;
 				}
-				var extension = Path.GetExtension (filepath);
+				var extension = Path.GetExtension (filePath);
 				if (string.Equals (ifHasThisExtension, extension, StringComparison.OrdinalIgnoreCase)) {
-					var siblingFilename = Path.ChangeExtension (filepath, thenTryThisExtension);
+					var siblingFilename = Path.ChangeExtension (filePath, thenTryThisExtension);
 					return TryImportFile ("(implicit)", siblingFilename);
 				}
 				return null;
@@ -171,7 +156,7 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
-				LoggingService.LogError ($"Error building document '{filepath ?? "[unnamed]"}'", ex);
+				LoggingService.LogError ($"Error building document '{filePath ?? "[unnamed]"}'", ex);
 			}
 
 			try {

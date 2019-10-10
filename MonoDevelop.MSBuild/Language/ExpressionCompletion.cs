@@ -15,13 +15,8 @@ namespace MonoDevelop.MSBuild.Language
 {
 	static class ExpressionCompletion
 	{
-		public static bool IsPossibleExpressionCompletionContext (XmlParser parser)
-		{
-			var state = parser.CurrentState;
-			return state is XmlAttributeValueState
-				|| state is XmlTextState
-				|| XmlRootState.IsFree (parser);
-		}
+		public static bool IsPossibleExpressionCompletionContext (XmlSpineParser parser)
+			=> parser.IsInAttributeValue () || parser.IsInText () || parser.IsRootFree ();
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
 		public static bool ValidateListPermitted (ListKind listKind, MSBuildValueKind kind)

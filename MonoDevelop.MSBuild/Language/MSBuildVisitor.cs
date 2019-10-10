@@ -7,13 +7,14 @@ using System.Linq;
 using System.Threading;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
 	abstract class MSBuildVisitor
 	{
 		protected MSBuildDocument Document { get; private set; }
-		protected string Filename { get; private set; }
+		protected string Filename => Document.Filename;
 		protected ITextSource TextSource { get; private set; }
 		protected string Extension { get; private set; }
 		protected CancellationToken CancellationToken { get; private set; }
@@ -42,7 +43,6 @@ namespace MonoDevelop.MSBuild.Language
 			int offset = 0, int length = 0,
 			CancellationToken token = default)
 		{
-			Filename = textSource.FileName;
 			Document = document;
 			Extension = Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
 			TextSource = textSource;

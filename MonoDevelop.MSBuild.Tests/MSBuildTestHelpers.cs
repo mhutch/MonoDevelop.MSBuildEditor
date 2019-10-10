@@ -54,21 +54,21 @@ namespace MonoDevelop.MSBuild.Tests
 
 		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (
 			string docString, string filename,
-			Func<(XmlParser parser, ITextSource textSource, MSBuildDocument doc, int offset), T> selector,
+			Func<(XmlSpineParser parser, ITextSource textSource, MSBuildDocument doc, int offset), T> selector,
 			char marker = defaultMarker)
 		{
 			var indices = new Queue<int> (GetMarkedIndices (ref docString, marker));
 
-			var textDoc = TextSourceFactory.CreateNewDocument (docString, filename);
+			var textDoc = new StringTextSource (docString);
 
-			var treeParser = new XmlParser (new XmlRootState (), true);
-			treeParser.Parse (textDoc.CreateReader ());
+			var treeParser = new XmlTreeParser (new XmlRootState ());
+			var (xdoc, _) = treeParser.Parse (textDoc.CreateReader ());
 			var parseContext = new MSBuildParserContext (new NullRuntimeInformation (), null, null, null, null, new PropertyValueCollector (false), null, null, default);
 			var sb = new MSBuildSchemaBuilder (true, parseContext, null);
 			var doc = CreateEmptyDocument ();
-			sb.Run (treeParser.Nodes.GetRoot (), textDoc, doc);
+			sb.Run (xdoc, textDoc, doc);
 
-			var parser = new XmlParser (new XmlRootState (), false);
+			var parser = new XmlSpineParser (treeParser.RootState);
 
 			var nextIndex = indices.Dequeue ();
 			for (int i = 0; i < docString.Length; i++) {

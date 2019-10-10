@@ -15,64 +15,17 @@ namespace MonoDevelop.MSBuild.Language
 {
 	static class MSBuildResolver
 	{
-		//FIXME: push down to MonoDevelop.Xml
-		static readonly System.Reflection.PropertyInfo ParentProp = typeof (XObject).GetProperty ("Parent");
-
 		public static MSBuildResolveResult Resolve (
-			XmlParser parser,
+			XmlSpineParser spineParser,
 			ITextSource textSource,
 			MSBuildDocument context,
 			IFunctionTypeProvider functionTypeProvider,
 			CancellationToken cancellationToken = default)
 		{
-			int offset = parser.Position;
+			int offset = spineParser.Position;
 
-			//clones and connects nodes to their parents
-			parser = parser.GetTreeParser ();
-
-			var nodePath = parser.Nodes.ToList ();
-			nodePath.Reverse ();
-
-			//capture incomplete names, attributes and element values
-
-			//first find the parent element, if any, and its position in the stack
-			XElement elementToComplete = null;
-			int elementToCompleteIdx = 0;
-			for (int n = 0; n < parser.Nodes.Count; n++) {
-				if (parser.Nodes.Peek (n) is XElement xel) {
-					elementToComplete = xel;
-					elementToCompleteIdx = parser.Nodes.Count - n;
-					break;
-				}
-			}
-
-			// while it's still in the stack, advance the parser
-			if (elementToComplete != null) {
-				int i = offset;
-				while (!(parser.CurrentState is XmlRootState) && i < textSource.Length && parser.Nodes.Peek (parser.Nodes.Count - elementToCompleteIdx) == elementToComplete) {
-					parser.Push (textSource.GetCharAt (i++));
-				}
-				if (i == textSource.Length && parser.CurrentState is XmlTextState) {
-					var txtNode = (XText)parser.Nodes.Peek ();
-					txtNode.End (i);
-					((XContainer)parser.Nodes.Peek (1)).AddChildNode (txtNode);
-				}
-				if (cancellationToken.IsCancellationRequested) {
-					return null;
-				}
-			}
-
-			//if nodes are incomplete, they won't get connected
-			//HACK: the only way to reconnect them is reflection
-			if (nodePath.Count > 1) {
-				for (int idx = 1; idx < nodePath.Count; idx++) {
-					var node = nodePath[idx];
-					if (node.Parent == null) {
-						var parent = nodePath[idx - 1];
-						ParentProp.SetValue (node, parent);
-					}
-				}
-			}
+			var nodePath = spineParser.AdvanceToNodeEndAndGetNodePath (textSource);
+			nodePath.ConnectParents ();
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children

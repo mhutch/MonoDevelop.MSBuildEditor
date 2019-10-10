@@ -8,9 +8,7 @@ Xml:
 
 * improve the background parser scheduling
 * formatter
-* convert parser errors to squiggles
 * outlining tagger that's better than the one from textmate
-* brace matching and auto-insertion
 * document outline tool window
 * breadcrumbs bar
 

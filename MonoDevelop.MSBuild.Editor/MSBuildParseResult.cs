@@ -19,7 +19,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			MSBuildDocument = msbuildDocument;
 			Snapshot = snapshot;
+			Diagnostics = diagnostics;
 		}
+
+		public List<XmlDiagnosticInfo> Diagnostics { get; }
 
 		public MSBuildRootDocument MSBuildDocument { get; }
 

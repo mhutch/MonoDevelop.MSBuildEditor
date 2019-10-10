@@ -14,7 +14,7 @@ using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
