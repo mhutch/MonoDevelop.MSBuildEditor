@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -136,17 +137,16 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
+			//FIXME: handle case with multiple text nodes with comments between them
+			string value = string.Empty;
 			var begin = element.Span.End;
-			int end = begin;
-
-			if (element.IsClosed && element.FirstChild == null) {
-				end = element.ClosingTag.Span.Start;
-			} else {
-				for (; end < (TextSource.Length - 1) && TextSource.GetCharAt (end) != '<'; end++) { }
+			var textNode = element.Nodes.OfType<XText> ().FirstOrDefault ();
+			if (textNode != null) {
+				begin = textNode.Span.Start;
+				value = TextSource.GetTextBetween (begin, textNode.Span.End);
 			}
-			var text = begin == end ? "" : TextSource.GetTextBetween (begin, end);
 
-			VisitElementValue (element, resolved, text, begin);
+			VisitElementValue (element, resolved, value, begin);
 		}
 
 		protected virtual void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)

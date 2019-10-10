@@ -10,39 +10,16 @@ namespace MonoDevelop.MSBuild.Language
 {
 	abstract class MSBuildResolvingVisitor : MSBuildVisitor
 	{
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)
 		{
-			base.VisitResolvedElement (element, resolved);
+			base.VisitElementValue (element, resolved, value, offset);
 
-			VisitElementValue (element, resolved);
-		}
-
-		void VisitElementValue (XElement element, MSBuildLanguageElement resolved)
-		{
-			if (resolved.ValueKind == MSBuildValueKind.Data || resolved.ValueKind == MSBuildValueKind.Nothing || element.IsSelfClosing) {
-				return;
-			}
-
-			string elementName = element.Name.Name;
-			if (elementName == null) {
-				return;
-			}
-
-			//FIXME: handle multiple text nodes with comments between them
-			string value = string.Empty;
-			var begin = element.Span.End;
-			var textNode = element.Nodes.OfType<XText> ().FirstOrDefault ();
-			if (textNode != null) {
-				begin = textNode.Span.Start;
-				value = TextSource.GetTextBetween (begin, textNode.Span.End);
-			}
-
-			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, elementName, true);
+			var info = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
 			if (info == null) {
 				return;
 			}
 
-			VisitValue (element, null, resolved, null, info, value, begin);
+			VisitValue (element, null, resolved, null, info, value, offset);
 		}
 
 		protected override void VisitResolvedAttribute (
