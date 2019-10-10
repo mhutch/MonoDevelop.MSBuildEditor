@@ -157,13 +157,13 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.TargetFrameworkIdentifier:
 				return FrameworkInfoProvider.Instance.GetFrameworkIdentifiers ().ToList ();
 			case MSBuildValueKind.TargetFrameworkVersion:
-				return doc.Frameworks.SelectMany (
-					tfm => FrameworkInfoProvider.Instance.GetFrameworkVersions (tfm.Framework)
-				).ToList ();
+				return doc.Frameworks.Select (f => f.Framework).Distinct ().SelectMany (
+					id => FrameworkInfoProvider.Instance.GetFrameworkVersions (id)
+				).Distinct ().ToList ();
 			case MSBuildValueKind.TargetFrameworkProfile:
 				return doc.Frameworks.SelectMany (
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Framework, tfm.Version)
-				).ToList ();
+				).Distinct ().ToList ();
 			case MSBuildValueKind.Configuration:
 				return doc.GetConfigurations ().Select (c => new ConstantInfo (c, "")).ToList ();
 			case MSBuildValueKind.Platform:

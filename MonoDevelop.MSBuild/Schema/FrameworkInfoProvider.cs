@@ -185,10 +185,10 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static string FormatDisplayVersion (Version version)
 		{
-			if (version.Build != 0) {
+			if (version.Build > 0) {
 				return $"{version.Major}.{version.Minor}.{version.Revision}.{version.Build}";
 			}
-			if (version.Revision != 0) {
+			if (version.Revision > 0) {
 				return $"{version.Major}.{version.Minor}.{version.Revision}";
 			}
 			return $"{version.Major}.{version.Minor}";
