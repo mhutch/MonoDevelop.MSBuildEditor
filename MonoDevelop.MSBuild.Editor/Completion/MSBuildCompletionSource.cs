@@ -192,7 +192,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = XmlParser.GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
+			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
 			if (rr?.LanguageElement != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {

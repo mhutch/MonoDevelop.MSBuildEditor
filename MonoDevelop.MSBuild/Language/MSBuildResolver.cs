@@ -58,6 +58,10 @@ namespace MonoDevelop.MSBuild.Language
 					continue;
 				}
 
+				if (node is XClosingTag ct && ct == el.ClosingTag) {
+					continue;
+				}
+
 				languageElement = null;
 			}
 
