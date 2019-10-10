@@ -24,8 +24,8 @@ namespace MonoDevelop.MSBuild.Schema
 					".NETFramework",
 					new VersionInfo (new Version (2, 0), "net20"),
 					new VersionInfo (new Version (3, 0), "net30"),
-					new VersionInfo (new Version (3, 5), "net35"),
-					new VersionInfo (new Version (4, 0), "net40"),
+					new VersionInfo (new Version (3, 5), "net35", new[] { "Client" }),
+					new VersionInfo (new Version (4, 0), "net40", new[] { "Client" }),
 					new VersionInfo (new Version (4, 5), "net45"),
 					new VersionInfo (new Version (4, 5, 1), "net451"),
 					new VersionInfo (new Version (4, 5, 2), "net452"),
@@ -34,7 +34,8 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (4, 6, 2), "net462"),
 					new VersionInfo (new Version (4, 7), "net47"),
 					new VersionInfo (new Version (4, 7, 1), "net471"),
-					new VersionInfo (new Version (4, 7, 2), "net472")
+					new VersionInfo (new Version (4, 7, 2), "net472"),
+					new VersionInfo (new Version (4, 8), "net48")
 				)
 			);
 
@@ -44,7 +45,9 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (1, 0), "netcoreapp1.0"),
 					new VersionInfo (new Version (1, 1), "netcoreapp1.1"),
 					new VersionInfo (new Version (2, 0), "netcoreapp2.0"),
-					new VersionInfo (new Version (2, 0), "netcoreapp2.1")
+					new VersionInfo (new Version (2, 0), "netcoreapp2.1"),
+					new VersionInfo (new Version (2, 0), "netcoreapp2.2"),
+					new VersionInfo (new Version (2, 0), "netcoreapp3.0")
 				)
 			);
 
@@ -102,11 +105,10 @@ namespace MonoDevelop.MSBuild.Schema
 							"Profile44",
 							"Profile151"
 						}
-					)
+					),
+					new VersionInfo (new Version (5, 0))
 				)
 			);
-
-			frameworks.Add (new IdentifierInfo (".NETPortable", new VersionInfo (new Version (5, 0))));
 
 			frameworks.Add (
 				new IdentifierInfo (
