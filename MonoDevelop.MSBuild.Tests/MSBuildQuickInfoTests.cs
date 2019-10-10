@@ -29,6 +29,6 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.IsTrue (result.Items.Any ());
 		}
 
-		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => TestEnvironment.EnsureInitialized ();
+		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => MSBuildTestEnvironment.EnsureInitialized ();
 	}
 }

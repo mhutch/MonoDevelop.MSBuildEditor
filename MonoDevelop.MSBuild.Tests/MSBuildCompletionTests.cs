@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -13,7 +14,6 @@ using Microsoft.VisualStudio.MiniEditor;
 using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests.Completion;
 using MonoDevelop.Xml.Tests.EditorTestHelpers;
 
@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 		protected override string ContentTypeName => MSBuildContentType.Name;
 
-		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => TestEnvironment.EnsureInitialized ();
+		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => MSBuildTestEnvironment.EnsureInitialized ();
 
 		[Test]
 		public async Task TestElementCompletion ()
