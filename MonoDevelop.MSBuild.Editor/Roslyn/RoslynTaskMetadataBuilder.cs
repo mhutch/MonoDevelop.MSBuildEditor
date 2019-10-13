@@ -240,24 +240,24 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				var name = Path.GetFileNameWithoutExtension (path);
 
 				//FIXME: we need to bundle the xml docs files for these as they are not shipped beside the assemblies in VS
-				var refs = new List<MetadataReference> {
-					CompilationProvider.CreateReference (path),
-					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Framework.dll")),
-					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll")),
-					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll")),
-					CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll")),
-					CompilationProvider.CreateReference (typeof (object).Assembly.Location)
+				var paths = new List<string> {
+					path,
+					Path.Combine (binPath, "Microsoft.Build.Framework.dll"),
+					Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll"),
+					Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll"),
+					Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll"),
+					typeof (object).Assembly.Location
 				};
 
 				if (name != "Microsoft.Build.Tasks.Core") {
-					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.Core.dll")));
-					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v4.0.dll")));
-					refs.Add (CompilationProvider.CreateReference (Path.Combine (binPath, "Microsoft.Build.Tasks.v12.0.dll")));
+					paths.Add (Path.Combine (binPath, "Microsoft.Build.Tasks.Core.dll"));
+					paths.Add (Path.Combine (binPath, "Microsoft.Build.Tasks.v4.0.dll"));
+					paths.Add (Path.Combine (binPath, "Microsoft.Build.Tasks.v12.0.dll"));
 				}
 
 				var compilation = CSharpCompilation.Create (
 					"__MSBuildEditorTaskResolver",
-					references: refs.ToArray ()
+					references: paths.Where (File.Exists).Select (dll => CompilationProvider.CreateReference (dll)).ToArray ()
 				);
 
 				IAssemblySymbol asm = compilation
