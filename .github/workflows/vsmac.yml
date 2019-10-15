@@ -1,0 +1,33 @@
+name: Visual Studio for Mac
+
+on: [push]
+
+jobs:
+  VSMac:
+    runs-on: macOS-latest
+    env:
+      # for some reason 5.12 is in PATH
+      MONO_BIN: /Library/Frameworks/Mono.framework/Versions/6.4.0/bin
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+        
+    # work around GenerateDepsFile NuGet mismatch
+    # https://github.com/NuGet/Home/issues/7956
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '2.2.402'
+
+    - name: Restore
+      run: $MONO_BIN/msbuild -t:Restore -p:Configuration=ReleaseMac
+      
+    - name: Build
+      run: $MONO_BIN/msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=ReleaseMac -p:CreatePackage=true
+      
+    - name: Download NUnit
+      run: nuget install NUnit.ConsoleRunner -Version 3.8.0 -OutputDirectory testrunner
+      
+    - name: Test
+      run: $MONO_BIN/mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll

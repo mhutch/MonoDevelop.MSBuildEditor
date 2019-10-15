@@ -2,6 +2,9 @@
 
 The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio for Mac and MonoDevelop. It can be installed from the Extension Manager.
 
+![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/.github/workflows/vswin.yml/badge.svg)
+![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/.github/workflows/vsmac.yml/badge.svg)
+
 ## Features
 
 ### IntelliSense
@@ -118,10 +121,3 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Squiggle assignments to nonexistent task params
 * Metadata to mark symbols as aliases for another
 * Improve implicit and explicit triggering for file path segments
-
-## Build Status
-
-Status | Platform | Runtimes
---- | --- | ---
-[![Build Status](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor.svg?branch=library)](https://travis-ci.org/mhutch/MonoDevelop.MSBuildEditor) | Linux | Mono
-[![Build status](https://ci.appveyor.com/api/projects/status/bil5oj1e45xis98h/branch/library?svg=true)](https://ci.appveyor.com/project/mhutch/monodevelop-msbuildeditor/branch/library) | Windows | .NET Framework
