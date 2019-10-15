@@ -2,6 +2,7 @@ name: Visual Studio
 
 on: [push]
 
+jobs:
   VSWin:
     runs-on: windows-latest
     steps:
