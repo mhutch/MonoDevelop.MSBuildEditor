@@ -1,0 +1,23 @@
+name: Visual Studio for Mac CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: macOS-latest
+    env:
+      MONO_BIN: /Library/Frameworks/Mono.framework/Versions/6.4.0/bin
+      CONFIG: Debug
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+
+    - name: Restore
+      run: $MONO_BIN/msbuild -t:Restore -p:Configuration=$CONFIG
+      
+    - name: Build
+      run: $MONO_BIN/msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=$CONFIG -p:CreatePackage=true
+      
+    - name: Test
+      run: $MONO_BIN/mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
