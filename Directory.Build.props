@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)private.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+</Project>
