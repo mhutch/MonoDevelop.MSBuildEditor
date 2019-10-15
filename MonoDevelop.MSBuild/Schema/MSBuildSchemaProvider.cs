@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -35,16 +36,22 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			var resourceId = GetResourceForBuiltin (path, sdk);
-			if (resourceId != null) {
-				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
-			}
+			return GetResourceForBuiltin (path, sdk, out loadErrors);
+		}
 
+		// don't inline this, MSBuildSchema.LoadResource gets the calling assembly
+		[MethodImpl (MethodImplOptions.NoInlining)]
+		static MSBuildSchema GetResourceForBuiltin (string filepath, string sdkId, out IList<(string message, DiagnosticSeverity severity)> loadErrors)
+		{
+			var resourceId = GetResourceIdForBuiltin (filepath, sdkId);
+			if (resourceId != null) {
+				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors); ;
+			}
 			loadErrors = null;
 			return null;
 		}
 
-		static string GetResourceForBuiltin (string filepath, string sdkId)
+		static string GetResourceIdForBuiltin (string filepath, string sdkId)
 		{
 			switch (Path.GetFileName (filepath).ToLower ()) {
 			case "microsoft.common.targets":

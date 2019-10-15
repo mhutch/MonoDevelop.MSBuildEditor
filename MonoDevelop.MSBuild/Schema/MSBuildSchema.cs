@@ -31,9 +31,12 @@ namespace MonoDevelop.MSBuild.Schema
 		public static MSBuildSchema LoadResource (string resourceId, out IList<(string, DiagnosticSeverity)> loadErrors)
 		{
 			var asm = Assembly.GetCallingAssembly ();
-			using (var sr = new StreamReader (asm.GetManifestResourceStream (resourceId))) {
-				return Load (sr, out loadErrors);
+			using var stream = asm.GetManifestResourceStream (resourceId);
+			if (stream == null) {
+				throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
 			}
+			using var sr = new StreamReader (stream);
+			return Load (sr, out loadErrors);
 		}
 
 		class SchemaLoadState
