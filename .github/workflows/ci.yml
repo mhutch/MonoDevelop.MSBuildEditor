@@ -1,0 +1,41 @@
+name: CI
+
+on: [push]
+
+jobs:
+  Visual Studio for Mac:
+    runs-on: macOS-latest
+    env:
+      MONO_BIN: /Library/Frameworks/Mono.framework/Versions/6.4.0/bin
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+
+    - name: Restore
+      run: $MONO_BIN/msbuild -t:Restore -p:Configuration=Release
+      
+    - name: Build
+      run: $MONO_BIN/msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=Release -p:CreatePackage=true
+      
+    - name: Test
+      run: $MONO_BIN/mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
+
+  Visual Studio:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+        
+    - name: Find MSBuild
+      uses: warrenbuckley/Setup-MSBuild@v1
+
+    - name: Restore
+      run: msbuild -t:Restore -p:Configuration=Release
+      
+    - name: Build
+      run: msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=Release -p:CreatePackage=true
+      
+    - name: Test
+      run: testrunner\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe MonoDevelop.MSBuild.Tests\bin\Release\MonoDevelop.MSBuild.Tests.dll
