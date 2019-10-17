@@ -63,6 +63,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		ExpectingClassName,
 		ExpectingClassNameComponent,
 		IncompleteString,
-		IncompleteProperty
+		IncompleteProperty,
+		UnexpectedCharacter,
+		IncompleteOperator
 	}
 }

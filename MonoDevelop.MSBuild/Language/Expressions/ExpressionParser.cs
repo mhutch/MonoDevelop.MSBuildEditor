@@ -7,7 +7,7 @@ using System.Text;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	static class ExpressionParser
+	static partial class ExpressionParser
 	{
 		public static ExpressionNode Parse (string expression, ExpressionOptions options = ExpressionOptions.None, int baseOffset = 0)
 		{
@@ -318,6 +318,28 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			return new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, funcName, args);
+		}
+
+		static string TryReadAlphaName (string buffer, ref int offset, int endOffset)
+		{
+			if (offset > endOffset) {
+				return null;
+			}
+
+			int start = offset;
+			char ch = buffer[offset];
+			if (!char.IsLetter (ch)) {
+				return null;
+			}
+			offset++;
+			while (offset <= endOffset) {
+				ch = buffer[offset];
+				if (!char.IsLetter (ch)) {
+					break;
+				}
+				offset++;
+			}
+			return buffer.Substring (start, offset - start);
 		}
 
 		static string ReadName (string buffer, ref int offset, int endOffset)

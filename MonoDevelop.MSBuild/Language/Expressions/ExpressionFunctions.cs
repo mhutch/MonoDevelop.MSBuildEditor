@@ -75,7 +75,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 	class ExpressionArgumentString : ExpressionArgumentLiteral<string>
 	{
-		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
+		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.String;
 		public ExpressionArgumentString (int offset, int length, string value) : base (offset, length, value) { }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralString;

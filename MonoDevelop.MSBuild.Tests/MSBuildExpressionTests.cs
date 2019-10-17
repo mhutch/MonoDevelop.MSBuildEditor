@@ -523,7 +523,7 @@ namespace MonoDevelop.MSBuild.Tests
 			AssertEqual (expected, expr, baseOffset);
 		}
 
-		static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
+		internal static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
 		{
 			if (expected == null) {
 				Assert.IsNull (actual);
@@ -605,6 +605,12 @@ namespace MonoDevelop.MSBuild.Tests
 			case ExpressionPropertyRegistryValue regVal:
 				var expectedRegVal = (ExpressionPropertyRegistryValue)expected;
 				Assert.AreEqual (expectedRegVal.RegistryReference, regVal.RegistryReference);
+				break;
+			case ExpressionConditionOperator actualOperator:
+				var expectedOperator = (ExpressionConditionOperator)expected;
+				Assert.AreEqual (expectedOperator.OperatorKind, actualOperator.OperatorKind);
+				AssertEqual (expectedOperator.Left, actualOperator.Left, expectedOffset);
+				AssertEqual (expectedOperator.Right, actualOperator.Right, expectedOffset);
 				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");

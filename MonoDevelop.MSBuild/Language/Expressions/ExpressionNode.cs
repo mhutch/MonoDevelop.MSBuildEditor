@@ -42,6 +42,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		ClassReference,
 		List,
 		Text,
-		Property
+		Property,
+		ConditionOperator,
+		ConditionFunction
 	}
 }

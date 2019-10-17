@@ -36,7 +36,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override string ItemName => Target.ItemName;
 		public override int ItemNameOffset => Target.ItemNameOffset;
 
-		public ExpressionArgumentList Arguments;
+		public ExpressionArgumentList Arguments { get; }
 
 		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, ExpressionFunctionName methodName, ExpressionArgumentList arguments)
 			: base (offset, length)
