@@ -16,7 +16,11 @@
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.2" />
     <PackageReference Include="Microsoft.Build" Version="15.9.20" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" ExcludeAssets="runtime" />
-    <PackageReference Include="Mono.Cecil" Version="0.9.6" />
+    <!--
+    see https://github.com/nunit/nunit3-vs-adapter/issues/662
+    NUnit3TestAdapter forgets to declare a dependency on Cecil, so we have to bring our own.
+    -->
+    <PackageReference Include="Mono.Cecil" Version="0.9.6" ExcludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
