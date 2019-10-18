@@ -163,12 +163,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			bool wasEOF = false;
 
-			if (ch == '$' || ch == '%') {
+			if (ch == '$' || ch == '%' || ch == '@') {
 				if (offset < endOffset) {
 					if (buffer[offset + 1] == '(') {
 						offset += 2;
-						ExpressionNode node = ch == '$'
-							? ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError)
+						ExpressionNode node =
+							ch == '$'? ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError)
+							: ch == '@'? ParseItem (buffer, ref offset, endOffset, baseOffset, out hasError)
 							: ParseMetadata (buffer, ref offset, endOffset, baseOffset, out hasError);
 						offset++;
 						return node;

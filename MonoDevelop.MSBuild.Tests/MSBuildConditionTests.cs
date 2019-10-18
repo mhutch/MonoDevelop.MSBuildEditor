@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.Projects.MSBuild.Conditions;
 
@@ -15,7 +16,29 @@ namespace MonoDevelop.MSBuild.Tests
         public void TestCondition1()
         {
             var condition = @"@(AssemblyAttribute->WithMetadataValue('A', 'B')->Count()) == 0";
-            var expression = ConditionParser.ParseCondition(condition);
+			TestParse (condition,
+				new ExpressionConditionOperator (0, 63,
+					ExpressionOperatorKind.Equal,
+					new ExpressionItem (0, 58,
+						new ExpressionItemFunctionInvocation (
+							2, 55,
+							new ExpressionItemFunctionInvocation (2, 46,
+								new ExpressionItemName (2, "AssemblyAttribute"),
+								new ExpressionFunctionName (21, "WithMetadataValue"),
+								new ExpressionArgumentList (38, 10,
+									new List<ExpressionNode> {
+										new ExpressionText (40, "A", true),
+										new ExpressionText (45, "B", true)
+									}
+								)
+							),
+							new ExpressionFunctionName (50, "Count"),
+							new ExpressionArgumentList (55, 2, new List<ExpressionNode> ())
+						)
+					),
+					new ExpressionArgumentInt (62, 1, 0)
+				)
+			);
         }
 
 		[Test]
