@@ -109,7 +109,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public static bool ContainsOffset (this ExpressionNode node, int offset)
 		{
-			return node.Offset <= offset && node.End >= offset;
+			return node.Offset <= offset && offset <= node.End;
 		}
 
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
@@ -161,7 +161,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case ExpressionArgumentList argumentList:
 				if (argumentList.Arguments != null) {
 					//TODO: binary search?
-					foreach (var c in argumentList.Arguments) {
+					for (int i = argumentList.Arguments.Count - 1; i >= 0; i--){
+						var c = argumentList.Arguments[i];
 						if (c.ContainsOffset (offset)) {
 							return c.FindInternal (offset);
 						}
@@ -188,6 +189,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 				if (transform.Separator != null && transform.Separator.ContainsOffset (offset)) {
 					return transform.Separator.FindInternal (offset);
+				}
+				break;
+			case ExpressionError error:
+				if (error.ContainsOffset (offset)) {
+					return error;
 				}
 				break;
 			}

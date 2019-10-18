@@ -165,21 +165,29 @@ namespace MonoDevelop.MSBuild.Language
 
 			//find the deepest error
 			var error = lastNode as ExpressionError;
-			ExpressionNode parent = lastNode.Parent;
-			while (parent != null && error == null) {
-				error = parent as ExpressionError;
-				parent = parent.Parent;
+
+			if (error == null) {
+				ExpressionNode p = lastNode.Parent;
+				while (p != null && error == null) {
+					error = p as IncompleteExpressionError;
+					p = p.Parent;
+				}
 			}
 
-			if (error is IncompleteExpressionError iee && iee.WasEOF) {
+			if (lastNode == error && !(error is IncompleteExpressionError)) {
+				lastNode = error.Parent;
+			}
+
+			if (error is ExpressionError ee && ee.WasEOF) {
+				ExpressionNode parent = lastNode.Parent is ExpressionError err ? err.Parent : lastNode.Parent;
 				switch (lastNode) {
 				case ExpressionItem _:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
 						return TriggerState.ItemFunctionName;
 					}
 					break;
 				case ExpressionItemName ein:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
 						if (ShouldTriggerName (ein.Name)) {
 							triggerLength = ein.Name.Length;
 							return TriggerState.ItemName;
@@ -188,7 +196,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionPropertyName pn:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (pn.Name)) {
 							triggerLength = pn.Name.Length;
 							return TriggerState.PropertyName;
@@ -197,14 +205,14 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionFunctionName fn:
-					if (iee.Kind == ExpressionErrorKind.IncompleteProperty) {
+					if (ee.Kind == ExpressionErrorKind.IncompleteProperty) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.PropertyFunctionName;
 						}
 						return TriggerState.None;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.ItemFunctionName;
@@ -213,36 +221,36 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionPropertyFunctionInvocation _:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMethodName) {
 						return TriggerState.PropertyFunctionName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingClassName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingClassName) {
 						return TriggerState.PropertyFunctionClassName;
 					}
 					break;
 				case ExpressionClassReference cr:
-					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
-						|| ((iee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || iee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && cr.Parent is ExpressionArgumentList)
+					if (ee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
+						|| ((ee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || ee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && parent is ExpressionArgumentList)
 						) {
 						if (ShouldTriggerName (cr.Name)) {
 							triggerLength = cr.Name.Length;
-							return cr.Parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
+							return parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
 						}
 						return TriggerState.None;
 					}
 					break;
 				case ExpressionMetadata m:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
 						return TriggerState.MetadataName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (m.ItemName)) {
 							triggerLength = m.ItemName.Length;
 							return TriggerState.MetadataOrItemName;
 						}
 						return TriggerState.None;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParen) {
 						if (ShouldTriggerName (m.MetadataName)) {
 							triggerLength = m.MetadataName.Length;
 							return TriggerState.MetadataName;
@@ -252,8 +260,8 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionText expressionText: {
 						if (
-							(error.Kind == ExpressionErrorKind.IncompleteString && (expressionText.Parent is ExpressionArgumentList || expressionText.Parent is ExpressionItemTransform))
-							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && expressionText.Parent is ExpressionArgumentList)
+							(error.Kind == ExpressionErrorKind.IncompleteString && (parent is ExpressionArgumentList || parent is ExpressionItemTransform))
+							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && parent is ExpressionArgumentList)
 							) {
 							var s = GetTriggerState (
 								expressionText.Value, reason, typedChar,
@@ -282,6 +290,8 @@ namespace MonoDevelop.MSBuild.Language
 					return TriggerState.ItemName;
 				case ExpressionErrorKind.ExpectingMetadataOrItemName:
 					return TriggerState.MetadataOrItemName;
+				case ExpressionErrorKind.ExpectingClassName:
+					return TriggerState.PropertyFunctionClassName;
 				}
 				return TriggerState.None;
 			}

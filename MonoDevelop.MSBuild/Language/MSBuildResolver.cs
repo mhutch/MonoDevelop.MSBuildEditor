@@ -227,8 +227,8 @@ namespace MonoDevelop.MSBuild.Language
 						if (prop.Target is ExpressionClassReference classRef) {
 							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
 							rr.Reference = (classRef.Name, name.Name);
-						} else {
-							var type = functionTypeProvider?.ResolveType (prop.Target) ?? MSBuildValueKind.Unknown;
+						} else if (prop.Target is ExpressionPropertyNode propNode) {
+							var type = functionTypeProvider?.ResolveType (propNode) ?? MSBuildValueKind.Unknown;
 							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
 							rr.Reference = (type, name.Name);
 						}
