@@ -612,6 +612,11 @@ namespace MonoDevelop.MSBuild.Tests
 				AssertEqual (expectedOperator.Left, actualOperator.Left, expectedOffset);
 				AssertEqual (expectedOperator.Right, actualOperator.Right, expectedOffset);
 				break;
+			case ExpressionConditionFunction actualConditionFunction:
+				var expectedConditionFunction = (ExpressionConditionFunction)expected;
+				AssertEqual (expectedConditionFunction.Name, actualConditionFunction.Name, expectedOffset);
+				AssertEqual (expectedConditionFunction.Arguments, actualConditionFunction.Arguments, expectedOffset);
+				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
 			}

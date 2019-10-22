@@ -55,6 +55,35 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
+		public void TestFunctions ()
+		{
+			TestParse (
+				"Exists($(foo)) And !HasTrailingSlash ('$(foobar)')",
+				new ExpressionConditionOperator (
+					0, 50, ExpressionOperatorKind.And,
+					new ExpressionConditionFunction (
+						0, 14, "Exists",
+						new ExpressionArgumentList (
+							6, 8,
+							new ExpressionProperty (7, 6, "foo")
+						)
+					),
+					new ExpressionConditionOperator (
+						19, 31, ExpressionOperatorKind.Not,
+						new ExpressionConditionFunction (
+							20, 30, "HasTrailingSlash",
+							new ExpressionArgumentList (
+								37, 13,
+								new ExpressionProperty (39, 9, "foobar")
+							)
+						),
+						null
+					)
+				)
+			);
+		}
+
+		[Test]
 		public void TestPropertyEqualsEmptyString ()
 		{
 			TestParse (

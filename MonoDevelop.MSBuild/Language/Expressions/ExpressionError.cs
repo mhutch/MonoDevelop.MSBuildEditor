@@ -71,6 +71,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		IncompleteString,
 		IncompleteProperty,
 		UnexpectedCharacter,
-		IncompleteOperator
+		IncompleteOperator,
+		ExpectingEquals,
+		IncompleteOrUnsupportedEntity
 	}
 }

@@ -10,6 +10,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public List<ExpressionNode> Arguments { get; }
 
+		public ExpressionArgumentList (int offset, int length, params ExpressionNode[] arguments)
+			: this (offset, length, new List<ExpressionNode> (arguments)) { }
+
 		public ExpressionArgumentList (int offset, int length, List<ExpressionNode> arguments) : base (offset, length)
 		{
 			Arguments = arguments;

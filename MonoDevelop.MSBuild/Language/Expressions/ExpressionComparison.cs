@@ -41,11 +41,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public ExpressionFunctionName Name { get; }
 
-		public ExpressionArgumentList Arguments { get; }
+		public ExpressionNode Arguments { get; }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ConditionFunction;
 
-		public ExpressionConditionFunction (int offset, int length, ExpressionFunctionName name, ExpressionArgumentList arguments)
+		public ExpressionConditionFunction (int offset, int length, string name, ExpressionNode arguments)
+			: this (offset, length, new ExpressionFunctionName (offset, name), arguments) { }
+
+		public ExpressionConditionFunction (int offset, int length, ExpressionFunctionName name, ExpressionNode arguments)
 			: base (offset, length)
 		{
 			Name = name;
