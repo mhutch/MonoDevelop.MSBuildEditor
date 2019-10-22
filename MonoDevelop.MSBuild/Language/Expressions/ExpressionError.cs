@@ -12,17 +12,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public ExpressionErrorKind Kind { get; }
 		public bool WasEOF { get; }
 
-		public ExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, int length) : base (offset, length)
+		public ExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, int length, out bool hasError) : base (offset, length)
 		{
+			// this exists so callers don't forget to set it
+			// having this argument has caught a bunch of issues
+			hasError = true;
+
 			Kind = kind;
 			WasEOF = wasEOF;
 		}
 
-		public ExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind) : this (offset, wasEOF, kind, wasEOF ? 0 : 1)
+		public ExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, out bool hasError) : this (offset, wasEOF, kind, wasEOF ? 0 : 1, out hasError)
 		{
 		}
 
-		public ExpressionError (int offset, ExpressionErrorKind kind) : this (offset, false, kind)
+		public ExpressionError (int offset, ExpressionErrorKind kind, out bool hasError) : this (offset, false, kind, out hasError)
 		{
 		}
 
@@ -34,8 +38,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public ExpressionNode IncompleteNode { get; }
 
-		public IncompleteExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode)
-			: base (incompleteNode.Offset, wasEOF, kind, Math.Max (incompleteNode.Length, offset - incompleteNode.Offset))
+		public IncompleteExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode, out bool hasError)
+			: base (incompleteNode.Offset, wasEOF, kind, Math.Max (incompleteNode.Length, offset - incompleteNode.Offset), out hasError)
 		{
 			IncompleteNode = incompleteNode;
 			incompleteNode.SetParent (this);

@@ -11,11 +11,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public ExpressionNode Left { get; }
 		public ExpressionNode Right { get; }
-		public ExpressionOperatorKind OperatorKind { get; }
+		public ExpressionOperatorKind? OperatorKind { get; }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ConditionOperator;
 
-		public ExpressionConditionOperator (int offset, int length, ExpressionOperatorKind comparisonKind, ExpressionNode left, ExpressionNode right)
+		public ExpressionConditionOperator (int offset, int length, ExpressionOperatorKind? comparisonKind, ExpressionNode left, ExpressionNode right)
 			: base (offset, length)
 		{
 			OperatorKind = comparisonKind;

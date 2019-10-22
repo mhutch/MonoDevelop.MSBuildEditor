@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using MonoDevelop.MSBuild.Language.Conditions;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
@@ -19,7 +16,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			if (!hasError) {
 				ConsumeSpace (buffer, ref startOffset, endOffset);
 				if (startOffset <= endOffset) {
-					return new IncompleteExpressionError (startOffset, false, ExpressionErrorKind.UnexpectedCharacter, expr);
+					return new IncompleteExpressionError (startOffset, false, ExpressionErrorKind.UnexpectedCharacter, expr, out _);
 				}
 			}
 
@@ -46,15 +43,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			var left = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
 
-			//todo: errors
+			if (hasError) {
+				return new ExpressionConditionOperator (baseOffset + start, offset - start, null, left, null);
+			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 			if (offset >= endOffset) {
-				return left;
+				return new IncompleteExpressionError (
+					offset, true, ExpressionErrorKind.ExpectingValue,
+					new ExpressionConditionOperator (baseOffset + start, offset - start, null, left, null),
+					out hasError
+				);
 			}
 
 			ExpressionNode right;
-			var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError);
+			var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
 			if (opError != null) {
 				right = opError;
 			} else {
@@ -84,9 +87,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			return null;
 		}
 
-		static ExpressionOperatorKind ReadOperator (string buffer, int baseOffset, ref int offset, int endOffset, out ExpressionError error)
+		static ExpressionOperatorKind ReadOperator (string buffer, int baseOffset, ref int offset, int endOffset, out ExpressionError error, out bool hasError)
 		{
 			error = null;
+			hasError = false;
 			int start = offset;
 			char ch = buffer[offset];
 
@@ -94,7 +98,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				if (TryReadEntity (buffer, ref offset, endOffset) is char ec) {
 					ch = ec;
 				} else {
-					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOrUnsupportedEntity);
+					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOrUnsupportedEntity, out hasError);
 					return default;
 				}
 			}
@@ -106,7 +110,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						offset++;
 						return ExpressionOperatorKind.Equal;
 					}
-					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingEquals);
+					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingEquals, out hasError);
 					return default;
 				}
 			case '>': {
@@ -131,7 +135,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						offset++;
 						return ExpressionOperatorKind.NotEqual;
 					}
-					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingEquals);
+					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingEquals, out hasError);
 					return default;
 				}
 			case 'A':
@@ -146,7 +150,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			offset = start;
-			error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOperator);
+			error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOperator, out hasError);
 			return default;
 		}
 
@@ -201,7 +205,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 							baseOffset + offset,
 							offset > endOffset,
 							ExpressionErrorKind.ExpectingLeftParen,
-							new ExpressionConditionFunction (baseOffset + start, offset - start, funcName, null)
+							new ExpressionConditionFunction (baseOffset + start, offset - start, funcName, null),
+							out hasError
 						);
 					}
 
@@ -217,7 +222,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			hasError = true;
 			var expr = new ExpressionText (baseOffset + start, buffer.Substring (start, offset - start), true);
 			var kind = ExpressionErrorKind.ExpectingRightParenOrValue;
-			return new IncompleteExpressionError (baseOffset + start, wasEOF, kind, expr);
+			return new IncompleteExpressionError (baseOffset + start, wasEOF, kind, expr, out hasError);
 		}
 	}
 }
