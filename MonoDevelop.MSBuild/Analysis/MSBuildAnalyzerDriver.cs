@@ -50,6 +50,8 @@ namespace MonoDevelop.MSBuild.Analysis
 
 			visitor.Run (doc, token: token);
 
+			session.AddCoreDiagnostics (doc.Diagnostics);
+
 			return session.Diagnostics;
 		}
 	}

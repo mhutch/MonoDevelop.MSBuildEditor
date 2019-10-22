@@ -27,8 +27,8 @@ namespace MonoDevelop.MSBuild.Analysis
 		public static void Add (this ICollection<MSBuildDiagnostic> list,
 			MSBuildDiagnosticDescriptor descriptor,
 			TextSpan span,
-			ImmutableDictionary<string, object> properties = null,
-			object[] messageArgs = null
+			ImmutableDictionary<string, object> properties,
+			params object[] messageArgs
 			)
 			=> list.Add (new MSBuildDiagnostic (descriptor, span, properties, messageArgs));
 	}

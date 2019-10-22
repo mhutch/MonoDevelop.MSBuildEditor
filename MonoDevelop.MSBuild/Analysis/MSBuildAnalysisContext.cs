@@ -15,6 +15,8 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public abstract void RegisterPropertyWriteAction (Action<PropertyWriteDiagnosticContext> action, ImmutableArray<string> propertyNames);
 
+		public abstract void RegisterCoreDiagnosticFilter (Func<MSBuildDiagnostic, bool> filter, ImmutableArray<string> diagnosticIds);
+
 		public void RegisterElementAction (Action<ElementDiagnosticContext> action, MSBuildSyntaxKind attributeKind)
 			=> RegisterElementAction (action, ImmutableArray.Create (attributeKind));
 
@@ -23,5 +25,8 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public void RegisterPropertyWriteAction (Action<PropertyWriteDiagnosticContext> action, string propertyName)
 			=> RegisterPropertyWriteAction (action, ImmutableArray.Create (propertyName));
+
+		public void RegisterCoreDiagnosticFilter (Func<MSBuildDiagnostic, bool> filter, string diagnosticId)
+			=> RegisterCoreDiagnosticFilter (filter, ImmutableArray.Create (diagnosticId));
 	}
 }

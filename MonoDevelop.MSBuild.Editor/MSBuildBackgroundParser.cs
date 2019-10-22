@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -79,6 +80,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						token);
 
 					var analyzerDiagnostics = analyzerDriver.Analyze (doc, token);
+					doc.Diagnostics.Clear ();
 					doc.Diagnostics.AddRange (analyzerDiagnostics);
 				}
 				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {

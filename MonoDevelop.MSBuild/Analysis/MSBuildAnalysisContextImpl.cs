@@ -19,6 +19,9 @@ namespace MonoDevelop.MSBuild.Analysis
 		readonly Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> propertyWriteActions
 			= new Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> ();
 
+		readonly Dictionary<string, List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)>> coreDiagnosticFilters
+			= new Dictionary<string, List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)>> ();
+
 		public override void RegisterElementAction (Action<ElementDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds)
 		{
 			foreach (var kind in elementKinds) {
@@ -61,9 +64,24 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
+		public override void RegisterCoreDiagnosticFilter (Func<MSBuildDiagnostic, bool> filter, ImmutableArray<string> diagnosticIds)
+		{
+			foreach (var diagnosticId in diagnosticIds) {
+				if (string.IsNullOrEmpty (diagnosticId)) {
+					throw new ArgumentException ($"Null or empty value in {nameof (diagnosticIds)}");
+				}
+				if (!coreDiagnosticFilters.TryGetValue (diagnosticId, out var list)) {
+					list = new List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)> ();
+					coreDiagnosticFilters.Add (diagnosticId, list);
+				}
+				list.Add ((currentAnalyzer, filter));
+			}
+		}
+
 		public bool GetElementActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)> actions) => elementActions.TryGetValue (kind, out actions);
 		public bool GetAttributeActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)> actions) => attributeActions.TryGetValue (kind, out actions);
 		internal bool GetPropertyWriteActions (string name, out List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)> actions) => propertyWriteActions.TryGetValue (name, out actions);
+		internal bool GetCoreDiagnosticFilters (string diagnosticId, out List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)> filters) => coreDiagnosticFilters.TryGetValue (diagnosticId, out filters);
 
 		MSBuildAnalyzer currentAnalyzer;
 

@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
-		internal void ExecutePropertyWriteActions (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		public void ExecutePropertyWriteActions (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			if (Context.GetPropertyWriteActions (info.Name, out var actions)) {
 				var ctx = new PropertyWriteDiagnosticContext (this, element, info, kind, node);
@@ -73,6 +73,30 @@ namespace MonoDevelop.MSBuild.Analysis
 					} catch (Exception ex) {
 						Context.ReportAnalyzerError (analyzer, ex);
 					}
+				}
+			}
+		}
+
+		public void AddCoreDiagnostics (IEnumerable<MSBuildDiagnostic> coreDiagnostics)
+		{
+			foreach (var diagnostic in coreDiagnostics) {
+				bool addDiagnostic = true;
+				if (Context.GetCoreDiagnosticFilters (diagnostic.Descriptor.Id, out var filters)) {
+					foreach (var (analyzer, filter) in filters) {
+						try {
+							if (!analyzer.Disabled) {
+								if (filter (diagnostic)) {
+									addDiagnostic = false;
+									continue;
+								}
+							}
+						} catch (Exception ex) {
+							Context.ReportAnalyzerError (analyzer, ex);
+						}
+					}
+				}
+				if (addDiagnostic) {
+					Diagnostics.Add (diagnostic);
 				}
 			}
 		}
