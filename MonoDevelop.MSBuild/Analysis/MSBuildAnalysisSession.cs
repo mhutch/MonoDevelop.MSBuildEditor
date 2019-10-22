@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -48,6 +49,22 @@ namespace MonoDevelop.MSBuild.Analysis
 		{
 			if (Context.GetAttributeActions (resolvedAttribute?.SyntaxKind ?? MSBuildSyntaxKind.Unknown, out var actions)) {
 				var ctx = new AttributeDiagnosticContext (this, element, attribute, resolvedElement, resolvedAttribute);
+				foreach (var (analyzer, action) in actions) {
+					try {
+						if (!analyzer.Disabled) {
+							action (ctx);
+						}
+					} catch (Exception ex) {
+						Context.ReportAnalyzerError (analyzer, ex);
+					}
+				}
+			}
+		}
+
+		internal void ExecutePropertyWriteActions (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			if (Context.GetPropertyWriteActions (info.Name, out var actions)) {
+				var ctx = new PropertyWriteDiagnosticContext (this, element, info, kind, node);
 				foreach (var (analyzer, action) in actions) {
 					try {
 						if (!analyzer.Disabled) {

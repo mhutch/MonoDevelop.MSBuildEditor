@@ -16,6 +16,9 @@ namespace MonoDevelop.MSBuild.Analysis
 		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> attributeActions
 			= new Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> ();
 
+		readonly Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> propertyWriteActions
+			= new Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> ();
+
 		public override void RegisterElementAction (Action<ElementDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds)
 		{
 			foreach (var kind in elementKinds) {
@@ -44,8 +47,23 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
+		public override void RegisterPropertyWriteAction (Action<PropertyWriteDiagnosticContext> action, ImmutableArray<string> propertyNames)
+		{
+			foreach (var propertyName in propertyNames) {
+				if (string.IsNullOrEmpty (propertyName)) {
+					throw new ArgumentException ($"Null or empty value in {nameof(propertyNames)}");
+				}
+				if (!propertyWriteActions.TryGetValue (propertyName, out var list)) {
+					list = new List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)> ();
+					propertyWriteActions.Add (propertyName, list);
+				}
+				list.Add ((currentAnalyzer, action));
+			}
+		}
+
 		public bool GetElementActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)> actions) => elementActions.TryGetValue (kind, out actions);
 		public bool GetAttributeActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)> actions) => attributeActions.TryGetValue (kind, out actions);
+		internal bool GetPropertyWriteActions (string name, out List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)> actions) => propertyWriteActions.TryGetValue (name, out actions);
 
 		MSBuildAnalyzer currentAnalyzer;
 

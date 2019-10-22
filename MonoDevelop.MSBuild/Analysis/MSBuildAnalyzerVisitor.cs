@@ -3,6 +3,7 @@
 
 using System;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -39,6 +40,15 @@ namespace MonoDevelop.MSBuild.Analysis
 		{
 			session.ExecuteAttributeActions (element, attribute, null, null);
 			base.VisitUnknownAttribute (element, attribute);
+		}
+
+		protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		{
+			if (resolvedElement.SyntaxKind == MSBuildSyntaxKind.Property && resolvedAttribute == null) {
+				session.ExecutePropertyWriteActions (element, info, kind, node);
+			}
+
+			base.VisitValueExpression (element, attribute, resolvedElement, resolvedAttribute, info, kind, node);
 		}
 	}
 }

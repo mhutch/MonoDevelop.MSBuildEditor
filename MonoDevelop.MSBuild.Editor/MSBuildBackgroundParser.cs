@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Text;
-
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
@@ -17,6 +17,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
 		string filepath;
+
+		//FIXME: move this to a lower priority BackgroundProcessor
+		MSBuildAnalyzerDriver analyzerDriver = new MSBuildAnalyzerDriver ();
 
 		public IRuntimeInformation RuntimeInformation { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
@@ -74,7 +77,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						RuntimeInformation,
 						TaskMetadataBuilder,
 						token);
-				} catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
+
+					var analyzerDiagnostics = analyzerDriver.Analyze (doc, token);
+					doc.Diagnostics.AddRange (analyzerDiagnostics);
+				}
+				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
 					doc = MSBuildRootDocument.Empty;
 				}

@@ -23,9 +23,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[Import (typeof (IRuntimeInformation), AllowDefault = true)]
 		public IRuntimeInformation RuntimeInformation { get; set; }
 
-		[Import (typeof (MSBuildAnalyzer))]
-		public List<MSBuildAnalyzer> Analyzers { get; set; }
-
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 			=> buffer.Properties.GetOrCreateSingletonProperty (typeof (MSBuildBackgroundParser), () => CreateParser (buffer));
 
