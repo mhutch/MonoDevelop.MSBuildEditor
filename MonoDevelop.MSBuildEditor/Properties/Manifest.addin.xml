@@ -76,6 +76,10 @@
     <Extension path="/MonoDevelop/Ide/Editor/Bundles">
         <Bundle resource = "MonoDevelop.MSBuildEditor.Syntax.msbuild.json" />
     </Extension>
+    
+    <Extension path="/MonoDevelop/Ide/Editor/TextMate">
+        <Repository folderPath = "Syntax" />
+    </Extension>
 
 	<Extension path="/MonoDevelop/Ide/Commands/TextEditor">
         <Command id = "MonoDevelop.MSBuildEditor.MSBuildCommands.ToggleShowPrivateSymbols"

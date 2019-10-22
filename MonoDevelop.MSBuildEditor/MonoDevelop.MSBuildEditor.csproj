@@ -55,7 +55,9 @@
     <EmbeddedResource Include="MSBuildStylePolicy.xml">
       <LogicalName>MSBuildStylePolicy.xml</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Syntax\msbuild.json" />
+    <EmbeddedResource Include="Syntax\msbuild.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <AddinFile Include="Templates\Project.xft.xml" />
