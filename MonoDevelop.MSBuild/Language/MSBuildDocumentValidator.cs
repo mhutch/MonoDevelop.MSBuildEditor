@@ -395,13 +395,26 @@ namespace MonoDevelop.MSBuild.Language
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowListsOrCommaLists ();
 
+			if (node is ListExpression list) {
+				if (!allowLists) {
+					AddListWarning (list.Nodes[0].End, list.End - list.Nodes[0].End);
+				}
+				if (!allowExpressions) {
+					var expr = list.Nodes.FirstOrDefault (n => !(n is ExpressionText));
+					if (expr != null) {
+						AddExpressionWarning (expr);
+					}
+				}
+			} else if (node is ExpressionText lit) {
+				VisitPureLiteral (info, kind, lit.GetUnescapedValue (), lit.Offset);
+			} else {
+				if (!allowExpressions) {
+					AddExpressionWarning (node);
+				}
+			}
+
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
-				case ListExpression list:
-					if (!allowLists) {
-						AddListWarning (list.Nodes[0].End, 1);
-					}
-					break;
 				case ExpressionError err:
 					var (desc, args) = CoreDiagnostics.GetExpressionError (err, info);
 					Document.Diagnostics.Add (desc, new TextSpan (err.Offset, Math.Max (1, err.Length)), args);
@@ -409,15 +422,9 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionMetadata meta:
 				case ExpressionProperty prop:
 				case ExpressionItem item:
-					if (!allowExpressions) {
-						AddExpressionWarning (node);
-					}
 					//TODO: can we validate property/metadata/items refs?
 					//maybe warn if they're not used anywhere outside of this expression?
 					//TODO: deprecation squiggles in expressions
-					break;
-				case ExpressionText lit:
-					VisitPureLiteral (info, kind, lit.GetUnescapedValue (), lit.Offset);
 					break;
 				}
 			}
