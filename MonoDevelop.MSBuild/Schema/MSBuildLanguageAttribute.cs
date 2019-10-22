@@ -5,10 +5,10 @@ using System;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	class MSBuildLanguageAttribute : ValueInfo
+	public class MSBuildAttributeSyntax : ValueInfo
 	{
-		public MSBuildLanguageAttribute (
-			MSBuildLanguageElement element,
+		public MSBuildAttributeSyntax (
+			MSBuildElementSyntax element,
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind,
 			bool required = false, MSBuildSyntaxKind? abstractKind = null,
 			bool isDeprecated = false, string deprecationMessage = null)
@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public MSBuildSyntaxKind SyntaxKind { get; }
 
-		public MSBuildLanguageElement Element { get; }
+		public MSBuildElementSyntax Element { get; }
 
 		public MSBuildSyntaxKind? AbstractKind { get; }
 		public bool Required { get; }

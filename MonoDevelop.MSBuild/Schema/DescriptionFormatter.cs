@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			//construct a customized version of the include/exclude/etc attribute if appropriate
-			if (info is MSBuildLanguageAttribute att) {
+			if (info is MSBuildAttributeSyntax att) {
 				switch (att.Name.ToLower ()) {
 				case "include":
 				case "exclude":
@@ -64,11 +64,11 @@ namespace MonoDevelop.MSBuild.Schema
 		public static (string kind, string name) GetTitle (BaseInfo info)
 		{
 			switch (info) {
-			case MSBuildLanguageElement el:
+			case MSBuildElementSyntax el:
 				if (!el.IsAbstract)
 					return ("keyword", info.Name);
 				break;
-			case MSBuildLanguageAttribute att:
+			case MSBuildAttributeSyntax att:
 				if (!att.IsAbstract) {
 					return ("keyword", info.Name);
 				}
@@ -268,23 +268,18 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		public static string GetTitleCaseKindName (this ValueInfo info)
-		{
-			switch (info) {
-			case MSBuildLanguageElement el:
-				return $"Element '{info.Name}'";
-			case MSBuildLanguageAttribute att:
-				return $"Attribute '{info.Name}'";
-			case ItemInfo item:
-				return $"Item '{info.Name}'";
-			case PropertyInfo prop:
-				return $"Property '{info.Name}'";
-			case MetadataInfo meta:
-				return $"Metadata '{info.Name}'";
-			case TaskParameterInfo tpi:
-				return $"Parameter '{info.Name}'";
-			}
-			throw new Exception ($"Unhandled type {info.GetType ()}");
-		}
+		/// <summary>
+		/// Gets a lowercase noun decribing the element. Intended to be localized and substituted into localized strings.
+		/// </summary>
+		public static string GetKindNoun (this ValueInfo info)
+			=> info switch {
+				MSBuildElementSyntax _ => "element",
+				MSBuildAttributeSyntax _ => "attribute",
+				ItemInfo _ => "item",
+				PropertyInfo _ => "property",
+				MetadataInfo _ => "metadata",
+				TaskParameterInfo _ => "task parameter",
+				_ => "value"
+			};
 	}
 }

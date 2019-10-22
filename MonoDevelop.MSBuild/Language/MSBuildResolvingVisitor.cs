@@ -11,7 +11,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	abstract class MSBuildResolvingVisitor : MSBuildVisitor
 	{
-		protected override void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)
+		protected override void VisitElementValue (XElement element, MSBuildElementSyntax resolved, string value, int offset)
 		{
 			base.VisitElementValue (element, resolved, value, offset);
 
@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute);
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void VisitAttributeValue (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
 				return;
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected virtual void VisitValue (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, string value, int offset)
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
@@ -73,7 +73,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected virtual void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 		}

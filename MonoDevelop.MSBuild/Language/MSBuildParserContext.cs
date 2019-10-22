@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Build.Framework;
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
@@ -212,7 +213,7 @@ namespace MonoDevelop.MSBuild.Language
 				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
 				LoggingService.LogError (parseErrorMsg);
 				if (doc.IsToplevel) {
-					AddError (parseErrorMsg);
+					doc.Diagnostics.Add (CoreDiagnostics.InvalidSdkAttribute, loc, sdk);
 				}
 				return null;
 			}
@@ -230,11 +231,9 @@ namespace MonoDevelop.MSBuild.Language
 			string notFoundMsg = $"Did not find SDK '{sdk}'";
 			LoggingService.LogError (notFoundMsg);
 			if (doc.IsToplevel) {
-				AddError (notFoundMsg);
+				doc.Diagnostics.Add (CoreDiagnostics.SdkNotFound, loc, sdk);
 			}
 			return null;
-
-			void AddError (string msg) => doc.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, msg, loc));
 		}
 	}
 }

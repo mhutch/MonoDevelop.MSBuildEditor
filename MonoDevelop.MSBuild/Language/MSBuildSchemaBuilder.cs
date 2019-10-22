@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -27,18 +28,18 @@ namespace MonoDevelop.MSBuild.Language
 			this.importResolver = resolveImport;
 		}
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			try {
 				CollectResolvedElement (element, resolved);
 				base.VisitResolvedElement (element, resolved);
 			} catch (Exception ex) when (isToplevel && IsNotCancellation (ex)) {
-				Document.Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Error, $"Internal error: {ex.Message}", element.NameSpan));
+				Document.Diagnostics?.Add (CoreDiagnostics.InternalError, element.NameSpan, ex.Message);
 				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
 			}
 		}
 
-		void CollectResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		void CollectResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			switch (resolved.SyntaxKind) {
 			case MSBuildSyntaxKind.Import:
@@ -74,7 +75,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.IsAbstract) {
 				switch (resolvedElement.SyntaxKind) {
@@ -125,12 +126,12 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				if (!wasResolved && isToplevel) {
 					DiagnosticSeverity type = element.Attributes.Get ("Condition", true) == null ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-					Document.Errors.Add (new XmlDiagnosticInfo (type, "Could not resolve import", loc));
+					Document.Diagnostics.Add (CoreDiagnostics.UnresolvedImport, loc, import);
 				}
 			}
 		}
 
-		protected override void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)
+		protected override void VisitElementValue (XElement element, MSBuildElementSyntax resolved, string value, int offset)
 		{
 			var kind = resolved.ValueKind;
 
@@ -163,7 +164,7 @@ namespace MonoDevelop.MSBuild.Language
 			ExtractReferences (kind, value, offset);
 		}
 
-		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
+		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, string value, int offset)
 		{
 			var kind = resolvedAttribute.ValueKind;
 

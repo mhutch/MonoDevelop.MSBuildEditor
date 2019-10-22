@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public void Run (
-			XElement element, MSBuildLanguageElement resolvedElement,
+			XElement element, MSBuildElementSyntax resolvedElement,
 			ITextSource textSource, MSBuildDocument document,
 			int offset = 0, int length = 0,
 			CancellationToken token = default)
@@ -59,14 +59,14 @@ namespace MonoDevelop.MSBuild.Language
 
 		TextSpan range;
 
-		void ResolveAndVisit (XElement element, MSBuildLanguageElement parent)
+		void ResolveAndVisit (XElement element, MSBuildElementSyntax parent)
 		{
 			CheckCancellation ();
 
 			if (!element.Name.IsValid) {
 				return;
 			}
-			var resolved = MSBuildLanguageElement.Get (element.Name.Name, parent);
+			var resolved = MSBuildElementSyntax.Get (element.Name.Name, parent);
 			if (resolved != null) {
 				VisitResolvedElement (element, resolved);
 			} else {
@@ -74,7 +74,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		protected virtual void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected virtual void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			ResolveAttributesAndValue (element, resolved);
 
@@ -91,7 +91,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void ResolveAttributesAndValue (XElement element, MSBuildLanguageElement resolved)
+		void ResolveAttributesAndValue (XElement element, MSBuildElementSyntax resolved)
 		{
 			foreach (var att in element.Attributes) {
 				if (att.Span.End < range.Start) {
@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected virtual void VisitResolvedAttribute (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (attribute.Value != null) {
 				VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute, attribute.Value, attribute.ValueOffset);
@@ -131,7 +131,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 		}
 
-		void VisitElementValue (XElement element, MSBuildLanguageElement resolved)
+		void VisitElementValue (XElement element, MSBuildElementSyntax resolved)
 		{
 			if (element.IsSelfClosing || !element.IsEnded) {
 				return;
@@ -149,11 +149,11 @@ namespace MonoDevelop.MSBuild.Language
 			VisitElementValue (element, resolved, value, begin);
 		}
 
-		protected virtual void VisitElementValue (XElement element, MSBuildLanguageElement resolved, string value, int offset)
+		protected virtual void VisitElementValue (XElement element, MSBuildElementSyntax resolved, string value, int offset)
 		{
 		}
 
-		protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, string value, int offset)
+		protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, string value, int offset)
 		{
 		}
 	}

@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					return null;
 				}
 
-				return new MSBuildParseResult (doc, doc.XDocument, doc.Errors, input.TextSnapshot);
+				return new MSBuildParseResult (doc, doc.Diagnostics, input.TextSnapshot);
 			}, token);
 		}
 

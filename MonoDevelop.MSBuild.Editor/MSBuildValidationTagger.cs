@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
-
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
@@ -69,20 +69,22 @@ namespace MonoDevelop.MSBuild.Editor
 					}
 
 					if (diagSpan.IntersectsWith (taggingSpan)) {
-						var errorType = GetErrorTypeName (diag.Severity);
-						yield return new TagSpan<ErrorTag> (diagSpan, new ErrorTag (errorType, diag.Message));
+						var errorType = GetErrorTypeName (diag.Descriptor.Severity);
+						yield return new TagSpan<ErrorTag> (diagSpan, new ErrorTag (errorType, diag.GetFormattedMessage ()));
 					}
 				}
 			}
 		}
 
-		static string GetErrorTypeName (DiagnosticSeverity severity)
+		static string GetErrorTypeName (MSBuildDiagnosticSeverity severity)
 		{
 			switch (severity) {
-			case DiagnosticSeverity.Error:
+			case MSBuildDiagnosticSeverity.Error:
 				return PredefinedErrorTypeNames.SyntaxError;
-			case DiagnosticSeverity.Warning:
+			case MSBuildDiagnosticSeverity.Warning:
 				return PredefinedErrorTypeNames.Warning;
+			case MSBuildDiagnosticSeverity.Suggestion:
+				return PredefinedErrorTypeNames.Suggestion;
 			}
 			throw new ArgumentException ($"Unknown DiagnosticSeverity value {severity}", nameof (severity));
 		}

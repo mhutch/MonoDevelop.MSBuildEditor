@@ -4,50 +4,66 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
 using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	/*
 	class MSBuildAnalysisContextImpl : MSBuildAnalysisContext
 	{
-		Dictionary<MSBuildKind, List<Action<ResolvedElementDiagnosticContext>>> elementActions = new Dictionary<MSBuildKind, List<Action<ResolvedElementDiagnosticContext>>> ();
-		Dictionary<string, List<Action<ItemDiagnosticContext>>> itemActions = new Dictionary<string, List<Action<ItemDiagnosticContext>>> ();
-		Dictionary<string, List<Action<PropertyDiagnosticContext>>> propertyActions = new Dictionary<string, List<Action<PropertyDiagnosticContext>>> ();
+		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)>> elementActions
+			= new Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)>> ();
 
-		public override void RegisterElementAction (Action<ResolvedElementDiagnosticContext> action, ImmutableArray<MSBuildKind> elementKinds)
+		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> attributeActions
+			= new Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> ();
+
+		public override void RegisterElementAction (Action<ElementDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds)
 		{
 			foreach (var kind in elementKinds) {
+				if (!kind.IsElementSyntax ()) {
+					throw new ArgumentException ($"{kind} is not element syntax");
+				}
 				if (!elementActions.TryGetValue (kind, out var list)) {
-					list = new List<Action<ResolvedElementDiagnosticContext>> ();
+					list = new List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)> ();
 					elementActions.Add (kind, list);
 				}
-				list.Add (action);
+				list.Add ((currentAnalyzer, action));
 			}
 		}
 
-		public override void RegisterItemAction (Action<ItemDiagnosticContext> action, ImmutableArray<string> itemNames)
+		public override void RegisterAttributeAction (Action<AttributeDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> attributeKinds)
 		{
-			foreach (var name in itemNames) {
-				if (!itemActions.TryGetValue (name, out var list)) {
-					list = new List<Action<ItemDiagnosticContext>> ();
-					itemActions.Add (name, list);
+			foreach (var kind in attributeKinds) {
+				if (!kind.IsAttributeSyntax ()) {
+					throw new ArgumentException ($"{kind} is not attribute syntax");
 				}
-				list.Add (action);
+				if (!attributeActions.TryGetValue (kind, out var list)) {
+					list = new List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)> ();
+					attributeActions.Add (kind, list);
+				}
+				list.Add ((currentAnalyzer, action));
 			}
 		}
 
-		public override void RegisterPropertyAction (Action<PropertyDiagnosticContext> action, ImmutableArray<string> propertyNames)
+		public bool GetElementActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)> actions) => elementActions.TryGetValue (kind, out actions);
+		public bool GetAttributeActions (MSBuildSyntaxKind kind, out List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)> actions) => attributeActions.TryGetValue (kind, out actions);
+
+		MSBuildAnalyzer currentAnalyzer;
+
+		public void RegisterAnalyzer (MSBuildAnalyzer analyzer)
 		{
-			foreach (var name in propertyNames) {
-				if (!propertyActions.TryGetValue (name, out var list)) {
-					list = new List<Action<PropertyDiagnosticContext>> ();
-					propertyActions.Add (name, list);
-				}
-				list.Add (action);
+			currentAnalyzer = analyzer;
+			try {
+				analyzer.Initialize (this);
+			} catch (Exception ex) {
+				ReportAnalyzerError (analyzer, ex);
 			}
+			currentAnalyzer = null;
+		}
+
+		public void ReportAnalyzerError (MSBuildAnalyzer analyzer, Exception ex)
+		{
+			LoggingService.LogError ($"Failure in analyzer {analyzer.GetType ().FullName}, disabling", ex);
+			analyzer.Disabled = true;
 		}
 	}
-	*/
 }

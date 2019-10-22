@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Microsoft.Build.Framework;
-
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -29,7 +27,7 @@ namespace MonoDevelop.MSBuild.Language
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
-		public List<XmlDiagnosticInfo> Errors { get; }
+		public List<MSBuildDiagnostic> Diagnostics { get; }
 		public bool IsToplevel { get; }
 
 		public HashSet<string> Configurations { get; } = new HashSet<string> ();
@@ -41,7 +39,7 @@ namespace MonoDevelop.MSBuild.Language
 			IsToplevel = isToplevel;
 
 			if (isToplevel) {
-				Errors = new List<XmlDiagnosticInfo> ();
+				Diagnostics = new List<MSBuildDiagnostic> ();
 			}
 		}
 
@@ -60,7 +58,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var sdks = ResolveSdks (context, project).ToList ();
 
-			var pel = MSBuildLanguageElement.Get ("Project");
+			var pel = MSBuildElementSyntax.Get ("Project");
 
 			GetPropertiesToTrack (context.PropertyCollector, project);
 
@@ -148,7 +146,7 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var sdk in SplitSdkValue (offset, sdksAtt.Value)) {
 				if (sdk.id == null) {
 					if (IsToplevel) {
-						Errors.Add (new XmlDiagnosticInfo (DiagnosticSeverity.Warning, "Empty value", sdk.span));
+						Diagnostics.Add (CoreDiagnostics.EmptySdkAttribute, sdk.span);
 					}
 				}
 				else {

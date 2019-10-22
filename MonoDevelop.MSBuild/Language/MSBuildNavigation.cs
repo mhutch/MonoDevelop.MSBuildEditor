@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 			{
 				switch (resolvedElement.SyntaxKind) {
 				case MSBuildSyntaxKind.Import:
@@ -154,7 +154,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				switch (kind.GetScalarType ()) {
 				case MSBuildValueKind.TargetName:

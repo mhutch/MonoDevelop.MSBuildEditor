@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public static bool IsInTarget (this MSBuildLanguageElement resolvedElement, Xml.Dom.XElement element)
+		public static bool IsInTarget (this MSBuildElementSyntax resolvedElement, Xml.Dom.XElement element)
 		{
 			switch (resolvedElement.SyntaxKind) {
 			case MSBuildSyntaxKind.Metadata:
@@ -92,10 +92,10 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IEnumerable<BaseInfo> GetElementCompletions (this IEnumerable<IMSBuildSchema> schemas,
-			MSBuildLanguageElement languageElement, string elementName)
+			MSBuildElementSyntax languageElement, string elementName)
 		{
 			if (languageElement == null) {
-				yield return MSBuildLanguageElement.Get ("Project");
+				yield return MSBuildElementSyntax.Get ("Project");
 				yield break;
 			}
 
@@ -436,7 +436,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return variable.ValueKind;
 			}
 
-			if (variable is MSBuildLanguageAttribute att) {
+			if (variable is MSBuildAttributeSyntax att) {
 				switch (att.Name) {
 				case "Include":
 				case "Exclude":

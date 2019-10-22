@@ -29,8 +29,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
-			MSBuildLanguageElement languageElement = null;
-			MSBuildLanguageAttribute languageAttribute = null;
+			MSBuildElementSyntax languageElement = null;
+			MSBuildAttributeSyntax languageAttribute = null;
 			XElement el = null;
 			XAttribute att = null;
 
@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuild.Language
 				//code completion is forgiving, all we care about best guess resolve for deepest child
 				if (node is XElement xel && xel.Name.Prefix == null) {
 					el = xel;
-					languageElement = MSBuildLanguageElement.Get (el.Name.Name, languageElement);
+					languageElement = MSBuildElementSyntax.Get (el.Name.Name, languageElement);
 					if (languageElement != null)
 						continue;
 				}
@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 
-			protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 			{
 				var start = element.NameOffset;
 				bool inName = element.IsNamed && IsIn (start, element.Name.Name.Length);
@@ -149,7 +149,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 			{
 				if (!attribute.Span.Contains (offset)) {
 					return;
@@ -187,7 +187,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitValueExpression (
 				XElement element, XAttribute attribute,
-				MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
@@ -351,8 +351,8 @@ namespace MonoDevelop.MSBuild.Language
 		public XElement XElement;
 		public XAttribute XAttribute;
 
-		public MSBuildLanguageElement LanguageElement;
-		public MSBuildLanguageAttribute LanguageAttribute;
+		public MSBuildElementSyntax LanguageElement;
+		public MSBuildAttributeSyntax LanguageAttribute;
 
 		public string AttributeName => XAttribute?.Name.Name;
 		public string ElementName => XElement?.Name.Name;

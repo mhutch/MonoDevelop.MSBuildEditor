@@ -5,24 +5,21 @@ using System.Collections.Generic;
 
 using Microsoft.VisualStudio.Text;
 
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor.Completion;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildParseResult : XmlParseResult
+	class MSBuildParseResult
 	{
-		public MSBuildParseResult (MSBuildRootDocument msbuildDocument, XDocument xDocument, List<XmlDiagnosticInfo> diagnostics, ITextSnapshot snapshot)
-			: base (xDocument, diagnostics, snapshot)
+		public MSBuildParseResult (MSBuildRootDocument msbuildDocument, List<MSBuildDiagnostic> diagnostics, ITextSnapshot snapshot)
 		{
 			MSBuildDocument = msbuildDocument;
 			Snapshot = snapshot;
 			Diagnostics = diagnostics;
 		}
 
-		public List<XmlDiagnosticInfo> Diagnostics { get; }
+		public List<MSBuildDiagnostic> Diagnostics { get; }
 
 		public MSBuildRootDocument MSBuildDocument { get; }
 

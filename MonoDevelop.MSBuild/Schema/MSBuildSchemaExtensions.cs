@@ -215,7 +215,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.GetAllTargetVariants (targetName).FirstOrDefault ();
 		}
 
-		public static ValueInfo GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildLanguageAttribute attribute, string elementName, string attributeName)
+		public static ValueInfo GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildAttributeSyntax attribute, string elementName, string attributeName)
 		{
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
@@ -231,11 +231,11 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.SpecializeAttribute (attribute, elementName);
 		}
 
-		public static MSBuildLanguageAttribute SpecializeAttribute (this IEnumerable<IMSBuildSchema> schemas, MSBuildLanguageAttribute attribute, string elementName)
+		public static MSBuildAttributeSyntax SpecializeAttribute (this IEnumerable<IMSBuildSchema> schemas, MSBuildAttributeSyntax attribute, string elementName)
 		{
 			if (attribute.ValueKind == MSBuildValueKind.MatchItem) {
 				var item = schemas.GetItem (elementName);
-				return new MSBuildLanguageAttribute (
+				return new MSBuildAttributeSyntax (
 					attribute.Element, attribute.Name, attribute.Description,
 					attribute.SyntaxKind,
 					item?.ValueKind ?? MSBuildValueKind.Unknown,
@@ -246,7 +246,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return attribute;
 		}
 
-		public static ValueInfo GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildLanguageElement element, string parentName, string elementName, bool omitEmpty = false)
+		public static ValueInfo GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string parentName, string elementName, bool omitEmpty = false)
 		{
 			if (element.IsAbstract) {
 				switch (element.SyntaxKind) {

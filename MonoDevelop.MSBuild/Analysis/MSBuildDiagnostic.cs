@@ -1,36 +1,33 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Immutable;
+using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	class MSBuildDiagnostic
+	public class MSBuildDiagnostic
 	{
 		public MSBuildDiagnosticDescriptor Descriptor { get; }
 		public ImmutableDictionary<string, object> Properties { get; }
-		public MSBuildDiagnosticSeverity Severity { get; }
-		public int Offset { get; }
-		public int Length { get; }
+		public TextSpan Span { get; }
+
 		readonly object [] messageArgs;
 
-		public MSBuildDiagnostic(MSBuildDiagnosticDescriptor descriptor, int offset, int length, MSBuildDiagnosticSeverity severity, ImmutableDictionary<string, object> properties, object [] messageArgs)
+		public MSBuildDiagnostic (MSBuildDiagnosticDescriptor descriptor, TextSpan span, ImmutableDictionary<string, object> properties = null, object[] messageArgs = null)
 		{
 			Descriptor = descriptor;
-			Offset = offset;
-			Length = length;
+			Span = span;
 			Properties = properties;
-			Severity = severity;
 			this.messageArgs = messageArgs;
 		}
 
-		public string GetMessage ()
+		public MSBuildDiagnostic (MSBuildDiagnosticDescriptor descriptor, TextSpan span, params object [] messageArgs)
+			: this (descriptor, span, null, messageArgs)
 		{
-			if (messageArgs != null && messageArgs.Length > 0) {
-				return string.Format (Descriptor.Message, messageArgs);
-			}
-			return Descriptor.Message;
 		}
+
+		public string GetFormattedMessage () => Descriptor.GetFormattedMessage (args);
 	}
 }

@@ -279,11 +279,11 @@ namespace MonoDevelop.MSBuild.Editor
 		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
 		{
 			switch (info) {
-			case MSBuildLanguageElement el:
+			case MSBuildElementSyntax el:
 				if (!el.IsAbstract)
 					return KnownImages.IntellisenseKeyword;
 				break;
-			case MSBuildLanguageAttribute att:
+			case MSBuildAttributeSyntax att:
 				if (!att.IsAbstract) {
 					return KnownImages.IntellisenseKeyword;
 				}

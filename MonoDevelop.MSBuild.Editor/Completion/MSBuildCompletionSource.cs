@@ -87,12 +87,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			// if completion is triggered in an existing element's name, the resolveresult
 			// will be for that element, so completion will be for the element's children
 			// rather than for the element itself.
-			MSBuildLanguageElement languageElement = null;
+			MSBuildElementSyntax languageElement = null;
 			string elName = null;
 			for (int i = 1; i < nodePath.Count; i++) {
 				if (nodePath[i] is XElement el) {
 					elName = el.Name.Name;
-					languageElement = MSBuildLanguageElement.Get (elName, languageElement);
+					languageElement = MSBuildElementSyntax.Get (elName, languageElement);
 					continue;
 				}
 				return CompletionContext.Empty;

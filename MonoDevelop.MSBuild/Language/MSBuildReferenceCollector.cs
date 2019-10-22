@@ -118,7 +118,7 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildItemReferenceCollector (string itemName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
 			: base (itemName, reportResult) { }
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Item || resolved.SyntaxKind == MSBuildSyntaxKind.ItemDefinition) && IsMatch (element.Name.Name)) {
 				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
@@ -126,7 +126,7 @@ namespace MonoDevelop.MSBuild.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.ValueKind == MSBuildValueKind.ItemName.Literal () && IsMatch (attribute.Value)) {
 				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
@@ -136,7 +136,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -162,7 +162,7 @@ namespace MonoDevelop.MSBuild.Language
 			: base (propertyName, reportResult) { }
 
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Property) && IsMatch (element.Name.Name)) {
 				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
@@ -170,7 +170,7 @@ namespace MonoDevelop.MSBuild.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.ValueKind == MSBuildValueKind.PropertyName.Literal () && IsMatch (attribute.Value)) {
 				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
@@ -180,7 +180,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -200,7 +200,7 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildTaskReferenceCollector (string taskName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
 			: base (taskName, reportResult) { }
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			switch (resolved.SyntaxKind) {
 			case MSBuildSyntaxKind.Task:
@@ -233,7 +233,7 @@ namespace MonoDevelop.MSBuild.Language
 			this.itemName = itemName;
 		}
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement.Name.Name)) {
 				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
@@ -241,7 +241,7 @@ namespace MonoDevelop.MSBuild.Language
 			base.VisitResolvedElement (element, resolved);
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute)
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.AbstractKind == MSBuildSyntaxKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
 				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
@@ -266,7 +266,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			//these are things like <Foo Include="@(Bar)" RemoveMetadata="SomeBarMetadata" />
@@ -323,7 +323,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
@@ -358,7 +358,7 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildTargetDefinitionCollector (string targetName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
 			: base (targetName, reportResult) { }
 
-		protected override void VisitResolvedElement (XElement element, MSBuildLanguageElement resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Target) {
 				var nameAtt = element.Attributes.Get ("Name", true);
@@ -382,7 +382,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -430,7 +430,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -462,7 +462,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -484,7 +484,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
@@ -506,7 +506,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
-			MSBuildLanguageElement resolvedElement, MSBuildLanguageAttribute resolvedAttribute,
+			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
