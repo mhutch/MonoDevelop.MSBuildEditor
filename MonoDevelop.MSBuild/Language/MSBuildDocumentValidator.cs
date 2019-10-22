@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 
@@ -397,7 +398,12 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (node is ListExpression list) {
 				if (!allowLists) {
-					AddListWarning (list.Nodes[0].End, list.End - list.Nodes[0].End);
+					Document.Diagnostics.Add (
+					CoreDiagnostics.UnexpectedList,
+					new TextSpan (list.Nodes[0].End, list.End - list.Nodes[0].End),
+					ImmutableDictionary<string, object>.Empty.Add ("Name", info.Name),
+					DescriptionFormatter.GetKindNoun (info),
+					info.Name);
 				}
 				if (!allowExpressions) {
 					var expr = list.Nodes.FirstOrDefault (n => !(n is ExpressionText));
@@ -434,13 +440,6 @@ namespace MonoDevelop.MSBuild.Language
 				new TextSpan (n.Offset, n.Length),
 				DescriptionFormatter.GetKindNoun (info),
 				info.Name);
-
-			void AddListWarning (int start, int length)
-				=> Document.Diagnostics.Add (
-					CoreDiagnostics.UnexpectedList,
-					new TextSpan (start, length),
-					DescriptionFormatter.GetKindNoun (info),
-					info.Name);
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
