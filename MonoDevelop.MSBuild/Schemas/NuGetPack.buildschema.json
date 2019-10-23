@@ -27,12 +27,26 @@
     "PackageIconUrl": {
       "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
       "type": "url",
+      "deprecationMessage": "Use PackageIcon instead"
+    },
+    "PackageIcon": {
+      "description": "A 64x64 PNG or JPG image to use as the icon for the NuGet package. Relative path within the package.",
+      "type": "file"
     },
     "PackageId": "The case-insensitive NuGet package identifier, which must be unique across nuget.org or whatever gallery the NuGet package will reside in. IDs may not contain spaces or characters that are not valid for a URL, and generally follow .NET namespace rules.",
     "Title": "A human-friendly title of the package, typically used in UI displays as on nuget.org and the Package Manager in Visual Studio. If not specified, the package ID is used instead.",
     "PackageLicenseUrl": {
       "description": "The URL for the NuGet package's license, often shown in UI displays as well as nuget.org",
       "type": "url",
+      "deprecationMessage": "Use PackageLicenseFile or PackageLicenseExpression instead"
+    },
+    "PackageLicenseFile": {
+      "description": "A text file that contains the package's license. Relative path within the package.",
+      "type": "file"
+    },
+    "PackageLicenseExpression": {
+      "description": "The package's license in SPDX 2.0 expression format",
+      "type": "@spdx"
     },
     "PackageProjectUrl": {
       "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
@@ -158,6 +172,17 @@
       "native": "Contents of the `native` folder",
       "none": "None of the assets",
       "all": "All of the assets"
+    },
+    "spdx": {
+      "$name": "spdx-expression",
+      "$allow-unknown-values": true,
+      "#": "Instead of the entire list, just include some common permissive OSI-approved licenses",
+      "MIT": "MIT License",
+      "Apache-1.1": "Apache License 1.1",
+      "Apache-2.0": "Apache License 2.0",
+      "BSD-2-Clause": "BSD 2-Clause \"Simplified\" License",
+      "BSD-2-Clause-Patent": "BSD-2-Clause Plus Patent License",
+      "BSD-3-Clause": "BSD 3-Clause \"New\" or \"Revised\" License"
     }
   },
   "targets": {
