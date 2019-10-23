@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using MonoDevelop.MSBuild.Language;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -37,7 +36,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return (value & MSBuildValueKind.CommaList) != 0 || value == MSBuildValueKind.Unknown;
 		}
 
-		public static bool IsCustomEnum (this MSBuildValueKind value) => value.GetScalarType() == MSBuildValueKind.CustomEnum;
+		public static bool IsCustomType (this MSBuildValueKind value) => value.GetScalarType() == MSBuildValueKind.CustomType;
 
 		public static MSBuildValueKind List (this MSBuildValueKind value)
 		{

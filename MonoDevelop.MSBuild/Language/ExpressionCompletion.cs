@@ -467,8 +467,8 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				IEnumerable<BaseInfo> cinfos;
-				if (info.Values != null && info.Values.Count > 0) {
-					cinfos = info.Values;
+				if (info.CustomType != null && info.CustomType.Values.Count > 0) {
+					cinfos = info.CustomType.Values;
 				} else {
 					var kind = info.InferValueKindIfUnknown ();
 					cinfos = MSBuildCompletionExtensions.GetValueCompletions (kind, doc);

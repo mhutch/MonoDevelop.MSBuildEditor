@@ -1,46 +1,40 @@
-﻿{
+{
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "items": {
   },
   "properties": {
     "DefineDebug": {
       "description": "Whether DEBUG is defined",
-      "kind": "bool"
+      "type": "bool"
     },
     "DefineTrace": {
       "description": "Whether TRACE is defined",
-      "kind": "bool"
+      "type": "bool"
     },
     "OptionCompare": {
       "description": "Compare setting",
-      "values": [
+      "type": [
         "Text",
         "Binary"
       ]
     },
     "OptionExplicit": {
       "description": "Option Explicit setting",
-      "values": [
-        "On",
-        "Off"
-      ]
+      "type": "@onoff"
     },
     "OptionStrict": {
       "description": "Option Strict setting",
-      "values": [
-        "On",
-        "Off"
-      ]
+      "type": "@onoff"
     },
     "OptionInfer": {
       "description": "Option Infer setting",
-      "values": [
-        "On",
-        "Off"
-      ]
+      "type": "@onoff"
     },
     "VBRuntime": "",
     "LangVersion": "",
     "MyType": ""
+  },
+  "customTypes": {
+    "onoff": [ "On", "Off" ]
   }
 }

@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		class SchemaLoadState
 		{
-			public Dictionary<string, List<ConstantInfo>> CustomEnumKinds;
+			public Dictionary<string, CustomTypeInfo> CustomTypes;
 			public IList<(string, DiagnosticSeverity)> Errors;
 			void AddError (string message, DiagnosticSeverity severity) => (Errors ?? (Errors = new List<(string, DiagnosticSeverity)> ())).Add ((message, severity));
 			public void AddError (string error) => AddError (error, DiagnosticSeverity.Error);
@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuild.Schema
 			JObject targets = null;
 			JArray intellisenseImports = null;
 			JArray metadataGroups = null;
-			JObject enumKinds = null;
+			JObject customTypes = null;
 
 			// we don't process the values in the switch, as we need a particular ordering
 			foreach (var kv in doc) {
@@ -85,8 +85,8 @@ namespace MonoDevelop.MSBuild.Schema
 				case "metadata":
 					metadataGroups = (JArray)kv.Value;
 					break;
-				case "enumKinds":
-					enumKinds = (JObject)kv.Value;
+				case "customTypes":
+					customTypes = (JObject)kv.Value;
 					break;
 				default:
 					state.AddWarning ($"Unknown property {kv.Key} in root");
@@ -97,10 +97,10 @@ namespace MonoDevelop.MSBuild.Schema
 			if (intellisenseImports != null) {
 				LoadIntelliSenseImports (intellisenseImports);
 			}
-			// enumKinds must come before properties, items and metadataGroups
-			// as they may use the declared enum kinds
-			if (enumKinds != null) {
-				state.CustomEnumKinds = LoadEnumKinds (enumKinds, state);
+			// customTypes must come before properties, items and metadataGroups
+			// as they may use the declared custom types
+			if (customTypes != null) {
+				state.CustomTypes = LoadCustomTypes (customTypes, state);
 			}
 			if (properties != null) {
 				LoadProperties (properties, state);
@@ -127,26 +127,28 @@ namespace MonoDevelop.MSBuild.Schema
 					Properties[name] = new PropertyInfo (name, (string)val.Value);
 					continue;
 				}
-				string description = null, valueSeparators = null, defaultValue = null, deprecationMessage = null;
+				string description = null, listSeparatorChars = null, defaultValue = null, deprecationMessage = null;
 				bool deprecated = false;
 				var kind = MSBuildValueKind.Unknown;
-				List<ConstantInfo> values = null;
+				CustomTypeInfo customType = null;
+				bool foundKind = false;
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
 					case "description":
 						description = (string)pkv.Value;
 						break;
-					case "kind":
-						kind = ParseValueKind ((string)((JValue)pkv.Value).Value, ref values, state);
-						break;
-					case "values":
-						values = LoadEnum (pkv.Value, state);
+					case "type":
+						if (pkv.Value is JValue typeVal) {
+							kind = ParseValueKind ((string)typeVal.Value, ref customType, state);
+						} else {
+							customType = LoadCustomType (pkv.Value);
+						}
 						break;
 					case "default":
 						defaultValue = (string)((JValue)pkv.Value).Value;
 						break;
-					case "valueSeparators":
-						valueSeparators = (string)((JValue)pkv.Value).Value;
+					case "listSeparators":
+						listSeparatorChars = (string)((JValue)pkv.Value).Value;
 						break;
 					case "deprecated":
 						deprecated = (bool)((JValue)pkv.Value).Value;
@@ -160,16 +162,16 @@ namespace MonoDevelop.MSBuild.Schema
 					}
 				}
 
-				kind = CheckKind (kind, valueSeparators, values);
+				kind = CheckKind (kind, listSeparatorChars, customType);
 
-				Properties[name] = new PropertyInfo (name, description, false, kind, values, defaultValue, deprecated, deprecationMessage);
+				Properties[name] = new PropertyInfo (name, description, false, kind, customType, defaultValue, deprecated, deprecationMessage);
 			}
 		}
 
-		MSBuildValueKind CheckKind (MSBuildValueKind kind, string valueSeparator, List<ConstantInfo> values)
+		MSBuildValueKind CheckKind (MSBuildValueKind kind, string valueSeparator, CustomTypeInfo customType)
 		{
-			if (kind == MSBuildValueKind.Unknown && values != null && values.Count > 0) {
-				kind = MSBuildValueKind.String;
+			if (kind == MSBuildValueKind.Unknown && customType != null && customType.Values.Count > 0) {
+				kind = MSBuildValueKind.CustomType;
 			}
 			if (valueSeparator != null) {
 				if (valueSeparator.IndexOf (',') > -1) {
@@ -196,10 +198,14 @@ namespace MonoDevelop.MSBuild.Schema
 					case "description":
 						description = (string)((JValue)ikv.Value).Value;
 						break;
-					case "kind":
-						kind = ParseValueKind ((string)((JValue)ikv.Value).Value, out _, state);
-						if (kind == MSBuildValueKind.CustomEnum) {
-							state.AddError ($"Item '{name}' has custom enum value, which is not permitted for items");
+					case "type":
+						if (ikv.Value is JValue typeVal) {
+							kind = ParseValueKind ((string)typeVal.Value, out _, state);
+						} else {
+							kind = MSBuildValueKind.CustomType;
+						}
+						if (kind.IsCustomType ()) {
+							state.AddError ($"Item '{name}' has custom type value, which is not permitted for items");
 						}
 						break;
 					case "includeDescription":
@@ -227,33 +233,32 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		MSBuildValueKind ParseValueKind (string valueKind, ref List<ConstantInfo> enumValues, SchemaLoadState state)
+		MSBuildValueKind ParseValueKind (string valueKind, ref CustomTypeInfo customType, SchemaLoadState state)
 		{
-			var kind = ParseValueKind (valueKind, out var enumName, state);
-			if (kind.IsCustomEnum () && enumValues == null) {
-				if (state.CustomEnumKinds == null || !state.CustomEnumKinds.TryGetValue (enumName, out enumValues)) {
-					state.AddError ($"Undefined custom enum '{enumName}'");
+			var kind = ParseValueKind (valueKind, out var customTypeName, state);
+			if (kind.IsCustomType () && customType == null) {
+				if (state.CustomTypes == null || !state.CustomTypes.TryGetValue (customTypeName, out customType)) {
+					state.AddError ($"Undefined custom type '{customTypeName}'");
 				}
 			}
 			return kind;
 		}
 
-		static MSBuildValueKind ParseValueKind (string valueKind, out string enumName, SchemaLoadState state)
+		static MSBuildValueKind ParseValueKind (string valueKind, out string customTypeName, SchemaLoadState state)
 		{
 			var split = valueKind.Split ('-');
 
-			if (split[0] == "enum") {
-				enumName = split[1];
-				return AddModifiers (MSBuildValueKind.CustomEnum, 2);
+			if (split[0][0] == '@') {
+				customTypeName = split[0].Substring (1);
+				return AddModifiers (MSBuildValueKind.CustomType);
 			}
 
-			enumName = null;
+			customTypeName = null;
 
 			if (!Enum.TryParse (split[0], true, out MSBuildValueKind result)) {
 				state.AddWarning ($"Unknown value kind '{valueKind}'");
 				return MSBuildValueKind.Unknown;
 			}
-
 
 			//explicitly define permitted values
 			switch (result) {
@@ -290,15 +295,15 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.Configuration:
 			case MSBuildValueKind.Platform:
 			case MSBuildValueKind.ProjectKindGuid:
-				return AddModifiers (result, 1);
+				return AddModifiers (result);
 			default:
 				state.AddWarning ($"Value '{result}' not permitted in schema");
 				return MSBuildValueKind.Unknown;
 			}
 
-			MSBuildValueKind AddModifiers (MSBuildValueKind kind, int modifiersIdx)
+			MSBuildValueKind AddModifiers (MSBuildValueKind kind)
 			{
-				for (int i = modifiersIdx; i < split.Length; i++) {
+				for (int i = 1; i < split.Length; i++) {
 					switch (split[i]) {
 					case "list":
 						kind = kind.List ();
@@ -323,24 +328,25 @@ namespace MonoDevelop.MSBuild.Schema
 				return new MetadataInfo (name, desc);
 			}
 
-			string description = null, valueSeparators = null, defaultValue = null, deprecationMessage = null;
+			string description = null, listSeparatorChars = null, defaultValue = null, deprecationMessage = null;
 			bool required = false;
 			MSBuildValueKind kind = MSBuildValueKind.Unknown;
-			List<ConstantInfo> values = null;
+			CustomTypeInfo customType = null;
 			bool isDeprecated = false;
 			foreach (var mkv in (JObject)value) {
 				switch (mkv.Key) {
 				case "description":
 					description = (string)((JValue)mkv.Value).Value;
 					break;
-				case "kind":
-					kind = ParseValueKind ((string)((JValue)mkv.Value).Value, ref values, state);
+				case "type":
+					if (mkv.Value is JValue typeVal) {
+						kind = ParseValueKind ((string)typeVal.Value, ref customType, state);
+					} else {
+						customType = LoadCustomType (mkv.Value);
+					}
 					break;
-				case "values":
-					values = GetValues ((JObject)mkv.Value);
-					break;
-				case "valueSeparators":
-					valueSeparators = (string)((JValue)mkv.Value).Value;
+				case "listSeparators":
+					listSeparatorChars = (string)((JValue)mkv.Value).Value;
 					break;
 				case "default":
 					defaultValue = (string)((JValue)mkv.Value).Value;
@@ -360,11 +366,11 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			kind = CheckKind (kind, valueSeparators, values);
+			kind = CheckKind (kind, listSeparatorChars, customType);
 
 			return new MetadataInfo (
 				name, description, false, required, kind, null,
-				values, defaultValue, isDeprecated, deprecationMessage
+				customType, defaultValue, isDeprecated, deprecationMessage
 			);
 		}
 
@@ -378,30 +384,66 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		static List<ConstantInfo> LoadEnum (JToken value, SchemaLoadState state)
+		static CustomTypeInfo LoadCustomType (JToken value)
 		{
 			if (value is JObject valuesObj) {
-				return GetValues (valuesObj);
+				return LoadCustomType (valuesObj);
 			}
-			return GetValues ((JArray)value);
+			return LoadCustomType ((JArray)value);
 		}
 
-		static List<ConstantInfo> GetValues (JObject value)
+		static CustomTypeInfo LoadCustomType (JObject obj)
 		{
 			var values = new List<ConstantInfo> ();
-			foreach (var ikv in value) {
-				values.Add (new ConstantInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
+			string name = null;
+			bool allowUnknownValues = false;
+			foreach (var ikv in obj) {
+				if (ikv.Key[0] == '#') {
+					continue;
+				}
+				else if (ikv.Key[0] == '$') {
+					switch (ikv.Key) {
+					case "$name":
+						name = (string)((JValue)ikv.Value).Value;
+						break;
+					case "$allow-unknown-values":
+						allowUnknownValues = (bool)((JValue)ikv.Value).Value;
+						break;
+					}
+				} else {
+					values.Add (new ConstantInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
+				}
 			}
-			return values;
+			if (name != null) {
+				ValidateCustomTypeName (name);
+			}
+			return new CustomTypeInfo (values, name, allowUnknownValues);
 		}
 
-		static List<ConstantInfo> GetValues (JArray arr)
+		static void ValidateCustomTypeName (string name)
+		{
+			if (name.Length == 0) {
+				throw new ArgumentException ("Name is empty");
+			}
+			for (int i = 0; i < name.Length; i++) {
+				var c = name[i];
+				if (char.IsLetterOrDigit (c)) {
+					continue;
+				}
+				if (c == '-' && i != 0 && i != name.Length - 1 && name[i-1] != '-') {
+					continue;
+				}
+				throw new FormatException ("Custom type names must one or more alphanumeric components separated by dashes");
+			}
+		}
+
+		static CustomTypeInfo LoadCustomType (JArray arr)
 		{
 			var values = new List<ConstantInfo> ();
 			foreach (var val in arr) {
 				values.Add (new ConstantInfo ((string)((JValue)val).Value, null));
 			}
-			return values;
+			return new CustomTypeInfo (values);
 		}
 
 		public bool IsPrivate (string name)
@@ -429,11 +471,11 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		Dictionary<string, List<ConstantInfo>> LoadEnumKinds (JObject value, SchemaLoadState state)
+		Dictionary<string, CustomTypeInfo> LoadCustomTypes (JObject value, SchemaLoadState state)
 		{
-			var dict = new Dictionary<string, List<ConstantInfo>> ();
+			var dict = new Dictionary<string, CustomTypeInfo> ();
 			foreach (var kv in value) {
-				dict.Add (kv.Key, LoadEnum (kv.Value, state));
+				dict.Add (kv.Key, LoadCustomType (kv.Value));
 			}
 			return dict;
 		}
@@ -484,7 +526,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 				foreach (var m in metadata) {
 					//the original metadata object gets parented on the first item, subsequent items get a copy
-					var toAdd = isFirstItem ? m : new MetadataInfo (m.Name, m.Description, m.Reserved, m.Required, m.ValueKind, item, m.Values, m.DefaultValue);
+					var toAdd = isFirstItem ? m : new MetadataInfo (m.Name, m.Description, m.Reserved, m.Required, m.ValueKind, item, m.CustomType, m.DefaultValue);
 					item.Metadata.Add (toAdd.Name, toAdd);
 					toAdd.Item = item;
 				}

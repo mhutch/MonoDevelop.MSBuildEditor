@@ -36,10 +36,18 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		protected ValueInfo (
 			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			List<ConstantInfo> values = null, string defaultValue = null, bool isDeprecated = false, string deprecationMessage = null)
+			CustomTypeInfo customType = null, string defaultValue = null, bool isDeprecated = false, string deprecationMessage = null)
 			: base (name, description)
 		{
-			Values = values;
+			if (valueKind.IsCustomType () && customType == null) {
+				throw new ArgumentException ($"When {nameof(valueKind)} is {nameof(MSBuildValueKind.CustomType)}, {nameof (customType)} cannot be null");
+			}
+
+			if (customType != null && !valueKind.IsCustomType ()) {
+				throw new ArgumentException ($"When {nameof(customType)} is provided, {nameof(valueKind)} must be {nameof(MSBuildValueKind.CustomType)}");
+			}
+
+			CustomType = customType;
 			DefaultValue = defaultValue;
 			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
 			DeprecationMessage = deprecationMessage;
@@ -47,10 +55,23 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public MSBuildValueKind ValueKind { get; }
-		public List<ConstantInfo> Values { get; }
+		public CustomTypeInfo CustomType { get; }
 		public string DefaultValue { get; }
-
 		public bool IsDeprecated { get; }
 		public string DeprecationMessage { get; }
+	}
+
+	public class CustomTypeInfo
+	{
+		public CustomTypeInfo (List<ConstantInfo> values, string name = null, bool allowUnknownValues = false)
+        {
+			Values = values ?? throw new ArgumentNullException (nameof (values));
+			Name = name;
+			AllowUnknownValues = allowUnknownValues;
+		}
+
+		public string Name { get; }
+		public bool AllowUnknownValues { get; }
+		public List<ConstantInfo> Values { get; }
 	}
 }

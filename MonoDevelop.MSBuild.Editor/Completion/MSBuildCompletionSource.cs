@@ -443,8 +443,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			//TODO: better metadata support
 			IEnumerable<BaseInfo> cinfos;
-			if (info.Values != null && info.Values.Count > 0 && isValue) {
-				cinfos = info.Values;
+			if (info.CustomType != null && info.CustomType.Values.Count > 0 && isValue) {
+				cinfos = info.CustomType.Values;
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);

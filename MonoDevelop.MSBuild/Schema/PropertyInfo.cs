@@ -2,8 +2,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-
 namespace MonoDevelop.MSBuild.Schema
 {
 	class PropertyInfo : ValueInfo
@@ -13,9 +11,9 @@ namespace MonoDevelop.MSBuild.Schema
 		public PropertyInfo (
 			string name, DisplayText description, bool reserved = false,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			List<ConstantInfo> values = null, string defaultValue = null,
+			CustomTypeInfo customType = null, string defaultValue = null,
 			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, values, defaultValue, isDeprecated, deprecationMessage)
+			: base (name, description, valueKind, customType, defaultValue, isDeprecated, deprecationMessage)
 		{
 			Reserved = reserved;
 		}

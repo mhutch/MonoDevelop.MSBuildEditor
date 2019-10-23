@@ -14,9 +14,9 @@ namespace MonoDevelop.MSBuild.Schema
 		public MetadataInfo (
 			string name, DisplayText description,
 			bool reserved = false, bool required = false, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			ItemInfo item = null, List<ConstantInfo> values = null,
+			ItemInfo item = null, CustomTypeInfo customType = null,
 			string defaultValue = null, bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, values, defaultValue, isDeprecated, deprecationMessage)
+			: base (name, description, valueKind, customType, defaultValue, isDeprecated, deprecationMessage)
 		{
 			Item = item;
 			Required = required;

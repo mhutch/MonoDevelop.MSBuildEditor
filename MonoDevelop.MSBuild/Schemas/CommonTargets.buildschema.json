@@ -4,30 +4,30 @@
     "Reference": {
       "description": "Reference to an assembly",
       "includeDescription": "assembly names or filenames",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "HintPath": {
           "description": "Relative or absolute path to the assembly",
-          "kind": "file-list"
+          "type": "file-list"
         },
         "Name": "Friendly display name",
         "FusionName": "Fusion name of the assembly",
         "SpecificVersion": {
           "description": "Whether only the version in the fusion name should be referenced",
-          "kind": "bool"
+          "type": "bool"
         },
         "Aliases": "Aliases for the reference",
         "Private": {
           "description": "Whether the reference should be copied to the output folder",
-          "kind": "bool"
+          "type": "bool"
         },
         "EmbedInteropTypes": {
           "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only",
-          "kind": "bool"
+          "type": "bool"
         },
         "RequiredTargetFramework": {
           "description": "The minimum required target framework version in order to use this assembly as a reference",
-          "kind": "targetframeworkversion"
+          "type": "targetframeworkversion"
         }
       }
     },
@@ -39,40 +39,40 @@
       }
     },
     "COMReference": {
-      "kind": "file-list",
+      "type": "file-list",
       "description": "Reference to a COM component",
       "includeDescription": "COM component names",
       "metadata": {
         "Name": "Friendly display name (optional)",
         "Guid": {
           "description": "GUID in the form {00000000-0000-0000-0000-000000000000}",
-          "kind": "guid"
+          "type": "guid"
         },
         "VersionMajor": {
           "description": "Major part of the version number",
-          "kind": "int"
+          "type": "int"
         },
         "VersionMinor": {
           "description": "Minor part of the version number",
-          "kind": "int"
+          "type": "int"
         },
         "Lcid": {
           "description": "Locale ID",
-          "kind": "lcid"
+          "type": "lcid"
         },
         "WrapperTool": "Wrapper tool, such as tlbimp",
         "Isolated": {
           "description": "Whether it is isolated",
-          "kind": "bool"
+          "type": "bool"
         },
         "EmbedInteropTypes": {
           "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only (optional)",
-          "kind": "bool"
+          "type": "bool"
         }
       }
     },
     "COMFileReference": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "WrapperTool": ""
       }
@@ -80,22 +80,22 @@
     "PackageReference": {
       "description": "Reference to a NuGet package",
       "includeDescription": "NuGet package IDs",
-      "kind": "nugetid",
+      "type": "nugetid",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",
-          "kind": "nugetversion"
+          "type": "nugetversion"
         }
       }
     },
     "DotNetCliToolReference": {
       "description": "The CLI tool that the user wants restored in the context of the project",
       "includeDescription": "tool NuGet package IDs",
-      "kind": "nugetid",
+      "type": "nugetid",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",
-          "kind": "nugetversion"
+          "type": "nugetversion"
         }
       }
     },
@@ -104,12 +104,12 @@
       "metadata": {
         "Configuration": {
           "description": "The configuration part of the project configuration",
-          "kind": "configuration",
+          "type": "configuration",
           "required": true
         },
         "Platform": {
           "description": "The platform part of the project configuration",
-          "kind": "platform",
+          "type": "platform",
           "required": true
         }
       }
@@ -121,7 +121,7 @@
     "NativeReference": {
       "description": "Reference to a native manifest file, or to a file that contains a native manifest",
       "includeDescription": "reference names",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "Name": "Base name of manifest file",
         "HintPath": "Relative path to manifest file"
@@ -130,45 +130,45 @@
     "ProjectReference": {
       "description": "Reference to another project",
       "includeDescription": "project file paths",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "Name": "Friendly display name",
         "Project": {
           "description": "Project GUID, in the form {00000000-0000-0000-0000-000000000000}",
-          "kind": "guid"
+          "type": "guid"
         },
         "ReferenceOutputAssembly": {
           "description": "Whether the outputs of the project referenced should be passed to the compiler",
-          "kind": "bool",
+          "type": "bool",
           "default": "true"
         },
         "SpecificVersion": {
           "description": "Whether the exact version of the assembly should be used",
-          "kind": "bool",
+          "type": "bool",
           "default": "true"
         },
         "Targets": {
           "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of `$(ProjectReferenceBuildTargets)` whose default is blank, indicating the default targets.",
-          "kind": "targetname-list"
+          "type": "targetname-list"
         },
         "OutputItemType": {
           "description": "Item type to emit target outputs into. Default is blank. If the Reference metadata is set to `true` (default) then target outputs will become references for the compiler.",
-          "kind": "itemname"
+          "type": "itemname"
         },
         "Package": "",
         "EmbedInteropTypes": {
-          "kind": "bool"
+          "type": "bool"
         }
       }
     },
     "Compile": {
       "description": "Source files to be passed to the compiler",
       "includeDescription": "source files",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "AutoGen": {
           "description": "Whether file was generated from another file",
-          "kind": "bool"
+          "type": "bool"
         },
         "DesignTime": "",
         "DesignTimeSharedInput": "",
@@ -178,7 +178,7 @@
     "EmbeddedResource": {
       "description": "Resources to be embedded in the generated assembly",
       "includeDescription": "resource files",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "LogicalName": "Overrides the default resource ID"
       }
@@ -186,20 +186,20 @@
     "Content": {
       "description": "Files that are not compiled, but may be embedded or published",
       "includeDescription": "content files",
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "CopyToPublishDirectory": {
           "description": "Whether to copy the file to the publish directory",
-          "values": {
+          "type": {
             "Never": "Do not copy the file",
             "Always": "Always copy the file",
-            "PreservNewest": "Copy the file if it is newer than the existing copy"
+            "PreserveNewest": "Copy the file if it is newer than the existing copy"
           },
           "default": "Never"
         },
         "IsAssembly": "",
         "PublishState": {
-          "kind": "enum-publishstate",
+          "type": "@publishstate",
           "default": "Default"
         }
       }
@@ -207,43 +207,43 @@
     "Page": {
       "description": "XAML files that are converted to binary and compiled into the assembly",
       "includeDescription": "XAML files",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "Resource": {
       "description": "File that is compiled into the assembly",
       "includeDescription": "resource files",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "ApplicationDefinition": {
       "description": "XAML file that contains the application definition, only one can be defined",
       "includeDescription": "application definition",
-      "kind": "file"
+      "type": "file"
     },
     "None": {
       "description": "Files that should have no role in the build process",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "BaseApplicationManifest": {
       "description": "The base application manifest for the build. Contains ClickOnce security information.",
-      "kind": "file"
+      "type": "file"
     },
     "Folder": {
       "description": "Folder on disk to display in the IDE",
       "includeDescription": "folders",
-      "kind": "folder-list"
+      "type": "folder-list"
     },
     "Import": {
       "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "WebReferences": {
       "description": "Name of Web References folder to display in user interface",
-      "kind": "string"
+      "type": "string"
     },
     "WebReferenceUrl": {
       "description": "Represents a reference to a web service",
       "includeDescription": "web service urls",
-      "kind": "url",
+      "type": "url",
       "metadata": {
         "UrlBehavior": "",
         "RelPath": "",
@@ -255,7 +255,7 @@
       }
     },
     "FileAssociation": {
-      "kind": "string",
+      "type": "string",
       "metadata": {
         "DefaultIcon": "",
         "Description": "",
@@ -263,24 +263,24 @@
       }
     },
     "BootstrapperFile": {
-      "kind": "file",
+      "type": "file",
       "metadata": {
         "ProductName": "",
         "Install": ""
       }
     },
     "PublishFile": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "PublishState": {
-          "kind": "enum-publishstate",
+          "type": "@publishstate",
           "default": "Default"
         },
         "IncludeHash": {
-          "kind": "bool"
+          "type": "bool"
         },
         "IsAssembly": {
-          "kind": "bool"
+          "type": "bool"
         }
       }
     },
@@ -290,11 +290,11 @@
     "Analyzer": {
       "description": "An assembly containing diagnostic analyzers",
       "includeDescription": "relative or absolute assembly paths",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "FileWrites": {
       "description": "Files to track for incremental clean",
-      "kind": "file-list"
+      "type": "file-list"
     }
   },
   "properties": {
@@ -303,65 +303,65 @@
     "AdditionalFileItemNames": "",
     "AllowUnsafeBlocks": {
       "description": "Whether to allow unsafe code",
-      "kind": "bool"
+      "type": "bool"
     },
     "AppConfigForCompiler": "",
     "ApplicationIcon": "",
     "ApplicationRevision": "",
     "ApplicationVersion": {
-      "kind": "version"
+      "type": "version"
     },
     "AppDesignerFolder": "Name of folder for Application Designer",
     "AspNetConfiguration": "",
     "AssemblyName": "Name of output assembly",
     "AssemblyOriginatorKeyFile": {
       "description": "The file that contains the key used to sign the assembly",
-      "kind": "file"
+      "type": "file"
     },
     "AutoGenerateBindingRedirects": "Indicates whether BindingRedirect elements should be automatically generated for referenced assemblies.",
     "AutorunEnabled": {
-      "kind": "bool"
+      "type": "bool"
     },
     "BaseAddress": "",
     "BootstrapperComponentsLocation": {
-      "values": [ "HomeSite", "Relative", "Absolute" ]
+      "type": [ "HomeSite", "Relative", "Absolute" ]
     },
     "BootstrapperComponentsUrl": "",
     "BootstrapperEnabled": {
-      "kind": "bool"
+      "type": "bool"
     },
     "CheckForOverflowUnderflow": {
       "description": "Whether the compiler should check for integer overflow and underflow",
       "default": "false",
-      "kind": "bool"
+      "type": "bool"
     },
     "CodePage": "The codepage the compiler should use when reading source files",
     "ConsolePause": {
       "description": "Whether the IDE should keep the console open after executing a console application",
-      "kind": "bool"
+      "type": "bool"
     },
     "Configuration": {
       "description": "The configuration that is being used to build the project, for example \"Debug\" or \"Release\"",
-      "kind": "configuration"
+      "type": "configuration"
     },
     "ConfigurationName": "",
     "ConfigurationOverrideFile": "",
     "CreateDesktopShortcut": {
-      "kind": "bool"
+      "type": "bool"
     },
     "CreateWebPageOnPublish": {
-      "kind": "bool"
+      "type": "bool"
     },
     "CurrentSolutionConfigurationContents": "",
     "DebugSecurityZoneURL": "",
     "DebugSymbols": {
       "description": "Whether to emit debug symbols",
-      "kind": "bool",
+      "type": "bool",
       "default": "false"
     },
     "DebugType": {
       "description": "What kind of debug information to emit",
-      "values": {
+      "type": {
         "none": "No debug information",
         "pdbonly": "Emit Windows-only PDB debug symbols",
         "portable": "Emit portable PDB debug symbols",
@@ -373,24 +373,24 @@
     "DefaultTargetSchema": "",
     "DefineConstants": {
       "description": "Conditional compiler defines",
-      "kind": "string-list"
+      "type": "string-list"
     },
     "DelaySign": {
       "description": "Reserve space for a signature so the assembly can be signed later",
-      "kind": "bool"
+      "type": "bool"
     },
     "DisallowUrlActivation": {
-      "kind": "bool"
+      "type": "bool"
     },
     "ConfigurationType": "",
     "DeployDirSuffix": "",
     "DisableFastUpToDateCheck": {
       "description": "Whether Visual Studio should do its own faster up-to-date check before Building, rather than invoke MSBuild to do a possibly more accurate one. You would set this to false if you have a heavily customized build process and builds in Visual Studio are not occurring when they should.",
-      "kind": "bool"
+      "type": "bool"
     },
     "DocumentationFile": {
       "description": "Filename for the xml documentation file",
-      "kind": "string"
+      "type": "string"
     },
     "EnableASPDebugging": "",
     "EnableASPXDebugging": "",
@@ -400,7 +400,7 @@
     "ErrorLog": "",
     "ErrorReport": {
       "description": "Reporting behavior for internal compiler errors",
-      "values": {
+      "type": {
         "prompt": "Open a dialog asking whether you want to report the internal compiler error",
         "queue": "Queue the internal compiler error reports and prompt you later",
         "send": "Automatically report the internal compiler error to Microsoft",
@@ -411,13 +411,13 @@
     "EmbedManifest": "",
     "ErrorReportUrl": "",
     "ExcludeDeploymentUrl": {
-      "kind": "bool"
+      "type": "bool"
     },
     "ExcludedPermissions": "",
     "FallbackCulture": "",
     "FileAlignment": {
       "description": "Override the boundary on which the compiler aligns sections of the output assembly",
-      "values": [ "512", "1024", "2048", "4096", "8192" ]
+      "type": [ "512", "1024", "2048", "4096", "8192" ]
     },
     "FileUpgradeFlags": "",
     "FormFactorID": "",
@@ -426,38 +426,38 @@
     },
     "GenerateManifests": "",
     "GenerateLibraryLayout": {
-      "kind": "bool"
+      "type": "bool"
     },
     "GeneratePackageOnBuild": {
       "description": "Value indicating whether a NuGet package will be generated when the project is built",
-      "kind": "bool"
+      "type": "bool"
     },
     "DisableXbfGeneration": {
-      "kind": "bool"
+      "type": "bool"
     },
     "SuppressXamlWarnings": "",
     "XamlRootsLog": "",
     "XamlSavedStateFilePath": "",
     "GenerateSerializationAssemblies": "",
     "HostInBrowser": {
-      "kind": "bool"
+      "type": "bool"
     },
     "IgnoreImportLibrary": {
-      "kind": "bool"
+      "type": "bool"
     },
     "Install": "",
     "InstallFrom": {
-      "values": [ "Web", "Unc", "Disk" ]
+      "type": [ "Web", "Unc", "Disk" ]
     },
     "InstallUrl": "",
     "IsCodeSharingProject": {
-      "kind": "bool"
+      "type": "bool"
     },
     "IsWebBootstrapper": "",
     "Keyword": "",
     "Prefer32Bit": {
       "description": "Mark the executable as preferring to run on a 32-bit runtime when on a 64-bit OS",
-      "kind": "bool",
+      "type": "bool",
       "default": "false"
     },
     "HighEntropyVA": {
@@ -467,35 +467,35 @@
     "ManifestKeyFile": "",
     "MapFileExtensions": "",
     "MinimumRequiredVersion": {
-      "kind": "version"
+      "type": "version"
     },
     "NoConfig": "",
     "NoStdLib": {
       "description": "Whether to disable automatic referencing of standard libraries such as mscorlib",
-      "kind": "bool",
+      "type": "bool",
       "default": "false"
     },
     "NoWarn": "Comma separated list of disabled warnings",
     "OldToolsVersion": "",
     "OutDir": {
       "description": "The output directory",
-      "kind": "folder"
+      "type": "folder"
     },
     "OpenBrowserOnPublish": {
-      "kind": "bool"
+      "type": "bool"
     },
     "Optimize": {
       "description": "Whether the compiler should optimize the output",
-      "kind": "bool"
+      "type": "bool"
     },
     "OSVersion": "",
     "OutputPath": {
       "description": "Path to output folder, with trailing slash",
-      "kind": "folderwithslash"
+      "type": "folderwithslash"
     },
     "OutputType": {
       "description": "The type of output from the compiler, such as an executable or library",
-      "values": {
+      "type": {
         "Exe": "A console executable",
         "Library": "A library",
         "Module": "A .NET module",
@@ -505,14 +505,14 @@
     "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names",
     "Platform": {
       "description": "The platform that is being used to build the project, for example \"AnyCPU\" or \"x86\"",
-      "kind": "platform"
+      "type": "platform"
     },
     "PlatformName": "",
     "PlatformFamilyName": "",
     "PlatformID": "",
     "PlatformTarget": {
       "description": "The platform that the executable targets",
-      "values": {
+      "type": {
         "anycpu": "Runs on a 64-bit runtime if available, else 32-bit",
         "anycpu32bitpreferred": "Runs on a 32-bit runtime if available, else 64-bit",
         "ARM": "Only runs on ARM processors",
@@ -527,25 +527,25 @@
     "PreBuildEvent": "Command line to be run at the start of build",
     "PreserveCompilationContext": {
       "description": "Value indicating whether reference assemblies can be used in dynamic compilation",
-      "kind": "bool"
+      "type": "bool"
     },
     "ProductName": "",
     "ProductVersion": "",
     "ProjectGuid": {
       "description": "A GUID that uniquely identifies the project within the solution",
-      "kind": "guid"
+      "type": "guid"
     },
     "ProjectType": "",
     "ProjectTypeGuids": {
       "description": "A list of GUIDs that activate design-time capabilities in an IDE",
-      "kind": "projectkindguid-list-const"
+      "type": "projectkindguid-list-const"
     },
     "PublisherName": "",
     "PublishUrl": "",
     "RecursePath": "",
     "ReferencePath": {
       "description": "Semi-colon separated list of folders to search during reference resolution",
-      "kind": "folder-list"
+      "type": "folder-list"
     },
     "RegisterForComInterop": "",
     "RemoteDebugEnabled": "",
@@ -555,31 +555,31 @@
     "RepositoryType": "The type of the repository where the project is stored (e.g. git)",
     "RepositoryUrl": {
       "description": "The URL for the repository where the project is stored",
-      "kind": "url"
+      "type": "url"
     },
     "ResponseFile": "",
     "RootNamespace": "The root namespace to use for new files",
     "RuntimeIdentifier": {
       "description": "Runtime identifier supported by the project (e.g. win10-x64)",
-      "kind": "runtimeid"
+      "type": "runtimeid"
     },
     "RuntimeIdentifiers": {
       "description": "Semi-colon separated list of runtime identifiers supported by the project (e.g. win10-x64;osx.10.11-x64;ubuntu.16.04-x64)",
-      "kind": "runtimeid-list"
+      "type": "runtimeid-list"
     },
     "SccProjectName": "",
     "SccLocalPath": "",
     "SccProvider": "",
     "RunCodeAnalysis": {
       "description": "Indicates whether to run Code Analysis during the build",
-      "kind": "bool"
+      "type": "bool"
     },
     "RunPostBuildEvent": "",
     "SchemaVersion": "",
     "SecureScoping": "",
     "SignAssembly": {
       "description": "Whether to sign the assembly",
-      "kind": "bool"
+      "type": "bool"
     },
     "SignManifests": "",
     "StartAction": "",
@@ -595,82 +595,82 @@
     "TargetCulture": "",
     "TargetFramework": {
       "description": "Short moniker of the framework that this project targets, e.g. `netstandard2.0`",
-      "kind": "targetframework"
+      "type": "targetframework"
     },
     "TargetFrameworks": {
       "description": "List of short monikers for the frameworks that this project targets, for example `netstandard2.0;net461)`",
-      "kind": "targetframework-list"
+      "type": "targetframework-list"
     },
     "TargetFrameworkIdentifier": {
       "description": "The identity of framework that this project targets, for example `.NETFramework`",
-      "kind": "targetframeworkidentifier"
+      "type": "targetframeworkidentifier"
     },
     "TargetFrameworkVersion": {
       "description": "The version of the framework that this project targets, for example `v4.0`",
-      "kind": "targetframeworkversion"
+      "type": "targetframeworkversion"
     },
     "TargetFrameworkProfile": {
       "description": "The profile of the framework that this project targets, for example `Profile259`",
-      "kind": "targetframeworkprofile"
+      "type": "targetframeworkprofile"
     },
     "TargetFrameworkMoniker": {
       "description": "The full moniker for of the framework that this project targets, combining the identifier, version and profile",
-      "kind": "targetframeworkmoniker"
+      "type": "targetframeworkmoniker"
     },
     "TargetPlatformIdentifier": "",
     "TargetPlatformVersion": "",
     "TargetZone": "",
     "TreatWarningsAsErrors": {
       "description": "Whether to treat warnings as errors",
-      "kind": "bool"
+      "type": "bool"
     },
     "TrustUrlParameters": "",
     "TypeComplianceDiagnostics": "",
     "UICulture": {
-      "kind": "lcid"
+      "type": "lcid"
     },
     "UpgradeBackupLocation": "",
     "UpdateEnabled": {
-      "kind": "bool"
+      "type": "bool"
     },
     "UpdateInterval": {
-      "kind": "int"
+      "type": "int"
     },
     "UpdateIntervalUnits": {
-      "values": [
+      "type": [
         "Hours",
         "Days",
         "Weeks"
       ]
     },
     "UpdateMode": {
-      "values": [
+      "type": [
         "Foreground",
         "Background"
       ]
     },
     "UpdatePeriodically": {
-      "kind": "bool"
+      "type": "bool"
     },
     "UpdateRequired": {
-      "kind": "bool"
+      "type": "bool"
     },
     "UpdateUrl": {
-      "kind": "url"
+      "type": "url"
     },
     "UseAppConfigForCompiler": {
-      "kind": "bool"
+      "type": "bool"
     },
     "UseApplicationTrust": "",
     "UseVSHostingProcess": "",
     "UTF8Output": {
       "description": "Whether the compile should use UTF8 encoding for its console output",
-      "kind": "bool"
+      "type": "bool"
     },
     "VSTO_TrustAssembliesLocation": "",
     "WarningLevel": {
       "description": "What level of warnings the compiler should emit, between 0 and 4 inclusive",
-      "kind": "int"
+      "type": "int"
     },
     "WarningsAsErrors": "Comma separated list of warning numbers to treat as errors",
     "WebPage": "",
@@ -678,91 +678,91 @@
     "Win32Manifest": "A Win32 resource file to embed into the compiler output",
     "TargetPath": {
       "description": "Absolute path of the project's primary output",
-      "kind": "file"
+      "type": "file"
     },
     "TargetName": {
       "description": "Base name of the project's primary output",
-      "kind": "string"
+      "type": "string"
     },
     "TargetExt": {
       "description": "File extension of the project's primary output",
-      "kind": "extension"
+      "type": "extension"
     },
     "TargetDir": {
       "description": "Directory path of the project's primary output",
-      "kind": "folderwithslash"
+      "type": "folderwithslash"
     },
     "ProjectDir": {
       "description": "Directory containing the root project",
-      "kind": "folderwithslash"
+      "type": "folderwithslash"
     },
     "ProjectFileName": {
       "description": "Name of the project, formed by appending the extension to the base name",
-      "kind": "string"
+      "type": "string"
     },
     "ProjectExt": {
       "description": "File extension of the project",
-      "kind": "extension"
+      "type": "extension"
     },
     "ProjectName": {
       "description": "Base name of the project",
-      "kind": "string"
+      "type": "string"
     },
     "ProjectPath": {
       "description": "Absolute path of the project",
-      "kind": "file"
+      "type": "file"
     },
     "SolutionDir": {
       "description": "The directory containing the solution file",
-      "kind": "folderwithslash"
+      "type": "folderwithslash"
     },
     "SolutionName": {
       "description": "Base name of the solution file, without its extension",
-      "kind": "string"
+      "type": "string"
     },
     "SolutionExt": {
       "description": "The extension of the solution file",
-      "kind": "string"
+      "type": "string"
     },
     "SolutionFileName": {
       "description": "Name of the solution file, formed by appending the extension to the base name",
-      "kind": "string"
+      "type": "string"
     },
     "SolutionPath": {
       "description": "Absolute path of the solution file",
-      "kind": "file"
+      "type": "file"
     },
     "DefaultLanguageSourceExtension": {
       "description": "The default extension for source files",
-      "kind": "extension"
+      "type": "extension"
     },
     "BaseOutputPath": {
       "description": "The base directory for build outputs. The build outputs will be in a configuration-specific subdirectory.",
-      "kind": "folder"
+      "type": "folder"
     },
     "BaseIntermediateOutputPath": {
       "description": "The base directory for intermediate build outputs. The build output will be in a configuration-specific subdirectory.",
-      "kind": "folder"
+      "type": "folder"
     },
     "IntermediateOutputPath": {
       "description": "The configuration-specific directory in which intermediate build outputs are stored",
-      "kind": "folder"
+      "type": "folder"
     },
     "MSBuildAllProjects": {
       "description": "List of all project files. Targets can use this as an input to trigger rebuilds when these files change, and targets and props files can add themselves to be included in this behavior.",
-      "kind": "file-list"
+      "type": "file-list"
     },
     "ExternalConsole": {
       "description": "Whether to close the external console after running a console application in the IDE",
-      "kind": "bool"
+      "type": "bool"
     },
     "Configurations": {
       "description": "The values that the IDE should list for the `$(Configuration)` property",
-      "kind": "configuration-list"
+      "type": "configuration-list"
     },
     "Platforms": {
       "description": "The values that the IDE should list for the `$(Platform)` property",
-      "kind": "platform-list"
+      "type": "platform-list"
     }
   },
   "metadata": [
@@ -772,20 +772,20 @@
       "IncludeAssets": {
         "description": "Assets that will be consumed by the project",
         "default": "all",
-        "kind": "enum-asset-list",
-        "valueSeparators": ","
+        "type": "@asset-list",
+        "listSeparators": ","
       },
       "ExcludeAssets": {
         "description": "Assets that will not be consumed by the project",
         "default": "none",
-        "kind": "enum-asset-list",
-        "valueSeparators": ","
+        "type": "@asset-list",
+        "listSeparators": ","
       },
       "PrivateAssets": {
         "description": "Assets that will be consumed by the project but won't flow to its parent",
         "default": "contentfiles,analyzers,build",
-        "kind": "enum-asset-list",
-        "valueSeparators": ","
+        "type": "@asset-list",
+        "listSeparators": ","
       }
     },
     {
@@ -800,7 +800,7 @@
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None", "BootstrapperFile", "PublishFile", "FileAssociation" ],
       "Visible": {
         "description": "Whether the item should be displayed in the IDE solution tree",
-        "kind": "bool",
+        "type": "bool",
         "default": "true"
       }
     },
@@ -808,7 +808,7 @@
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
       "CopyToOutputDirectory": {
         "description": "Whether to copy the file to the output directory",
-        "values": {
+        "type": {
           "Never": "Do not copy the file",
           "Always": "Always copy the file",
           "PreserveNewest": "Copy the file if it is newer than the existing copy"
@@ -836,8 +836,10 @@
       "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)"
     }
   ],
-  "enumKinds": {
+  "customTypes": {
     "asset": {
+      "$name": "asset-type",
+      "$description": "NuGet package asset type",
       "compile": "Libraries from the `lib` folder",
       "runtime": "Contents of the `runtime` folder",
       "contentFiles": "All of the assets",
@@ -847,13 +849,13 @@
       "none": "None of the assets",
       "all": "All of the assets"
     },
-    "publishstate": {
-      "Default": "",
-      "Included": "",
-      "Excluded": "",
-      "DataFile": "",
-      "Prerequisite": ""
-    }
+    "publishstate": [
+      "Default",
+      "Included",
+      "Excluded",
+      "DataFile",
+      "Prerequisite"
+    ]
   },
   "targets": {
     "Build": "Builds the project",

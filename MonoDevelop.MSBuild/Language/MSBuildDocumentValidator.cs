@@ -445,7 +445,11 @@ namespace MonoDevelop.MSBuild.Language
 		//note: the value is unescaped, so offsets within it are not valid
 		void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset)
 		{
-			IReadOnlyList<ConstantInfo> knownVals = info.Values ?? kind.GetSimpleValues (false);
+			if (info.CustomType != null && info.CustomType.AllowUnknownValues) {
+				return;
+			}
+
+			IReadOnlyList<ConstantInfo> knownVals = info.CustomType?.Values ?? kind.GetSimpleValues (false);
 
 			if (knownVals != null && knownVals.Count != 0) {
 				foreach (var kv in knownVals) {
@@ -456,6 +460,7 @@ namespace MonoDevelop.MSBuild.Language
 				AddErrorWithArgs (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
 				return;
 			}
+
 			switch (kind) {
 			case MSBuildValueKind.Guid:
 			case MSBuildValueKind.ProjectKindGuid:

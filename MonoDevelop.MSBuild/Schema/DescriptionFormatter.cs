@@ -103,10 +103,10 @@ namespace MonoDevelop.MSBuild.Schema
 			return (null, null);
 		}
 
-		public static List<string> GetTypeDescription (this MSBuildValueKind kind)
+		public static List<string> GetTypeDescription (this MSBuildValueKind kind, CustomTypeInfo customTypeInfo = null)
 		{
 			var modifierList = new List<string> ();
-			string kindName = FormatKind (kind);
+			string kindName = FormatKind (kind, customTypeInfo);
 
 			if (kindName != null) {
 				modifierList.Add (kindName);
@@ -129,7 +129,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			var modifierList = GetTypeDescription (kind);
 
-			if (info.Values != null && info.Values.Count > 0) {
+			if (info.CustomType != null && info.CustomType.Values.Count > 0) {
 				modifierList [0] = "enum";
 			}
 
@@ -157,7 +157,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return modifierList;
 		}
 
-		static string FormatKind (MSBuildValueKind kind)
+		static string FormatKind (MSBuildValueKind kind, CustomTypeInfo customTypeInfo)
 		{
 			switch (kind.GetScalarType ()) {
 			case MSBuildValueKind.Bool:
@@ -262,7 +262,10 @@ namespace MonoDevelop.MSBuild.Schema
 				return "nuget-version";
 			case MSBuildValueKind.ProjectKindGuid:
 				return "flavor-guid";
-			case MSBuildValueKind.CustomEnum:
+			case MSBuildValueKind.CustomType:
+				if (customTypeInfo != null && customTypeInfo.Name != null) {
+					return customTypeInfo.Name;
+				}
 				return "enum";
 			}
 			return null;

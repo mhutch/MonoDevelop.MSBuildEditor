@@ -402,7 +402,8 @@ namespace MonoDevelop.MSBuild.Language
 				ExpressionErrorKind.ExpectingClassName => Return (ExpectingClassName),
 				ExpressionErrorKind.ExpectingClassNameComponent => Return (IncompleteClassName),
 				ExpressionErrorKind.IncompleteString => Return (IncompleteString),
-				ExpressionErrorKind.IncompleteProperty => Return (IncompleteProperty)
+				ExpressionErrorKind.IncompleteProperty => Return (IncompleteProperty),
+				_ => throw new System.Exception ($"Unhandled ExpressionErrorKind '{error.Kind}'")
 			};
 		}
 

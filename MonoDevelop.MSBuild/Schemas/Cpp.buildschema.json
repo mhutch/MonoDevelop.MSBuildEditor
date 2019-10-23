@@ -1,4 +1,4 @@
-﻿{
+{
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "items": {
     "Xdcmake": {
@@ -16,7 +16,7 @@
       }
     },
     "ClCompile": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "PrecompiledHeader": "",
         "OutputFile": "",
@@ -55,13 +55,13 @@
       }
     },
     "ClInclude": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "AdditionalIncludeDirectories": ""
       }
     },
     "Manifest": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "AssemblyIdentity": "",
         "AdditionalManifestFiles": "",
@@ -86,7 +86,7 @@
       }
     },
     "Midl": {
-      "kind": "file-list",
+      "type": "file-list",
       "metadata": {
         "IncludeAssets": "",
         "MkTypLibCompatible": "",
@@ -159,7 +159,7 @@
     "CharacterSet": "",
     "NoStandardLibraries": "",
     "UseDebugLibraries": {
-      "kind": "bool"
+      "type": "bool"
     }
   }
 }

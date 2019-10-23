@@ -47,17 +47,19 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
-		public void CustomEnum ()
+		public void CustomTypes ()
 		{
 			var schema = MSBuildSchema.Load (new StringReader (
 @"{
 	""properties"": {
 		""MyProp"": {
-			""kind"": ""enum-mycustom""
+			""type"": ""@mycustom""
 		}
 	},
-	""enumKinds"": {
+	""customTypes"": {
 		""mycustom"": {
+			""$"": ""this is a comment"",
+			""$name"": ""type-name"",
 			""One"": ""x"",
 			""Two"": ""y""
 		}
@@ -69,13 +71,14 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var item = new[] { schema }.GetProperty ("MyProp");
 			Assert.NotNull (item);
-			Assert.AreEqual (MSBuildValueKind.CustomEnum, item.ValueKind);
-			Assert.NotNull (item.Values);
-			Assert.AreEqual (2, item.Values.Count);
-			Assert.AreEqual ("One", item.Values[0].Name);
-			Assert.AreEqual ("Two", item.Values[1].Name);
-			Assert.AreEqual ("x", item.Values[0].Description.Text);
-			Assert.AreEqual ("y", item.Values[1].Description.Text);
+			Assert.AreEqual (MSBuildValueKind.CustomType, item.ValueKind);
+			Assert.NotNull (item.CustomType);
+			Assert.AreEqual (2, item.CustomType.Values.Count);
+			Assert.AreEqual ("type-name", item.CustomType.Name);
+			Assert.AreEqual ("One", item.CustomType.Values[0].Name);
+			Assert.AreEqual ("Two", item.CustomType.Values[1].Name);
+			Assert.AreEqual ("x", item.CustomType.Values[0].Description.Text);
+			Assert.AreEqual ("y", item.CustomType.Values[1].Description.Text);
 		}
 	}
 }
