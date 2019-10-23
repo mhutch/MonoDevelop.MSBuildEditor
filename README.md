@@ -1,6 +1,7 @@
 # MonoDevelop.MSBuildEditor
 
-The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio for Mac and MonoDevelop. It can be installed from the Extension Manager.
+The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio and Visual Studio for Mac.
+It can be installed from the Extension Manager.
 
 ![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio/badge.svg)
 ![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio%20for%20Mac/badge.svg)
@@ -69,55 +70,6 @@ The extension includes documentation tooltips for the MSBuild language and many 
 
 The extension adds a formatting policy for MSBuild files, allowing you to customize the formatting behaviour. The default formatting policy uses two spaces for indentation, matching the project files created by Visual Studio.
 
-## TODO
+## Development
 
-The following feature are not yet implemented. Please contact Mikayla if you are interested in helping out.
-
-* Port to Visual Studio for Windows
-* Snippets
-* Add more unit tests
-* Add logic to figure out context of unqualified metadata
-* In addition to brute forcing imports, resolve using full conditioned state
-* Implement completion for more item and value types
-* Completion of inline C#
-* show default value of property/metadata/items in tooltips
-* error when assigning values to reserved properties and metadata
-* parameter info tooltip when completing values
-* go to package page command on nugets
-* prettier package tooltips
-* filter disallowed and existing attributes and elements from completion
-* property comparand validation
-* validate metadata refs are valid in context
-* use new expression parser for triggering intellisense
-  for example when multivalued language imports cause
-  multiple imports of common targets
-* project kind completion
-* support encoding all over
-* better highlighting colors - the default MD theme doesn't define many we can use, but other themes have more
-* trigger intellisense on |, indexed against | separated comparands
-* validate property/items types passed to/from task parameters
-* add documentation for task parameters
-* fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
-* Fix MSBuildProjectExtensionsPath eval with nonstandard intermediate dir
-* Analyzer that finds DefaultItemExcludes assignment that doesn't include previous value
-* API to dump undocumented items/properties/metadata/tasks
-* Go to definition on tasks
-* Infer default values from <foo condition="$(foo)==''">default</foo>
-* Basic checking on item and property functions
-* Infer bool type from bool assignment or comparison
-* Do some perf work, cache inferred schemas?
-* Expression type resolution (including coercion e.g. string+path = path?)
-* Validate invalid chars in paths
-* Warn on assigning wrong typed expression to property or task arg
-* Evaluation context selection toolbar
-* Go to definition on nuget goes to nuget.org or package folder?
-* Publish json schema
-* Test schema loader
-* Test schema composition
-* Test schema inference
-* Classname kind with metadata for which msbuild metadata/property points to the assembly
-* Additional schema metadata for expected extensions for files
-* Additional schema metadata for which msbuild metadata/property points to the base directory for filenames
-* Squiggle assignments to nonexistent task params
-* Metadata to mark symbols as aliases for another
-* Improve implicit and explicit triggering for file path segments
+See the [TODO](TODO.md) for a list of proposed/planned features. If you're interested in implementing one of them please contact Mikayla.
