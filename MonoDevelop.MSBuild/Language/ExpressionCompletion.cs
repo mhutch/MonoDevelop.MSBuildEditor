@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Parser;
@@ -357,6 +356,12 @@ namespace MonoDevelop.MSBuild.Language
 				return TriggerState.Value;
 			}
 
+			var expr = ExpressionParser.ParseCondition (expression);
+			triggerLength = 0;
+			triggerExpression = null;
+			comparandValues = null;
+			return TriggerState.None;
+			/*
 			var tokens = new List<Token> ();
 			int lastExpressionStart = 0;
 
@@ -450,12 +455,12 @@ namespace MonoDevelop.MSBuild.Language
 			return null;
 
 			bool Readback (int i, TokenType type) => tokens[index - i].Type == type;
-			string ValueBack (int i) => tokens[index - i].Value;
+			string ValueBack (int i) => tokens[index - i].Value;*/
 		}
 
 		public static IEnumerable<BaseInfo> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
 		{
-			var names = new HashSet<string> ();
+			var names = new HashSet<string> (); yield break;/*
 			foreach (var variable in variables) {
 				ValueInfo info;
 				switch (variable) {
@@ -491,7 +496,7 @@ namespace MonoDevelop.MSBuild.Language
 						}
 					}
 				}
-			}
+			}*/
 		}
 
 		public static IEnumerable<BaseInfo> GetCompletionInfos (

@@ -373,6 +373,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 					return items;
 				}, token);
+
 		}
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (

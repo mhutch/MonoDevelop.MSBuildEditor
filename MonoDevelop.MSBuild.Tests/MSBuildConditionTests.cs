@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.Projects.MSBuild.Conditions;
 
 using NUnit.Framework;
 
