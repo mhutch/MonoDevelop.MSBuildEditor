@@ -331,7 +331,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList <BaseInfo>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
+				var knownVals = (IReadOnlyList <BaseInfo>)info.CustomType?.Values ?? kind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
 					foreach (var kv in knownVals) {
