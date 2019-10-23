@@ -162,7 +162,7 @@ namespace MonoDevelop.MSBuild.Editor
 				shorten = shorten ?? CreateFilenameShortener (doc.RuntimeInformation);
 				var replacement = shorten (s);
 				if (!replacement.HasValue) {
-					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, s)));
+					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, s, () => OpenFile (s), s)));
 					continue;
 				}
 
