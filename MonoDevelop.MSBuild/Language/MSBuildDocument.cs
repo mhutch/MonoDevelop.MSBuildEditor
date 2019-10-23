@@ -6,9 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.Build.Framework;
-
-using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -16,7 +13,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class MSBuildDocument : IMSBuildSchema, IPropertyCollector
+	class MSBuildDocument : IMSBuildSchema
 	{
 		static readonly XName xnProject = "Project";
 
@@ -270,22 +267,6 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			//properties and items are always visible from files they're used in
 			return !IsToplevel && name[0] == '_';
-		}
-
-		public void AddPropertyValues (List<string> combinedProperty, List<string> combinedValue)
-		{
-			for (int i = 0; i < combinedProperty.Count; i++) {
-				var p = combinedProperty [i];
-				var v = combinedValue [i];
-				switch (p.ToLowerInvariant ()) {
-				case "configuration":
-					Configurations.Add (v);
-					break;
-				case "platform":
-					Platforms.Add (v);
-					break;
-				}
-			}
 		}
 	}
 }
