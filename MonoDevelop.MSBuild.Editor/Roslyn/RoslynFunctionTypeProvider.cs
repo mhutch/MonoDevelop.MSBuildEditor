@@ -227,7 +227,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		public BaseInfo GetEnumInfo (string reference)
 		{
 			//FIXME: resolve enum values
-			return new ConstantInfo (reference, null);
+			return new ValueKindValue (reference, null, MSBuildValueKind.Unknown);
 		}
 
 		IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)

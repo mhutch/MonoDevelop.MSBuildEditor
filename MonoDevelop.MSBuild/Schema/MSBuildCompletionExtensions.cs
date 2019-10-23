@@ -165,9 +165,9 @@ namespace MonoDevelop.MSBuild.Schema
 					tfm => FrameworkInfoProvider.Instance.GetFrameworkProfiles (tfm.Framework, tfm.Version)
 				).Distinct ().ToList ();
 			case MSBuildValueKind.Configuration:
-				return doc.GetConfigurations ().Select (c => new ConstantInfo (c, "")).ToList ();
+				return doc.GetConfigurations ().Select (c => new ValueKindValue (c, "", MSBuildValueKind.Configuration)).ToList ();
 			case MSBuildValueKind.Platform:
-				return doc.GetPlatforms ().Select (c => new ConstantInfo (c, "")).ToList ();
+				return doc.GetPlatforms ().Select (c => new ValueKindValue (c, "", MSBuildValueKind.Platform)).ToList ();
 			}
 
 			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, rr);

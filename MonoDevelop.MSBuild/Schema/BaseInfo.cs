@@ -61,17 +61,32 @@ namespace MonoDevelop.MSBuild.Schema
 		public string DeprecationMessage { get; }
 	}
 
-	public class CustomTypeInfo
+	public sealed class CustomTypeInfo
 	{
-		public CustomTypeInfo (List<ConstantInfo> values, string name = null, bool allowUnknownValues = false)
+		public CustomTypeInfo (List<CustomTypeValue> values, string name = null, bool allowUnknownValues = false)
         {
 			Values = values ?? throw new ArgumentNullException (nameof (values));
 			Name = name;
 			AllowUnknownValues = allowUnknownValues;
+
+			foreach (var v in values) {
+				v.SetParent (this);
+			}
 		}
 
 		public string Name { get; }
 		public bool AllowUnknownValues { get; }
-		public List<ConstantInfo> Values { get; }
+		public IReadOnlyList<CustomTypeValue> Values { get; }
+	}
+
+	public sealed class CustomTypeValue : BaseInfo
+	{
+		public CustomTypeValue (string name, DisplayText description) : base (name, description)
+		{
+		}
+
+		public CustomTypeInfo TypeInfo { get; private set; }
+
+		internal void SetParent (CustomTypeInfo parent) => TypeInfo = parent;
 	}
 }

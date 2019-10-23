@@ -3,14 +3,17 @@
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	public class ConstantInfo : BaseInfo
+	public sealed class ValueKindValue : BaseInfo
 	{
-		public ConstantInfo (string name, DisplayText description) : base (name, description)
+		public ValueKindValue (string name, DisplayText description, MSBuildValueKind kind) : base (name, description)
 		{
+			this.ValueKind = kind;
 		}
+
+		public MSBuildValueKind ValueKind { get; }
 	}
 
-	public class FileOrFolderInfo : BaseInfo
+	public sealed class FileOrFolderInfo : BaseInfo
 	{
 		public bool IsFolder { get; }
 

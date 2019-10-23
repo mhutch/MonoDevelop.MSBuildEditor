@@ -394,7 +394,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		static CustomTypeInfo LoadCustomType (JObject obj)
 		{
-			var values = new List<ConstantInfo> ();
+			var values = new List<CustomTypeValue> ();
 			string name = null;
 			bool allowUnknownValues = false;
 			foreach (var ikv in obj) {
@@ -411,7 +411,7 @@ namespace MonoDevelop.MSBuild.Schema
 						break;
 					}
 				} else {
-					values.Add (new ConstantInfo (ikv.Key, (string)((JValue)ikv.Value).Value));
+					values.Add (new CustomTypeValue (ikv.Key, (string)((JValue)ikv.Value).Value));
 				}
 			}
 			if (name != null) {
@@ -439,9 +439,9 @@ namespace MonoDevelop.MSBuild.Schema
 
 		static CustomTypeInfo LoadCustomType (JArray arr)
 		{
-			var values = new List<ConstantInfo> ();
+			var values = new List<CustomTypeValue> ();
 			foreach (var val in arr) {
-				values.Add (new ConstantInfo ((string)((JValue)val).Value, null));
+				values.Add (new CustomTypeValue ((string)((JValue)val).Value, null));
 			}
 			return new CustomTypeInfo (values);
 		}

@@ -83,8 +83,10 @@ namespace MonoDevelop.MSBuild.Schema
 				return ( "metadata", meta.Item != null ? $"{meta.Item.Name}.{info.Name}" : info.Name);
 			case TaskInfo task:
 				return ("task", info.Name);
-			case ConstantInfo value:
-				return ("value", info.Name);
+			case CustomTypeValue ctVal:
+				return (ctVal.TypeInfo.Name ?? "value", info.Name);
+			case ValueKindValue value:
+				return (FormatKind (value.ValueKind, null) ?? "value", info.Name);
 			case FileOrFolderInfo value:
 				return (value.IsFolder? "folder" : "file", info.Name);
 			case FrameworkInfo fxi:
@@ -127,7 +129,7 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
-			var modifierList = GetTypeDescription (kind);
+			var modifierList = GetTypeDescription (kind, info.CustomType);
 
 			if (info.CustomType != null && info.CustomType.Values.Count > 0) {
 				modifierList [0] = "enum";

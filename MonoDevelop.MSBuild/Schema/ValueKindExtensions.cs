@@ -49,73 +49,89 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		//FIXME: cache these somewhere?
-		public static IReadOnlyList<ConstantInfo> GetSimpleValues (this MSBuildValueKind kind, bool includeParseableTypes)
+		public static IReadOnlyList<ValueKindValue> GetSimpleValues (this MSBuildValueKind kind, bool includeParseableTypes)
 		{
 			switch (kind) {
 			case MSBuildValueKind.Bool:
 				if (!includeParseableTypes) {
 					return null;
 				}
-				return new ConstantInfo [] {
-					new ConstantInfo ("True", null),
-					new ConstantInfo ("False", null),
+				return new ValueKindValue [] {
+					new ValueKindValue ("True", null, MSBuildValueKind.Bool),
+					new ValueKindValue ("False", null, MSBuildValueKind.Bool),
 				};
 			case MSBuildValueKind.TaskArchitecture:
-				return new ConstantInfo [] {
-					new ConstantInfo ("*", "Any architecture"),
-					new ConstantInfo ("CurrentArchitecture", "The architecture on which MSBuild is running"),
-					new ConstantInfo ("x86", "The 32-bit x86 architecture"),
-					new ConstantInfo ("x64", "The 64-bit x64 architecture"),
+				return new ValueKindValue [] {
+					new ValueKindValue ("*", "Any architecture", MSBuildValueKind.TaskArchitecture),
+					new ValueKindValue ("CurrentArchitecture", "The architecture on which MSBuild is running", MSBuildValueKind.TaskArchitecture),
+					new ValueKindValue ("x86", "The 32-bit x86 architecture", MSBuildValueKind.TaskArchitecture),
+					new ValueKindValue ("x64", "The 64-bit x64 architecture", MSBuildValueKind.TaskArchitecture),
 				};
 			case MSBuildValueKind.TaskRuntime:
-				return new ConstantInfo [] {
-					new ConstantInfo ("*", "Any runtime"),
-					new ConstantInfo ("CurrentRuntime", "The runtime on which MSBuild is running"),
-					new ConstantInfo ("CLR2", "The .NET 2.0 runtime"),
-					new ConstantInfo ("CLR4", "The .NET 4.0 runtime"),
+				return new ValueKindValue [] {
+					new ValueKindValue ("*", "Any runtime", MSBuildValueKind.TaskRuntime),
+					new ValueKindValue ("CurrentRuntime", "The runtime on which MSBuild is running", MSBuildValueKind.TaskRuntime),
+					new ValueKindValue ("CLR2", "The .NET 2.0 runtime", MSBuildValueKind.TaskRuntime),
+					new ValueKindValue ("CLR4", "The .NET 4.0 runtime", MSBuildValueKind.TaskRuntime),
 				};
 			case MSBuildValueKind.Importance:
-				return new ConstantInfo [] {
-					new ConstantInfo ("high", "High importance, only displayed for all log verbosity settings"),
-					new ConstantInfo ("normal", "Normal importance"),
-					new ConstantInfo ("low", "Low importance, only displayed for highly verbose log settings")
+				return new ValueKindValue [] {
+					new ValueKindValue ("high", "High importance, only displayed for all log verbosity settings", MSBuildValueKind.Importance),
+					new ValueKindValue ("normal", "Normal importance", MSBuildValueKind.Importance),
+					new ValueKindValue ("low", "Low importance, only displayed for highly verbose log settings", MSBuildValueKind.Importance)
 				};
 			case MSBuildValueKind.HostOS:
-				return new ConstantInfo [] {
-					new ConstantInfo ("Windows_NT", "Running on Windows"),
-					new ConstantInfo ("Unix", "Running on Unix")
-					// deliberately ignoring Mac as it doesn't actually work
+				return new ValueKindValue [] {
+					new ValueKindValue ("Windows_NT", "Running on Windows", MSBuildValueKind.HostOS),
+					new ValueKindValue ("Unix", "Running on Unix", MSBuildValueKind.HostOS)
+					// deliberately ignoring Mac as this value doesn't work for legacy compat reasons
 				};
 			case MSBuildValueKind.HostRuntime:
-				return new ConstantInfo [] {
-					new ConstantInfo ("Mono", "Running on Mono"),
-					new ConstantInfo ("Core", "Running on .NET Core"),
-					new ConstantInfo ("Full", "Running on .NET Framework")
+				return new ValueKindValue [] {
+					new ValueKindValue ("Mono", "Running on Mono", MSBuildValueKind.HostRuntime),
+					new ValueKindValue ("Core", "Running on .NET Core", MSBuildValueKind.HostRuntime),
+					new ValueKindValue ("Full", "Running on .NET Framework", MSBuildValueKind.HostRuntime)
 				};
 			case MSBuildValueKind.ContinueOnError:
-				return new ConstantInfo [] {
-					new ConstantInfo ("WarnAndContinue", "When the task outputs errors, convert them to warnings, and continue executing other tasks and targets"),
-					new ConstantInfo ("true", "Equivalent to `WarnAndContinue`"),
-					new ConstantInfo ("ErrorAndContinue", "When the task outputs errors, continue executing other tasks and targets"),
-					new ConstantInfo ("ErrorAndStop", "When the task outputs errors, do not execute further tasks and targets"),
-					new ConstantInfo ("true", "Equivalent to `ErrorAndStop`"),
+				return new ValueKindValue [] {
+					new ValueKindValue (
+						"WarnAndContinue",
+						"When the task outputs errors, convert them to warnings, and continue executing other tasks and targets",
+						MSBuildValueKind.ContinueOnError),
+					new ValueKindValue (
+						"true",
+						"Equivalent to `WarnAndContinue`",
+						MSBuildValueKind.ContinueOnError),
+					new ValueKindValue (
+						"ErrorAndContinue",
+						"When the task outputs errors, continue executing other tasks and targets",
+						MSBuildValueKind.ContinueOnError),
+					new ValueKindValue (
+						"ErrorAndStop",
+						"When the task outputs errors, do not execute further tasks and targets",
+						MSBuildValueKind.ContinueOnError),
+					new ValueKindValue (
+						"true",
+						"Equivalent to `ErrorAndStop`",
+						MSBuildValueKind.ContinueOnError),
 
 				};
 			case MSBuildValueKind.SkipNonexistentProjectsBehavior:
-				return new ConstantInfo[] {
-					new ConstantInfo ("True", "Skip the project if the project file does not exist"),
-					new ConstantInfo ("False", "Output an error if the project file does not exist"),
-					new ConstantInfo ("Build", "Build the project even if the project file does not exist")
+				return new ValueKindValue[] {
+					new ValueKindValue ("True", "Skip the project if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
+					new ValueKindValue ("False", "Output an error if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
+					new ValueKindValue ("Build", "Build the project even if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior)
 
 				};
 			case MSBuildValueKind.ToolsVersion:
-				return new ConstantInfo [] {
-					new ConstantInfo ("2.0", "MSBuild 2.0, included in .NET Framework 2.0"),
-					new ConstantInfo ("3.5", "MSBuild 3.5, included in .NET Framework 3.5"),
-					new ConstantInfo ("4.0", "MSBuild 4.0, included in .NET Framework 4.0"),
-					new ConstantInfo ("12.0", "MSBuild 12.0, included in Visual Studio 2013"),
-					new ConstantInfo ("14.0", "MSBuild 14.0, included in Visual Studio 2015"),
-					new ConstantInfo ("15.0", "MSBuild 15.0, included in Visual Studio 2017"),
+				return new ValueKindValue [] {
+					new ValueKindValue ("2.0", "MSBuild 2.0, included in .NET Framework 2.0", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("3.5", "MSBuild 3.5, included in .NET Framework 3.5", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("4.0", "MSBuild 4.0, included in .NET Framework 4.0", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("12.0", "MSBuild 12.0, included in Visual Studio 2013", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("14.0", "MSBuild 14.0, included in Visual Studio 2015", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("15.0", "MSBuild 15.0, included in Visual Studio 2017", MSBuildValueKind.ToolsVersion),
+					new ValueKindValue ("Current", "MSBuild 16.0, included in Visual Studio 2019", MSBuildValueKind.ToolsVersion),
 				};
 			}
 			return null;

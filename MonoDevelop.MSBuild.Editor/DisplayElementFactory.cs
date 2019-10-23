@@ -298,7 +298,7 @@ namespace MonoDevelop.MSBuild.Editor
 				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
 			case TaskInfo _:
 				return KnownImages.MSBuildTask;
-			case ConstantInfo _:
+			case ValueKindValue _:
 				return KnownImages.MSBuildConstant;
 			case FileOrFolderInfo value:
 				return value.IsFolder ? KnownImages.FolderClosed : KnownImages.GenericFile;
