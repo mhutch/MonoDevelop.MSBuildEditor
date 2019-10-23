@@ -79,9 +79,9 @@ namespace MonoDevelop.MSBuild.Schema
 		public IReadOnlyList<CustomTypeValue> Values { get; }
 	}
 
-	public sealed class CustomTypeValue : BaseInfo
+	public sealed class CustomTypeValue : ValueKindValue
 	{
-		public CustomTypeValue (string name, DisplayText description) : base (name, description)
+		public CustomTypeValue (string name, DisplayText description) : base (name, description, MSBuildValueKind.CustomType)
 		{
 		}
 

@@ -3,7 +3,7 @@
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	public sealed class ValueKindValue : BaseInfo
+	public class ValueKindValue : BaseInfo
 	{
 		public ValueKindValue (string name, DisplayText description, MSBuildValueKind kind) : base (name, description)
 		{
