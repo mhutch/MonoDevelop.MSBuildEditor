@@ -10,7 +10,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	public struct PropertyWriteDiagnosticContext
+	public readonly struct PropertyWriteDiagnosticContext
 	{
 		readonly MSBuildAnalysisSession session;
 

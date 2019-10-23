@@ -10,7 +10,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	public struct ElementDiagnosticContext
+	public readonly struct ElementDiagnosticContext
 	{
 		readonly MSBuildAnalysisSession session;
 		internal MSBuildDocument Document => session.Document;
