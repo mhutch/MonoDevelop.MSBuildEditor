@@ -12,15 +12,19 @@ namespace MonoDevelop.MSBuild.Analyzers
 	[MSBuildAnalyzer]
 	class RuntimeIdentifierOrRuntimeIdentifiersAnalyzer : MSBuildAnalyzer
 	{
+		public const string UseRuntimeIdentifiersForMultipleRIDsDiagnosticId = nameof (UseRuntimeIdentifiersForMultipleRIDs);
+
 		readonly MSBuildDiagnosticDescriptor UseRuntimeIdentifiersForMultipleRIDs = new MSBuildDiagnosticDescriptor (
-			"UseRuntimeIdentifiersForMultipleRIDs",
+			UseRuntimeIdentifiersForMultipleRIDsDiagnosticId,
 			"Use RuntimeIdentifiers for multiple RIDs",
 			"When targeting multiple RIDs, use the RuntimeIdentifiers property instead of RuntimeIdentifier",
 			MSBuildDiagnosticSeverity.Error
 		);
 
+		public const string UseRuntimeIdentifierForSingleRIDDiagnosticId = nameof (UseRuntimeIdentifierForSingleRID);
+
 		readonly MSBuildDiagnosticDescriptor UseRuntimeIdentifierForSingleRID = new MSBuildDiagnosticDescriptor (
-			"UseRuntimeIdentifierForSingleRID",
+			UseRuntimeIdentifierForSingleRIDDiagnosticId,
 			"Use RuntimeIdentifier for single RID",
 			"When targeting a single RID, use the RuntimeIdentifier property instead of RuntimeIdentifiers",
 			MSBuildDiagnosticSeverity.Warning

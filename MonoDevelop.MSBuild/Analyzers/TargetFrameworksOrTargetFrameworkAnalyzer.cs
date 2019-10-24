@@ -12,15 +12,19 @@ namespace MonoDevelop.MSBuild.Analyzers
 	[MSBuildAnalyzer]
 	class TargetFrameworksOrTargetFrameworkAnalyzer : MSBuildAnalyzer
 	{
+		public const string UseTargetFrameworksForMultipleFrameworksDiagnosticId = nameof (UseTargetFrameworksForMultipleFrameworks);
+
 		readonly MSBuildDiagnosticDescriptor UseTargetFrameworksForMultipleFrameworks = new MSBuildDiagnosticDescriptor (
-			"UseTargetFrameworksForMultipleFrameworks",
+			UseTargetFrameworksForMultipleFrameworksDiagnosticId,
 			"Use TargetFrameworks for multiple frameworks",
 			"When targeting multiple frameworks, use the TargetFrameworks property instead of TargetFramework",
 			MSBuildDiagnosticSeverity.Error
 		);
 
+		public const string UseTargetFrameworkForSingleFrameworkDiagnosticId = nameof (UseTargetFrameworkForSingleFramework);
+
 		readonly MSBuildDiagnosticDescriptor UseTargetFrameworkForSingleFramework = new MSBuildDiagnosticDescriptor (
-			"UseTargetFrameworkForSingleFramework",
+			UseTargetFrameworkForSingleFrameworkDiagnosticId,
 			"Use TargetFramework for single framework",
 			"When targeting a single framework, use the TargetFramework property instead of TargetFrameworks",
 			MSBuildDiagnosticSeverity.Warning
