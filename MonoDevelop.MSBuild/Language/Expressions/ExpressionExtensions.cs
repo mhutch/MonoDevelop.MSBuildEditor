@@ -114,9 +114,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
 		{
-			//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
-			node = (node as IncompleteExpressionError)?.IncompleteNode ?? node;
-
 			return node.ContainsOffset (offset) ? FindInternal (node, offset) : null;
 		}
 
@@ -194,6 +191,22 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case ExpressionError error:
 				if (error.ContainsOffset (offset)) {
 					return error;
+				}
+				break;
+			case ExpressionConditionOperator cond:
+				if (cond.Left != null && cond.Left.ContainsOffset (offset)) {
+					return cond.Left.FindInternal (offset);
+				}
+				if (cond.Right != null && cond.Right.ContainsOffset (offset)) {
+					return cond.Right.FindInternal (offset);
+				}
+				break;
+			case ExpressionConditionFunction condFunc:
+				if (condFunc.Name != null && condFunc.Name.ContainsOffset (offset)) {
+					return condFunc.Name;
+				}
+				if (condFunc.Arguments != null && condFunc.Arguments.ContainsOffset (offset)) {
+					return condFunc.Arguments.FindInternal (offset);
 				}
 				break;
 			}

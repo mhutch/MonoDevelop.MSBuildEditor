@@ -20,7 +20,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		{
 			OperatorKind = comparisonKind;
 			Left = left;
+			left?.SetParent (this);
 			Right = right;
+			right?.SetParent (this);
 		}
 	}
 
@@ -52,7 +54,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			: base (offset, length)
 		{
 			Name = name;
+			name?.SetParent (this);
 			Arguments = arguments;
+			arguments.SetParent (this);
 		}
 	}
 }
