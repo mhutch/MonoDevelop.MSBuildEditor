@@ -177,7 +177,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 							ch == '$'? ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError)
 							: ch == '@'? ParseItem (buffer, ref offset, endOffset, baseOffset, out hasError)
 							: ParseMetadata (buffer, ref offset, endOffset, baseOffset, out hasError);
-						offset++;
 						return node;
 					}
 				} else {

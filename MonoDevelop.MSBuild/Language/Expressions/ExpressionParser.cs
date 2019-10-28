@@ -21,13 +21,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		static ExpressionNode Parse (string buffer, int startOffset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError)
 		{
-			hasError = false;
-
 			List<ExpressionNode> splitList = null;
+			char listSeparator = ';';
 			var nodes = new List<ExpressionNode> ();
 
 			int lastNodeEnd = startOffset;
-			for (int offset = startOffset; offset <= endOffset; offset++) {
+			int offset = startOffset;
+			while (offset <= endOffset) {
 				char c = buffer [offset];
 
 				//consume entities simply so the semicolon doesn't mess with list parsing
@@ -35,11 +35,12 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				if (c == '&') {
 					offset++;
 					//FIXME: use proper entity name logic. this will do for now.
-					var name = ReadName (buffer, ref offset, endOffset);
+					ReadName (buffer, ref offset, endOffset);
 					if (offset > endOffset) {
 						break;
 					}
 					if (buffer[offset] == ';') {
+						offset++;
 						continue;
 					}
 					c = buffer [offset];
@@ -50,8 +51,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					if (splitList == null) {
 						splitList = new List<ExpressionNode> ();
 					}
-					FlushNodesToSplitList (offset, out hasError);
-					lastNodeEnd = offset + 1;
+					FlushNodesToSplitList (offset, c, out hasError);
+					offset++;
+					lastNodeEnd = offset;
 					continue;
 				}
 
@@ -61,6 +63,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				switch (c) {
 				case '@':
 					if (!TryConsumeParen ()) {
+						offset++;
 						continue;
 					}
 					if (options.HasFlag (ExpressionOptions.Items)) {
@@ -71,12 +74,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					break;
 				case '$':
 					if (!TryConsumeParen ()) {
+						offset++;
 						continue;
 					}
 					node = ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError);
 					break;
 				case '%':
 					if (!TryConsumeParen ()) {
+						offset++;
 						continue;
 					}
 					if (options.HasFlag (ExpressionOptions.Metadata)) {
@@ -86,11 +91,12 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 					break;
 				default:
+					offset++;
 					continue;
 				}
 
 				CaptureLiteral (possibleLiteralEndOffset, false);
-				lastNodeEnd = offset + 1;
+				lastNodeEnd = offset;
 
 				nodes.Add (node);
 				if (hasError) {
@@ -120,9 +126,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 			}
 
-			void FlushNodesToSplitList (int offset, out bool hasError)
+			void FlushNodesToSplitList (int offset, char sep, out bool hasError)
 			{
 				hasError = false;
+				listSeparator = sep;
 				if (nodes.Count == 0) {
 					splitList.Add (new ExpressionError (baseOffset + offset, ExpressionErrorKind.EmptyListEntry, out hasError));
 				} else if (nodes.Count == 1) {
@@ -140,10 +147,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			{
 				hasError = false;
 				if (splitList != null) {
-					FlushNodesToSplitList (offset, out hasError);
+					FlushNodesToSplitList (offset, default, out hasError);
 				}
 				if (splitList != null) {
-					return new ListExpression (baseOffset + startOffset, endOffset - startOffset + 1, splitList.ToArray ());
+					return new ListExpression (baseOffset + startOffset, endOffset - startOffset + 1, listSeparator, splitList.ToArray ());
 				}
 				if (nodes.Count == 0) {
 					return new ExpressionText (baseOffset + startOffset, "", true);
@@ -173,14 +180,16 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 				if (offset <= endOffset && buffer[offset] == ')') {
 					hasError = false;
-					return new ExpressionItem (baseOffset + start, offset - start + 1, itemRef);
+					offset++;
+					return new ExpressionItem (baseOffset + start, offset - start, itemRef);
 				}
 
 				ConsumeWhitespace (ref offset);
 
 				if (offset > endOffset || buffer[offset] != '-') {
 					return new IncompleteExpressionError (
-						baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParenOrDash,
+						baseOffset + offset, offset > endOffset,
+						itemRef is ExpressionItemTransform ? ExpressionErrorKind.ExpectingRightParen : ExpressionErrorKind.ExpectingRightParenOrDash,
 						new ExpressionItem (baseOffset + start, offset - start + 1, itemRef),
 						out hasError
 					);
@@ -214,13 +223,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 
 				if (hasError) {
-					return new ExpressionItem (baseOffset + start, offset - start + 1, itemRef);
+					return new ExpressionItem (baseOffset + start, itemRef.End - start - baseOffset, itemRef);
 				}
 			}
 
 			return new IncompleteExpressionError (
-				baseOffset + offset, offset > endOffset, ExpressionErrorKind.UnexpectedCharacter,
-				new ExpressionItem (baseOffset + start, offset - start + 1, itemRef),
+				baseOffset + offset, offset > endOffset,
+				itemRef is ExpressionItemTransform? ExpressionErrorKind.ExpectingRightParen : ExpressionErrorKind.ExpectingRightParenOrDash,
+				new ExpressionItem (baseOffset + start, offset - start, itemRef),
 				out hasError
 			);
 
@@ -461,6 +471,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				switch (ch) {
 				case '.':
 					if (foundPeriod) {
+						offset++;
 						break;
 					}
 					foundPeriod = true;
@@ -582,7 +593,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			hasError = false;
-			return new ExpressionProperty (baseOffset + start, offset - start + 1, propRef);
+			offset++;
+			return new ExpressionProperty (baseOffset + start, offset - start, propRef);
 		}
 
 		static ExpressionNode ParsePropertyStaticFunction (int start, string buffer, ref int offset, int endOffset, int baseOffset, out bool hasError)
@@ -596,13 +608,18 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			if (offset + 2 > endOffset || buffer [offset] != ']' || buffer [offset+1] != ':' || buffer [offset+2] != ':') {
+				bool eofCausedError = offset + 2 > endOffset
+					&& (offset > endOffset || buffer[offset] == ']')
+					&& (offset+1 > endOffset || buffer[offset+1] == ':')
+					&& (offset+2 > endOffset || buffer[offset+2] == ':');
+
 				return new IncompleteExpressionError (
 					baseOffset + offset,
-					offset + 2 > endOffset,
+					eofCausedError,
 					ExpressionErrorKind.ExpectingBracketColonColon,
 					new ExpressionPropertyFunctionInvocation (baseOffset + start, offset - start, classRef, null, null),
 					out hasError
-				);
+				); ;
 			}
 			offset += 3;
 
@@ -770,7 +787,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						ExpressionNode node = ch == '$'
 							? ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError)
 							: ParseMetadata (buffer, ref offset, endOffset, baseOffset, out hasError);
-						offset++;
 						return node;
 					}
 				} else {
@@ -802,19 +818,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				char ch = buffer [offset];
 				if (ch == terminator) {
 					offset++;
-					//FIXME wrap this in something that represents the quotes?
-					return Parse (buffer, start + 1, offset - 2, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError);
+					var subExpr = Parse (buffer, start + 1, offset - 2, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError);
+					return new QuotedExpression (start + baseOffset, offset - start, terminator, subExpr);
 				}
 				offset++;
 			}
 
-			hasError = true;
-			var expr = Parse (buffer, start + 1, endOffset, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError);
-			if (expr is ExpressionError) {
-				return expr;
-			}
-
-			return new IncompleteExpressionError (baseOffset + offset, true, ExpressionErrorKind.IncompleteString, expr, out hasError);
+			return new IncompleteExpressionError (
+				baseOffset + offset,
+				true,
+				ExpressionErrorKind.IncompleteString,
+				new QuotedExpression (
+					start + baseOffset,
+					offset - start,
+					terminator, Parse (buffer, start + 1, endOffset, ExpressionOptions.ItemsAndMetadata, baseOffset, out _)),
+				out hasError);
 		}
 
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset, out bool hasError)
@@ -825,7 +843,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			string name = ReadName (buffer, ref offset, endOffset);
 			if (name == null) {
-				hasError = true;
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataOrItemName, out hasError);
 			}
 
@@ -833,6 +850,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			if (offset <= endOffset && buffer [offset] == ')') {
 				hasError = false;
+				offset++;
 				return new ExpressionMetadata (baseOffset + start, offset - start, null, name);
 			}
 
@@ -868,7 +886,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 
 			hasError = false;
-			return new ExpressionMetadata (baseOffset + start, offset - start + 1, name, metadataName);
+			offset++;
+			return new ExpressionMetadata (baseOffset + start, offset - start, name, metadataName);
 		}
 	}
 }

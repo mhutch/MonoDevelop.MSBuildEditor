@@ -44,6 +44,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		Text,
 		Property,
 		ConditionOperator,
-		ConditionFunction
+		ConditionFunction,
+		QuotedExpression
 	}
 }

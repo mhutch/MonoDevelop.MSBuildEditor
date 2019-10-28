@@ -104,6 +104,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 				}
 				break;
+			case QuotedExpression quotedExpr:
+				if (quotedExpr.Expression != null) {
+					foreach (var n in quotedExpr.Expression.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
 			}
 		}
 
@@ -207,6 +214,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 				if (condFunc.Arguments != null && condFunc.Arguments.ContainsOffset (offset)) {
 					return condFunc.Arguments.FindInternal (offset);
+				}
+				break;
+			case QuotedExpression quotedExpr:
+				if (quotedExpr.Expression != null && quotedExpr.Expression.ContainsOffset (offset)) {
+					return quotedExpr.Expression.FindInternal (offset);
 				}
 				break;
 			}

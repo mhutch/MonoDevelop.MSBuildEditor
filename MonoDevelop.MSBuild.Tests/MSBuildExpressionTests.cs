@@ -219,7 +219,7 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"abc;$(Foo)cde;@(baritem);stuff",
 				 new ListExpression (
-					0, 30,
+					0, 30, ';',
 					new ExpressionText (0, "abc", true),
 					new ConcatExpression (
 						4, 9,
@@ -256,7 +256,7 @@ namespace MonoDevelop.MSBuild.Tests
 					new ExpressionItemTransform (
 						2, 17,
 						new ExpressionItemName (2, "Foo"),
-						new ExpressionMetadata (8, 10, "Bar", "Baz"),
+						new QuotedExpression (7, 12, '\'', new ExpressionMetadata (8, 10, "Bar", "Baz")),
 						null
 					)
 				),
@@ -274,8 +274,8 @@ namespace MonoDevelop.MSBuild.Tests
 					new ExpressionItemTransform (
 						2, 25,
 						new ExpressionItemName (2, "Foo"),
-						new ExpressionMetadata (8, 10, "Bar", "Baz"),
-						new ExpressionProperty (22, 4, new ExpressionPropertyName (24, 1, "x"))
+						new QuotedExpression (7, 12, '\'', new ExpressionMetadata (8, 10, "Bar", "Baz")),
+						new QuotedExpression (21, 6, '\'', new ExpressionProperty (22, 4, new ExpressionPropertyName (24, 1, "x")))
 					)
 				),
 				ExpressionOptions.Items
@@ -288,7 +288,7 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"&quot;;d&foo;bar",
 				new ListExpression (
-					0, 16,
+					0, 16, ';',
 					new ExpressionText (0, "&quot;", true),
 					new ExpressionText (7, "d&foo;bar", true)
 				),
@@ -302,6 +302,10 @@ namespace MonoDevelop.MSBuild.Tests
 			for (int i = 0; i < expectedArgs.Count; i++) {
 				var expected = expectedArgs[i];
 				var actual = actualArgs.Arguments[i];
+
+				if (actual is QuotedExpression quotedExpr) {
+					actual = quotedExpr.Expression;
+				}
 
 				void AssertLiteral<T> (T expectedLit)
 					=> Assert.AreEqual (expectedLit, AssertCast<ExpressionArgumentLiteral<T>> (actual).Value);
@@ -467,7 +471,7 @@ namespace MonoDevelop.MSBuild.Tests
 						new ExpressionFunctionName (15, "Baz"),
 						new ExpressionArgumentList (18, 8, new List<ExpressionNode> {
 							new ExpressionArgumentInt (19, 1, 1),
-							new ExpressionText (22, "hi", true)
+							new QuotedExpression (21, 4, '\'', new ExpressionText (22, "hi", true))
 						})
 					)
 				),
@@ -491,7 +495,7 @@ namespace MonoDevelop.MSBuild.Tests
 								10, 6,
 								new ExpressionPropertyName (12, 3, "Baz")
 							),
-							new ExpressionText (19, "thing", true)
+							new QuotedExpression (18, 7, '\'', new ExpressionText (19, "thing", true))
 						})
 					)
 				),
@@ -616,6 +620,11 @@ namespace MonoDevelop.MSBuild.Tests
 				var expectedConditionFunction = (ExpressionConditionFunction)expected;
 				AssertEqual (expectedConditionFunction.Name, actualConditionFunction.Name, expectedOffset);
 				AssertEqual (expectedConditionFunction.Arguments, actualConditionFunction.Arguments, expectedOffset);
+				break;
+			case QuotedExpression actualQuotedExpr:
+				var expectedQuotedExpr = (QuotedExpression)expected;
+				Assert.AreEqual (expectedQuotedExpr.QuoteChar, actualQuotedExpr.QuoteChar);
+				AssertEqual (expectedQuotedExpr.Expression, actualQuotedExpr.Expression, expectedOffset);
 				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");

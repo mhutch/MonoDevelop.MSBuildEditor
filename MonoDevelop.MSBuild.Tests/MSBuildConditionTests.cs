@@ -26,8 +26,8 @@ namespace MonoDevelop.MSBuild.Tests
 								new ExpressionFunctionName (21, "WithMetadataValue"),
 								new ExpressionArgumentList (38, 10,
 									new List<ExpressionNode> {
-										new ExpressionText (40, "A", true),
-										new ExpressionText (45, "B", true)
+										new QuotedExpression ('\'', new ExpressionText (40, "A", true)),
+										new QuotedExpression ('\'', new ExpressionText (45, "B", true))
 									}
 								)
 							),
@@ -73,7 +73,7 @@ namespace MonoDevelop.MSBuild.Tests
 							20, 30, "HasTrailingSlash",
 							new ExpressionArgumentList (
 								37, 13,
-								new ExpressionProperty (39, 9, "foobar")
+								new QuotedExpression ('\'', new ExpressionProperty (39, 9, "foobar"))
 							)
 						),
 						null
@@ -90,7 +90,7 @@ namespace MonoDevelop.MSBuild.Tests
 				new ExpressionConditionOperator (
 					0, 10, ExpressionOperatorKind.Equal,
 					new ExpressionProperty (0, 6, new ExpressionPropertyName (2, 3, "foo")),
-					new ExpressionText (9, "", true)
+					new QuotedExpression ('\'', new ExpressionText (9, "", true))
 				)
 			);
 		}

@@ -11,9 +11,12 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public IReadOnlyList<ExpressionNode> Nodes { get; }
 
-		public ListExpression (int offset, int length, params ExpressionNode[] nodes) : base (offset, length)
+		public char Separator { get; }
+
+		public ListExpression (int offset, int length, char separator, params ExpressionNode[] nodes) : base (offset, length)
 		{
 			Nodes = nodes;
+			Separator = separator;
 
 			foreach (var n in nodes) {
 				n.SetParent (this);
