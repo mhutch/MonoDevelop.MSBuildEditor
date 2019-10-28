@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public override string Title => $"Change to {newName}";
 
-		protected override Task<IEnumerable<MSBuildActionOperation>> ComputeOperationsAsync (CancellationToken cancellationToken)
+		public override Task<IEnumerable<MSBuildActionOperation>> ComputeOperationsAsync (CancellationToken cancellationToken)
 		{
 			return Task.FromResult<IEnumerable<MSBuildActionOperation>> (
 				new MSBuildActionOperation[] {

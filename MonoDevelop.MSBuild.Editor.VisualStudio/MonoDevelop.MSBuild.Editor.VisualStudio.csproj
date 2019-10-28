@@ -47,6 +47,9 @@
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\PackageFeedRegistryProvider.cs">
       <Link>PackageFeedRegistryProvider.cs</Link>
     </Compile>
+    <Compile Include="Analysis\MSBuildSuggestedAction.cs" />
+    <Compile Include="Analysis\MSBuildSuggestedActionSource.cs" />
+    <Compile Include="Analysis\MSBuildSuggestedActionsSourceProvider.cs" />
     <Compile Include="RoslynFindReferences\DependencyObjectExtensions.cs" />
     <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />
     <Compile Include="MSBuildLanguageService.cs" />
@@ -123,6 +126,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- only import these if they exist as they come from NuGet and won't exist before a restore -->
   <PropertyGroup>

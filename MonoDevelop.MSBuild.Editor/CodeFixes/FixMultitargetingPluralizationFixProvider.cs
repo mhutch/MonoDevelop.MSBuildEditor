@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Analyzers;
@@ -10,6 +11,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
+	[Export (typeof (MSBuildFixProvider))]
 	class FixMultitargetingPluralizationFixProvider : MSBuildFixProvider
 	{
 		public override ImmutableArray<string> FixableDiagnosticIds { get; }
@@ -28,7 +30,7 @@ namespace MonoDevelop.MSBuild.Analysis
 				}
 
 				var prop = context.XDocument.FindAtOffset (diag.Span.Start) as XElement;
-				if (prop == null) {
+				if (prop == null || prop.ClosingTag == null || prop.IsSelfClosing) {
 					//FIXME log error?
 					continue;
 				}

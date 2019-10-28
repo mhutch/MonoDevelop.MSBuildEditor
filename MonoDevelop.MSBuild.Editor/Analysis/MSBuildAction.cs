@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -11,9 +11,9 @@ namespace MonoDevelop.MSBuild.Analysis
 	{
 		public abstract string Title { get; }
 
-		protected abstract Task<IEnumerable<MSBuildActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken);
+		public abstract Task<IEnumerable<MSBuildActionOperation>> ComputeOperationsAsync (CancellationToken cancellationToken);
 
-		protected virtual Task<IEnumerable<MSBuildActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+		public virtual Task<IEnumerable<MSBuildActionOperation>> ComputePreviewOperationsAsync (CancellationToken cancellationToken)
 		{
 			return ComputeOperationsAsync (cancellationToken);
 		}

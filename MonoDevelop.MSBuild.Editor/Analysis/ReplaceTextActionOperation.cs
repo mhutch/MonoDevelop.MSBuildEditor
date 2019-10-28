@@ -21,8 +21,9 @@ namespace MonoDevelop.MSBuild.Analysis
 		public override void Apply (ITextBuffer document, CancellationToken cancellationToken)
 		{
 			using (var edit = document.CreateEdit ()) {
-				//edit.Replace 
-				throw new System.NotImplementedException ();
+				foreach (var replacement in replacements)
+					edit.Replace (new SnapshotSpan (edit.Snapshot, replacement.span.Start, replacement.span.Length), replacement.newText);
+				edit.Apply ();
 			}
 		}
 	}
