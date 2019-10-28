@@ -435,7 +435,6 @@ namespace MonoDevelop.MSBuild.Tests
 			char typedChar;
 
 			//next arg can be typed char or a trigger reason
-			//this would make a nice switch expression w/c#8
 			if (args[1] is TriggerReason r) {
 				reason = r;
 				typedChar = '\0';
