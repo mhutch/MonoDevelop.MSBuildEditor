@@ -385,19 +385,55 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (kind == MSBuildValueKind.Condition && expression is ExpressionConditionOperator op && (op.OperatorKind == ExpressionOperatorKind.Equal || op.OperatorKind == ExpressionOperatorKind.NotEqual)) {
-				if (op.Left is ExpressionProperty prop && prop.IsSimpleProperty && op.Right is ExpressionText txt) {
-					CollectComparisonProperty (prop, txt);
+			if (kind == MSBuildValueKind.Condition) {
+				CollectComparisonProperties (expression);
+			}
+		}
+
+		void CollectComparisonProperties (ExpressionNode expression)
+		{
+			if (!(expression is ExpressionConditionOperator op
+				&& (op.OperatorKind == ExpressionOperatorKind.Equal || op.OperatorKind == ExpressionOperatorKind.NotEqual)
+				&& op.Right is QuotedExpression quot
+				&& quot.Expression is ExpressionText txt
+				)
+			) {
+				return;
+			}
+
+			var left = op.Left;
+			if (left is QuotedExpression qtCat) {
+				left = qtCat.Expression;
+			}
+
+			// '$(Configuration)'=='Debug')
+			if (left is ExpressionProperty prop && prop.IsSimpleProperty) {
+				CollectComparisonProperty (prop, txt.Value);
+				return;
+			}
+
+			// '$(Configuration)|$(Platform)'=='Debug|AnyCPU')
+			if (
+				left is ConcatExpression concat
+				&& concat.Nodes.Count == 3
+				&& concat.Nodes[1] is ExpressionText t && t.Value == "|"
+				&& concat.Nodes[0] is ExpressionProperty p1 && p1.IsSimpleProperty
+				&& concat.Nodes[2] is ExpressionProperty p2 && p2.IsSimpleProperty
+			) {
+				var s = txt.Value.Split ('|');
+				if (s.Length == 2) {
+					CollectComparisonProperty (p1, s[0]);
+					CollectComparisonProperty (p2, s[1]);
 				}
 			}
 		}
 
-		void CollectComparisonProperty (ExpressionProperty prop, ExpressionText txt)
+		void CollectComparisonProperty (ExpressionProperty prop, string value)
 		{
 			if (string.Equals (prop.Name, "Configuration", StringComparison.OrdinalIgnoreCase)) {
-				Document.Configurations.Add (txt.Value);
+				Document.Configurations.Add (value);
 			} else if (string.Equals (prop.Name, "Platform", StringComparison.OrdinalIgnoreCase)) {
-				Document.Platforms.Add (txt.Value);
+				Document.Platforms.Add (value);
 			}
 		}
 	}
