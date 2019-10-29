@@ -417,6 +417,7 @@
     "FallbackCulture": "",
     "FileAlignment": {
       "description": "Override the boundary on which the compiler aligns sections of the output assembly",
+      "default":  "512",
       "type": [ "512", "1024", "2048", "4096", "8192" ]
     },
     "FileUpgradeFlags": "",
