@@ -10,9 +10,9 @@ namespace MonoDevelop.MSBuild.Schema
 
 	static class Builtins
 	{
-		public static Dictionary<string, MetadataInfo> Metadata { get; } = new Dictionary<string, MetadataInfo> ();
-		public static Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> ();
-		public static Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> ();
+		public static Dictionary<string, MetadataInfo> Metadata { get; } = new Dictionary<string, MetadataInfo> (StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 
 		static void AddMetadata (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, bool notReserved = false)
 		{
