@@ -26,31 +26,55 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		static ExpressionNode ParseCondition (string buffer, ref int offset, int endOffset, int baseOffset, out bool hasError)
 		{
 			ConsumeSpace (buffer, ref offset, endOffset);
-			int start = offset;
 
 			ExpressionNode left = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
 			if (hasError) {
 				return left;
 			}
 
-			ConsumeSpace (buffer, ref offset, endOffset);
-			if (offset >= endOffset) {
-				return left;
-			}
+			ExpressionOperatorKind? pendingBoolOp = null;
+			ExpressionNode pendingBoolExpr = null;
 
 			while (offset < endOffset && !hasError) {
-				ExpressionNode right;
-				var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
-				if (opError != null) {
-					right = opError;
-				} else {
-					ConsumeSpace (buffer, ref offset, endOffset);
-					right = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
+				ConsumeSpace (buffer, ref offset, endOffset);
+				if (offset >= endOffset) {
+					break;
 				}
 
-				left = new ExpressionConditionOperator (baseOffset + start, offset - start, op, left, right);
+				ExpressionNode operand;
+				var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
+				if (opError != null) {
+					operand = opError;
+				} else {
+					ConsumeSpace (buffer, ref offset, endOffset);
+					operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
+					if (hasError) {
+						break;
+					}
+				}
+
+				if (op == ExpressionOperatorKind.Or || op == ExpressionOperatorKind.And) {
+					if (pendingBoolOp != null) {
+						pendingBoolExpr = new ExpressionConditionOperator (pendingBoolOp, pendingBoolExpr, left);
+					} else {
+						pendingBoolExpr = left;
+					}
+					pendingBoolOp = op;
+					left = operand;
+					continue;
+				} else {
+					left = new ExpressionConditionOperator (op, left, operand);
+					if (pendingBoolOp != null) {
+						left = new ExpressionConditionOperator (pendingBoolOp, pendingBoolExpr, left);
+						pendingBoolOp = null;
+					}
+				}
 
 				ConsumeSpace (buffer, ref offset, endOffset);
+			}
+
+			if (pendingBoolOp != null) {
+				left = new ExpressionConditionOperator (pendingBoolOp, pendingBoolExpr, left);
 			}
 
 			return left;
@@ -174,13 +198,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			else if (ch == '!') {
 				offset++;
 				var operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
-				return new ExpressionConditionOperator (baseOffset + start, offset - start, ExpressionOperatorKind.Not, operand, null);
+				return ExpressionConditionOperator.Not (baseOffset + start, operand);
 			}
 			else if (char.IsLetter (ch)) {
 				var name = TryReadAlphaName (buffer, ref offset, endOffset);
 				if (bool.TryParse (name, out bool boolVal)) {
 					hasError = false;
-					return new ExpressionArgumentBool (baseOffset + start, name.Length, boolVal);
+					return new ExpressionArgumentBool (baseOffset + start, boolVal);
 				} else {
 					var funcName = new ExpressionFunctionName (baseOffset + start, name);
 

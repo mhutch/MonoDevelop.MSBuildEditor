@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuild.Tests
         {
             var condition = @"@(AssemblyAttribute->WithMetadataValue('A', 'B')->Count()) == 0";
 			TestParse (condition,
-				new ExpressionConditionOperator (0, 63,
+				new ExpressionConditionOperator (
 					ExpressionOperatorKind.Equal,
 					new ExpressionItem (0, 58,
 						new ExpressionItemFunctionInvocation (
@@ -45,21 +45,36 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"true and false or !true and !false",
-				new ExpressionConditionOperator (0, 34, ExpressionOperatorKind.And,
-					new ExpressionConditionOperator (0, 23, ExpressionOperatorKind.Or,
-						new ExpressionConditionOperator (0, 14, ExpressionOperatorKind.And,
-							new ExpressionArgumentBool (0, 4, true),
-							new ExpressionArgumentBool (9, 5, false)
+				new ExpressionConditionOperator (ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+						new ExpressionConditionOperator (ExpressionOperatorKind.And,
+							new ExpressionArgumentBool (0, true),
+							new ExpressionArgumentBool (9, false)
 						),
-						new ExpressionConditionOperator (18, 5, ExpressionOperatorKind.Not,
-							new ExpressionArgumentBool (19, 4, true),
-							null
+						ExpressionConditionOperator.Not (18, new ExpressionArgumentBool (19, true))
+					),
+					ExpressionConditionOperator.Not (28, new ExpressionArgumentBool (29, false))
+				)
+			);
+		}
+
+		[Test]
+		public void TestCompareAndCompareBoolean ()
+		{
+			TestParse (
+				"$(foo)!='honk' and '$(bar)' >= '' or true",
+				new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+					new ExpressionConditionOperator (ExpressionOperatorKind.And,
+						new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
+							new ExpressionProperty (0, 6, "foo"),
+							new QuotedExpression ('\'', new ExpressionText (9, "honk", true))
+						),
+						new ExpressionConditionOperator (ExpressionOperatorKind.GreaterThanOrEqual,
+							new QuotedExpression ('\'', new ExpressionProperty (20, 6, "bar")),
+							new QuotedExpression ('\'', new ExpressionText (32, "", true))
 						)
 					),
-					new ExpressionConditionOperator (28, 6, ExpressionOperatorKind.Not,
-						new ExpressionArgumentBool (29, 5, false),
-						null
-					)
+					new ExpressionArgumentBool (37, true)
 				)
 			);
 		}
@@ -70,27 +85,26 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				"true and ((false or $(foo)=='bar') and !('$(baz)'==5)) and 'thing' != 'other thing'",
-				new ExpressionConditionOperator (0, 81, ExpressionOperatorKind.And,
-					new ExpressionConditionOperator (0, 54, ExpressionOperatorKind.And,
-						new ExpressionArgumentBool (0, 4, true),
-						new ExpressionConditionOperator (9, 45, ExpressionOperatorKind.And,
-							new ExpressionConditionOperator (10, 24, ExpressionOperatorKind.Or,
-								new ExpressionArgumentBool (11, 5, false),
-								new ExpressionConditionOperator (20, 13, ExpressionOperatorKind.Equal,
+				new ExpressionConditionOperator (ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (ExpressionOperatorKind.And,
+						new ExpressionArgumentBool (0, true),
+						new ExpressionConditionOperator (ExpressionOperatorKind.And,
+							new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+								new ExpressionArgumentBool (11, false),
+								new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
 									new ExpressionProperty (20, 6, "foo"),
 									new QuotedExpression ('\'', new ExpressionText (3, "bar", true))
 								)
 							),
-							new ExpressionConditionOperator (39, 14, ExpressionOperatorKind.Not,
-								new ExpressionConditionOperator (40, 13, ExpressionOperatorKind.And,
+							ExpressionConditionOperator.Not (40,
+								new ExpressionConditionOperator (ExpressionOperatorKind.And,
 									new QuotedExpression ('\'', new ExpressionProperty (42, 6, "baz")),
 									new ExpressionArgumentInt (9, 1, 5)
-								),
-								null
+								)
 							)
 						)
 					),
-					new ExpressionConditionOperator (59, 24, ExpressionOperatorKind.NotEqual,
+					new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
 						new QuotedExpression ('\'', new ExpressionText (60, "thing", true)),
 						new QuotedExpression ('\'', new ExpressionText (71, "other thing", true))
 					)
@@ -103,11 +117,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			TestParse (
 				" !false ",
-				new ExpressionConditionOperator (
-					1, 6, ExpressionOperatorKind.Not,
-					new ExpressionArgumentBool (2, 5, false),
-					null
-				)
+				ExpressionConditionOperator.Not (1, new ExpressionArgumentBool (2, false))
 			);
 		}
 
@@ -117,7 +127,7 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"Exists($(foo)) And !HasTrailingSlash ('$(foobar)')",
 				new ExpressionConditionOperator (
-					0, 50, ExpressionOperatorKind.And,
+					ExpressionOperatorKind.And,
 					new ExpressionConditionFunction (
 						0, 14, "Exists",
 						new ExpressionArgumentList (
@@ -125,16 +135,15 @@ namespace MonoDevelop.MSBuild.Tests
 							new ExpressionProperty (7, 6, "foo")
 						)
 					),
-					new ExpressionConditionOperator (
-						19, 31, ExpressionOperatorKind.Not,
+					ExpressionConditionOperator.Not (
+						19,
 						new ExpressionConditionFunction (
 							20, 30, "HasTrailingSlash",
 							new ExpressionArgumentList (
 								37, 13,
 								new QuotedExpression ('\'', new ExpressionProperty (39, 9, "foobar"))
 							)
-						),
-						null
+						)
 					)
 				)
 			);
@@ -146,7 +155,7 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"$(foo)==''",
 				new ExpressionConditionOperator (
-					0, 10, ExpressionOperatorKind.Equal,
+					ExpressionOperatorKind.Equal,
 					new ExpressionProperty (0, 6, new ExpressionPropertyName (2, 3, "foo")),
 					new QuotedExpression ('\'', new ExpressionText (9, "", true))
 				)

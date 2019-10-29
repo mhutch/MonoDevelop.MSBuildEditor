@@ -797,7 +797,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				var crNode = ReadClassReference (buffer, ref offset, endOffset, baseOffset, out hasError);
 				if (crNode is ExpressionClassReference classRef && bool.TryParse (classRef.Name, out bool boolVal)) {
 					hasError = false;
-					return new ExpressionArgumentBool (classRef.Offset, classRef.Length, boolVal);
+					return new ExpressionArgumentBool (classRef.Offset, boolVal);
 				}
 				return crNode;
 			}

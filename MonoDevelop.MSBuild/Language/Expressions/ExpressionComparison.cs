@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
@@ -15,9 +14,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ConditionOperator;
 
-		public ExpressionConditionOperator (int offset, int length, ExpressionOperatorKind? comparisonKind, ExpressionNode left, ExpressionNode right)
-			: base (offset, length)
+		ExpressionConditionOperator (int offset, ExpressionNode operand)
+			: base (offset, operand.Length + (operand.Offset - offset))
 		{
+			OperatorKind = ExpressionOperatorKind.Not;
+			Left = operand;
+			operand?.SetParent (this);
+		}
+
+		public static ExpressionConditionOperator Not (int offset, ExpressionNode operand)
+			=> new ExpressionConditionOperator (offset, operand);
+
+		public ExpressionConditionOperator (ExpressionOperatorKind? comparisonKind, ExpressionNode left, ExpressionNode right)
+			: base (left.Offset, right != null? (right.Offset + right.Length - left.Offset) : left.Length)
+		{
+			Debug.Assert (comparisonKind != ExpressionOperatorKind.Not);
 			OperatorKind = comparisonKind;
 			Left = left;
 			left?.SetParent (this);

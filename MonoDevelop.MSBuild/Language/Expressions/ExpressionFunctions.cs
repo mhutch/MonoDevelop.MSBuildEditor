@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	class ExpressionArgumentBool : ExpressionArgumentLiteral<bool>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
-		public ExpressionArgumentBool (int offset, int length, bool value) : base (offset, length, value) { }
+		public ExpressionArgumentBool (int offset, bool value) : base (offset, value? 4 : 5, value) { }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
 	}
