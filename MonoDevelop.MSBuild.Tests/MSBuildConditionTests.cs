@@ -41,6 +41,40 @@ namespace MonoDevelop.MSBuild.Tests
         }
 
 		[Test]
+		[Ignore("not yet implemented")]
+		public void TestComplexBoolean ()
+		{
+			TestParse (
+				"true and ((false or $(foo)=='bar') and !('$(baz)'==5)) and 'thing' != 'other thing'",
+				new ExpressionConditionOperator (0, 81, ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (0, 54, ExpressionOperatorKind.And,
+						new ExpressionArgumentBool (0, 4, true),
+						new ExpressionConditionOperator (9, 45, ExpressionOperatorKind.And,
+							new ExpressionConditionOperator (10, 24, ExpressionOperatorKind.Or,
+								new ExpressionArgumentBool (11, 5, false),
+								new ExpressionConditionOperator (20, 13, ExpressionOperatorKind.Equal,
+									new ExpressionProperty (20, 6, "foo"),
+									new QuotedExpression ('\'', new ExpressionText (3, "bar", true))
+								)
+							),
+							new ExpressionConditionOperator (39, 14, ExpressionOperatorKind.Not,
+								new ExpressionConditionOperator (40, 13, ExpressionOperatorKind.And,
+									new QuotedExpression ('\'', new ExpressionProperty (42, 6, "baz")),
+									new ExpressionArgumentInt (9, 1, 5)
+								),
+								null
+							)
+						)
+					),
+					new ExpressionConditionOperator (59, 24, ExpressionOperatorKind.NotEqual,
+						new QuotedExpression ('\'', new ExpressionText (60, "thing", true)),
+						new QuotedExpression ('\'', new ExpressionText (71, "other thing", true))
+					)
+				)
+			);
+		}
+
+		[Test]
 		public void TestNotBool ()
 		{
 			TestParse (
