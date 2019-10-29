@@ -14,7 +14,7 @@ using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	class ExpressionCompletion
+	class ExpressionCompletionTests
 	{
 		// params are: document text, typedChar, trigger result, length
 		//    typedChar and length can be omitted and default to \0 and zero
