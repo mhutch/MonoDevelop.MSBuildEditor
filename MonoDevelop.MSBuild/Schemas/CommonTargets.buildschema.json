@@ -365,7 +365,8 @@
         "none": "No debug information",
         "pdbonly": "Emit Windows-only PDB debug symbols",
         "portable": "Emit portable PDB debug symbols",
-        "full": "Emit Windows-only PDB debug symbols"
+        "full": "Emit Windows-only PDB debug symbols",
+        "embedded": "Embed portable debug symbols in the assembly"
       }
     },
     "DefaultClientScript": "",
