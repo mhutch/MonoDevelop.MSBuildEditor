@@ -371,8 +371,10 @@ namespace MonoDevelop.MSBuild.Language
 			ValueInfo info, string value, int offset)
 		{
 			if (!IsTargetsFile && !IsPropsFile) {
-				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value)) {
-					Document.Diagnostics.Add (CoreDiagnostics.HasDefaultValue, new TextSpan (offset, value.Length), DescriptionFormatter.GetKindNoun (info), info.Name, info.DefaultValue);
+				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
+						DescriptionFormatter.GetKindNoun (info), info.Name, info.DefaultValue);
 				}
 			}
 
