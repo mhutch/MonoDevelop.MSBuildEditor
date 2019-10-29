@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -108,5 +109,35 @@ namespace MonoDevelop.MSBuild.Schema
 				new TaskParameterInfo ("UseResultsCache", "Whether to use existing cached target outputs", true, false, MSBuildValueKind.Bool)
 			));
 		}
+
+		public static Dictionary<string, FunctionInfo> ConditionFunctions { get; }
+			= new Dictionary<string, FunctionInfo> (StringComparer.OrdinalIgnoreCase) {
+				{
+					"Exists",
+					new FunctionInfo (
+						"Exists",
+						"Checks whether the specified file or folder exists",
+						MSBuildValueKind.Bool,
+						new FunctionParameterInfo (
+							"path",
+							"File or folder path to check",
+							MSBuildValueKind.FileOrFolder
+						)
+					)
+				},
+				{
+					"HasTrailingSlash",
+					new FunctionInfo (
+						"HasTrailingSlash",
+						"Checks whether a string has a trailing forward or backward slash character",
+						MSBuildValueKind.Bool,
+						new FunctionParameterInfo (
+							"value",
+							"The string to check",
+							MSBuildValueKind.String
+						)
+					)
+				}
+			};
 	}
 }

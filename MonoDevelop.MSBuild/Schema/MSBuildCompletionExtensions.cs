@@ -132,7 +132,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		public static IReadOnlyList<BaseInfo> GetValueCompletions (
+		public static IEnumerable<BaseInfo> GetValueCompletions (
 			MSBuildValueKind kind,
 			MSBuildRootDocument doc,
 			MSBuildResolveResult rr = null,
@@ -168,6 +168,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return doc.GetConfigurations ().Select (c => new ValueKindValue (c, "", MSBuildValueKind.Configuration)).ToList ();
 			case MSBuildValueKind.Platform:
 				return doc.GetPlatforms ().Select (c => new ValueKindValue (c, "", MSBuildValueKind.Platform)).ToList ();
+			case MSBuildValueKind.Condition:
+				return Builtins.ConditionFunctions.Values;
 			}
 
 			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, rr);
