@@ -18,4 +18,12 @@ namespace MonoDevelop.MSBuild.Analysis
 			return ComputeOperationsAsync (cancellationToken);
 		}
 	}
+
+	abstract class SimpleMSBuildAction : MSBuildAction
+	{
+		public sealed override Task<IEnumerable<MSBuildActionOperation>> ComputeOperationsAsync (CancellationToken cancellationToken)
+			=> Task.FromResult<IEnumerable<MSBuildActionOperation>> (new MSBuildActionOperation[] { CreateOperation () });
+
+		protected abstract MSBuildActionOperation CreateOperation ();
+	}
 }

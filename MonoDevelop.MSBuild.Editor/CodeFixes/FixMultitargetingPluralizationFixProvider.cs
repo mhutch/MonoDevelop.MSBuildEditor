@@ -25,10 +25,6 @@ namespace MonoDevelop.MSBuild.Analysis
 		public override Task RegisterCodeFixesAsync (MSBuildFixContext context)
 		{
 			foreach (var diag in context.Diagnostics) {
-				if (!FixableDiagnosticIds.Contains (diag.Descriptor.Id)) {
-					continue;
-				}
-
 				var prop = context.XDocument.FindAtOffset (diag.Span.Start) as XElement;
 				if (prop == null || prop.ClosingTag == null || prop.IsSelfClosing) {
 					//FIXME log error?
@@ -48,6 +44,23 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 
 			return Task.CompletedTask;
+		}
+
+		class ChangePropertyNameAction : SimpleMSBuildAction
+		{
+			readonly XElement prop;
+			readonly string newName;
+
+			public ChangePropertyNameAction (XElement prop, string newName)
+			{
+				this.prop = prop;
+				this.newName = newName;
+			}
+
+			public override string Title => $"Change '{prop.Name}' to '{newName}'";
+
+			protected override MSBuildActionOperation CreateOperation ()
+				=> new EditTextActionOperation ().RenameElement (prop, newName);
 		}
 	}
 }
