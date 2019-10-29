@@ -38,8 +38,18 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public ExpressionNode IncompleteNode { get; }
 
+		public IncompleteExpressionError (bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode, out bool hasError)
+			: this (incompleteNode.Offset, incompleteNode.Length, wasEOF, kind, incompleteNode, out hasError)
+		{
+		}
+
 		public IncompleteExpressionError (int offset, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode, out bool hasError)
-			: base (incompleteNode.Offset, wasEOF, kind, Math.Max (incompleteNode.Length, offset - incompleteNode.Offset), out hasError)
+			: this (incompleteNode.Offset, Math.Max (incompleteNode.Length, offset - incompleteNode.Offset), wasEOF, kind, incompleteNode, out hasError)
+		{
+		}
+
+		IncompleteExpressionError (int offset, int length, bool wasEOF, ExpressionErrorKind kind, ExpressionNode incompleteNode, out bool hasError)
+			: base (offset, wasEOF, kind, length, out hasError)
 		{
 			IncompleteNode = incompleteNode;
 			incompleteNode.SetParent (this);

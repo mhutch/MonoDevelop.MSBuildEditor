@@ -66,11 +66,11 @@ namespace MonoDevelop.MSBuild.Tests
 				new ExpressionConditionOperator (ExpressionOperatorKind.Or,
 					new ExpressionConditionOperator (ExpressionOperatorKind.And,
 						new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
-							new ExpressionProperty (0, 6, "foo"),
+							new ExpressionProperty (0, "foo"),
 							new QuotedExpression ('\'', new ExpressionText (9, "honk", true))
 						),
 						new ExpressionConditionOperator (ExpressionOperatorKind.GreaterThanOrEqual,
-							new QuotedExpression ('\'', new ExpressionProperty (20, 6, "bar")),
+							new QuotedExpression ('\'', new ExpressionProperty (20, "bar")),
 							new QuotedExpression ('\'', new ExpressionText (32, "", true))
 						)
 					),
@@ -132,7 +132,7 @@ namespace MonoDevelop.MSBuild.Tests
 						0, 14, "Exists",
 						new ExpressionArgumentList (
 							6, 8,
-							new ExpressionProperty (7, 6, "foo")
+							new ExpressionProperty (7, "foo")
 						)
 					),
 					ExpressionConditionOperator.Not (
@@ -141,7 +141,7 @@ namespace MonoDevelop.MSBuild.Tests
 							20, 30, "HasTrailingSlash",
 							new ExpressionArgumentList (
 								37, 13,
-								new QuotedExpression ('\'', new ExpressionProperty (39, 9, "foobar"))
+								new QuotedExpression ('\'', new ExpressionProperty (39, "foobar"))
 							)
 						)
 					)
@@ -156,7 +156,7 @@ namespace MonoDevelop.MSBuild.Tests
 				"$(foo)==''",
 				new ExpressionConditionOperator (
 					ExpressionOperatorKind.Equal,
-					new ExpressionProperty (0, 6, new ExpressionPropertyName (2, 3, "foo")),
+					new ExpressionProperty (0, 6, new ExpressionPropertyName (2, "foo")),
 					new QuotedExpression ('\'', new ExpressionText (9, "", true))
 				)
 			);

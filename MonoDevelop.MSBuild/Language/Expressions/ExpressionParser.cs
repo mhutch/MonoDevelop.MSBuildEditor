@@ -406,7 +406,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						break;
 					}
 					hasError = false;
-					return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
+					return new ExpressionClassReference (baseOffset + start, sb.ToString ());
 
 				case ClassRefParseState.ExpectingComponent:
 					if (char.IsLetter (ch) || ch == '_') {
@@ -431,7 +431,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						break;
 					}
 					hasError = false;
-					return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
+					return new ExpressionClassReference (baseOffset + start, sb.ToString ());
 				}
 				offset++;
 			}
@@ -441,13 +441,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return new ExpressionError (offset, true, ExpressionErrorKind.ExpectingClassName, out hasError);
 			case ClassRefParseState.ExpectingComponent:
 				return new IncompleteExpressionError (offset, true, ExpressionErrorKind.ExpectingClassNameComponent,
-					new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ()),
+					new ExpressionClassReference (baseOffset + start, sb.ToString ()),
 					out hasError
 				);
 			}
 
 			hasError = false;
-			return new ExpressionClassReference (baseOffset + start, lastCharOffset - start + 1, sb.ToString ());
+			return new ExpressionClassReference (baseOffset + start, sb.ToString ());
 		}
 
 		static void ConsumeSpace (string buffer, ref int offset, int endOffset)
@@ -529,7 +529,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingPropertyName, out hasError);
 				}
 
-				propRef = new ExpressionPropertyName (baseOffset + offset - name.Length, name.Length, name);
+				propRef = new ExpressionPropertyName (baseOffset + offset - name.Length, name);
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);

@@ -20,8 +20,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			expression.SetParent (this);
 		}
 
-		public ExpressionProperty(int offset, int length, string name)
-			: this (offset, length, new ExpressionPropertyName (offset + 2, name.Length, name))
+		public ExpressionProperty(int offset, string name)
+			: this (offset, name.Length + 3, new ExpressionPropertyName (offset + 2, name))
 		{
 		}
 

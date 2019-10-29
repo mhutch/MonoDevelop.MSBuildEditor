@@ -20,6 +20,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			expression.SetParent (this);
 		}
 
+		public ExpressionItem (int offset, string name)
+			: this (offset, name.Length + 3, new ExpressionItemName (offset + 2, name))
+		{
+		}
+
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.Item;
 	}
 }

@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public string Name { get; }
 
-		public ExpressionPropertyName (int offset, int length, string name) : base (offset, length)
+		public ExpressionPropertyName (int offset, string name) : base (offset, name.Length)
 		{
 			Name = name;
 		}
@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public string Name { get; }
 
-		public ExpressionClassReference (int offset, int length, string name) : base (offset, length)
+		public ExpressionClassReference (int offset, string name) : base (offset, name.Length)
 		{
 			Name = name;
 		}

@@ -204,9 +204,9 @@ namespace MonoDevelop.MSBuild.Tests
 				 new ConcatExpression (
 					0, 25,
 					new ExpressionText (0, "abc", false),
-					new ExpressionProperty (3, 6, "Foo"),
+					new ExpressionProperty (3, "Foo"),
 					new ExpressionText (9, "cde", false),
-					new ExpressionItem (12, 10, new ExpressionItemName (14, "baritem")),
+					new ExpressionItem (12, "baritem"),
 					new ExpressionText (22, "510", false)
 				),
 				ExpressionOptions.Items
@@ -223,10 +223,10 @@ namespace MonoDevelop.MSBuild.Tests
 					new ExpressionText (0, "abc", true),
 					new ConcatExpression (
 						4, 9,
-						new ExpressionProperty (4, 6, "Foo"),
+						new ExpressionProperty (4, "Foo"),
 						new ExpressionText (10, "cde", false)
 					),
-					new ExpressionItem (14, 10, new ExpressionItemName (16, "baritem")),
+					new ExpressionItem (14, "baritem"),
 					new ExpressionText (25, "stuff", true)
 				),
 				ExpressionOptions.ItemsAndLists
@@ -241,7 +241,7 @@ namespace MonoDevelop.MSBuild.Tests
 				 new ConcatExpression (
 					0, 10,
 					new ExpressionText (0, "abc;", false),
-					new ExpressionProperty (4, 6, "Foo")
+					new ExpressionProperty (4, "Foo")
 				)
 			);
 		}
@@ -275,7 +275,7 @@ namespace MonoDevelop.MSBuild.Tests
 						2, 25,
 						new ExpressionItemName (2, "Foo"),
 						new QuotedExpression (7, 12, '\'', new ExpressionMetadata (8, 10, "Bar", "Baz")),
-						new QuotedExpression (21, 6, '\'', new ExpressionProperty (22, 4, new ExpressionPropertyName (24, 1, "x")))
+						new QuotedExpression (21, 6, '\'', new ExpressionProperty (22, "x"))
 					)
 				),
 				ExpressionOptions.Items
@@ -459,7 +459,7 @@ namespace MonoDevelop.MSBuild.Tests
 							2, 12,
 							new ExpressionPropertyFunctionInvocation (
 								2, 9,
-								new ExpressionPropertyName (2, 3, "Foo"),
+								new ExpressionPropertyName (2, "Foo"),
 								new ExpressionFunctionName (6, "Bar"),
 								new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
 							),
@@ -488,12 +488,12 @@ namespace MonoDevelop.MSBuild.Tests
 					0, 27,
 					new ExpressionPropertyFunctionInvocation (
 						2, 24,
-						new ExpressionPropertyName (2, 3, "Foo"),
+						new ExpressionPropertyName (2, "Foo"),
 						new ExpressionFunctionName (6, "Bar"),
 						new ExpressionArgumentList (9, 17, new List<ExpressionNode> {
 							new ExpressionProperty (
 								10, 6,
-								new ExpressionPropertyName (12, 3, "Baz")
+								new ExpressionPropertyName (12, "Baz")
 							),
 							new QuotedExpression (18, 7, '\'', new ExpressionText (19, "thing", true))
 						})
