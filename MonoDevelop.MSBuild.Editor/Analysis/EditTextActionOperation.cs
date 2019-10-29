@@ -73,5 +73,22 @@ namespace MonoDevelop.MSBuild.Analysis
 		public EditTextActionOperation RenameElement (XElement element, string newName)
 			=> Replace (element.NameSpan, newName)
 				.Replace (element.ClosingTag.Span.Start + 2, element.Name.Length, newName);
+
+		public EditTextActionOperation RemoveElement (XElement element)
+			=> DeleteBetween (
+				element.FindPreviousNode () switch
+				{
+					XElement e => e.OuterSpan.End,
+					XObject o => o.Span.End,
+					_ => element.Span.Start
+				},
+				element.ClosingTag.Span.End
+			);
+
+		public EditTextActionOperation RemoveAttribute (XAttribute att)
+			=> DeleteBetween (
+				att.FindPreviousSibling ()?.Span.End ?? ((XElement)att.Parent).NameSpan.End,
+				att.Span.End
+			);
 	}
 }

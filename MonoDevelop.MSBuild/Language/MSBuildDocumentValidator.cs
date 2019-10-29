@@ -374,6 +374,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
+						ImmutableDictionary<string,object>.Empty.Add ("Info", info),
 						DescriptionFormatter.GetKindNoun (info), info.Name, info.DefaultValue);
 				}
 			}
