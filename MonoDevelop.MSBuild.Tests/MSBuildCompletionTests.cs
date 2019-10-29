@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Foo");
 		}
@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Bar");
 		}
@@ -130,7 +130,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+			result.AssertItemCount (6);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
@@ -145,7 +145,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+			result.AssertItemCount (6);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
@@ -160,9 +160,11 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Foo");
+			result.AssertContains ("Exists");
+			result.AssertContains ("HasTrailingSlash");
 		}
 
 		[Test]
@@ -174,7 +176,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+			result.AssertItemCount (5);
 
 			result.AssertContains ("Foo");
 		}
@@ -188,7 +190,7 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""'$(Platform)|$(Configuration)'=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+			result.AssertItemCount (6);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
