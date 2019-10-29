@@ -45,6 +45,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		Property,
 		ConditionOperator,
 		ConditionFunction,
-		QuotedExpression
+		QuotedExpression,
+		ParenGroup
 	}
 }

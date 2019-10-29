@@ -626,6 +626,10 @@ namespace MonoDevelop.MSBuild.Tests
 				Assert.AreEqual (expectedQuotedExpr.QuoteChar, actualQuotedExpr.QuoteChar);
 				AssertEqual (expectedQuotedExpr.Expression, actualQuotedExpr.Expression, expectedOffset);
 				break;
+			case ExpressionParenGroup parentGroup:
+				var expectedParentGroup = (ExpressionParenGroup)expected;
+				AssertEqual (expectedParentGroup.Expression, parentGroup.Expression, expectedOffset);
+				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
 			}

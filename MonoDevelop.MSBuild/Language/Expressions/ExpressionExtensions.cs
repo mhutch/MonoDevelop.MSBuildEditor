@@ -104,9 +104,40 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 				}
 				break;
+			case ExpressionConditionOperator cond:
+				if (cond.Left != null) {
+					foreach (var n in cond.Left.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (cond.Right != null) {
+					foreach (var n in cond.Right.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionConditionFunction condFunc:
+				if (condFunc.Name != null) {
+					foreach (var n in condFunc.Name.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (condFunc.Arguments != null) {
+					foreach (var n in condFunc.Arguments.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
 			case QuotedExpression quotedExpr:
 				if (quotedExpr.Expression != null) {
 					foreach (var n in quotedExpr.Expression.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionParenGroup parenGroup:
+				if (parenGroup.Expression != null) {
+					foreach (var n in parenGroup.Expression.WithAllDescendants ()) {
 						yield return n;
 					}
 				}
@@ -219,6 +250,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case QuotedExpression quotedExpr:
 				if (quotedExpr.Expression != null && quotedExpr.Expression.ContainsOffset (offset)) {
 					return quotedExpr.Expression.FindInternal (offset);
+				}
+				break;
+			case ExpressionParenGroup parenGroup:
+				if (parenGroup.Expression != null && parenGroup.Expression.ContainsOffset (offset)) {
+					return parenGroup.Expression.FindInternal (offset);
 				}
 				break;
 			}

@@ -70,4 +70,17 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			arguments?.SetParent (this);
 		}
 	}
+
+	class ExpressionParenGroup : ExpressionNode
+	{
+		public ExpressionParenGroup (int offset, int length, ExpressionNode expression) : base (offset, length)
+		{
+			Expression = expression;
+			Expression.SetParent (this);
+		}
+
+		public ExpressionNode Expression { get; }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ParenGroup;
+	}
 }

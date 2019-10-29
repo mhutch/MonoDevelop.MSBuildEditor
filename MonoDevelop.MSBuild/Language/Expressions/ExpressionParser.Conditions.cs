@@ -41,6 +41,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					break;
 				}
 
+				if (buffer[offset] == ')') {
+					break;
+				}
+
 				ExpressionNode operand;
 				var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
 				if (opError != null) {
@@ -172,6 +176,25 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			if (ch == '"' || ch == '\'' || ch == '`') {
 				return ReadArgumentString (ch, buffer, ref offset, endOffset, baseOffset, out hasError);
+			}
+
+			if (ch == '(') {
+				int parenStart = offset;
+				offset++;
+				var op = ParseCondition (buffer, ref offset, endOffset, baseOffset, out hasError);
+				if (hasError) {
+					return new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op);
+				}
+				if (buffer[offset] != ')' || offset >= endOffset) {
+					return new IncompleteExpressionError (
+						offset >= endOffset,
+						ExpressionErrorKind.ExpectingRightParen,
+						new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op),
+						out hasError
+					);
+				}
+				offset++;
+				return new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op);
 			}
 
 			bool wasEOF = false;

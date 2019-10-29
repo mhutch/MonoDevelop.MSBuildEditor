@@ -80,33 +80,46 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
-		[Ignore("not yet implemented")]
-		public void TestComplexBoolean ()
+		public void TestParenGrouping ()
 		{
 			TestParse (
-				"true and ((false or $(foo)=='bar') and !('$(baz)'==5)) and 'thing' != 'other thing'",
+				"true and ((false or $(foo)=='bar') and !('$(baz.Length)'==5)) and 'thing' != 'other thing'",
 				new ExpressionConditionOperator (ExpressionOperatorKind.And,
 					new ExpressionConditionOperator (ExpressionOperatorKind.And,
 						new ExpressionArgumentBool (0, true),
-						new ExpressionConditionOperator (ExpressionOperatorKind.And,
-							new ExpressionConditionOperator (ExpressionOperatorKind.Or,
-								new ExpressionArgumentBool (11, false),
-								new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
-									new ExpressionProperty (20, 6, "foo"),
-									new QuotedExpression ('\'', new ExpressionText (3, "bar", true))
-								)
-							),
-							ExpressionConditionOperator.Not (40,
-								new ExpressionConditionOperator (ExpressionOperatorKind.And,
-									new QuotedExpression ('\'', new ExpressionProperty (42, 6, "baz")),
-									new ExpressionArgumentInt (9, 1, 5)
+						new ExpressionParenGroup (9, 52,
+							new ExpressionConditionOperator (ExpressionOperatorKind.And,
+								new ExpressionParenGroup (10, 24,
+									new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+										new ExpressionArgumentBool (11, false),
+										new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
+											new ExpressionProperty (20, "foo"),
+											new QuotedExpression ('\'', new ExpressionText (29, "bar", true))
+										)
+									)
+								),
+								ExpressionConditionOperator.Not (39,
+									new ExpressionParenGroup (40, 20,
+										new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
+											new QuotedExpression ('\'',
+												new ExpressionProperty (42, 13,
+													new ExpressionPropertyFunctionInvocation (44, 10,
+														new ExpressionPropertyName (44, "baz"),
+														new ExpressionFunctionName (48, "Length"),
+														null
+													)
+												)
+											),
+											new ExpressionArgumentInt (58, 1, 5)
+										)
+									)
 								)
 							)
 						)
 					),
 					new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
-						new QuotedExpression ('\'', new ExpressionText (60, "thing", true)),
-						new QuotedExpression ('\'', new ExpressionText (71, "other thing", true))
+						new QuotedExpression ('\'', new ExpressionText (67, "thing", true)),
+						new QuotedExpression ('\'', new ExpressionText (78, "other thing", true))
 					)
 				)
 			);
