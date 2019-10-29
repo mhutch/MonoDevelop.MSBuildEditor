@@ -48,9 +48,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				} else {
 					ConsumeSpace (buffer, ref offset, endOffset);
 					operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
-					if (hasError) {
-						break;
-					}
 				}
 
 				if (op == ExpressionOperatorKind.Or || op == ExpressionOperatorKind.And) {
@@ -69,8 +66,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 						pendingBoolOp = null;
 					}
 				}
-
-				ConsumeSpace (buffer, ref offset, endOffset);
 			}
 
 			if (pendingBoolOp != null) {
@@ -229,7 +224,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			//the token didn't start with any character we expected
 			//consume the character anyway so the completion trigger can use it
 			offset++;
-			hasError = true;
 			var expr = new ExpressionText (baseOffset + start, buffer.Substring (start, offset - start), true);
 			var kind = ExpressionErrorKind.ExpectingRightParenOrValue;
 			return new IncompleteExpressionError (baseOffset + start, wasEOF, kind, expr, out hasError);
