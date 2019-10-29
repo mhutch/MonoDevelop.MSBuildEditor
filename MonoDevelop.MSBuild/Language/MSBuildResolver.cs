@@ -220,18 +220,26 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionFunctionName name:
 					rr.ReferenceOffset = name.Offset;
 					rr.ReferenceLength = name.Name.Length;
-					if (name.Parent is ExpressionItemNode item) {
+					switch (name.Parent) {
+					case ExpressionItemNode _:
 						rr.ReferenceKind = MSBuildReferenceKind.ItemFunction;
 						rr.Reference = name.Name;
-					} else if (name.Parent is ExpressionPropertyFunctionInvocation prop) {
-						if (prop.Target is ExpressionClassReference classRef) {
-							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
-							rr.Reference = (classRef.Name, name.Name);
-						} else if (prop.Target is ExpressionPropertyNode propNode) {
-							var type = functionTypeProvider?.ResolveType (propNode) ?? MSBuildValueKind.Unknown;
-							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
-							rr.Reference = (type, name.Name);
+						break;
+					case ExpressionPropertyFunctionInvocation prop: {
+							if (prop.Target is ExpressionClassReference classRef) {
+								rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
+								rr.Reference = (classRef.Name, name.Name);
+							} else if (prop.Target is ExpressionPropertyNode propNode) {
+								var type = functionTypeProvider?.ResolveType (propNode) ?? MSBuildValueKind.Unknown;
+								rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
+								rr.Reference = (type, name.Name);
+							}
+							break;
 						}
+					case ExpressionConditionFunction _:
+						rr.ReferenceKind = MSBuildReferenceKind.ConditionFunction;
+						rr.Reference = name.Name;
+						break;
 					}
 					break;
 				case ExpressionClassReference cr:
@@ -405,6 +413,7 @@ namespace MonoDevelop.MSBuild.Language
 		PropertyFunction,
 		StaticPropertyFunction,
 		ClassName,
-		Enum
+		Enum,
+		ConditionFunction
 	}
 }

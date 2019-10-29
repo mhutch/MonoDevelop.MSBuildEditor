@@ -357,6 +357,11 @@ namespace MonoDevelop.MSBuild.Schema
 				return functionTypeProvider.GetClassInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.Enum:
 				return functionTypeProvider.GetEnumInfo ((string)rr.Reference);
+			case MSBuildReferenceKind.ConditionFunction:
+				if (Builtins.ConditionFunctions.TryGetValue ((string)rr.Reference, out var conditionFunctionName)) {
+					return conditionFunctionName;
+				}
+				return null;
 			}
 			return null;
 		}

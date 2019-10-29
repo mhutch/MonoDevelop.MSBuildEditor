@@ -64,7 +64,10 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
-			var expression = ExpressionParser.Parse (value, kind.GetExpressionOptions (), offset);
+			var expression =
+				info?.ValueKind == MSBuildValueKind.Condition
+					? ExpressionParser.ParseCondition (value, offset)
+					: ExpressionParser.Parse (value, kind.GetExpressionOptions (), offset);
 
 			VisitValueExpression (
 				element, attribute, resolvedElement, resolvedAttribute,
