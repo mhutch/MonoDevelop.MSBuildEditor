@@ -41,6 +41,30 @@ namespace MonoDevelop.MSBuild.Tests
         }
 
 		[Test]
+		public void TestChainedBoolean ()
+		{
+			TestParse (
+				"true and false or !true and !false",
+				new ExpressionConditionOperator (0, 34, ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (0, 23, ExpressionOperatorKind.Or,
+						new ExpressionConditionOperator (0, 14, ExpressionOperatorKind.And,
+							new ExpressionArgumentBool (0, 4, true),
+							new ExpressionArgumentBool (9, 5, false)
+						),
+						new ExpressionConditionOperator (18, 5, ExpressionOperatorKind.Not,
+							new ExpressionArgumentBool (19, 4, true),
+							null
+						)
+					),
+					new ExpressionConditionOperator (28, 6, ExpressionOperatorKind.Not,
+						new ExpressionArgumentBool (29, 5, false),
+						null
+					)
+				)
+			);
+		}
+
+		[Test]
 		[Ignore("not yet implemented")]
 		public void TestComplexBoolean ()
 		{

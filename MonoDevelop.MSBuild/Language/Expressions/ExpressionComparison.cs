@@ -56,7 +56,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			Name = name;
 			name?.SetParent (this);
 			Arguments = arguments;
-			arguments.SetParent (this);
+			arguments?.SetParent (this);
 		}
 	}
 }

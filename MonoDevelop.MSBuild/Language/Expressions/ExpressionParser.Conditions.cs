@@ -28,44 +28,32 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			ConsumeSpace (buffer, ref offset, endOffset);
 			int start = offset;
 
-			if (offset > endOffset) {
-				hasError = false;
-				return null;
-			}
-
-			char ch = buffer[offset];
-
-			if (ch == '!') {
-				offset++;
-				var operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
-				return new ExpressionConditionOperator (baseOffset + start, offset - start, ExpressionOperatorKind.Not, operand, null);
-			}
-
-			var left = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
-
+			ExpressionNode left = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
 			if (hasError) {
-				return new ExpressionConditionOperator (baseOffset + start, offset - start, null, left, null);
+				return left;
 			}
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 			if (offset >= endOffset) {
-				return new IncompleteExpressionError (
-					offset, true, ExpressionErrorKind.ExpectingValue,
-					new ExpressionConditionOperator (baseOffset + start, offset - start, null, left, null),
-					out hasError
-				);
+				return left;
 			}
 
-			ExpressionNode right;
-			var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
-			if (opError != null) {
-				right = opError;
-			} else {
+			while (offset < endOffset && !hasError) {
+				ExpressionNode right;
+				var op = ReadOperator (buffer, baseOffset, ref offset, endOffset, out var opError, out hasError);
+				if (opError != null) {
+					right = opError;
+				} else {
+					ConsumeSpace (buffer, ref offset, endOffset);
+					right = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
+				}
+
+				left = new ExpressionConditionOperator (baseOffset + start, offset - start, op, left, right);
+
 				ConsumeSpace (buffer, ref offset, endOffset);
-				right = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
 			}
 
-			return new ExpressionConditionOperator (baseOffset + start, offset - start, op, left, right);
+			return left;
 		}
 
 		static char? TryReadEntity (string buffer, ref int offset, int endOffset)
@@ -199,7 +187,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					ConsumeSpace (buffer, ref offset, endOffset);
 
 					if (offset > endOffset || buffer[offset] != '(') {
-						hasError = true;
 						return new IncompleteExpressionError (
 							baseOffset + offset,
 							offset > endOffset,
