@@ -1,43 +1,188 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.MiniEditor;
-
-using MonoDevelop.MSBuild.Editor;
-using MonoDevelop.MSBuild.Editor.Roslyn;
-using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Projects.MSBuild.Conditions;
-using MonoDevelop.Xml.Tests.Completion;
-using MonoDevelop.Xml.Tests.EditorTestHelpers;
+using MonoDevelop.MSBuild.Language.Expressions;
 
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
 {
-    [TestFixture]
-    public class MSBuildConditionTests : CompletionTestBase
+	[TestFixture]
+    public class MSBuildConditionTests
     {
-        [OneTimeSetUp]
-        public void LoadMSBuild() => MSBuildTestHelpers.RegisterMSBuildAssemblies();
-
-        protected override string ContentTypeName => MSBuildContentType.Name;
-
-        protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment() => MSBuildTestEnvironment.EnsureInitialized();
-
         [Test]
-        [Ignore("https://github.com/mhutch/MonoDevelop.MSBuildEditor/issues/23")]
         public void TestCondition1()
         {
             var condition = @"@(AssemblyAttribute->WithMetadataValue('A', 'B')->Count()) == 0";
-            var expression = ConditionParser.ParseCondition(condition);
+			TestParse (condition,
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new ExpressionItem (0, 58,
+						new ExpressionItemFunctionInvocation (
+							2, 55,
+							new ExpressionItemFunctionInvocation (2, 46,
+								new ExpressionItemName (2, "AssemblyAttribute"),
+								new ExpressionFunctionName (21, "WithMetadataValue"),
+								new ExpressionArgumentList (38, 10,
+									new List<ExpressionNode> {
+										new QuotedExpression ('\'', new ExpressionText (40, "A", true)),
+										new QuotedExpression ('\'', new ExpressionText (45, "B", true))
+									}
+								)
+							),
+							new ExpressionFunctionName (50, "Count"),
+							new ExpressionArgumentList (55, 2, new List<ExpressionNode> ())
+						)
+					),
+					new ExpressionArgumentInt (62, 1, 0)
+				)
+			);
         }
-    }
+
+		[Test]
+		public void TestChainedBoolean ()
+		{
+			TestParse (
+				"true and false or !true and !false",
+				new ExpressionConditionOperator (ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+						new ExpressionConditionOperator (ExpressionOperatorKind.And,
+							new ExpressionArgumentBool (0, true),
+							new ExpressionArgumentBool (9, false)
+						),
+						ExpressionConditionOperator.Not (18, new ExpressionArgumentBool (19, true))
+					),
+					ExpressionConditionOperator.Not (28, new ExpressionArgumentBool (29, false))
+				)
+			);
+		}
+
+		[Test]
+		public void TestCompareAndCompareBoolean ()
+		{
+			TestParse (
+				"$(foo)!='honk' and '$(bar)' >= '' or true",
+				new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+					new ExpressionConditionOperator (ExpressionOperatorKind.And,
+						new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
+							new ExpressionProperty (0, "foo"),
+							new QuotedExpression ('\'', new ExpressionText (9, "honk", true))
+						),
+						new ExpressionConditionOperator (ExpressionOperatorKind.GreaterThanOrEqual,
+							new QuotedExpression ('\'', new ExpressionProperty (20, "bar")),
+							new QuotedExpression ('\'', new ExpressionText (32, "", true))
+						)
+					),
+					new ExpressionArgumentBool (37, true)
+				)
+			);
+		}
+
+		[Test]
+		public void TestParenGrouping ()
+		{
+			TestParse (
+				"true and ((false or $(foo)=='bar') and !('$(baz.Length)'==5)) and 'thing' != 'other thing'",
+				new ExpressionConditionOperator (ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (ExpressionOperatorKind.And,
+						new ExpressionArgumentBool (0, true),
+						new ExpressionParenGroup (9, 52,
+							new ExpressionConditionOperator (ExpressionOperatorKind.And,
+								new ExpressionParenGroup (10, 24,
+									new ExpressionConditionOperator (ExpressionOperatorKind.Or,
+										new ExpressionArgumentBool (11, false),
+										new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
+											new ExpressionProperty (20, "foo"),
+											new QuotedExpression ('\'', new ExpressionText (29, "bar", true))
+										)
+									)
+								),
+								ExpressionConditionOperator.Not (39,
+									new ExpressionParenGroup (40, 20,
+										new ExpressionConditionOperator (ExpressionOperatorKind.Equal,
+											new QuotedExpression ('\'',
+												new ExpressionProperty (42, 13,
+													new ExpressionPropertyFunctionInvocation (44, 10,
+														new ExpressionPropertyName (44, "baz"),
+														new ExpressionFunctionName (48, "Length"),
+														null
+													)
+												)
+											),
+											new ExpressionArgumentInt (58, 1, 5)
+										)
+									)
+								)
+							)
+						)
+					),
+					new ExpressionConditionOperator (ExpressionOperatorKind.NotEqual,
+						new QuotedExpression ('\'', new ExpressionText (67, "thing", true)),
+						new QuotedExpression ('\'', new ExpressionText (78, "other thing", true))
+					)
+				)
+			);
+		}
+
+		[Test]
+		public void TestNotBool ()
+		{
+			TestParse (
+				" !false ",
+				ExpressionConditionOperator.Not (1, new ExpressionArgumentBool (2, false))
+			);
+		}
+
+		[Test]
+		public void TestFunctions ()
+		{
+			TestParse (
+				"Exists($(foo)) And !HasTrailingSlash ('$(foobar)')",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.And,
+					new ExpressionConditionFunction (
+						0, 14, "Exists",
+						new ExpressionArgumentList (
+							6, 8,
+							new ExpressionProperty (7, "foo")
+						)
+					),
+					ExpressionConditionOperator.Not (
+						19,
+						new ExpressionConditionFunction (
+							20, 30, "HasTrailingSlash",
+							new ExpressionArgumentList (
+								37, 13,
+								new QuotedExpression ('\'', new ExpressionProperty (39, "foobar"))
+							)
+						)
+					)
+				)
+			);
+		}
+
+		[Test]
+		public void TestPropertyEqualsEmptyString ()
+		{
+			TestParse (
+				"$(foo)==''",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new ExpressionProperty (0, 6, new ExpressionPropertyName (2, "foo")),
+					new QuotedExpression ('\'', new ExpressionText (9, "", true))
+				)
+			);
+		}
+
+		static void TestParse (string expression, ExpressionNode expected)
+		{
+			var expr = ExpressionParser.ParseCondition (expression, 0);
+			MSBuildExpressionTests.AssertEqual (expected, expr, 0);
+
+			const int baseOffset = 123;
+			expr = ExpressionParser.ParseCondition (expression, baseOffset);
+			MSBuildExpressionTests.AssertEqual (expected, expr, baseOffset);
+		}
+	}
 }

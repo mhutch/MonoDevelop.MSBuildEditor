@@ -12,14 +12,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 	class ExpressionPropertyFunctionInvocation : ExpressionPropertyNode
 	{
-		public ExpressionPropertyNode Target { get; }
+		public ExpressionNode Target { get; }
 		public ExpressionFunctionName Function { get; }
-		public ExpressionArgumentList Arguments;
+		public ExpressionNode Arguments;
 
 		public bool IsProperty => Function != null && Arguments == null;
 		public bool IsIndexer => Function == null && Arguments != null;
 
-		public ExpressionPropertyFunctionInvocation (int offset, int length, ExpressionPropertyNode target, ExpressionFunctionName function, ExpressionArgumentList arguments)
+		public ExpressionPropertyFunctionInvocation (int offset, int length, ExpressionNode target, ExpressionFunctionName function, ExpressionNode arguments)
 			: base (offset, length)
 		{
 			Target = target;
@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public string Name { get; }
 
-		public ExpressionPropertyName (int offset, int length, string name) : base (offset, length)
+		public ExpressionPropertyName (int offset, string name) : base (offset, name.Length)
 		{
 			Name = name;
 		}
@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public string Name { get; }
 
-		public ExpressionClassReference (int offset, int length, string name) : base (offset, length)
+		public ExpressionClassReference (int offset, string name) : base (offset, name.Length)
 		{
 			Name = name;
 		}

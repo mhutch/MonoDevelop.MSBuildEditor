@@ -96,14 +96,16 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				triggerExpression = expression.Nodes.Last ();
 			}
 
-			var incomplete = (triggerExpression as IncompleteExpressionError)?.IncompleteNode;
-			incomplete = incomplete?.Find (incomplete.End);
-
-			if (incomplete is ExpressionFunctionName pn) {
-				incomplete = pn.Parent;
+			var last = triggerExpression.Find (triggerExpression.End);
+			if (last == null) {
+				return null;
 			}
 
-			if (!(incomplete is ExpressionPropertyFunctionInvocation node)) {
+			if (last is ExpressionFunctionName pn) {
+				last = pn.Parent;
+			}
+
+			if (!(last is ExpressionPropertyFunctionInvocation node)) {
 				return null;
 			}
 
@@ -118,8 +120,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 
 			//function completion
-			if (node.Target is ExpressionPropertyName || node.Target is ExpressionPropertyFunctionInvocation) {
-				var type = ResolveType (node.Target);
+			if (node.Target is ExpressionPropertyNode epn && (epn is ExpressionPropertyName || epn is ExpressionPropertyFunctionInvocation)) {
+				var type = ResolveType (epn);
 				return CollapseOverloads (GetInstanceFunctions (type, true, false));
 			}
 
@@ -132,14 +134,14 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return MSBuildValueKind.Unknown;
 			}
 
-			if (node is ExpressionPropertyFunctionInvocation inv) {
-				if (inv.Target is ExpressionClassReference classRef) {
+			if (node is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionPropertyNode epn) {
+				if (epn is ExpressionClassReference classRef) {
 					var info = GetStaticPropertyFunctionInfo (classRef.Name, inv.Function.Name);
 					return info.ReturnType;
 				}
 
 				//FIXME: maybe this could pass the types along directly instead of constantly converting
-				var targetType = ResolveType (inv.Target);
+				var targetType = ResolveType (epn);
 
 				//FIXME: overload resolution
 				var match = Find (GetInstanceFunctions (targetType, true, true), inv.Function?.Name);

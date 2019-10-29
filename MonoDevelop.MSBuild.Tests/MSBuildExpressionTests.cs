@@ -120,12 +120,11 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(foo->'x', ", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("@(foo->'x', '", ExpressionErrorKind.IncompleteString)]
 		[TestCase ("@(foo->'x', ''", ExpressionErrorKind.ExpectingRightParen)]
-		public void TestSimpleError (string expression, ExpressionErrorKind error)
+		public void TestSimpleError (string expression, ExpressionErrorKind kind)
 		{
 			//the huge baseOffset can expose parser bugs
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata, 1000);
-			var err = AssertCast<ExpressionError> (expr);
-			Assert.AreEqual (error, err.Kind);
+			AssertSingleErrorKind (expr, kind);
 		}
 
 		[TestCase ("$")]
@@ -148,16 +147,14 @@ namespace MonoDevelop.MSBuild.Tests
 		public void TestMetadataDisallowed ()
 		{
 			var expr = ExpressionParser.Parse ("%(Foo)", ExpressionOptions.None);
-			var err = AssertCast<ExpressionError> (expr);
-			Assert.AreEqual (err.Kind, ExpressionErrorKind.MetadataDisallowed);
+			AssertSingleErrorKind (expr, ExpressionErrorKind.MetadataDisallowed);
 		}
 
 		[Test]
 		public void TestItemsDisallowed ()
 		{
 			var expr = ExpressionParser.Parse ("@(Foo)", ExpressionOptions.None);
-			var err = AssertCast<ExpressionError> (expr);
-			Assert.AreEqual (err.Kind, ExpressionErrorKind.ItemsDisallowed);
+			AssertSingleErrorKind (expr, ExpressionErrorKind.ItemsDisallowed);
 		}
 
 		[TestCase ("@(Foo)", "Foo")]
@@ -207,9 +204,9 @@ namespace MonoDevelop.MSBuild.Tests
 				 new ConcatExpression (
 					0, 25,
 					new ExpressionText (0, "abc", false),
-					new ExpressionProperty (3, 6, "Foo"),
+					new ExpressionProperty (3, "Foo"),
 					new ExpressionText (9, "cde", false),
-					new ExpressionItem (12, 10, "baritem"),
+					new ExpressionItem (12, "baritem"),
 					new ExpressionText (22, "510", false)
 				),
 				ExpressionOptions.Items
@@ -222,14 +219,14 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"abc;$(Foo)cde;@(baritem);stuff",
 				 new ListExpression (
-					0, 30,
+					0, 30, ';',
 					new ExpressionText (0, "abc", true),
 					new ConcatExpression (
 						4, 9,
-						new ExpressionProperty (4, 6, "Foo"),
+						new ExpressionProperty (4, "Foo"),
 						new ExpressionText (10, "cde", false)
 					),
-					new ExpressionItem (14, 10, "baritem"),
+					new ExpressionItem (14, "baritem"),
 					new ExpressionText (25, "stuff", true)
 				),
 				ExpressionOptions.ItemsAndLists
@@ -244,7 +241,7 @@ namespace MonoDevelop.MSBuild.Tests
 				 new ConcatExpression (
 					0, 10,
 					new ExpressionText (0, "abc;", false),
-					new ExpressionProperty (4, 6, "Foo")
+					new ExpressionProperty (4, "Foo")
 				)
 			);
 		}
@@ -258,8 +255,8 @@ namespace MonoDevelop.MSBuild.Tests
 					0, 20,
 					new ExpressionItemTransform (
 						2, 17,
-						new ExpressionItemName (2, 3, "Foo"),
-						new ExpressionMetadata (8, 10, "Bar", "Baz"),
+						new ExpressionItemName (2, "Foo"),
+						new QuotedExpression (7, 12, '\'', new ExpressionMetadata (8, 10, "Bar", "Baz")),
 						null
 					)
 				),
@@ -276,9 +273,9 @@ namespace MonoDevelop.MSBuild.Tests
 					0, 28,
 					new ExpressionItemTransform (
 						2, 25,
-						new ExpressionItemName (2, 3, "Foo"),
-						new ExpressionMetadata (8, 10, "Bar", "Baz"),
-						new ExpressionProperty (22, 4, new ExpressionPropertyName (24, 1, "x"))
+						new ExpressionItemName (2, "Foo"),
+						new QuotedExpression (7, 12, '\'', new ExpressionMetadata (8, 10, "Bar", "Baz")),
+						new QuotedExpression (21, 6, '\'', new ExpressionProperty (22, "x"))
 					)
 				),
 				ExpressionOptions.Items
@@ -291,7 +288,7 @@ namespace MonoDevelop.MSBuild.Tests
 			TestParse (
 				"&quot;;d&foo;bar",
 				new ListExpression (
-					0, 16,
+					0, 16, ';',
 					new ExpressionText (0, "&quot;", true),
 					new ExpressionText (7, "d&foo;bar", true)
 				),
@@ -305,6 +302,10 @@ namespace MonoDevelop.MSBuild.Tests
 			for (int i = 0; i < expectedArgs.Count; i++) {
 				var expected = expectedArgs[i];
 				var actual = actualArgs.Arguments[i];
+
+				if (actual is QuotedExpression quotedExpr) {
+					actual = quotedExpr.Expression;
+				}
 
 				void AssertLiteral<T> (T expectedLit)
 					=> Assert.AreEqual (expectedLit, AssertCast<ExpressionArgumentLiteral<T>> (actual).Value);
@@ -374,7 +375,8 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			CheckArgs (funcArgs, invocation.Arguments);
+			var argList = AssertCast<ExpressionArgumentList> (invocation.Arguments);
+			CheckArgs (funcArgs, argList);
 		}
 
 		[TestCase ("$([Foo]::Bar())", "Foo", "Bar")]
@@ -409,7 +411,8 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			CheckArgs (funcArgs, invocation.Arguments);
+			var argList = AssertCast<ExpressionArgumentList> (invocation.Arguments);
+			CheckArgs (funcArgs, argList);
 		}
 
 		[TestCase ("@(Foo->Bar())", "Foo", "Bar")]
@@ -439,7 +442,8 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (targetName, target.Name);
 			Assert.AreEqual (funcName, invocation.Function?.Name);
 
-			CheckArgs (funcArgs, invocation.Arguments);
+			var argList = AssertCast<ExpressionArgumentList> (invocation.Arguments);
+			CheckArgs (funcArgs, argList);
 		}
 
 		[Test]
@@ -455,7 +459,7 @@ namespace MonoDevelop.MSBuild.Tests
 							2, 12,
 							new ExpressionPropertyFunctionInvocation (
 								2, 9,
-								new ExpressionPropertyName (2, 3, "Foo"),
+								new ExpressionPropertyName (2, "Foo"),
 								new ExpressionFunctionName (6, "Bar"),
 								new ExpressionArgumentList (9, 2, new List<ExpressionNode> ())
 							),
@@ -467,7 +471,7 @@ namespace MonoDevelop.MSBuild.Tests
 						new ExpressionFunctionName (15, "Baz"),
 						new ExpressionArgumentList (18, 8, new List<ExpressionNode> {
 							new ExpressionArgumentInt (19, 1, 1),
-							new ExpressionText (22, "hi", true)
+							new QuotedExpression (21, 4, '\'', new ExpressionText (22, "hi", true))
 						})
 					)
 				),
@@ -484,14 +488,14 @@ namespace MonoDevelop.MSBuild.Tests
 					0, 27,
 					new ExpressionPropertyFunctionInvocation (
 						2, 24,
-						new ExpressionPropertyName (2, 3, "Foo"),
+						new ExpressionPropertyName (2, "Foo"),
 						new ExpressionFunctionName (6, "Bar"),
 						new ExpressionArgumentList (9, 17, new List<ExpressionNode> {
 							new ExpressionProperty (
 								10, 6,
-								new ExpressionPropertyName (12, 3, "Baz")
+								new ExpressionPropertyName (12, "Baz")
 							),
-							new ExpressionText (19, "thing", true)
+							new QuotedExpression (18, 7, '\'', new ExpressionText (19, "thing", true))
 						})
 					)
 				),
@@ -523,7 +527,7 @@ namespace MonoDevelop.MSBuild.Tests
 			AssertEqual (expected, expr, baseOffset);
 		}
 
-		static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
+		internal static void AssertEqual (ExpressionNode expected, ExpressionNode actual, int expectedOffset)
 		{
 			if (expected == null) {
 				Assert.IsNull (actual);
@@ -606,6 +610,26 @@ namespace MonoDevelop.MSBuild.Tests
 				var expectedRegVal = (ExpressionPropertyRegistryValue)expected;
 				Assert.AreEqual (expectedRegVal.RegistryReference, regVal.RegistryReference);
 				break;
+			case ExpressionConditionOperator actualOperator:
+				var expectedOperator = (ExpressionConditionOperator)expected;
+				Assert.AreEqual (expectedOperator.OperatorKind, actualOperator.OperatorKind);
+				AssertEqual (expectedOperator.Left, actualOperator.Left, expectedOffset);
+				AssertEqual (expectedOperator.Right, actualOperator.Right, expectedOffset);
+				break;
+			case ExpressionConditionFunction actualConditionFunction:
+				var expectedConditionFunction = (ExpressionConditionFunction)expected;
+				AssertEqual (expectedConditionFunction.Name, actualConditionFunction.Name, expectedOffset);
+				AssertEqual (expectedConditionFunction.Arguments, actualConditionFunction.Arguments, expectedOffset);
+				break;
+			case QuotedExpression actualQuotedExpr:
+				var expectedQuotedExpr = (QuotedExpression)expected;
+				Assert.AreEqual (expectedQuotedExpr.QuoteChar, actualQuotedExpr.QuoteChar);
+				AssertEqual (expectedQuotedExpr.Expression, actualQuotedExpr.Expression, expectedOffset);
+				break;
+			case ExpressionParenGroup parentGroup:
+				var expectedParentGroup = (ExpressionParenGroup)expected;
+				AssertEqual (expectedParentGroup.Expression, parentGroup.Expression, expectedOffset);
+				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
 			}
@@ -626,6 +650,16 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 
 			return (T)o;
+		}
+
+		static void AssertSingleErrorKind (ExpressionNode n, ExpressionErrorKind kind)
+			=> Assert.AreEqual (kind, AssertSingleError<ExpressionError> (n).Kind);
+
+		static T AssertSingleError<T> (ExpressionNode n) where T : ExpressionError
+		{
+			var list = n.WithAllDescendants ().OfType<T> ().ToList ();
+			Assert.AreEqual (1, list.Count);
+			return list[0];
 		}
 	}
 }

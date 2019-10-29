@@ -7,7 +7,6 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Projects.MSBuild.Conditions;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -167,11 +166,6 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, string value, int offset)
 		{
 			var kind = resolvedAttribute.ValueKind;
-
-			//FIXME ExtractConfigurations should directly handle extracting references
-			if (kind == MSBuildValueKind.Condition) {
-				ExtractConfigurations (value, offset);
-			}
 
 			if (resolvedElement.SyntaxKind == MSBuildSyntaxKind.Item && element.NameEquals ("ProjectConfiguration", true)) {
 				if (attribute.NameEquals ("Configuration", true)) {
@@ -337,61 +331,110 @@ namespace MonoDevelop.MSBuild.Language
 			};
 		}
 
-		void ExtractConfigurations (string value, int startOffset)
-		{
-			try {
-				value = XmlEscaping.UnescapeEntities (value);
-				var cond = ConditionParser.ParseCondition (value);
-				cond.CollectConditionProperties (Document);
-			} catch (Exception ex) {
-				LoggingService.LogError ($"Error parsing MSBuild condition at {Filename ?? "[unnamed]"}:{startOffset}", ex);
-			}
-		}
-
 		void ExtractReferences (MSBuildValueKind kind, string value, int startOffset)
 		{
+			ExpressionNode expression;
+
+			//try-catch shouldn't be necessary, but it makes this more robust against bugs in the expression parser
 			try {
-				var expression = ExpressionParser.Parse (value, ExpressionOptions.ItemsMetadataAndLists, startOffset);
-				foreach (var node in expression.WithAllDescendants ()) {
-					switch (node) {
-					case ExpressionPropertyName prop:
-						CollectProperty (prop.Name);
-						break;
-					case ExpressionItemName item:
-						CollectItem (item.Name);
-						break;
-					case ExpressionMetadata meta:
-						var itemName = meta.GetItemName ();
-						if (itemName != null) {
-							CollectMetadata (itemName, meta.MetadataName);
-						}
-						break;
-					case ExpressionText literal:
-						if (literal.IsPure) {
-							value = literal.GetUnescapedValue ().Trim ();
-							switch (kind.GetScalarType ()) {
-							case MSBuildValueKind.ItemName:
-								CollectItem (value);
-								break;
-							case MSBuildValueKind.TargetName:
-								CollectTarget (value);
-								break;
-							case MSBuildValueKind.PropertyName:
-								CollectProperty (value);
-								break;
-							case MSBuildValueKind.Configuration:
-								Document.Configurations.Add (value);
-								break;
-							case MSBuildValueKind.Platform:
-								Document.Platforms.Add (value);
-								break;
-							}
-						}
-						break;
-					}
+				if (kind == MSBuildValueKind.Condition) {
+					expression = ExpressionParser.ParseCondition (value, startOffset);
+				} else {
+					expression = ExpressionParser.Parse (value, ExpressionOptions.ItemsMetadataAndLists, startOffset);
 				}
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error parsing MSBuild expression '{value}' in file {Filename ?? "[unnamed]"} at {startOffset}", ex);
+				return;
+			}
+
+			foreach (var node in expression.WithAllDescendants ()) {
+				switch (node) {
+				case ExpressionPropertyName prop:
+					CollectProperty (prop.Name);
+					break;
+				case ExpressionItemName item:
+					CollectItem (item.Name);
+					break;
+				case ExpressionMetadata meta:
+					var itemName = meta.GetItemName ();
+					if (itemName != null) {
+						CollectMetadata (itemName, meta.MetadataName);
+					}
+					break;
+				case ExpressionText literal:
+					if (literal.IsPure) {
+						value = literal.GetUnescapedValue ().Trim ();
+						switch (kind.GetScalarType ()) {
+						case MSBuildValueKind.ItemName:
+							CollectItem (value);
+							break;
+						case MSBuildValueKind.TargetName:
+							CollectTarget (value);
+							break;
+						case MSBuildValueKind.PropertyName:
+							CollectProperty (value);
+							break;
+						case MSBuildValueKind.Configuration:
+							Document.Configurations.Add (value);
+							break;
+						case MSBuildValueKind.Platform:
+							Document.Platforms.Add (value);
+							break;
+						}
+					}
+					break;
+				}
+			}
+
+			if (kind == MSBuildValueKind.Condition) {
+				CollectComparisonProperties (expression);
+			}
+		}
+
+		void CollectComparisonProperties (ExpressionNode expression)
+		{
+			if (!(expression is ExpressionConditionOperator op
+				&& (op.OperatorKind == ExpressionOperatorKind.Equal || op.OperatorKind == ExpressionOperatorKind.NotEqual)
+				&& op.Right is QuotedExpression quot
+				&& quot.Expression is ExpressionText txt
+				)
+			) {
+				return;
+			}
+
+			var left = op.Left;
+			if (left is QuotedExpression qtCat) {
+				left = qtCat.Expression;
+			}
+
+			// '$(Configuration)'=='Debug')
+			if (left is ExpressionProperty prop && prop.IsSimpleProperty) {
+				CollectComparisonProperty (prop, txt.Value);
+				return;
+			}
+
+			// '$(Configuration)|$(Platform)'=='Debug|AnyCPU')
+			if (
+				left is ConcatExpression concat
+				&& concat.Nodes.Count == 3
+				&& concat.Nodes[1] is ExpressionText t && t.Value == "|"
+				&& concat.Nodes[0] is ExpressionProperty p1 && p1.IsSimpleProperty
+				&& concat.Nodes[2] is ExpressionProperty p2 && p2.IsSimpleProperty
+			) {
+				var s = txt.Value.Split ('|');
+				if (s.Length == 2) {
+					CollectComparisonProperty (p1, s[0]);
+					CollectComparisonProperty (p2, s[1]);
+				}
+			}
+		}
+
+		void CollectComparisonProperty (ExpressionProperty prop, string value)
+		{
+			if (string.Equals (prop.Name, "Configuration", StringComparison.OrdinalIgnoreCase)) {
+				Document.Configurations.Add (value);
+			} else if (string.Equals (prop.Name, "Platform", StringComparison.OrdinalIgnoreCase)) {
+				Document.Platforms.Add (value);
 			}
 		}
 	}

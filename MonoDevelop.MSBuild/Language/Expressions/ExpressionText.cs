@@ -24,4 +24,24 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.Text;
 	}
+
+	class QuotedExpression : ExpressionNode
+	{
+		public QuotedExpression (char quoteChar, ExpressionNode expression) : this (expression.Offset - 1, expression.Length + 2, quoteChar, expression)
+		{
+		}
+
+		public QuotedExpression (int offset, int length, char quoteChar, ExpressionNode expression) : base (offset, length)
+		{
+			QuoteChar = quoteChar;
+			Expression = expression;
+			Expression.SetParent (this);
+		}
+
+		public char QuoteChar { get; }
+
+		public ExpressionNode Expression { get; }
+
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.QuotedExpression;
+	}
 }

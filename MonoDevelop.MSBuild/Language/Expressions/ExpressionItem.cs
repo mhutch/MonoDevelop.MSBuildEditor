@@ -8,20 +8,20 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	[DebuggerDisplay ("Item: {Name} (IsSimple: {IsSimpleItem})")]
 	class ExpressionItem : ExpressionNode
 	{
-		public ExpressionItemNode Expression { get; }
+		public ExpressionNode Expression { get; }
 
 		public bool IsSimpleItem => Expression is ExpressionItemName;
-		public string Name => Expression.ItemName;
-		public int? NameOffset => Expression.ItemNameOffset;
+		public string Name => (Expression as ExpressionItemNode)?.ItemName;
+		public int? NameOffset => (Expression as ExpressionItemNode)?.ItemNameOffset;
 
-		public ExpressionItem (int offset, int length, ExpressionItemNode expression) : base (offset, length)
+		public ExpressionItem (int offset, int length, ExpressionNode expression) : base (offset, length)
 		{
 			Expression = expression;
 			expression.SetParent (this);
 		}
 
-		public ExpressionItem (int offset, int length, string name)
-			: this (offset, length, new ExpressionItemName (offset + 2, name.Length, name))
+		public ExpressionItem (int offset, string name)
+			: this (offset, name.Length + 3, new ExpressionItemName (offset + 2, name))
 		{
 		}
 

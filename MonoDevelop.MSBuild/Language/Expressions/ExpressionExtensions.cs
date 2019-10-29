@@ -104,19 +104,54 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 				}
 				break;
+			case ExpressionConditionOperator cond:
+				if (cond.Left != null) {
+					foreach (var n in cond.Left.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (cond.Right != null) {
+					foreach (var n in cond.Right.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionConditionFunction condFunc:
+				if (condFunc.Name != null) {
+					foreach (var n in condFunc.Name.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				if (condFunc.Arguments != null) {
+					foreach (var n in condFunc.Arguments.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case QuotedExpression quotedExpr:
+				if (quotedExpr.Expression != null) {
+					foreach (var n in quotedExpr.Expression.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
+			case ExpressionParenGroup parenGroup:
+				if (parenGroup.Expression != null) {
+					foreach (var n in parenGroup.Expression.WithAllDescendants ()) {
+						yield return n;
+					}
+				}
+				break;
 			}
 		}
 
 		public static bool ContainsOffset (this ExpressionNode node, int offset)
 		{
-			return node.Offset <= offset && node.End >= offset;
+			return node.Offset <= offset && offset <= node.End;
 		}
 
 		public static ExpressionNode Find (this ExpressionNode node, int offset)
 		{
-			//HACK: the length of IncompleteExpressionError is not usable, so go directly to its child
-			node = (node as IncompleteExpressionError)?.IncompleteNode ?? node;
-
 			return node.ContainsOffset (offset) ? FindInternal (node, offset) : null;
 		}
 
@@ -161,7 +196,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case ExpressionArgumentList argumentList:
 				if (argumentList.Arguments != null) {
 					//TODO: binary search?
-					foreach (var c in argumentList.Arguments) {
+					for (int i = argumentList.Arguments.Count - 1; i >= 0; i--){
+						var c = argumentList.Arguments[i];
 						if (c.ContainsOffset (offset)) {
 							return c.FindInternal (offset);
 						}
@@ -188,6 +224,37 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 				if (transform.Separator != null && transform.Separator.ContainsOffset (offset)) {
 					return transform.Separator.FindInternal (offset);
+				}
+				break;
+			case ExpressionError error:
+				if (error.ContainsOffset (offset)) {
+					return error;
+				}
+				break;
+			case ExpressionConditionOperator cond:
+				if (cond.Left != null && cond.Left.ContainsOffset (offset)) {
+					return cond.Left.FindInternal (offset);
+				}
+				if (cond.Right != null && cond.Right.ContainsOffset (offset)) {
+					return cond.Right.FindInternal (offset);
+				}
+				break;
+			case ExpressionConditionFunction condFunc:
+				if (condFunc.Name != null && condFunc.Name.ContainsOffset (offset)) {
+					return condFunc.Name;
+				}
+				if (condFunc.Arguments != null && condFunc.Arguments.ContainsOffset (offset)) {
+					return condFunc.Arguments.FindInternal (offset);
+				}
+				break;
+			case QuotedExpression quotedExpr:
+				if (quotedExpr.Expression != null && quotedExpr.Expression.ContainsOffset (offset)) {
+					return quotedExpr.Expression.FindInternal (offset);
+				}
+				break;
+			case ExpressionParenGroup parenGroup:
+				if (parenGroup.Expression != null && parenGroup.Expression.ContainsOffset (offset)) {
+					return parenGroup.Expression.FindInternal (offset);
 				}
 				break;
 			}

@@ -10,6 +10,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public List<ExpressionNode> Arguments { get; }
 
+		public ExpressionArgumentList (int offset, int length, params ExpressionNode[] arguments)
+			: this (offset, length, new List<ExpressionNode> (arguments)) { }
+
 		public ExpressionArgumentList (int offset, int length, List<ExpressionNode> arguments) : base (offset, length)
 		{
 			Arguments = arguments;
@@ -52,7 +55,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	class ExpressionArgumentBool : ExpressionArgumentLiteral<bool>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
-		public ExpressionArgumentBool (int offset, int length, bool value) : base (offset, length, value) { }
+		public ExpressionArgumentBool (int offset, bool value) : base (offset, value? 4 : 5, value) { }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
 	}
@@ -75,7 +78,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 	class ExpressionArgumentString : ExpressionArgumentLiteral<string>
 	{
-		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
+		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.String;
 		public ExpressionArgumentString (int offset, int length, string value) : base (offset, length, value) { }
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralString;

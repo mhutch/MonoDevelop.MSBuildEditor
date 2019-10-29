@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	{
 		public string Name { get; }
 
-		public ExpressionItemName (int offset, int length, string name) : base (offset, length)
+		public ExpressionItemName (int offset, string name) : base (offset, name.Length)
 		{
 			Name = name;
 		}
@@ -30,15 +30,15 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 	class ExpressionItemFunctionInvocation : ExpressionItemNode
 	{
-		public ExpressionItemNode Target { get; }
+		public ExpressionNode Target { get; }
 		public ExpressionFunctionName Function { get; }
 
-		public override string ItemName => Target.ItemName;
-		public override int ItemNameOffset => Target.ItemNameOffset;
+		public override string ItemName => (Target as ExpressionItemNode)?.ItemName;
+		public override int ItemNameOffset => (Target as ExpressionItemNode).ItemNameOffset;
 
-		public ExpressionArgumentList Arguments;
+		public ExpressionNode Arguments { get; }
 
-		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionItemNode target, ExpressionFunctionName methodName, ExpressionArgumentList arguments)
+		public ExpressionItemFunctionInvocation (int offset, int length, ExpressionNode target, ExpressionFunctionName methodName, ExpressionNode arguments)
 			: base (offset, length)
 		{
 			Target = target;
@@ -54,14 +54,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 	class ExpressionItemTransform : ExpressionItemNode
 	{
-		public ExpressionItemNode Target { get; }
+		public ExpressionNode Target { get; }
 		public ExpressionNode Transform { get; }
 		public ExpressionNode Separator { get; }
 
-		public override string ItemName => Target.ItemName;
-		public override int ItemNameOffset => Target.ItemNameOffset;
+		public override string ItemName => (Target as ExpressionItemNode)?.ItemName;
+		public override int ItemNameOffset => (Target as ExpressionItemNode).ItemNameOffset;
 
-		public ExpressionItemTransform (int offset, int length, ExpressionItemNode target, ExpressionNode transform, ExpressionNode separator)
+		public ExpressionItemTransform (int offset, int length, ExpressionNode target, ExpressionNode transform, ExpressionNode separator)
 			: base (offset, length)
 		{
 			Target = target;

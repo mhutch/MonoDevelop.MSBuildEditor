@@ -14,7 +14,7 @@ using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	class ExpressionCompletion
+	class ExpressionCompletionTests
 	{
 		// params are: document text, typedChar, trigger result, length
 		//    typedChar and length can be omitted and default to \0 and zero
@@ -435,7 +435,6 @@ namespace MonoDevelop.MSBuild.Tests
 			char typedChar;
 
 			//next arg can be typed char or a trigger reason
-			//this would make a nice switch expression w/c#8
 			if (args[1] is TriggerReason r) {
 				reason = r;
 				typedChar = '\0';

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using MonoDevelop.MSBuild.Language.Conditions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Parser;
@@ -48,27 +47,29 @@ namespace MonoDevelop.MSBuild.Language
 			out IReadOnlyList<ExpressionNode> comparandVariables)
 		{
 			comparandVariables = null;
-			if (isCondition) {
-				listKind = ListKind.None;
-				return GetConditionTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out comparandVariables);
+
+			var state = GetTriggerState (expression, reason, typedChar, isCondition, out triggerLength, out triggerExpression, out var triggerNode, out listKind);
+
+			if (state != TriggerState.None && isCondition) {
+				comparandVariables = GetComparandVariables (triggerNode).ToList ();
 			}
-			return GetTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out listKind);
+
+			return state;
 		}
 
 		static TriggerState GetTriggerState (
-			string expression, TriggerReason reason, char typedChar,
-			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
+			string expression, TriggerReason reason, char typedChar, bool isCondition,
+			out int triggerLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode, out ListKind listKind)
 		{
 			triggerLength = 0;
 			listKind = ListKind.None;
 
-			var isExplicit = reason == TriggerReason.Invocation;
 			var isNewline = typedChar == '\n';
-			var isBackspace = reason == TriggerReason.Backspace;
 			var isTypedChar = reason == TriggerReason.TypedChar;
 
 			if (isTypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
+				triggerNode = null;
 				LoggingService.LogWarning ($"Expression text '{expression}' is not consistent with typed character '{typedChar}'");
 				return TriggerState.None;
 			}
@@ -76,27 +77,52 @@ namespace MonoDevelop.MSBuild.Language
 			if (expression.Length == 0) {
 				//automatically trigger at the start of an expression regardless
 				triggerExpression = new ExpressionText (0, expression, true);
+				triggerNode = triggerExpression;
 				return TriggerState.Value;
 			}
 
-			const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
-			triggerExpression = ExpressionParser.Parse (expression, options);
+			if (isCondition) {
+				triggerExpression = ExpressionParser.ParseCondition (expression);
+			} else {
+				const ExpressionOptions options = ExpressionOptions.ItemsMetadataAndLists | ExpressionOptions.CommaLists;
+				triggerExpression = ExpressionParser.Parse (expression, options);
+			}
+
+			return GetTriggerState (triggerExpression, reason, typedChar, out triggerLength, out triggerNode, out listKind);
+		}
+
+		static TriggerState GetTriggerState (
+			ExpressionNode triggerExpression, TriggerReason reason, char typedChar,
+			out int triggerLength, out ExpressionNode triggerNode, out ListKind listKind)
+		{
+			triggerLength = 0;
+			listKind = ListKind.None;
+
+			var isExplicit = reason == TriggerReason.Invocation;
+			var isBackspace = reason == TriggerReason.Backspace;
+			var isTypedChar = reason == TriggerReason.TypedChar;
 
 			if (triggerExpression is ListExpression el) {
 				//the last list entry is the thing that triggered it
 				triggerExpression = el.Nodes.Last ();
+				listKind = el.Separator == ',' ? ListKind.Comma : ListKind.Semicolon;
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
 					triggerLength = 0;
-					listKind = LastChar () == ',' ? ListKind.Comma : ListKind.Semicolon;
+					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
-				var separator = expression[triggerExpression.Offset - 1];
-				listKind = separator == ',' ? ListKind.Comma : ListKind.Semicolon;
 			}
 
 			if (triggerExpression is ExpressionText text) {
-				if (typedChar == '\\' || (!isTypedChar && LastChar () == '\\')) {
+				//automatically trigger at the start of an expression regardless
+				if (text.Length == 0) {
+					triggerNode = triggerExpression;
+					return TriggerState.Value;
+				}
+
+				if (typedChar == '\\' || (!isTypedChar && text.Value[text.Length-1] == '\\')) {
 					triggerLength = 0;
+					triggerNode = triggerExpression;
 					return TriggerState.DirectorySeparator;
 				}
 
@@ -113,12 +139,14 @@ namespace MonoDevelop.MSBuild.Language
 				var length = val.Length - leadingWhitespace;
 				if (length == 0) {
 					triggerLength = 0;
+					triggerNode = triggerExpression;
 					return isExplicit ? TriggerState.Value : TriggerState.None;
 				}
 
 				//auto trigger on first char
 				if (length == 1 && !isBackspace) {
 					triggerLength = 1;
+					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
 
@@ -126,24 +154,41 @@ namespace MonoDevelop.MSBuild.Language
 					var lastSlash = text.Value.LastIndexOf ('\\');
 					if (lastSlash != -1) {
 						triggerLength = text.Length - lastSlash - 1;
+					triggerNode = triggerExpression;
 						return TriggerState.DirectorySeparator;
 					}
 					triggerLength = length;
+					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
 
 				triggerLength = 0;
+				triggerNode = null;
 				return TriggerState.None;
 			}
 
 			//find the deepest node that touches the end
-			var lastNode = triggerExpression.Find (expression.Length);
-			if (lastNode == null) {
+			triggerNode = triggerExpression.Find (triggerExpression.End);
+			if (triggerNode == null) {
 				return TriggerState.None;
 			}
 
-			if (lastNode is ExpressionText lit) {
-				if (LastChar () == '\\') {
+			// if inside a quoted expression, scope down
+			if (triggerNode != triggerExpression) {
+				ExpressionNode p = triggerNode.Parent;
+				while (p != null && p != triggerExpression) {
+					if (p is QuotedExpression quotedExpr) {
+						return GetTriggerState (
+								quotedExpr.Expression, reason, typedChar,
+								out triggerLength, out triggerNode, out _);
+					}
+					p = p.Parent;
+				}
+			}
+
+			// path separator completion
+			if (triggerNode is ExpressionText lit) {
+				if (lit.Length > 0 && lit.Value[lit.Length - 1] == '\\') {
 					return TriggerState.DirectorySeparator;
 				}
 
@@ -157,29 +202,39 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				//eager trigger on first char after /
-				if (!isExplicit && PenultimateChar () == '\\' && IsPossiblePathSegmentStart (typedChar)) {
+				if (!isExplicit && lit.Length > 1 && lit.Value[lit.Value.Length-2] == '\\' && IsPossiblePathSegmentStart (typedChar)) {
 					triggerLength = 1;
 					return TriggerState.DirectorySeparator;
 				}
 			}
 
 			//find the deepest error
-			var error = lastNode as ExpressionError;
-			ExpressionNode parent = lastNode.Parent;
-			while (parent != null && error == null) {
-				error = parent as ExpressionError;
-				parent = parent.Parent;
+			var error = triggerNode as ExpressionError;
+			if (error == null) {
+				ExpressionNode p = triggerNode.Parent;
+				while (p != null && error == null) {
+					error = p as IncompleteExpressionError;
+					if (p == triggerExpression) {
+						break;
+					}
+					p = p.Parent;
+				}
 			}
 
-			if (error is IncompleteExpressionError iee && iee.WasEOF) {
-				switch (lastNode) {
+			if (triggerNode == error && !(error is IncompleteExpressionError)) {
+				triggerNode = error.Parent;
+			}
+
+			if (error is ExpressionError ee && ee.WasEOF) {
+				ExpressionNode parent = triggerNode.Parent is ExpressionError err ? err.Parent : triggerNode.Parent;
+				switch (triggerNode) {
 				case ExpressionItem _:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
 						return TriggerState.ItemFunctionName;
 					}
 					break;
 				case ExpressionItemName ein:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
 						if (ShouldTriggerName (ein.Name)) {
 							triggerLength = ein.Name.Length;
 							return TriggerState.ItemName;
@@ -188,7 +243,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionPropertyName pn:
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (pn.Name)) {
 							triggerLength = pn.Name.Length;
 							return TriggerState.PropertyName;
@@ -197,14 +252,14 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionFunctionName fn:
-					if (iee.Kind == ExpressionErrorKind.IncompleteProperty) {
+					if (ee.Kind == ExpressionErrorKind.IncompleteProperty) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.PropertyFunctionName;
 						}
 						return TriggerState.None;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
 							return TriggerState.ItemFunctionName;
@@ -213,36 +268,36 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionPropertyFunctionInvocation _:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMethodName) {
 						return TriggerState.PropertyFunctionName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingClassName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingClassName) {
 						return TriggerState.PropertyFunctionClassName;
 					}
 					break;
 				case ExpressionClassReference cr:
-					if (iee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
-						|| ((iee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || iee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && cr.Parent is ExpressionArgumentList)
+					if (ee.Kind == ExpressionErrorKind.ExpectingBracketColonColon
+						|| ((ee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || ee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && parent is ExpressionArgumentList)
 						) {
 						if (ShouldTriggerName (cr.Name)) {
 							triggerLength = cr.Name.Length;
-							return cr.Parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
+							return parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
 						}
 						return TriggerState.None;
 					}
 					break;
 				case ExpressionMetadata m:
-					if (iee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingMetadataName) {
 						return TriggerState.MetadataName;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (m.ItemName)) {
 							triggerLength = m.ItemName.Length;
 							return TriggerState.MetadataOrItemName;
 						}
 						return TriggerState.None;
 					}
-					if (iee.Kind == ExpressionErrorKind.ExpectingRightParen) {
+					if (ee.Kind == ExpressionErrorKind.ExpectingRightParen) {
 						if (ShouldTriggerName (m.MetadataName)) {
 							triggerLength = m.MetadataName.Length;
 							return TriggerState.MetadataName;
@@ -252,12 +307,13 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionText expressionText: {
 						if (
-							(error.Kind == ExpressionErrorKind.IncompleteString && (expressionText.Parent is ExpressionArgumentList || expressionText.Parent is ExpressionItemTransform))
-							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && expressionText.Parent is ExpressionArgumentList)
+							(error.Kind == ExpressionErrorKind.IncompleteString
+								&& (parent is ExpressionArgumentList || parent is ExpressionItemTransform || parent is ExpressionConditionOperator || parent is QuotedExpression))
+							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && parent is ExpressionArgumentList)
 							) {
 							var s = GetTriggerState (
-								expressionText.Value, reason, typedChar,
-								out triggerLength, out triggerExpression, out _);
+								expressionText.Value, reason, typedChar, false,
+								out triggerLength, out triggerExpression, out triggerNode, out _);
 							if (error.Kind != ExpressionErrorKind.IncompleteString && s == TriggerState.Value) {
 								return TriggerState.BareFunctionArgumentValue;
 							}
@@ -282,14 +338,14 @@ namespace MonoDevelop.MSBuild.Language
 					return TriggerState.ItemName;
 				case ExpressionErrorKind.ExpectingMetadataOrItemName:
 					return TriggerState.MetadataOrItemName;
+				case ExpressionErrorKind.ExpectingClassName:
+					return TriggerState.PropertyFunctionClassName;
 				}
 				return TriggerState.None;
 			}
 
 			return TriggerState.None;
 
-			char LastChar () => expression[expression.Length - 1];
-			char PenultimateChar () => expression[expression.Length - 2];
 			bool IsPossiblePathSegmentStart (char c) => c == '_' || char.IsLetterOrDigit (c) || c == '.';
 			bool ShouldTriggerName (string n) =>
 				isExplicit
@@ -326,121 +382,22 @@ namespace MonoDevelop.MSBuild.Language
 			Semicolon
 		}
 
-		public static TriggerState GetConditionTriggerState (
-			string expression,
-			TriggerReason reason, char typedChar,
-			out int triggerLength, out ExpressionNode triggerExpression,
-			out IReadOnlyList<ExpressionNode> comparandValues
-		)
+		static IEnumerable<ExpressionNode> GetComparandVariables (ExpressionNode triggerNode)
 		{
-			triggerLength = 0;
-			comparandValues = null;
-
-			if (expression.Length == 0 || (expression.Length == 0 && expression[0] == '\'')) {
-				triggerExpression = new ExpressionText (0, "", true);
-				return TriggerState.Value;
-			}
-
-			if (expression.Length == 1) {
-				triggerExpression = new ExpressionText (0, expression, true);
-				triggerLength = 1;
-				return TriggerState.Value;
-			}
-
-			var tokens = new List<Token> ();
-			int lastExpressionStart = 0;
-
-			try {
-				var tokenizer = new ConditionTokenizer ();
-				tokenizer.Tokenize (expression);
-
-
-				while (tokenizer.Token.Type != TokenType.EOF) {
-					switch (tokenizer.Token.Type) {
-					case TokenType.And:
-					case TokenType.Or:
-						lastExpressionStart = tokenizer.Token.Position + tokenizer.Token.Value.Length;
-						break;
-					}
-					tokens.Add (tokenizer.Token);
-					tokenizer.GetNextToken ();
-				}
-
-				int last = tokens.Count - 1;
-				if (last >= 2 && TokenIsCondition (tokens[last - 1].Type)) {
-					var lt = tokens[last];
-					if (lt.Type == TokenType.Apostrophe || (lt.Type == TokenType.String && (expression[lt.Position + lt.Value.Length] != '\''))) {
-						lastExpressionStart = lt.Position;
-						comparandValues = ReadPrecedingComparandVariables (tokens, last - 2);
-					} else {
-						triggerLength = 0;
-						triggerExpression = null;
-						return TriggerState.None;
-					}
-				}
-			} catch (Exception ex) {
-				lastExpressionStart = 0;
-				LoggingService.LogError ("Error in condition tokenizer", ex);
-			}
-
-			var subexpr = expression.Substring (lastExpressionStart);
-			return GetTriggerState (subexpr, reason, typedChar, out triggerLength, out triggerExpression, out _);
-		}
-
-		static bool TokenIsCondition (TokenType type)
-		{
-			switch (type) {
-			case TokenType.Equal:
-			case TokenType.NotEqual:
-			case TokenType.Less:
-			case TokenType.LessOrEqual:
-			case TokenType.Greater:
-			case TokenType.GreaterOrEqual:
-				return true;
-			default:
-				return false;
-			}
-		}
-
-		//TODO: unqualified metadata
-		static IReadOnlyList<ExpressionNode> ReadPrecedingComparandVariables (List<Token> tokens, int index)
-		{
-			var expr = tokens[index];
-			if (expr.Type == TokenType.String) {
-				var list = new List<ExpressionNode> ();
-				var expression = ExpressionParser.Parse (expr.ToString (), ExpressionOptions.ItemsAndMetadata);
-				foreach (var n in expression.WithAllDescendants ()) {
-					switch (n) {
-					case ExpressionMetadata em:
-					case ExpressionProperty ep:
-						list.Add (n);
-						break;
-					}
-				}
-				return list;
-			}
-
-			if (expr.Type == TokenType.RightParen && index - 3 >= 0) {
-				if (Readback (1, TokenType.String)) {
-					if (Readback (2, TokenType.LeftParen)) {
-						if (Readback (3, TokenType.Property)) {
-							return new[] { new ExpressionProperty (0, 0, ValueBack (1)) };
-						}
-						if (Readback (3, TokenType.Metadata)) {
-							//TODO: handle unqualified metadata
-							return Array.Empty<ExpressionNode> ();
+			while (triggerNode != null) {
+				if (triggerNode.Parent is ExpressionConditionOperator op) {
+					if (triggerNode == op.Right) {
+						foreach (var node in op.Left.WithAllDescendants ()) {
+							switch (node) {
+							case ExpressionProperty p: yield return p; break;
+							case ExpressionMetadata m: yield return m; break;
+							}
 						}
 					}
-					if (index - 4 >= 0 && Readback (2, TokenType.Dot) && Readback (3, TokenType.String) && Readback (4, TokenType.LeftParen) && Readback (5, TokenType.Metadata)) {
-						return new[] { new ExpressionMetadata (0, 0, ValueBack (3), ValueBack (1)) };
-					}
+					break;
 				}
+				triggerNode = triggerNode.Parent;
 			}
-
-			return null;
-
-			bool Readback (int i, TokenType type) => tokens[index - i].Type == type;
-			string ValueBack (int i) => tokens[index - i].Value;
 		}
 
 		public static IEnumerable<BaseInfo> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
