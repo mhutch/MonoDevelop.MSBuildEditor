@@ -67,7 +67,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				}
 				var info = rr.GetResolvedReference (doc, provider.FunctionTypeProvider);
 				if (info != null) {
-					var element = await provider.DisplayElementFactory.GetInfoTooltipElement (doc, info, rr, cancellationToken);
+					var element = await provider.DisplayElementFactory.GetInfoTooltipElement (
+						session.TextView.TextBuffer, doc, info, rr, cancellationToken
+					);
 					return new QuickInfoItem (
 						snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),
 						element);

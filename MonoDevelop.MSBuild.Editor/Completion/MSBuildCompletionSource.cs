@@ -171,7 +171,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) && info != null) {
-				return provider.DisplayElementFactory.GetInfoTooltipElement (context.doc, info, context.rr, token);
+				return provider.DisplayElementFactory.GetInfoTooltipElement (
+					session.TextView.TextBuffer, context.doc, info, context.rr, token
+				);
 			}
 
 			return Task.FromResult<object> (null);

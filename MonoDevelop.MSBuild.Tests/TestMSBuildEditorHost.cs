@@ -34,4 +34,13 @@ namespace MonoDevelop.MSBuild.Tests
 			throw new System.NotImplementedException ();
 		}
 	}
+
+	[Export (typeof(IStreamingFindReferencesPresenter))]
+	class TestStreamingFindReferencesPresenter : IStreamingFindReferencesPresenter
+	{
+		public void ClearAll () => throw new System.NotImplementedException ();
+
+		public FindReferencesContext StartSearch (string title, string referenceName, bool showUsage)
+			=> throw new System.NotImplementedException ();
+	}
 }

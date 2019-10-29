@@ -14,8 +14,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+
 using MonoDevelop.MSBuild.Editor.Host;
+using MonoDevelop.MSBuild.Editor.Navigation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
@@ -31,7 +34,10 @@ namespace MonoDevelop.MSBuild.Editor
 		[Import]
 		IMSBuildEditorHost Host { get; set; }
 
-		public async Task<object> GetInfoTooltipElement (MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
+		[Import]
+		MSBuildNavigationService NavigationService { get; set; }
+
+		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -63,7 +69,7 @@ namespace MonoDevelop.MSBuild.Editor
 				break;
 			}
 
-			var seenIn = GetSeenInElement (info, doc);
+			var seenIn = GetSeenInElement (buffer, rr, info, doc);
 			if (seenIn != null) {
 				elements.Add (seenIn);
 			}
@@ -137,7 +143,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ClassifiedTextElement (runs);
 		}
 
-		public ContainerElement GetSeenInElement (BaseInfo info, MSBuildRootDocument doc)
+		ContainerElement GetSeenInElement (ITextBuffer buffer, MSBuildResolveResult rr, BaseInfo info, MSBuildRootDocument doc)
 		{
 			var seenIn = doc.GetFilesSeenIn (info).ToList ();
 			if (seenIn.Count == 0) {
@@ -151,7 +157,13 @@ namespace MonoDevelop.MSBuild.Editor
 			int count = 0;
 			foreach (var s in seenIn) {
 				if (count == 5) {
-					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "[more in Find References]")));
+					elements.Add (new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "["),
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "more in Find References", () => {
+							NavigationService.FindReferences (buffer, rr);
+						}),
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "]")
+					));
 					break;
 				}
 				count++;
