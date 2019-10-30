@@ -168,6 +168,8 @@
       "runtime": "Contents of the `runtime` folder",
       "contentFiles": "All of the assets",
       "build": "MSBuild targets",
+      "buildMultitargeting": "MSBuild targets in the buildMultitargeting folder",
+      "buildTransitive": "MSBuild targets in the buildTransitive folder",
       "analyzers": "Code analyzers",
       "native": "Contents of the `native` folder",
       "none": "None of the assets",
