@@ -33,7 +33,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 		}
 
-		public async Task<bool> HasFixes (MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
+		/// <remarks>
+		/// FIXME: The buffer parameter is workaround for the spellchecker. It can be removed when
+		/// there is a better concept of a durable context/scope to which information can be bound.
+		/// </remarks>
+		public async Task<bool> HasFixes (ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var filteredDiags = result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length)));
 
@@ -48,6 +52,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				if (range.IntersectsWith (new SnapshotSpan (range.Snapshot, diagnostic.Span.Start, diagnostic.Span.Length))) {
 					if (diagnosticIdToFixProviderMap.TryGetValue (diagnostic.Descriptor.Id, out var fixProvider)) {
 						var ctx = new MSBuildFixContext (
+							buffer,
 							result.MSBuildDocument,
 							result.MSBuildDocument.XDocument,
 							new Xml.Dom.TextSpan (range.Start, range.Length),
@@ -64,7 +69,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			return false;
 		}
 
-		public async Task<List<MSBuildCodeFix>> GetFixes (MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
+		/// <remarks>
+		/// FIXME: The buffer parameter is workaround for the spellchecker. It can be removed when
+		/// there is a better concept of a durable context/scope to which information can be bound.
+		/// </remarks>
+		public async Task<List<MSBuildCodeFix>> GetFixes (ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var filteredDiags = ImmutableArray.CreateRange (
 				result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length))));
@@ -85,6 +94,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				if (range.IntersectsWith (new SnapshotSpan (range.Snapshot, diagnostic.Span.Start, diagnostic.Span.Length))) {
 					if (diagnosticIdToFixProviderMap.TryGetValue (diagnostic.Descriptor.Id, out var fixProvider)) {
 						var ctx = new MSBuildFixContext (
+							buffer,
 							result.MSBuildDocument,
 							result.MSBuildDocument.XDocument,
 							new Xml.Dom.TextSpan (range.Start, range.Length),

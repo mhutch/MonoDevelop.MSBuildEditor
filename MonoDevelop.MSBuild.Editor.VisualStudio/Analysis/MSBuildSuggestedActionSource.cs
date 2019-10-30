@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
 
-			var fixes = await provider.CodeFixService.GetFixes (result, range, cancellationToken);
+			var fixes = await provider.CodeFixService.GetFixes (textBuffer, result, range, cancellationToken);
 			var refactorings = await provider.RefactoringService.GetRefactorings (result, range, cancellationToken);
 
 			fixes.AddRange (refactorings);
@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public async Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
-			if (await provider.CodeFixService.HasFixes (result, range, cancellationToken)) {
+			if (await provider.CodeFixService.HasFixes (textBuffer, result, range, cancellationToken)) {
 				return true;
 			}
 

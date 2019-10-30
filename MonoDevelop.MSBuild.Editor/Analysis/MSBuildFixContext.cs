@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 
+using Microsoft.VisualStudio.Text;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Dom;
 
@@ -20,7 +22,14 @@ namespace MonoDevelop.MSBuild.Analysis
 		public ImmutableArray<MSBuildDiagnostic> Diagnostics { get; }
 		public CancellationToken CancellationToken { get; }
 
+		/// <summary>
+		/// DO NOT USE. This is workaround for the spellchecker. It can be removed when
+		/// there is a better concept of a durable context/scope to which information can be bound.
+		/// </summary>
+		internal ITextBuffer Buffer { get; }
+
 		internal MSBuildFixContext (
+			ITextBuffer buffer,
 			MSBuildDocument document,
 			XDocument xDocument,
 			TextSpan span,
@@ -28,6 +37,7 @@ namespace MonoDevelop.MSBuild.Analysis
 			Action<MSBuildAction, ImmutableArray<MSBuildDiagnostic>> reportFix,
 			CancellationToken cancellationToken)
 		{
+			this.Buffer = buffer;
 			this.reportFix = reportFix;
 			Document = document;
 			XDocument = xDocument;
