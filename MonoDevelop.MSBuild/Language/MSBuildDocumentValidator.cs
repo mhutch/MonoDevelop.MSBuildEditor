@@ -54,6 +54,10 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			TextSpan[] GetNameSpans (XElement el) => (el.ClosingTag is XClosingTag ct)
+				? new[] { element.NameSpan, new TextSpan (ct.Span.Start + 2, ct.Name.Length) }
+				: new[] { element.NameSpan };
+
 			switch (resolved.SyntaxKind) {
 			case MSBuildSyntaxKind.Project:
 				if (!IsPropsFile) {
@@ -80,7 +84,11 @@ namespace MonoDevelop.MSBuild.Language
 				if (!IsItemUsed (element.Name.Name, ReferenceUsage.Read)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadItem,
-						element.OuterSpan, element.Name.Name
+						element.NameSpan,
+						ImmutableDictionary<string,object>.Empty
+							.Add ("Name", element.Name.Name)
+							.Add ("Spans", GetNameSpans (element)),
+						element.Name.Name
 					);
 				}
 				break;
@@ -91,16 +99,26 @@ namespace MonoDevelop.MSBuild.Language
 				if (!IsPropertyUsed (element.Name.Name, ReferenceUsage.Read)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadProperty,
-						element.OuterSpan, element.Name.Name
+						element.NameSpan,
+						ImmutableDictionary<string, object>.Empty
+							.Add ("Name", element.Name.Name)
+							.Add ("Spans", GetNameSpans (element)),
+						element.Name.Name
 					);
 				}
 				break;
 			case MSBuildSyntaxKind.Metadata:
-				var metaItem = (element.Parent as XElement)?.Name.Name;
-				if (metaItem != null && !IsMetadataUsed (metaItem, element.Name.Name, ReferenceUsage.Read)) {
+				if ((element.Parent as XElement)?.Name.Name is string metaItem
+					&& !IsMetadataUsed (metaItem, element.Name.Name, ReferenceUsage.Read))
+				{
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
-						element.OuterSpan, metaItem, element.Name.Name
+						element.NameSpan,
+						ImmutableDictionary<string, object>.Empty
+							.Add ("ItemName", metaItem)
+							.Add ("Name", element.Name.Name)
+							.Add ("Spans", GetNameSpans (element)),
+						metaItem, element.Name.Name
 					);
 				}
 				break;
@@ -376,7 +394,12 @@ namespace MonoDevelop.MSBuild.Language
 				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
-						attribute.Span, element.Name.Name, attribute.Name.Name
+						attribute.NameSpan,
+						ImmutableDictionary<string, object>.Empty
+							.Add ("ItemName", element.Name.Name)
+							.Add ("Name", attribute.Name.Name)
+							.Add ("Spans", new[] { attribute.NameSpan }),
+						element.Name.Name, attribute.Name.Name
 					);
 				}
 			}
@@ -464,26 +487,38 @@ namespace MonoDevelop.MSBuild.Language
 					if (!string.IsNullOrEmpty (metaItem) && !IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write)) {
 						Document.Diagnostics.Add (
 							CoreDiagnostics.UnwrittenMetadata,
-							meta.Span, metaItem, meta.MetadataName
+							meta.Span,
+							ImmutableDictionary<string, object>.Empty
+								.Add ("ItemName", metaItem)
+								.Add ("Name", meta.MetadataName)
+								.Add ("Spans", new [] { new TextSpan (meta.MetadataNameOffset, meta.MetadataName.Length) }),
+							metaItem, meta.MetadataName
 						);
 					}
 					break;
-				case ExpressionProperty prop:;
-					if (prop.Name is string propName && !IsPropertyUsed (propName, ReferenceUsage.Write)) {
+				case ExpressionPropertyName prop:
+					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write)) {
 						Document.Diagnostics.Add (
 							CoreDiagnostics.UnwrittenProperty,
-							prop.Span, propName
+							prop.Span,
+							ImmutableDictionary<string, object>.Empty
+								.Add ("Name", prop.Name)
+								.Add ("Spans", new[] { new TextSpan (prop.Offset, prop.Length) }),
+							prop.Name
 						);
 					}
 					break;
-				case ExpressionItem item:
-					if (item.Name is string itemName && !IsPropertyUsed (itemName, ReferenceUsage.Write)) {
+				case ExpressionItemName item:
+					if (!IsPropertyUsed (item.Name, ReferenceUsage.Write)) {
 						Document.Diagnostics.Add (
 							CoreDiagnostics.UnwrittenItem,
-							item.Span, itemName
+							item.Span,
+							ImmutableDictionary<string, object>.Empty
+								.Add ("Name", item.Name)
+								.Add ("Spans", new[] { new TextSpan (item.Offset, item.Length) }),
+							item.Name
 						);
 					}
-					//TODO: can we validate property/metadata/items refs?
 					//TODO: deprecation squiggles in expressions
 					break;
 				}
