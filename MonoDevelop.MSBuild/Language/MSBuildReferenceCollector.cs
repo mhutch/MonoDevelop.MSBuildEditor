@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static bool CanCreate (MSBuildResolveResult rr)
 		{
-			if (rr == null || rr.LanguageElement == null) {
+			if (rr == null || rr.ElementSyntax == null) {
 				return false;
 			}
 

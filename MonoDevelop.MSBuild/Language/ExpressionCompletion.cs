@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static bool IsCondition (this MSBuildResolveResult rr)
 		{
-			return rr.LanguageAttribute != null && rr.LanguageAttribute.ValueKind == MSBuildValueKind.Condition;
+			return rr.AttributeSyntax != null && rr.AttributeSyntax.ValueKind == MSBuildValueKind.Condition;
 		}
 
 		public static TriggerState GetTriggerState (

@@ -132,7 +132,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var rr = context.rr;
 			var doc = context.doc;
 
-			if (rr?.LanguageElement == null) {
+			if (rr?.ElementSyntax == null) {
 				return CompletionContext.Empty;
 			}
 
@@ -195,7 +195,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = XmlParser.GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
-			if (rr?.LanguageElement != null) {
+			if (rr?.ElementSyntax != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
@@ -241,7 +241,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var doc = context.doc;
 			var spine = context.spine;
 
-			if (rr?.LanguageElement != null) {
+			if (rr?.ElementSyntax != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
@@ -313,7 +313,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			var packageId = rr.XElement.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
+			var packageId = rr.Element.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
 			if (string.IsNullOrEmpty (packageId)) {
 				return null;
 			}
@@ -492,8 +492,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (rr.LanguageAttribute != null) {
-				switch (rr.LanguageAttribute.SyntaxKind) {
+			if (rr.AttributeSyntax != null) {
+				switch (rr.AttributeSyntax.SyntaxKind) {
 				// metadata attributes on items can refer to other metadata on the items
 				case MSBuildSyntaxKind.Item_Metadata:
 				// task params can refer to metadata in batched items
@@ -508,8 +508,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (rr.LanguageElement != null) {
-				switch (rr.LanguageElement.SyntaxKind) {
+			if (rr.ElementSyntax != null) {
+				switch (rr.ElementSyntax.SyntaxKind) {
 				// metadata elements can refer to other metadata in the items
 				case MSBuildSyntaxKind.Metadata:
 					return true;

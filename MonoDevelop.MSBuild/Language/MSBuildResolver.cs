@@ -70,10 +70,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var rr = new MSBuildResolveResult {
-				LanguageElement = languageElement,
-				LanguageAttribute = languageAttribute,
-				XElement = el,
-				XAttribute = att
+				ElementSyntax = languageElement,
+				AttributeSyntax = languageAttribute,
+				Element = el,
+				Attribute = att
 			};
 
 			var rv = new MSBuildResolveVisitor (offset, rr, functionTypeProvider);
@@ -155,7 +155,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				rr.LanguageAttribute = resolvedAttribute
+				rr.AttributeSyntax = resolvedAttribute
 					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
 
 				bool inName = attribute.NameSpan.Contains (offset);
@@ -356,15 +356,15 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildResolveResult
 	{
-		public XElement XElement;
-		public XAttribute XAttribute;
+		public XElement Element;
+		public XAttribute Attribute;
 
-		public MSBuildElementSyntax LanguageElement;
-		public MSBuildAttributeSyntax LanguageAttribute;
+		public MSBuildElementSyntax ElementSyntax;
+		public MSBuildAttributeSyntax AttributeSyntax;
 
-		public string AttributeName => XAttribute?.Name.Name;
-		public string ElementName => XElement?.Name.Name;
-		public string ParentName => (XElement?.Parent as XElement)?.Name.Name;
+		public string AttributeName => Attribute?.Name.Name;
+		public string ElementName => Element?.Name.Name;
+		public string ParentName => (Element?.Parent as XElement)?.Name.Name;
 
 		public MSBuildReferenceKind ReferenceKind;
 		public int ReferenceOffset;

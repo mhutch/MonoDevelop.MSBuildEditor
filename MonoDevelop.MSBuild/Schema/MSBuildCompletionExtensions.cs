@@ -21,14 +21,14 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<BaseInfo> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
 		{
 			bool isInTarget = false;
-			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item) {
-				isInTarget = rr.LanguageElement.IsInTarget (rr.XElement);
+			if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Item) {
+				isInTarget = rr.ElementSyntax.IsInTarget (rr.Element);
 			}
 
-			foreach (var att in rr.LanguageElement.Attributes) {
+			foreach (var att in rr.ElementSyntax.Attributes) {
 				var spat = schemas.SpecializeAttribute (att, rr.ElementName);
 				if (!spat.IsAbstract) {
-					if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item) {
+					if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Item) {
 						if (isInTarget) {
 							if (spat.Name == "Update") {
 								continue;
@@ -44,13 +44,13 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 
-			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
+			if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Item && tv.IsAtLeast (MSBuildToolsVersion.V15_0)) {
 				foreach (var item in schemas.GetMetadata (rr.ElementName, false)) {
 					yield return item;
 				}
 			}
 
-			if (rr.LanguageElement.SyntaxKind == MSBuildSyntaxKind.Task) {
+			if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Task) {
 				foreach (var parameter in schemas.GetTaskParameters (rr.ElementName)) {
 					yield return parameter;
 
@@ -202,9 +202,9 @@ namespace MonoDevelop.MSBuild.Schema
 
 			string baseDir = null;
 
-			if (rr.LanguageAttribute != null && rr.LanguageAttribute.SyntaxKind == MSBuildSyntaxKind.Import_Project) {
-				if (rr.XElement != null) {
-					var sdkAtt = rr.XElement.Attributes.Get ("Sdk", true)?.Value;
+			if (rr.AttributeSyntax != null && rr.AttributeSyntax.SyntaxKind == MSBuildSyntaxKind.Import_Project) {
+				if (rr.Element != null) {
+					var sdkAtt = rr.Element.Attributes.Get ("Sdk", true)?.Value;
 					if (!string.IsNullOrEmpty (sdkAtt) && Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
 						var sdkPath = doc.RuntimeInformation.GetSdkPath (sdkRef, doc.Filename, null);
 						if (!string.IsNullOrEmpty (sdkPath)) {
@@ -426,15 +426,15 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static ValueInfo GetElementOrAttributeValueInfo (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas)
 		{
-			if (rr.LanguageElement == null) {
+			if (rr.ElementSyntax == null) {
 				return null;
 			}
 
 			if (rr.AttributeName != null) {
-				return schemas.GetAttributeInfo (rr.LanguageAttribute, rr.ElementName, rr.AttributeName);
+				return schemas.GetAttributeInfo (rr.AttributeSyntax, rr.ElementName, rr.AttributeName);
 			}
 
-			return schemas.GetElementInfo (rr.LanguageElement, rr.ParentName, rr.ElementName);
+			return schemas.GetElementInfo (rr.ElementSyntax, rr.ParentName, rr.ElementName);
 		}
 
 		public static MSBuildValueKind InferValueKindIfUnknown (this ValueInfo variable)
