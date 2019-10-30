@@ -92,7 +92,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					"quot" => '"',
 					"apos" => '\'',
 					"amp" => '&',
-					_ => null
+					// FIXME: this cast should be redundant, remove it once CI environment has a sufficiently modern compiler (16.5?)
+					_ => (char?)null
 				};
 			}
 			return null;
