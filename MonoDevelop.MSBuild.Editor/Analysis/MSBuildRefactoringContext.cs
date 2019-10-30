@@ -84,7 +84,6 @@ namespace MonoDevelop.MSBuild.Analysis
 						yield return n;
 					}
 				}
-				yield return node;
 				while (node != null && node.NextSibling == null) {
 					node = (XNode)node.Parent as XNode;
 				}
