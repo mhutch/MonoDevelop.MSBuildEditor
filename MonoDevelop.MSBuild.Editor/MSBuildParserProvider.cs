@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+
 using Microsoft.VisualStudio.Text;
-using MonoDevelop.MSBuild.Analysis;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 
@@ -28,6 +29,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		MSBuildBackgroundParser CreateParser (ITextBuffer buffer)
 		{
+			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
+			buffer.ContentTypeChanged += ContentTypeChanged;
+
 			var runtimeInfo = RuntimeInformation;
 			if (runtimeInfo == null) {
 				try {
@@ -43,6 +47,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				SchemaProvider ?? new MSBuildSchemaProvider (),
 				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder ()
 			);
+		}
+
+		void ContentTypeChanged (object sender, ContentTypeChangedEventArgs e)
+		{
+			if (!e.AfterContentType.IsOfType (MSBuildContentType.Name)) {
+				var buffer = (ITextBuffer)sender;
+				buffer.ContentTypeChanged -= ContentTypeChanged;
+				if (buffer.Properties.TryGetProperty (typeof (MSBuildBackgroundParser), out MSBuildBackgroundParser parser)) {
+					parser.Dispose ();
+				}
+				buffer.Properties.RemoveProperty (typeof (MSBuildBackgroundParser));
+			}
 		}
 	}
 }
