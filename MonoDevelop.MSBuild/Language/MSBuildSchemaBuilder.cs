@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -14,6 +16,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	class MSBuildSchemaBuilder : MSBuildVisitor
 	{
+		MSBuildInferredSchema schema;
 		readonly bool isToplevel;
 		readonly MSBuildParserContext parseContext;
 		readonly MSBuildImportResolver importResolver;
@@ -25,6 +28,11 @@ namespace MonoDevelop.MSBuild.Language
 			this.isToplevel = isToplevel;
 			this.parseContext = parseContext;
 			this.importResolver = resolveImport;
+		}
+
+		protected override void BeforeRun ()
+		{
+			schema = Document.InferredSchema;
 		}
 
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
@@ -45,10 +53,10 @@ namespace MonoDevelop.MSBuild.Language
 				ResolveImport (element);
 				break;
 			case MSBuildSyntaxKind.Item:
-				CollectItem (element.Name.Name);
+				CollectItem (element.Name.Name, ReferenceUsage.Write);
 				break;
 			case MSBuildSyntaxKind.Property:
-				CollectProperty (element.Name.Name);
+				CollectProperty (element.Name.Name, ReferenceUsage.Write);
 				break;
 			case MSBuildSyntaxKind.UsingTask:
 				CollectTaskDefinition (element);
@@ -69,7 +77,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildSyntaxKind.Metadata:
-				CollectMetadata (element.ParentElement.Name.Name, element.Name.Name);
+				CollectMetadata (element.ParentElement.Name.Name, element.Name.Name, ReferenceUsage.Write);
 				break;
 			}
 		}
@@ -79,7 +87,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (resolvedAttribute.IsAbstract) {
 				switch (resolvedElement.SyntaxKind) {
 				case MSBuildSyntaxKind.Item:
-					CollectMetadata (element.Name.Name, attribute.Name.Name);
+					CollectMetadata (element.Name.Name, attribute.Name.Name, ReferenceUsage.Write);
 					break;
 				case MSBuildSyntaxKind.Task:
 					CollectTaskParameter (element.Name.Name, attribute.Name.Name, false);
@@ -178,47 +186,71 @@ namespace MonoDevelop.MSBuild.Language
 			ExtractReferences (kind, value, offset);
 		}
 
-		void CollectItem (string itemName)
+		void CollectItem (string itemName, ReferenceUsage usage)
 		{
-			var name = itemName;
-			if (!Document.Items.ContainsKey (name)) {
-				Document.Items.Add (name, new ItemInfo (name, null));
+			if (schema.ItemUsage.TryGetValue (itemName, out var existingUsage)) {
+				if (existingUsage == usage) {
+					return;
+				}
+				usage |= existingUsage;
+			} else {
+				schema.Items.Add (itemName, new ItemInfo (itemName, null));
 			}
+			schema.ItemUsage[itemName] = usage;
 		}
 
-		void CollectProperty (string propertyName)
+		void CollectProperty (string propertyName, ReferenceUsage usage)
 		{
-			if (!Document.Properties.ContainsKey (propertyName) && !Builtins.Properties.ContainsKey (propertyName)) {
-				Document.Properties.Add (propertyName, new PropertyInfo (propertyName, null));
+			if (schema.PropertyUsage.TryGetValue (propertyName, out var existingUsage)) {
+				if (existingUsage == usage) {
+					return;
+				}
+				usage |= existingUsage;
+			} else if (!Builtins.Properties.ContainsKey (propertyName)) {
+				schema.Properties.Add (propertyName, new PropertyInfo (propertyName, null));
 			}
+			schema.PropertyUsage[propertyName] = usage;
 		}
 
 		void CollectTarget (string name)
 		{
-			if (name != null && !Document.Targets.TryGetValue (name, out TargetInfo target)) {
-				Document.Targets[name] = target = new TargetInfo (name, null);
+			if (name != null && !schema.Targets.ContainsKey (name)) {
+				schema.Targets[name] = new TargetInfo (name, null);
 			}
 		}
 
-		void CollectMetadata (string itemName, string metadataName)
+		void CollectMetadata (string itemName, string metadataName, ReferenceUsage usage)
 		{
-			if (itemName != null && Document.Items.TryGetValue (itemName, out ItemInfo item)) {
-				if (!item.Metadata.ContainsKey (metadataName) && !Builtins.Metadata.ContainsKey (metadataName)) {
+			if (itemName == null) {
+				return;
+			}
+			if (schema.MetadataUsage.TryGetValue ((itemName, metadataName), out var existingUsage)) {
+				if (existingUsage == usage) {
+					return;
+				}
+				usage |= existingUsage;
+			} else if (!Builtins.Metadata.ContainsKey (metadataName)) {
+				if (!schema.Items.TryGetValue (itemName, out ItemInfo item)) {
+					item = new ItemInfo (itemName, null);
+					schema.Items.Add (itemName, item);
+				}
+				if (!Builtins.Metadata.ContainsKey (metadataName)) {
 					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 				}
 			}
+			schema.MetadataUsage[(itemName, metadataName)] = usage;
 		}
 
 		void CollectTask (string name)
 		{
-			if (!Document.Tasks.TryGetValue (name, out TaskInfo task)) {
-				Document.Tasks[name] = task = new TaskInfo (name, null, null, null, null, null, 0);
+			if (!schema.Tasks.TryGetValue (name, out TaskInfo task)) {
+				schema.Tasks[name] = task = new TaskInfo (name, null, null, null, null, null, 0);
 			}
 		}
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
-			var task = Document.Tasks[taskName];
+			var task = schema.Tasks[taskName];
 			if (task.IsInferred && !task.ForceInferAttributes) {
 				return;
 			}
@@ -232,7 +264,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CollectTaskParameterDefinition (string taskName, XElement def)
 		{
-			var task = Document.Tasks[taskName];
+			var task = schema.Tasks[taskName];
 			var parameterName = def.Name.Name;
 			if (task.Parameters.ContainsKey (parameterName)) {
 				return;
@@ -312,7 +344,7 @@ namespace MonoDevelop.MSBuild.Language
 				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
 				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, Filename, element.Span.Start, evalCtx);
 				if (info != null) {
-					Document.Tasks[info.Name] = info;
+					schema.Tasks[info.Name] = info;
 					return;
 				}
 			}
@@ -326,7 +358,7 @@ namespace MonoDevelop.MSBuild.Language
 				)) &&
 				!element.Elements.Any (n => n.Name.Name == "ParameterGroup"));
 
-			Document.Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.Span.Start) {
+			schema.Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.Span.Start) {
 				ForceInferAttributes = forceInferAttributes
 			};
 		}
@@ -350,15 +382,15 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var node in expression.WithAllDescendants ()) {
 				switch (node) {
 				case ExpressionPropertyName prop:
-					CollectProperty (prop.Name);
+					CollectProperty (prop.Name, ReferenceUsage.Read);
 					break;
 				case ExpressionItemName item:
-					CollectItem (item.Name);
+					CollectItem (item.Name, ReferenceUsage.Read);
 					break;
 				case ExpressionMetadata meta:
 					var itemName = meta.GetItemName ();
 					if (itemName != null) {
-						CollectMetadata (itemName, meta.MetadataName);
+						CollectMetadata (itemName, meta.MetadataName, ReferenceUsage.Read);
 					}
 					break;
 				case ExpressionText literal:
@@ -366,19 +398,19 @@ namespace MonoDevelop.MSBuild.Language
 						value = literal.GetUnescapedValue ().Trim ();
 						switch (kind.GetScalarType ()) {
 						case MSBuildValueKind.ItemName:
-							CollectItem (value);
+							CollectItem (value, ReferenceUsage.Unknown);
 							break;
 						case MSBuildValueKind.TargetName:
 							CollectTarget (value);
 							break;
 						case MSBuildValueKind.PropertyName:
-							CollectProperty (value);
+							CollectProperty (value, ReferenceUsage.Unknown);
 							break;
 						case MSBuildValueKind.Configuration:
-							Document.Configurations.Add (value);
+							Document.InferredSchema.Configurations.Add (value);
 							break;
 						case MSBuildValueKind.Platform:
-							Document.Platforms.Add (value);
+							Document.InferredSchema.Platforms.Add (value);
 							break;
 						}
 					}
@@ -432,9 +464,9 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectComparisonProperty (ExpressionProperty prop, string value)
 		{
 			if (string.Equals (prop.Name, "Configuration", StringComparison.OrdinalIgnoreCase)) {
-				Document.Configurations.Add (value);
+				Document.InferredSchema.Configurations.Add (value);
 			} else if (string.Equals (prop.Name, "Platform", StringComparison.OrdinalIgnoreCase)) {
-				Document.Platforms.Add (value);
+				Document.InferredSchema.Platforms.Add (value);
 			}
 		}
 	}

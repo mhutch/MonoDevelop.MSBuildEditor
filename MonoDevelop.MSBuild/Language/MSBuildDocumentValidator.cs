@@ -565,7 +565,6 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void AddError (MSBuildDiagnosticDescriptor d) => Document.Diagnostics.Add (d, new TextSpan (offset, value.Length));
 			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (offset, value.Length), args);
 		}
 	}

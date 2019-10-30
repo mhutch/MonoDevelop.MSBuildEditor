@@ -10,11 +10,13 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
 {
+	[Flags]
 	public enum ReferenceUsage
 	{
-		Declaration,
-		Read,
-		Write
+		Unknown = 0,
+		Declaration = 1,
+		Read = 1 << 1,
+		Write = 1 << 2,
 	}
 
 	abstract class MSBuildReferenceCollector : MSBuildResolvingVisitor

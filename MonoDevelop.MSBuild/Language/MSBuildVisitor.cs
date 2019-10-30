@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language
 			Run (xDocument.RootElement, null, textSource, doc, offset, length, token);
 		}
 
-		public void Run (
+		public virtual void Run (
 			XElement element, MSBuildElementSyntax resolvedElement,
 			ITextSource textSource, MSBuildDocument document,
 			int offset = 0, int length = 0,
@@ -50,11 +50,17 @@ namespace MonoDevelop.MSBuild.Language
 
 			range = new TextSpan (offset, length > 0 ? length + offset : int.MaxValue);
 
+			BeforeRun ();
+
 			if (resolvedElement != null) {
 				VisitResolvedElement (element, resolvedElement);
 			} else if (element != null) {
 				ResolveAndVisit (element, null);
 			}
+		}
+
+		protected virtual void BeforeRun ()
+		{
 		}
 
 		TextSpan range;

@@ -280,12 +280,12 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static IEnumerable<string> GetConfigurations (this IEnumerable<IMSBuildSchema> schemas)
 		{
-			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Configurations).Distinct ();
+			return schemas.OfType<MSBuildInferredSchema> ().SelectMany (d => d.Configurations).Distinct ();
 		}
 
 		public static IEnumerable<string> GetPlatforms (this IEnumerable<IMSBuildSchema> schemas)
 		{
-			return schemas.OfType<MSBuildDocument> ().SelectMany (d => d.Platforms).Distinct ();
+			return schemas.OfType<MSBuildInferredSchema> ().SelectMany (d => d.Platforms).Distinct ();
 		}
 
 		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : BaseInfo

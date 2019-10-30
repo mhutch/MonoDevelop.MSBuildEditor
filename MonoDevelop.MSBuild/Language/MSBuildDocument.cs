@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +13,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class MSBuildDocument : IMSBuildSchema
+	class MSBuildDocument
 	{
 		static readonly XName xnProject = "Project";
 
@@ -22,16 +21,9 @@ namespace MonoDevelop.MSBuild.Language
 		//the reason for this is that a single expression can resolve to multiple imports
 		public List<Import> Imports { get; } = new List<Import> ();
 
-		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
-		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
-		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
-		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<MSBuildDiagnostic> Diagnostics { get; }
 		public bool IsToplevel { get; }
-
-		public HashSet<string> Configurations { get; } = new HashSet<string> ();
-		public HashSet<string> Platforms { get; } = new HashSet<string> ();
 
 		public MSBuildDocument (string filename, bool isToplevel)
 		{
@@ -41,10 +33,13 @@ namespace MonoDevelop.MSBuild.Language
 			if (isToplevel) {
 				Diagnostics = new List<MSBuildDiagnostic> ();
 			}
+
+			InferredSchema = new MSBuildInferredSchema (isToplevel);
 		}
 
 		public string Filename { get; }
 		public MSBuildSchema Schema { get; internal set; }
+		public MSBuildInferredSchema InferredSchema { get; private set; }
 
 		public void Build (
 			XDocument doc, ITextSource textSource,
@@ -229,10 +224,12 @@ namespace MonoDevelop.MSBuild.Language
 				if (i.Document?.Schema != null)
 					yield return i.Document.Schema;
 			}
-			yield return this;
+			if (InferredSchema is MSBuildInferredSchema inferred) {
+				yield return inferred;
+			}
 			foreach (var i in GetDescendentImports ()) {
-				if (i.Document != null) {
-					yield return i.Document;
+				if (i.Document.InferredSchema is IMSBuildSchema descendent) {
+					yield return descendent;
 				}
 			}
 		}
@@ -244,30 +241,11 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var files = new HashSet<string> ();
 			foreach (var doc in GetDescendentDocuments ()) {
-				if (doc.Filename != null && doc.ContainsInfo (info)) {
+				if (doc.Filename != null && doc.InferredSchema.ContainsInfo (info)) {
 					files.Add (doc.Filename);
 				}
 			}
 			return files;
-		}
-
-		public bool ContainsInfo (BaseInfo info)
-		{
-			if (info is PropertyInfo)
-				return Properties.ContainsKey (info.Name);
-			if (info is ItemInfo)
-				return Items.ContainsKey (info.Name);
-			if (info is TaskInfo)
-				return Tasks.ContainsKey (info.Name);
-			if (info is TargetInfo)
-				return Targets.ContainsKey (info.Name);
-			return false;
-		}
-
-		public bool IsPrivate (string name)
-		{
-			//properties and items are always visible from files they're used in
-			return !IsToplevel && name[0] == '_';
 		}
 	}
 }

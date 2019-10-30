@@ -131,7 +131,6 @@ namespace MonoDevelop.MSBuild.Schema
 				bool deprecated = false;
 				var kind = MSBuildValueKind.Unknown;
 				CustomTypeInfo customType = null;
-				bool foundKind = false;
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
 					case "description":
