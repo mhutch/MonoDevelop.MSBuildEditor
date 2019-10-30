@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			var snapshot = textBuffer.CurrentSnapshot;
 
 			var result = await parser.GetOrProcessAsync (snapshot, cancellationToken);
-			var doc = result.MSBuildDocument;
+			var doc = result?.MSBuildDocument;
 
 			if (doc == null) {
 				return null;
