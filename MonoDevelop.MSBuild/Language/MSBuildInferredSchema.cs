@@ -37,8 +37,21 @@ namespace MonoDevelop.MSBuild.Language
 			_ => false
 		};
 
-		public Dictionary<string, ReferenceUsage> ItemUsage { get; } = new Dictionary<string, ReferenceUsage> ();
-		public Dictionary<string, ReferenceUsage> PropertyUsage { get; } = new Dictionary<string, ReferenceUsage> ();
-		public Dictionary<(string, string), ReferenceUsage> MetadataUsage { get; } = new Dictionary<(string, string), ReferenceUsage> ();
+		public Dictionary<string, ReferenceUsage> ItemUsage { get; }
+			= new Dictionary<string, ReferenceUsage> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, ReferenceUsage> PropertyUsage { get; }
+			= new Dictionary<string, ReferenceUsage> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<(string, string), ReferenceUsage> MetadataUsage { get; }
+			= new Dictionary<(string, string), ReferenceUsage> (new MetadataTupleComparer ());
+
+		class MetadataTupleComparer : IEqualityComparer<(string itemName, string name)>
+		{
+			public bool Equals ((string itemName, string name) x, (string itemName, string name) y)
+				=> StringComparer.OrdinalIgnoreCase.Equals (x.itemName, y.itemName)
+				&& StringComparer.OrdinalIgnoreCase.Equals (x.name, y.name);
+
+			public int GetHashCode ((string itemName, string name) obj)
+				=> obj.itemName.GetHashCode () ^ obj.name.GetHashCode ();
+		}
 	}
 }

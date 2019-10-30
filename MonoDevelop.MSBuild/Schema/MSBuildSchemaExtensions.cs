@@ -174,8 +174,12 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public static IEnumerable<PropertyInfo> GetAllPropertyVariants (this IEnumerable<IMSBuildSchema> schemas, string propertyName)
+		public static IEnumerable<PropertyInfo> GetAllPropertyVariants (
+			this IEnumerable<IMSBuildSchema> schemas, string propertyName, bool includeBuiltins)
 		{
+			if (includeBuiltins && Builtins.Properties.TryGetValue (propertyName, out var b)) {
+				yield return b;
+			}
 			foreach (var schema in schemas) {
 				if (schema.Properties.TryGetValue (propertyName, out PropertyInfo property)) {
 					yield return property;
@@ -183,9 +187,9 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public static PropertyInfo GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name)
+		public static PropertyInfo GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name, bool includeBuiltins)
 		{
-			return schemas.GetAllPropertyVariants (name).FirstOrDefault ();
+			return schemas.GetAllPropertyVariants (name, includeBuiltins).FirstOrDefault ();
 		}
 
 		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas)
@@ -259,7 +263,7 @@ namespace MonoDevelop.MSBuild.Schema
 				case MSBuildSyntaxKind.Metadata:
 					return schemas.GetMetadata (parentName, elementName, false);
 				case MSBuildSyntaxKind.Property:
-					return schemas.GetProperty (elementName);
+					return schemas.GetProperty (elementName, false);
 				case MSBuildSyntaxKind.Task:
 					return null;
 				case MSBuildSyntaxKind.Parameter:

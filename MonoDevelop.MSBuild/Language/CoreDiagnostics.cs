@@ -503,5 +503,41 @@ namespace MonoDevelop.MSBuild.Language
 			"ExpectingRightParenOrValue",
 			"Expecting ')' or value",
 			MSBuildDiagnosticSeverity.Error);
+
+		public static MSBuildDiagnosticDescriptor UnwrittenItem = new MSBuildDiagnosticDescriptor (
+			"UnwrittenItem",
+			"Possible unused or misspelled item",
+			"The item '{0}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public static MSBuildDiagnosticDescriptor UnwrittenProperty = new MSBuildDiagnosticDescriptor (
+			"UnwrittenProperty",
+			"Possible unused or misspelled property",
+			"The property '{0}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public static MSBuildDiagnosticDescriptor UnwrittenMetadata = new MSBuildDiagnosticDescriptor (
+			"UnwrittenMetadata",
+			"Possible unused or misspelled metadata",
+			"The metadata '{0}.{1}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public static MSBuildDiagnosticDescriptor UnreadItem = new MSBuildDiagnosticDescriptor (
+			"UnreadItem",
+			"Possible unused or misspelled item",
+			"The item '{0}' is not used in this file and is referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public static MSBuildDiagnosticDescriptor UnreadProperty = new MSBuildDiagnosticDescriptor (
+			"UnreadProperty",
+			"Possible unused or misspelled property",
+			"The property '{0}' is not used in this file and is not referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public static MSBuildDiagnosticDescriptor UnreadMetadata = new MSBuildDiagnosticDescriptor (
+			"UnreadMetadata",
+			"Possible unused or misspelled metadata",
+			"The metadata '{0}.{1}' is not used in this file and is not referenced in any imported targets or schemas",
+			MSBuildDiagnosticSeverity.Warning);
 	}
 }

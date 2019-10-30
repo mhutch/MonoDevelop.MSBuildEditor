@@ -224,19 +224,15 @@ namespace MonoDevelop.MSBuild.Language
 			if (itemName == null) {
 				return;
 			}
+			CollectItem (itemName, usage);
 			if (schema.MetadataUsage.TryGetValue ((itemName, metadataName), out var existingUsage)) {
 				if (existingUsage == usage) {
 					return;
 				}
 				usage |= existingUsage;
 			} else if (!Builtins.Metadata.ContainsKey (metadataName)) {
-				if (!schema.Items.TryGetValue (itemName, out ItemInfo item)) {
-					item = new ItemInfo (itemName, null);
-					schema.Items.Add (itemName, item);
-				}
-				if (!Builtins.Metadata.ContainsKey (metadataName)) {
-					item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
-				}
+				var item = schema.Items[itemName];
+				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 			}
 			schema.MetadataUsage[(itemName, metadataName)] = usage;
 		}

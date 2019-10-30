@@ -195,7 +195,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		IEnumerable<MSBuildDocument> GetDescendentDocuments ()
+		public IEnumerable<MSBuildDocument> GetDescendentDocuments ()
 		{
 			foreach (var i in GetDescendentImports ()) {
 				if (i.Document != null) {
@@ -215,20 +215,21 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//actual schemas, if they exist, take precedence over inferred schemas
-		public IEnumerable<IMSBuildSchema> GetSchemas ()
+		public IEnumerable<IMSBuildSchema> GetSchemas (bool skipThisDocumentInferredSchema = false)
 		{
 			if (Schema != null) {
 				yield return Schema;
 			}
-			foreach (var i in GetDescendentImports ()) {
-				if (i.Document?.Schema != null)
-					yield return i.Document.Schema;
+			foreach (var d in GetDescendentDocuments ()) {
+				if (d?.Schema is IMSBuildSchema s) {
+					yield return s;
+				}
 			}
-			if (InferredSchema is MSBuildInferredSchema inferred) {
+			if (!skipThisDocumentInferredSchema && InferredSchema is MSBuildInferredSchema inferred) {
 				yield return inferred;
 			}
-			foreach (var i in GetDescendentImports ()) {
-				if (i.Document.InferredSchema is IMSBuildSchema descendent) {
+			foreach (var d in GetDescendentDocuments ()) {
+				if (d.InferredSchema is IMSBuildSchema descendent) {
 					yield return descendent;
 				}
 			}

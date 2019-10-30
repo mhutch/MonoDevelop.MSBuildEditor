@@ -69,7 +69,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 			Assert.Zero (loadErrors.Count);
 
-			var item = new[] { schema }.GetProperty ("MyProp");
+			var item = new[] { schema }.GetProperty ("MyProp", true);
 			Assert.NotNull (item);
 			Assert.AreEqual (MSBuildValueKind.CustomType, item.ValueKind);
 			Assert.NotNull (item.CustomType);

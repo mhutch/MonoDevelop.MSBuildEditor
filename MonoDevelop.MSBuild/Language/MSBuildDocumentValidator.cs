@@ -77,9 +77,32 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildSyntaxKind.Item:
 				ValidateItemAttributes (resolved, element);
+				if (!IsItemUsed (element.Name.Name, ReferenceUsage.Read)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.UnreadItem,
+						element.OuterSpan, element.Name.Name
+					);
+				}
 				break;
 			case MSBuildSyntaxKind.Task:
 				ValidateTaskParameters (resolved, element);
+				break;
+			case MSBuildSyntaxKind.Property:
+				if (!IsPropertyUsed (element.Name.Name, ReferenceUsage.Read)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.UnreadProperty,
+						element.OuterSpan, element.Name.Name
+					);
+				}
+				break;
+			case MSBuildSyntaxKind.Metadata:
+				var metaItem = (element.Parent as XElement)?.Name.Name;
+				if (metaItem != null && !IsMetadataUsed (metaItem, element.Name.Name, ReferenceUsage.Read)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.UnreadMetadata,
+						element.OuterSpan, metaItem, element.Name.Name
+					);
+				}
 				break;
 			}
 
@@ -349,6 +372,14 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
+			if (resolvedAttribute.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
+				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.UnreadMetadata,
+						attribute.Span, element.Name.Name, attribute.Name.Name
+					);
+				}
+			}
 			ValidateAttribute (element, attribute, resolvedElement, resolvedAttribute);
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -429,10 +460,30 @@ namespace MonoDevelop.MSBuild.Language
 					Document.Diagnostics.Add (desc, new TextSpan (err.Offset, Math.Max (1, err.Length)), args);
 					break;
 				case ExpressionMetadata meta:
-				case ExpressionProperty prop:
+					var metaItem = meta.GetItemName ();
+					if (!string.IsNullOrEmpty (metaItem) && !IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write)) {
+						Document.Diagnostics.Add (
+							CoreDiagnostics.UnwrittenMetadata,
+							meta.Span, metaItem, meta.MetadataName
+						);
+					}
+					break;
+				case ExpressionProperty prop:;
+					if (prop.Name is string propName && !IsPropertyUsed (propName, ReferenceUsage.Write)) {
+						Document.Diagnostics.Add (
+							CoreDiagnostics.UnwrittenProperty,
+							prop.Span, propName
+						);
+					}
+					break;
 				case ExpressionItem item:
+					if (item.Name is string itemName && !IsPropertyUsed (itemName, ReferenceUsage.Write)) {
+						Document.Diagnostics.Add (
+							CoreDiagnostics.UnwrittenItem,
+							item.Span, itemName
+						);
+					}
 					//TODO: can we validate property/metadata/items refs?
-					//maybe warn if they're not used anywhere outside of this expression?
 					//TODO: deprecation squiggles in expressions
 					break;
 				}
@@ -566,6 +617,63 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (offset, value.Length), args);
+		}
+
+		bool IsItemUsed (string itemName, ReferenceUsage usage)
+		{
+			// if it's been found in an imported file or an explicit schema, it counts as used
+			var item = Document
+				.GetSchemas (skipThisDocumentInferredSchema: true)
+				.GetItem (itemName);
+			if (item != null) {
+				return true;
+			}
+
+			// if it's used in some other way in the current file, it's valid
+			if (Document.InferredSchema.ItemUsage.TryGetValue (itemName, out var u)) {
+				if ((u & usage) != 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool IsPropertyUsed (string propertyName, ReferenceUsage usage)
+		{
+			// if it's been found in an imported file or an explicit schema, it counts as used
+			var metaInfo = Document
+				.GetSchemas (skipThisDocumentInferredSchema: true)
+				.GetProperty (propertyName, true);
+			if (metaInfo != null) {
+				return true;
+			}
+
+			// if it's used in some other way in the current file, it's valid
+			if (Document.InferredSchema.PropertyUsage.TryGetValue (propertyName, out var u)) {
+				if ((u & usage) != 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool IsMetadataUsed (string itemName, string metadataName, ReferenceUsage usage)
+		{
+			// if it's been found in an imported file or an explicit schema, it's valid
+			var metaInfo = Document
+				.GetSchemas (skipThisDocumentInferredSchema: true)
+				.GetMetadata (itemName, metadataName, true);
+			if (metaInfo != null) {
+				return true;
+			}
+
+			// if it's used in some other way in the current file, it's valid
+			if (Document.InferredSchema.MetadataUsage.TryGetValue ((itemName, metadataName), out var u)) {
+				if ((u & usage) != 0) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }

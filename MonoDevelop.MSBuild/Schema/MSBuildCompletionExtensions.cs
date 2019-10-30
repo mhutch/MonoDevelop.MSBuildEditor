@@ -313,16 +313,9 @@ namespace MonoDevelop.MSBuild.Schema
 				return doc.GetItem ((string)rr.Reference);
 			case MSBuildReferenceKind.Metadata:
 				var m = rr.ReferenceAsMetadata;
-				if (Builtins.Metadata.TryGetValue (m.metaName, out var builtinMeta)) {
-					return builtinMeta;
-				}
 				return doc.GetMetadata (m.itemName, m.metaName, true);
 			case MSBuildReferenceKind.Property:
-				var propName = (string)rr.Reference;
-				if (Builtins.Properties.TryGetValue (propName, out var builtinProp)) {
-					return builtinProp;
-				}
-				return doc.GetProperty (propName);
+				return doc.GetProperty ((string)rr.Reference, true);
 			case MSBuildReferenceKind.Task:
 				return doc.GetTask ((string)rr.Reference);
 			case MSBuildReferenceKind.Target:

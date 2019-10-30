@@ -408,7 +408,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (variable) {
 				case ExpressionProperty ep:
 					if (ep.IsSimpleProperty) {
-						info = doc.GetProperty (ep.Name) ?? new PropertyInfo (ep.Name, null, false);
+						info = doc.GetProperty (ep.Name, true) ?? new PropertyInfo (ep.Name, null, false);
 						break;
 					}
 					continue;

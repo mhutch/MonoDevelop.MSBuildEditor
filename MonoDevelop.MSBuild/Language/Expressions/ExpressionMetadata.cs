@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public string GetItemName ()
 		{
-			if (ItemName !=null) {
+			if (ItemName != null) {
 				return ItemName;
 			}
 			var p = Parent;
