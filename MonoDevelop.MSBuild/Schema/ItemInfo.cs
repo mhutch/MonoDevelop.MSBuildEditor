@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild.Schema
 			bool isDeprecated = false, string deprecationMessage = null)
 			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
 		{
-			Metadata = metadata ?? new Dictionary<string, MetadataInfo> ();
+			Metadata = metadata ?? new Dictionary<string, MetadataInfo> (System.StringComparer.OrdinalIgnoreCase);
 			IncludeDescription = includeDescription;
 		}
 
