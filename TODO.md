@@ -19,7 +19,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 ## Parsing:
 
 * improve the background parser scheduling
-* replace xbuild/monodevelop condition parser with one based on the expression parser
 * keep parsed expressions in the AST instead of reparsing as needed
 * switch the XDom to use a red-green tree like Roslyn
 * implement some incremental parsing. it should be fairly straightforward to do it for a subset of insertions, especially without < chars
@@ -28,7 +27,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 
 * Improve implicit and explicit triggering for file path segments
 * trigger intellisense on |, indexed against | separated comparands
-* Completion for condition functions e.g. Exists
 * use RID graph for RID completion
 * context based filtering of disallowed/existing attributes and elements
 * well known flavor GUIDs
@@ -49,7 +47,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 
 ## Type resolution
 
-* Compute type of expression/subexpression when possible'
+* Compute type of expression/subexpression when possible
 * Some basic coercion e.g. string+path = path
 * Add logic to figure out context of unqualified metadata
 
@@ -61,8 +59,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 
 ## Fixes
 
-* remove property with default value
-* rename TargetFramework<->TargetFrameworks as appropriate
+* more fixes
 
 ## Schema & type system
 
@@ -99,6 +96,6 @@ Although there are hundred of unit tests covering the lower level details, there
 * fix some of the [FIXMEs](https://github.com/mhutch/MonoDevelop.MSBuildEditor/search?utf8=%E2%9C%93&q=fixme&type=)
 * Fix MSBuildProjectExtensionsPath eval with nonstandard intermediate dir
 * Go to definition on tasks
-* Add Rename command
+* Rename command
 * Make expand/shrink selection work on MSBuild expressions
 * Do some perf work, cache inferred schemas?
