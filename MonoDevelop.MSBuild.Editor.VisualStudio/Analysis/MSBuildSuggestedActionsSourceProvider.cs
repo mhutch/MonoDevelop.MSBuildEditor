@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.MSBuild.Editor.Commands;
 using MonoDevelop.MSBuild.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
@@ -21,12 +22,18 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	{
 		[Import]
 		public IViewTagAggregatorFactoryService ViewTagAggregatorFactoryService { get; set; }
+
 		[Import]
 		public JoinableTaskContext JoinableTaskContext { get; set; }
+
 		[Import]
 		public MSBuildParserProvider ParserProvider { get; set; }
+
 		[Import]
 		public MSBuildCodeFixService CodeFixService { get; set; }
+
+		[Import]
+		public MSBuildRefactoringService RefactoringService { get; set; }
 
 		public ISuggestedActionsSource CreateSuggestedActionsSource (ITextView textView, ITextBuffer textBuffer)
 		{

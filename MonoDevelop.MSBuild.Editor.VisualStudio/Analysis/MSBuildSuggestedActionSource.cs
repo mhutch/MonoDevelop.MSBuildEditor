@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -47,13 +48,26 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		async Task<List<MSBuildCodeFix>> GetCodeFixesAsync (SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
-			return await provider.CodeFixService.GetFixes (result, range, cancellationToken);
+
+			var fixes = await provider.CodeFixService.GetFixes (result, range, cancellationToken);
+			var refactorings = await provider.RefactoringService.GetRefactorings (result, range, cancellationToken);
+
+			fixes.AddRange (refactorings);
+			return fixes;
 		}
 
 		public async Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
-			return await provider.CodeFixService.HasFixes (result, range, cancellationToken);
+			if (await provider.CodeFixService.HasFixes (result, range, cancellationToken)) {
+				return true;
+			}
+
+			if (await provider.RefactoringService.HasRefactorings (result,  range, cancellationToken)) {
+				return true;
+			}
+
+			return false;
 		}
 
 		public bool TryGetTelemetryId (out Guid telemetryId)
