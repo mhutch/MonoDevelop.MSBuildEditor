@@ -21,6 +21,11 @@ namespace MonoDevelop.MSBuild.Language
 		//the reason for this is that a single expression can resolve to multiple imports
 		public List<Import> Imports { get; } = new List<Import> ();
 
+		/// <summary>
+		/// Things that derive data from the imports can use this to avoid unnecessarily rebuilding it
+		/// </summary>
+		public int ImportsHash { get; private set; }
+
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<MSBuildDiagnostic> Diagnostics { get; }
 		public bool IsToplevel { get; }
@@ -158,6 +163,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public virtual void AddImport (Import import)
 		{
+			ImportsHash ^= import.Document?.GetHashCode () ?? 0;
 			Imports.Add (import);
 		}
 
