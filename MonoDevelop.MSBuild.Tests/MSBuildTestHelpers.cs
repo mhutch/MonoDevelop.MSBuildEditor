@@ -106,9 +106,9 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 
 			if (Platform.IsMac) {
-				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (
-					"/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/msbuild/Current/bin"
-				);
+				var corlibDir = Path.GetDirectoryName (typeof (string).Assembly.Location);
+				var msbuildDir = Path.Combine (corlibDir, "..", "msbuild", "Current", "bin");
+				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (msbuildDir);
 				return;
 			}
 
