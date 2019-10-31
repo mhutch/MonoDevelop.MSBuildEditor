@@ -35,4 +35,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: MSBuild Editor for Visual Studio for Mac
-        path: MonoDevelop.MSBuildEditor/bin/Release
+        path: MonoDevelop.MSBuildEditor/bin/Release/MonoDevelop.MSBuildEditor.MonoDevelop.MSBuildEditor_2.3.1.mpack
