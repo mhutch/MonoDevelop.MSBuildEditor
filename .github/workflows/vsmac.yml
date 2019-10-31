@@ -8,6 +8,7 @@ jobs:
     env:
       # for some reason 5.12 is in PATH
       MONO_BIN: /Library/Frameworks/Mono.framework/Versions/6.4.0/bin
+      PATH: $MONO_BIN:$PATH
     steps:
     - uses: actions/checkout@v1
       with:
@@ -21,16 +22,16 @@ jobs:
         dotnet-version: '2.2.402'
 
     - name: Restore
-      run: $MONO_BIN/msbuild -t:Restore -p:Configuration=ReleaseMac
+      run: msbuild -t:Restore -p:Configuration=ReleaseMac
       
     - name: Build
-      run: $MONO_BIN/msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=ReleaseMac -p:CreatePackage=true
+      run: msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=ReleaseMac -p:CreatePackage=true
       
     - name: Download NUnit
       run: nuget install NUnit.ConsoleRunner -Version 3.8.0 -OutputDirectory testrunner
       
     - name: Test
-      run: $MONO_BIN/mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
+      run: mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
 
     - uses: actions/upload-artifact@master
       with:
