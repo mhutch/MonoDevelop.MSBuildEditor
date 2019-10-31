@@ -30,6 +30,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * use RID graph for RID completion
 * context based filtering of disallowed/existing attributes and elements
 * well known flavor GUIDs
+* operators e.g. And/Or/-> and other non-memorable syntax e.g. static property function
+* auto insert matching quotes and parens in expressions
 
 ## Validation
 
@@ -55,10 +57,19 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 
 * DefaultItemExcludes assignment that doesn't include previous value
 * Unnecessary package references
+* Use property before it's assigned
+* remove empty propertygroup/itemgroup
+* move conditioned property identical under all conditions to unconditioned propertygroup
 
-## Fixes
+## Fixes & refactorings
 
-* more fixes
+* convert SDK into imports
+* create non-existent target
+* move property to directory props
+* move property/item to new conditioned propertygroup/itemgroup
+* split propertygroup/itemgroup above/below caret
+* extract selected expression to property
+* fix for DoNotAssignMSBuildAllProjectsAnalyzer
 
 ## Schema & type system
 
@@ -71,6 +82,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Infer bool type from bool literal assigment
 * API to dump barebones schema from inferred symbols
 * pull task definitions from current roslyn workspace, if any
+* arbitrary metadata on properties/items/types that analyzers/fixes can use
 
 ## Tests:
 
