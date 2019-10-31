@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MonoDevelop.MSBuild.Editor.VisualStudio.7badbb47-7faf-4264-b15d-3b6b23da44fe" Version="1.0" Language="en-US" Publisher="Mikayla Hutchinson" />
-        <DisplayName>MonoDevelop.MSBuild.Editor.VisualStudio</DisplayName>
-        <Description xml:space="preserve">MSBuild Editor</Description>
+        <Identity Id="7badbb47-7faf-4264-b15d-3b6b23da44fe" Version="1.0" Language="en-US" Publisher="Mikayla Hutchinson" />
+        <DisplayName>MSBuild Editor</DisplayName>
+        <Description xml:space="preserve">Editor for MSBuild files that supports IntelliSense, quick info, navigation, analyzers and refactorings.</Description>
+        <MoreInfo>https://github.com/mhutch/MonoDevelop.MSBuildEditor</MoreInfo>
+        <Tags>msbuild</Tags>
         <Preview>true</Preview>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.1, 17.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.4, 17.0)" />
     </Installation>
-    <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    </Dependencies>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.4,17.0)" DisplayName="Visual Studio core editor" />
         <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[16.4,17.0)" DisplayName="C# and Visual Basic" />
