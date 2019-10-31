@@ -31,3 +31,8 @@ jobs:
       
     - name: Test
       run: $MONO_BIN/mono ./testrunner/NUnit.ConsoleRunner.3.8.0/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: MSBuild Editor for Visual Studio for Mac
+        path: MonoDevelop.MSBuildEditor/bin/Release
