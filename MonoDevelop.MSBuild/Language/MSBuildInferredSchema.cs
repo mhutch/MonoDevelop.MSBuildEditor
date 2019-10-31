@@ -51,7 +51,8 @@ namespace MonoDevelop.MSBuild.Language
 				&& StringComparer.OrdinalIgnoreCase.Equals (x.name, y.name);
 
 			public int GetHashCode ((string itemName, string name) obj)
-				=> obj.itemName.GetHashCode () ^ obj.name.GetHashCode ();
+				=> StringComparer.OrdinalIgnoreCase.GetHashCode (obj.itemName)
+				^ StringComparer.OrdinalIgnoreCase.GetHashCode (obj.name);
 		}
 	}
 }
