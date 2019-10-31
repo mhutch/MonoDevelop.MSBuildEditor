@@ -15,6 +15,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * outlining tagger that's better than the one from textmate
 * document outline tool window
 * breadcrumbs bar
+* editorconfig for formatting
 
 ## Parsing:
 
@@ -45,7 +46,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * error when assigning values to reserved properties and metadata
 * check type of expressions assigned to properties/metadata/task params
 * item and property function names and arguments
-* check metadata refs have sufficient context
+* check metaddata refs have sufficient context
 
 ## Type resolution
 
@@ -70,6 +71,10 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * split propertygroup/itemgroup above/below caret
 * extract selected expression to property
 * fix for DoNotAssignMSBuildAllProjectsAnalyzer
+* group items by type
+* sort items in group
+* merge adjacent itemgroups/propertygroups
+* preview UI for fixes and refactorings
 
 ## Schema & type system
 
