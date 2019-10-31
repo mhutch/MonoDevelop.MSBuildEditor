@@ -54,7 +54,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 ## Analyzers
 
 * DefaultItemExcludes assignment that doesn't include previous value
-* Nonexistent property/item/metadata - heuristic based on usage
 * Unnecessary package references
 
 ## Fixes
