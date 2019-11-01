@@ -3,8 +3,8 @@
 The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio and Visual Studio for Mac.
 It can be installed from the Extension Manager.
 
-![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio/badge.svg)
-![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio%20for%20Mac/badge.svg)
+[![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio/badge.svg)](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions?query=workflow%3A%22Visual+Studio%22)
+[![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio%20for%20Mac/badge.svg)](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions?query=workflow%3A%22Visual+Studio+for+Mac%22)
 
 ## Features
 
