@@ -33,6 +33,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * well known flavor GUIDs
 * operators e.g. And/Or/-> and other non-memorable syntax e.g. static property function
 * auto insert matching quotes and parens in expressions
+* automatically update closing tag when editing opening tag name
+* make metadata completion more context-specific
 
 ## Validation
 
@@ -46,7 +48,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * error when assigning values to reserved properties and metadata
 * check type of expressions assigned to properties/metadata/task params
 * item and property function names and arguments
-* check metaddata refs have sufficient context
+* check metadata refs have sufficient context
 
 ## Type resolution
 
@@ -61,6 +63,7 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * Use property before it's assigned
 * remove empty propertygroup/itemgroup
 * move conditioned property identical under all conditions to unconditioned propertygroup
+* defining a target that's subsequently redefined (e.g. BeforeBuild in sdk style project)
 
 ## Fixes & refactorings
 
@@ -71,10 +74,11 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * split propertygroup/itemgroup above/below caret
 * extract selected expression to property
 * fix for DoNotAssignMSBuildAllProjectsAnalyzer
-* group items by type
-* sort items in group
+* group items by type (preserving dependencies)
+* sort items/properties in group by identity (preserving dependencies)
 * merge adjacent itemgroups/propertygroups
 * preview UI for fixes and refactorings
+* convert BeforeFoo target override to -> BeforeTargets=Foo
 
 ## Schema & type system
 
