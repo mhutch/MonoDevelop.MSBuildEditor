@@ -509,7 +509,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionItemName item:
-					if (!IsPropertyUsed (item.Name, ReferenceUsage.Write)) {
+					if (!IsItemUsed (item.Name, ReferenceUsage.Write)) {
 						Document.Diagnostics.Add (
 							CoreDiagnostics.UnwrittenItem,
 							item.Span,
