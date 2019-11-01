@@ -177,19 +177,26 @@ namespace MonoDevelop.MSBuild.Editor
 				}
 				count++;
 
+				// collapse any .. segments
+				string path = System.IO.Path.GetFullPath (s);
+
 				//factor out some common prefixes into variables
 				//we do this instead of using the original string, as the result is simpler
 				//and easier to understand
-				shorten = shorten ?? CreateFilenameShortener (doc.RuntimeInformation);
-				var replacement = shorten (s);
+				shorten ??= CreateFilenameShortener (doc.RuntimeInformation);
+				var replacement = shorten (path);
 				if (!replacement.HasValue) {
-					elements.Add (new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, s, () => OpenFile (s), s)));
+					elements.Add (
+						new ClassifiedTextElement (
+							new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, path, () => OpenFile (path), path)
+						)
+					);
 					continue;
 				}
 
 				elements.Add (new ClassifiedTextElement (
 					new ClassifiedTextRun (PredefinedClassificationTypeNames.SymbolReference, replacement.Value.prefix),
-					new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, replacement.Value.remaining, () => OpenFile (s), s)
+					new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, replacement.Value.remaining, () => OpenFile (path), path)
 				));
 			}
 
