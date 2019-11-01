@@ -3,9 +3,15 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Differencing;
+using Microsoft.VisualStudio.Text.Projection;
 
+using MonoDevelop.MSBuild.Editor;
+using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Editor.Host;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -42,5 +48,30 @@ namespace MonoDevelop.MSBuild.Tests
 
 		public FindReferencesContext StartSearch (string title, string referenceName, bool showUsage)
 			=> throw new System.NotImplementedException ();
+	}
+
+	[Export (typeof (IDifferenceBufferFactoryService))]
+	class MockDifferenceBufferFactoryService : IDifferenceBufferFactoryService
+	{
+		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer)
+		{
+			throw new System.NotImplementedException ();
+		}
+
+		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer, StringDifferenceOptions options, bool disableEditing = false, bool wrapLeftBuffer = true, bool wrapRightBuffer = true) => throw new System.NotImplementedException ();
+
+		public IDifferenceBuffer TryGetDifferenceBuffer (IProjectionBufferBase projectionBuffer) => throw new System.NotImplementedException ();
+	}
+
+	[Export (typeof (IDifferenceViewElementFactory))]
+	class MockDifferenceViewElementFactoryService : IDifferenceViewElementFactory
+	{
+		public Task<object> CreateDiffViewElementAsync (IDifferenceBuffer diffBuffer) => throw new System.NotImplementedException ();
+	}
+
+	[Export (typeof (IMSBuildSuggestedActionFactory))]
+	class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
+	{
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
 	}
 }
