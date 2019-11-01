@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -19,7 +20,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		readonly MSBuildSuggestedActionsSourceProvider provider;
 		readonly ITextView textView;
 		readonly ITextBuffer textBuffer;
-		readonly MSBuildBackgroundParser parser;
+		MSBuildBackgroundParser parser;
 
 		public MSBuildSuggestedActionSource (MSBuildSuggestedActionsSourceProvider provider, ITextView textView, ITextBuffer textBuffer)
 		{
@@ -28,6 +29,12 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			this.textBuffer = textBuffer;
 
 			parser = provider.ParserProvider.GetParser (textBuffer);
+			parser.ParseCompleted += ParseCompleted;
+		}
+
+		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> e)
+		{
+			SuggestedActionsChanged?.Invoke (this, EventArgs.Empty);
 		}
 
 		public event EventHandler<EventArgs> SuggestedActionsChanged;
@@ -77,6 +84,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public void Dispose ()
 		{
+			var p = parser;
+			if (p != null) {
+				parser.ParseCompleted -= ParseCompleted;
+				parser = null;
+			}
 		}
 	}
 }
