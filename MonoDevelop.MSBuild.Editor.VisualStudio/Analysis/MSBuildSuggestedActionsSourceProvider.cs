@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-using MonoDevelop.MSBuild.Editor.Commands;
 using MonoDevelop.MSBuild.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
@@ -34,6 +33,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		[Import]
 		public MSBuildRefactoringService RefactoringService { get; set; }
+
+		// allow default because we don't have a Mac version yet
+		[Import (AllowDefault = true)]
+		public PreviewChangesService PreviewService { get; set; }
 
 		public ISuggestedActionsSource CreateSuggestedActionsSource (ITextView textView, ITextBuffer textBuffer)
 		{

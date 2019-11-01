@@ -14,11 +14,13 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	internal class MSBuildSuggestedAction : ISuggestedAction
 	{
+		readonly PreviewChangesService previewService;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeFix fix;
 
-		public MSBuildSuggestedAction (ITextBuffer buffer, MSBuildCodeFix fix)
+		public MSBuildSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
 		{
+			this.previewService = previewService;
 			this.buffer = buffer;
 			this.fix = fix;
 		}
@@ -33,7 +35,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public string InputGestureText => null;
 
-		public bool HasPreview => false;
+		public bool HasPreview => previewService != null;
 
 		public void Dispose ()
 		{
@@ -42,10 +44,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync (CancellationToken cancellationToken)
 			=> Task.FromResult<IEnumerable<SuggestedActionSet>> (null);
 
-		public Task<object> GetPreviewAsync (CancellationToken cancellationToken)
-		{
-			throw new NotSupportedException ();
-		}
+		public async Task<object> GetPreviewAsync (CancellationToken cancellationToken)
+			=> previewService.CreateDiffView (
+				await fix.Action.ComputeOperationsAsync (cancellationToken), buffer.CurrentSnapshot, buffer.ContentType, cancellationToken
+			);
 
 		public void Invoke (CancellationToken cancellationToken)
 		{

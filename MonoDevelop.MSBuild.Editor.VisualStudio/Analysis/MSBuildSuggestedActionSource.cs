@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			var fixes = GetCodeFixesAsync (range, cancellationToken).WaitAndGetResult (cancellationToken);
 			foreach (var fix in fixes) {
-				yield return new SuggestedActionSet (new MSBuildSuggestedAction[] { new MSBuildSuggestedAction (textBuffer, fix) });
+				yield return new SuggestedActionSet (new MSBuildSuggestedAction[] { new MSBuildSuggestedAction (provider.PreviewService, textBuffer, fix) });
 			}
 		}
 
