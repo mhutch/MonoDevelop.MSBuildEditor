@@ -47,6 +47,7 @@
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\PackageFeedRegistryProvider.cs">
       <Link>PackageFeedRegistryProvider.cs</Link>
     </Compile>
+    <Compile Include="Analysis\IWpfDifferenceViewerExtensions.cs" />
     <Compile Include="Analysis\MSBuildSuggestedAction.cs" />
     <Compile Include="Analysis\MSBuildSuggestedActionSource.cs" />
     <Compile Include="Analysis\MSBuildSuggestedActionsSourceProvider.cs" />

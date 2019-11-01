@@ -18,17 +18,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+
 using MonoDevelop.MSBuild.Analysis;
 
 namespace MonoDevelop.MSBuild.Editor
 {
 	interface IDifferenceViewElementFactory
 	{
-		object CreateDiffViewElement (IDifferenceBuffer diffBuffer);
+		Task<object> CreateDiffViewElementAsync (IDifferenceBuffer diffBuffer);
 	}
 
 	/// <summary>
@@ -53,7 +55,7 @@ namespace MonoDevelop.MSBuild.Editor
 			_bufferFactory = bufferFactory;
 		}
 
-		public object CreateDiffView (IEnumerable<MSBuildActionOperation> actions, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
+		public async Task<object> CreateDiffViewAsync (IEnumerable<MSBuildActionOperation> actions, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
 		{
 			// Create a copy of the left hand buffer (we're going to remove all of the
 			// content we don't care about from it).
@@ -94,7 +96,9 @@ namespace MonoDevelop.MSBuild.Editor
 			// create the difference buffer and view...
 			var diffBuffer = _diffBufferFactory.CreateDifferenceBuffer (leftBuffer, rightBuffer);
 
-			return _differenceViewfactory.CreateDiffViewElement (diffBuffer);
+			var diffView = await _differenceViewfactory.CreateDiffViewElementAsync (diffBuffer).ConfigureAwait (true);
+
+			return diffView;
 		}
 
 		private static void MinimizeBuffers (ITextBuffer leftBuffer, ITextBuffer rightBuffer, ITextSnapshot startingVersion, int minPos, int maxPos)

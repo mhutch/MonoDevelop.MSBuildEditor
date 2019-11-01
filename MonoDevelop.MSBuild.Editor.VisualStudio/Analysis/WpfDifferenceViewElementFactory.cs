@@ -13,10 +13,9 @@
 //
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -35,29 +34,16 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 			_previewRoleSet = textEditorFactoryService.CreateTextViewRoleSet (PredefinedTextViewRoles.Analyzable);
 		}
 
-		public object CreateDiffViewElement (IDifferenceBuffer diffBuffer)
+		public async Task<object> CreateDiffViewElementAsync (IDifferenceBuffer diffBuffer)
 		{
 			var diffView = _diffFactory.CreateDifferenceView (diffBuffer, _previewRoleSet);
 
 			diffView.ViewMode = DifferenceViewMode.Inline;
-			diffView.InlineView.ZoomLevel *= .75;
+			diffView.InlineView.ZoomLevel *= 1.0;
 			diffView.InlineView.VisualElement.Focusable = false;
 			diffView.InlineHost.GetTextViewMargin ("deltadifferenceViewerOverview").VisualElement.Visibility = System.Windows.Visibility.Collapsed;
 
-			// Reduce the size of the buffer once it's ready
-			diffView.DifferenceBuffer.SnapshotDifferenceChanged += (sender, args) => {
-				diffView.InlineView.DisplayTextLineContainingBufferPosition (
-					new SnapshotPoint (diffView.DifferenceBuffer.CurrentInlineBufferSnapshot, 0),
-					0.0, ViewRelativePosition.Top, double.MaxValue, double.MaxValue
-				);
-
-				var width = Math.Max (diffView.InlineView.MaxTextRightCoordinate * (diffView.InlineView.ZoomLevel / 100), 400); // Width of the widest line.
-				var height = diffView.InlineView.LineHeight * (diffView.InlineView.ZoomLevel / 100) * // Height of each line.
-					diffView.DifferenceBuffer.CurrentInlineBufferSnapshot.LineCount;
-
-				diffView.VisualElement.Width = width;
-				diffView.VisualElement.Height = height;
-			};
+			await diffView.SizeToFitAsync ().ConfigureAwait (true);
 
 			return diffView.VisualElement;
 		}

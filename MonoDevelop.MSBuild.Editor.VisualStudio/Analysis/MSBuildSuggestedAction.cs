@@ -45,8 +45,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			=> Task.FromResult<IEnumerable<SuggestedActionSet>> (null);
 
 		public async Task<object> GetPreviewAsync (CancellationToken cancellationToken)
-			=> previewService.CreateDiffView (
-				await fix.Action.ComputeOperationsAsync (cancellationToken), buffer.CurrentSnapshot, buffer.ContentType, cancellationToken
+			=> await previewService.CreateDiffViewAsync (
+				await fix.Action.ComputeOperationsAsync (cancellationToken).ConfigureAwait (true),
+				buffer.CurrentSnapshot, buffer.ContentType, cancellationToken
 			);
 
 		public void Invoke (CancellationToken cancellationToken)
