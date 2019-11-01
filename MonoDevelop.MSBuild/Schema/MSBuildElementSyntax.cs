@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using MonoDevelop.Xml.Dom;
+
 namespace MonoDevelop.MSBuild.Schema
 {
 	public class MSBuildElementSyntax : ValueInfo
@@ -50,6 +52,41 @@ namespace MonoDevelop.MSBuild.Schema
 
 			builtin.TryGetValue (name, out MSBuildElementSyntax result);
 			return result;
+		}
+
+		public static (MSBuildElementSyntax element, MSBuildAttributeSyntax attribute)? Get (IEnumerable<XObject> path)
+		{
+			MSBuildElementSyntax elementSyntax = null;
+			foreach (var n in path) {
+				if (elementSyntax == null) {
+					if (n is XDocument) {
+						continue;
+					}
+					if (n is XElement xroot && xroot.NameEquals ("Project", true)) {
+						elementSyntax = Project;
+						continue;
+					}
+					return null;
+				}
+				if (n is XElement xel) {
+					elementSyntax = Get (xel.Name.FullName, elementSyntax);
+					if (elementSyntax != null) {
+						continue;
+					}
+					return null;
+				}
+				if (n is XAttribute att) {
+					var attributeSyntax = elementSyntax.GetAttribute (att.Name.FullName);
+					if (attributeSyntax != null) {
+						return (elementSyntax, attributeSyntax);
+					}
+					return null;
+				}
+				if (n is XText) {
+					return (elementSyntax, null);
+				}
+			}
+			return null;
 		}
 
 		public MSBuildAttributeSyntax GetAttribute (string name)

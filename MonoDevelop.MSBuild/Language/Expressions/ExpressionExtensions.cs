@@ -260,5 +260,35 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 			return node;
 		}
+
+		public static IEnumerable<ExpressionNode> Parents (this ExpressionNode self)
+		{
+			var p = self.Parent;
+			while (p != null) {
+				yield return p;
+				p = p.Parent;
+			}
+		}
+
+		public static IEnumerable<ExpressionNode> SelfAndParents (this ExpressionNode self)
+		{
+			while (self != null) {
+				yield return self;
+				self = self.Parent;
+			}
+		}
+
+		//FIXME can we optimize this at all?
+		public static ExpressionNode FindCommonAncestor (this ExpressionNode self, ExpressionNode other)
+		{
+			foreach (var s in self.SelfAndParents ()) {
+				foreach (var o in other.SelfAndParents ()) {
+					if (s == o) {
+						return s;
+					}
+				}
+			}
+			return null;
+		}
 	}
 }

@@ -116,5 +116,4 @@ Although there are hundred of unit tests covering the lower level details, there
 * Fix MSBuildProjectExtensionsPath eval with nonstandard intermediate dir
 * Go to definition on tasks
 * Rename command
-* Make expand/shrink selection work on MSBuild expressions
 * Do some perf work, cache inferred schemas?
