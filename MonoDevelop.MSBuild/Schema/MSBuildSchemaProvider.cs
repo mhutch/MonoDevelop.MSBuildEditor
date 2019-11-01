@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case "nuget.build.tasks.pack.targets":
 				return "NuGetPack";
 			case "sdk.targets":
-				switch (sdkId) {
+				switch (sdkId.ToLower()) {
 				case "microsoft.net.sdk":
 					return "NetSdk";
 				}
