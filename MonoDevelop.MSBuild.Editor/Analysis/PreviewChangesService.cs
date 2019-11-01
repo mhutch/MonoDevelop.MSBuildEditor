@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuild.Editor
 			int minPos = startingVersion.Length, maxPos = 0;
 			foreach (var change in textChanges) {
 				minPos = Math.Min (change.OldPosition, minPos);
-				maxPos = Math.Max (change.OldPosition, maxPos);
+				maxPos = Math.Max (change.OldPosition+change.OldLength, maxPos);
 			}
 
 			if (minPos == startingVersion.Length && maxPos == 0) {
