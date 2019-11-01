@@ -108,7 +108,6 @@ Although there are hundred of unit tests covering the lower level details, there
 
 * In addition to brute forcing imports, resolve them using real MSBuild engine
 * Completion of inline C#
-* show default value of property/metadata/items in tooltips
 * parameter info tooltip when completing values
 * properly handle MSBuild escaping and XML entities
 * better highlighting colors

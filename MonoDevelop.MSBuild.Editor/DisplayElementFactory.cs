@@ -69,6 +69,15 @@ namespace MonoDevelop.MSBuild.Editor
 				break;
 			}
 
+			if (info is ValueInfo vi && !string.IsNullOrEmpty (vi.DefaultValue)) {
+				elements.Add (
+					new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, $"Default value: "),
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.String, vi.DefaultValue)
+					)
+				);
+			}
+
 			var seenIn = GetSeenInElement (buffer, rr, info, doc);
 			if (seenIn != null) {
 				elements.Add (seenIn);
