@@ -173,19 +173,16 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		public bool FindReferences (ITextBuffer buffer, SnapshotPoint point)
 		{
-			if (!Resolver.GetResolvedReference (buffer, point, out _, out var rr) || !MSBuildReferenceCollector.CanCreate (rr)) {
-				return false;
-			}
-			FindReferencesAsync (buffer, rr);
-			return true;
+			Resolver.GetResolvedReference (buffer, point, out _, out var rr);
+			return FindReferences (buffer, rr);
 		}
 
-		public bool FindReferences (ITextBuffer buffer, MSBuildResolveResult reference)
+		public bool FindReferences (ITextBuffer buffer, MSBuildResolveResult resolveResult)
 		{
-			if (!MSBuildReferenceCollector.CanCreate (reference)) {
+			if (!MSBuildReferenceCollector.CanCreate (resolveResult)) {
 				return false;
 			}
-			FindReferencesAsync (buffer, reference);
+			FindReferencesAsync (buffer, resolveResult);
 			return true;
 		}
 
