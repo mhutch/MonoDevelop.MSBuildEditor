@@ -35,7 +35,6 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			public SnapshotPoint Position;
 			public MSBuildRootDocument Doc;
 			public MSBuildResolveResult Result;
-			public bool IsUpToDate;
 		}
 
 		CachedResult cached;
@@ -49,7 +48,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			var cached = this.cached;
 
 			// if the cached result is up to date, return it
-			if (cached.Position == position && cached.IsUpToDate) {
+			if (cached.Position == position) {
 				doc = cached.Doc;
 				rr = cached.Result;
 				return true;
@@ -75,7 +74,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 			this.cached = cached;
 
-			return cached.IsUpToDate = lastResult.Snapshot == position.Snapshot;
+			return lastResult.Snapshot == position.Snapshot;
 		}
 	}
 }
