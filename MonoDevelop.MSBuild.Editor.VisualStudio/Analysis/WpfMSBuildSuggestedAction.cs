@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,13 +13,20 @@ using Microsoft.VisualStudio.Text;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
-	internal class MSBuildSuggestedAction : ISuggestedAction
+	[Export (typeof (IMSBuildSuggestedActionFactory))]
+	class WpfMSBuildSuggestedActionFactory : IMSBuildSuggestedActionFactory
+	{
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
+			=> new WpfMSBuildSuggestedAction (previewService, buffer, fix);
+	}
+
+	class WpfMSBuildSuggestedAction : ISuggestedAction
 	{
 		readonly PreviewChangesService previewService;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeFix fix;
 
-		public MSBuildSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
+		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
 		{
 			this.previewService = previewService;
 			this.buffer = buffer;

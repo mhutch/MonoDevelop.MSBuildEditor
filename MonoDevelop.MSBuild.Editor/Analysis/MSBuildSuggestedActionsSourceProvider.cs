@@ -38,6 +38,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		[Import (AllowDefault = true)]
 		public PreviewChangesService PreviewService { get; set; }
 
+		[Import]
+		public IMSBuildSuggestedActionFactory SuggestedActionFactory { get; set; }
+
 		public ISuggestedActionsSource CreateSuggestedActionsSource (ITextView textView, ITextBuffer textBuffer)
 		{
 			return new MSBuildSuggestedActionSource (this, textView, textBuffer);

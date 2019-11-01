@@ -48,9 +48,7 @@
       <Link>PackageFeedRegistryProvider.cs</Link>
     </Compile>
     <Compile Include="Analysis\IWpfDifferenceViewerExtensions.cs" />
-    <Compile Include="Analysis\MSBuildSuggestedAction.cs" />
-    <Compile Include="Analysis\MSBuildSuggestedActionSource.cs" />
-    <Compile Include="Analysis\MSBuildSuggestedActionsSourceProvider.cs" />
+    <Compile Include="Analysis\WpfMSBuildSuggestedAction.cs" />
     <Compile Include="Analysis\WpfDifferenceViewElementFactory.cs" />
     <Compile Include="RoslynFindReferences\DependencyObjectExtensions.cs" />
     <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />

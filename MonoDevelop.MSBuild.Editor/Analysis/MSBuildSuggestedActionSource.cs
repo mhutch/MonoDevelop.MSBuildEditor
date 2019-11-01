@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 
@@ -28,11 +27,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			this.textView = textView;
 			this.textBuffer = textBuffer;
 
-			parser = provider.ParserProvider.GetParser (textBuffer);		}
-
-		void TagsChanged (object sender, TagsChangedEventArgs e)
-		{
-			SuggestedActionsChanged?.Invoke (this, EventArgs.Empty);
+			parser = provider.ParserProvider.GetParser (textBuffer);
 		}
 
 		public event EventHandler<EventArgs> SuggestedActionsChanged;
@@ -41,7 +36,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			var fixes = GetCodeFixesAsync (range, cancellationToken).WaitAndGetResult (cancellationToken);
 			foreach (var fix in fixes) {
-				yield return new SuggestedActionSet (new MSBuildSuggestedAction[] { new MSBuildSuggestedAction (provider.PreviewService, textBuffer, fix) });
+				yield return new SuggestedActionSet (
+					null,
+					new ISuggestedAction[] {
+						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textBuffer, fix)
+					});
 			}
 		}
 
