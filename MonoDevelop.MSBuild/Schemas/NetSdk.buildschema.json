@@ -36,6 +36,16 @@
       "description": "Whether to automatically set Link metadata on items outside the project folder",
       "type": "bool",
       "default": "true"
+    },
+    "GenerateAssemblyInfo": {
+      "description": "Whether to automatically generate an AssemblyInfo file at build time and pass it to the compiler",
+      "type": "bool",
+      "default": "true"
+    },
+    "AppendTargetFrameworkToOutputPath": {
+      "description": "Whether the framework's short name is added to the output path, which prevents conflicts when multi-targeting",
+      "type": "bool",
+      "default": "true"
     }
   }
 }
