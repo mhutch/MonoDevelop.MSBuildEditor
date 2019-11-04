@@ -10,25 +10,28 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
 	class WpfMSBuildSuggestedActionFactory : IMSBuildSuggestedActionFactory
 	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
-			=> new WpfMSBuildSuggestedAction (previewService, buffer, fix);
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix)
+			=> new WpfMSBuildSuggestedAction (previewService, options, buffer, fix);
 	}
 
 	class WpfMSBuildSuggestedAction : ISuggestedAction
 	{
 		readonly PreviewChangesService previewService;
+		readonly IEditorOptions options;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeFix fix;
 
-		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix)
+		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix)
 		{
 			this.previewService = previewService;
+			this.options = options;
 			this.buffer = buffer;
 			this.fix = fix;
 		}
@@ -55,6 +58,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public async Task<object> GetPreviewAsync (CancellationToken cancellationToken)
 			=> await previewService.CreateDiffViewAsync (
 				await fix.Action.ComputeOperationsAsync (cancellationToken).ConfigureAwait (true),
+				options,
 				buffer.CurrentSnapshot, buffer.ContentType, cancellationToken
 			);
 
@@ -62,7 +66,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			var operations = fix.Action.ComputeOperationsAsync (cancellationToken).WaitAndGetResult (cancellationToken);
 			foreach (var op in operations) {
-				op.Apply (buffer, cancellationToken);
+				op.Apply (options, buffer, cancellationToken);
 			}
 		}
 

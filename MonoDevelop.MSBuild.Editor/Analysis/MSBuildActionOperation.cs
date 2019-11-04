@@ -4,11 +4,12 @@
 using System.Threading;
 
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
 	abstract class MSBuildActionOperation
 	{
-		public abstract void Apply (ITextBuffer document, CancellationToken cancellationToken);
+		public abstract void Apply (IEditorOptions options, ITextBuffer document, CancellationToken cancellationToken);
 	}
 }

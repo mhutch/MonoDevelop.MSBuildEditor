@@ -3,12 +3,13 @@
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	//works around the WPF dependency in ISuggestedAction
 	interface IMSBuildSuggestedActionFactory
 	{
-		ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix);
+		ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix);
 	}
 }
