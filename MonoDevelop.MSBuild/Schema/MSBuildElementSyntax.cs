@@ -89,6 +89,41 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
+		public static MSBuildElementSyntax Get (XElement el)
+		{
+			if (el.Parent is XDocument && el.NameEquals (Project.Name, true)) {
+				return Project;
+			}
+			var parentSyntax = el.Parent is XElement p ? Get (p) : null;
+			if (parentSyntax != null) {
+				return Get (el.Name.Name, parentSyntax);
+			}
+			return null;
+		}
+
+		public static (MSBuildElementSyntax element, MSBuildAttributeSyntax attribute)? Get (XObject obj)
+		{
+			switch (obj) {
+			case XElement el:
+				return (Get (el), null);
+			case XAttribute att:
+				if (att.Parent is XElement attEl) {
+					var elementSyntax = Get (attEl);
+					if (elementSyntax != null) {
+						return (elementSyntax, elementSyntax.GetAttribute (att.Name.FullName));
+					}
+					return (elementSyntax, null);
+				}
+				break;
+			case XText _:
+			case XComment _:
+				if (obj.Parent is XElement e)
+					return (Get (e), null);
+				break;
+			}
+			return null;
+		}
+
 		public MSBuildAttributeSyntax GetAttribute (string name)
 		{
 			foreach (var attribute in attributes) {

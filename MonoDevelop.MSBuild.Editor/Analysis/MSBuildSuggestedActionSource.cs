@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,36 +42,81 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public IEnumerable<SuggestedActionSet> GetSuggestedActions (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
-			var fixes = GetCodeFixesAsync (range, cancellationToken).WaitAndGetResult (cancellationToken);
+			var fixes = GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken).WaitAndGetResult (cancellationToken);
+			if (fixes == null) {
+				yield break;
+			}
+
 			foreach (var fix in fixes) {
 				yield return new SuggestedActionSet (
 					null,
 					new ISuggestedAction[] {
-						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textBuffer, fix)
+						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textView.Options, textBuffer, fix)
 					});
 			}
 		}
 
-		async Task<List<MSBuildCodeFix>> GetCodeFixesAsync (SnapshotSpan range, CancellationToken cancellationToken)
+		async Task<List<MSBuildCodeFix>> GetSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
+			// do this first as we are on the UI thread at this point, and can avoid switching to it later
+			var possibleSelection = TryGetSelectedSpan ();
+
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
 
-			var fixes = await provider.CodeFixService.GetFixes (textBuffer, result, range, cancellationToken);
-			var refactorings = await provider.RefactoringService.GetRefactorings (result, range, cancellationToken);
+			List<MSBuildCodeFix> actions = null;
 
-			fixes.AddRange (refactorings);
-			return fixes;
+			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
+				actions = await provider.CodeFixService.GetFixes (textBuffer, result, range, cancellationToken);
+			}
+
+			if (possibleSelection is SnapshotSpan selection && requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.Refactoring)) {
+				var refactorings = await provider.RefactoringService.GetRefactorings (result, selection, cancellationToken);
+				if (actions != null) {
+					actions.AddRange (refactorings);
+				} else {
+					actions = refactorings;
+				}
+			}
+
+			return actions;
+		}
+
+		SnapshotSpan? TryGetSelectedSpan ()
+		{
+			Debug.Assert (provider.JoinableTaskContext.IsOnMainThread);
+
+			var spans = textView.Selection.SelectedSpans;
+			if (spans.Count == 1) {
+				return spans[0];
+			}
+			return null;
+		}
+
+		async Task<SnapshotSpan?> GetSelectedSpanAsync (CancellationToken cancellationToken)
+		{
+			if (!provider.JoinableTaskContext.IsOnMainThread) {
+				await provider.JoinableTaskContext.Factory.SwitchToMainThreadAsync (cancellationToken);
+			}
+			return TryGetSelectedSpan ();
 		}
 
 		public async Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
+			SnapshotSpan? possibleSelection = provider.JoinableTaskContext.IsOnMainThread? TryGetSelectedSpan () : null;
+
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
-			if (await provider.CodeFixService.HasFixes (textBuffer, result, range, cancellationToken)) {
-				return true;
+
+			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
+				if (await provider.CodeFixService.HasFixes (textBuffer, result, range, cancellationToken)) {
+					return true;
+				}
 			}
 
-			if (await provider.RefactoringService.HasRefactorings (result,  range, cancellationToken)) {
-				return true;
+			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
+				possibleSelection ??= await GetSelectedSpanAsync (cancellationToken);
+				if (possibleSelection is SnapshotSpan selection && await provider.RefactoringService.HasRefactorings (result, selection, cancellationToken)) {
+					return true;
+				}
 			}
 
 			return false;

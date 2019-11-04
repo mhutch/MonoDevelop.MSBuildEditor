@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,19 +17,20 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 	{
 		public override Task RegisterRefactoringsAsync (MSBuildRefactoringContext context)
 		{
-			XElement itemElement = null;
-			foreach (var el in context.ElementsinSpan) {
-				switch (el.Value?.SyntaxKind) {
-				case MSBuildSyntaxKind.Item:
-					itemElement = el.Key;
-					break;
-				case MSBuildSyntaxKind.Metadata:
-					itemElement = el.Key.Parent as XElement;
-					break;
-				}
-				if (itemElement != null) {
-					break;
-				}
+			if (context.SelectedSpan.Length > 0) {
+				return Task.CompletedTask;
+			}
+
+			XElement itemElement;
+			switch (context.ElementSyntax?.SyntaxKind) {
+			case MSBuildSyntaxKind.Item:
+				itemElement = context.XObject.SelfAndParentsOfType<XElement> ().First ();
+				break;
+			case MSBuildSyntaxKind.Metadata:
+				itemElement = context.XObject.SelfAndParentsOfType<XElement> ().Skip (1).First ();
+				break;
+			default:
+				return Task.CompletedTask;
 			}
 
 			// check it isn't in an ItemDefinitionGroup

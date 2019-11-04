@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -17,78 +14,41 @@ namespace MonoDevelop.MSBuild.Analysis
 	{
 		readonly Action<MSBuildAction> reportRefactoring;
 		public MSBuildDocument Document { get; }
-		public TextSpan Span { get; }
+		public XDocument XDocument { get; }
+		public TextSpan SelectedSpan { get; }
 		public CancellationToken CancellationToken { get; }
 
-		readonly List<XNode> nodes;
-		readonly Dictionary<XElement, MSBuildElementSyntax> elements;
-
-		public IReadOnlyList<XNode> NodesInSpan => nodes;
-		public IReadOnlyDictionary<XElement,MSBuildElementSyntax> ElementsinSpan => elements;
+		// thse are pre-resolved so the refactrings don't all have to duplicate the work
+		public XObject XObject { get; }
+		public MSBuildElementSyntax ElementSyntax { get; }
+		public MSBuildAttributeSyntax AttributeSyntax { get; }
 
 		internal MSBuildRefactoringContext (
 			MSBuildRootDocument document,
-			TextSpan span,
+			TextSpan selectedSpan,
 			Action<MSBuildAction> reportRefactoring,
 			CancellationToken cancellationToken)
 		{
 			this.reportRefactoring = reportRefactoring;
 			Document = document;
-			Span = span;
+			XDocument = document.XDocument;
+			SelectedSpan = selectedSpan;
 
-			nodes = new List<XNode> ();
-			nodes.AddRange (GetNodesIntersectingRange (document.XDocument, span));
-			elements = new Dictionary<XElement, MSBuildElementSyntax> ();
-			foreach (var n in nodes) {
-				if (n is XElement el) {
-					elements.Add (el, GetSyntax (el));
-				}
+			var xobj = document.XDocument.FindAtOrBeforeOffset (SelectedSpan.Start);
+			if (xobj.Span.Contains (SelectedSpan.Start) || xobj is XElement el && el.OuterSpan.Contains (SelectedSpan.Start)) {
+				XObject = xobj;
+			} else {
+				XObject = null;
+			}
+
+			if (XObject != null && MSBuildElementSyntax.Get (XObject) is ValueTuple<MSBuildElementSyntax, MSBuildAttributeSyntax> val) {
+				(ElementSyntax, AttributeSyntax) = val;
+			} else {
+				ElementSyntax = null;
+				AttributeSyntax = null;
 			}
 
 			CancellationToken = cancellationToken;
-		}
-
-		static MSBuildElementSyntax GetSyntax (XElement el)
-		{
-			if (el.Parent is XDocument && el.NameEquals (MSBuildElementSyntax.Project.Name, true)) {
-				return MSBuildElementSyntax.Project;
-			}
-			var parentSyntax = el.Parent is XElement p ? GetSyntax (p) : null;
-			if (parentSyntax != null) {
-				return MSBuildElementSyntax.Get (el.Name.Name, parentSyntax);
-			}
-			return null;
-		}
-
-		static IEnumerable<XNode> GetNodesIntersectingRange (XDocument xDocument, TextSpan span)
-		{
-			var startObj = xDocument.FindAtOrBeforeOffset (span.Start);
-			var node = startObj as XNode ?? startObj.Parents.OfType<XNode> ().First ();
-
-			foreach (var n in LinearWalkFrom (node)) {
-				if (n.Span.Start > span.End) {
-					yield break;
-				}
-				if (n.Span.Intersects (span)) {
-					yield return n;
-				}
-			}
-		}
-
-		static IEnumerable<XNode> LinearWalkFrom (XNode node)
-		{
-			while (node != null) {
-				yield return node;
-				if (node is XContainer c) {
-					foreach (var n in c.AllDescendentNodes) {
-						yield return n;
-					}
-				}
-				while (node != null && node.NextSibling == null) {
-					node = (XNode)node.Parent as XNode;
-				}
-				node = node?.NextSibling;
-			}
 		}
 
 		public void RegisterRefactoring (MSBuildAction action)

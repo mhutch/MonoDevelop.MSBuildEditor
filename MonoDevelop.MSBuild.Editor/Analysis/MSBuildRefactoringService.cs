@@ -28,14 +28,14 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			this.refactoringProviders = refactoringProviders;
 		}
 
-		public async Task<bool> HasRefactorings (MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
+		public async Task<bool> HasRefactorings (MSBuildParseResult result, SnapshotSpan selectedSpan, CancellationToken cancellationToken)
 		{
 			bool foundRefactoring = false;
 			void ReportRefactoring (MSBuildAction a) => foundRefactoring = true;
 
 			var context = new MSBuildRefactoringContext (
 				result.MSBuildDocument,
-				new Xml.Dom.TextSpan (range.Start, range.Length),
+				new Xml.Dom.TextSpan (selectedSpan.Start, selectedSpan.Length),
 				ReportRefactoring,
 				cancellationToken);
 
@@ -54,7 +54,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public async Task<List<MSBuildCodeFix>> GetRefactorings (
 			MSBuildParseResult result,
-			SnapshotSpan range,
+			SnapshotSpan selectedSpan,
 			CancellationToken cancellationToken)
 		{
 			var refactorings = new List<MSBuildCodeFix> ();
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			var context = new MSBuildRefactoringContext (
 				result.MSBuildDocument,
-				new Xml.Dom.TextSpan (range.Start, range.Length),
+				new Xml.Dom.TextSpan (selectedSpan.Start, selectedSpan.Length),
 				ReportRefactoring,
 				cancellationToken);
 
