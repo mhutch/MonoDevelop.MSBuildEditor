@@ -92,6 +92,16 @@ namespace MonoDevelop.MSBuild.Editor
 				return null;
 			}
 
+			//show a line before and after for context
+			var minLine = leftBuffer.CurrentSnapshot.GetLineFromPosition (minPos);
+			if (minLine.LineNumber > 0) {
+				minPos = leftBuffer.CurrentSnapshot.GetLineFromLineNumber (minLine.LineNumber - 1).Start;
+			}
+			var maxLine = leftBuffer.CurrentSnapshot.GetLineFromPosition (maxPos);
+			if (maxLine.LineNumber < leftBuffer.CurrentSnapshot.LineCount - 1) {
+				maxPos = leftBuffer.CurrentSnapshot.GetLineFromLineNumber (maxLine.LineNumber + 1).End;
+			}
+
 			MinimizeBuffers (leftBuffer, rightBuffer, startingVersion, minPos, maxPos);
 
 			// create the difference buffer and view...
