@@ -71,7 +71,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * create non-existent target
 * move property to directory props
 * move property/item to new conditioned propertygroup/itemgroup
-* split propertygroup/itemgroup above/below caret
 * extract selected expression to property
 * fix for DoNotAssignMSBuildAllProjectsAnalyzer
 * group items by type (preserving dependencies)
