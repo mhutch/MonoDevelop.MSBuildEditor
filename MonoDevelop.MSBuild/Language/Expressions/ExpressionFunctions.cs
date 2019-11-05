@@ -21,7 +21,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 		}
 
-		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
+		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentList;
 	}
 
 	class ExpressionFunctionName : ExpressionNode

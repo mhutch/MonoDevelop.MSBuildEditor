@@ -50,6 +50,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		ConditionOperator,
 		ConditionFunction,
 		QuotedExpression,
-		ParenGroup
+		ParenGroup,
+		ArgumentList
 	}
 }
