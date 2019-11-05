@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	class EditTextActionOperation : MSBuildActionOperation
 	{

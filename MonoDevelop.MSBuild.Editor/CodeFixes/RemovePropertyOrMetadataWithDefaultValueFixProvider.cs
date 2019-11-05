@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;

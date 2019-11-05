@@ -8,7 +8,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	readonly struct MSBuildRefactoringContext
 	{

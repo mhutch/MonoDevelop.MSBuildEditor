@@ -7,9 +7,10 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Analyzers;
+using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.CodeFixes
 {
 	[Export (typeof (MSBuildFixProvider))]
 	class FixMultitargetingPluralizationFixProvider : MSBuildFixProvider

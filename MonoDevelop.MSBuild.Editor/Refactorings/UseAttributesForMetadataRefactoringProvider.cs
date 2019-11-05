@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 

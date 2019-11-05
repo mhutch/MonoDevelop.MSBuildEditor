@@ -9,7 +9,7 @@ using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.CodeFixes
 {
 	[Export (typeof (MSBuildFixProvider))]
 	class ChangeMisspelledNameFixProvider : MSBuildFixProvider

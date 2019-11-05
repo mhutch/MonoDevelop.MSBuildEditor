@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	abstract class MSBuildAction
 	{

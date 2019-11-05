@@ -25,9 +25,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-using MonoDevelop.MSBuild.Analysis;
-
-namespace MonoDevelop.MSBuild.Editor
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	interface IDifferenceViewElementFactory
 	{

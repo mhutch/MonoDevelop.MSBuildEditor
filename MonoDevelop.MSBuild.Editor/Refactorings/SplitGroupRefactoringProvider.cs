@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 

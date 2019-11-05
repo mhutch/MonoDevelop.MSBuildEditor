@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
+using MonoDevelop.MSBuild.Editor.Analysis;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {

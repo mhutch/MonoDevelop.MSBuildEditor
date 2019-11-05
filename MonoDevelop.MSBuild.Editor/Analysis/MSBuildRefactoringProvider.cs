@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	abstract class MSBuildRefactoringProvider
 	{

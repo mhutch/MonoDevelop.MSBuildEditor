@@ -7,11 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 
 using Microsoft.VisualStudio.Text;
-
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Analysis
+namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	struct MSBuildFixContext
 	{
