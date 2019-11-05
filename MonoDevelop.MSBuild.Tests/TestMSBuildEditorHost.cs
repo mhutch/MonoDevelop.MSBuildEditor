@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
 using MonoDevelop.MSBuild.Editor;
@@ -72,6 +73,6 @@ namespace MonoDevelop.MSBuild.Tests
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
 	class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
 	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
 	}
 }
