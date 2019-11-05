@@ -68,6 +68,7 @@ namespace MonoDevelop.MSBuild.Analysis
 		public EditTextActionOperation Replace (int offset, int length, string text) => WithEdit (new Edit (Kind.Replace, offset, length, text));
 		public EditTextActionOperation Replace (TextSpan span, string text) => WithEdit (new Edit (Kind.Replace, span.Start, span.Length, text));
 		public EditTextActionOperation Delete (int offset, int length) => WithEdit (new Edit (Kind.Delete, offset, length, null));
+		public EditTextActionOperation Delete (TextSpan span) => WithEdit (new Edit (Kind.Delete, span.Start, span.Length, null));
 		public EditTextActionOperation DeleteBetween (int start, int end) => WithEdit (new Edit (Kind.Delete, start, end - start, null));
 
 		readonly struct Edit
@@ -91,26 +92,5 @@ namespace MonoDevelop.MSBuild.Analysis
 			Replace,
 			Delete,
 		}
-
-		public EditTextActionOperation RenameElement (XElement element, string newName)
-			=> Replace (element.NameSpan, newName)
-				.Replace (element.ClosingTag.Span.Start + 2, element.Name.Length, newName);
-
-		public EditTextActionOperation RemoveElement (XElement element)
-			=> DeleteBetween (
-				element.FindPreviousNode () switch
-				{
-					XElement e => e.OuterSpan.End,
-					XObject o => o.Span.End,
-					_ => element.Span.Start
-				},
-				element.ClosingTag.Span.End
-			);
-
-		public EditTextActionOperation RemoveAttribute (XAttribute att)
-			=> DeleteBetween (
-				att.FindPreviousSibling ()?.Span.End ?? ((XElement)att.Parent).NameSpan.End,
-				att.Span.End
-			);
 	}
 }
