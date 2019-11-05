@@ -38,7 +38,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 
 ## Validation
 
-* Squiggle assignments to nonexistent task params
 * Check for invalid chars in paths
 * Warn on assigning wrongly typed expression to property or task arg
 * condition comparand validation, including |-separated properties
@@ -72,11 +71,9 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * move property to directory props
 * move property/item to new conditioned propertygroup/itemgroup
 * extract selected expression to property
-* fix for DoNotAssignMSBuildAllProjectsAnalyzer
 * group items by type (preserving dependencies)
 * sort items/properties in group by identity (preserving dependencies)
 * merge adjacent itemgroups/propertygroups
-* preview UI for fixes and refactorings
 * convert BeforeFoo target override to -> BeforeTargets=Foo
 
 ## Schema & type system

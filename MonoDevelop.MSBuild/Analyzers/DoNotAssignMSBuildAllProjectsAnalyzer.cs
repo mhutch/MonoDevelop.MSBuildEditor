@@ -11,16 +11,18 @@ namespace MonoDevelop.MSBuild.Analyzers
 	[MSBuildAnalyzer]
 	class DoNotAssignMSBuildAllProjectsAnalyzer : MSBuildAnalyzer
 	{
-		public override ImmutableArray<MSBuildDiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create (
-			new MSBuildDiagnosticDescriptor (
-				"DoNotAssignMSBuildAllProjects",
-				"Do not assign MSBuildAllProjects",
-				"MSBuild 16 and later automatically adds the last modified project/target/props to MSBuildAllProjects, " +
-				"so they no longer need add themselves to ensure incremental builds work correctly. " +
-				"Remove the assignment to improve performance.",
-				MSBuildDiagnosticSeverity.Warning
-			)
+		public const string DiagnosticId = nameof (DoNotAssignMSBuildAllProjects);
+
+		readonly MSBuildDiagnosticDescriptor DoNotAssignMSBuildAllProjects = new MSBuildDiagnosticDescriptor (
+			DiagnosticId,
+			"Do not assign MSBuildAllProjects",
+			"MSBuild 16 and later automatically adds the last modified project/target/props to MSBuildAllProjects, " +
+			"so they no longer need add themselves to ensure incremental builds work correctly. " +
+			"Remove the assignment to improve performance.",
+			MSBuildDiagnosticSeverity.Warning
 		);
+
+		public override ImmutableArray<MSBuildDiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create (DoNotAssignMSBuildAllProjects);
 
 		public override void Initialize (MSBuildAnalysisContext context)
 		{
