@@ -11,7 +11,7 @@ using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
-
+using MonoDevelop.Xml.Dom;
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -58,7 +58,10 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public static bool IsInTarget (this MSBuildElementSyntax resolvedElement, Xml.Dom.XElement element)
+		public static bool IsInTarget (this MSBuildElementSyntax resolvedElement, XElement element)
+			=> IsInTarget (resolvedElement, element, out _);
+
+		public static bool IsInTarget (this MSBuildElementSyntax resolvedElement, XElement element, out XElement targetElement)
 		{
 			switch (resolvedElement.SyntaxKind) {
 			case MSBuildSyntaxKind.Metadata:
@@ -70,9 +73,13 @@ namespace MonoDevelop.MSBuild.Schema
 				goto case MSBuildSyntaxKind.ItemGroup;
 			case MSBuildSyntaxKind.ItemGroup:
 			case MSBuildSyntaxKind.PropertyGroup:
-				var name = element?.ParentElement?.Name.Name;
-				return string.Equals (name, "Target", StringComparison.OrdinalIgnoreCase);
+				if (element.ParentElement is XElement te && te.NameEquals (MSBuildElementSyntax.Target.Name, true)) {
+					targetElement = te;
+					return true;
+				}
+				break;
 			}
+			targetElement = null;
 			return false;
 		}
 
