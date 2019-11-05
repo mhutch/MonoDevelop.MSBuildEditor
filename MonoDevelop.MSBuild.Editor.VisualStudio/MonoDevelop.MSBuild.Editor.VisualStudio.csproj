@@ -133,4 +133,10 @@
     <VSSDKTargets Condition="'$(VSToolsPath)'!=''">$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets</VSSDKTargets>
   </PropertyGroup>
   <Import Project="$(VSSDKTargets)" Condition="Exists('$(VSSDKTargets)')" />
+
+  <Target Name="AddVersionToVsix" BeforeTargets="CreateVsixContainer" DependsOnTargets="GetBuildVersion">
+		<PropertyGroup>
+			<TargetVsixContainer>$([System.IO.Path]::ChangeExtension('$(TargetVsixContainer)', '$(BuildVersion).vsix'))</TargetVsixContainer>
+		</PropertyGroup>
+	</Target>
 </Project>
