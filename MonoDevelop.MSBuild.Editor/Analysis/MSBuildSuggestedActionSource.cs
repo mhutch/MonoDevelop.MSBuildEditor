@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				yield return new SuggestedActionSet (
 					null,
 					new ISuggestedAction[] {
-						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textView.Options, textBuffer, fix)
+						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textView, textBuffer, fix)
 					});
 			}
 		}

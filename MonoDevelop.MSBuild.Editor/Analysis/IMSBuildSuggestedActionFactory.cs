@@ -10,6 +10,6 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	//works around the WPF dependency in ISuggestedAction
 	interface IMSBuildSuggestedActionFactory
 	{
-		ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix);
+		ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix);
 	}
 }

@@ -73,6 +73,6 @@ namespace MonoDevelop.MSBuild.Tests
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
 	class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
 	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
 	}
 }

@@ -17,21 +17,22 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
 	class WpfMSBuildSuggestedActionFactory : IMSBuildSuggestedActionFactory
 	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix)
-			=> new WpfMSBuildSuggestedAction (previewService, options, buffer, fix);
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix)
+			=> new WpfMSBuildSuggestedAction (previewService, textView, buffer, fix);
 	}
 
 	class WpfMSBuildSuggestedAction : ISuggestedAction
 	{
 		readonly PreviewChangesService previewService;
+		readonly ITextView textView;
 		readonly IEditorOptions options;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeFix fix;
 
-		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, IEditorOptions options, ITextBuffer buffer, MSBuildCodeFix fix)
+		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix)
 		{
 			this.previewService = previewService;
-			this.options = options;
+			this.textView = textView;
 			this.buffer = buffer;
 			this.fix = fix;
 		}
@@ -58,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public async Task<object> GetPreviewAsync (CancellationToken cancellationToken)
 			=> await previewService.CreateDiffViewAsync (
 				await fix.Action.ComputeOperationsAsync (cancellationToken).ConfigureAwait (true),
-				options,
+				textView.Options,
 				buffer.CurrentSnapshot, buffer.ContentType, cancellationToken
 			);
 
@@ -66,7 +67,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			var operations = fix.Action.ComputeOperationsAsync (cancellationToken).WaitAndGetResult (cancellationToken);
 			foreach (var op in operations) {
-				op.Apply (options, buffer, cancellationToken);
+				op.Apply (textView.Options, buffer, cancellationToken, textView);
 			}
 		}
 
