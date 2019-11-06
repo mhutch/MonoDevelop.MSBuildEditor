@@ -267,8 +267,18 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 
 			protected override MSBuildActionOperation CreateOperation ()
 				=> new EditTextActionOperation ()
-				.Replace (insertSpan.Start, insertSpan.Length, $"\n    <{propertyName}>{expr}</{propertyName}>\n    ")
-				.Replace (sourceSpan.Start, sourceSpan.Length, $"$({propertyName})");
+				.Replace (
+					insertSpan.Start, insertSpan.Length, $"\n    <{propertyName}>{expr}</{propertyName}>\n    ",
+					relativeSelections: new[] {
+						new TextSpan (6, propertyName.Length),
+						new TextSpan (6 + propertyName.Length + 1 + expr.Length + 2, propertyName.Length)
+					})
+				.Replace (
+					sourceSpan.Start, sourceSpan.Length, $"$({propertyName})",
+					relativeSelections: new[] {
+						new TextSpan (2, propertyName.Length),
+					}
+				);
 		}
 	}
 }
