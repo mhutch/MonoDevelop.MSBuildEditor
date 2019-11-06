@@ -42,12 +42,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public static MSBuildElementSyntax Get (string name, MSBuildElementSyntax parent = null)
 		{
 			if (parent != null) {
-				foreach (var child in parent.children) {
-					if (string.Equals (child.Name, name, StringComparison.OrdinalIgnoreCase)) {
-						return child;
-					}
-				}
-				return parent.AbstractChild;
+				return parent.GetChild (name);
 			}
 
 			builtin.TryGetValue (name, out MSBuildElementSyntax result);
@@ -122,6 +117,16 @@ namespace MonoDevelop.MSBuild.Schema
 				break;
 			}
 			return null;
+		}
+
+		public MSBuildElementSyntax GetChild (string name)
+		{
+			foreach (var element in children) {
+				if (string.Equals (element.Name, name, StringComparison.OrdinalIgnoreCase)) {
+					return element;
+				}
+			}
+			return AbstractChild;
 		}
 
 		public MSBuildAttributeSyntax GetAttribute (string name)

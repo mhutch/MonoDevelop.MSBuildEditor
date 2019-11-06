@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -29,6 +30,8 @@ namespace MonoDevelop.MSBuild.Language
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<MSBuildDiagnostic> Diagnostics { get; }
 		public bool IsToplevel { get; }
+
+		public MSBuildProjectElement ProjectElement { get; private set; }
 
 		public MSBuildDocument (string filename, bool isToplevel)
 		{
@@ -58,13 +61,16 @@ namespace MonoDevelop.MSBuild.Language
 
 			var sdks = ResolveSdks (context, project).ToList ();
 
-			var pel = MSBuildElementSyntax.Get ("Project");
-
 			GetPropertiesToTrack (context.PropertyCollector, project);
 
 			var importResolver = context.CreateImportResolver (Filename);
 
 			AddSdkProps (sdks, context.PropertyCollector, importResolver);
+
+			var projectElement = new MSBuildProjectElement (project);
+			if (IsToplevel) {
+				ProjectElement = projectElement;
+			}
 
 			var resolver = new MSBuildSchemaBuilder (IsToplevel, context, importResolver);
 			resolver.Run (doc, textSource, this);

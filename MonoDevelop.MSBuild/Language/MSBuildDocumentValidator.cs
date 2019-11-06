@@ -11,7 +11,6 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
