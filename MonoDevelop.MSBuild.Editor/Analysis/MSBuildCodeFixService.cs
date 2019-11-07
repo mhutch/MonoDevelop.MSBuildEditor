@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
 using MonoDevelop.MSBuild.Analysis;
@@ -37,7 +38,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		/// FIXME: The buffer parameter is workaround for the spellchecker. It can be removed when
 		/// there is a better concept of a durable context/scope to which information can be bound.
 		/// </remarks>
-		public async Task<bool> HasFixes (ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
+		public async Task<bool> HasFixes (
+			ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range,
+			MSBuildDiagnosticSeverity requestedSeverities, CancellationToken cancellationToken)
 		{
 			var filteredDiags = result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length)));
 
@@ -46,6 +49,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			//TODO invoke the provider once for all the diagnostics it supports 
 			foreach (var diagnostic in filteredDiags) {
+				if ((diagnostic.Descriptor.Severity | requestedSeverities) == 0) {
+					continue;
+				}
 				if (cancellationToken.IsCancellationRequested) {
 					return false;
 				}
@@ -69,11 +75,54 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			return false;
 		}
 
+		public async Task<MSBuildDiagnosticSeverity> GetFixSeverity (
+			ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range,
+			MSBuildDiagnosticSeverity severities, CancellationToken cancellationToken)
+		{
+			var filteredDiags = result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length)));
+
+			var severity = MSBuildDiagnosticSeverity.None;
+
+			void ReportFix (MSBuildAction a, ImmutableArray<MSBuildDiagnostic> diags) {
+				foreach (var d in diags) {
+					severity |= d.Descriptor.Severity;
+				}
+			};
+
+			//TODO invoke the provider once for all the diagnostics it supports
+			foreach (var diagnostic in filteredDiags) {
+				if (cancellationToken.IsCancellationRequested) {
+					return severity;
+				}
+				if (range.IntersectsWith (new SnapshotSpan (range.Snapshot, diagnostic.Span.Start, diagnostic.Span.Length))) {
+					if (diagnosticIdToFixProviderMap.TryGetValue (diagnostic.Descriptor.Id, out var fixProvider)) {
+						var ctx = new MSBuildFixContext (
+							buffer,
+							result.MSBuildDocument,
+							result.MSBuildDocument.XDocument,
+							new Xml.Dom.TextSpan (range.Start, range.Length),
+							ImmutableArray.Create (diagnostic),
+							ReportFix, cancellationToken);
+						await fixProvider.RegisterCodeFixesAsync (ctx);
+
+						//callers only really care about the highest severity, so if we got error, we can early out
+						if ((severity | MSBuildDiagnosticSeverity.Error) != 0) {
+							return severity;
+						}
+					}
+				}
+			}
+
+			return severity;
+		}
+
 		/// <remarks>
 		/// FIXME: The buffer parameter is workaround for the spellchecker. It can be removed when
 		/// there is a better concept of a durable context/scope to which information can be bound.
 		/// </remarks>
-		public async Task<List<MSBuildCodeFix>> GetFixes (ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range, CancellationToken cancellationToken)
+		public async Task<List<MSBuildCodeFix>> GetFixes (
+			ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range,
+			MSBuildDiagnosticSeverity requestedSeverities, CancellationToken cancellationToken)
 		{
 			var filteredDiags = ImmutableArray.CreateRange (
 				result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length))));
@@ -86,8 +135,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				}
 			}
 
-			//TODO invoke the provider once for all the diagnostics it supports 
+			//TODO invoke the provider once for all the diagnostics it supports
 			foreach (var diagnostic in filteredDiags) {
+				if ((diagnostic.Descriptor.Severity | requestedSeverities) == 0) {
+					continue;
+				}
 				if (cancellationToken.IsCancellationRequested) {
 					return null;
 				}
@@ -111,6 +163,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 	class MSBuildCodeFix
 	{
+		public string Category { get; }
 		public MSBuildAction Action { get; }
 		public ImmutableArray<MSBuildDiagnostic> Diagnostics { get; }
 
@@ -118,6 +171,17 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			Action = action;
 			Diagnostics = diagnostics;
+			if (diagnostics == null || diagnostics.Length == 0) {
+				Category = PredefinedSuggestedActionCategoryNames.Refactoring;
+			} else {
+				Category = PredefinedSuggestedActionCategoryNames.CodeFix;
+				foreach (var d in diagnostics) {
+					if (d.Descriptor.Severity == MSBuildDiagnosticSeverity.Error) {
+						Category = PredefinedSuggestedActionCategoryNames.ErrorFix;
+						break;
+					}
+				}
+			}
 		}
 	}
 }

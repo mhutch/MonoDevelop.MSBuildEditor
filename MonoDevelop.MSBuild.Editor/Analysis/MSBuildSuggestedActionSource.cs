@@ -11,12 +11,13 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
-	sealed class MSBuildSuggestedActionSource : ISuggestedActionsSource
+	sealed class MSBuildSuggestedActionSource : ISuggestedActionsSource2
 	{
 		readonly MSBuildSuggestedActionsSourceProvider provider;
 		readonly ITextView textView;
@@ -49,7 +50,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			foreach (var fix in fixes) {
 				yield return new SuggestedActionSet (
-					null,
+					fix.Category,
 					new ISuggestedAction[] {
 						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textView, textBuffer, fix)
 					});
@@ -58,15 +59,22 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		async Task<List<MSBuildCodeFix>> GetSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
-			// do this first as we are on the UI thread at this point, and can avoid switching to it later
+			// grab selection first as we are on the UI thread at this point, and can avoid switching to it later
 			var possibleSelection = TryGetSelectedSpan ();
 
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
 
 			List<MSBuildCodeFix> actions = null;
 
-			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
-				actions = await provider.CodeFixService.GetFixes (textBuffer, result, range, cancellationToken);
+			var severities = CategoriesToSeverity (requestedActionCategories);
+			if (severities != 0) {
+				actions = await provider.CodeFixService.GetFixes (textBuffer, result, range, severities, cancellationToken);
+				for (int i = 0; i < actions.Count; i++) {
+					if (!requestedActionCategories.Contains (actions[i].Category)) {
+						actions.RemoveAt (i);
+						i--;
+					}
+				}
 			}
 
 			if (possibleSelection is SnapshotSpan selection && requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.Refactoring)) {
@@ -100,26 +108,23 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			return TryGetSelectedSpan ();
 		}
 
+		static MSBuildDiagnosticSeverity CategoriesToSeverity  (ISuggestedActionCategorySet categories)
+		{
+			var severity = MSBuildDiagnosticSeverity.None;
+			if (categories.Contains (PredefinedSuggestedActionCategoryNames.ErrorFix)) {
+				severity |= MSBuildDiagnosticSeverity.Error;
+			}
+			if (categories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
+				severity |= MSBuildDiagnosticSeverity.Suggestion | MSBuildDiagnosticSeverity.Warning;
+			}
+			return severity;
+		}
+
+
 		public async Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
-			SnapshotSpan? possibleSelection = provider.JoinableTaskContext.IsOnMainThread? TryGetSelectedSpan () : null;
-
-			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
-
-			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
-				if (await provider.CodeFixService.HasFixes (textBuffer, result, range, cancellationToken)) {
-					return true;
-				}
-			}
-
-			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
-				possibleSelection ??= await GetSelectedSpanAsync (cancellationToken);
-				if (possibleSelection is SnapshotSpan selection && await provider.RefactoringService.HasRefactorings (result, selection, cancellationToken)) {
-					return true;
-				}
-			}
-
-			return false;
+			var cats = await GetSuggestedActionCategoriesAsync (requestedActionCategories, range, cancellationToken);
+			return cats?.Contains (PredefinedSuggestedActionCategoryNames.Any) ?? false;
 		}
 
 		public bool TryGetTelemetryId (out Guid telemetryId)
@@ -135,6 +140,36 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				parser.ParseCompleted -= ParseCompleted;
 				parser = null;
 			}
+		}
+
+		public async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync (
+			ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+		{
+			SnapshotSpan? possibleSelection = provider.JoinableTaskContext.IsOnMainThread ? TryGetSelectedSpan () : null;
+
+			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
+
+			var categories = new List<string> ();
+
+			var requestedSeverities = CategoriesToSeverity (requestedActionCategories);
+			if (requestedSeverities != 0) {
+				var severities = await provider.CodeFixService.GetFixSeverity (textBuffer, result, range, requestedSeverities, cancellationToken);
+				if ((severities & MSBuildDiagnosticSeverity.Error) != 0) {
+					categories.Add (PredefinedSuggestedActionCategoryNames.ErrorFix);
+				}
+				if ((severities & (MSBuildDiagnosticSeverity.Warning | MSBuildDiagnosticSeverity.Suggestion)) != 0) {
+					categories.Add (PredefinedSuggestedActionCategoryNames.CodeFix);
+				}
+			}
+
+			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.Refactoring)) {
+				possibleSelection ??= await GetSelectedSpanAsync (cancellationToken);
+				if (possibleSelection is SnapshotSpan selection && await provider.RefactoringService.HasRefactorings (result, selection, cancellationToken)) {
+					categories.Add (PredefinedSuggestedActionCategoryNames.Refactoring);
+				}
+			}
+
+			return provider.CategoryRegistry.CreateSuggestedActionCategorySet (categories);
 		}
 	}
 }

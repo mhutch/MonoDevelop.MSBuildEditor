@@ -26,6 +26,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public JoinableTaskContext JoinableTaskContext { get; set; }
 
 		[Import]
+		public ISuggestedActionCategoryRegistryService2 CategoryRegistry { get; set; }
+
+		[Import]
 		public MSBuildParserProvider ParserProvider { get; set; }
 
 		[Import]
