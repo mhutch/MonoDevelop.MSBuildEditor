@@ -22,31 +22,18 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public sealed override void Apply (IEditorOptions options, ITextBuffer document, CancellationToken cancellationToken, ITextView textView = null)
 		{
-			bool replicateNewLine = options.GetReplicateNewLineCharacter ();
-			var defaultNewLine = options.GetNewLineCharacter ();
+			FixNewlines (edits, options, document.CurrentSnapshot);
 
-			List<(ITrackingPoint point, TextSpan[] spans)> selections = null;
-			if (textView != null) {
-				foreach (var change in edits) {
-					selections ??= new List<(ITrackingPoint point, TextSpan[] spans)> ();
-					if (change.RelativeSelections is TextSpan[] selSpans) {
-						selections.Add ((
-							document.CurrentSnapshot.CreateTrackingPoint (change.Span.Start, PointTrackingMode.Negative),
-							selSpans
-						));
-					}
-				}
-			}
+			var selections = textView != null ? GetSelectionTrackingSpans (edits, document.CurrentSnapshot) : null;
 
 			using var edit = document.CreateEdit ();
 			foreach (var change in edits) {
-				string GetText () => GetTextWithCorrectNewLines (replicateNewLine, defaultNewLine, change, edit.Snapshot);
 				switch (change.Kind) {
 				case Kind.Insert:
-					edit.Insert (change.Span.Start, GetText ());
+					edit.Insert (change.Span.Start, change.Text);
 					break;
 				case Kind.Replace:
-					edit.Replace (change.Span.Start, change.Span.Length, GetText ());
+					edit.Replace (change.Span.Start, change.Span.Length, change.Text);
 					break;
 				case Kind.Delete:
 					edit.Delete (change.Span.Start, change.Span.Length);
@@ -55,24 +42,94 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 			edit.Apply ();
 
-			if (textView != null && selections != null && selections.Count > 0) {
-				var broker = textView.GetMultiSelectionBroker ();
-				var snapshot = textView.TextSnapshot;
-				bool isFirst = true;
-				foreach (var (point, spans) in selections) {
-					var p = point.GetPoint (snapshot);
-					foreach (var span in spans) {
-						var s = new Selection (new SnapshotSpan (p + span.Start, span.Length));
-						broker.AddSelection (s);
-						if (isFirst) {
-							broker.TrySetAsPrimarySelection (s);
-							broker.ClearSecondarySelections ();
-							isFirst = false;
-						}
+			if (selections != null && selections.Count > 0) {
+				ApplySelections (selections, textView);
+			}
+		}
+
+		static List<(ITrackingPoint point, TextSpan[] spans)> GetSelectionTrackingSpans (List<Edit> edits, ITextSnapshot snapshot)
+		{
+			List<(ITrackingPoint point, TextSpan[] spans)> selections = null;
+			foreach (var change in edits) {
+				selections ??= new List<(ITrackingPoint point, TextSpan[] spans)> ();
+				if (change.RelativeSelections is TextSpan[] selSpans) {
+					selections.Add ((
+						snapshot.CreateTrackingPoint (change.Span.Start, PointTrackingMode.Negative),
+						selSpans
+					));
+				}
+			}
+			return selections;
+		}
+
+		static void ApplySelections (List<(ITrackingPoint point, TextSpan[] spans)> selections, ITextView textView)
+		{
+			var broker = textView.GetMultiSelectionBroker ();
+			var snapshot = textView.TextSnapshot;
+			bool isFirst = true;
+			foreach (var (point, spans) in selections) {
+				var p = point.GetPoint (snapshot);
+				foreach (var span in spans) {
+					var s = new Selection (new SnapshotSpan (p + span.Start, span.Length));
+					broker.AddSelection (s);
+					if (isFirst) {
+						broker.TrySetAsPrimarySelection (s);
+						broker.ClearSecondarySelections ();
+						isFirst = false;
 					}
 				}
 			}
 		}
+
+		static void FixNewlines (List<Edit> edits, IEditorOptions options, ITextSnapshot snapshot)
+		{
+			var replicateNewLine = options.GetReplicateNewLineCharacter ();
+			var defaultNewLine = options.GetNewLineCharacter ();
+
+			for (int i = 0; i < edits.Count; i++) {
+				var edit = edits[i];
+				if (edit.Text == null || edit.Text.IndexOf ('\n') < 0) {
+					continue;
+				}
+
+				string newLine = null;
+				var currentLine = snapshot.GetLineFromPosition (edit.Span.Start);
+				if (replicateNewLine) {
+					newLine = currentLine.GetLineBreakText ();
+				}
+				if (string.IsNullOrEmpty (newLine)) {
+					newLine = defaultNewLine;
+				}
+				if (newLine == "\n") {
+					continue;
+				}
+
+				int CountNewlines (int start, int length)
+				{
+					int count = 0;
+					for (int offset = start; offset < start + length; offset++) {
+						if (edit.Text[offset] == '\n') {
+							count++;
+						}
+					}
+					return count;
+				}
+
+				if (edit.RelativeSelections != null) {
+					for (int s = 0; s < edit.RelativeSelections.Length; s++) {
+						ref var sel = ref edit.RelativeSelections[s];
+						var newStart = sel.Start + CountNewlines (0, sel.Start);
+						var newLength = sel.Length + CountNewlines (sel.Start, sel.Length);
+						sel = new TextSpan (newStart, newLength);
+					}
+				}
+
+				edit.Text = edit.Text.Replace ("\n", newLine);
+
+				edits[i] = edit;
+			}
+		}
+
 		EditTextActionOperation WithEdit (Edit e)
 		{
 			edits.Add (e);
@@ -110,11 +167,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public EditTextActionOperation Select (TextSpan span)
 			=> WithEdit (new Edit (Kind.Select, new TextSpan (span.Start, 0), relativeSelections: new[] { new TextSpan (0, span.Length) }));
 
-		readonly struct Edit
+		struct Edit
 		{
 			public readonly Kind Kind;
 			public readonly TextSpan Span;
-			public readonly string Text;
+			public string Text;
 			public readonly TextSpan[] RelativeSelections;
 
 			public Edit (Kind kind, TextSpan span, string text = null, TextSpan[] relativeSelections = null)
