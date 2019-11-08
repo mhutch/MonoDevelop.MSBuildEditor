@@ -255,28 +255,11 @@ namespace MonoDevelop.MSBuild.Schema
 				yield break;
 			}
 
-			if (!(expression is ConcatExpression expr)) {
+			if (!(expression is ConcatExpression expr && expr.Nodes.All (n=> n is ExpressionText || (n is ExpressionProperty p && p.IsSimpleProperty)))) {
 				yield break;
 			}
 
-			//FIXME evaluate directly without the MSBuildEvaluationContext
-			var sb = new StringBuilder ();
-			for (int i = 0; i < expr.Nodes.Count; i++) {
-				var node = expr.Nodes[i];
-				if (node is ExpressionText l) {
-					var val = l.GetUnescapedValue ();
-					if (i == expr.Nodes.Count - 1) {
-						val = TrimEndChars (val);
-					}
-					sb.Append (val);
-				} else if (node is ExpressionProperty p) {
-					sb.Append ($"$({p.Name})");
-				} else {
-					yield break;
-				}
-			}
-
-			foreach (var variant in doc.FileEvaluationContext.EvaluatePathWithPermutation (sb.ToString (), baseDir)) {
+			foreach (var variant in doc.FileEvaluationContext.EvaluatePathWithPermutation (expr, baseDir)) {
 				yield return variant;
 			}
 

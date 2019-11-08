@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			void Convert (string name)
 			{
 				if (runtime.SearchPaths.TryGetValue (name, out var vals)) {
-					values[name] = new MSBuildPropertyValue (vals.ToArray ());
+					values[name] = new MSBuildPropertyValue (vals.Select (v => ExpressionParser.Parse (v, ExpressionOptions.ItemsMetadataAndLists)).ToArray ());
 				}
 			}
 

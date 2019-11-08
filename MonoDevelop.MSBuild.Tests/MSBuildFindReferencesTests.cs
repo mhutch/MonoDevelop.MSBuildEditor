@@ -26,9 +26,9 @@ namespace MonoDevelop.MSBuild.Tests
 			var (xdoc, _) = xmlParser.Parse (new StringReader (docString));
 
 			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
-			var parseContext = new MSBuildParserContext (new NullRuntimeInformation (), null, null, null, null, new PropertyValueCollector (false), null, null, default);
-			var sb = new MSBuildSchemaBuilder (true, parseContext, null);
-			sb.Run (xdoc, textDoc, doc);
+			var parseContext = new MSBuildParserContext (
+				new NullRuntimeInformation (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, null, default);
+			doc.Build (xdoc, parseContext);
 
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 

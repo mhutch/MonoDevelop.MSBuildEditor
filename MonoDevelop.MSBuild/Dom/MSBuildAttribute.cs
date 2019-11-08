@@ -22,5 +22,26 @@ namespace MonoDevelop.MSBuild.Dom
 		public XAttribute XAttribute { get; }
 
 		public override MSBuildSyntaxKind SyntaxKind => Syntax.SyntaxKind;
+
+		public string Name => XAttribute.Name.FullName;
+
+		public bool IsNamed (string name) => string.Equals (Name, name, System.StringComparison.OrdinalIgnoreCase);
+	}
+
+	static class MSBuildDomExtensions
+	{
+		public static bool? AsConstBool (this MSBuildObject o) =>
+			o.Value switch {
+				ExpressionArgumentBool b => b.Value,
+				ExpressionText t when string.Equals (t.Value, "True", System.StringComparison.OrdinalIgnoreCase) => true,
+				ExpressionText t when string.Equals (t.Value, "False", System.StringComparison.OrdinalIgnoreCase) => false,
+				_ => null
+			};
+
+		public static string AsConstString (this MSBuildObject o) =>
+			o.Value switch {
+				ExpressionText t => t.Value,
+				_ => null
+			};
 	}
 }

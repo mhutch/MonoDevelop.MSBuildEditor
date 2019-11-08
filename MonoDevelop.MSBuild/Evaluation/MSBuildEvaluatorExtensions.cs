@@ -38,9 +38,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 					return null;
 				}
 				if (context.TryGetProperty (prop.Name, out var value)) {
-					return value.IsCollapsed
-						? value.Value
-						: Evaluate (context, ExpressionParser.Parse (value.Value), depth + 1);
+					return Evaluate (context, value.Value, depth + 1);
 				}
 				return null;
 			}
@@ -58,10 +56,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 							return null;
 						}
 						if (context.TryGetProperty (p.Name, out var value)) {
-							sb.Append (value.IsCollapsed
-								? value.Value
-								: Evaluate (context, ExpressionParser.Parse (value.Value), depth + 1)
-							);
+							sb.Append (Evaluate (context, value.Value, depth + 1));
 						}
 						continue;
 					default:
@@ -96,14 +91,14 @@ namespace MonoDevelop.MSBuild.Evaluation
 		// can we cache the filesystem lookups?
 		public static IEnumerable<string> EvaluatePathWithPermutation (
 			this IMSBuildEvaluationContext context,
-			string pathExpression,
+			ExpressionNode pathExpression,
 			string baseDirectory)
 		{
-			foreach (var p in EvaluateWithPermutation (context, null, ExpressionParser.Parse (pathExpression), 0)) {
+			foreach (var p in EvaluateWithPermutation (context, null, pathExpression, 0)) {
 				if (p == null) {
 					continue;
 				}
-				yield return MSBuildEscaping.FromMSBuildPath (context.Evaluate (p), baseDirectory);
+				yield return MSBuildEscaping.FromMSBuildPath (p, baseDirectory);
 			}
 		}
 
@@ -131,20 +126,20 @@ namespace MonoDevelop.MSBuild.Evaluation
 					if (value.HasMultipleValues) {
 						if (value.IsCollapsed) {
 							foreach (var v in value.GetValues ()) {
-								yield return prefix + v;
+								yield return prefix + ((ExpressionText)v).Value;
 							}
 						} else {
 							foreach (var v in value.GetValues ()) {
-								foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (v), depth + 1)) {
+								foreach (var evaluated in EvaluateWithPermutation (context, prefix, v, depth + 1)) {
 									yield return evaluated;
 								}
 							}
 						}
 					} else {
 						if (value.IsCollapsed) {
-							yield return prefix + value.Value;
+							yield return prefix + ((ExpressionText)value.Value).Value;
 						} else {
-							foreach (var evaluated in EvaluateWithPermutation (context, prefix, ExpressionParser.Parse (value.Value), depth + 1)) {
+							foreach (var evaluated in EvaluateWithPermutation (context, prefix, value.Value, depth + 1)) {
 								yield return evaluated;
 							}
 						}

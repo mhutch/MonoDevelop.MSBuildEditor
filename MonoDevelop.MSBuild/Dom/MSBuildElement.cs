@@ -26,7 +26,7 @@ namespace MonoDevelop.MSBuild.Dom
 				var childSyntax = Syntax.GetChild (childElement.Name.FullName);
 				if (childSyntax != null) {
 					ExpressionNode childValue = null;
-					if (Syntax.ValueKind != MSBuildValueKind.Nothing && childElement.FirstChild is XText t) {
+					if (childSyntax.ValueKind != MSBuildValueKind.Nothing && childElement.FirstChild is XText t) {
 						childValue = ExpressionParser.Parse (t.Text, ExpressionOptions.ItemsMetadataAndLists, t.Span.Start);
 					}
 					var child = CreateElement (childSyntax.SyntaxKind, this, childElement, childValue);
@@ -43,14 +43,16 @@ namespace MonoDevelop.MSBuild.Dom
 			foreach (var xatt in xelement.Attributes) {
 				var attributeSyntax = Syntax.GetAttribute (xatt.Name.FullName);
 				if (attributeSyntax != null) {
+
 					ExpressionNode attributeValue = null;
 					if (!string.IsNullOrEmpty (xatt.Value)) {
 						if (attributeSyntax.ValueKind == MSBuildValueKind.Condition) {
 							attributeValue = ExpressionParser.ParseCondition (xatt.Value, xatt.ValueOffset);
+						} else {
+							attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset);
 						}
-					} else {
-						attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset);
 					}
+
 					var attribute = new MSBuildAttribute (this, xatt, attributeSyntax, attributeValue);
 					if (prevAttribute == null) {
 						firstAttribute = attribute;
@@ -66,6 +68,10 @@ namespace MonoDevelop.MSBuild.Dom
 
 		public abstract MSBuildElementSyntax Syntax { get; }
 		public XElement XElement { get; }
+
+		public string ElementName => XElement.Name.FullName;
+
+		public bool IsElementNamed (string name) => string.Equals (ElementName, name, StringComparison.OrdinalIgnoreCase);
 
 		public override MSBuildSyntaxKind SyntaxKind => Syntax.SyntaxKind;
 

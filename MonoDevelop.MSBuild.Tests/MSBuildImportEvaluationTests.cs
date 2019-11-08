@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
@@ -73,9 +74,9 @@ namespace MonoDevelop.MSBuild.Tests
 			var expr = (string)args[0];
 
 			var context = new TestEvaluationContext {
-				{ "Foo", new MSBuildPropertyValue (new[] { "One", "Two", "Three" }) },
+				{ "Foo", new MSBuildPropertyValue (new[] { "One", "Two", "Three" }.Select (t => new ExpressionText (0, t, true)).ToArray ()) },
 				{ "Bar", "Hello $(Baz)" },
-				{ "Baz", new MSBuildPropertyValue (new[] { "X", "Y" }) }
+				{ "Baz", new MSBuildPropertyValue (new[] { "X", "Y" }.Select (t => new ExpressionText (0 ,t, true)).ToArray ()) }
 			};
 
 			var results = context.EvaluateWithPermutation (expr).ToList ();
@@ -90,8 +91,8 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var collector = new PropertyValueCollector (false);
 			collector.Mark ("Hello");
-			collector.Collect ("Hello", "One");
-			collector.Collect ("Hello", "Two");
+			collector.Collect ("Hello", new ExpressionText (0, "One", true));
+			collector.Collect ("Hello", new ExpressionText (0, "Two", true));
 
 			var ctx = new MSBuildCollectedValuesEvaluationContext (
 				new TestEvaluationContext (),
@@ -215,7 +216,7 @@ namespace MonoDevelop.MSBuild.Tests
 				value = val;
 				return true;
 			}
-			value = null;
+			value = default;
 			return false;
 		}
 	}

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 
@@ -26,7 +27,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		public IRoslynCompilationProvider CompilationProvider { get; set; }
 
 		public TaskInfo CreateTaskInfo (
-			string typeName, string assemblyName, string assemblyFile,
+			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, int declaredAtOffset,
 			IMSBuildEvaluationContext evaluationContext)
 		{
@@ -35,7 +36,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return null;
 			}
 
-			var tasks = GetTaskAssembly (assemblyName, assemblyFile, declaredInFile, evaluationContext);
+			var tasks = GetTaskAssembly (assemblyName, assemblyFile, assemblyFileStr, declaredInFile, evaluationContext);
 			IAssemblySymbol assembly = tasks?.assembly;
 			if (assembly == null) {
 				//TODO log this?
@@ -82,7 +83,9 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return null;
 			}
 
-			var ti = new TaskInfo (type.Name, RoslynHelpers.GetDescription (type), type.GetFullName (), assemblyName, assemblyFile, declaredInFile, declaredAtOffset);
+			var ti = new TaskInfo (
+				type.Name, RoslynHelpers.GetDescription (type), type.GetFullName (),
+				assemblyName, assemblyFileStr, declaredInFile, declaredAtOffset);
 			PopulateTaskInfoFromType (ti, type);
 			return ti;
 		}
@@ -176,15 +179,17 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies
 			= new Dictionary<(string, string, string), (string, IAssemblySymbol)?> ();
 
-		protected (string path, IAssemblySymbol assembly)? GetTaskAssembly (string assemblyName, string assemblyFile, string declaredInFile, IMSBuildEvaluationContext evaluationContext)
+		protected (string path, IAssemblySymbol assembly)? GetTaskAssembly (
+			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
+			string declaredInFile, IMSBuildEvaluationContext evaluationContext)
 		{
-			var key = (assemblyName?.ToLowerInvariant (), assemblyFile?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
+			var key = (assemblyName?.ToLowerInvariant (), assemblyFileStr?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
 			if (resolvedAssemblies.TryGetValue (key, out (string, IAssemblySymbol)? r)) {
 				return r;
 			}
 			(string, IAssemblySymbol)? taskFile = null;
 			try {
-				taskFile = ResolveTaskFile (assemblyName, assemblyFile, declaredInFile, evaluationContext);
+				taskFile = ResolveTaskFile (assemblyName, assemblyFile, assemblyFileStr, declaredInFile, evaluationContext);
 			} catch (Exception ex) {
 				LoggingService.LogError ($"Error loading tasks assembly name='{assemblyName}' file='{taskFile}' in '{declaredInFile}'", ex);
 			}
@@ -193,13 +198,15 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 
-		(string path, IAssemblySymbol compilation)? ResolveTaskFile (string assemblyName, string assemblyFile, string declaredInFile, IMSBuildEvaluationContext evaluationContext)
+		(string path, IAssemblySymbol compilation)? ResolveTaskFile (
+			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
+			string declaredInFile, IMSBuildEvaluationContext evaluationContext)
 		{
 			if (!evaluationContext.TryGetProperty ("MSBuildBinPath", out var binPathProp)) {
 				LoggingService.LogError ("Task resolver could not get MSBuildBinPath value from evaluationContext");
 				return null;
 			}
-			string binPath = MSBuildEscaping.FromMSBuildPath (binPathProp.Value, null);
+			string binPath = MSBuildEscaping.FromMSBuildPath (((ExpressionText)binPathProp.Value).Value, null);
 
 			if (!string.IsNullOrEmpty (assemblyName)) {
 				var name = new AssemblyName (assemblyName);
@@ -211,10 +218,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return CreateResult (path);
 			}
 
-			if (!string.IsNullOrEmpty (assemblyFile)) {
+			if (assemblyFile != null) {
 				string path = null;
-				if (assemblyFile.IndexOf ('$') < 0) {
-					path = MSBuildEscaping.FromMSBuildPath (assemblyFile, Path.GetDirectoryName (declaredInFile));
+				if (assemblyFile is ExpressionText t) {
+					path = MSBuildEscaping.FromMSBuildPath (t.Value, Path.GetDirectoryName (declaredInFile));
 					if (!File.Exists (path)) {
 						path = null;
 					}
@@ -227,7 +234,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					}
 				}
 				if (path == null) {
-					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFile}' from file '{declaredInFile}'");
+					LoggingService.LogWarning ($"Did not find tasks assembly '{assemblyFileStr}' from file '{declaredInFile}'");
 					return null;
 				}
 				return CreateResult (path);

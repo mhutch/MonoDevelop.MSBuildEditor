@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
@@ -73,7 +74,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			import.Document = new MSBuildDocument (import.Filename, false);
-			import.Document.Build (doc, textSource, this);
+			import.Document.Build (doc, this);
 			import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
 
 			return import;
@@ -93,11 +94,12 @@ namespace MonoDevelop.MSBuild.Language
 		internal IEnumerable<Import> ResolveImport (
 			IMSBuildEvaluationContext fileContext,
 			string thisFilePath,
-			string importExpr,
+			ExpressionNode importExpr,
+			string importExprString,
 			string sdk)
 		{
 			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
-			if (importExpr.IndexOf ("$(MSBuildUserExtensionsPath)", StringComparison.OrdinalIgnoreCase) > -1) {
+			if (importExprString.IndexOf ("$(MSBuildUserExtensionsPath)", StringComparison.OrdinalIgnoreCase) > -1) {
 				yield break;
 			}
 
@@ -155,7 +157,7 @@ namespace MonoDevelop.MSBuild.Language
 					foreach (var f in files) {
 						Import wildImport;
 						try {
-							wildImport = GetCachedOrParse (importExpr, f, sdk, File.GetLastWriteTimeUtc (f));
+							wildImport = GetCachedOrParse (importExprString, f, sdk, File.GetLastWriteTimeUtc (f));
 						} catch (Exception ex) when (IsNotCancellation (ex)) {
 							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
 							continue;
@@ -172,7 +174,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importExpr, filename, sdk, fi.LastWriteTimeUtc);
+					import = GetCachedOrParse (importExprString, filename, sdk, fi.LastWriteTimeUtc);
 				} catch (Exception ex) when (IsNotCancellation (ex)) {
 					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
@@ -185,14 +187,14 @@ namespace MonoDevelop.MSBuild.Language
 
 			//yield a placeholder for tooltips, imports pad etc to query
 			if (!foundAny) {
-				yield return new Import (importExpr, sdk, null, DateTime.MinValue);
+				yield return new Import (importExprString, sdk, null, DateTime.MinValue);
 			}
 
 			// we skip logging for wildcards as these are generally extensibility points that are often unused
 			// this is here (rather than being folded into the next condition) for ease of breakpointing
 			if (!foundAny && !isWildcard) {
-				if (PreviousRootDocument == null && failedImports.Add (importExpr)) {
-					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExpr}'");
+				if (PreviousRootDocument == null && failedImports.Add (importExprString)) {
+					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExprString}'");
 				}
 			}
 		}

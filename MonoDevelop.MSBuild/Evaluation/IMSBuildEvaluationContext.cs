@@ -3,7 +3,7 @@
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
-	public interface IMSBuildEvaluationContext
+	interface IMSBuildEvaluationContext
 	{
 		bool TryGetProperty (string name, out MSBuildPropertyValue value);
 	}
