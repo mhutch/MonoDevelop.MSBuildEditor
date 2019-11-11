@@ -17,6 +17,8 @@ namespace MonoDevelop.MSBuild.Editor.Host
 			string filePath,
 			int startLine,
 			int startCol,
+			int offset,
+			int length,
 			ReferenceUsage usage,
 			ImmutableArray<ClassifiedText> classifiedSpans,
 			TextSpan highlight)
@@ -24,6 +26,8 @@ namespace MonoDevelop.MSBuild.Editor.Host
 			FilePath = filePath;
 			StartLine = startLine;
 			StartCol = startCol;
+			Offset = offset;
+			Length = length;
 			Usage = usage;
 			ClassifiedSpans = classifiedSpans;
 			Highlight = highlight;
@@ -32,6 +36,8 @@ namespace MonoDevelop.MSBuild.Editor.Host
 		public string FilePath { get; }
 		public int StartLine { get; }
 		public int StartCol { get; }
+		public int Offset { get; }
+		public int Length { get; }
 		public ReferenceUsage Usage { get; }
 		public ImmutableArray<ClassifiedText> ClassifiedSpans { get; }
 		public TextSpan Highlight { get; }

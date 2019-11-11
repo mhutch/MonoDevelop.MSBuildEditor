@@ -157,7 +157,16 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					}
 					var classifiedSpans = ImmutableArray<ClassifiedText>.Empty;
 					classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText, PredefinedClassificationTypeNames.NaturalLanguage));
-					await searchCtx.OnReferenceFoundAsync (new FoundReference (file, 0, 0, ReferenceUsage.Declaration, classifiedSpans, new TextSpan (-1, 0)));
+					await searchCtx.OnReferenceFoundAsync (
+						new FoundReference (
+							file,
+							0, 0,
+							0, 0,
+							ReferenceUsage.Declaration,
+							classifiedSpans,
+							new TextSpan (-1, 0)
+						)
+					);
 				}
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
 				LoggingService.LogError ($"Error in show multiple imports", ex);
@@ -268,7 +277,14 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.Start, highlight.Length), PredefinedClassificationTypeNames.NaturalLanguage));
 						classifiedSpans = classifiedSpans.Add (new ClassifiedText (lineText.Substring (highlight.End), PredefinedClassificationTypeNames.NaturalLanguage));
 
-						_ = searchCtx.OnReferenceFoundAsync (new FoundReference (job.Filename, line.LineNumber, col, result.Usage, classifiedSpans, highlight));
+						_ = searchCtx.OnReferenceFoundAsync (
+							new FoundReference (
+								job.Filename,
+								line.LineNumber, col,
+								result.Offset, result.Length,
+								result.Usage,
+								classifiedSpans,
+								highlight));
 					}
 
 				} catch (Exception ex) {
