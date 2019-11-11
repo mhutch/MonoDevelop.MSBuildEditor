@@ -38,6 +38,10 @@
     <Compile Include="MonoDevelopMSBuildEditorHost.cs" />
     <Compile Include="MonoDevelopRuntimeInformation.cs" />
     <Compile Include="MonoDevelopSdkResolver.cs" />
+    <Compile Include="Analysis\CocoaDifferenceViewElementFactory.cs" />
+    <Compile Include="Analysis\CocoaMSBuildSuggestedAction.cs" />
+    <Compile Include="Analysis\ICocoaDifferenceViewerExtensions.cs" />
+    <Compile Include="MonoDevelopStreamingFindReferencesPresenter.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.DesignerSupport" />
@@ -49,6 +53,7 @@
     <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
     <AddinReference Include="MonoDevelop.TextEditor" />
     <AddinReference Include="MonoDevelop.Refactoring" />
+    <AddinReference Include="MonoDevelop.TextEditor.Cocoa" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Manifest.addin.xml" />
