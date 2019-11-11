@@ -1,13 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ExtensionModel>
-    <!--
-	<Extension path = "/MonoDevelop/Ide/TextEditorExtensions">
-        <Class id = "MSBuildNavigationExtension"
-               class = "MonoDevelop.MSBuildEditor.MSBuildNavigationExtension"
-               mimeTypes ="application/x-msbuild" />
-	</Extension>
-    -->
-
 	<Extension path = "/MonoDevelop/Core/MimeTypes">
 		<!--
 		We can't extend the existing mimetype, so re-define it.
@@ -41,42 +33,12 @@
         <Assembly file="MonoDevelop.Xml.Core.dll" />
     </Extension>
 
-    <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Mono" >
-        <Policies resource="MSBuildStylePolicy.xml" />
-    </Extension>
-
-    <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Default" >
-        <Policies resource="MSBuildStylePolicy.xml" />
-    </Extension>
-
 	<Extension path = "/MonoDevelop/Ide/FileTemplates">
 		<FileTemplate
 			id = "MSBuildProject"
 			file = "Templates/Project.xft.xml" />
 	</Extension>
 
-    <!--
-    <Extension path = "/MonoDevelop/Ide/Commands/Refactoring">
-        <Command id = "MonoDevelop.MSBuildEditor.MSBuildCommands.NavigationOperations"
-            defaultHandler = "MonoDevelop.MSBuildEditor.MSBuildNavigationOperationsCommandHandler"
-            type="array"
-            _label="Navigation" />
-    </Extension>
-
-    <Extension path = "/MonoDevelop/SourceEditor2/ContextMenu/Editor">
-        <Condition id="FileType" mimeTypes="application/x-msbuild">
-            <CommandItem
-                id = "MonoDevelop.MSBuildEditor.MSBuildCommands.NavigationOperations"
-                insertafter="MonoDevelop.SourceEditor.SourceEditorCommands.MarkerOperations"
-                insertbefore="MonoDevelop.Debugger.DebugCommands.ExpressionEvaluator" />
-        </Condition>
-    </Extension>
-    -->
-
-    <Extension path="/MonoDevelop/Ide/Editor/Bundles">
-        <Bundle resource = "MonoDevelop.MSBuildEditor.Syntax.msbuild.json" />
-    </Extension>
-    
     <Extension path="/MonoDevelop/Ide/Editor/TextMate">
         <Repository folderPath = "Syntax" />
     </Extension>
