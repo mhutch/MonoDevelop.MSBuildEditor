@@ -10,6 +10,7 @@ using MonoDevelop.Core;
 using MonoDevelop.Core.Assemblies;
 using MonoDevelop.MSBuild;
 using MonoDevelop.MSBuild.SdkResolution;
+using LoggingService = MonoDevelop.Core.LoggingService;
 
 namespace MonoDevelop.MSBuildEditor
 {

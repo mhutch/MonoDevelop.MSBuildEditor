@@ -5,64 +5,60 @@ using System;
 using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Ide;
 using MonoDevelop.Ide.Gui;
-using MonoDevelop.Projects.Text;
 
 namespace MonoDevelop.MSBuildEditor.Pads
 {
-	// shows documents with 
-	class DocumentWithMimeTypeTracker : IDisposable
+	// copied from AddinMaker
+	class ActiveEditorTracker : IDisposable
 	{
 		bool disposed;
-		readonly string mimeType;
 
-		//tracks the current active document, regardless of its mimetype
-		Document activeDocument;
-
-		/// <summary>
-		/// The current active document, if it matches the mimetype, otherwise null.
-		/// </summary>
+		public ITextView TextView { get; private set; }
 		public Document Document { get; private set; }
 
-		public DocumentWithMimeTypeTracker (string mimeType)
+		public ActiveEditorTracker ()
 		{
-			this.mimeType = mimeType;
-
 			IdeApp.Workbench.ActiveDocumentChanged += ActiveDocumentChanged;
 			ActiveDocumentChanged (null, null);
 		}
 
 		void ActiveDocumentChanged (object sender, EventArgs e)
 		{
-			if (activeDocument?.Editor != null) {
-				activeDocument.Editor.MimeTypeChanged -= MimeTypeChanged;
+			if (Document != null) {
+				Document.ContentChanged -= ActiveContentChanged;
+			}
+			var oldActiveDocument = Document;
+			Document = IdeApp.Workbench.ActiveDocument;
+
+			if (Document != null) {
+				Document.ContentChanged += ActiveContentChanged;
 			}
 
-			activeDocument = IdeApp.Workbench.ActiveDocument;
-			if (activeDocument?.Editor != null) {
-				activeDocument.Editor.MimeTypeChanged += MimeTypeChanged;
-			} else {
-				activeDocument = null;
-			}
-
-			MimeTypeChanged (null, null);
+			ActiveContentChanged (null, null, oldActiveDocument);
 		}
 
-		void MimeTypeChanged (object sender, EventArgs e)
+		void ActiveContentChanged (object sender, EventArgs e)
 		{
-			Document oldDoc = Document;
+			ActiveContentChanged (sender, e, Document);
+		}
 
-			if (activeDocument?.Editor?.MimeType == mimeType) {
-				Document = activeDocument;
+		void ActiveContentChanged (object sender, EventArgs e, Document oldDocument)
+		{
+			//FIXME there doesn't seem to be a better way to determine whether the view is an editor
+			//or to pull out the focused view when it's split e.g. diff view
+			var oldView = TextView;
+			if (Document?.GetContent<ITextView> () is ITextView view) {
+				TextView = view;
 			} else {
-				Document = null;
+				TextView = null;
 			}
 
-			if (oldDoc != Document) {
-				DocumentChanged?.Invoke (this, new DocumentChangedEventArgs (Document, oldDoc));
+			if (TextView != oldView) {
+				ActiveEditorChanged?.Invoke (this, new ActiveEditorChangedEventArgs (TextView, oldView, Document, oldDocument));
 			}
 		}
 
-		public event EventHandler<DocumentChangedEventArgs> DocumentChanged;
+		public event EventHandler<ActiveEditorChangedEventArgs> ActiveEditorChanged;
 
 		public void Dispose ()
 		{
@@ -72,21 +68,28 @@ namespace MonoDevelop.MSBuildEditor.Pads
 			disposed = true;
 
 			IdeApp.Workbench.ActiveDocumentChanged -= ActiveDocumentChanged;
-			if (activeDocument != null) {
-				Document.Editor.MimeTypeChanged -= MimeTypeChanged;
+			if (Document != null) {
+				Document.ContentChanged -= ActiveContentChanged;
 			}
 		}
 	}
 
-	class DocumentChangedEventArgs : EventArgs
+	class ActiveEditorChangedEventArgs : EventArgs
 	{
-		public DocumentChangedEventArgs (
+		public ActiveEditorChangedEventArgs (
+			ITextView newView,
+			ITextView oldView,
 			Document newDocument,
 			Document oldDocument)
 		{
+			NewView = newView;
+			OldView = oldView;
 			NewDocument = newDocument;
 			OldDocument = oldDocument;
 		}
+
+		public ITextView NewView { get; }
+		public ITextView OldView { get; }
 
 		public Document NewDocument { get; }
 		public Document OldDocument { get; }

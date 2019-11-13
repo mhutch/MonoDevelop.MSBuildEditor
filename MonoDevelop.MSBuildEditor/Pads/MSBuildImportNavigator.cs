@@ -2,19 +2,28 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Core;
+using MonoDevelop.Ide.Composition;
+using MonoDevelop.MSBuild.Editor;
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Completion;
 using Xwt;
 
 namespace MonoDevelop.MSBuildEditor.Pads
 {
 	class MSBuildImportNavigator : TreeView
 	{
-		DocumentWithMimeTypeTracker documentTracker;
+		ActiveEditorTracker editorTracker;
 		readonly DataField<string> markupField = new DataField<string> ();
 		readonly DataField<Import> importField = new DataField<Import> ();
 		readonly DataField<bool> isGroupField = new DataField<bool> ();
 		readonly TreeStore store;
+
+		MSBuildParserProvider parserProvider;
+		DisplayElementFactory displayElementFactory;
+		MSBuildBackgroundParser parser;
 
 		static readonly string colorGroup = "#2CC775";
 		static readonly string colorReplacement = "#7DA7FF";
@@ -29,36 +38,63 @@ namespace MonoDevelop.MSBuildEditor.Pads
 			store = new TreeStore (markupField, importField, isGroupField);
 			DataSource = store;
 
-			documentTracker = new DocumentWithMimeTypeTracker ("application/x-msbuild");
-			documentTracker.DocumentChanged += DocumentChanged;
+			editorTracker = new ActiveEditorTracker ();
+			editorTracker.ActiveEditorChanged += ActiveEditorChanged;
 
-			DocumentChanged (documentTracker, new DocumentChangedEventArgs (documentTracker.Document, null));
+			ActiveEditorChanged (editorTracker,
+				new ActiveEditorChangedEventArgs (
+					editorTracker.TextView, null,
+					editorTracker.Document, null
+				)
+			);
 		}
 
-		void DocumentChanged (object sender, DocumentChangedEventArgs e)
+		MSBuildParserProvider GetParserProvider () => parserProvider ?? (
+			parserProvider = CompositionManager.Instance.GetExportedValue<MSBuildParserProvider> ()
+		);
+
+		DisplayElementFactory GetDisplayElementFactory () => displayElementFactory ?? (
+			displayElementFactory = CompositionManager.Instance.GetExportedValue<DisplayElementFactory> ()
+		);
+
+		void ActiveEditorChanged (object sender, ActiveEditorChangedEventArgs e)
 		{
-			if (e.OldDocument != null) {
-				e.OldDocument.DocumentContext.DocumentParsed -= DocumentParsed;
+			if (parser != null) {
+				parser.ParseCompleted -= ParseCompleted;
 			}
-			if (e.NewDocument != null) {
-				e.NewDocument.DocumentContext.DocumentParsed += DocumentParsed;
+
+			if (e.NewView is ITextView t && t.TextBuffer.ContentType.IsOfType (MSBuildContentType.Name)) {
+				parser = GetParserProvider ().GetParser (t.TextBuffer);
+				parser.ParseCompleted += ParseCompleted;
 			}
-			DocumentParsed (e.NewDocument, EventArgs.Empty);
+
+			var output = parser?.LastOutput;
+			if (output?.MSBuildDocument is MSBuildRootDocument doc) {
+				Runtime.RunInMainThread (() => Update (doc));
+			} else {
+				Runtime.RunInMainThread (() => store.Clear ());
+			}
 		}
 
-		void DocumentParsed (object sender, EventArgs e)
+		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> e)
 		{
-			Runtime.RunInMainThread ((Action)Update);
+			var doc = e.ParseResult.MSBuildDocument;
+			if (e.ParseResult.MSBuildDocument.ImportsHash == lastImportsHash) {
+				return;
+			}
+			lastImportsHash = doc.ImportsHash;
+
+			Runtime.RunInMainThread (() => Update (doc));
 		}
 
-		void Update ()
+		int lastImportsHash;
+
+		void Update (MSBuildRootDocument doc)
 		{
 			store.Clear ();
-			if (documentTracker.Document?.DocumentContext.ParsedDocument is MSBuildParsedDocument doc) {
-				var shorten = DisplayElementFactory.CreateFilenameShortener (doc.Document.RuntimeInformation);
-				AddNode (store.AddNode (), doc.Document, shorten);
-				ExpandAll ();
-			}
+			var shorten = GetDisplayElementFactory ().CreateFilenameShortener (doc.RuntimeInformation);
+			AddNode (store.AddNode (), doc, shorten);
+			ExpandAll ();
 		}
 
 		void AddNode (TreeNavigator treeNavigator, MSBuildDocument document, Func<string,(string prefix, string remaining)?> shorten)
@@ -153,11 +189,12 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		protected override void Dispose (bool disposing)
 		{
 			if (disposing) {
-				if (documentTracker.Document != null) {
-					documentTracker.Document.DocumentContext.DocumentParsed -= DocumentParsed;
+				if (parser != null) {
+					parser.ParseCompleted -= ParseCompleted;
+					parser = null;
 				}
-				documentTracker?.Dispose ();
-				documentTracker = null;
+				editorTracker?.Dispose ();
+				editorTracker = null;
 			}
 
 			base.Dispose (disposing);

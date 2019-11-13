@@ -245,7 +245,7 @@ namespace MonoDevelop.MSBuild.Editor
 		/// <summary>
 		/// Shortens filenames by extracting common prefixes into MSBuild properties. Returns null if the name could not be shortened in this way.
 		/// </summary>
-		Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
+		public Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
 		{
 			var prefixes = GetPrefixes (runtimeInfo);
 			return s => GetLongestReplacement (s, prefixes);
