@@ -126,7 +126,10 @@ namespace MonoDevelop.MSBuild.Schema
 					return element;
 				}
 			}
-			return AbstractChild;
+			if (!string.IsNullOrEmpty (name)) {
+				return AbstractChild;
+			}
+			return null;
 		}
 
 		public MSBuildAttributeSyntax GetAttribute (string name)
@@ -136,7 +139,10 @@ namespace MonoDevelop.MSBuild.Schema
 					return attribute;
 				}
 			}
-			return AbstractAttribute;
+			if (!string.IsNullOrEmpty (name)) {
+				return AbstractAttribute;
+			}
+			return null;
 		}
 
 		static readonly Dictionary<string, MSBuildElementSyntax> builtin = new Dictionary<string, MSBuildElementSyntax> (StringComparer.OrdinalIgnoreCase);
