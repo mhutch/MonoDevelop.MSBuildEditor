@@ -85,6 +85,16 @@ namespace MonoDevelop.MSBuild.Dom
 			}
 		}
 
+		public IEnumerable<MSBuildElement> FollowingSiblings {
+			get {
+				var el = nextSibling;
+				while (el != null) {
+					yield return el;
+					el = el.nextSibling;
+				}
+			}
+		}
+
 		public IEnumerable<MSBuildAttribute> Attributes {
 			get {
 				var att = firstAttribute;
