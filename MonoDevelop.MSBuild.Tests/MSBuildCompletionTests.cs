@@ -103,9 +103,11 @@ namespace MonoDevelop.MSBuild.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (5);
+			result.AssertItemCount (3);
 
 			result.AssertContains ("Foo");
+			result.AssertContains ("$(");
+			result.AssertContains ("@(");
 		}
 
 		[Test]
@@ -116,9 +118,11 @@ namespace MonoDevelop.MSBuild.Tests
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (5);
+			result.AssertItemCount (3);
 
 			result.AssertContains ("Bar");
+			result.AssertContains ("$(");
+			result.AssertContains ("@(");
 		}
 
 		[Test]
@@ -130,10 +134,12 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (6);
+			result.AssertItemCount (4);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
+			result.AssertContains ("$(");
+			result.AssertContains ("@(");
 		}
 
 		[Test]
@@ -145,10 +151,12 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (6);
+			result.AssertItemCount (4);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
+			result.AssertDoesNotContain ("Exists");
+			result.AssertDoesNotContain ("HasTrailingSlash");
 		}
 
 		[Test]
@@ -160,11 +168,11 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (5);
+			result.AssertItemCount (3);
 
 			result.AssertContains ("Foo");
-			result.AssertContains ("Exists");
-			result.AssertContains ("HasTrailingSlash");
+			result.AssertDoesNotContain ("Exists");
+			result.AssertDoesNotContain ("HasTrailingSlash");
 		}
 
 		[Test]
@@ -176,9 +184,11 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (5);
+			result.AssertItemCount (3);
 
 			result.AssertContains ("Foo");
+			result.AssertDoesNotContain ("Exists");
+			result.AssertDoesNotContain ("HasTrailingSlash");
 		}
 
 		[Test]
@@ -190,10 +200,14 @@ namespace MonoDevelop.MSBuild.Tests
 <ItemGroup>
 <Baz Condition=""'$(Platform)|$(Configuration)'=='^", caretMarker: '^');
 
-			result.AssertItemCount (6);
+			result.AssertItemCount (4);
 
 			result.AssertContains ("Foo");
 			result.AssertContains ("Bar");
+			result.AssertContains ("$(");
+			result.AssertContains ("@(");
+			result.AssertDoesNotContain ("Exists");
+			result.AssertDoesNotContain ("HasTrailingSlash");
 		}
 
 		[Test]
