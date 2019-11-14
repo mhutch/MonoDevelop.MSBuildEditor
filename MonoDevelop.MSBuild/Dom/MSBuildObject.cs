@@ -6,7 +6,7 @@ using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Dom
 {
-	abstract class MSBuildObject
+	public abstract class MSBuildObject
 	{
 		protected MSBuildObject (MSBuildElement parent, ExpressionNode value)
 		{

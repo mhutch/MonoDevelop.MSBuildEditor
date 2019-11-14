@@ -6,7 +6,7 @@ using System;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[Flags]
-	enum ExpressionOptions
+	public enum ExpressionOptions
 	{
 		None = 0,
 		Metadata = 1,

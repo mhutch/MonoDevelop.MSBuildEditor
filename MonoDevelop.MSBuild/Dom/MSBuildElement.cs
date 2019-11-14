@@ -10,7 +10,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Dom
 {
-	abstract class MSBuildElement : MSBuildObject
+	public abstract class MSBuildElement : MSBuildObject
 	{
 		readonly MSBuildElement firstChild;
 		readonly MSBuildAttribute firstAttribute;
@@ -182,7 +182,7 @@ namespace MonoDevelop.MSBuild.Dom
 			};
 	}
 
-	abstract class MSBuildConditionedElement : MSBuildElement
+	public abstract class MSBuildConditionedElement : MSBuildElement
 	{
 		protected MSBuildConditionedElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public MSBuildAttribute ConditionAttribute => GetAttribute (MSBuildSyntaxKind.ConditionAttribute | SyntaxKind);
@@ -191,13 +191,13 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute LabelAttribute => GetAttribute (MSBuildSyntaxKind.LabelAttribute | SyntaxKind);
 	}
 
-	class MSBuildChooseElement : MSBuildElement
+	public class MSBuildChooseElement : MSBuildElement
 	{
 		internal MSBuildChooseElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Choose;
 	}
 
-	class MSBuildImportElement : MSBuildConditionedElement
+	public class MSBuildImportElement : MSBuildConditionedElement
 	{
 		internal MSBuildImportElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 
@@ -209,13 +209,13 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute MinimumVersionAttribute => GetAttribute (MSBuildSyntaxKind.Import_MinimumVersion);
 	}
 
-	class MSBuildImportGroupElement : MSBuildElement
+	public class MSBuildImportGroupElement : MSBuildElement
 	{
 		internal MSBuildImportGroupElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ImportGroup;
 	}
 
-	class MSBuildItemElement : MSBuildConditionedElement
+	public class MSBuildItemElement : MSBuildConditionedElement
 	{
 		internal MSBuildItemElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Item;
@@ -233,7 +233,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildMetadataElement> MetadataElements => GetElements<MSBuildMetadataElement> ();
 	}
 
-	class MSBuildItemDefinitionElement : MSBuildElement
+	public class MSBuildItemDefinitionElement : MSBuildElement
 	{
 		internal MSBuildItemDefinitionElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ItemDefinition;
@@ -241,7 +241,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildMetadataElement> MetadataElements => GetElements<MSBuildMetadataElement> ();
 	}
 
-	class MSBuildItemDefinitionGroupElement : MSBuildConditionedElement
+	public class MSBuildItemDefinitionGroupElement : MSBuildConditionedElement
 	{
 		internal MSBuildItemDefinitionGroupElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ItemDefinitionGroup;
@@ -249,20 +249,20 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildItemDefinitionElement> ItemDefinitionElements => GetElements<MSBuildItemDefinitionElement> ();
 	}
 
-	class MSBuildItemGroupElement : MSBuildConditionedElement
+	public class MSBuildItemGroupElement : MSBuildConditionedElement
 	{
 		internal MSBuildItemGroupElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ItemGroup;
 		public IEnumerable<MSBuildItemElement> ItemElements => GetElements<MSBuildItemElement> ();
 	}
 
-	class MSBuildMetadataElement : MSBuildConditionedElement
+	public class MSBuildMetadataElement : MSBuildConditionedElement
 	{
 		internal MSBuildMetadataElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Metadata;
 	}
 
-	class MSBuildOnErrorElement : MSBuildConditionedElement
+	public class MSBuildOnErrorElement : MSBuildConditionedElement
 	{
 		internal MSBuildOnErrorElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.OnError;
@@ -270,13 +270,13 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute ExecuteTargetsAttribute => GetAttribute (MSBuildSyntaxKind.OnError_ExecuteTargets);
 	}
 
-	class MSBuildOtherwiseElement : MSBuildElement
+	public class MSBuildOtherwiseElement : MSBuildElement
 	{
 		internal MSBuildOtherwiseElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Otherwise;
 	}
 
-	class MSBuildOutputElement : MSBuildElement
+	public class MSBuildOutputElement : MSBuildElement
 	{
 		internal MSBuildOutputElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Output;
@@ -286,7 +286,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute PropertyNameAttribute => GetAttribute (MSBuildSyntaxKind.Output_PropertyName);
 	}
 
-	class MSBuildParameterElement : MSBuildElement
+	public class MSBuildParameterElement : MSBuildElement
 	{
 		internal MSBuildParameterElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Parameter;
@@ -295,7 +295,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute RequiredAttribute => GetAttribute (MSBuildSyntaxKind.Parameter_Required);
 	}
 
-	class MSBuildParameterGroupElement : MSBuildElement
+	public class MSBuildParameterGroupElement : MSBuildElement
 	{
 		internal MSBuildParameterGroupElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ParameterGroup;
@@ -303,7 +303,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildParameterElement> ParameterElements => GetElements<MSBuildParameterElement> ();
 	}
 
-	class MSBuildProjectElement : MSBuildElement
+	public class MSBuildProjectElement : MSBuildElement
 	{
 		internal MSBuildProjectElement (XElement xelement) : base (null, xelement, null) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Project;
@@ -316,19 +316,19 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute SdkAttribute => GetAttribute (MSBuildSyntaxKind.Project_Sdk);
 	}
 
-	class MSBuildProjectExtensionsElement : MSBuildElement
+	public class MSBuildProjectExtensionsElement : MSBuildElement
 	{
 		internal MSBuildProjectExtensionsElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.ProjectExtensions;
 	}
 
-	class MSBuildPropertyElement : MSBuildConditionedElement
+	public class MSBuildPropertyElement : MSBuildConditionedElement
 	{
 		internal MSBuildPropertyElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Property;
 	}
 
-	class MSBuildPropertyGroupElement : MSBuildConditionedElement
+	public class MSBuildPropertyGroupElement : MSBuildConditionedElement
 	{
 		internal MSBuildPropertyGroupElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.PropertyGroup;
@@ -336,7 +336,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildPropertyElement> PropertyElements => GetElements<MSBuildPropertyElement> ();
 	}
 
-	class MSBuildTargetElement : MSBuildConditionedElement
+	public class MSBuildTargetElement : MSBuildConditionedElement
 	{
 		internal MSBuildTargetElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Target;
@@ -353,7 +353,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildTaskElement> TaskElements => GetElements<MSBuildTaskElement> ();
 	}
 
-	class MSBuildTaskElement : MSBuildConditionedElement
+	public class MSBuildTaskElement : MSBuildConditionedElement
 	{
 		internal MSBuildTaskElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Task;
@@ -367,7 +367,7 @@ namespace MonoDevelop.MSBuild.Dom
 
 	}
 
-	class MSBuildTaskBodyElement : MSBuildElement
+	public class MSBuildTaskBodyElement : MSBuildElement
 	{
 		internal MSBuildTaskBodyElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.TaskBody;
@@ -375,7 +375,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute EvaluateAttribute => GetAttribute (MSBuildSyntaxKind.UsingTaskBody_Evaluate);
 	}
 
-	class MSBuildUsingTaskElement : MSBuildConditionedElement
+	public class MSBuildUsingTaskElement : MSBuildConditionedElement
 	{
 		internal MSBuildUsingTaskElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.UsingTask;
@@ -389,7 +389,7 @@ namespace MonoDevelop.MSBuild.Dom
 
 	}
 
-	class MSBuildWhenElement : MSBuildConditionedElement
+	public class MSBuildWhenElement : MSBuildConditionedElement
 	{
 		internal MSBuildWhenElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.When;

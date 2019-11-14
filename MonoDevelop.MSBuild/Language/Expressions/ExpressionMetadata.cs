@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("Metadata: {ItemName}.{MetadataName}")]
-	class ExpressionMetadata : ExpressionNode
+	public class ExpressionMetadata : ExpressionNode
 	{
 		public string ItemName { get; }
 		public string MetadataName { get; }

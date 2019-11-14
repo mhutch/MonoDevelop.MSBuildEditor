@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("{Value} (IsPure: {IsPure})")]
-	class ExpressionText : ExpressionNode
+	public class ExpressionText : ExpressionNode
 	{
 		public string Value { get; }
 		public string GetUnescapedValue () => XmlEscaping.UnescapeEntities (Value);
@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.Text;
 	}
 
-	class QuotedExpression : ExpressionNode
+	public class QuotedExpression : ExpressionNode
 	{
 		public QuotedExpression (char quoteChar, ExpressionNode expression) : this (expression.Offset - 1, expression.Length + 2, quoteChar, expression)
 		{

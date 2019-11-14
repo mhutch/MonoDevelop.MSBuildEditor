@@ -3,14 +3,14 @@
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	abstract class ExpressionPropertyNode : ExpressionNode
+	public abstract class ExpressionPropertyNode : ExpressionNode
 	{
 		public ExpressionPropertyNode(int offset, int length) : base (offset, length)
 		{
 		}
 	}
 
-	class ExpressionPropertyFunctionInvocation : ExpressionPropertyNode
+	public class ExpressionPropertyFunctionInvocation : ExpressionPropertyNode
 	{
 		public ExpressionNode Target { get; }
 		public ExpressionFunctionName Function { get; }
@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.PropertyFunctionInvocation;
 	}
 
-	class ExpressionPropertyName : ExpressionPropertyNode
+	public class ExpressionPropertyName : ExpressionPropertyNode
 	{
 		public string Name { get; }
 
@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.PropertyName;
 	}
 
-	class ExpressionPropertyRegistryValue : ExpressionPropertyNode
+	public class ExpressionPropertyRegistryValue : ExpressionPropertyNode
 	{
 		public string RegistryReference { get; }
 
@@ -57,7 +57,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.PropertyRegistryValue;
 	}
 
-	class ExpressionClassReference : ExpressionPropertyNode
+	public class ExpressionClassReference : ExpressionPropertyNode
 	{
 		public string Name { get; }
 

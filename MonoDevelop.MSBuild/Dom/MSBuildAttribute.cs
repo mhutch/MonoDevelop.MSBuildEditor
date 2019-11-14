@@ -7,7 +7,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Dom
 {
-	class MSBuildAttribute : MSBuildObject
+	public class MSBuildAttribute : MSBuildObject
 	{
 		internal MSBuildAttribute nextSibling;
 
@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public bool IsNamed (string name) => string.Equals (Name, name, System.StringComparison.OrdinalIgnoreCase);
 	}
 
-	static class MSBuildDomExtensions
+	public static class MSBuildDomExtensions
 	{
 		public static bool? AsConstBool (this MSBuildObject o) =>
 			o.Value switch {

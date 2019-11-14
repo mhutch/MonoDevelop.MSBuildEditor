@@ -2,11 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
-using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	static class ExpressionExtensions
+	public static class ExpressionExtensions
 	{
 		public static IEnumerable<ExpressionNode> WithAllDescendants (this ExpressionNode node)
 		{

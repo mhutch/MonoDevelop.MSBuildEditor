@@ -5,7 +5,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	abstract class ExpressionNode
+	public abstract class ExpressionNode
 	{
 		public TextSpan Span => new TextSpan (Offset, Length);
 
@@ -25,7 +25,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public abstract ExpressionNodeKind NodeKind { get; }
 	}
 
-	enum ExpressionNodeKind
+	public enum ExpressionNodeKind
 	{
 		IncompleteExpressionError,
 		Error,

@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	class ExpressionArgumentList : ExpressionNode
+	public class ExpressionArgumentList : ExpressionNode
 	{
 		public List<ExpressionNode> Arguments { get; }
 
@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentList;
 	}
 
-	class ExpressionFunctionName : ExpressionNode
+	public class ExpressionFunctionName : ExpressionNode
 	{
 		public string Name { get; }
 
@@ -35,7 +35,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.FunctionName;
 	}
-	abstract class ExpressionArgumentLiteral : ExpressionNode
+
+	public abstract class ExpressionArgumentLiteral : ExpressionNode
 	{
 		public object Value { get; }
 		public abstract ExpressionArgumentLiteralKind Kind { get; }
@@ -46,13 +47,13 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	}
 
 	[DebuggerDisplay ("Literal: {Value}")]
-	abstract class ExpressionArgumentLiteral<T> : ExpressionArgumentLiteral
+	public abstract class ExpressionArgumentLiteral<T> : ExpressionArgumentLiteral
 	{
 		public new T Value => (T)base.Value;
 		protected ExpressionArgumentLiteral (int offset, int length, T value) : base (offset, length, value) { }
 	}
 
-	class ExpressionArgumentBool : ExpressionArgumentLiteral<bool>
+	public class ExpressionArgumentBool : ExpressionArgumentLiteral<bool>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Bool;
 		public ExpressionArgumentBool (int offset, bool value) : base (offset, value? 4 : 5, value) { }
@@ -60,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralBool;
 	}
 
-	class ExpressionArgumentInt : ExpressionArgumentLiteral<long>
+	public class ExpressionArgumentInt : ExpressionArgumentLiteral<long>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Int;
 		public ExpressionArgumentInt (int offset, int length, long value) : base (offset, length, value) { }
@@ -68,7 +69,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralInt;
 	}
 
-	class ExpressionArgumentFloat : ExpressionArgumentLiteral<double>
+	public class ExpressionArgumentFloat : ExpressionArgumentLiteral<double>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.Float;
 		public ExpressionArgumentFloat (int offset, int length, double value) : base (offset, length, value) { }
@@ -76,7 +77,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralFloat;
 	}
 
-	class ExpressionArgumentString : ExpressionArgumentLiteral<string>
+	public class ExpressionArgumentString : ExpressionArgumentLiteral<string>
 	{
 		public override ExpressionArgumentLiteralKind Kind => ExpressionArgumentLiteralKind.String;
 		public ExpressionArgumentString (int offset, int length, string value) : base (offset, length, value) { }
@@ -84,7 +85,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ArgumentLiteralString;
 	}
 
-	enum ExpressionArgumentLiteralKind
+	public enum ExpressionArgumentLiteralKind
 	{
 		String,
 		Int,

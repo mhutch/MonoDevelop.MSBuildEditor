@@ -3,7 +3,7 @@
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	abstract class ExpressionItemNode : ExpressionNode
+	public abstract class ExpressionItemNode : ExpressionNode
 	{
 		protected ExpressionItemNode (int offset, int length) : base (offset, length)
 		{
@@ -13,7 +13,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public abstract int ItemNameOffset { get; }
 	}
 
-	class ExpressionItemName : ExpressionItemNode
+	public class ExpressionItemName : ExpressionItemNode
 	{
 		public string Name { get; }
 
@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ItemName;
 	}
 
-	class ExpressionItemFunctionInvocation : ExpressionItemNode
+	public class ExpressionItemFunctionInvocation : ExpressionItemNode
 	{
 		public ExpressionNode Target { get; }
 		public ExpressionFunctionName Function { get; }
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.ItemFunctionInvocation;
 	}
 
-	class ExpressionItemTransform : ExpressionItemNode
+	public class ExpressionItemTransform : ExpressionItemNode
 	{
 		public ExpressionNode Target { get; }
 		public ExpressionNode Transform { get; }

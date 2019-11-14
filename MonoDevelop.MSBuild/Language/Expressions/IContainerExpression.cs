@@ -8,7 +8,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	/// <summary>
 	/// Implemented by expression nodes that contain an indeterminate list of other expressions.
 	/// </summary>
-	interface IContainerExpression
+	public interface IContainerExpression
 	{
 		IReadOnlyList<ExpressionNode> Nodes { get; }
 	}

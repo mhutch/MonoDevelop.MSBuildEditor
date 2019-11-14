@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
-	class ExpressionConditionOperator : ExpressionNode
+	public class ExpressionConditionOperator : ExpressionNode
 	{
 		public ExpressionNode Left { get; }
 		public ExpressionNode Right { get; }
@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		}
 	}
 
-	enum ExpressionOperatorKind
+	public enum ExpressionOperatorKind
 	{
 		Equal,
 		NotEqual,
@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		Not
 	}
 
-	class ExpressionConditionFunction : ExpressionNode
+	public class ExpressionConditionFunction : ExpressionNode
 	{
 		public ExpressionFunctionName Name { get; }
 
@@ -71,7 +71,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		}
 	}
 
-	class ExpressionParenGroup : ExpressionNode
+	public class ExpressionParenGroup : ExpressionNode
 	{
 		public ExpressionParenGroup (int offset, int length, ExpressionNode expression) : base (offset, length)
 		{

@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("Error ({Kind})")]
-	class ExpressionError : ExpressionNode
+	public class ExpressionError : ExpressionNode
 	{
 		public ExpressionErrorKind Kind { get; }
 		public bool WasEOF { get; }
@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	}
 
 	[DebuggerDisplay ("Error ({Kind}): {IncompleteNode}")]
-	class IncompleteExpressionError : ExpressionError
+	public class IncompleteExpressionError : ExpressionError
 	{
 		public ExpressionNode IncompleteNode { get; }
 
@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public override ExpressionNodeKind NodeKind => ExpressionNodeKind.IncompleteExpressionError;
 	}
 
-	enum ExpressionErrorKind
+	public enum ExpressionErrorKind
 	{
 		MetadataDisallowed,
 		EmptyListEntry,

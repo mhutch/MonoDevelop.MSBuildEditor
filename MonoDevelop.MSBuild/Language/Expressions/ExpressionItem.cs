@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("Item: {Name} (IsSimple: {IsSimpleItem})")]
-	class ExpressionItem : ExpressionNode
+	public class ExpressionItem : ExpressionNode
 	{
 		public ExpressionNode Expression { get; }
 

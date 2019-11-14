@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("ListExpression ({Nodes.Count} nodes)")]
-	class ListExpression : ExpressionNode, IContainerExpression
+	public class ListExpression : ExpressionNode, IContainerExpression
 	{
 		public IReadOnlyList<ExpressionNode> Nodes { get; }
 
