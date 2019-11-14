@@ -35,7 +35,8 @@ namespace MonoDevelop.MSBuild.Dom
 				ExpressionArgumentBool b => b.Value,
 				ExpressionText t when string.Equals (t.Value, "True", System.StringComparison.OrdinalIgnoreCase) => true,
 				ExpressionText t when string.Equals (t.Value, "False", System.StringComparison.OrdinalIgnoreCase) => false,
-				_ => null
+				//FIXME: the cast is necessary in 16.3 csc, which we currently use on CI
+				_ => (bool?)null
 			};
 
 		public static string AsConstString (this MSBuildObject o) =>
