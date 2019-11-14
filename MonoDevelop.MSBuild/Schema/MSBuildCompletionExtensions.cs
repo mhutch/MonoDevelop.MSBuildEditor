@@ -176,7 +176,11 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.Platform:
 				return doc.GetPlatforms ().Select (c => new ValueKindValue (c, "", MSBuildValueKind.Platform)).ToList ();
 			case MSBuildValueKind.Condition:
-				return Builtins.ConditionFunctions.Values;
+				//FIXME: relax this a bit
+				if (triggerExpression != null && triggerExpression is ExpressionText t && t.Length == 0) {
+					return Builtins.ConditionFunctions.Values;
+				}
+				break;
 			}
 
 			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, rr);

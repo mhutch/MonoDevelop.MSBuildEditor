@@ -255,6 +255,9 @@ namespace MonoDevelop.MSBuild.Language
 					if (ee.Kind == ExpressionErrorKind.IncompleteProperty) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
+							if (IsConditionFunctionError (ee)) {
+								return TriggerState.ConditionFunctionName;
+							}
 							return TriggerState.PropertyFunctionName;
 						}
 						return TriggerState.None;
@@ -262,6 +265,9 @@ namespace MonoDevelop.MSBuild.Language
 					if (ee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						if (ShouldTriggerName (fn.Name)) {
 							triggerLength = fn.Name.Length;
+							if (IsConditionFunctionError (ee)) {
+								return TriggerState.ConditionFunctionName;
+							}
 							return TriggerState.ItemFunctionName;
 						}
 						return TriggerState.None;
@@ -351,6 +357,10 @@ namespace MonoDevelop.MSBuild.Language
 				isExplicit
 				|| (isTypedChar && n.Length == 1)
 				|| (isBackspace && n.Length == 0);
+
+			bool IsConditionFunctionError (ExpressionError ee)
+				=> ee.Parent is ExpressionConditionOperator
+					|| ee is IncompleteExpressionError iee && iee.IncompleteNode is ExpressionConditionFunction;
 		}
 
 		public enum TriggerState
@@ -366,6 +376,7 @@ namespace MonoDevelop.MSBuild.Language
 			ItemFunctionName,
 			PropertyFunctionClassName,
 			BareFunctionArgumentValue,
+			ConditionFunctionName,
 		}
 
 		public enum TriggerReason
@@ -471,6 +482,8 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.BareFunctionArgumentValue:
 				//FIXME: enum completion etc
 				return MSBuildValueKind.Bool.GetSimpleValues (true);
+			case TriggerState.ConditionFunctionName:
+				return Builtins.ConditionFunctions.Values;
 			}
 			throw new InvalidOperationException ($"Unhandled trigger type {trigger}");
 		}

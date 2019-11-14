@@ -35,6 +35,8 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * auto insert matching quotes and parens in expressions
 * automatically update closing tag when editing opening tag name
 * make metadata completion more context-specific
+* make completion in conditions more robust
+* add parameter completion for item/property/condition functions
 
 ## Validation
 
