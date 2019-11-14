@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Threading;
 
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
@@ -16,19 +16,18 @@ namespace MonoDevelop.MSBuild.Analysis
 		internal MSBuildDocument Document => session.Document;
 		public CancellationToken CancellationToken => session.CancellationToken;
 
-		public XElement Element { get; }
-		public MSBuildElementSyntax ElementSyntax { get; }
-		public MSBuildSyntaxKind SyntaxKind => ElementSyntax?.SyntaxKind ?? MSBuildSyntaxKind.Unknown;
-		public MSBuildValueKind ValueKind => ElementSyntax?.ValueKind ?? MSBuildValueKind.Unknown;
+		public MSBuildElement Element { get; }
+		public XElement XElement => Element.XElement;
+		public MSBuildElementSyntax ElementSyntax => Element.Syntax;
+		public MSBuildSyntaxKind SyntaxKind => Element.SyntaxKind;
+		public MSBuildValueKind ValueKind => ElementSyntax.ValueKind;
 
 		internal ElementDiagnosticContext (
 			MSBuildAnalysisSession session,
-			XElement element,
-			MSBuildElementSyntax elementSyntax)
+			MSBuildElement element)
 		{
 			this.session = session;
 			Element = element;
-			ElementSyntax = elementSyntax;
 		}
 
 		public void ReportDiagnostic (MSBuildDiagnostic diagnostic) => session.ReportDiagnostic (diagnostic);

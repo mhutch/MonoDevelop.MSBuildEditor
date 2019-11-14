@@ -5,10 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
@@ -29,10 +27,10 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public void ReportDiagnostic (MSBuildDiagnostic diagnostic) => Diagnostics.Add (diagnostic);
 
-		public void ExecuteElementActions (XElement element, MSBuildElementSyntax resolved)
+		public void ExecuteElementActions (MSBuildElement element)
 		{
-			if (Context.GetElementActions (resolved?.SyntaxKind ?? MSBuildSyntaxKind.Unknown, out var actions)) {
-				var ctx = new ElementDiagnosticContext (this, element, resolved);
+			if (Context.GetElementActions (element.SyntaxKind, out var actions)) {
+				var ctx = new ElementDiagnosticContext (this, element);
 				foreach (var (analyzer, action) in actions) {
 					try {
 						if (!analyzer.Disabled) {
@@ -45,10 +43,10 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
-		public void ExecuteAttributeActions (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
+		public void ExecuteAttributeActions (MSBuildAttribute attribute)
 		{
-			if (Context.GetAttributeActions (resolvedAttribute?.SyntaxKind ?? MSBuildSyntaxKind.Unknown, out var actions)) {
-				var ctx = new AttributeDiagnosticContext (this, element, attribute, resolvedElement, resolvedAttribute);
+			if (Context.GetAttributeActions (attribute.SyntaxKind, out var actions)) {
+				var ctx = new AttributeDiagnosticContext (this, attribute);
 				foreach (var (analyzer, action) in actions) {
 					try {
 						if (!analyzer.Disabled) {
@@ -61,10 +59,10 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
-		public void ExecutePropertyWriteActions (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+		public void ExecutePropertyWriteActions (MSBuildPropertyElement element)
 		{
-			if (Context.GetPropertyWriteActions (info.Name, out var actions)) {
-				var ctx = new PropertyWriteDiagnosticContext (this, element, info, kind, node);
+			if (Context.GetPropertyWriteActions (element.ElementName, out var actions)) {
+				var ctx = new PropertyWriteDiagnosticContext (this, element);
 				foreach (var (analyzer, action) in actions) {
 					try {
 						if (!analyzer.Disabled) {

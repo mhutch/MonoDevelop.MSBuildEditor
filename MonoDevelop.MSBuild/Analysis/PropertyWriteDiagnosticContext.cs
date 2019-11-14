@@ -3,6 +3,7 @@
 
 using System.Threading;
 
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -17,19 +18,16 @@ namespace MonoDevelop.MSBuild.Analysis
 		internal MSBuildDocument Document => session.Document;
 		public CancellationToken CancellationToken => session.CancellationToken;
 
-		public XElement Element { get; }
-		public ValueInfo Info { get; }
-		public MSBuildValueKind Kind { get; }
-		internal ExpressionNode Node { get; }
+		public MSBuildPropertyElement Element { get; }
+		public XElement XElement => Element.XElement;
+		public MSBuildValueKind Kind => Element.Syntax.ValueKind;
+		internal ExpressionNode Node => Element.Value;
 
 		internal PropertyWriteDiagnosticContext (
-			MSBuildAnalysisSession session, XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			MSBuildAnalysisSession session, MSBuildPropertyElement element)
 		{
 			this.session = session;
 			Element = element;
-			Info = info;
-			Kind = kind;
-			Node = node;
 		}
 
 		public void ReportDiagnostic (MSBuildDiagnostic diagnostic) => session.ReportDiagnostic (diagnostic);

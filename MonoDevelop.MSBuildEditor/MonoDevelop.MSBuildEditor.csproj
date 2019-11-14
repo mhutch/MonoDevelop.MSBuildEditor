@@ -47,6 +47,7 @@
     <Compile Include="Pads\MSBuildImportNavigatorPad.cs" />
     <Compile Include="Pads\MSBuildImportNavigator.cs" />
     <Compile Include="Pads\DocumentWithMimeTypeTracker.cs" />
+    <Compile Include="MSBuildCommandHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <AddinReference Include="MonoDevelop.DesignerSupport" />

@@ -29,6 +29,6 @@ namespace MonoDevelop.MSBuild.Analyzers
 			context.RegisterPropertyWriteAction (AnalyzeProperty, "MSBuildAllProjects");
 		}
 
-		void AnalyzeProperty (PropertyWriteDiagnosticContext ctx) => ctx.ReportDiagnostic (new MSBuildDiagnostic (SupportedDiagnostics[0], ctx.Element.Span));
+		void AnalyzeProperty (PropertyWriteDiagnosticContext ctx) => ctx.ReportDiagnostic (new MSBuildDiagnostic (SupportedDiagnostics[0], ctx.XElement.Span));
 	}
 }

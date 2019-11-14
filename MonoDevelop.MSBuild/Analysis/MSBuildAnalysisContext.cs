@@ -17,8 +17,8 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public abstract void RegisterCoreDiagnosticFilter (Func<MSBuildDiagnostic, bool> filter, ImmutableArray<string> diagnosticIds);
 
-		public void RegisterElementAction (Action<ElementDiagnosticContext> action, MSBuildSyntaxKind attributeKind)
-			=> RegisterElementAction (action, ImmutableArray.Create (attributeKind));
+		public void RegisterElementAction (Action<ElementDiagnosticContext> action, MSBuildSyntaxKind elementKind)
+			=> RegisterElementAction (action, ImmutableArray.Create (elementKind));
 
 		public void RegisterAttributeAction (Action<AttributeDiagnosticContext> action, MSBuildSyntaxKind attributeKind)
 			=> RegisterAttributeAction (action, ImmutableArray.Create (attributeKind));

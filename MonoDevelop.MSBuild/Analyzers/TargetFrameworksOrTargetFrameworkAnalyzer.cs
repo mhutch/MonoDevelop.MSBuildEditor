@@ -51,14 +51,14 @@ namespace MonoDevelop.MSBuild.Analyzers
 			// right now the visitor parses the expression with lists disabled because the type system says it doesn't expect lists, so we get a text node
 			// however, once we attach parsed expressions into the AST they will likely have all options enabled and could be lists
 			if (ctx.Node is ListExpression || (ctx.Node is ExpressionText t && t.Value.IndexOf (';') > -1)) {
-				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworksForMultipleFrameworks, ctx.Element.Span));
+				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworksForMultipleFrameworks, ctx.XElement.Span));
 			}
 		}
 
 		void AnalyzeTargetFrameworks (PropertyWriteDiagnosticContext ctx)
 		{
 			if (ctx.Node is ExpressionText t && t.Value.IndexOf (';') < 0) {
-				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworkForSingleFramework, ctx.Element.Span));
+				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworkForSingleFramework, ctx.XElement.Span));
 			}
 		}
 
