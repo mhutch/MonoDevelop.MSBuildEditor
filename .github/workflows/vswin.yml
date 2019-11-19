@@ -20,7 +20,7 @@ jobs:
       run: |
         msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=Release -m -p:CreatePackage=true
         mkdir -p vsix
-        cp MonoDevelop.MSBuild.Editor.VisualStudio/bin/Release/MonoDevelop.MSBuild.Editor.VisualStudio.*.vsix vsix
+        copy MonoDevelop.MSBuild.Editor.VisualStudio/bin/Release/MonoDevelop.MSBuild.Editor.VisualStudio.*.vsix vsix
     
     - name: Set up Nuget.exe
       uses: warrenbuckley/Setup-Nuget@v1
