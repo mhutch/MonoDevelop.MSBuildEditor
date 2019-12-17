@@ -4,11 +4,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -29,6 +32,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		MSBuildBackgroundParser CreateParser (ITextBuffer buffer)
 		{
+			buffer = GetSubjectBuffer (buffer);
+
 			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
 			buffer.ContentTypeChanged += ContentTypeChanged;
 
@@ -47,6 +52,19 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				SchemaProvider ?? new MSBuildSchemaProvider (),
 				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder ()
 			);
+		}
+
+		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.XmlCore)
+		{
+			if (textBuffer is IProjectionBuffer projectionBuffer) {
+				textBuffer = projectionBuffer.SourceBuffers.FirstOrDefault (b => b.ContentType.IsOfType (expectedContentType));
+				if (textBuffer == null) {
+					throw new InvalidOperationException (
+						$"Couldn't find a source buffer with content type {expectedContentType} in buffer {projectionBuffer}");
+				}
+			}
+
+			return textBuffer;
 		}
 
 		void ContentTypeChanged (object sender, ContentTypeChangedEventArgs e)
