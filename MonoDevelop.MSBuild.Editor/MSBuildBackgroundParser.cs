@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
@@ -37,6 +39,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			RuntimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
 			SchemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
 			TaskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
+
+			if (buffer is IProjectionBuffer projectionBuffer) {
+				buffer = projectionBuffer.SourceBuffers.FirstOrDefault (b => b.ContentType.IsOfType (XmlContentTypeNames.XmlCore));
+				if (buffer == null) {
+					throw new InvalidOperationException (
+						$"Couldn't find a source buffer with content type {XmlContentTypeNames.XmlCore} in buffer {projectionBuffer}");
+				}
+			}
 
 			XmlParser = XmlBackgroundParser.GetParser (buffer);
 			XmlParser.ParseCompleted += XmlParseCompleted;
