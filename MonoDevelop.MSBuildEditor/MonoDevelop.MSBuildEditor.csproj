@@ -26,9 +26,7 @@
 
   <ItemGroup>
     <None Remove="Syntax\*" />
-    <EmbeddedResource Include="Syntax\msbuild.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <AddinFile Include="Syntax\msbuild.json" />
     <AddinFile Include="Templates\Project.xft.xml" />
     <AddinFile Include="Templates\Project.xml" />
     <None Include="Syntax\OSSREADME.json" />
