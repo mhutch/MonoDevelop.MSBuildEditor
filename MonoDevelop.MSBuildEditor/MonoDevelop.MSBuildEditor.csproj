@@ -24,8 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Manifest.addin.xml" />
-    <EmbeddedResource Include="Syntax\msbuild.json">
+    <EmbeddedResource Update="Syntax\msbuild.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <AddinFile Include="Templates\Project.xft.xml" />
