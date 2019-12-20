@@ -6,6 +6,7 @@
     <RootNamespace>MonoDevelop.MSBuildEditor</RootNamespace>
     <AssemblyName>MonoDevelop.MSBuildEditor</AssemblyName>
     <LangVersion>8.0</LangVersion>
+    <CreatePackage Condition="'$(Configuration)' == 'Release'">true</CreatePackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,7 +39,7 @@
     <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
   </ItemGroup>
-  
+
   <Target Name="RemoveMonoDevelopRoslynAssemblies" BeforeTargets="ResolveAssemblyReferences">
     <ItemGroup>
       <Reference Remove="@(Reference -> WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.Common'))" />
