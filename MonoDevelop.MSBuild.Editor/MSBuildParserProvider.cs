@@ -28,12 +28,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public IRuntimeInformation RuntimeInformation { get; set; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
-			=> buffer.Properties.GetOrCreateSingletonProperty (typeof (MSBuildBackgroundParser), () => CreateParser (buffer));
+		{
+			buffer = GetSubjectBuffer (buffer);
+			return buffer.Properties.GetOrCreateSingletonProperty (typeof (MSBuildBackgroundParser), () => CreateParser (buffer));
+		}
 
 		MSBuildBackgroundParser CreateParser (ITextBuffer buffer)
 		{
-			buffer = GetSubjectBuffer (buffer);
-
 			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
 			buffer.ContentTypeChanged += ContentTypeChanged;
 
