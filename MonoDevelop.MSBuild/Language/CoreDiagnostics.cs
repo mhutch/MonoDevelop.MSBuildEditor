@@ -529,7 +529,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static MSBuildDiagnosticDescriptor UnreadItem = new MSBuildDiagnosticDescriptor (
 			UnreadItemId,
 			"Possible unused or misspelled item",
-			"The item '{0}' is not used in this file and is referenced in any imported targets or schemas",
+			"The item '{0}' is not used in this file and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadPropertyId = nameof (UnreadProperty);
