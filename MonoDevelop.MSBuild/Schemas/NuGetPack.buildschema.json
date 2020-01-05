@@ -4,7 +4,7 @@
     "ProjectReference":  {
       "metadata": {
         "TreatAsPackageReference": {
-          "description": "Whether to treat this project reference as a project reference in the output package",
+          "description": "Whether to treat this project reference as a package reference in the output package",
           "type": "bool"
         }
       }
