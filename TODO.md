@@ -72,7 +72,6 @@ The following feature are not yet implemented. Please contact Mikayla if you are
 * create non-existent target
 * move property to directory props
 * move property/item to new conditioned propertygroup/itemgroup
-* extract selected expression to property
 * group items by type (preserving dependencies)
 * sort items/properties in group by identity (preserving dependencies)
 * merge adjacent itemgroups/propertygroups

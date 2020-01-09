@@ -8,7 +8,6 @@ using System.Threading;
 
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
@@ -19,6 +18,10 @@ namespace MonoDevelop.MSBuild.Analysis
 		public MSBuildAnalyzerDriver ()
 		{
 			context = new MSBuildAnalysisContextImpl ();
+		}
+
+		public void AddBuiltInAnalyzers ()
+		{
 			AddAnalyzersFromAssembly (typeof (MSBuildAnalyzerDriver).Assembly);
 		}
 
@@ -46,13 +49,15 @@ namespace MonoDevelop.MSBuild.Analysis
 			}
 		}
 
-		public List<MSBuildDiagnostic> Analyze (MSBuildRootDocument doc, CancellationToken token)
+		public List<MSBuildDiagnostic> Analyze (MSBuildRootDocument doc, bool includeFilteredCoreDiagnostics, CancellationToken token)
 		{
 			var session = new MSBuildAnalysisSession (context, doc, token);
 
 			AnalyzeElement (doc.ProjectElement, session, token);
 
-			session.AddCoreDiagnostics (doc.Diagnostics);
+			if (includeFilteredCoreDiagnostics) {
+				session.AddCoreDiagnostics (doc.Diagnostics);
+			}
 
 			return session.Diagnostics;
 		}

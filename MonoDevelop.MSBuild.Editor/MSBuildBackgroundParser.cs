@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		string filepath;
 
 		//FIXME: move this to a lower priority BackgroundProcessor
-		MSBuildAnalyzerDriver analyzerDriver = new MSBuildAnalyzerDriver ();
+		MSBuildAnalyzerDriver analyzerDriver;
 
 		public IRuntimeInformation RuntimeInformation { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
@@ -47,6 +47,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				filepath = doc.FilePath;
 				doc.FileActionOccurred += OnFileAction;
 			}
+
+			analyzerDriver = new MSBuildAnalyzerDriver ();
+			analyzerDriver.AddBuiltInAnalyzers ();
 		}
 
 		void OnFileAction (object sender, TextDocumentFileActionEventArgs e)
@@ -81,7 +84,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						TaskMetadataBuilder,
 						token);
 
-					var analyzerDiagnostics = analyzerDriver.Analyze (doc, token);
+					var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);
 					doc.Diagnostics.Clear ();
 					doc.Diagnostics.AddRange (analyzerDiagnostics);
 				}

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 
 using Microsoft.VisualStudio.MiniEditor;
@@ -28,6 +29,13 @@ namespace MonoDevelop.MSBuild.Tests
 		protected override bool ShouldIgnoreCompositionError (string error)
 			=> error.Contains ("MonoDevelop.MSBuild.Editor.Navigation.MSBuildNavigationService")
 				|| error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
-				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter");
+				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
+				|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
+			;
+	}
+
+	[Export (typeof (IRuntimeInformation))]
+	class TestRuntimeInformation : NullRuntimeInformation
+	{
 	}
 }
