@@ -2,10 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
 
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Utilities;
 
 using Task = System.Threading.Tasks.Task;
 
@@ -21,5 +23,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 
 		protected override Task InitializeAsync (CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
 			=> Task.CompletedTask;
+
+		[Export]
+		[Name ("xmlcore")]
+		[BaseDefinition ("xml")]
+		internal static readonly ContentTypeDefinition XmlCoreContentTypeDefinition;
 	}
 }
