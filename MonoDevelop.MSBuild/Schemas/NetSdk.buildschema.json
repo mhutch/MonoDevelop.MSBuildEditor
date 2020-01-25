@@ -2,7 +2,7 @@
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "properties": {
     "AssemblyTitle": "Description for the assembly manifest",
-    "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0",
+    "AssemblyVersion": "Numeric value of the version for the assembly manifest in the format major.minor.patch (e.g. 2.4.0)",
     "EnableDefaultItems": {
       "description": "Whether to include items in the project directory by wildcard",
       "type": "bool",
