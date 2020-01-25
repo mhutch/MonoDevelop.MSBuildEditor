@@ -4,6 +4,7 @@
   "description": "Describes the MSBuild schema format",
   "type": "object",
   "properties": {
+    "$schema": { "type": "string" },
     "license": { "type": "string" },
     "items": {
       "type": "object",
@@ -36,7 +37,7 @@
           "properties": {
             "description": { "type": "string" },
             "includeDescription": { "type": "string" },
-            "kind": { "$ref": "#/definitions/kind" },
+            "type": { "$ref": "#/definitions/type" },
             "default": { "type": "string" },
             "values": { "$ref": "#/definitions/valueList" },
             "valueSeparators": { "type": "string" },
@@ -64,7 +65,7 @@
               "type": "string",
               "description": "Describes the item values listed in the Include attribute e.g. 'source files'"
             },
-            "kind": { "$ref": "#/definitions/kind" },
+            "type": { "$ref": "#/definitions/type" },
             "metadata": {
               "type": "object",
               "additionalProperties": { "$ref": "#/definitions/metadata" }
@@ -87,7 +88,7 @@
               "type": "string",
               "description": "Description of the property"
             },
-            "kind": { "$ref": "#/definitions/kind" },
+            "type": { "$ref": "#/definitions/type" },
             "default": {
               "type": "string",
               "description": "The default value"
@@ -123,7 +124,7 @@
         }
       ]
     },
-    "kind": {
+    "type": {
       "description": "The type of the value(s)",
       "type": "string",
       "enum": [
