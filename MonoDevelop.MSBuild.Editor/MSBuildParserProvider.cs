@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			);
 		}
 
-		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.Xml)
+		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.XmlCore)
 		{
 			if (textBuffer is IProjectionBuffer projectionBuffer) {
 				textBuffer = projectionBuffer.SourceBuffers.FirstOrDefault (b => b.ContentType.IsOfType (expectedContentType));

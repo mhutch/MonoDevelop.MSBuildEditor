@@ -13,7 +13,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export]
 		[Name (Name)]
-		[BaseDefinition (XmlContentTypeNames.Xml)]
+		[BaseDefinition (XmlContentTypeNames.XmlCore)]
 		internal static readonly ContentTypeDefinition MSBuildContentTypeDefinition;
 
 		[Export]

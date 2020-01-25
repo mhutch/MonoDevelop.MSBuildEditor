@@ -31,7 +31,7 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 		{
 			var codeNavigator = navigatorService.CreateTextStructureNavigator (
 				textBuffer,
-				contentTypeRegistry.GetContentType (XmlContentTypeNames.Xml)
+				contentTypeRegistry.GetContentType (XmlContentTypeNames.XmlCore)
 			);
 			return new MSBuildTextStructureNavigator (textBuffer, codeNavigator);
 		}
