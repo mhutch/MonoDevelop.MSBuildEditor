@@ -6,3 +6,4 @@ packages
 .DS_Store
 .vs
 *.user
+*.binlog
