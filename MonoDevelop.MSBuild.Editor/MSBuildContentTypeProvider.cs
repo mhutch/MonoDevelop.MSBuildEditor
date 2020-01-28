@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using Microsoft.VisualStudio.Utilities;
 
 namespace MonoDevelop.MSBuild.Editor
@@ -17,7 +18,8 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public bool TryGetContentTypeForFilePath (string filePath, out IContentType contentType)
 		{
-			if (filePath.EndsWith ("proj", StringComparison.OrdinalIgnoreCase)) {
+			string extension = Path.GetExtension (filePath);
+			if (extension.EndsWith ("proj", StringComparison.OrdinalIgnoreCase)) {
 				contentType = ContentTypeRegistryService.GetContentType (MSBuildContentType.Name);
 				return true;
 			} else {
