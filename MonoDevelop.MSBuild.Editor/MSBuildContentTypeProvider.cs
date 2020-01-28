@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.VisualStudio.Utilities;
 
 namespace MonoDevelop.MSBuild.Editor
@@ -17,8 +17,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public bool TryGetContentTypeForFilePath (string filePath, out IContentType contentType)
 		{
-			string extension = Path.GetExtension (filePath).ToLowerInvariant ();
-			if (extension.EndsWith("proj")) {
+			if (filePath.EndsWith ("proj", StringComparison.OrdinalIgnoreCase)) {
 				contentType = ContentTypeRegistryService.GetContentType (MSBuildContentType.Name);
 				return true;
 			} else {
