@@ -86,16 +86,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 				ppunkDocData = Marshal.GetIUnknownForObject (lines);
 			}
 
-			Type codeWindowType = typeof (IVsCodeWindow);
-			Guid codeWindowIID = codeWindowType.GUID;
-			Guid codeWindowCLSID = typeof (VsCodeWindowClass).GUID;
-			IVsCodeWindow codeWindow = (IVsCodeWindow)package.CreateInstance (ref codeWindowCLSID, ref codeWindowIID, codeWindowType);
-			ThrowOnError (codeWindow.SetBuffer (lines));
-			ThrowOnError (codeWindow.SetBaseEditorCaption (null));
-			ThrowOnError (codeWindow.GetEditorCaption (READONLYSTATUS.ROSTATUS_Unknown, out pbstrEditorCaption));
-			pguidCmdUI = new Guid (2335713320u, 25090, 4561, 136, 112, 0, 0, 248, 117, 121, 210);
-
-			ppunkDocView = Marshal.GetIUnknownForObject (codeWindow);
+			ppunkDocView = CreateEditorView (lines, out pbstrEditorCaption, out pguidCmdUI);
 			if (ppunkDocView == IntPtr.Zero) result = unchecked((int)0x80041FEB);
 
 			cleanup:
@@ -105,6 +96,21 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 			}
 
 			return result;
+		}
+
+		private IntPtr CreateEditorView (IVsTextLines buffer, out string caption, out Guid cmdUI)
+		{
+			Type codeWindowType = typeof (IVsCodeWindow);
+			Guid codeWindowIID = codeWindowType.GUID;
+			Guid codeWindowCLSID = typeof (VsCodeWindowClass).GUID;
+
+			IVsCodeWindow codeWindow = (IVsCodeWindow)package.CreateInstance (ref codeWindowCLSID, ref codeWindowIID, codeWindowType);
+			ThrowOnError (codeWindow.SetBuffer (buffer));
+			ThrowOnError (codeWindow.SetBaseEditorCaption (null));
+			ThrowOnError (codeWindow.GetEditorCaption (READONLYSTATUS.ROSTATUS_Unknown, out caption));
+			cmdUI = new Guid (2335713320u, 25090, 4561, 136, 112, 0, 0, 248, 117, 121, 210);
+
+			return Marshal.GetIUnknownForObject (codeWindow);
 		}
 
 		public int SetSite (Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
@@ -125,7 +131,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 			Guid LOGVIEWID_Primary = Guid.Empty;
 
 			if (rguidLogicalView == LOGVIEWID_Code || rguidLogicalView == LOGVIEWID_Debugging || rguidLogicalView == LOGVIEWID_TextView || rguidLogicalView == LOGVIEWID_Primary) {
-				pbstrPhysicalView = null;
+				pbstrPhysicalView = "MSBuildEditor";
 				return 0;
 			}
 
