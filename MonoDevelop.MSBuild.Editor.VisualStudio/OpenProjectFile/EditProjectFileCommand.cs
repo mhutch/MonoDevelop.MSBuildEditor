@@ -41,11 +41,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 			if (commandId != 1632) return false;
 
 			await ProjectThreadingService.SwitchToUIThread ();
-			try {
-				var windowFrame = VsShellUtilities.OpenDocumentWithSpecificEditor (ServiceProvider, UnconfiguredProject.FullPath, new Guid (MSBuildEditorFactory.FactoryGuid), Guid.Empty);
-				windowFrame?.Show ();
-			} catch {
-			}
+			var windowFrame = VsShellUtilities.OpenDocumentWithSpecificEditor (ServiceProvider, UnconfiguredProject.FullPath, new Guid (MSBuildEditorFactory.FactoryGuid), Guid.Empty);
+			windowFrame?.Show ();
 
 			return true;
 		}
