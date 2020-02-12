@@ -141,6 +141,10 @@ namespace MonoDevelop.MSBuild.Schema
 							kind = ParseValueKind ((string)typeVal.Value, ref customType, state);
 						} else {
 							customType = LoadCustomType (pkv.Value);
+							//LoadCustomType will have logged errors
+							if (customType == null) {
+								return;
+							}
 						}
 						break;
 					case "default":
