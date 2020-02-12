@@ -27,6 +27,21 @@
     "Deterministic": {
       "description": "Enables reproducible builds, such that a given set of inputs will always produce byte-for-byte identical output",
       "type": "bool"
+    },
+    "Nullable": {
+      "description": "The nullable context options for the project",
+      "type": "@nullableContextOptions",
+      "default": "disable"
+    }
+  },
+  "customTypes": {
+    "nullableContextOptions": {
+      "$name": "nullable-context-options",
+      "$description": "Nullable context options",
+      "enable": "Enable nullable annotation context and nullable warning context",
+      "warnings": "Enable nullable warning context but disable nullable annotation context",
+      "annotations": "Enable nullable annotation context but disable nullable warning context",
+      "disable": "Disable nullable annotation context and nullable warning context"
     }
   }
 }
