@@ -175,6 +175,32 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
+		[Test]
+		public void TestMissingOperand ()
+		{
+			TestParse (
+				"true And",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.And,
+					new ExpressionArgumentBool (0, true),
+					new ExpressionError (8, ExpressionErrorKind.ExpectingValue, out _)
+				)
+			);
+		}
+
+		[Test]
+		public void TestMissingOperandWithSpace ()
+		{
+			TestParse (
+				"true Or  ",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Or,
+					new ExpressionArgumentBool (0, true),
+					new ExpressionError (9, ExpressionErrorKind.ExpectingValue, out _)
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected)
 		{
 			var expr = ExpressionParser.ParseCondition (expression, 0);

@@ -35,9 +35,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			ExpressionOperatorKind? pendingBoolOp = null;
 			ExpressionNode pendingBoolExpr = null;
 
-			while (offset < endOffset && !hasError) {
+			while (offset <= endOffset && !hasError) {
 				ConsumeSpace (buffer, ref offset, endOffset);
-				if (offset >= endOffset) {
+				if (offset > endOffset) {
 					break;
 				}
 
@@ -51,7 +51,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					operand = opError;
 				} else {
 					ConsumeSpace (buffer, ref offset, endOffset);
-					operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
+					if (offset > endOffset) {
+						operand = new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingValue, out hasError);
+					} else {
+						operand = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
+					}
 				}
 
 				if (op == ExpressionOperatorKind.Or || op == ExpressionOperatorKind.And) {
@@ -188,7 +192,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 				if (buffer[offset] != ')' || offset >= endOffset) {
 					return new IncompleteExpressionError (
-						offset >= endOffset,
+						offset > endOffset,
 						ExpressionErrorKind.ExpectingRightParen,
 						new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op),
 						out hasError

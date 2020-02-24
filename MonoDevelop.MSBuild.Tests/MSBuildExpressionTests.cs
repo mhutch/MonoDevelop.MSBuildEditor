@@ -533,8 +533,8 @@ namespace MonoDevelop.MSBuild.Tests
 				Assert.IsNull (actual);
 				return;
 			}
-			if (actual is ExpressionError err && !(expected is ExpressionError)) {
-				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
+			if (actual is ExpressionError actualErr && !(expected is ExpressionError)) {
+				Assert.Fail ($"Unexpected ExpressionError: {actualErr.Kind} @ {actualErr.Offset}");
 			}
 			Assert.That (actual, Is.TypeOf (expected.GetType ()));
 			switch (actual)
@@ -629,6 +629,17 @@ namespace MonoDevelop.MSBuild.Tests
 			case ExpressionParenGroup parentGroup:
 				var expectedParentGroup = (ExpressionParenGroup)expected;
 				AssertEqual (expectedParentGroup.Expression, parentGroup.Expression, expectedOffset);
+				break;
+			case IncompleteExpressionError iee:
+				var expectedIee = (IncompleteExpressionError)expected;
+				AssertEqual (expectedIee.IncompleteNode, iee.IncompleteNode, expectedOffset);
+				Assert.AreEqual (expectedIee.Kind, iee.Kind);
+				Assert.AreEqual (expectedIee.WasEOF, iee.WasEOF);
+				break;
+			case ExpressionError err:
+				var expectedErr = (ExpressionError)expected;
+				Assert.AreEqual (expectedErr.Kind, err.Kind);
+				Assert.AreEqual (expectedErr.WasEOF, err.WasEOF);
 				break;
 			default:
 				throw new Exception ($"Unsupported node kind {actual.GetType()}");
