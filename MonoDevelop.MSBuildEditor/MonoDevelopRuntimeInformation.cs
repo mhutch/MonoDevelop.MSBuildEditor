@@ -56,15 +56,17 @@ namespace MonoDevelop.MSBuildEditor
 
 		public IList<SdkInfo> GetRegisteredSdks () => sdkResolver.GetRegisteredSdks ();
 
-		public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath)
+		public string GetSdkPath (
+			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
 		{
-			if (!resolvedSdks.TryGetValue (sdk, out string path)) {
+			var sdkRef = new SdkReference (sdk.name, sdk.version, sdk.minimumVersion);
+			if (!resolvedSdks.TryGetValue (sdkRef, out string path)) {
 				try {
-					path = sdkResolver.GetSdkPath (sdk, projectFile, solutionPath);
+					path = sdkResolver.GetSdkPath (sdkRef, projectFile, solutionPath);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error in SDK resolver", ex);
 				}
-				resolvedSdks[sdk] = path;
+				resolvedSdks[sdkRef] = path;
 			}
 			return path;
 		}

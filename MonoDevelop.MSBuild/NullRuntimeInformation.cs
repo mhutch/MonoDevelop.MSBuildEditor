@@ -22,6 +22,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public IList<SdkResolution.SdkInfo> GetRegisteredSdks () => Array.Empty<SdkResolution.SdkInfo> ();
 
-		public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath) => null;
+		public string GetSdkPath (
+			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath
+			) => null;
 	}
 }

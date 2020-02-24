@@ -217,7 +217,8 @@ namespace MonoDevelop.MSBuild.Schema
 				if (rr.Element != null) {
 					var sdkAtt = rr.Element.Attributes.Get ("Sdk", true)?.Value;
 					if (!string.IsNullOrEmpty (sdkAtt) && Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
-						var sdkPath = doc.RuntimeInformation.GetSdkPath (sdkRef, doc.Filename, null);
+						var sdkPath = doc.RuntimeInformation.GetSdkPath (
+							(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null);
 						if (!string.IsNullOrEmpty (sdkPath)) {
 							baseDir = sdkPath;
 						}

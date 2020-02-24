@@ -50,15 +50,17 @@ namespace MonoDevelop.MSBuild
 
         public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
 
-        public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath)
+        public string GetSdkPath (
+			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
 		{
-			if (!resolvedSdks.TryGetValue (sdk, out string path)) {
+			var sdkRef = new SdkReference (sdk.name, sdk.version, sdk.minimumVersion);
+			if (!resolvedSdks.TryGetValue (sdkRef, out string path)) {
 				try {
-					path = sdkResolver.GetSdkPath (sdk, new NoopLoggingService (), null, projectFile, solutionPath);
+					path = sdkResolver.GetSdkPath (sdkRef, new NoopLoggingService (), null, projectFile, solutionPath);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error in SDK resolver", ex);
 				}
-				resolvedSdks[sdk] = path;
+				resolvedSdks[sdkRef] = path;
 			}
 			return path;
 		}

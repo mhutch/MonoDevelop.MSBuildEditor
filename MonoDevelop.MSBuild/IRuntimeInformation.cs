@@ -13,6 +13,8 @@ namespace MonoDevelop.MSBuild
 		IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
 		string SdksPath { get; }
 		IList<SdkResolution.SdkInfo> GetRegisteredSdks ();
-		string GetSdkPath (Microsoft.Build.Framework.SdkReference sdk, string projectFile, string solutionPath);
+		//NOTE: we don't use SdkReference so as not to expose Microsoft.Build APi publically
+		//as that causes issues in VSMac's unit test discovery
+		string GetSdkPath ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath);
 	}
 }
