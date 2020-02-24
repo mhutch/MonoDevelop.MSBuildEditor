@@ -18,10 +18,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 	class MSBuildAnalyzerTest
 	{
 		protected void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, new[] { analyzer }, expectedDiagnostics);
+			=> VerifyDiagnostics (source, new[] { analyzer }, false, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, analyzers, expectedDiagnostics);
+			=> VerifyDiagnostics (source, analyzers, false, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
 		{
