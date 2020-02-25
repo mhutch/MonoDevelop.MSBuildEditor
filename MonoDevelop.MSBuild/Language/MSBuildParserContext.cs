@@ -221,7 +221,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var sdkPath = RuntimeInformation.GetSdkPath (sdkRef, ProjectPath, null);
+				var sdkPath = RuntimeInformation.GetSdkPath (
+					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null);
 				if (sdk != null) {
 					return sdkPath;
 				}
