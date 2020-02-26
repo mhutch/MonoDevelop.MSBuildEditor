@@ -11,7 +11,7 @@ jobs:
         submodules: recursive
         
     - name: Find MSBuild
-      uses: warrenbuckley/Setup-MSBuild@v1
+      uses: microsoft/setup-msbuild@v1.0.0
 
     - name: Restore
       run: msbuild -t:Restore -p:Configuration=Release
@@ -23,7 +23,7 @@ jobs:
         copy MonoDevelop.MSBuild.Editor.VisualStudio/bin/Release/MonoDevelop.MSBuild.Editor.VisualStudio.*.vsix vsix
     
     - name: Set up Nuget.exe
-      uses: warrenbuckley/Setup-Nuget@v1
+      uses: NuGet/setup-nuget@v1.0.2
       
     - name: Download NUnit
       run: nuget install NUnit.ConsoleRunner -Version 3.8.0 -OutputDirectory testrunner
