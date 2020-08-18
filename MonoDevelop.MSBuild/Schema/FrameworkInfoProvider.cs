@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using MonoDevelop.MSBuild.Language.Typesystem;
-
+using System.Text.RegularExpressions;
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -18,6 +17,7 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public static FrameworkInfoProvider Instance { get; } = new FrameworkInfoProvider ();
 
+		readonly Regex net50Regex = new Regex ("^net5\\.0(-[a-z0-9.]+)?$");
 		readonly List<IdentifierInfo> frameworks = new List<IdentifierInfo> ();
 		readonly Dictionary<string,(IdentifierInfo,VersionInfo)> frameworkByShortName = new Dictionary<string,(IdentifierInfo, VersionInfo)> ();
 		readonly Dictionary<string,IdentifierInfo> frameworkByMoniker = new Dictionary<string,IdentifierInfo> ();
@@ -160,7 +160,19 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public bool IsFrameworkShortNameValid (string shortName) => frameworkByShortName.ContainsKey (shortName);
+		public bool IsFrameworkShortNameValid (string shortName)
+		{
+			if (frameworkByShortName.ContainsKey (shortName)) return true;
+
+			// There are too many net5.0 framework short name variants to count.
+			// Therefore, we use a regex.
+			if (shortName.StartsWith("net5.0")) {
+				return net50Regex.IsMatch (shortName);
+			}
+
+			return false;
+		}
+
 		public bool IsFrameworkIdentifierValid (string moniker) => frameworkByMoniker.ContainsKey (moniker);
 
 		public bool IsFrameworkVersionValid (string moniker, Version version)
