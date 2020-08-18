@@ -55,7 +55,13 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (3, 0), "netcoreapp3.0"),
 					new VersionInfo (new Version (3, 1), "netcoreapp3.1"),
 					new VersionInfo (new Version (5, 0), "netcoreapp5.0"),
-					new VersionInfo (new Version (5, 0), "net5.0")
+					new VersionInfo (new Version (5, 0), "net5.0"),
+					new VersionInfo (new Version (5, 0), "net5.0-windows"),
+					new VersionInfo (new Version (5, 0), "net5.0-android"),
+					new VersionInfo (new Version (5, 0), "net5.0-ios"),
+					new VersionInfo (new Version (5, 0), "net5.0-macos"),
+					new VersionInfo (new Version (5, 0), "net5.0-tvos"),
+					new VersionInfo (new Version (5, 0), "net5.0-watchos")
 				)
 			);
 
