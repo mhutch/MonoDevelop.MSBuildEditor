@@ -142,7 +142,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (sdkAtt?.Value is ExpressionText sdkTxt) {
 				var loc = sdkAtt.XAttribute.ValueSpan;
 				string sdkPath = parseContext.GetSdkPath (this, sdkTxt.Value, loc);
-				import = import == null ? null : new ExpressionText (0, sdkPath + "\\" + import, true);
+				import = import == null ? null : new ExpressionText (0, sdkPath + System.IO.Path.DirectorySeparatorChar + importTxt, true);
 
 				if (IsToplevel && sdkPath != null) {
 					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (sdkPath, loc));
@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				if (!wasResolved && IsToplevel) {
 					DiagnosticSeverity type = element.ConditionAttribute == null ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-					Diagnostics.Add (CoreDiagnostics.UnresolvedImport, loc, import);
+					Diagnostics.Add (CoreDiagnostics.UnresolvedImport, loc, importTxt);
 				}
 			}
 		}
