@@ -66,8 +66,6 @@ namespace MonoDevelop.MSBuild.Schema
 				return "Cpp";
 			case "nuget.build.tasks.pack.targets":
 				return "NuGetPack";
-			case "microsoft.net.sdk.windowsdesktop.props":
-				return "WindowsDesktop";
 			case "sdk.targets":
 				switch (sdkId?.ToLower()) {
 				case "microsoft.net.sdk":

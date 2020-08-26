@@ -46,6 +46,26 @@
       "description": "Whether the framework's short name is added to the output path, which prevents conflicts when multi-targeting",
       "type": "bool",
       "default": "true"
+    },
+    "EnableDefaultPageItems": {
+      "description": "Whether or not to automatically detect Page items",
+      "type": "bool",
+      "default": "true"
+    },
+    "EnableDefaultApplicationDefinition": {
+      "description": "Whether or not to automatically detect ApplicationDefinition items",
+      "type": "bool",
+      "default": "true"
+    },
+    "UseWindowsForms": {
+      "description": "Whether or not the project references Windows Forms",
+      "type": "bool",
+      "default": "false"
+    },
+    "UseWPF": {
+      "description": "Whether or not the project references Windows Presentation Foundation",
+      "type": "bool",
+      "default": "false"
     }
   }
 }
