@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Analysis;
@@ -142,7 +143,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (sdkAtt?.Value is ExpressionText sdkTxt) {
 				var loc = sdkAtt.XAttribute.ValueSpan;
 				string sdkPath = parseContext.GetSdkPath (this, sdkTxt.Value, loc);
-				import = import == null ? null : new ExpressionText (0, sdkPath + System.IO.Path.DirectorySeparatorChar + importTxt, true);
+				import = import == null ? null : new ExpressionText (0, Path.Combine (sdkPath, importTxt), true);
 
 				if (IsToplevel && sdkPath != null) {
 					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (sdkPath, loc));

@@ -273,17 +273,28 @@ namespace MonoDevelop.MSBuild.SdkResolution
 				Warnings = warnings;
 			}
 
-			public SdkResultImpl (SdkReference sdkReference, string path, string version, IEnumerable<string> warnings)
+			public SdkResultImpl (SdkReference sdkReference, string path, string version,
+				IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings)
 			{
 				Success = true;
 				Sdk = sdkReference;
+				PropertiesToAdd = propertiesToAdd;
+				ItemsToAdd = itemsToAdd;
 				Path = path;
 				Version = version;
 				Warnings = warnings;
 			}
 
-			public SdkReference Sdk { get; }
+			public SdkResultImpl (SdkReference sdkReference, IEnumerable<string> paths, string version,
+				IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings)
+				: this (sdkReference, paths.FirstOrDefault(), version, propertiesToAdd, itemsToAdd, warnings)
+			{
+				if (paths.Count() > 1) {
+					AdditionalPaths = paths.Skip (1).ToList ();
+				}
+			}
 
+			public SdkReference Sdk { get; }
 			public IEnumerable<string> Errors { get; }
 
 			public IEnumerable<string> Warnings { get; }
@@ -300,12 +311,22 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
 			public override SdkResult IndicateSuccess (string path, string version, IEnumerable<string> warnings = null)
 			{
-				return new SdkResultImpl (_sdkReference, path, version, warnings);
+				return new SdkResultImpl (_sdkReference, path, version, null, null, warnings);
 			}
 
 			public override SdkResult IndicateFailure (IEnumerable<string> errors, IEnumerable<string> warnings = null)
 			{
 				return new SdkResultImpl (_sdkReference, errors, warnings);
+			}
+
+			public override SdkResult IndicateSuccess (IEnumerable<string> paths, string version, IDictionary<string, string> propertiesToAdd = null, IDictionary<string, SdkResultItem> itemsToAdd = null, IEnumerable<string> warnings = null)
+			{
+				return new SdkResultImpl (_sdkReference, paths, version, propertiesToAdd, itemsToAdd, warnings);
+			}
+
+			public override SdkResult IndicateSuccess (string path, string version, IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings = null)
+			{
+				return new SdkResultImpl (_sdkReference, path, version, propertiesToAdd, itemsToAdd, warnings);
 			}
 		}
 
