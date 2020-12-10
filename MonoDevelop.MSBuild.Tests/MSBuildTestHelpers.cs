@@ -106,6 +106,13 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 
 			if (Platform.IsMac) {
+				//TODO: locate app bundle by id
+				var vsmacMSBuildDir = "/Applications/Visual Studio.app/Contents/Resources/lib/monodevelop/bin/MSBuild/Current/bin";
+				if (Directory.Exists(vsmacMSBuildDir)) {
+					Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (vsmacMSBuildDir);
+					return;
+				}
+
 				var corlibDir = Path.GetDirectoryName (typeof (string).Assembly.Location);
 				var msbuildDir = Path.Combine (corlibDir, "..", "msbuild", "Current", "bin");
 				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (msbuildDir);

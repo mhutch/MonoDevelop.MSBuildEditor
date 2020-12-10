@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!--
+    build net5.0 as well to make sure we don't accidentally add netframework deps
+    even though only the net472 version is actually used right now
+    -->
     <TargetFrameworks>net472;net5.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
