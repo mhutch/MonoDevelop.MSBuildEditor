@@ -25,7 +25,6 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	{
 		readonly PreviewChangesService previewService;
 		readonly ITextView textView;
-		readonly IEditorOptions options;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeFix fix;
 
