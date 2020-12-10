@@ -46,6 +46,26 @@
       "description": "Whether the framework's short name is added to the output path, which prevents conflicts when multi-targeting",
       "type": "bool",
       "default": "true"
+    },
+    "EnableDefaultPageItems": {
+      "description": "Whether to include XAML page files in the project directory by wildcard",
+      "type": "bool",
+      "default": "true"
+    },
+    "EnableDefaultApplicationDefinition": {
+      "description": "Whether to include XAML application files in the project directory by wildcard",
+      "type": "bool",
+      "default": "true"
+    },
+    "UseWindowsForms": {
+      "description": "Whether or not the project references Windows Forms",
+      "type": "bool",
+      "default": "false"
+    },
+    "UseWPF": {
+      "description": "Whether or not the project references Windows Presentation Foundation",
+      "type": "bool",
+      "default": "false"
     }
   }
 }
