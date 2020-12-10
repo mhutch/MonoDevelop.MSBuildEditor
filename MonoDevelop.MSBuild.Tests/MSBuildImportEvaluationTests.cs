@@ -154,6 +154,20 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (MSBuildValueKind.NuGetID, packageRefItem.ValueKind);
 		}
 
+		[Test]
+		public void TestImportWithSdk ()
+		{
+			var doc = ParseDoc (
+				"<Project><Import Project=\"Sdk.props\" Sdk=\"Microsoft.NET.Sdk\" /></Project>",
+				"myfile.csproj"
+			);
+
+			AssertImportsExist (
+				doc,
+				"Microsoft.NET.Sdk.DefaultItems.props"
+			);
+		}
+
 		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
 		{
 			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
