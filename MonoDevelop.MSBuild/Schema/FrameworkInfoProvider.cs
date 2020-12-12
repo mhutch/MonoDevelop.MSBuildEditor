@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using MonoDevelop.MSBuild.Language.Typesystem;
+
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema
@@ -296,25 +299,5 @@ namespace MonoDevelop.MSBuild.Schema
 			public string ShortName { get; }
 			public string [] Profiles { get; }
 		}
-	}
-
-	// this is kinda weird as it can represent a value that's a piece of a framework ID:
-	// a shortname, identifier, version or profile
-	// the "name" is the piece that's being represented and the reference is the
-	// full ID, or as close to it as we have
-	class FrameworkInfo : BaseInfo
-	{
-		public FrameworkInfo (string name, NuGetFramework reference)
-			: base (name, null)
-		{
-			Reference = reference;
-		}
-
-		public FrameworkInfo (string name, string identifier, Version version, string profile)
-			: this (name, new NuGetFramework (identifier, version, profile))
-		{
-		}
-
-		public NuGetFramework Reference { get; }
 	}
 }

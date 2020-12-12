@@ -9,7 +9,9 @@ using System.Linq;
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
@@ -130,7 +132,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void CheckDeprecated (ValueInfo info, INamedXObject namedObj)
+		void CheckDeprecated (VariableInfo info, INamedXObject namedObj)
 		{
 			if (info.IsDeprecated) {
 				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
@@ -421,7 +423,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValue (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, string value, int offset)
+			ITypedSymbol valueType, string value, int offset)
 		{
 			if (!IsTargetsFile && !IsPropsFile) {
 				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
@@ -447,7 +449,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			VariableInfo info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowListsOrCommaLists ();
@@ -531,13 +533,13 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
-		void VisitPureLiteral (ValueInfo info, MSBuildValueKind kind, string value, int offset)
+		void VisitPureLiteral (VariableInfo info, MSBuildValueKind kind, string value, int offset)
 		{
 			if (info.CustomType != null && info.CustomType.AllowUnknownValues) {
 				return;
 			}
 
-			var knownVals = (IReadOnlyList<BaseInfo>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
+			var knownVals = (IReadOnlyList<BaseSymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
 
 			if (knownVals != null && knownVals.Count != 0) {
 				foreach (var kv in knownVals) {

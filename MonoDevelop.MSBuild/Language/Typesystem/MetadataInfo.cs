@@ -4,9 +4,9 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class MetadataInfo : ValueInfo
+	class MetadataInfo : VariableInfo
 	{
 		public bool Reserved { get; }
 		public bool Required { get; }

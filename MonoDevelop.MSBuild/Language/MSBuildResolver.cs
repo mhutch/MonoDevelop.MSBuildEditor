@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading;
 
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -188,7 +190,7 @@ namespace MonoDevelop.MSBuild.Language
 			protected override void VisitValueExpression (
 				XElement element, XAttribute attribute,
 				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+				VariableInfo info, MSBuildValueKind kind, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
@@ -287,7 +289,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void VisitPureLiteral (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionText node)
+			void VisitPureLiteral (XElement element, VariableInfo info, MSBuildValueKind kind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;
@@ -339,7 +341,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList <BaseInfo>)info.CustomType?.Values ?? kind.GetSimpleValues (true);
+				var knownVals = (IReadOnlyList <BaseSymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
 					foreach (var kv in knownVals) {
@@ -388,7 +390,7 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				return ReferenceAsStaticPropertyFunction.functionName;
 			}
-			return Reference is BaseInfo info ? info.Name : (string)Reference;
+			return Reference is BaseSymbol info ? info.Name : (string)Reference;
 		}
 	}
 

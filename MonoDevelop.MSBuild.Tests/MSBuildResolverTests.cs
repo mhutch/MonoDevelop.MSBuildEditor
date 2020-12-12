@@ -27,9 +27,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
+
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests

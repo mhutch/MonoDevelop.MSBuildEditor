@@ -1,19 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public class ValueKindValue : BaseInfo
-	{
-		public ValueKindValue (string name, DisplayText description, MSBuildValueKind kind) : base (name, description)
-		{
-			this.ValueKind = kind;
-		}
-
-		public MSBuildValueKind ValueKind { get; }
-	}
-
-	public sealed class FileOrFolderInfo : BaseInfo
+	public sealed class FileOrFolderInfo : BaseSymbol
 	{
 		public bool IsFolder { get; }
 

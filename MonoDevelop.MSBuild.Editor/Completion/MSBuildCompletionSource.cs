@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -18,8 +17,10 @@ using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
@@ -147,13 +148,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseInfo info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
+		CompletionItem CreateCompletionItem (BaseSymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
 			var image = provider.DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.AddKind (xmlCompletionItemKind);
-			item.Properties.AddProperty (typeof (BaseInfo), info);
+			item.Properties.AddProperty (typeof (BaseSymbol), info);
 			return item;
 		}
 
@@ -170,7 +171,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return GetPackageDocumentationAsync (context.doc, packageSearchResult.Item1, packageSearchResult.Item2, token);
 			}
 
-			if (item.Properties.TryGetProperty<BaseInfo> (typeof (BaseInfo), out var info) && info != null) {
+			if (item.Properties.TryGetProperty<BaseSymbol> (typeof (BaseSymbol), out var info) && info != null) {
 				return provider.DisplayElementFactory.GetInfoTooltipElement (
 					session.TextView.TextBuffer, context.doc, info, context.rr, token
 				);
@@ -269,16 +270,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 		}
 
-		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, CancellationToken token)
+		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, string packageType, CancellationToken token)
 		{
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm));
+			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm, packageType));
 
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;
 			}
 
-			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm).ToTask (token);
+			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm, packageType).ToTask (token);
 
 			return CreateNuGetItemsFromSearchResults (results);
 		}
@@ -307,20 +308,44 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
+		static bool ItemIsInItemGroup (XElement itemEl) => itemEl.Parent is XElement parent && parent.NameEquals (MSBuildElementSyntax.ItemGroup.Name, true);
+
+		static XElement GetItemGroupItemFromMetadata (MSBuildResolveResult rr)
+			=> rr.ElementSyntax.SyntaxKind switch {
+				MSBuildSyntaxKind.Item => rr.Element,
+				MSBuildSyntaxKind.Metadata => rr.Element.Parent is XElement parentEl && ItemIsInItemGroup (parentEl)? parentEl : null,
+				_ => null
+			};
+
+		static XAttribute GetIncludeOrUpdateAttribute (XElement item)
+			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att.Name.FullName)?.SyntaxKind switch {
+				MSBuildSyntaxKind.Item_Include => true,
+				MSBuildSyntaxKind.Item_Update => true,
+				_ => false
+			});
+
 		async Task<List<CompletionItem>> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
-			if (rr == null) {
+			if (rr == null || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
 				return null;
 			}
 
-			var packageId = rr.Element.Attributes.FirstOrDefault (a => a.Name.Name == "Include")?.Value;
+			// we can only provide version completions if the item's value type is non-list nugetid
+			var itemInfo = doc.GetSchemas ().GetItem (itemEl.Name.Name);
+			if (itemInfo == null || itemInfo.ValueKind.GetScalarType() != MSBuildValueKind.NuGetID || itemInfo.ValueKind.AllowLists()) {
+				return null;
+			}
+
+			var packageType = itemInfo.CustomType?.Values[0].Name;
+
+			var packageId = includeAtt.Value;
 			if (string.IsNullOrEmpty (packageId)) {
 				return null;
 			}
 
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
 
-			var results = await provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm).ToTask (token);
+			var results = await provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm, packageType).ToTask (token);
 
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
@@ -380,7 +405,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (
 			IAsyncCompletionSession session,
-			ValueInfo info, TriggerState triggerState, ListKind listKind,
+			VariableInfo info, TriggerState triggerState, ListKind listKind,
 			int triggerLength, ExpressionNode triggerExpression,
 			IReadOnlyList<ExpressionNode> comparandVariables,
 			MSBuildResolveResult rr, SnapshotPoint triggerLocation,
@@ -410,11 +435,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-		if (isValue) {
+			if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					if (triggerExpression is ExpressionText t) {
-						var packageNameItems = await GetPackageNameCompletions (session, doc, t.Value, token);
+						var packageType = info.CustomType?.Values[0].Name;
+						var packageNameItems = await GetPackageNameCompletions (session, doc, t.Value, packageType, token);
 						if (packageNameItems != null) {
 							items.AddRange (packageNameItems);
 						}
@@ -445,7 +471,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			//TODO: better metadata support
-			IEnumerable<BaseInfo> cinfos;
+			IEnumerable<BaseSymbol> cinfos;
 			if (info.CustomType != null && info.CustomType.Values.Count > 0 && isValue) {
 				cinfos = info.CustomType.Values;
 			} else {

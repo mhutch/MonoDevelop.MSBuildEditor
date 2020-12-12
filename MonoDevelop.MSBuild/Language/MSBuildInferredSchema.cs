@@ -8,7 +8,9 @@ using System.IO;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -39,7 +41,7 @@ namespace MonoDevelop.MSBuild.Language
 			return !isToplevel && name[0] == '_';
 		}
 
-		public bool ContainsInfo (BaseInfo info) => info switch {
+		public bool ContainsInfo (BaseSymbol info) => info switch {
 			PropertyInfo _ => Properties.ContainsKey (info.Name),
 			ItemInfo _ => Items.ContainsKey (info.Name),
 			TaskInfo _ => Tasks.ContainsKey (info.Name),

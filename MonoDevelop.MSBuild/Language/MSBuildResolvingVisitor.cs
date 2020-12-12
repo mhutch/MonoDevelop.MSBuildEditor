@@ -3,6 +3,8 @@
 
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
@@ -51,31 +53,31 @@ namespace MonoDevelop.MSBuild.Language
 		protected virtual void VisitValue (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, string value, int offset)
+			ITypedSymbol valueType, string value, int offset)
 		{
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueType);
 
 			if (!kind.AllowExpressions ()) {
 				VisitValueExpression (
 					element, attribute, resolvedElement, resolvedAttribute,
-					info, kind, new ExpressionText (offset, value, true));
+					valueType, kind, new ExpressionText (offset, value, true));
 				return;
 			}
 
 			var expression =
-				info?.ValueKind == MSBuildValueKind.Condition
+				valueType?.ValueKind == MSBuildValueKind.Condition
 					? ExpressionParser.ParseCondition (value, offset)
 					: ExpressionParser.Parse (value, kind.GetExpressionOptions (), offset);
 
 			VisitValueExpression (
 				element, attribute, resolvedElement, resolvedAttribute,
-				info, kind, expression);
+				valueType, kind, expression);
 		}
 
 		protected virtual void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 		}
 	}

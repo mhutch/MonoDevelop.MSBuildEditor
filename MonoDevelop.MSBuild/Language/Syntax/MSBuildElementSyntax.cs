@@ -8,12 +8,12 @@ using System.Linq;
 
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Schema
-{
-	public class MSBuildElementSyntax : ValueInfo
-	{
-		static readonly string[] emptyArray = new string[0];
+using MonoDevelop.MSBuild.Language.Typesystem;
 
+namespace MonoDevelop.MSBuild.Language.Syntax
+{
+	public class MSBuildElementSyntax : MSBuildSyntax
+	{
 		MSBuildElementSyntax[] children = Array.Empty<MSBuildElementSyntax> ();
 		MSBuildAttributeSyntax[] attributes = Array.Empty<MSBuildAttributeSyntax> ();
 
@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Schema
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
 			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
 			bool isAbstract = false, bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
+			: base (name, description, valueKind, isDeprecated, deprecationMessage)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;

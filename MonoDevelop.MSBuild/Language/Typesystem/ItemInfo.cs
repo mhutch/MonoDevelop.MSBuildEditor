@@ -4,16 +4,16 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class ItemInfo : ValueInfo
+	class ItemInfo : VariableInfo
 	{
 		public ItemInfo (
 			string name, DisplayText description, string includeDescription = null,
-			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+			MSBuildValueKind valueKind = MSBuildValueKind.Unknown, CustomTypeInfo customType = null,
 			Dictionary<string, MetadataInfo> metadata = null,
 			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
+			: base (name, description, valueKind, customType, null, isDeprecated, deprecationMessage)
 		{
 			Metadata = metadata ?? new Dictionary<string, MetadataInfo> (System.StringComparer.OrdinalIgnoreCase);
 			IncludeDescription = includeDescription;

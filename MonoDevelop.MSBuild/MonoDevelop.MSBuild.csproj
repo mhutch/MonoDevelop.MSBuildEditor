@@ -32,7 +32,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.8.0" />
     <PackageReference Include="Microsoft.Build.Framework" Version="16.8.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NuGet.Frameworks" Version="5.8.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Schema\ElementDescriptions.Designer.cs">
+    <Compile Update="Language\Syntax\ElementDescriptions.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ElementDescriptions.resx</DependentUpon>
@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Schema\ElementDescriptions.resx">
+    <EmbeddedResource Update="Language\Syntax\ElementDescriptions.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
     </EmbeddedResource>
@@ -72,6 +72,7 @@
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\PackageType.cs" Link="ProjectFileTools.NuGetSearch\Contracts\PackageType.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" Link="ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" Link="ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" />

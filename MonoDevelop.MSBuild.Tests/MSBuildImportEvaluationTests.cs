@@ -9,6 +9,7 @@ using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;

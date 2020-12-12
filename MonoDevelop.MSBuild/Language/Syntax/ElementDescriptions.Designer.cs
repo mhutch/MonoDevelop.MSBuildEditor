@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MonoDevelop.MSBuild.Schema {
+namespace MonoDevelop.MSBuild.Language.Syntax {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuild.Schema {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MonoDevelop.MSBuild.Schema.ElementDescriptions", typeof(ElementDescriptions).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MonoDevelop.MSBuild.Language.Syntax.ElementDescriptions", typeof(ElementDescriptions).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

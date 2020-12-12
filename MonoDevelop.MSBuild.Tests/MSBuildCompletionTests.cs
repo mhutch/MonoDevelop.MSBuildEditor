@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.MiniEditor;
 
 using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Roslyn;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Tests.Completion;
 using MonoDevelop.Xml.Tests.EditorTestHelpers;

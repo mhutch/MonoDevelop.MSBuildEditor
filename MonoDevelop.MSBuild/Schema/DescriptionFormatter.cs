@@ -4,12 +4,14 @@
 using System;
 using System.Collections.Generic;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Schema
 {
 	static class DescriptionFormatter
 	{
-		public static string GetDescription (BaseInfo info, MSBuildDocument doc, MSBuildResolveResult rr)
+		public static string GetDescription (IDisplayableSymbolOrSyntax info, MSBuildDocument doc, MSBuildResolveResult rr)
 		{
 			if (doc == null) {
 				return info.Description.Text;
@@ -61,7 +63,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return info.Description.Text;
 		}
 
-		public static (string kind, string name) GetTitle (BaseInfo info)
+		public static (string kind, string name) GetTitle (IDisplayableSymbolOrSyntax info)
 		{
 			switch (info) {
 			case MSBuildElementSyntax el:
@@ -84,8 +86,8 @@ namespace MonoDevelop.MSBuild.Schema
 			case TaskInfo task:
 				return ("task", info.Name);
 			case CustomTypeValue ctVal:
-				return (ctVal.TypeInfo.Name ?? "value", info.Name);
-			case ValueKindValue value:
+				return (ctVal.CustomType.Name ?? "value", info.Name);
+			case ConstantSymbol value:
 				return (FormatKind (value.ValueKind, null) ?? "value", info.Name);
 			case FileOrFolderInfo value:
 				return (value.IsFolder? "folder" : "file", info.Name);
@@ -125,7 +127,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return modifierList;
 		}
 
-		public static List<string> GetTypeDescription (this ValueInfo info)
+		public static List<string> GetTypeDescription (this ITypedSymbol info)
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
 
@@ -276,7 +278,7 @@ namespace MonoDevelop.MSBuild.Schema
 		/// <summary>
 		/// Gets a lowercase noun decribing the element. Intended to be localized and substituted into localized strings.
 		/// </summary>
-		public static string GetKindNoun (this ValueInfo info)
+		public static string GetKindNoun (this IDisplayableSymbolOrSyntax info)
 			=> info switch {
 				MSBuildElementSyntax _ => "element",
 				MSBuildAttributeSyntax _ => "attribute",

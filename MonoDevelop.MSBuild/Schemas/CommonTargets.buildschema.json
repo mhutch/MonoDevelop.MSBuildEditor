@@ -81,6 +81,7 @@
       "description": "Reference to a NuGet package",
       "includeDescription": "NuGet package IDs",
       "type": "nugetid",
+      "packageType": "Dependency",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",
@@ -92,6 +93,7 @@
       "description": "The CLI tool that the user wants restored in the context of the project",
       "includeDescription": "tool NuGet package IDs",
       "type": "nugetid",
+      "packageType": "DotnetCliTool",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",

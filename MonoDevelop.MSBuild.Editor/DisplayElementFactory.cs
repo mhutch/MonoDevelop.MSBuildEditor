@@ -20,8 +20,10 @@ using Microsoft.VisualStudio.Text.Adornments;
 using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Editor.Navigation;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -69,7 +71,7 @@ namespace MonoDevelop.MSBuild.Editor
 				break;
 			}
 
-			if (info is ValueInfo vi && !string.IsNullOrEmpty (vi.DefaultValue)) {
+			if (info is VariableInfo vi && !string.IsNullOrEmpty (vi.DefaultValue)) {
 				elements.Add (
 					new ClassifiedTextElement (
 						new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, $"Default value: "),
@@ -95,7 +97,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		static ClassifiedTextElement GetDeprecationMessage (BaseInfo info)
 		{
-			if (info is ValueInfo val && val.IsDeprecated) {
+			if (info is VariableInfo val && val.IsDeprecated) {
 				var msg = string.IsNullOrEmpty (val.DeprecationMessage) ? "Deprecated" : $"Deprecated: {val.DeprecationMessage}";
 				return new ClassifiedTextElement (new ClassifiedTextRun ("syntax error", msg));
 			}
@@ -116,7 +118,7 @@ namespace MonoDevelop.MSBuild.Editor
 			runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Identifier, label.name));
 
 			string typeInfo = null;
-			if (info is ValueInfo vi) {
+			if (info is VariableInfo vi) {
 				var tdesc = vi.GetTypeDescription ();
 				if (tdesc.Count > 0) {
 					typeInfo = string.Join (" ", tdesc);
@@ -326,7 +328,7 @@ namespace MonoDevelop.MSBuild.Editor
 				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
 			case TaskInfo _:
 				return KnownImages.MSBuildTask;
-			case ValueKindValue _:
+			case ConstantInfo _:
 				return KnownImages.MSBuildConstant;
 			case FileOrFolderInfo value:
 				return value.IsFolder ? KnownImages.FolderClosed : KnownImages.GenericFile;

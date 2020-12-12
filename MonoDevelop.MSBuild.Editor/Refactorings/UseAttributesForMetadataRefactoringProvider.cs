@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Analysis;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Refactorings

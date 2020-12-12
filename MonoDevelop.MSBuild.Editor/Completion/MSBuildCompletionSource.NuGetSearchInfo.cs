@@ -2,15 +2,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using MonoDevelop.Xml.Editor.Completion;
+
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
 
@@ -20,16 +18,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		public class NuGetSearchUpdater
 		{
-			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm)
+			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm, string packageType)
 			{
 				this.tfm = tfm;
+				this.packageType = packageType;
 				this.parent = parent;
 				this.session = session;
 			}
 
-			string tfm;
-			IAsyncCompletionSession session;
-			MSBuildCompletionSource parent;
+			readonly string tfm;
+			readonly string packageType;
+			readonly IAsyncCompletionSession session;
+			readonly MSBuildCompletionSource parent;
 			MSBuildCompletionItemManager completionItemManager;
 
 			// these fields are protected by the locker

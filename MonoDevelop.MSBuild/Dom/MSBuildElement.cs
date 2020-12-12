@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Dom

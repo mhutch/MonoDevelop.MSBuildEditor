@@ -10,6 +10,7 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -314,7 +315,7 @@ namespace MonoDevelop.MSBuild.Language
 		/// <summary>
 		/// Gets the files in which the given info has been seen, excluding the current one.
 		/// </summary>
-		public IEnumerable<string> GetFilesSeenIn (BaseInfo info)
+		public IEnumerable<string> GetFilesSeenIn (BaseSymbol info)
 		{
 			var files = new HashSet<string> ();
 			foreach (var doc in GetDescendentDocuments ()) {

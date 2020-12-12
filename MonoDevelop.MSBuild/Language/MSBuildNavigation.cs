@@ -5,7 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -154,7 +157,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			protected override void VisitValueExpression (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			protected override void VisitValueExpression (
+				XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
+				ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 			{
 				switch (kind.GetScalarType ()) {
 				case MSBuildValueKind.TargetName:

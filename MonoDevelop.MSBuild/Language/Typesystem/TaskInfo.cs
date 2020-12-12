@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public class TaskInfo : BaseInfo
+	public class TaskInfo : BaseSymbol
 	{
 		public Dictionary<string, TaskParameterInfo> Parameters { get; } = new Dictionary<string, TaskParameterInfo> ();
 
@@ -43,7 +43,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public bool IsIntrinsic { get; }
 	}
 
-	public class TaskParameterInfo : ValueInfo
+	public class TaskParameterInfo : VariableInfo
 	{
 		public bool IsOutput { get; }
 		public bool IsRequired { get; }

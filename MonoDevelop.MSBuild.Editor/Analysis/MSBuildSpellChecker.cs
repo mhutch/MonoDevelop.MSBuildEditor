@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Utilities;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
 using Roslyn.Utilities;
