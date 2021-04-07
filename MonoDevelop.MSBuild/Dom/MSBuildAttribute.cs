@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Dom

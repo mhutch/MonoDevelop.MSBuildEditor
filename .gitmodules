@@ -1,6 +1,6 @@
 [submodule "external/ProjFileTools"]
 	path = external/ProjFileTools
-	url = https://github.com/dotnet/ProjFileTools.git
+	url = https://github.com/mhutch/ProjFileTools.git
 [submodule "MonoDevelop.Xml"]
 	path = MonoDevelop.Xml
 	url = https://github.com/mhutch/MonoDevelop.Xml.git

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	//FIXME: should there be flags for directories with/without/dontcare trailing slashes? absolute/relative paths?
 	[Flags]

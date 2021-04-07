@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -374,7 +375,7 @@ namespace MonoDevelop.MSBuild.Language
 			"Items outside targets must have Include, Update or Remove attribute",
 			MSBuildDiagnosticSeverity.Error);
 
-		public static (MSBuildDiagnosticDescriptor, object[]) GetExpressionError (ExpressionError error, ValueInfo info)
+		public static (MSBuildDiagnosticDescriptor, object[]) GetExpressionError (ExpressionError error, ITypedSymbol info)
 		{
 			(MSBuildDiagnosticDescriptor, object[]) Return (MSBuildDiagnosticDescriptor desc, params object[] args) => (desc, args);
 			return error.Kind switch

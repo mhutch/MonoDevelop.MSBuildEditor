@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 

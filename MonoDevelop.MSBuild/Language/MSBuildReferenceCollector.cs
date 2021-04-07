@@ -5,7 +5,8 @@ using System;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
@@ -139,7 +140,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -183,7 +184,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -269,7 +270,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			//these are things like <Foo Include="@(Bar)" RemoveMetadata="SomeBarMetadata" />
 			if (kind.GetScalarType () == MSBuildValueKind.MetadataName) {
@@ -326,7 +327,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
 				return;
@@ -385,7 +386,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -433,7 +434,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -465,7 +466,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -487,7 +488,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
@@ -509,7 +510,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {

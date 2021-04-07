@@ -21,6 +21,8 @@
 
 using System;
 using System.IO;
+
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using NUnit.Framework;
 

@@ -4,6 +4,7 @@
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild
 {

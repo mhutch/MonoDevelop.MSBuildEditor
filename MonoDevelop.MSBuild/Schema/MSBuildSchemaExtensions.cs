@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Schema
 {
@@ -219,7 +221,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.GetAllTargetVariants (targetName).FirstOrDefault ();
 		}
 
-		public static ValueInfo GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildAttributeSyntax attribute, string elementName, string attributeName)
+		public static ITypedSymbol GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildAttributeSyntax attribute, string elementName, string attributeName)
 		{
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
@@ -242,15 +244,15 @@ namespace MonoDevelop.MSBuild.Schema
 				return new MSBuildAttributeSyntax (
 					attribute.Element, attribute.Name, attribute.Description,
 					attribute.SyntaxKind,
-					item?.ValueKind ?? MSBuildValueKind.Unknown,
-					attribute.Required, attribute.AbstractKind
+					item?.ValueKind ?? MSBuildValueKind.UnknownItem.List (),
+					attribute.Required
 				);
 			}
 
 			return attribute;
 		}
 
-		public static ValueInfo GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string parentName, string elementName, bool omitEmpty = false)
+		public static ITypedSymbol GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string parentName, string elementName, bool omitEmpty = false)
 		{
 			if (element.IsAbstract) {
 				switch (element.SyntaxKind) {
@@ -292,7 +294,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.OfType<MSBuildInferredSchema> ().SelectMany (d => d.Platforms).Distinct ();
 		}
 
-		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : BaseInfo
+		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : class, ISymbol
 		{
 			T first = null;
 

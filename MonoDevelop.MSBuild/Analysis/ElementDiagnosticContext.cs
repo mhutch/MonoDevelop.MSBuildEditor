@@ -5,7 +5,8 @@ using System.Threading;
 
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Analysis

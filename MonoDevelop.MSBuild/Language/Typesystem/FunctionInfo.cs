@@ -3,9 +3,11 @@
 
 using System.Collections.Generic;
 
-namespace MonoDevelop.MSBuild.Schema
+using MonoDevelop.MSBuild.Schema;
+
+namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class FunctionInfo : BaseInfo
+	class FunctionInfo : BaseSymbol
 	{
 		readonly FunctionParameterInfo [] arguments;
 
@@ -26,7 +28,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 	}
 
-	class FunctionParameterInfo : BaseInfo
+	class FunctionParameterInfo : BaseSymbol
 	{
 		readonly string type;
 
@@ -42,7 +44,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 	}
 
-	class ClassInfo : BaseInfo
+	class ClassInfo : BaseSymbol
 	{
 		public ClassInfo (string name, DisplayText description) : base (name, description)
 		{

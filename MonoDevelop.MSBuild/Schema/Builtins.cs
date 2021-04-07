@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 
+using MonoDevelop.MSBuild.Language.Typesystem;
+
 namespace MonoDevelop.MSBuild.Schema
 {
 

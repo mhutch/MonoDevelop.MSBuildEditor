@@ -8,7 +8,7 @@ using System.Linq;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Syntax;
 
 namespace MonoDevelop.MSBuild.Analyzers
 {

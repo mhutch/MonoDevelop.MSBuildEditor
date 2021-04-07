@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
@@ -21,7 +22,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 		public override Task RegisterCodeFixesAsync (MSBuildFixContext context)
 		{
 			foreach (var diag in context.Diagnostics) {
-				if (!(diag.Properties.TryGetValue ("Info", out var val) && val is ValueInfo info)) {
+				if (!(diag.Properties.TryGetValue ("Info", out var val) && val is VariableInfo info)) {
 					continue;
 				}
 

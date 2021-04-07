@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 

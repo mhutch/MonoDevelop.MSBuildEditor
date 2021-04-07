@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading;
 
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -188,7 +190,7 @@ namespace MonoDevelop.MSBuild.Language
 			protected override void VisitValueExpression (
 				XElement element, XAttribute attribute,
 				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ValueInfo info, MSBuildValueKind kind, ExpressionNode node)
+				ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
@@ -257,10 +259,10 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionText lit:
-					kind = kind.GetScalarType ();
+					inferredKind = inferredKind.GetScalarType ();
 					if (lit.IsPure) {
-						VisitPureLiteral (element, info, kind, lit);
-						if (kind == MSBuildValueKind.TaskOutputParameterName) {
+						VisitPureLiteral (element, valueDescriptor, inferredKind, lit);
+						if (inferredKind == MSBuildValueKind.TaskOutputParameterName) {
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
 							rr.ReferenceLength = lit.Value.Length;
@@ -268,7 +270,7 @@ namespace MonoDevelop.MSBuild.Language
 							break;
 						}
 					}
-					switch (kind) {
+					switch (inferredKind) {
 					case MSBuildValueKind.File:
 					case MSBuildValueKind.FileOrFolder:
 					case MSBuildValueKind.ProjectFile:
@@ -287,14 +289,14 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void VisitPureLiteral (XElement element, ValueInfo info, MSBuildValueKind kind, ExpressionText node)
+			void VisitPureLiteral (XElement element, ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue ();
 				rr.ReferenceOffset = node.Offset;
 				rr.ReferenceLength = node.Value.Length;
 				rr.Reference = value;
 
-				switch (kind) {
+				switch (inferredKind) {
 				case MSBuildValueKind.TaskOutputParameterName:
 					rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 					return;
@@ -339,7 +341,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList <BaseInfo>)info.CustomType?.Values ?? kind.GetSimpleValues (true);
+				var knownVals = (IReadOnlyList <ISymbol>)valueDescriptor.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
 					foreach (var kv in knownVals) {
@@ -388,7 +390,7 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				return ReferenceAsStaticPropertyFunction.functionName;
 			}
-			return Reference is BaseInfo info ? info.Name : (string)Reference;
+			return Reference is ISymbol info ? info.Name : (string)Reference;
 		}
 	}
 

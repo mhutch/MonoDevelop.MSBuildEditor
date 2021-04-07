@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Syntax
 {
 	/// <summary>
 	/// Uniquely identifies elements and attributes in the MSBuild XML syntax

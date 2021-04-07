@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +13,9 @@ using Microsoft.CodeAnalysis;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Language.Typesystem;
+
+using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
@@ -90,7 +91,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return Task.WhenAny (compilationLoadTask, Task.Delay (-1, token));
 		}
 
-		public IEnumerable<BaseInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is ConcatExpression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -215,21 +216,21 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		//FIXME: make this lookup cheaper
-		public BaseInfo GetItemFunctionInfo (string name)
+		public FunctionInfo GetItemFunctionInfo (string name)
 		{
 			return GetItemFunctionNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
-		public BaseInfo GetClassInfo (string name)
+		public ClassInfo GetClassInfo (string name)
 		{
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		public BaseInfo GetEnumInfo (string reference)
+		public ISymbol GetEnumInfo (string reference)
 		{
 			//FIXME: resolve enum values
-			return new ValueKindValue (reference, null, MSBuildValueKind.Unknown);
+			return new ConstantSymbol (reference, null, MSBuildValueKind.Unknown);
 		}
 
 		IEnumerable<FunctionInfo> GetStringFunctions (bool includeProperties, bool includeIndexers)

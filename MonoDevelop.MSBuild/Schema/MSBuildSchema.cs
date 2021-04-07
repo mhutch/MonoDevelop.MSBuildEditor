@@ -5,15 +5,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
+
+using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Parser;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	class MSBuildSchema : IMSBuildSchema, IEnumerable<BaseInfo>
+	class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -30,7 +32,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static MSBuildSchema LoadResource (string resourceId, out IList<(string, DiagnosticSeverity)> loadErrors)
 		{
-			var asm = Assembly.GetCallingAssembly ();
+			var asm = System.Reflection.Assembly.GetCallingAssembly ();
 			using var stream = asm.GetManifestResourceStream (resourceId);
 			if (stream == null) {
 				throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
@@ -131,6 +133,8 @@ namespace MonoDevelop.MSBuild.Schema
 				bool deprecated = false;
 				var kind = MSBuildValueKind.Unknown;
 				CustomTypeInfo customType = null;
+				string packageType = null;
+
 				foreach (var pkv in (JObject)kv.Value) {
 					switch (pkv.Key) {
 					case "description":
@@ -147,6 +151,9 @@ namespace MonoDevelop.MSBuild.Schema
 							}
 						}
 						break;
+					case "packageType":
+						packageType = (string)((JValue)pkv.Value).Value;
+						break;
 					case "default":
 						defaultValue = (string)((JValue)pkv.Value).Value;
 						break;
@@ -160,12 +167,23 @@ namespace MonoDevelop.MSBuild.Schema
 						deprecationMessage = (string)((JValue)pkv.Value).Value;
 						break;
 					default:
-						state.AddWarning ($"Unknown property {pkv.Key} in property {kv.Key}");
+						state.AddWarning ($"Unknown property '{pkv.Key}' in property '{name}'");
 						break;
 					}
 				}
 
 				kind = CheckKind (kind, listSeparatorChars, customType);
+
+				if (packageType != null) {
+					if (kind != MSBuildValueKind.NuGetID) {
+						state.AddWarning ($"Property 'packageType' in property '{name}' is invalid for kind '{kind}'");
+					} else {
+						// this is kinda hacky but we don't have anywhere else to put it.
+						// ideally we would have some kind of general purpose annotation mechanism
+						// but no point in designing it till we have other use cases
+						customType = new CustomTypeInfo (new[] { new CustomTypeValue (packageType, null) });
+					}
+				}
 
 				Properties[name] = new PropertyInfo (name, description, false, kind, customType, defaultValue, deprecated, deprecationMessage);
 			}
@@ -196,6 +214,8 @@ namespace MonoDevelop.MSBuild.Schema
 				var kind = MSBuildValueKind.Unknown;
 				JObject metadata = null;
 				bool isDeprecated= false;
+				string packageType = null;
+
 				foreach (var ikv in (JObject)kv.Value) {
 					switch (ikv.Key) {
 					case "description":
@@ -210,6 +230,9 @@ namespace MonoDevelop.MSBuild.Schema
 						if (kind.IsCustomType ()) {
 							state.AddError ($"Item '{name}' has custom type value, which is not permitted for items");
 						}
+						break;
+					case "packageType":
+						packageType = (string)((JValue)ikv.Value).Value;
 						break;
 					case "includeDescription":
 						includeDescription = (string)((JValue)ikv.Value).Value;
@@ -228,7 +251,20 @@ namespace MonoDevelop.MSBuild.Schema
 						break;
 					}
 				}
-				var item = new ItemInfo (name, description, includeDescription, kind, null, isDeprecated, deprecationMessage);
+
+				CustomTypeInfo customType = null;
+				if (packageType != null) {
+					if (kind != MSBuildValueKind.NuGetID) {
+						state.AddWarning ($"Property 'packageType' in property '{name}' is invalid for kind '{kind}'");
+					} else {
+						// this is kinda hacky but we don't have anywhere else to put it.
+						// ideally we would have some kind of general purpose annotation mechanism
+						// but no point in designing it till we have other use cases
+						customType = new CustomTypeInfo (new[] { new CustomTypeValue (packageType, null) });
+					}
+				}
+
+				var item = new ItemInfo (name, description, includeDescription, kind, customType, null, isDeprecated, deprecationMessage);
 				if (metadata != null) {
 					AddMetadata (item, metadata, state);
 				}
@@ -335,6 +371,7 @@ namespace MonoDevelop.MSBuild.Schema
 			bool required = false;
 			MSBuildValueKind kind = MSBuildValueKind.Unknown;
 			CustomTypeInfo customType = null;
+			string packageType = null;
 			bool isDeprecated = false;
 			foreach (var mkv in (JObject)value) {
 				switch (mkv.Key) {
@@ -347,6 +384,9 @@ namespace MonoDevelop.MSBuild.Schema
 					} else {
 						customType = LoadCustomType (mkv.Value);
 					}
+					break;
+				case "packageType":
+					packageType = (string)((JValue)mkv.Value).Value;
 					break;
 				case "listSeparators":
 					listSeparatorChars = (string)((JValue)mkv.Value).Value;
@@ -364,12 +404,20 @@ namespace MonoDevelop.MSBuild.Schema
 					deprecationMessage = (string)((JValue)mkv.Value).Value;
 					break;
 				default:
-					state.AddWarning ($"Unknown property {mkv.Key} in metadata {name}");
+					state.AddWarning ($"Unknown property '{mkv.Key}' in metadata '{name}'");
 					break;
 				}
 			}
 
 			kind = CheckKind (kind, listSeparatorChars, customType);
+
+			if (packageType != null) {
+				if (kind != MSBuildValueKind.NuGetID) {
+					state.AddWarning ($"Property 'packageType' in metadata '{name}' is invalid for kind '{kind}'");
+				} else {
+					customType = new CustomTypeInfo (new[] { new CustomTypeValue (packageType, null) });
+				}
+			}
 
 			return new MetadataInfo (
 				name, description, false, required, kind, null,
@@ -537,7 +585,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		IEnumerator<BaseInfo> IEnumerable<BaseInfo>.GetEnumerator ()
+		IEnumerator<ISymbol> IEnumerable<ISymbol>.GetEnumerator ()
 		{
 			foreach (var item in Items.Values) {
 				yield return item;
@@ -553,9 +601,9 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<BaseInfo>)this).GetEnumerator ();
+		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<ISymbol>)this).GetEnumerator ();
 
-		public void Add (BaseInfo info)
+		public void Add (ISymbol info)
 		{
 			switch (info) {
 			case ItemInfo item:

@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
-namespace MonoDevelop.MSBuild.Schema
+namespace MonoDevelop.MSBuild.Language.Syntax
 {
-	public class MSBuildAttributeSyntax : ValueInfo
+	public class MSBuildAttributeSyntax : MSBuildSyntax
 	{
 		public MSBuildAttributeSyntax (
 			MSBuildElementSyntax element,
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind,
 			bool required = false, MSBuildSyntaxKind? abstractKind = null,
 			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, null, null, isDeprecated, deprecationMessage)
+			: base (name, description, valueKind, isDeprecated, deprecationMessage)
 		{
 			SyntaxKind = syntaxKind;
 			Element = element;

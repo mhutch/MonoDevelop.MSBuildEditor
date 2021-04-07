@@ -3,6 +3,8 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
+
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
