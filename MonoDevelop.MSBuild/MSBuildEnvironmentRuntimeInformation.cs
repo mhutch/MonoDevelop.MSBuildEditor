@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild
 	class MSBuildEnvironmentRuntimeInformation : IRuntimeInformation
 	{
 		readonly Toolset toolset;
-		readonly Dictionary<SdkReference, string> resolvedSdks = new Dictionary<SdkReference, string> ();
+		readonly Dictionary<SdkReference, SdkInfo> resolvedSdks = new Dictionary<SdkReference, SdkInfo> ();
 		readonly MSBuildSdkResolver sdkResolver;
 
 		public MSBuildEnvironmentRuntimeInformation ()
@@ -50,19 +50,20 @@ namespace MonoDevelop.MSBuild
 
         public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
 
-        public string GetSdkPath (
+        public SdkInfo ResolveSdk (
 			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
 		{
 			var sdkRef = new SdkReference (sdk.name, sdk.version, sdk.minimumVersion);
-			if (!resolvedSdks.TryGetValue (sdkRef, out string path)) {
+			if (!resolvedSdks.TryGetValue (sdkRef, out SdkInfo sdkInfo)) {
 				try {
-					path = sdkResolver.GetSdkPath (sdkRef, new NoopLoggingService (), null, projectFile, solutionPath);
+					//FIXME: capture errors & warnings from logger and return those too?
+					sdkInfo = sdkResolver.ResolveSdk (sdkRef, new NoopLoggingService (), null, projectFile, solutionPath);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error in SDK resolver", ex);
 				}
-				resolvedSdks[sdkRef] = path;
+				resolvedSdks[sdkRef] = sdkInfo;
 			}
-			return path;
+			return sdkInfo;
 		}
 
 		static IReadOnlyDictionary<string, IReadOnlyList<string>> GetImportSearchPathsTable (Toolset toolset, string msbuildExtensionsPath)

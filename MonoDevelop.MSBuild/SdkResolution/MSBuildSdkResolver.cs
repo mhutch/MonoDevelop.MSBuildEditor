@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		/// <param name="projectFile">Location of the element within the project which referenced the SDK.</param>
 		/// <param name="solutionPath">Path to the solution if known.</param>
 		/// <returns>Path to the root of the referenced SDK.</returns>
-		internal string GetSdkPath (SdkReference sdk, ILoggingService logger, MSBuildContext buildEventContext,
+		internal SdkInfo ResolveSdk (SdkReference sdk, ILoggingService logger, MSBuildContext buildEventContext,
 			string projectFile, string solutionPath)
 		{
 			if (_resolvers == null) Initialize (logger);
@@ -56,7 +56,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 						var result = (SdkResultImpl)sdkResolver.Resolve (sdk, context, resultFactory);
 						if (result != null && result.Success) {
 							LogWarnings (logger, buildEventContext, projectFile, result);
-							return result.Path;
+							return new SdkInfo(result);
 						}
 
 						if (result != null)

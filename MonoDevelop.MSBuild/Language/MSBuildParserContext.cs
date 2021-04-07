@@ -12,6 +12,7 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -213,7 +214,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		static readonly HashSet<string> failedImports = new HashSet<string> ();
 
-		public string GetSdkPath (MSBuildDocument doc, string sdk, TextSpan loc)
+		public SdkInfo ResolveSdk (MSBuildDocument doc, string sdk, TextSpan loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
 				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
@@ -225,10 +226,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var sdkPath = RuntimeInformation.GetSdkPath (
+				var sdkInfo = RuntimeInformation.ResolveSdk (
 					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null);
 				if (sdk != null) {
-					return sdkPath;
+					return sdkInfo;
 				}
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
 				LoggingService.LogError ("Error in SDK resolver", ex);

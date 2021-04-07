@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 
+using MonoDevelop.MSBuild.SdkResolution;
+
 namespace MonoDevelop.MSBuild
 {
 	public interface IRuntimeInformation
@@ -12,9 +14,9 @@ namespace MonoDevelop.MSBuild
 		string ToolsPath { get; }
 		IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
 		string SdksPath { get; }
-		IList<SdkResolution.SdkInfo> GetRegisteredSdks ();
-		//NOTE: we don't use SdkReference so as not to expose Microsoft.Build APi publically
+		IList<SdkInfo> GetRegisteredSdks ();
+		//NOTE: we don't use SdkReference so as not to expose Microsoft.Build API publically
 		//as that causes issues in VSMac's unit test discovery
-		string GetSdkPath ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath);
+		SdkInfo ResolveSdk ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath);
 	}
 }

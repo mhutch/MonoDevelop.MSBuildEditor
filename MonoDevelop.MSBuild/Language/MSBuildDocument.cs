@@ -133,29 +133,45 @@ namespace MonoDevelop.MSBuild.Language
 			var importAtt = element.ProjectAttribute;
 			var sdkAtt = element.SdkAttribute;
 
-			ExpressionNode import = null;
+			ExpressionNode[] import = null;
 			string importTxt = null;
 
 			if (importAtt?.Value != null) {
-				import = importAtt.Value;
+				import = new ExpressionNode[] { importAtt.Value };
 				importTxt = importAtt.XAttribute.Value;
 			}
 
 			if (sdkAtt?.Value is ExpressionText sdkTxt) {
 				var loc = sdkAtt.XAttribute.ValueSpan;
-				string sdkPath = parseContext.GetSdkPath (this, sdkTxt.Value, loc);
-				import = import == null ? null : new ExpressionText (0, Path.Combine (sdkPath, importTxt), true);
+				var sdkInfo = parseContext.ResolveSdk (this, sdkTxt.Value, loc);
 
-				if (IsToplevel && sdkPath != null) {
-					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (sdkPath, loc));
+				if (sdkInfo == null) {
+					if (IsToplevel) {
+						Diagnostics.Add (CoreDiagnostics.UnresolvedSdk, loc, sdkTxt.Value);
+					}
+					return;
+				}
+
+				if (import != null) {
+					if (sdkInfo.AdditionalPaths == null || sdkInfo.AdditionalPaths.Count == 0) {
+						import = new ExpressionNode[sdkInfo.AdditionalPaths.Count + 1];
+						for (int i = 0; i < sdkInfo.AdditionalPaths.Count; i++) {
+							import[i+1] = new ExpressionText (0, Path.Combine (sdkInfo.AdditionalPaths[i], importTxt), true);
+						}
+					}
+					import[0] = new ExpressionText (0, Path.Combine (sdkInfo.Path, importTxt), true);
+				}
+
+				if (IsToplevel) {
+					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (sdkInfo.Path, loc));
 				}
 			}
 
 			if (import != null) {
 				bool wasResolved = false;
 				var loc = importAtt.XAttribute.ValueSpan;
-				foreach (var resolvedImport in importResolver.Resolve (import, importTxt, null)) {
-					this.AddImport (resolvedImport);
+				foreach (var resolvedImport in import.SelectMany(imp => importResolver.Resolve (imp, importTxt, null))) {
+					AddImport (resolvedImport);
 					wasResolved |= resolvedImport.IsResolved;
 					if (IsToplevel && wasResolved) {
 						Annotations.Add (importAtt.XAttribute, new NavigationAnnotation (resolvedImport.Filename, loc));
@@ -221,12 +237,26 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 				else {
-					var sdkPath = context.GetSdkPath (this, sdk.id, sdk.span);
-					if (sdkPath != null) {
-						yield return (sdk.id, sdkPath, sdk.span);
+					var sdkInfo = context.ResolveSdk (this, sdk.id, sdk.span);
+					if (sdkInfo == null) {
+						continue;
 					}
+
+					yield return (sdk.id, sdkInfo.Path, sdk.span);
+
 					if (IsToplevel) {
-						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span) { IsSdk = true });
+						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkInfo.Path, sdk.span) { IsSdk = true });
+					}
+
+					if (sdkInfo.AdditionalPaths != null && sdkInfo.AdditionalPaths.Count > 0) {
+						foreach (var p in sdkInfo.AdditionalPaths) {
+							yield return (sdk.id, p, sdk.span);
+						}
+						if (IsToplevel) {
+							foreach (var p in sdkInfo.AdditionalPaths) {
+								Annotations.Add (sdksAtt, new NavigationAnnotation (p, sdk.span) { IsSdk = true });
+							}
+						}
 					}
 				}
 			}

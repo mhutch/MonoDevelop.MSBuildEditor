@@ -46,6 +46,13 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
+		public static MSBuildDiagnosticDescriptor UnresolvedSdk = new MSBuildDiagnosticDescriptor (
+			"UnresolvedSdk",
+			"Could not resolve SDK",
+			"The SDK '{0}' could not be resolved",
+			MSBuildDiagnosticSeverity.Warning
+		);
+
 		public static MSBuildDiagnosticDescriptor UnknownElement = new MSBuildDiagnosticDescriptor (
 			"UnknownElement",
 			"Unknown element",
