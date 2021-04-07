@@ -244,8 +244,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return new MSBuildAttributeSyntax (
 					attribute.Element, attribute.Name, attribute.Description,
 					attribute.SyntaxKind,
-					item?.ValueKind ?? MSBuildValueKind.Unknown,
-					attribute.Required, attribute.AbstractKind
+					item?.ValueKind ?? MSBuildValueKind.UnknownItem.List (),
+					attribute.Required
 				);
 			}
 
@@ -294,7 +294,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.OfType<MSBuildInferredSchema> ().SelectMany (d => d.Platforms).Distinct ();
 		}
 
-		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : BaseSymbol
+		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : class, ISymbol
 		{
 			T first = null;
 

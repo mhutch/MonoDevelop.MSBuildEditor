@@ -412,7 +412,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static IEnumerable<IDisplayableSymbolOrSyntax> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
+		public static IEnumerable<ISymbol> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
 		{
 			var names = new HashSet<string> ();
 			foreach (var variable in variables) {
@@ -435,7 +435,7 @@ namespace MonoDevelop.MSBuild.Language
 					continue;
 				}
 
-				IEnumerable<IDisplayableSymbolOrSyntax> cinfos;
+				IEnumerable<ISymbol> cinfos;
 				if (info.CustomType != null && info.CustomType.Values.Count > 0) {
 					cinfos = info.CustomType.Values;
 				} else {
@@ -453,7 +453,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static IEnumerable<BaseSymbol> GetCompletionInfos (
+		public static IEnumerable<ISymbol> GetCompletionInfos (
 			MSBuildResolveResult rr,
 			TriggerState trigger, MSBuildValueKind kind,
 			ExpressionNode triggerExpression, int triggerLength,
@@ -469,7 +469,7 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.PropertyName:
 				return doc.GetProperties (true);
 			case TriggerState.MetadataOrItemName:
-				return ((IEnumerable<BaseSymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
+				return ((IEnumerable<ISymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
 				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength, rr);
 			case TriggerState.PropertyFunctionName:

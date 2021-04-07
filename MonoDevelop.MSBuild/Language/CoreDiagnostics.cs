@@ -375,7 +375,7 @@ namespace MonoDevelop.MSBuild.Language
 			"Items outside targets must have Include, Update or Remove attribute",
 			MSBuildDiagnosticSeverity.Error);
 
-		public static (MSBuildDiagnosticDescriptor, object[]) GetExpressionError (ExpressionError error, VariableInfo info)
+		public static (MSBuildDiagnosticDescriptor, object[]) GetExpressionError (ExpressionError error, ITypedSymbol info)
 		{
 			(MSBuildDiagnosticDescriptor, object[]) Return (MSBuildDiagnosticDescriptor desc, params object[] args) => (desc, args);
 			return error.Kind switch

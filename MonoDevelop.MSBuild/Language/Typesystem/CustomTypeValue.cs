@@ -4,7 +4,7 @@
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public sealed class CustomTypeValue : IDisplayableSymbolOrSyntax, ITypedSymbol
+	public sealed class CustomTypeValue : ISymbol, ITypedSymbol
 	{
 		public CustomTypeValue (string name, DisplayText description)
 		{

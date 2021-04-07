@@ -9,7 +9,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 	/// <summary>
 	/// Anything in the type system with a name and description
 	/// </summary>
-	public abstract class BaseSymbol : IDisplayableSymbolOrSyntax
+	public abstract class BaseSymbol : ISymbol
 
 	{
 		readonly DisplayText description;
@@ -25,8 +25,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 		public override bool Equals (object obj)
 		{
-			var other = obj as BaseSymbol;
-			return other != null && string.Equals (Name, other.Name, StringComparison.OrdinalIgnoreCase);
+			return obj is ISymbol other && string.Equals (Name, other.Name, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public override int GetHashCode ()

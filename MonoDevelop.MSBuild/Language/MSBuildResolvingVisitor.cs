@@ -53,31 +53,31 @@ namespace MonoDevelop.MSBuild.Language
 		protected virtual void VisitValue (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol valueType, string value, int offset)
+			ITypedSymbol valueDescriptor, string value, int offset)
 		{
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueType);
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueDescriptor);
 
 			if (!kind.AllowExpressions ()) {
 				VisitValueExpression (
 					element, attribute, resolvedElement, resolvedAttribute,
-					valueType, kind, new ExpressionText (offset, value, true));
+					valueDescriptor, kind, new ExpressionText (offset, value, true));
 				return;
 			}
 
 			var expression =
-				valueType?.ValueKind == MSBuildValueKind.Condition
+				valueDescriptor?.ValueKind == MSBuildValueKind.Condition
 					? ExpressionParser.ParseCondition (value, offset)
 					: ExpressionParser.Parse (value, kind.GetExpressionOptions (), offset);
 
 			VisitValueExpression (
 				element, attribute, resolvedElement, resolvedAttribute,
-				valueType, kind, expression);
+				valueDescriptor, kind, expression);
 		}
 
 		protected virtual void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol valueType, MSBuildValueKind inferredKind, ExpressionNode node)
 		{
 		}
 	}

@@ -132,7 +132,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void CheckDeprecated (VariableInfo info, INamedXObject namedObj)
+		void CheckDeprecated (IDeprecatable info, INamedXObject namedObj)
 		{
 			if (info.IsDeprecated) {
 				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
@@ -423,33 +423,35 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitValue (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol valueType, string value, int offset)
+			ITypedSymbol valueDescriptor, string value, int offset)
 		{
-			if (!IsTargetsFile && !IsPropsFile) {
-				if (info.DefaultValue != null && string.Equals (info.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
+			if (!IsTargetsFile && !IsPropsFile && valueDescriptor is IHasDefaultValue hasDefault) {
+				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
-						ImmutableDictionary<string,object>.Empty.Add ("Info", info),
-						DescriptionFormatter.GetKindNoun (info), info.Name, info.DefaultValue);
+						ImmutableDictionary<string,object>.Empty.Add ("Info", valueDescriptor),
+						DescriptionFormatter.GetKindNoun (valueDescriptor), valueDescriptor.Name, hasDefault.DefaultValue);
 				}
 			}
+			
 
-			//NOTE: doing this here means we can't check for deprecated constructs that don't have values, but there aren't any yet
-			CheckDeprecated (info, (INamedXObject)attribute ?? element);
+			if (valueDescriptor is IDeprecatable deprecatable) {
+				CheckDeprecated (deprecatable, (INamedXObject)attribute ?? element);
+			}
 
 			// we skip calling base, and instead parse the expression with more options enabled
 			// so that we can warn if the user is doing something likely invalid
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueDescriptor);
 			var options = kind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
 
 			var node = ExpressionParser.Parse (value, options, offset);
-			VisitValueExpression (element, attribute, resolvedElement, resolvedAttribute, info, kind, node);
+			VisitValueExpression (element, attribute, resolvedElement, resolvedAttribute, valueDescriptor, kind, node);
 		}
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			VariableInfo info, MSBuildValueKind kind, ExpressionNode node)
+			ITypedSymbol info, MSBuildValueKind kind, ExpressionNode node)
 		{
 			bool allowExpressions = kind.AllowExpressions ();
 			bool allowLists = kind.AllowListsOrCommaLists ();
@@ -533,13 +535,13 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
-		void VisitPureLiteral (VariableInfo info, MSBuildValueKind kind, string value, int offset)
+		void VisitPureLiteral (ITypedSymbol info, MSBuildValueKind kind, string value, int offset)
 		{
 			if (info.CustomType != null && info.CustomType.AllowUnknownValues) {
 				return;
 			}
 
-			var knownVals = (IReadOnlyList<BaseSymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
+			var knownVals = (IReadOnlyList<ISymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
 
 			if (knownVals != null && knownVals.Count != 0) {
 				foreach (var kv in knownVals) {

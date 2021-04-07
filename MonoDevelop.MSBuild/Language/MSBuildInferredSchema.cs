@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Language
 			return !isToplevel && name[0] == '_';
 		}
 
-		public bool ContainsInfo (BaseSymbol info) => info switch {
+		public bool ContainsInfo (ISymbol info) => info switch {
 			PropertyInfo _ => Properties.ContainsKey (info.Name),
 			ItemInfo _ => Items.ContainsKey (info.Name),
 			TaskInfo _ => Tasks.ContainsKey (info.Name),

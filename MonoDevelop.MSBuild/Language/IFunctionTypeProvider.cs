@@ -6,23 +6,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language
 {
 	interface IFunctionTypeProvider
 	{
-		IEnumerable<BaseSymbol> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression);
+		IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression);
 		MSBuildValueKind ResolveType (ExpressionPropertyNode node);
 		IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ();
 		IEnumerable<ClassInfo> GetClassNameCompletions ();
 		ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos);
 		FunctionInfo GetStaticPropertyFunctionInfo (string className, string name);
 		FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name);
-		BaseSymbol GetItemFunctionInfo (string name);
-		BaseSymbol GetClassInfo (string name);
-		BaseSymbol GetEnumInfo (string reference);
+		FunctionInfo GetItemFunctionInfo (string name);
+		ClassInfo GetClassInfo (string name);
+
+		//FIXME: this is super broken and needs completely rethinking
+		ISymbol GetEnumInfo (string reference);
 		Task EnsureInitialized (CancellationToken token);
 	}
 }

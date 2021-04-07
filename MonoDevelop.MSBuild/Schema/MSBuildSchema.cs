@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Parser;
 
@@ -14,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	class MSBuildSchema : IMSBuildSchema, IEnumerable<BaseSymbol>
+	class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -584,7 +585,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		IEnumerator<BaseSymbol> IEnumerable<BaseSymbol>.GetEnumerator ()
+		IEnumerator<ISymbol> IEnumerable<ISymbol>.GetEnumerator ()
 		{
 			foreach (var item in Items.Values) {
 				yield return item;
@@ -600,9 +601,9 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<BaseSymbol>)this).GetEnumerator ();
+		IEnumerator IEnumerable.GetEnumerator () => ((IEnumerable<ISymbol>)this).GetEnumerator ();
 
-		public void Add (BaseSymbol info)
+		public void Add (ISymbol info)
 		{
 			switch (info) {
 			case ItemInfo item:

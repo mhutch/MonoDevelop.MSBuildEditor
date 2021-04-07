@@ -315,7 +315,7 @@ namespace MonoDevelop.MSBuild.Language
 		/// <summary>
 		/// Gets the files in which the given info has been seen, excluding the current one.
 		/// </summary>
-		public IEnumerable<string> GetFilesSeenIn (BaseSymbol info)
+		public IEnumerable<string> GetFilesSeenIn (ISymbol info)
 		{
 			var files = new HashSet<string> ();
 			foreach (var doc in GetDescendentDocuments ()) {

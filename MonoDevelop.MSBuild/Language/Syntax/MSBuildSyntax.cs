@@ -8,7 +8,7 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax
 {
-	public abstract class MSBuildSyntax : IDisplayableSymbolOrSyntax, ITypedSymbol
+	public abstract class MSBuildSyntax : ISymbol, ITypedSymbol
 	{
 		protected MSBuildSyntax (
 			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
@@ -26,11 +26,10 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		public string Name { get; }
 		public DisplayText Description { get; }
 
-		public MSBuildValueKind ValueKind { get; }
+		public virtual MSBuildValueKind ValueKind { get; }
 		public CustomTypeInfo CustomType => null;
 
 		public bool IsDeprecated { get; }
 		public string DeprecationMessage { get; }
-
 	}
 }

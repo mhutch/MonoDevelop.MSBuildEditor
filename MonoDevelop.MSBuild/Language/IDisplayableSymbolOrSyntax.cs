@@ -7,26 +7,37 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 namespace MonoDevelop.MSBuild.Language
 {
 	/// <summary>
-	/// Common interface for syntax and symbols that may be displayed in tooltips or completion
+	/// Base interface symbols that may be displayed in tooltips or completion
 	/// </summary>
-	public interface IDisplayableSymbolOrSyntax
+	public interface ISymbol
 	{
 		string Name { get; }
 		DisplayText Description { get; }
 	}
 
 	/// <summary>
-	/// Common interface for syntax and symbols that may be deprecated
+	/// Common interface for symbols that may be deprecated
 	/// </summary>
-	public interface IDeprecatable : IDisplayableSymbolOrSyntax
+	public interface IDeprecatable : ISymbol
 	{
 		bool IsDeprecated { get; }
 		string DeprecationMessage { get; }
 	}
 
-	public interface ITypedSymbol : IDisplayableSymbolOrSyntax
+	/// <summary>
+	/// Common interface for symbols that are typed
+	/// </summary>
+	public interface ITypedSymbol : ISymbol
 	{
 		MSBuildValueKind ValueKind { get; }
 		CustomTypeInfo CustomType { get; }
+	}
+
+	/// <summary>
+	/// Common interface for symbols that may have a default value
+	/// </summary>
+	public interface IHasDefaultValue : ITypedSymbol
+	{
+		public string DefaultValue { get; }
 	}
 }

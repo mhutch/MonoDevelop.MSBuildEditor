@@ -15,6 +15,8 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
+using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
+
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	[Export (typeof (IFunctionTypeProvider))]
@@ -89,7 +91,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return Task.WhenAny (compilationLoadTask, Task.Delay (-1, token));
 		}
 
-		public IEnumerable<BaseSymbol> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is ConcatExpression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -214,18 +216,18 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		//FIXME: make this lookup cheaper
-		public BaseSymbol GetItemFunctionInfo (string name)
+		public FunctionInfo GetItemFunctionInfo (string name)
 		{
 			return GetItemFunctionNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
-		public BaseSymbol GetClassInfo (string name)
+		public ClassInfo GetClassInfo (string name)
 		{
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
-		public BaseSymbol GetEnumInfo (string reference)
+		public ISymbol GetEnumInfo (string reference)
 		{
 			//FIXME: resolve enum values
 			return new ConstantSymbol (reference, null, MSBuildValueKind.Unknown);

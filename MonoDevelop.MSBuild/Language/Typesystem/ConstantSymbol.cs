@@ -4,7 +4,7 @@
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	/// <summary>
-	/// A typed constant ID (but not its value)
+	/// Describes a constant's name and type (but not its value)
 	/// </summary>
 	public class ConstantSymbol : BaseSymbol
 	{

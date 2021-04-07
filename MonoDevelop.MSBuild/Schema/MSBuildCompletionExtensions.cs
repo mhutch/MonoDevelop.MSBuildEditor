@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	static class MSBuildCompletionExtensions
 	{
-		public static IEnumerable<IDisplayableSymbolOrSyntax> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
+		public static IEnumerable<ISymbol> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
 		{
 			bool isInTarget = false;
 			if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Item) {
@@ -85,22 +85,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return false;
 		}
 
-		static IEnumerable<BaseSymbol> GetAbstractAttributes (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
-		{
-			switch (kind) {
-			case MSBuildSyntaxKind.Item:
-				return schemas.GetItems ();
-			case MSBuildSyntaxKind.Task:
-				return schemas.GetTasks ();
-			case MSBuildSyntaxKind.Property:
-				return schemas.GetProperties (false);
-			case MSBuildSyntaxKind.Metadata:
-				return schemas.GetMetadata (elementName, false);
-			}
-			return null;
-		}
-
-		public static IEnumerable<IDisplayableSymbolOrSyntax> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas,
+		public static IEnumerable<ISymbol> GetElementCompletions (this IEnumerable<IMSBuildSchema> schemas,
 			MSBuildElementSyntax languageElement, string elementName)
 		{
 			if (languageElement == null) {
@@ -126,7 +111,33 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		static IEnumerable<BaseSymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
+		public static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas,
+			MSBuildElementSyntax languageElement, string elementName)
+		{
+			if (languageElement == null) {
+				yield return MSBuildElementSyntax.Get ("Project");
+				yield break;
+			}
+
+			if (languageElement.Children == null) {
+				yield break;
+			}
+
+			foreach (var c in languageElement.Children) {
+				if (c.IsAbstract) {
+					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName);
+					if (abstractChildren != null) {
+						foreach (var child in abstractChildren) {
+							yield return child;
+						}
+					}
+				} else {
+					yield return c;
+				}
+			}
+		}
+
+		static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
 		{
 			switch (kind) {
 			case MSBuildSyntaxKind.Item:
@@ -141,7 +152,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		public static IEnumerable<BaseSymbol> GetValueCompletions (
+		public static IEnumerable<ISymbol> GetValueCompletions (
 			MSBuildValueKind kind,
 			MSBuildRootDocument doc,
 			MSBuildResolveResult rr = null,
@@ -193,7 +204,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		public static IReadOnlyList<BaseSymbol> GetFilenameCompletions (
+		public static IReadOnlyList<ISymbol> GetFilenameCompletions (
 			MSBuildValueKind kind, MSBuildRootDocument doc,
 			ExpressionNode triggerExpression, int triggerLength, MSBuildResolveResult rr = null)
 		{
@@ -273,9 +284,9 @@ namespace MonoDevelop.MSBuild.Schema
 			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
 		}
 
-		static IReadOnlyList<BaseSymbol> GetPathCompletions (List<string> completionBasePaths, bool includeFiles)
+		static IReadOnlyList<FileOrFolderInfo> GetPathCompletions (List<string> completionBasePaths, bool includeFiles)
 		{
-			var infos = new List<BaseSymbol> ();
+			var infos = new List<FileOrFolderInfo> ();
 
 			foreach (var basePath in completionBasePaths) {
 				try {
@@ -303,7 +314,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return infos;
 		}
 
-		public static BaseSymbol GetResolvedReference (this MSBuildResolveResult rr, MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider)
+		public static ISymbol GetResolvedReference (this MSBuildResolveResult rr, MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
@@ -318,9 +329,9 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildReferenceKind.Target:
 				return doc.GetTarget ((string)rr.Reference);
 			case MSBuildReferenceKind.Keyword:
-				return (BaseSymbol)rr.Reference;
+				return (ISymbol)rr.Reference;
 			case MSBuildReferenceKind.KnownValue:
-				return (BaseSymbol)rr.Reference;
+				return (ISymbol)rr.Reference;
 			case MSBuildReferenceKind.TargetFramework:
 				return ResolveFramework ((string)rr.Reference);
 			case MSBuildReferenceKind.TargetFrameworkIdentifier:
@@ -356,7 +367,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		static BaseSymbol ResolveFramework (string shortname)
+		static FrameworkInfo ResolveFramework (string shortname)
 		{
 			var fullref = NuGetFramework.ParseFolder (shortname);
 			if (fullref.IsSpecificFramework) {
@@ -365,7 +376,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		static BaseSymbol BestGuessResolveFrameworkIdentifier (string identifier, IReadOnlyList<NuGetFramework> docTfms)
+		static FrameworkInfo BestGuessResolveFrameworkIdentifier (string identifier, IReadOnlyList<NuGetFramework> docTfms)
 		{
 			//if any tfm in the doc matches, assume it's referring to that
 			var existing = docTfms.FirstOrDefault (d => d.Framework == identifier);
@@ -376,7 +387,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return FrameworkInfoProvider.Instance.GetFrameworkVersions (identifier).LastOrDefault ();
 		}
 
-		static BaseSymbol BestGuessResolveFrameworkVersion (string version, IReadOnlyList<NuGetFramework> docTfms)
+		static FrameworkInfo BestGuessResolveFrameworkVersion (string version, IReadOnlyList<NuGetFramework> docTfms)
 		{
 			if (!Version.TryParse (version.TrimStart ('v', 'V'), out Version v)) {
 				return null;
@@ -397,7 +408,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
-		static BaseSymbol BestGuessResolveFrameworkProfile (string profile, IReadOnlyList<NuGetFramework> docTfms)
+		static FrameworkInfo BestGuessResolveFrameworkProfile (string profile, IReadOnlyList<NuGetFramework> docTfms)
 		{
 			//if any tfm in the doc has this profile, assume it's referring to that
 			var existing = docTfms.FirstOrDefault (d => d.Profile == profile);
@@ -431,16 +442,6 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			if (variable.ValueKind != MSBuildValueKind.Unknown) {
 				return variable.ValueKind;
-			}
-
-			if (variable is MSBuildAttributeSyntax att) {
-				switch (att.Name) {
-				case "Include":
-				case "Exclude":
-				case "Remove":
-				case "Update":
-					return MSBuildValueKind.File.List ();
-				}
 			}
 
 			//assume known items are files

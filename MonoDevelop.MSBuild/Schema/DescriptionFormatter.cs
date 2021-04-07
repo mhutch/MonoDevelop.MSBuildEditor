@@ -11,7 +11,7 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	static class DescriptionFormatter
 	{
-		public static string GetDescription (IDisplayableSymbolOrSyntax info, MSBuildDocument doc, MSBuildResolveResult rr)
+		public static string GetDescription (ISymbol info, MSBuildDocument doc, MSBuildResolveResult rr)
 		{
 			if (doc == null) {
 				return info.Description.Text;
@@ -63,7 +63,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return info.Description.Text;
 		}
 
-		public static (string kind, string name) GetTitle (IDisplayableSymbolOrSyntax info)
+		public static (string kind, string name) GetTitle (ISymbol info)
 		{
 			switch (info) {
 			case MSBuildElementSyntax el:
@@ -278,7 +278,7 @@ namespace MonoDevelop.MSBuild.Schema
 		/// <summary>
 		/// Gets a lowercase noun decribing the element. Intended to be localized and substituted into localized strings.
 		/// </summary>
-		public static string GetKindNoun (this IDisplayableSymbolOrSyntax info)
+		public static string GetKindNoun (this ISymbol info)
 			=> info switch {
 				MSBuildElementSyntax _ => "element",
 				MSBuildAttributeSyntax _ => "attribute",

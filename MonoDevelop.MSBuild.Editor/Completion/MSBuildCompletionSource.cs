@@ -148,13 +148,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return CreateCompletionContext (items);
 		}
 
-		CompletionItem CreateCompletionItem (BaseSymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
+		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
 		{
 			var image = provider.DisplayElementFactory.GetImageElement (info);
 			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
 			item.AddDocumentationProvider (this);
 			item.AddKind (xmlCompletionItemKind);
-			item.Properties.AddProperty (typeof (BaseSymbol), info);
+			item.Properties.AddProperty (typeof (ISymbol), info);
 			return item;
 		}
 
@@ -171,7 +171,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return GetPackageDocumentationAsync (context.doc, packageSearchResult.Item1, packageSearchResult.Item2, token);
 			}
 
-			if (item.Properties.TryGetProperty<BaseSymbol> (typeof (BaseSymbol), out var info) && info != null) {
+			if (item.Properties.TryGetProperty<ISymbol> (typeof (ISymbol), out var info) && info != null) {
 				return provider.DisplayElementFactory.GetInfoTooltipElement (
 					session.TextView.TextBuffer, context.doc, info, context.rr, token
 				);
@@ -405,13 +405,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (
 			IAsyncCompletionSession session,
-			VariableInfo info, TriggerState triggerState, ListKind listKind,
+			ITypedSymbol valueSymbol, TriggerState triggerState, ListKind listKind,
 			int triggerLength, ExpressionNode triggerExpression,
 			IReadOnlyList<ExpressionNode> comparandVariables,
 			MSBuildResolveResult rr, SnapshotPoint triggerLocation,
 			MSBuildRootDocument doc, CancellationToken token)
 		{
-			var kind = info.InferValueKindIfUnknown ();
+			var kind = valueSymbol.InferValueKindIfUnknown ();
 
 			if (!ValidateListPermitted (listKind, kind)) {
 				return CompletionContext.Empty;
@@ -439,7 +439,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					if (triggerExpression is ExpressionText t) {
-						var packageType = info.CustomType?.Values[0].Name;
+						var packageType = valueSymbol.CustomType?.Values[0].Name;
 						var packageNameItems = await GetPackageNameCompletions (session, doc, t.Value, packageType, token);
 						if (packageNameItems != null) {
 							items.AddRange (packageNameItems);
@@ -471,9 +471,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			//TODO: better metadata support
-			IEnumerable<BaseSymbol> cinfos;
-			if (info.CustomType != null && info.CustomType.Values.Count > 0 && isValue) {
-				cinfos = info.CustomType.Values;
+			IEnumerable<ISymbol> cinfos;
+			if (valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
+				cinfos = valueSymbol.CustomType.Values;
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);

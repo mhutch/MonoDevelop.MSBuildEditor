@@ -28,6 +28,9 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
 
+using IRoslynSymbol = Microsoft.CodeAnalysis.ISymbol;
+using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
+
 namespace MonoDevelop.MSBuild.Editor
 {
 	[Export, PartCreationPolicy (CreationPolicy.Shared)]
@@ -39,7 +42,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[Import]
 		MSBuildNavigationService NavigationService { get; set; }
 
-		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, BaseInfo info, MSBuildResolveResult rr, CancellationToken token)
+		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -57,7 +60,7 @@ namespace MonoDevelop.MSBuild.Editor
 			var elements = new List<object> { nameElement };
 
 			switch (info.Description.DisplayElement) {
-			case ISymbol symbol:
+			case IRoslynSymbol symbol:
 				await AddSymbolDescriptionElements (symbol, elements.Add, token);
 				break;
 			case object obj:
@@ -95,7 +98,7 @@ namespace MonoDevelop.MSBuild.Editor
 				: new ContainerElement (ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
 		}
 
-		static ClassifiedTextElement GetDeprecationMessage (BaseInfo info)
+		static ClassifiedTextElement GetDeprecationMessage (ISymbol info)
 		{
 			if (info is VariableInfo val && val.IsDeprecated) {
 				var msg = string.IsNullOrEmpty (val.DeprecationMessage) ? "Deprecated" : $"Deprecated: {val.DeprecationMessage}";
@@ -104,7 +107,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		public ClassifiedTextElement GetNameElement (BaseInfo info)
+		public ClassifiedTextElement GetNameElement (ISymbol info)
 		{
 			var label = DescriptionFormatter.GetTitle (info);
 			if (label.kind == null) {
@@ -154,7 +157,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return new ClassifiedTextElement (runs);
 		}
 
-		ContainerElement GetSeenInElement (ITextBuffer buffer, MSBuildResolveResult rr, BaseInfo info, MSBuildRootDocument doc)
+		ContainerElement GetSeenInElement (ITextBuffer buffer, MSBuildResolveResult rr, ISymbol info, MSBuildRootDocument doc)
 		{
 			var seenIn = doc.GetFilesSeenIn (info).ToList ();
 			if (seenIn.Count == 0) {
@@ -287,7 +290,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		public ImageElement GetImageElement (BaseInfo info)
+		public ImageElement GetImageElement (ISymbol info)
 		{
 			var id = GetKnownImageIdForInfo (info, false);
 			return id.HasValue ? new ImageElement (id.Value.ToImageId ()) : null;
@@ -306,7 +309,7 @@ namespace MonoDevelop.MSBuild.Editor
 			}
 		}
 
-		static KnownImages? GetKnownImageIdForInfo (BaseInfo info, bool isPrivate)
+		static KnownImages? GetKnownImageIdForInfo (ISymbol info, bool isPrivate)
 		{
 			switch (info) {
 			case MSBuildElementSyntax el:
@@ -318,23 +321,23 @@ namespace MonoDevelop.MSBuild.Editor
 					return KnownImages.IntellisenseKeyword;
 				}
 				break;
-			case ItemInfo _:
+			case ItemInfo:
 				return isPrivate ? KnownImages.MSBuildItemPrivate : KnownImages.MSBuildItem;
-			case PropertyInfo _:
+			case PropertyInfo:
 				return isPrivate ? KnownImages.MSBuildPropertyPrivate : KnownImages.MSBuildProperty;
-			case TargetInfo _:
+			case TargetInfo:
 				return isPrivate ? KnownImages.MSBuildTargetPrivate : KnownImages.MSBuildTarget;
-			case MetadataInfo _:
+			case MetadataInfo:
 				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
-			case TaskInfo _:
+			case TaskInfo:
 				return KnownImages.MSBuildTask;
-			case ConstantInfo _:
+			case ConstantSymbol:
 				return KnownImages.MSBuildConstant;
 			case FileOrFolderInfo value:
 				return value.IsFolder ? KnownImages.FolderClosed : KnownImages.GenericFile;
-			case FrameworkInfo _:
+			case FrameworkInfo:
 				return KnownImages.MSBuildFrameworkId;
-			case TaskParameterInfo _:
+			case TaskParameterInfo:
 				return KnownImages.MSBuildTaskParameter;
 			case FunctionInfo fi:
 				if (fi.IsProperty) {
@@ -348,7 +351,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		static Task AddSymbolDescriptionElements (ISymbol symbol, Action<ClassifiedTextElement> add, CancellationToken token)
+		static Task AddSymbolDescriptionElements (IRoslynSymbol symbol, Action<ClassifiedTextElement> add, CancellationToken token)
 		{
 			return Task.Run (() => {
 				try {
