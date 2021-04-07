@@ -75,7 +75,11 @@ namespace MonoDevelop.MSBuild.Language
 
 			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (doc, this);
-			import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
+			try {
+				import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
+			} catch (Exception ex) {
+				LoggingService.LogError ($"Error loading schema for '{import.Filename}'", ex);
+			}
 
 			return import;
 		}
