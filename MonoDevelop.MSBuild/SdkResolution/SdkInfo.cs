@@ -9,9 +9,9 @@ namespace MonoDevelop.MSBuild.SdkResolution
 {
 	public class SdkInfo
 	{
-		internal SdkInfo (SdkResult result)
+		internal SdkInfo (string name, SdkResult result)
 		{
-			Name = result.SdkReference.Name;
+			Name = name;
 			Version = result.Version;
 			Path = result.Path;
 			AdditionalPaths = result.AdditionalPaths;

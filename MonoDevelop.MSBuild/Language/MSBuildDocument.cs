@@ -153,7 +153,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (import != null) {
-					if (sdkInfo.AdditionalPaths == null || sdkInfo.AdditionalPaths.Count == 0) {
+					if (sdkInfo.AdditionalPaths != null && sdkInfo.AdditionalPaths.Count > 0) {
 						import = new ExpressionNode[sdkInfo.AdditionalPaths.Count + 1];
 						for (int i = 0; i < sdkInfo.AdditionalPaths.Count; i++) {
 							import[i+1] = new ExpressionText (0, Path.Combine (sdkInfo.AdditionalPaths[i], importTxt), true);

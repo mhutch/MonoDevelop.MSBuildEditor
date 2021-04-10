@@ -56,7 +56,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 						var result = (SdkResultImpl)sdkResolver.Resolve (sdk, context, resultFactory);
 						if (result != null && result.Success) {
 							LogWarnings (logger, buildEventContext, projectFile, result);
-							return new SdkInfo(result);
+							return new SdkInfo(sdk.Name, result);
 						}
 
 						if (result != null)
