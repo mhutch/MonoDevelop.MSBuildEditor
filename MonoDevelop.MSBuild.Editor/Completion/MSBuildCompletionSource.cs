@@ -376,9 +376,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					AddSdksFromDir (sdksPath);
 				}
 
-				var dotNetSdkPath = doc.RuntimeInformation.GetSdkPath (("Microsoft.NET.Sdk", null, null), null, null);
-				if (dotNetSdkPath != null) {
-					dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (dotNetSdkPath));
+				var dotNetSdk= doc.RuntimeInformation.ResolveSdk (("Microsoft.NET.Sdk", null, null), null, null);
+				if (dotNetSdk != null) {
+					string dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (dotNetSdk.Path));
 					if (sdksPath == null || Path.GetFullPath (dotNetSdkPath) != Path.GetFullPath (sdksPath)) {
 						AddSdksFromDir (dotNetSdkPath);
 					}
