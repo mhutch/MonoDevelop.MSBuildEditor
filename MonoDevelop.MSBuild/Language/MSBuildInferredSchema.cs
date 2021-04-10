@@ -70,7 +70,11 @@ namespace MonoDevelop.MSBuild.Language
 		public static MSBuildInferredSchema Build (MSBuildProjectElement project, string filename, bool isToplevel, MSBuildParserContext parseContext)
 		{
 			var schema = new MSBuildInferredSchema (filename, isToplevel);
-			schema.Build (project, parseContext);
+			try {
+				schema.Build (project, parseContext);
+			} catch (Exception ex) {
+				LoggingService.LogError ($"Error in schema inference for {filename}", ex);
+			}
 			return schema;
 		}
 
