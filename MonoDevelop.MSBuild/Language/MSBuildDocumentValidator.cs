@@ -262,7 +262,7 @@ namespace MonoDevelop.MSBuild.Language
 					var taskFactoryName = taskFactoryAtt.Value?.ToLowerInvariant ();
 					switch (taskFactoryName) {
 					case "codetaskfactory":
-						if (string.Equals (asmFileAtt.Value, "$(RoslynCodeTaskFactory)")) {
+						if (string.Equals (asmFileAtt?.Value, "$(RoslynCodeTaskFactory)")) {
 							goto case "roslyncodetaskfactory";
 						}
 						break;

@@ -76,10 +76,6 @@ namespace MonoDevelop.MSBuild.Language
 
 		void Build (MSBuildElement element, MSBuildParserContext parseContext)
 		{
-			foreach (var child in element.Elements) {
-				Build (child, parseContext);
-			}
-
 			switch (element.SyntaxKind) {
 			case MSBuildSyntaxKind.Item:
 				CollectItem (element.ElementName, ReferenceUsage.Write);
@@ -123,6 +119,10 @@ namespace MonoDevelop.MSBuild.Language
 				if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
 					CollectMetadata (element.ElementName, att.Name, ReferenceUsage.Write);
 				}
+			}
+
+			foreach (var child in element.Elements) {
+				Build (child, parseContext);
 			}
 		}
 
