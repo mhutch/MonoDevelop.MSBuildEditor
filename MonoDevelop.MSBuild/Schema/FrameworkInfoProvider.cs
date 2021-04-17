@@ -16,8 +16,8 @@ namespace MonoDevelop.MSBuild.Schema
 	class FrameworkInfoProvider
 	{
 		public static FrameworkInfoProvider Instance { get; } = new FrameworkInfoProvider ();
+		private static readonly Regex net50Regex = new Regex ("^net5\\.0(-[a-z0-9.]+)?$");
 
-		readonly Regex net50Regex = new Regex ("^net5\\.0(-[a-z0-9.]+)?$");
 		readonly List<IdentifierInfo> frameworks = new List<IdentifierInfo> ();
 		readonly Dictionary<string,(IdentifierInfo,VersionInfo)> frameworkByShortName = new Dictionary<string,(IdentifierInfo, VersionInfo)> ();
 		readonly Dictionary<string,IdentifierInfo> frameworkByMoniker = new Dictionary<string,IdentifierInfo> ();
