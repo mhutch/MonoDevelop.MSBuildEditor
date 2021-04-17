@@ -82,7 +82,7 @@ namespace MonoDevelop.MSBuildEditor
 					registeredSdks.Add (
 						new SdkInfo (
 							name,
-							new MSBuild.SdkResolution.SdkVersion (),
+							version.ToString (),
 							path
 						)
 					);
