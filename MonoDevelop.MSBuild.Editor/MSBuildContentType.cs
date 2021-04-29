@@ -37,36 +37,6 @@ namespace MonoDevelop.MSBuild.Editor
 		internal static FileExtensionToContentTypeDefinition MSBuildOverrideTasksFileExtensionDefinition;
 
 		[Export]
-		[FileExtension (".csproj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildCSProjFileExtensionDefinition;
-
-		[Export]
-		[FileExtension (".vbproj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildVBProjFileExtensionDefinition;
-
-		[Export]
-		[FileExtension (".fsproj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildFSProjFileExtensionDefinition;
-
-		[Export]
-		[FileExtension (".xproj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildXProjFileExtensionDefinition;
-
-		[Export]
-		[FileExtension (".vcxproj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildVCXProjFileExtensionDefinition;
-
-		[Export]
-		[FileExtension (".proj")]
-		[ContentType (Name)]
-		internal static FileExtensionToContentTypeDefinition MSBuildProjFileExtensionDefinition;
-
-		[Export]
 		[FileExtension (".user")]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildUserFileExtensionDefinition;
