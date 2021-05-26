@@ -50,6 +50,9 @@
     <Compile Include="Analysis\IWpfDifferenceViewerExtensions.cs" />
     <Compile Include="Analysis\WpfMSBuildSuggestedAction.cs" />
     <Compile Include="Analysis\WpfDifferenceViewElementFactory.cs" />
+    <Compile Include="OpenProjectFile\EditProjectFileCommand.cs" />
+    <Compile Include="OpenProjectFile\MSBuildEditorFactory.cs" />
+    <Compile Include="OpenProjectFile\OpenProjectEditorOnDefaultActionCommand.cs" />
     <Compile Include="RoslynFindReferences\DependencyObjectExtensions.cs" />
     <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />
     <Compile Include="MSBuildLanguageService.cs" />

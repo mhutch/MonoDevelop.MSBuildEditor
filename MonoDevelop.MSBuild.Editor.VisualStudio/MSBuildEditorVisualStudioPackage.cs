@@ -34,6 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".vcxproj")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".proj")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".user")]
+	[ProvideEditorFactory (typeof (MSBuildEditorFactory), 1, CommonPhysicalViewAttributes = 0x2, TrustLevel = Microsoft.VisualStudio.Shell.Interop.__VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
 	public sealed class MSBuildEditorVisualStudioPackage : AsyncPackage
 	{
 		public const string PackageGuidString = "6c7bd60d-5321-4fb0-8684-9736003d64ad";
@@ -41,6 +42,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		public const string LanguageServiceKey = @"Languages\Language Services\" + LanguageServiceName;
 
 		protected override Task InitializeAsync (CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
-			=> Task.CompletedTask;
+		{
+			RegisterEditorFactory (new MSBuildEditorFactory (this));
+			return Task.CompletedTask;
+		}
 	}
 }
