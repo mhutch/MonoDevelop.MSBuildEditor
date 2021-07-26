@@ -20,6 +20,8 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	static class MSBuildCompletionExtensions
 	{
+		public const string WorkloadAutoImportPropsLocatorName = "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator";
+
 		public static IEnumerable<ISymbol> GetAttributeCompletions (this MSBuildResolveResult rr, IEnumerable<IMSBuildSchema> schemas, MSBuildToolsVersion tv)
 		{
 			bool isInTarget = false;
@@ -226,16 +228,28 @@ namespace MonoDevelop.MSBuild.Schema
 
 			string baseDir = null;
 
-			if (rr.AttributeSyntax != null && rr.AttributeSyntax.SyntaxKind == MSBuildSyntaxKind.Import_Project) {
-				if (rr.Element != null) {
-					var sdkAtt = rr.Element.Attributes.Get ("Sdk", true)?.Value;
-					if (!string.IsNullOrEmpty (sdkAtt) && Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
-						var sdkInfo = doc.RuntimeInformation.ResolveSdk (
-							(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null);
-						if (sdkInfo != null) {
-							baseDir = sdkInfo.Path;
-						}
-					}
+			if (rr.AttributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Import_Project && rr.Element != null) {
+
+				var sdkAtt = rr.Element.Attributes.Get ("Sdk", true)?.Value;
+				if (string.IsNullOrEmpty (sdkAtt) || !Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
+					// if there's an invalid SDK attribute, don't try to provide path completion, it'll be wrong
+					return null;
+				}
+
+				if (string.Equals(sdkAtt, WorkloadAutoImportPropsLocatorName, StringComparison.OrdinalIgnoreCase)) {
+					return new[] { new FileOrFolderInfo ("AutoImport.props", false, "Auto-imported workload properties") };
+				}
+
+				var sdkInfo = doc.RuntimeInformation.ResolveSdk (
+					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null);
+
+				// only do path completion for single-path SDKs
+				// handling multiple value correctly would involve computing the files that exists in all paths
+				// only known case of sdkInfo.Paths with multiple values anyways is WorkloadAutoImportPropsLocator, handled explicitly above
+				if (sdkInfo?.Path is string sdkPath && sdkInfo.Paths.Count == 1) {
+					baseDir = sdkPath;
+				} else {
+					return null;
 				}
 			}
 

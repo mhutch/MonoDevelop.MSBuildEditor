@@ -13,6 +13,7 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -98,7 +99,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var importResolver = context.CreateImportResolver (Filename);
 
-			AddSdkProps (sdks, context.PropertyCollector, importResolver);
+			AddSdkImports ("Sdk.props", sdks, context.PropertyCollector, importResolver);
 
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
 			{
@@ -125,25 +126,37 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			AddSdkTargets (sdks, context.PropertyCollector, importResolver);
+			AddSdkImports("Sdk.targets", sdks, context.PropertyCollector, importResolver);
 		}
 
 		void ResolveImport (MSBuildImportElement element, MSBuildParserContext parseContext, MSBuildImportResolver importResolver)
 		{
 			var importAtt = element.ProjectAttribute;
-			var sdkAtt = element.SdkAttribute;
 
-			ExpressionNode[] import = null;
+			ExpressionNode importPath = null;
 			string importTxt = null;
 
 			if (importAtt?.Value != null) {
-				import = new ExpressionNode[] { importAtt.Value };
+				importPath = importAtt.Value;
 				importTxt = importAtt.XAttribute.Value;
 			}
 
-			if (sdkAtt?.Value is ExpressionText sdkTxt) {
+			SdkInfo sdkInfo = null;
+			string sdkString = null;
+
+			if (element.SdkAttribute is MSBuildAttribute sdkAtt && sdkAtt.Value is ExpressionText sdkTxt) {
 				var loc = sdkAtt.XAttribute.ValueSpan;
-				var sdkInfo = parseContext.ResolveSdk (this, sdkTxt.Value, loc);
+
+				sdkString = sdkTxt.Value;
+
+				if (string.IsNullOrEmpty (sdkString)) {
+					if (IsToplevel) {
+						Diagnostics.Add (CoreDiagnostics.EmptySdkAttribute, sdkAtt.XAttribute.Span);
+					}
+					return;
+				}
+
+				sdkInfo = parseContext.ResolveSdk (this, sdkString, loc);
 
 				if (sdkInfo == null) {
 					if (IsToplevel) {
@@ -152,35 +165,47 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				if (import != null) {
-					if (sdkInfo.AdditionalPaths != null && sdkInfo.AdditionalPaths.Count > 0) {
-						import = new ExpressionNode[sdkInfo.AdditionalPaths.Count + 1];
-						for (int i = 0; i < sdkInfo.AdditionalPaths.Count; i++) {
-							import[i+1] = new ExpressionText (0, Path.Combine (sdkInfo.AdditionalPaths[i], importTxt), true);
-						}
+				if (string.Equals(sdkInfo.Name, MSBuildCompletionExtensions.WorkloadAutoImportPropsLocatorName, System.StringComparison.OrdinalIgnoreCase)) {
+					if (sdkInfo.Paths.Count == 0) {
+						return;
 					}
-					import[0] = new ExpressionText (0, Path.Combine (sdkInfo.Path, importTxt), true);
 				}
 
-				if (IsToplevel) {
-					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (sdkInfo.Path, loc));
+				foreach (var p in sdkInfo.Paths) {
+					Annotations.Add (sdkAtt.XAttribute, new NavigationAnnotation (p, loc));
 				}
 			}
 
-			if (import != null) {
-				bool wasResolved = false;
+			if (importPath != null) {
 				var loc = importAtt.XAttribute.ValueSpan;
-				foreach (var resolvedImport in import.SelectMany(imp => importResolver.Resolve (imp, importTxt, null))) {
-					AddImport (resolvedImport);
-					wasResolved |= resolvedImport.IsResolved;
-					if (IsToplevel && wasResolved) {
-						Annotations.Add (importAtt.XAttribute, new NavigationAnnotation (resolvedImport.Filename, loc));
+
+				foreach (var import in importResolver.Resolve (importPath, importTxt, sdkString, sdkInfo)) {
+					AddImport (import);
+
+					if (IsToplevel) {
+						if (import.IsResolved) {
+							Annotations.Add (importAtt.XAttribute, new NavigationAnnotation (import.Filename, loc));
+						} else {
+							ReportUnresolvedImport (import, loc, element.ConditionAttribute is not null);
+						}
 					}
 				}
-				if (!wasResolved && IsToplevel) {
-					DiagnosticSeverity type = element.ConditionAttribute == null ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-					Diagnostics.Add (CoreDiagnostics.UnresolvedImport, loc, importTxt);
-				}
+			}
+		}
+
+		void ReportUnresolvedImport (Import import, TextSpan location, bool isConditioned)
+		{
+			if (import.Sdk is not null) {
+				Diagnostics.Add (
+					isConditioned ? CoreDiagnostics.UnresolvedSdkImportConditioned : CoreDiagnostics.UnresolvedSdkImport,
+					location,
+					import.OriginalImport,
+					import.Sdk);
+			} else {
+				Diagnostics.Add (
+					isConditioned ? CoreDiagnostics.UnresolvedImportConditioned : CoreDiagnostics.UnresolvedImport,
+					location,
+					import.OriginalImport);
 			}
 		}
 
@@ -216,7 +241,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		IEnumerable<(string id, string path, TextSpan span)> ResolveSdks (MSBuildProjectElement project, MSBuildParserContext context)
+		IEnumerable<(string sdk, SdkInfo resolved, TextSpan span)> ResolveSdks (MSBuildProjectElement project, MSBuildParserContext context)
 		{
 			var sdksAtt = project.SdkAttribute?.XAttribute;
 			if (sdksAtt == null) {
@@ -242,20 +267,11 @@ namespace MonoDevelop.MSBuild.Language
 						continue;
 					}
 
-					yield return (sdk.id, sdkInfo.Path, sdk.span);
+					yield return (sdk.id, sdkInfo, sdk.span);
 
 					if (IsToplevel) {
-						Annotations.Add (sdksAtt, new NavigationAnnotation (sdkInfo.Path, sdk.span) { IsSdk = true });
-					}
-
-					if (sdkInfo.AdditionalPaths != null && sdkInfo.AdditionalPaths.Count > 0) {
-						foreach (var p in sdkInfo.AdditionalPaths) {
-							yield return (sdk.id, p, sdk.span);
-						}
-						if (IsToplevel) {
-							foreach (var p in sdkInfo.AdditionalPaths) {
-								Annotations.Add (sdksAtt, new NavigationAnnotation (p, sdk.span) { IsSdk = true });
-							}
+						foreach (var sdkPath in sdkInfo.Paths) {
+							Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span) { IsSdk = true });
 						}
 					}
 				}
@@ -268,22 +284,18 @@ namespace MonoDevelop.MSBuild.Language
 			Imports.Add (import);
 		}
 
-		void AddSdkProps (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
+		public void AddImport (IEnumerable<Import> imports)
 		{
-			foreach (var sdk in sdkPaths) {
-				var propsPath = $"{sdk.path}\\Sdk.props";
-				var sdkProps = importResolver.Resolve (new ExpressionText (0, propsPath, true), propsPath, sdk.id).FirstOrDefault ();
-				if (sdkProps != null) {
-					AddImport (sdkProps);
-				}
+			foreach (var import in imports) {
+				AddImport (import);
 			}
 		}
 
-		void AddSdkTargets (IEnumerable<(string id, string path, TextSpan loc)> sdkPaths, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
+		void AddSdkImports (string import, IEnumerable<(string id, SdkInfo resolved, TextSpan loc)> sdks, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
 		{
-			foreach (var sdk in sdkPaths) {
-				var targetsPath = $"{sdk.path}\\Sdk.targets";
-				var sdkTargets = importResolver.Resolve (new ExpressionText (0, targetsPath, true), targetsPath, sdk.id).FirstOrDefault ();
+			var importExpr = new ExpressionText (0, import, true);
+			foreach (var sdk in sdks) {
+				var sdkTargets = importResolver.Resolve (importExpr, import, sdk.id, sdk.resolved).FirstOrDefault ();
 				if (sdkTargets != null) {
 					AddImport (sdkTargets);
 				}

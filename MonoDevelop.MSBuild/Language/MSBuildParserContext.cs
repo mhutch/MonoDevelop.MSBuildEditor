@@ -85,7 +85,7 @@ namespace MonoDevelop.MSBuild.Language
 			return import;
 		}
 
-		public Import GetCachedOrParse (string importExpr, string resolvedFilename, string sdk, DateTime mtimeUtc)
+		public Import GetCachedOrParse (string importExpr, string resolvedFilename, string sdk, SdkInfo resolvedSdk, DateTime mtimeUtc)
 		{
 			var oldDoc = PreviousRootDocument;
 			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuild.Language
 				return oldImport;
 			}
 			//TODO: guard against cyclic imports
-			return ParseImport (new Import (importExpr, sdk, resolvedFilename, mtimeUtc));
+			return ParseImport (new Import (importExpr, sdk, resolvedFilename, resolvedSdk, mtimeUtc));
 		}
 
 		internal IEnumerable<Import> ResolveImport (
@@ -101,7 +101,8 @@ namespace MonoDevelop.MSBuild.Language
 			string thisFilePath,
 			ExpressionNode importExpr,
 			string importExprString,
-			string sdk)
+			string sdk,
+			SdkInfo resolvedSdk)
 		{
 			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
 			if (importExprString.IndexOf ("$(MSBuildUserExtensionsPath)", StringComparison.OrdinalIgnoreCase) > -1) {
@@ -114,7 +115,15 @@ namespace MonoDevelop.MSBuild.Language
 			bool foundAny = false;
 			bool isWildcard = false;
 
-			foreach (var filename in context.EvaluatePathWithPermutation (importExpr, Path.GetDirectoryName (thisFilePath))) {
+
+			IList<string> basePaths;
+			if (resolvedSdk != null) {
+				basePaths = resolvedSdk.Paths;
+			} else {
+				basePaths = new[] { Path.GetDirectoryName (thisFilePath) };
+			}
+
+			foreach (var filename in basePaths.SelectMany(basePath => context.EvaluatePathWithPermutation (importExpr, basePath))) {
 				if (string.IsNullOrEmpty (filename)) {
 					continue;
 				}
@@ -162,7 +171,7 @@ namespace MonoDevelop.MSBuild.Language
 					foreach (var f in files) {
 						Import wildImport;
 						try {
-							wildImport = GetCachedOrParse (importExprString, f, sdk, File.GetLastWriteTimeUtc (f));
+							wildImport = GetCachedOrParse (importExprString, f, sdk, resolvedSdk, File.GetLastWriteTimeUtc (f));
 						} catch (Exception ex) when (IsNotCancellation (ex)) {
 							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
 							continue;
@@ -179,7 +188,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importExprString, filename, sdk, fi.LastWriteTimeUtc);
+					import = GetCachedOrParse (importExprString, filename, sdk, resolvedSdk, fi.LastWriteTimeUtc);
 				} catch (Exception ex) when (IsNotCancellation (ex)) {
 					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
 					continue;
@@ -192,7 +201,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			//yield a placeholder for tooltips, imports pad etc to query
 			if (!foundAny) {
-				yield return new Import (importExprString, sdk, null, DateTime.MinValue);
+				yield return new Import (importExprString, sdk, null, resolvedSdk, DateTime.MinValue);
 			}
 
 			// we skip logging for wildcards as these are generally extensibility points that are often unused

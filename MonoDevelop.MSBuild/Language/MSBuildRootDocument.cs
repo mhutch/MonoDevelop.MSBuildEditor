@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Language
 				try {
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
-						var imp = parseContext.GetCachedOrParse (label, possibleFile, null, fi.LastWriteTimeUtc);
+						var imp = parseContext.GetCachedOrParse (label, possibleFile, null, null, fi.LastWriteTimeUtc);
 						doc.AddImport (imp);
 						return imp;
 					}
@@ -203,7 +203,7 @@ namespace MonoDevelop.MSBuild.Language
 		void LoadTasks (MSBuildParserContext context, string label, string filename)
 		{
 			try {
-				var import = context.GetCachedOrParse (label, filename, null, File.GetLastWriteTimeUtc (filename));
+				var import = context.GetCachedOrParse (label, filename, null, null, File.GetLastWriteTimeUtc (filename));
 				AddImport (import);
 			} catch (Exception ex) when (context.IsNotCancellation (ex)) {
 				LoggingService.LogError ($"Error loading tasks file {filename}", ex);

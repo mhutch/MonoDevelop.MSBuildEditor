@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -39,11 +37,32 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Error
 		);
 
-		public static MSBuildDiagnosticDescriptor UnresolvedImport = new MSBuildDiagnosticDescriptor (
+		public static readonly MSBuildDiagnosticDescriptor UnresolvedImportConditioned = new (
+			"UnresolvedImportConditioned",
+			"Could not resolve conditioned import",
+			"The conditioned import '{0}' could not be resolved",
+			MSBuildDiagnosticSeverity.Warning
+		);
+
+		public static readonly MSBuildDiagnosticDescriptor UnresolvedImport = new (
 			"UnresolvedImport",
 			"Could not resolve import",
 			"The import '{0}' could not be resolved",
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public static readonly MSBuildDiagnosticDescriptor UnresolvedSdkImportConditioned = new (
+			"UnresolvedSdkImportConditioned",
+			"Could not resolve conditioned SDK import",
+			"The conditioned import '{0}' could not be resolved from SDK path '{1}'",
 			MSBuildDiagnosticSeverity.Warning
+		);
+
+		public static readonly MSBuildDiagnosticDescriptor UnresolvedSdkImport = new (
+			"UnresolvedSdkImport",
+			"Could not resolve SDK import",
+			"The import '{0}' could not be resolved from SDK path '{1}'",
+			MSBuildDiagnosticSeverity.Error
 		);
 
 		public static MSBuildDiagnosticDescriptor UnresolvedSdk = new MSBuildDiagnosticDescriptor (

@@ -376,9 +376,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					AddSdksFromDir (sdksPath);
 				}
 
-				var dotNetSdk= doc.RuntimeInformation.ResolveSdk (("Microsoft.NET.Sdk", null, null), null, null);
-				if (dotNetSdk != null) {
-					string dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (dotNetSdk.Path));
+				var dotNetSdk = doc.RuntimeInformation.ResolveSdk (("Microsoft.NET.Sdk", null, null), null, null);
+				if (dotNetSdk?.Path is string sdkPath) {
+					string dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (sdkPath));
 					if (sdksPath == null || Path.GetFullPath (dotNetSdkPath) != Path.GetFullPath (sdksPath)) {
 						AddSdksFromDir (dotNetSdkPath);
 					}
@@ -398,9 +398,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					}
 				}
 
-					return items;
-				}, token);
-
+				return items;
+			}, token);
 		}
 
 		async Task<CompletionContext> GetExpressionCompletionsAsync (
@@ -566,8 +565,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var img = provider.DisplayElementFactory.GetImageElement (KnownImages.Sdk);
 			var item = new CompletionItem (info.Name, this, img);
+
 			//FIXME better tooltips for SDKs
-			item.AddDocumentation (info.Path);
+			if (info.Path is string sdkPath) {
+				item.AddDocumentation (sdkPath);
+			}
+
 			return item;
 		}
 

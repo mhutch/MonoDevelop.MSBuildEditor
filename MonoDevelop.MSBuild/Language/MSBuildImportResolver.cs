@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -26,7 +27,7 @@ namespace MonoDevelop.MSBuild.Language
 			this.fileEvalContext = fileEvalContext;
 		}
 
-		public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string sdk)
+		public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string sdkString, SdkInfo resolvedSdk)
 		{
 			fileEvalContext = fileEvalContext
 				?? new MSBuildFileEvaluationContext (
@@ -38,7 +39,8 @@ namespace MonoDevelop.MSBuild.Language
 				parentFilePath,
 				importExpr,
 				importExprString,
-				sdk);
+				sdkString,
+				resolvedSdk);
 		}
 	}
 }
