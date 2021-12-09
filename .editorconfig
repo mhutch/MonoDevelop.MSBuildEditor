@@ -57,6 +57,7 @@ dotnet_style_collection_initializer = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
+dotnet_diagnostic.VSTHRD200.severity=silent
 
 # CSharp code style settings:
 [*.cs]
@@ -76,6 +77,8 @@ csharp_new_line_before_members_in_anonymous_types = true
 
 # Switch indentation
 csharp_indent_switch_labels = false
+csharp_indent_case_contents=true
+csharp_indent_case_contents_when_block=false
 
 # Prefer "var" everywhere it's apparent
 csharp_style_var_when_type_is_apparent = true:suggestion
