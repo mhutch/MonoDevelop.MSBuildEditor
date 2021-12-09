@@ -24,8 +24,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[Import (typeof (MSBuildSchemaProvider), AllowDefault = true)]
 		public MSBuildSchemaProvider SchemaProvider { get; set; }
 
-		[Import (typeof (IRuntimeInformation), AllowDefault = true)]
-		public IRuntimeInformation RuntimeInformation { get; set; }
+		[Import (typeof (IMSBuildEnvironment), AllowDefault = true)]
+		public IMSBuildEnvironment MSBuildEnvironment { get; set; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 		{
@@ -38,18 +38,18 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
 			buffer.ContentTypeChanged += ContentTypeChanged;
 
-			var runtimeInfo = RuntimeInformation;
-			if (runtimeInfo == null) {
+			var env = MSBuildEnvironment;
+			if (env == null) {
 				try {
-					runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
+					env = new CurrentProcessMSBuildEnvironment ();
 				} catch (Exception ex) {
 					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
-					runtimeInfo = new NullRuntimeInformation ();
+					env = new NullMSBuildEnvironment ();
 				}
 			}
 			return new MSBuildBackgroundParser (
 				buffer,
-				runtimeInfo,
+				env,
 				SchemaProvider ?? new MSBuildSchemaProvider (),
 				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder ()
 			);

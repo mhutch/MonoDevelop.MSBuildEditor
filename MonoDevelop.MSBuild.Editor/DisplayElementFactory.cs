@@ -188,7 +188,7 @@ namespace MonoDevelop.MSBuild.Editor
 				//factor out some common prefixes into variables
 				//we do this instead of using the original string, as the result is simpler
 				//and easier to understand
-				shorten ??= CreateFilenameShortener (doc.RuntimeInformation);
+				shorten ??= CreateFilenameShortener (doc.Environment);
 				var replacement = shorten (path);
 				if (!replacement.HasValue) {
 					elements.Add (
@@ -250,25 +250,37 @@ namespace MonoDevelop.MSBuild.Editor
 		/// <summary>
 		/// Shortens filenames by extracting common prefixes into MSBuild properties. Returns null if the name could not be shortened in this way.
 		/// </summary>
-		public Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IRuntimeInformation runtimeInfo)
+		public Func<string, (string prefix, string remaining)?> CreateFilenameShortener (IMSBuildEnvironment environment)
 		{
-			var prefixes = GetPrefixes (runtimeInfo);
+			var prefixes = GetPrefixes (environment);
 			return s => GetLongestReplacement (s, prefixes);
 		}
 
-		static List<(string prefix, string subst)> GetPrefixes (IRuntimeInformation runtimeInfo)
+		static List<(string prefix, string subst)> GetPrefixes (IMSBuildEnvironment environment)
 		{
 			var list = new List<(string prefix, string subst)> {
-				(runtimeInfo.BinPath, "$(MSBuildBinPath)"),
-				(runtimeInfo.ToolsPath, "$(MSBuildToolsPath)")
+				(environment.ToolsPath, $"$({ReservedProperties.BinPath})")
 			};
-			foreach (var extPath in runtimeInfo.SearchPaths["MSBuildExtensionsPath"]) {
-				list.Add ((extPath, "$(MSBuildExtensionsPath)"));
+
+			AddSearchPath (ReservedProperties.ExtensionsPath);
+			AddSearchPath (ReservedProperties.ExtensionsPath32);
+			AddSearchPath (ReservedProperties.ExtensionsPath64);
+
+			void AddSearchPath(string propName) {
+				foreach (var extPath in environment.SearchPaths[propName]) {
+					list.Add ((extPath, $"$({propName})"));
+				}
 			}
-			var sdksPath = runtimeInfo.SdksPath;
-			if (sdksPath != null) {
-				list.Add ((sdksPath, "$(MSBuildSDKsPath)"));
+
+			AddProp (ReservedProperties.SDKsPath);
+
+			void AddProp (string propName)
+			{
+				if (environment.TryGetToolsetProperty (propName, out var propVal) && propVal is not null) {
+					list.Add ((propName, $"$({propVal})"));
+				}
 			}
+
 			return list;
 		}
 

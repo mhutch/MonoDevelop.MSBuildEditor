@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (value == null) {
 				return;
 			}
-			if (props.TryGetValue (name, out List<ExpressionNode> values)) {
+			if (props.TryGetValue (name, out List<ExpressionNode> values) || true) {
 				if (values == null) {
 					props [name] = values = new List<ExpressionNode> ();
 				}

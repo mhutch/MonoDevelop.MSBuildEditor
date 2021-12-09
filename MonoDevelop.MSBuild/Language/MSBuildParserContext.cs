@@ -13,7 +13,6 @@ using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -31,10 +30,10 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildSchemaProvider SchemaProvider { get; }
 		public CancellationToken Token { get; }
 		public MSBuildRuntimeEvaluationContext RuntimeEvaluationContext { get; }
-		public IRuntimeInformation RuntimeInformation { get; }
+		public IMSBuildEnvironment Environment { get; }
 
 		public MSBuildParserContext (
-			IRuntimeInformation runtimeInformation,
+			IMSBuildEnvironment env,
 			MSBuildRootDocument doc,
 			MSBuildRootDocument previous,
 			HashSet<string> importedFiles,
@@ -44,7 +43,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
-			RuntimeInformation = runtimeInformation;
+			Environment = env;
 			RootDocument = doc;
 			PreviousRootDocument = previous;
 			ImportedFiles = importedFiles;
@@ -54,7 +53,7 @@ namespace MonoDevelop.MSBuild.Language
 			SchemaProvider = schemaProvider;
 			Token = token;
 
-			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (runtimeInformation);
+			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env);
 		}
 
 		public bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && Token.IsCancellationRequested);
@@ -235,7 +234,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var sdkInfo = RuntimeInformation.ResolveSdk (
+				var sdkInfo = Environment.ResolveSdk (
 					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null);
 				if (sdk != null) {
 					return sdkInfo;

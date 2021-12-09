@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Text;
 
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -37,7 +36,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
 					return null;
 				}
-				if (context.TryGetProperty (prop.Name, out var value)) {
+				if (context.TryGetProperty (prop.Name, out var v) && v is MSBuildPropertyValue value) {
 					return Evaluate (context, value.Value, depth + 1);
 				}
 				return null;
@@ -55,7 +54,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 							LoggingService.LogWarning ("Only simple properties are supported in imports");
 							return null;
 						}
-						if (context.TryGetProperty (p.Name, out var value)) {
+						if (context.TryGetProperty (p.Name, out var v) && v is MSBuildPropertyValue value) {
 							sb.Append (Evaluate (context, value.Value, depth + 1));
 						}
 						continue;
@@ -122,11 +121,12 @@ namespace MonoDevelop.MSBuild.Evaluation
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
 					break;
 				}
-				if (context.TryGetProperty (prop.Name, out var value)) {
+				if (context.TryGetProperty (prop.Name, out var p) && p is MSBuildPropertyValue value) {
 					if (value.HasMultipleValues) {
 						if (value.IsCollapsed) {
 							foreach (var v in value.GetValues ()) {
-								yield return prefix + ((ExpressionText)v).Value;
+								var evaluated = prefix + ((ExpressionText)v).Value;
+								yield return evaluated;
 							}
 						} else {
 							foreach (var v in value.GetValues ()) {
@@ -137,7 +137,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 						}
 					} else {
 						if (value.IsCollapsed) {
-							yield return prefix + ((ExpressionText)value.Value).Value;
+							var evaluated = prefix + ((ExpressionText)value.Value).Value;
+							yield return evaluated;
 						} else {
 							foreach (var evaluated in EvaluateWithPermutation (context, prefix, value.Value, depth + 1)) {
 								yield return evaluated;
@@ -145,7 +146,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 						}
 					}
 					break;
-				} else {
+				} else if (prefix != null) {
 					yield return prefix;
 				}
 				yield break;

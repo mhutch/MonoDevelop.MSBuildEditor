@@ -203,7 +203,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext)
 		{
-			if (!evaluationContext.TryGetProperty ("MSBuildBinPath", out var binPathProp)) {
+			if (!(evaluationContext.TryGetProperty (ReservedProperties.BinPath, out var v) && v is MSBuildPropertyValue binPathProp)) {
 				LoggingService.LogError ("Task resolver could not get MSBuildBinPath value from evaluationContext");
 				return null;
 			}

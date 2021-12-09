@@ -27,11 +27,11 @@ namespace MonoDevelop.MSBuild.Language
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; internal set; }
-		public IRuntimeInformation RuntimeInformation { get; private set; }
+		public IMSBuildEnvironment Environment { get; private set; }
 
 		public IMSBuildEvaluationContext FileEvaluationContext { get; private set; }
 
-		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), RuntimeInformation = new NullRuntimeInformation () };
+		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), Environment = new NullMSBuildEnvironment () };
 
 		public MSBuildRootDocument (string filename) : base (filename, true)
 		{
@@ -48,7 +48,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static MSBuildRootDocument Parse (
 			ITextSource textSource, string filePath, MSBuildRootDocument previous,
-			MSBuildSchemaProvider schemaProvider, IRuntimeInformation runtimeInfo,
+			MSBuildSchemaProvider schemaProvider, IMSBuildEnvironment environment,
 			ITaskMetadataBuilder taskBuilder,
 			CancellationToken token)
 		{
@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Language
 			var doc = new MSBuildRootDocument (filePath) {
 				XDocument = xdocument,
 				Text = textSource,
-				RuntimeInformation = runtimeInfo
+				Environment = environment
 			};
 
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
@@ -75,7 +75,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var parseContext = new MSBuildParserContext (
-				runtimeInfo,
+				environment,
 				doc,
 				previous,
 				importedFiles,
@@ -161,11 +161,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var binpath = parseContext.RuntimeInformation.BinPath;
-				foreach (var t in Directory.GetFiles (binpath, "*.tasks")) {
+				var env = parseContext.Environment;
+				foreach (var t in env.EnumerateFilesInToolsPath("*.tasks")) {
 					doc.LoadTasks (parseContext, "(core tasks)", t);
 				}
-				foreach (var t in Directory.GetFiles (binpath, "*.overridetasks")) {
+				foreach (var t in env.EnumerateFilesInToolsPath ("*.overridetasks")) {
 					doc.LoadTasks (parseContext, "(core overridetasks)", t);
 				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {

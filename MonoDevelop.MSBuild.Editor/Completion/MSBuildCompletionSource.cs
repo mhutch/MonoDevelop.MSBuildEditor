@@ -364,19 +364,19 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				var items = new List<CompletionItem> ();
 				var sdks = new HashSet<string> ();
 
-				foreach (var sdk in doc.RuntimeInformation.GetRegisteredSdks ()) {
+				foreach (var sdk in doc.Environment.GetRegisteredSdks ()) {
 					if (sdks.Add (sdk.Name)) {
 						items.Add (CreateSdkCompletionItem (sdk));
 					}
 				}
 
 				//FIXME we should be able to cache these
-				var sdksPath = doc.RuntimeInformation.SdksPath;
+				doc.Environment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath);
 				if (sdksPath != null) {
 					AddSdksFromDir (sdksPath);
 				}
 
-				var dotNetSdk = doc.RuntimeInformation.ResolveSdk (("Microsoft.NET.Sdk", null, null), null, null);
+				var dotNetSdk = doc.Environment.ResolveSdk (("Microsoft.NET.Sdk", null, null), null, null);
 				if (dotNetSdk?.Path is string sdkPath) {
 					string dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (sdkPath));
 					if (sdksPath == null || Path.GetFullPath (dotNetSdkPath) != Path.GetFullPath (sdksPath)) {

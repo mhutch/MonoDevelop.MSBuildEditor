@@ -171,7 +171,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
 		{
-			var runtimeInfo = new MSBuildEnvironmentRuntimeInformation ();
+			var runtimeInfo = new CurrentProcessMSBuildEnvironment ();
 			var textSource = new StringTextSource (contents);
 			var schemaProvider = new MSBuildSchemaProvider ();
 			var taskBuilder = new NoopTaskMetadataBuilder ();
@@ -225,7 +225,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 		IEnumerator IEnumerable.GetEnumerator () => properties.GetEnumerator ();
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue value)
+		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
 		{
 			if (properties.TryGetValue (name, out var val)) {
 				value = val;

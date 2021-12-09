@@ -8,19 +8,23 @@ using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class NullRuntimeInformation : IRuntimeInformation
+	class NullMSBuildEnvironment : IMSBuildEnvironment
 	{
+		public Version EngineVersion => new(0, 0);
+
 		public string ToolsVersion => MSBuildToolsVersion.Unknown.ToVersionString ();
 
-		public string BinPath => throw new NotImplementedException ();
+		public string ToolsPath => null;
 
-		public string ToolsPath => throw new NotImplementedException ();
+		public bool TryGetToolsetProperty (string propertyName, out string value)
+		{
+			value = null;
+			return false;
+		}
 
 		public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; } = new Dictionary<string, IReadOnlyList<string>> ();
 
-		public string SdksPath => null;
-
-		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkResolution.SdkInfo> ();
+		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
 		public SdkInfo ResolveSdk (
 			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath

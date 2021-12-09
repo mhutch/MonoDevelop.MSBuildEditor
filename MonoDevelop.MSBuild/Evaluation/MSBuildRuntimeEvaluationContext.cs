@@ -18,56 +18,56 @@ namespace MonoDevelop.MSBuild.Evaluation
 		readonly Dictionary<string, MSBuildPropertyValue> values
 			= new Dictionary<string, MSBuildPropertyValue> (StringComparer.OrdinalIgnoreCase);
 
-		public MSBuildRuntimeEvaluationContext (IRuntimeInformation runtime)
+		readonly IMSBuildEnvironment env;
+
+		public MSBuildRuntimeEvaluationContext (IMSBuildEnvironment env)
 		{
-			if (runtime is Editor.Completion.NullRuntimeInformation) {
+			this.env = env;
+
+			if (env is Editor.Completion.NullMSBuildEnvironment) {
 				return;
 			}
 
-			string binPath = MSBuildEscaping.ToMSBuildPath (runtime.BinPath);
-			string toolsPath = MSBuildEscaping.ToMSBuildPath (runtime.ToolsPath);
+			string toolsPath = MSBuildEscaping.ToMSBuildPath (env.ToolsPath);
 
-			Convert ("MSBuildExtensionsPath");
-			Convert ("MSBuildExtensionsPath32");
-			Convert ("MSBuildExtensionsPath64");
+			values[ReservedProperties.BinPath] = toolsPath;
+			values[ReservedProperties.ToolsPath] = toolsPath;
 
-			void Convert (string name)
+			ConvertSearchPaths (ReservedProperties.ExtensionsPath);
+			ConvertSearchPaths (ReservedProperties.ExtensionsPath32);
+			ConvertSearchPaths (ReservedProperties.ExtensionsPath64);
+
+			void ConvertSearchPaths (string name)
 			{
-				if (runtime.SearchPaths.TryGetValue (name, out var vals)) {
+				if (env.SearchPaths.TryGetValue (name, out var vals)) {
 					values[name] = new MSBuildPropertyValue (vals.Select (v => ExpressionParser.Parse (v, ExpressionOptions.ItemsMetadataAndLists)).ToArray ());
 				}
 			}
 
-			values["MSBuildBinPath"] = binPath;
-			values["MSBuildToolsPath"] = toolsPath;
-			values["MSBuildToolsPath32"] = toolsPath;
-			values["MSBuildToolsPath64"] = toolsPath;
-			values["RoslynTargetsPath"] = $"{binPath}\\Roslyn";
-			values["MSBuildToolsVersion"] = runtime.ToolsVersion;
-			values["VisualStudioVersion"] = "15.0";
+			values[ReservedProperties.ToolsVersion] = env.ToolsVersion;
+			values[ReservedProperties.VisualStudioVersion] = "17.0";
 
-			values["MSBuildProgramFiles32"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
-			values["MSBuildProgramFiles64"] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
-
-			var defaultSdksPath = runtime.SdksPath;
-			if (defaultSdksPath != null) {
-				values["MSBuildSDKsPath"] = MSBuildEscaping.ToMSBuildPath (defaultSdksPath, null);
-			}
-
-			//these are read from a config file and may be described in terms of other properties
-			void Collapse (string name)
-			{
-				if (values.TryGetValue (name, out var val)) {
-					values["name"] = val.Collapse (this);
-				}
-
-			}
-
-			Collapse ("MSBuildExtensionsPath");
-			Collapse ("MSBuildExtensionsPath32");
-			Collapse ("MSBuildExtensionsPath64");
+			values[ReservedProperties.ProgramFiles32] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
+			values[ReservedProperties.ProgramFiles64] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue value) => values.TryGetValue (name, out value);
+		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		{
+			if (values.TryGetValue(name, out var existingVal)) {
+				value = existingVal;
+				return true;
+			}
+
+			if (env.TryGetToolsetProperty (name, out var propVal) && propVal is not null) {
+				var escPropVal = MSBuildEscaping.ToMSBuildPath (propVal);
+				values[name] = escPropVal;
+				value = escPropVal;
+
+				return true;
+			}
+
+			value = default;
+			return false;
+		}
 	}
 }

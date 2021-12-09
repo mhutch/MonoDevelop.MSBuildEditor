@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var treeParser = new XmlTreeParser (new XmlRootState ());
 			var (xdoc, _) = treeParser.Parse (textDoc.CreateReader ());
 			var parseContext = new MSBuildParserContext (
-				new NullRuntimeInformation (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, null, default);
+				new TestMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, null, default);
 			var doc = CreateEmptyDocument ();
 			doc.Build (xdoc, parseContext);
 

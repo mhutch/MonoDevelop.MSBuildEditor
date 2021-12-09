@@ -35,7 +35,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				"FakeProject.csproj",
 				null,
 				host.GetService<MSBuildSchemaProvider> (),
-				host.GetService<IRuntimeInformation> (),
+				host.GetService<IMSBuildEnvironment> (),
 				host.GetService<ITaskMetadataBuilder> (),
 				token);
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MonoDevelop.MSBuild.Language;
@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			this.fileContext = fileContext;
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue value)
+		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
 		{
 			if (fileContext.TryGetProperty (name, out value)) {
 				return true;

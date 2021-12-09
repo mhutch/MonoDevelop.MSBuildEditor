@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		//FIXME: move this to a lower priority BackgroundProcessor
 		MSBuildAnalyzerDriver analyzerDriver;
 
-		public IRuntimeInformation RuntimeInformation { get; }
+		public IMSBuildEnvironment RuntimeInformation { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
 		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
 
@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public MSBuildBackgroundParser (
 			ITextBuffer buffer,
-			IRuntimeInformation runtimeInformation,
+			IMSBuildEnvironment runtimeInformation,
 			MSBuildSchemaProvider schemaProvider,
 			ITaskMetadataBuilder taskMetadataBuilder)
 		{

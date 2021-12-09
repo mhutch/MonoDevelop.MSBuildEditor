@@ -27,12 +27,12 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			// this file path properties
 			if (thisFilePath != null) {
-				values["MSBuildThisFile"] = MSBuildEscaping.EscapeString (Path.GetFileName (thisFilePath));
-				values["MSBuildThisFileDirectory"] = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName (thisFilePath)) + "\\";
+				values[ReservedProperties.ThisFile] = MSBuildEscaping.EscapeString (Path.GetFileName (thisFilePath));
+				values[ReservedProperties.ThisFileDirectory] = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName (thisFilePath)) + "\\";
 				//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
-				values["MSBuildThisFileExtension"] = MSBuildEscaping.EscapeString (Path.GetExtension (thisFilePath));
-				values["MSBuildThisFileFullPath"] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath (thisFilePath));
-				values["MSBuildThisFileName"] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath));
+				values[ReservedProperties.ThisFileExtension] = MSBuildEscaping.EscapeString (Path.GetExtension (thisFilePath));
+				values[ReservedProperties.ThisFileFullPath] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath (thisFilePath));
+				values[ReservedProperties.ThisFileName] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath));
 			}
 
 			if (projectPath == null) {
@@ -41,23 +41,29 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			// project path properties
 			string escapedProjectDir = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName(projectPath));
-			values["MSBuildProjectDirectory"] = escapedProjectDir;
+			values[ReservedProperties.ProjectDirectory] = escapedProjectDir;
 			// "MSBuildProjectDirectoryNoRoot" is this actually used for anything?
-			values["MSBuildProjectExtension"] = MSBuildEscaping.EscapeString (Path.GetExtension (projectPath));
-			values["MSBuildProjectFile"] = MSBuildEscaping.EscapeString (Path.GetFileName (projectPath));
-			values["MSBuildProjectFullPath"] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath(projectPath));
-			values["MSBuildProjectName"] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (projectPath));
+			values[ReservedProperties.ProjectExtension] = MSBuildEscaping.EscapeString (Path.GetExtension (projectPath));
+			values[ReservedProperties.ProjectFile] = MSBuildEscaping.EscapeString (Path.GetFileName (projectPath));
+			values[ReservedProperties.ProjectFullPath] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath(projectPath));
+			values[ReservedProperties.ProjectName] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (projectPath));
 
 			//don't have a better value, this is as good as anything
-			values["MSBuildStartupDirectory"] = escapedProjectDir;
+			values[ReservedProperties.StartupDirectory] = escapedProjectDir;
 
 			//HACK: we don't get a usable value for this without real evaluation so hardcode 'obj'
 			var projectExtensionsPath = Path.GetFullPath (Path.Combine (Path.GetDirectoryName (projectPath), "obj"));
-			values["MSBuildProjectExtensionsPath"] = MSBuildEscaping.ToMSBuildPath (projectExtensionsPath) + "\\";
+			values[ReservedProperties.ProjectExtensionsPath] = MSBuildEscaping.ToMSBuildPath (projectExtensionsPath) + "\\";
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue value)
-			=> values.TryGetValue (name, out value)
-			|| runtimeContext.TryGetProperty (name, out value);
+		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		{
+			if (values.TryGetValue (name, out var v)) {
+				value = v;
+				return true;
+			}
+
+			return runtimeContext.TryGetProperty (name, out value);
+		}
 	}
 }

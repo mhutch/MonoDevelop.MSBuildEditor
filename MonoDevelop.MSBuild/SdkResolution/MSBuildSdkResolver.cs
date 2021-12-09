@@ -21,14 +21,12 @@ namespace MonoDevelop.MSBuild.SdkResolution
 	{
 		readonly object _lockObject = new object ();
 		IList<SdkResolver> _resolvers;
-		Version msbuildVersion;
-		readonly string sdksPath;
-		readonly string binDir;
 
-		internal MSBuildSdkResolver (string binDir, string sdksPath)
+		readonly IMSBuildEnvironment msbuildEnvironment;
+
+		internal MSBuildSdkResolver (IMSBuildEnvironment environment)
 		{
-			this.binDir = binDir;
-			this.sdksPath = sdksPath;
+			this.msbuildEnvironment = environment;
 		}
 
 		/// <summary>
@@ -50,7 +48,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 			try {
 				var buildEngineLogger = new SdkLoggerImpl (logger, buildEventContext);
 				foreach (var sdkResolver in _resolvers) {
-					var context = new SdkResolverContextImpl (buildEngineLogger, projectFile, solutionPath, msbuildVersion);
+					var context = new SdkResolverContextImpl (buildEngineLogger, projectFile, solutionPath, msbuildEnvironment.EngineVersion);
 					var resultFactory = new SdkResultFactoryImpl (sdk);
 					try {
 						var result = (SdkResultImpl)sdkResolver.Resolve (sdk, context, resultFactory);
@@ -88,7 +86,6 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		{
 			lock (_lockObject) {
 				if (_resolvers != null) return;
-				msbuildVersion = GetMSBuildVersion ();
 				_resolvers = LoadResolvers (logger);
 			}
 		}
@@ -103,15 +100,18 @@ namespace MonoDevelop.MSBuild.SdkResolution
 			return new Version (versionInfo.FileMajorPart, versionInfo.FileMinorPart, versionInfo.FileBuildPart, versionInfo.FilePrivatePart);
 		}
 
-		IList<SdkResolver> LoadResolvers (ILoggingService logger)
+		IList<SdkResolver> LoadResolvers (ILoggingService loggingContext)
 		{
-			// Add the MonoDevelop resolver, which resolves SDKs registered by add-ins.
-			// Also add the default resolver.
+			msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath);
+			msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.ToolsPath32, out var toolsPath32);
+			toolsPath32 ??= msbuildEnvironment.ToolsPath;
 
 			var resolvers = new List<SdkResolver> { new DefaultSdkResolver (sdksPath) };
 			var potentialResolvers = FindPotentialSdkResolvers (Path.Combine (binDir, "SdkResolvers"), logger);
 
-			if (potentialResolvers.Count == 0) return resolvers;
+			var potentialResolvers = FindPotentialSdkResolvers (
+				Path.Combine (toolsPath32, "SdkResolvers"),
+				loggingContext); ;
 
 			foreach (var potentialResolver in potentialResolvers)
 				LoadResolvers (potentialResolver, logger, resolvers);

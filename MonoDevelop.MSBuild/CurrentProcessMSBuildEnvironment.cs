@@ -8,55 +8,59 @@ using System.Reflection;
 
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
+
 using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild
 {
-	class MSBuildEnvironmentRuntimeInformation : IRuntimeInformation
+	/// <summary>
+	/// Describes the MSBuild environment of the current process
+	/// </summary>
+	class CurrentProcessMSBuildEnvironment : IMSBuildEnvironment
 	{
 		readonly Toolset toolset;
-		readonly Dictionary<SdkReference, SdkInfo> resolvedSdks = new Dictionary<SdkReference, SdkInfo> ();
+		readonly Dictionary<SdkReference, SdkInfo> resolvedSdks = new();
 		readonly MSBuildSdkResolver sdkResolver;
 
-		public MSBuildEnvironmentRuntimeInformation ()
+		public CurrentProcessMSBuildEnvironment ()
 		{
 			var projectCollection = ProjectCollection.GlobalProjectCollection;
 			toolset = projectCollection.GetToolset (projectCollection.DefaultToolsVersion);
 
-			var envHelperType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Shared.BuildEnvironmentHelper");
-			var envHelperInstanceProp = envHelperType.GetProperty ("Instance", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-			var buildEnvInstance = envHelperInstanceProp.GetValue (null);
-			var buildEnvType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Shared.BuildEnvironment");
-
-			T GetEnvHelperVal<T> (string propName)
-			{
-				var prop = buildEnvType.GetProperty (propName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-				return (T)prop.GetValue (buildEnvInstance);
-			}
-
-			var msbuildExtensionsPath = GetEnvHelperVal<string> ("MSBuildExtensionsPath");
-			SdksPath = GetEnvHelperVal<string> ("MSBuildSDKsPath");
-
+			var msbuildExtensionsPath = toolset.Properties[ReservedProperties.ExtensionsPath].EvaluatedValue;
 			SearchPaths = GetImportSearchPathsTable (toolset, msbuildExtensionsPath);
 
-			sdkResolver = new MSBuildSdkResolver (BinPath, SdksPath);
+			sdkResolver = new MSBuildSdkResolver (this);
 		}
 
 		public string ToolsVersion => toolset.ToolsVersion;
-		public string BinPath => toolset.ToolsPath;
-		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
-        public string SdksPath { get; }
         public string ToolsPath => toolset.ToolsPath;
 
-        public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
+		public bool TryGetToolsetProperty (string propertyName, out string value)
+		{
+			if (toolset.Properties.TryGetValue(propertyName, out var propVal)) {
+				value = propVal?.EvaluatedValue;
+				return true;
+			}
 
-        public SdkInfo ResolveSdk (
+			value = null;
+			return false;
+		}
+
+		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
+
+		public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
+
+		public Version EngineVersion => ProjectCollection.Version;
+
+		public SdkInfo ResolveSdk (
 			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
 		{
 			var sdkRef = new SdkReference (sdk.name, sdk.version, sdk.minimumVersion);
 			if (!resolvedSdks.TryGetValue (sdkRef, out SdkInfo sdkInfo)) {
 				try {
 					//FIXME: capture errors & warnings from logger and return those too?
+					// FIX THIS, at least log to the static logger
 					sdkInfo = sdkResolver.ResolveSdk (sdkRef, new NoopLoggingService (), null, projectFile, solutionPath);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Error in SDK resolver", ex);
@@ -82,7 +86,7 @@ namespace MonoDevelop.MSBuild
 				var key = (string)enumerator.Key;
 				var val = (List<string>)pathsField.GetValue (enumerator.Value);
 
-				if (key == "MSBuildExtensionsPath" || key == "MSBuildExtensionsPath32" || key == "MSBuildExtensionsPath64") {
+				if (key == ReservedProperties.ExtensionsPath || key == ReservedProperties.ExtensionsPath32 || key == ReservedProperties.ExtensionsPath64) {
 					var oldVal = val;
 					val = new List<string> (oldVal.Count + 1) { msbuildExtensionsPath };
 					val.AddRange (oldVal);

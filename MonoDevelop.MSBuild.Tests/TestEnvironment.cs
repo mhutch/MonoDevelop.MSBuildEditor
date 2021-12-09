@@ -34,8 +34,8 @@ namespace MonoDevelop.MSBuild.Tests
 			;
 	}
 
-	[Export (typeof (IRuntimeInformation))]
-	class TestRuntimeInformation : NullRuntimeInformation
+	[Export (typeof (IMSBuildEnvironment))]
+	class TestMSBuildEnvironment : NullMSBuildEnvironment
 	{
 	}
 }
