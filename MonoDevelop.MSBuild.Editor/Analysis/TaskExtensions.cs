@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading;
@@ -10,6 +10,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	{
 		public static T WaitAndGetResult<T> (this Task<T> task, CancellationToken token)
 		{
+			#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
 			task.Wait (token);
 			return task.Result;
 		}

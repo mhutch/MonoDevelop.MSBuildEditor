@@ -16,7 +16,11 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 
 		public override string Name => MSBuildContentType.Name;
 
-		public MSBuildLanguageService (object site) => SetSite (site);
+		public MSBuildLanguageService (object site)
+		{
+			Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+			SetSite (site);
+		}
 
 		LanguagePreferences preferences;
 
