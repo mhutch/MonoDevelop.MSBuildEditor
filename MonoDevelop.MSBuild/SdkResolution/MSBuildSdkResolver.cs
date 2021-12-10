@@ -3,23 +3,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
 using Microsoft.Build.Framework;
 
-//ported from MonoDevelop.Projects.MSBuild.SdkResolution
+// this is originally from MonoDevelop - MonoDevelop.Projects.MSBuild.MSBuildSdkResolver
+//
+// the portions that MonoDevelop had imported from the internal MSBuild class Microsoft.Build.BackEnd.SdkResolution.SdkResolverLoader
+// have been moved to a partial class in the file MSBuildSdkResolver.Imported.cs
+
 namespace MonoDevelop.MSBuild.SdkResolution
 {
 	/// <summary>
 	///     Component responsible for resolving an SDK to a file path. Loads and coordinates
 	///     with <see cref="SdkResolver" /> plug-ins.
 	/// </summary>
-	class MSBuildSdkResolver
+	partial class MSBuildSdkResolver
 	{
-		readonly object _lockObject = new object ();
+		readonly object _lockObject = new ();
 		IList<SdkResolver> _resolvers;
 
 		readonly IMSBuildEnvironment msbuildEnvironment;
@@ -28,6 +27,10 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		{
 			this.msbuildEnvironment = environment;
 		}
+
+		// helpers for imported code
+		string SDKsPath => msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
+		string ToolsPath32 => msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.ToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
 
 		/// <summary>
 		///     Get path on disk to the referenced SDK.
@@ -86,259 +89,16 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		{
 			lock (_lockObject) {
 				if (_resolvers != null) return;
-				_resolvers = LoadResolvers (logger);
+				_resolvers = LoadResolvers (logger, logger);
 			}
 		}
 
-		Version GetMSBuildVersion ()
-		{
-			var msbuildFileName = Path.Combine (binDir, "Microsoft.Build.dll");
-			if (!File.Exists (msbuildFileName))
-				return null;
-
-			var versionInfo = FileVersionInfo.GetVersionInfo (msbuildFileName);
-			return new Version (versionInfo.FileMajorPart, versionInfo.FileMinorPart, versionInfo.FileBuildPart, versionInfo.FilePrivatePart);
-		}
-
-		IList<SdkResolver> LoadResolvers (ILoggingService loggingContext)
-		{
-			msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath);
-			msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.ToolsPath32, out var toolsPath32);
-			toolsPath32 ??= msbuildEnvironment.ToolsPath;
-
-			var resolvers = new List<SdkResolver> { new DefaultSdkResolver (sdksPath) };
-			var potentialResolvers = FindPotentialSdkResolvers (Path.Combine (binDir, "SdkResolvers"), logger);
-
-			var potentialResolvers = FindPotentialSdkResolvers (
-				Path.Combine (toolsPath32, "SdkResolvers"),
-				loggingContext); ;
-
-			foreach (var potentialResolver in potentialResolvers)
-				LoadResolvers (potentialResolver, logger, resolvers);
-
-			return resolvers.OrderBy (t => t.Priority).ToList ();
-		}
-
-		/// <summary>
-		///     Find all files that are to be considered SDK Resolvers. Pattern will match
-		///     Root\SdkResolver\(ResolverName)\(ResolverName).dll.
-		/// </summary>
-		/// <param name="rootFolder"></param>
-		/// <returns></returns>
-		IList<string> FindPotentialSdkResolvers (string rootFolder, ILoggingService logger)
-		{
-			// Note: MSBuild throws exceptions here which would prevent other SDK resolvers from being loaded.
-			// Exceptions and errors are being logged as warnings instead for MonoDevelop.
-			var assembliesList = new List<string> ();
-
-			if (string.IsNullOrEmpty (rootFolder) || !System.IO.Directory.Exists (rootFolder))
-				return assembliesList;
-
-			foreach (var subfolder in new DirectoryInfo (rootFolder).GetDirectories ()) {
-				var assembly = Path.Combine (subfolder.FullName, $"{subfolder.Name}.dll");
-				var manifest = Path.Combine (subfolder.FullName, $"{subfolder.Name}.xml");
-
-				var assemblyAdded = TryAddAssembly (assembly, assembliesList);
-				if (!assemblyAdded) {
-					assemblyAdded = TryAddAssemblyFromManifest (manifest, subfolder.FullName, assembliesList, logger);
-				}
-
-				if (!assemblyAdded) {
-					logger.LogWarning ("SDK Resolver folder exists but without an SDK Resolver DLL or manifest file. This may indicate a corrupt or invalid installation of MSBuild. SDK resolver path: " + subfolder.FullName);
-				}
-			}
-
-			return assembliesList;
-		}
-
-		bool TryAddAssemblyFromManifest (string pathToManifest, string manifestFolder, List<string> assembliesList, ILoggingService logger)
-		{
-			if (!string.IsNullOrEmpty (pathToManifest) && !File.Exists (pathToManifest))
-				return false;
-
-			string path = null;
-
-			try {
-				// <SdkResolver>
-				//   <Path>...</Path>
-				// </SdkResolver>
-				var manifest = SdkResolverManifest.Load (pathToManifest);
-
-				if (manifest == null || string.IsNullOrEmpty (manifest.Path)) {
-					logger.LogWarning ("Could not load SDK Resolver. A manifest file exists, but the path to the SDK Resolver DLL file could not be found. Manifest file path " + pathToManifest);
-					return false;
-				}
-
-				path = FixFilePath (manifest.Path);
-			} catch (SerializationException e) {
-				// Note: Not logging e.ToString() as most of the information is not useful, the Message will contain what is wrong with the XML file.
-				logger.LogWarning (string.Format ("SDK Resolver manifest file is invalid. This may indicate a corrupt or invalid installation of MSBuild. Manifest file path '{0}'. Message: {1}", pathToManifest, e.Message));
-				return false;
-			}
-
-			if (!Path.IsPathRooted (path)) {
-				path = Path.Combine (manifestFolder, path);
-				path = Path.GetFullPath (path);
-			}
-
-			if (!TryAddAssembly (path, assembliesList)) {
-				logger.LogWarning (string.Format (" Could not load SDK Resolver. A manifest file exists, but the path to the SDK Resolver DLL file could not be found. Manifest file path '{0}'. SDK resolver path: {1}", pathToManifest, path));
-				return false;
-			}
-
-			return true;
-		}
-
-		bool TryAddAssembly (string assemblyPath, List<string> assembliesList)
-		{
-			if (string.IsNullOrEmpty (assemblyPath) || !File.Exists (assemblyPath))
-				return false;
-
-			assembliesList.Add (assemblyPath);
-			return true;
-		}
-
-		IEnumerable<Type> GetResolverTypes (Assembly assembly)
-		{
-			return assembly.ExportedTypes
-				.Select (type => new { type, info = type.GetTypeInfo () })
-				.Where (t => t.info.IsClass && t.info.IsPublic && !t.info.IsAbstract && typeof (SdkResolver).IsAssignableFrom (t.type))
-				.Select (t => t.type);
-		}
-
-		void LoadResolvers (string resolverPath, ILoggingService logger, List<SdkResolver> resolvers)
-		{
-			Assembly assembly;
-			try {
-				assembly = Assembly.LoadFrom (resolverPath);
-			} catch (Exception e) {
-				logger.LogWarning (string.Format ("The SDK resolver assembly \"{0}\" could not be loaded. {1}", resolverPath, e.Message));
-				return;
-			}
-
-			foreach (Type type in GetResolverTypes (assembly)) {
-				try {
-					resolvers.Add ((SdkResolver)Activator.CreateInstance (type));
-				} catch (TargetInvocationException e) {
-					// .NET wraps the original exception inside of a TargetInvocationException which masks the original message
-					// Attempt to get the inner exception in this case, but fall back to the top exception message
-					string message = e.InnerException?.Message ?? e.Message;
-					logger.LogWarning (string.Format ("The SDK resolver type \"{0}\" failed to load. {1}", type.Name, message));
-					return;
-				} catch (Exception e) {
-					logger.LogWarning (string.Format ("The SDK resolver type \"{0}\" failed to load. {1}", type.Name, e.Message));
-					return;
-				}
-			}
-		}
-
-		static void LogWarnings (ILoggingService logger, MSBuildContext bec, string projectFile,
-			SdkResultImpl result)
+		static void LogWarnings (ILoggingService loggingContext, MSBuildContext bec, string projectFile, SdkResultImpl result)
 		{
 			if (result.Warnings == null) return;
 
 			foreach (var warning in result.Warnings)
-				logger.LogWarningFromText (bec, null, null, null, projectFile, warning);
-		}
-
-		static string FixFilePath (string path)
-		{
-			return string.IsNullOrEmpty (path) || Path.DirectorySeparatorChar == '\\' ? path : path.Replace ('\\', '/');
-		}
-
-		class SdkLoggerImpl : SdkLogger
-		{
-			readonly MSBuildContext _buildEventContext;
-			readonly ILoggingService _loggingService;
-
-			public SdkLoggerImpl (ILoggingService loggingService, MSBuildContext buildEventContext)
-			{
-				_loggingService = loggingService;
-				_buildEventContext = buildEventContext;
-			}
-
-			public override void LogMessage (string message, MessageImportance messageImportance = MessageImportance.Low)
-			{
-				_loggingService.LogCommentFromText (_buildEventContext, messageImportance, message);
-			}
-		}
-
-		class SdkResultImpl : SdkResult
-		{
-			public SdkResultImpl (SdkReference sdkReference, IEnumerable<string> errors, IEnumerable<string> warnings)
-			{
-				Success = false;
-				Sdk = sdkReference;
-				Errors = errors;
-				Warnings = warnings;
-			}
-
-			public SdkResultImpl (SdkReference sdkReference, string path, string version,
-				IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings)
-			{
-				Success = true;
-				Sdk = sdkReference;
-				PropertiesToAdd = propertiesToAdd;
-				ItemsToAdd = itemsToAdd;
-				Path = path;
-				Version = version;
-				Warnings = warnings;
-			}
-
-			public SdkResultImpl (SdkReference sdkReference, IEnumerable<string> paths, string version,
-				IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings)
-				: this (sdkReference, paths.FirstOrDefault(), version, propertiesToAdd, itemsToAdd, warnings)
-			{
-				if (paths.Count() > 1) {
-					AdditionalPaths = paths.Skip (1).ToList ();
-				}
-			}
-
-			public SdkReference Sdk { get; }
-			public IEnumerable<string> Errors { get; }
-
-			public IEnumerable<string> Warnings { get; }
-		}
-
-		internal class SdkResultFactoryImpl : SdkResultFactory
-		{
-			readonly SdkReference _sdkReference;
-
-			internal SdkResultFactoryImpl (SdkReference sdkReference)
-			{
-				_sdkReference = sdkReference;
-			}
-
-			public override SdkResult IndicateSuccess (string path, string version, IEnumerable<string> warnings = null)
-			{
-				return new SdkResultImpl (_sdkReference, path, version, null, null, warnings);
-			}
-
-			public override SdkResult IndicateFailure (IEnumerable<string> errors, IEnumerable<string> warnings = null)
-			{
-				return new SdkResultImpl (_sdkReference, errors, warnings);
-			}
-
-			public override SdkResult IndicateSuccess (IEnumerable<string> paths, string version, IDictionary<string, string> propertiesToAdd = null, IDictionary<string, SdkResultItem> itemsToAdd = null, IEnumerable<string> warnings = null)
-			{
-				return new SdkResultImpl (_sdkReference, paths, version, propertiesToAdd, itemsToAdd, warnings);
-			}
-
-			public override SdkResult IndicateSuccess (string path, string version, IDictionary<string, string> propertiesToAdd, IDictionary<string, SdkResultItem> itemsToAdd, IEnumerable<string> warnings = null)
-			{
-				return new SdkResultImpl (_sdkReference, path, version, propertiesToAdd, itemsToAdd, warnings);
-			}
-		}
-
-		sealed class SdkResolverContextImpl : SdkResolverContext
-		{
-			public SdkResolverContextImpl (SdkLogger logger, string projectFilePath, string solutionPath, Version msbuildVersion)
-			{
-				Logger = logger;
-				ProjectFilePath = projectFilePath;
-				SolutionFilePath = solutionPath;
-				MSBuildVersion = msbuildVersion;
-			}
+				loggingContext.LogWarningFromText (bec, null, null, null, projectFile, warning);
 		}
 	}
 }
