@@ -463,8 +463,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return MSBuildValueKind.File;
 			}
 
-			if (variable.ValueKind == MSBuildValueKind.UnknownItem.List ()) {
-				return MSBuildValueKind.File.List ();
+			if (variable.ValueKind == MSBuildValueKind.UnknownItem.AsList ()) {
+				return MSBuildValueKind.File.AsList ();
 			}
 
 			if (variable is PropertyInfo || variable is MetadataInfo) {
@@ -479,13 +479,13 @@ namespace MonoDevelop.MSBuild.Schema
 					return MSBuildValueKind.Bool;
 				}
 				if (EndsWith ("DependsOn")) {
-					return MSBuildValueKind.TargetName.List ();
+					return MSBuildValueKind.TargetName.AsList ();
 				}
 				if (EndsWith ("Path")) {
 					return MSBuildValueKind.FileOrFolder;
 				}
 				if (EndsWith ("Paths")) {
-					return MSBuildValueKind.FileOrFolder.List ();
+					return MSBuildValueKind.FileOrFolder.AsList ();
 				}
 				if (EndsWith ("Directory")
 					|| EndsWith ("Dir")) {
@@ -507,10 +507,10 @@ namespace MonoDevelop.MSBuild.Schema
 					return MSBuildValueKind.Guid;
 				}
 				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
-					return MSBuildValueKind.Folder.List ();
+					return MSBuildValueKind.Folder.AsList ();
 				}
 				if (EndsWith ("Files")) {
-					return MSBuildValueKind.File.List ();
+					return MSBuildValueKind.File.AsList ();
 				}
 			}
 

@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuild.Schema
 			AddProperty ("MSBuildLastTaskResult", "True if the last task completed without errors.", MSBuildValueKind.Bool);
 			AddProperty ("MSBuildNodeCount", "The number of concurrent build nodes.", MSBuildValueKind.Int);
 			AddProperty ("MSBuildProgramFiles32", "Absolute path of the 32-bit Program Files folder. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty ("MSBuildProjectDefaultTargets", "The value of the DefaultTargets attribute in the Project element.", MSBuildValueKind.TargetName.List ());
+			AddProperty ("MSBuildProjectDefaultTargets", "The value of the DefaultTargets attribute in the Project element.", MSBuildValueKind.TargetName.AsList ());
 			AddProperty ("MSBuildProjectDirectory", "Directory where the project file is located. Does not include final backslash.", MSBuildValueKind.Folder);
 			AddProperty ("MSBuildProjectDirectoryNoRoot", "Directory where the project file is located, excluding drive root. Does not include final backslash.", MSBuildValueKind.Folder);
 			AddProperty ("MSBuildProjectFile", "Name of the project file, including extension.", MSBuildValueKind.File);
@@ -86,8 +86,8 @@ namespace MonoDevelop.MSBuild.Schema
 				"Invokes the specified targets in the current file",
 				true,
 				new TaskParameterInfo ("RunEachTargetSeparately", "Whether the MSBuild engine should be called once per target", false, false, MSBuildValueKind.Bool),
-				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.List ()),
-				new TaskParameterInfo ("Targets", "The targets to be invoked", true, false, MSBuildValueKind.TargetName.List ()),
+				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.AsList ()),
+				new TaskParameterInfo ("Targets", "The targets to be invoked", true, false, MSBuildValueKind.TargetName.AsList ()),
 				new TaskParameterInfo ("UseResultsCache", "Whether to use existing cached target outputs", true, false, MSBuildValueKind.Bool)
 			));
 
@@ -96,16 +96,16 @@ namespace MonoDevelop.MSBuild.Schema
 				"Invokes the specified targets on the specified MSBuild projects",
 				true,
 				new TaskParameterInfo ("BuildInParallel", "Whether to build the projects in parallel", false, false, MSBuildValueKind.Bool),
-				new TaskParameterInfo ("Projects", "The project files on which to invoke the targets", true, false, MSBuildValueKind.ProjectFile.List ()),
-				new TaskParameterInfo ("Properties", "Semicolon-separated list of `PropertyName=Value` values to pass to the child projects", false, false, MSBuildValueKind.String.List ()),
+				new TaskParameterInfo ("Projects", "The project files on which to invoke the targets", true, false, MSBuildValueKind.ProjectFile.AsList ()),
+				new TaskParameterInfo ("Properties", "Semicolon-separated list of `PropertyName=Value` values to pass to the child projects", false, false, MSBuildValueKind.String.AsList ()),
 				new TaskParameterInfo ("RebaseOutputs", "Rebases returned items with relative paths to be relative to the current project", false, false, MSBuildValueKind.Bool),
-				new TaskParameterInfo ("RemoveProperties", "Semicolon-separated list of global properties to remove when invoking the child projects", false, false, MSBuildValueKind.PropertyName.List ()),
+				new TaskParameterInfo ("RemoveProperties", "Semicolon-separated list of global properties to remove when invoking the child projects", false, false, MSBuildValueKind.PropertyName.AsList ()),
 				new TaskParameterInfo ("RunEachTargetSeparately", "Whether the MSBuild engine should be called once per target", false, false, MSBuildValueKind.Bool),
 				new TaskParameterInfo ("SkipNonexistentProjects", "Skip nonexistent projects instead of erroring out", false, false, MSBuildValueKind.SkipNonexistentProjectsBehavior),
 				new TaskParameterInfo ("StopOnFirstFailure", "If target invocation fails on one project, do not continue with any other projects. Does not work with parallel builds.", false, false, MSBuildValueKind.Bool),
-				new TaskParameterInfo ("TargetAndPropertyListSeparators", "Additional custom separators to use for splitting `Properties` and `Targets` parameters into lists.", false, false, MSBuildValueKind.String.List ()),
-				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.List ()),
-				new TaskParameterInfo ("Targets", "The targets to be invoked", false, false, MSBuildValueKind.TargetName.List ()),
+				new TaskParameterInfo ("TargetAndPropertyListSeparators", "Additional custom separators to use for splitting `Properties` and `Targets` parameters into lists.", false, false, MSBuildValueKind.String.AsList ()),
+				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.AsList ()),
+				new TaskParameterInfo ("Targets", "The targets to be invoked", false, false, MSBuildValueKind.TargetName.AsList ()),
 				new TaskParameterInfo ("ToolsVersion", "Override the ToolsVersion used to build the projects", false, false, MSBuildValueKind.ToolsVersion),
 				new TaskParameterInfo ("UnloadProjectsOnCompletion", "Unload the projects after invoking targets on them", false, false, MSBuildValueKind.Bool),
 				new TaskParameterInfo ("UseResultsCache", "Whether to use existing cached target outputs", true, false, MSBuildValueKind.Bool)

@@ -57,7 +57,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueDescriptor);
 
-			if (!kind.AllowExpressions ()) {
+			if (!kind.AllowsExpressions ()) {
 				VisitValueExpression (
 					element, attribute, resolvedElement, resolvedAttribute,
 					valueDescriptor, kind, new ExpressionText (offset, value, true));

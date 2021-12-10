@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language
 				XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 				ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 			{
-				switch (kind.GetScalarType ()) {
+				switch (kind.WithoutModifiers ()) {
 				case MSBuildValueKind.TargetName:
 					foreach (var n in node.WithAllDescendants ()) {
 						if (n is ExpressionText lit && lit.IsPure) {

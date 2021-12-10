@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			}
 
 			// HACK: NuGetID stores PackageType on the CustomType
-			if (customType != null && !(valueKind.IsCustomType () || valueKind.GetScalarType() == MSBuildValueKind.NuGetID)) {
+			if (customType != null && !(valueKind.IsCustomType () || valueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID))) {
 				throw new ArgumentException ($"When {nameof(customType)} is provided, {nameof(valueKind)} must be {nameof(MSBuildValueKind.CustomType)}");
 			}
 

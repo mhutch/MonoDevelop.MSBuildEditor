@@ -9,44 +9,51 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	static class ValueKindExtensions
 	{
-		public static MSBuildValueKind GetScalarType (this MSBuildValueKind value)
-		{
-			return value & ~(MSBuildValueKind.List | MSBuildValueKind.Literal | MSBuildValueKind.CommaList);
-		}
+		/// <summary>
+		/// Returns the type without any modifier flags (i.e. list, literal)
+		/// </summary>
+		public static MSBuildValueKind WithoutModifiers (this MSBuildValueKind kind) => kind & ~MSBuildValueKind.AllModifiers;
 
-		public static bool AllowExpressions (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.Literal) == 0;
-		}
+		/// <summary>
+		/// Checks whether the value kind is a specific value kind or list of that value kind. 
+		/// </summary>
+		public static bool IsKindOrListOfKind (this MSBuildValueKind kind, MSBuildValueKind compareTo) => kind.WithoutModifiers () == compareTo.WithoutModifiers ();
 
-		public static bool AllowLists (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.List) != 0 || value == MSBuildValueKind.Unknown;
-		}
+		/// <summary>
+		/// Check whether the value allows expressions, i.e. the absence of the Literal modifier
+		/// </summary>
+		public static bool AllowsExpressions (this MSBuildValueKind kind) => (kind & MSBuildValueKind.Literal) == 0;
 
-		public static bool AllowListsOrCommaLists (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.List) != 0
-				|| (value & MSBuildValueKind.CommaList) != 0
-				|| value == MSBuildValueKind.Unknown;
-		}
+		/// <summary>
+		/// Whether the type permits lists, i.e. whether it has a list modifier flag or is an unknown type. By default
+		/// it only respects <see cref="MSBuildValueKind.ListSemicolon"/> but this can be overridden with <paramref name="listKind"/>.
+		/// </summary>
+		/// <param name="listKind">
+		/// Which list modifiers to respect. Ignores bits other than <see cref="MSBuildValueKind.ListSemicolon"/>,
+		/// <see cref="MSBuildValueKind.ListComma"/> or <see cref="MSBuildValueKind.ListSemicolonOrComma"/>.
+		/// </param>
+		public static bool AllowsLists (this MSBuildValueKind kind, MSBuildValueKind listKind = MSBuildValueKind.ListSemicolon) => (kind & listKind & MSBuildValueKind.ListSemicolonOrComma) != 0 || kind.IsUnknown ();
 
-		public static bool AllowCommaLists (this MSBuildValueKind value)
-		{
-			return (value & MSBuildValueKind.CommaList) != 0 || value == MSBuildValueKind.Unknown;
-		}
+		public static bool IsUnknown (this MSBuildValueKind kind) => kind.WithoutModifiers () == MSBuildValueKind.Unknown;
 
-		public static bool IsCustomType (this MSBuildValueKind value) => value.GetScalarType() == MSBuildValueKind.CustomType;
+		/// <summary>
+		/// Whether the type is a custom type, regardless of modifiers
+		/// </summary>
+		public static bool IsCustomType (this MSBuildValueKind kind) => kind.WithoutModifiers () == MSBuildValueKind.CustomType;
 
-		public static MSBuildValueKind List (this MSBuildValueKind value)
-		{
-			return value | MSBuildValueKind.List;
-		}
+		/// <summary>
+		/// Return the type with a list modifier(s) applied. By default it adds only <see cref="MSBuildValueKind.ListSemicolon"/> but this can be overridden with <paramref name="listKind"/>.
+		/// </summary>
+		/// <param name="listKind">
+		/// Which list modifiers to add. Ignores bits other than <see cref="MSBuildValueKind.ListSemicolon"/>,
+		/// <see cref="MSBuildValueKind.ListComma"/> or <see cref="MSBuildValueKind.ListSemicolonOrComma"/>.
+		/// </param>
+		public static MSBuildValueKind AsList (this MSBuildValueKind kind, MSBuildValueKind listKind = MSBuildValueKind.ListSemicolon) => kind | (listKind & MSBuildValueKind.ListSemicolonOrComma);
 
-		public static MSBuildValueKind Literal (this MSBuildValueKind value)
-		{
-			return value | MSBuildValueKind.Literal;
-		}
+		/// <summary>
+		/// Return the type with the <see cref="MSBuildValueKind.Literal"/> modifier applied.
+		/// </summary>
+		public static MSBuildValueKind AsLiteral (this MSBuildValueKind value) => value | MSBuildValueKind.Literal;
 
 		//FIXME: cache these somewhere?
 		public static IReadOnlyList<ConstantSymbol> GetSimpleValues (this MSBuildValueKind kind, bool includeParseableTypes)
@@ -131,7 +138,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 					new ConstantSymbol ("12.0", "MSBuild 12.0, included in Visual Studio 2013", MSBuildValueKind.ToolsVersion),
 					new ConstantSymbol ("14.0", "MSBuild 14.0, included in Visual Studio 2015", MSBuildValueKind.ToolsVersion),
 					new ConstantSymbol ("15.0", "MSBuild 15.0, included in Visual Studio 2017", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("Current", "MSBuild 16.0, included in Visual Studio 2019", MSBuildValueKind.ToolsVersion),
+					new ConstantSymbol ("Current", "MSBuild 16.0 and later, included in Visual Studio 2019 and later", MSBuildValueKind.ToolsVersion),
 				};
 			}
 			return null;
@@ -141,10 +148,11 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		{
 			var options = ExpressionOptions.Items;
 
-			if (kind.AllowLists ()) {
+			if (kind.AllowsLists (MSBuildValueKind.ListSemicolon)) {
 				options |= ExpressionOptions.Lists;
 			}
-			if (kind.AllowCommaLists ()) {
+
+			if (kind.AllowsLists (MSBuildValueKind.ListComma)) {
 				options |= ExpressionOptions.CommaLists;
 			}
 

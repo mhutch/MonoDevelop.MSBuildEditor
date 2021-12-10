@@ -332,7 +332,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			// we can only provide version completions if the item's value type is non-list nugetid
 			var itemInfo = doc.GetSchemas ().GetItem (itemEl.Name.Name);
-			if (itemInfo == null || itemInfo.ValueKind.GetScalarType() != MSBuildValueKind.NuGetID || itemInfo.ValueKind.AllowLists()) {
+			if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID) || itemInfo.ValueKind.AllowsLists ()) {
 				return null;
 			}
 
@@ -416,9 +416,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CompletionContext.Empty;
 			}
 
-			bool allowExpressions = kind.AllowExpressions ();
+			bool allowExpressions = kind.AllowsExpressions ();
 
-			kind = kind.GetScalarType ();
+			kind = kind.WithoutModifiers ();
 
 			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
 				return CompletionContext.Empty;

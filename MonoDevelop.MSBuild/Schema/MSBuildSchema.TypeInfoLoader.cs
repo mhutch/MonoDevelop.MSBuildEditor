@@ -22,7 +22,7 @@ partial class MSBuildSchema
 			customType = null;
 
 			// items are always lists unless specified otherwise
-			modifiers = isItem ? MSBuildValueKind.List : 0;
+			modifiers = isItem ? MSBuildValueKind.ListSemicolon : 0;
 		}
 
 		readonly SchemaLoadState state;
@@ -45,27 +45,27 @@ partial class MSBuildSchema
 				packageType = token.Value<string> ();
 				return true;
 			case "isSingleton" when isItem:
-				modifiers &= ~(MSBuildValueKind.List | MSBuildValueKind.CommaList);
+				modifiers &= ~MSBuildValueKind.ListSemicolonOrComma;
 				return true;
 			case "isLiteral" when !isItem:
 				modifiers |= MSBuildValueKind.Literal;
 				return true;
 			case "isList" when !isItem:
 				// may have been set by listSeparators, so ignore that as it's more specific
-				if ((modifiers & (MSBuildValueKind.List | MSBuildValueKind.CommaList)) == 0) {
-					modifiers |= MSBuildValueKind.List;
+				if ((modifiers & MSBuildValueKind.ListSemicolonOrComma) == 0) {
+					modifiers |= MSBuildValueKind.ListSemicolon;
 				}
 				return true;
 			case "listSeparators" when !isItem:
 				// it may have been set by isList, so clear existing list modifiers as this is more specific
-				modifiers &= ~(MSBuildValueKind.List | MSBuildValueKind.CommaList);
+				modifiers &= ~MSBuildValueKind.ListSemicolonOrComma;
 				foreach (var separator in token.Value<string> ()) {
 					switch (separator) {
 					case ';':
-						modifiers |= MSBuildValueKind.List;
+						modifiers |= MSBuildValueKind.ListSemicolon;
 						break;
 					case ',':
-						modifiers |= MSBuildValueKind.CommaList;
+						modifiers |= MSBuildValueKind.ListComma;
 						break;
 					default:
 						state.AddWarning (token ?? parent, $"Unsupported list separator char '{separator}'");

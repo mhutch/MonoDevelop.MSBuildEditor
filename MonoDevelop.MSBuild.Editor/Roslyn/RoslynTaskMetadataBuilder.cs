@@ -171,7 +171,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 
 			if (isList) {
-				kind = kind.List ();
+				kind = kind.AsList ();
 			}
 
 			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind);

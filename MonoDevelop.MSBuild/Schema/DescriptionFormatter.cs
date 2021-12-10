@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Schema
 						case MSBuildValueKind.FileOrFolder:
 							return GetDesc ($"Item.{att.Name}.ParameterizedFiles");
 						default:
-							if (!item.ValueKind.AllowLists ()) {
+							if (!item.ValueKind.AllowsLists ()) {
 								return GetDesc ($"Item.{att.Name}.ParameterizedSingle");
 							}
 							return GetDesc ($"Item.{att.Name}.Parameterized");
@@ -114,12 +114,12 @@ namespace MonoDevelop.MSBuild.Schema
 
 			if (kindName != null) {
 				modifierList.Add (kindName);
-				if (kind.AllowLists ()) {
+				if (kind.AllowsLists (MSBuildValueKind.ListSemicolon)) {
 					modifierList.Add ("list");
-				} else if (kind.AllowCommaLists ()) {
+				} else if (kind.AllowsLists (MSBuildValueKind.ListComma)) {
 					modifierList.Add ("comma-list");
 				}
-				if (!kind.AllowExpressions ()) {
+				if (!kind.AllowsExpressions ()) {
 					modifierList.Add ("literal");
 				}
 			}
@@ -163,7 +163,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		static string FormatKind (MSBuildValueKind kind, CustomTypeInfo customTypeInfo)
 		{
-			switch (kind.GetScalarType ()) {
+			switch (kind.WithoutModifiers ()) {
 			case MSBuildValueKind.Bool:
 				return "bool";
 			case MSBuildValueKind.Int:

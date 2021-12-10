@@ -154,11 +154,11 @@ namespace MonoDevelop.MSBuild.Language
 				case "configuration":
 					return MSBuildValueKind.Configuration;
 				case "configurations":
-					return MSBuildValueKind.Configuration.List ();
+					return MSBuildValueKind.Configuration.AsList ();
 				case "platform":
 					return MSBuildValueKind.Platform;
 				case "platforms":
-					return MSBuildValueKind.Platform.List ();
+					return MSBuildValueKind.Platform.AsList ();
 				}
 			} else if (element.SyntaxKind == MSBuildSyntaxKind.Metadata && (element.Parent?.IsElementNamed ("ProjectConfiguration") ?? false)) {
 				if (element.IsElementNamed ("Configuration")) {
@@ -284,7 +284,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (isList) {
-				kind = kind.List ();
+				kind = kind.AsList ();
 			}
 
 			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, isRequired, isOutout, kind));
@@ -365,7 +365,7 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionText literal:
 					if (literal.IsPure) {
 						var value = literal.GetUnescapedValue ().Trim ();
-						switch (kind.GetScalarType ()) {
+						switch (kind.WithoutModifiers ()) {
 						case MSBuildValueKind.ItemName:
 							CollectItem (value, ReferenceUsage.Unknown);
 							break;

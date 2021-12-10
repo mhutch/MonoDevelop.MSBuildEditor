@@ -259,10 +259,10 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionText lit:
-					inferredKind = inferredKind.GetScalarType ();
+					var kindWithoutModifiers = inferredKind.WithoutModifiers ();
 					if (lit.IsPure) {
-						VisitPureLiteral (element, valueDescriptor, inferredKind, lit);
-						if (inferredKind == MSBuildValueKind.TaskOutputParameterName) {
+						VisitPureLiteral (element, valueDescriptor, kindWithoutModifiers, lit);
+						if (kindWithoutModifiers == MSBuildValueKind.TaskOutputParameterName) {
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
 							rr.ReferenceLength = lit.Value.Length;
@@ -270,7 +270,7 @@ namespace MonoDevelop.MSBuild.Language
 							break;
 						}
 					}
-					switch (inferredKind) {
+					switch (kindWithoutModifiers) {
 					case MSBuildValueKind.File:
 					case MSBuildValueKind.FileOrFolder:
 					case MSBuildValueKind.ProjectFile:

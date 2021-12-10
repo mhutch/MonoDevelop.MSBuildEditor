@@ -244,7 +244,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return new MSBuildAttributeSyntax (
 					attribute.Element, attribute.Name, attribute.Description,
 					attribute.SyntaxKind,
-					item?.ValueKind ?? MSBuildValueKind.UnknownItem.List (),
+					item?.ValueKind ?? MSBuildValueKind.UnknownItem.AsList (),
 					attribute.Required
 				);
 			}

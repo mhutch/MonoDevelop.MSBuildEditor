@@ -98,13 +98,31 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 		ProjectKindGuid,
 
-		/// Allow multiple semicolon separated values
-		List = 1 << 28,
+		// --------- MODIFIER FLAGS ---------
 
-		/// Allow multiple comma separated values
-		CommaList = 1 << 29,
+		/// <summary>
+		/// Value that will be split into a list on semicolon separators. This is the default list kind as it is used by MSBuild for item specs.
+		/// </summary>
+		ListSemicolon = 1 << 28,
 
-		/// Disallow expressions
+		/// <summary>
+		/// Value that will be split into a list on comma separators. This is supported for values used by tasks that expect commas separators.
+		/// </summary>
+		ListComma = 1 << 29,
+
+		/// <summary>
+		/// A value that must be a literal, i.e. does not permit MSBuild expressions. Needed for certain attributes/elements read by the MSBuild engine or by Visual Studio.
+		/// </summary>
 		Literal = 1 << 30,
+
+		/// <summary>
+		/// Value that will be split into a list on both semicolon and comma separators. This is supported for values used by tasks that allow either separator.
+		/// </summary>
+		ListSemicolonOrComma = ListSemicolon | ListComma,
+
+		/// <summary>
+		/// Mask for all modifier flag bits
+		/// </summary>
+		AllModifiers = ListSemicolonOrComma | Literal
 	}
 }

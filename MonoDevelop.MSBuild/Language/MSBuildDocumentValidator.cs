@@ -433,7 +433,7 @@ namespace MonoDevelop.MSBuild.Language
 						DescriptionFormatter.GetKindNoun (valueDescriptor), valueDescriptor.Name, hasDefault.DefaultValue);
 				}
 			}
-			
+
 
 			if (valueDescriptor is IDeprecatable deprecatable) {
 				CheckDeprecated (deprecatable, (INamedXObject)attribute ?? element);
@@ -453,8 +453,8 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ITypedSymbol info, MSBuildValueKind kind, ExpressionNode node)
 		{
-			bool allowExpressions = kind.AllowExpressions ();
-			bool allowLists = kind.AllowListsOrCommaLists ();
+			bool allowExpressions = kind.AllowsExpressions ();
+			bool allowLists = kind.AllowsLists (MSBuildValueKind.ListSemicolonOrComma);
 
 			if (node is ListExpression list) {
 				if (!allowLists) {

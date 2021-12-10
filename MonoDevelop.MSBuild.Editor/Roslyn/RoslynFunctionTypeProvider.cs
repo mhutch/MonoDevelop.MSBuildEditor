@@ -275,12 +275,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					default:
 						continue;
 					}
-					if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+					if (ConvertType (method.ReturnType).IsUnknown ()) {
 						continue;
 					}
 					bool unknownType = false;
 					foreach (var p in method.Parameters) {
-						if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						if (ConvertType (p.Type).IsUnknown ()) {
 							unknownType = true;
 							break;
 						}
@@ -290,7 +290,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					}
 					yield return new RoslynFunctionInfo (method);
 				} else if (includeProperties && member is IPropertySymbol prop) {
-					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+					if (ConvertType (prop.Type).IsUnknown ()) {
 						continue;
 					}
 					if (!includeIndexers && prop.IsIndexer) {
@@ -326,7 +326,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 						if(!method.IsStatic) {
 							continue;
 						}
-						if (ConvertType (method.ReturnType).GetScalarType () == MSBuildValueKind.Unknown) {
+						if (ConvertType (method.ReturnType).IsUnknown ()) {
 							continue;
 						}
 						break;
@@ -338,7 +338,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 					bool unknownType = false;
 					foreach (var p in method.Parameters) {
-						if (ConvertType (p.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+						if (ConvertType (p.Type).IsUnknown ()) {
 							unknownType = true;
 							break;
 						}
@@ -349,7 +349,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					}
 					yield return new RoslynFunctionInfo (method);
 				} else if (member is IPropertySymbol prop) {
-					if (ConvertType (prop.Type).GetScalarType () == MSBuildValueKind.Unknown) {
+					if (ConvertType (prop.Type).IsUnknown ()) {
 						continue;
 					}
 					yield return new RoslynPropertyInfo (prop);
@@ -360,7 +360,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		public static MSBuildValueKind ConvertType (ITypeSymbol type)
 		{
 			if (type is IArrayTypeSymbol arr) {
-				return ConvertType (arr.ElementType) | MSBuildValueKind.List;
+				return ConvertType (arr.ElementType) | MSBuildValueKind.ListSemicolon;
 			}
 
 			string fullTypeName = RoslynHelpers.GetFullName (type);
@@ -393,7 +393,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		static string GetDotNetTypeName (MSBuildValueKind kind)
 		{
-			if (kind.AllowLists ()) {
+			if (kind.AllowsLists ()) {
 				return null;
 			}
 
@@ -435,28 +435,28 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			yield return new FunctionInfo (
 				"DistinctWithCase",
 				"Returns the items with distinct ItemSpecs, respecting case but ignoring metadata.",
-				MSBuildValueKind.MatchItem.List());
+				MSBuildValueKind.MatchItem.AsList());
 			yield return new FunctionInfo (
 				"Distinct",
 				"Returns the items with distinct ItemSpecs, ignoring case and metadata.",
-				MSBuildValueKind.MatchItem.List());
+				MSBuildValueKind.MatchItem.AsList());
 			yield return new FunctionInfo (
 				"Reverse",
 				"Reverses the list.",
-				MSBuildValueKind.MatchItem.List());
+				MSBuildValueKind.MatchItem.AsList());
 			yield return new FunctionInfo (
 				"ClearMetadata",
 				"Returns the items with their metadata cleared.",
-				MSBuildValueKind.MatchItem.List());
+				MSBuildValueKind.MatchItem.AsList());
 			yield return new FunctionInfo (
 				"HasMetadata",
 				"Returns the items that have non-empty values for the specified metadata.",
-				MSBuildValueKind.MatchItem.List(),
+				MSBuildValueKind.MatchItem.AsList(),
 				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName));
 			yield return new FunctionInfo (
 				"WithMetadataValue",
 				"Returns items that have the specified metadata value, ignoring case.",
-				MSBuildValueKind.MatchItem.List (),
+				MSBuildValueKind.MatchItem.AsList (),
 				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName),
 				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
 			yield return new FunctionInfo (
@@ -588,7 +588,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String),
 				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.Object),
 				//todo params, registryView enum
-				new FunctionParameterInfo ("views", "Which registry view(s) to use", MSBuildValueKind.Object.List()));
+				new FunctionParameterInfo ("views", "Which registry view(s) to use", MSBuildValueKind.Object.AsList()));
 
 			yield return new FunctionInfo (
 				"MakeRelative",
@@ -633,12 +633,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				"Gets the canonical full path of the provided directory, with correct directory separators for the current OS and a trailing slash.",
 				MSBuildValueKind.String,
 				//FIXME params
-				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.List()));
+				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.AsList()));
 			yield return new FunctionInfo (
 				"NormalizePath",
 				"Gets the canonical full path of the provided path, with correct directory separators for the current OS.",
 				MSBuildValueKind.String,
-				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.List ()));
+				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.AsList ()));
 			yield return new FunctionInfo (
 				"IsOSPlatform",
 				"Whether the current OS platform is the specified OSPlatform value. Case insensitive.",

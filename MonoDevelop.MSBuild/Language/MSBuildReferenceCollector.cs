@@ -131,7 +131,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
-			if (resolvedAttribute.ValueKind == MSBuildValueKind.ItemName.Literal () && IsMatch (attribute.Value)) {
+			if (resolvedAttribute.ValueKind == MSBuildValueKind.ItemName.AsLiteral () && IsMatch (attribute.Value)) {
 				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
@@ -175,7 +175,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
-			if (resolvedAttribute.ValueKind == MSBuildValueKind.PropertyName.Literal () && IsMatch (attribute.Value)) {
+			if (resolvedAttribute.ValueKind == MSBuildValueKind.PropertyName.AsLiteral () && IsMatch (attribute.Value)) {
 				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
@@ -273,7 +273,7 @@ namespace MonoDevelop.MSBuild.Language
 			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
 			//these are things like <Foo Include="@(Bar)" RemoveMetadata="SomeBarMetadata" />
-			if (kind.GetScalarType () == MSBuildValueKind.MetadataName) {
+			if (kind.IsKindOrListOfKind (MSBuildValueKind.MetadataName)) {
 				var expr = GetIncludeExpression (element);
 				if (expr != null && expr
 					.WithAllDescendants ()
@@ -329,7 +329,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
 		{
-			if (kind.GetScalarType () != MSBuildValueKind.TargetName) {
+			if (!kind.IsKindOrListOfKind (MSBuildValueKind.TargetName)) {
 				return;
 			}
 			bool isDeclaration = resolvedAttribute?.SyntaxKind == MSBuildSyntaxKind.Target_Name;

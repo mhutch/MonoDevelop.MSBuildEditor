@@ -20,22 +20,11 @@ namespace MonoDevelop.MSBuild.Language
 
 		//validates CommaValue and SemicolonValue, and collapses them to Value
 		public static bool ValidateListPermitted (ListKind listKind, MSBuildValueKind kind)
-		{
-			switch (listKind) {
-			case ListKind.Comma:
-				if (kind.AllowCommaLists ()) {
-					return true;
-				}
-				return false;
-			case ListKind.Semicolon:
-				if (kind.AllowLists ()) {
-					return true;
-				}
-				return false;
-			default:
-				return true;
-			}
-		}
+			=> listKind switch {
+				ListKind.Comma => kind.AllowsLists (MSBuildValueKind.ListComma),
+				ListKind.Semicolon => kind.AllowsLists (MSBuildValueKind.ListSemicolon),
+				_ => false
+			};
 
 		public static bool IsCondition (this MSBuildResolveResult rr)
 		{
