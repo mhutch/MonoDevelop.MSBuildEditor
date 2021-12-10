@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Evaluation\Imported\Expander.cs" />
+    <None Include="Evaluation\Imported\Expander.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Schemas\CodeAnalysis.buildschema.json" />
     <None Remove="Schemas\CommonTargets.buildschema.json" />
     <None Remove="Schemas\Cpp.buildschema.json" />
@@ -94,5 +99,4 @@
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
   </ItemGroup>
-
 </Project>
