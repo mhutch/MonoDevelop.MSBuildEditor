@@ -11,9 +11,7 @@
 //  CHANGES: 
 //    * added 'using IFileSystem = ...' to use the public derived type instead of the internal interface
 
-
-
-// shim: IFileSystem is internal to MSBuild, but it's always implemented via MSBuildFileSystemBase, which is public
+// IFileSystem is internal to MSBuild, but it's always implemented via MSBuildFileSystemBase, which is public
 using IFileSystem = Microsoft.Build.FileSystem.MSBuildFileSystemBase;
 
 using System;
