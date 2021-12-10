@@ -4,11 +4,12 @@
     "Reference": {
       "description": "Reference to an assembly",
       "includeDescription": "assembly names or filenames",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "HintPath": {
           "description": "Relative or absolute path to the assembly",
-          "type": "file-list"
+          "type": "file",
+          "isList": true
         },
         "Name": "Friendly display name",
         "FusionName": "Fusion name of the assembly",
@@ -27,7 +28,7 @@
         },
         "RequiredTargetFramework": {
           "description": "The minimum required target framework version in order to use this assembly as a reference",
-          "type": "targetframeworkversion"
+          "type": "target-framework-version"
         }
       }
     },
@@ -39,7 +40,7 @@
       }
     },
     "COMReference": {
-      "type": "file-list",
+      "type": "file",
       "description": "Reference to a COM component",
       "includeDescription": "COM component names",
       "metadata": {
@@ -72,7 +73,7 @@
       }
     },
     "COMFileReference": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "WrapperTool": ""
       }
@@ -80,24 +81,24 @@
     "PackageReference": {
       "description": "Reference to a NuGet package",
       "includeDescription": "NuGet package IDs",
-      "type": "nugetid",
+      "type": "nuget-id",
       "packageType": "Dependency",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",
-          "type": "nugetversion"
+          "type": "nuget-version"
         }
       }
     },
     "DotNetCliToolReference": {
       "description": "The CLI tool that the user wants restored in the context of the project",
       "includeDescription": "tool NuGet package IDs",
-      "type": "nugetid",
+      "type": "nuget-id",
       "packageType": "DotnetCliTool",
       "metadata": {
         "Version": {
           "description": "The version of the NuGet package dependency",
-          "type": "nugetversion"
+          "type": "nuget-version"
         }
       }
     },
@@ -107,12 +108,12 @@
         "Configuration": {
           "description": "The configuration part of the project configuration",
           "type": "configuration",
-          "required": true
+          "isRequired": true
         },
         "Platform": {
           "description": "The platform part of the project configuration",
           "type": "platform",
-          "required": true
+          "isRequired": true
         }
       }
     },
@@ -123,7 +124,7 @@
     "NativeReference": {
       "description": "Reference to a native manifest file, or to a file that contains a native manifest",
       "includeDescription": "reference names",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "Name": "Base name of manifest file",
         "HintPath": "Relative path to manifest file"
@@ -132,7 +133,7 @@
     "ProjectReference": {
       "description": "Reference to another project",
       "includeDescription": "project file paths",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "Name": "Friendly display name",
         "Project": {
@@ -142,20 +143,21 @@
         "ReferenceOutputAssembly": {
           "description": "Whether the outputs of the project referenced should be passed to the compiler",
           "type": "bool",
-          "default": "true"
+          "defaultValue": "true"
         },
         "SpecificVersion": {
           "description": "Whether the exact version of the assembly should be used",
           "type": "bool",
-          "default": "true"
+          "defaultValue": "true"
         },
         "Targets": {
           "description": "Semicolon separated list of targets in the referenced projects that should be built. Default is the value of `$(ProjectReferenceBuildTargets)` whose default is blank, indicating the default targets.",
-          "type": "targetname-list"
+          "type": "target-name",
+          "isList": true
         },
         "OutputItemType": {
           "description": "Item type to emit target outputs into. Default is blank. If the Reference metadata is set to `true` (default) then target outputs will become references for the compiler.",
-          "type": "itemname"
+          "type": "item-name"
         },
         "Package": "",
         "EmbedInteropTypes": {
@@ -166,7 +168,7 @@
     "Compile": {
       "description": "Source files to be passed to the compiler",
       "includeDescription": "source files",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "AutoGen": {
           "description": "Whether file was generated from another file",
@@ -180,7 +182,7 @@
     "EmbeddedResource": {
       "description": "Resources to be embedded in the generated assembly",
       "includeDescription": "resource files",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "LogicalName": "Overrides the default resource ID"
       }
@@ -188,55 +190,59 @@
     "Content": {
       "description": "Files that are not compiled, but may be embedded or published",
       "includeDescription": "content files",
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "CopyToPublishDirectory": {
           "description": "Whether to copy the file to the publish directory",
           "type": {
-            "Never": "Do not copy the file",
-            "Always": "Always copy the file",
-            "PreserveNewest": "Copy the file if it is newer than the existing copy"
+            "values": {
+              "Never": "Do not copy the file",
+              "Always": "Always copy the file",
+              "PreserveNewest": "Copy the file if it is newer than the existing copy"
+            }
           },
-          "default": "Never"
+          "defaultValue": "Never"
         },
         "IsAssembly": "",
         "PublishState": {
-          "type": "@publishstate",
-          "default": "Default"
+          "type": { "$ref": "#/types/publishState" },
+          "defaultValue": "Default"
         }
       }
     },
     "Page": {
       "description": "XAML files that are converted to binary and compiled into the assembly",
       "includeDescription": "XAML files",
-      "type": "file-list"
+      "type": "file"
     },
     "Resource": {
       "description": "File that is compiled into the assembly",
       "includeDescription": "resource files",
-      "type": "file-list"
+      "type": "file"
     },
     "ApplicationDefinition": {
       "description": "XAML file that contains the application definition, only one can be defined",
       "includeDescription": "application definition",
-      "type": "file"
+      "type": "file",
+      "isSingleton": true
     },
     "None": {
       "description": "Files that should have no role in the build process",
-      "type": "file-list"
+      "type": "file"
     },
     "BaseApplicationManifest": {
       "description": "The base application manifest for the build. Contains ClickOnce security information.",
-      "type": "file"
+      "type": "file",
+      "isSingleton": true
     },
     "Folder": {
       "description": "Folder on disk to display in the IDE",
       "includeDescription": "folders",
-      "type": "folder-list"
+      "type": "folder"
     },
     "Import": {
       "description": "Assemblies whose namespaces should be imported by the Visual Basic compiler",
-      "type": "file-list"
+      "type": "file"
     },
     "WebReferences": {
       "description": "Name of Web References folder to display in user interface",
@@ -266,17 +272,18 @@
     },
     "BootstrapperFile": {
       "type": "file",
+      "isSingleton": true,
       "metadata": {
         "ProductName": "",
         "Install": ""
       }
     },
     "PublishFile": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "PublishState": {
-          "type": "@publishstate",
-          "default": "Default"
+          "type": { "$ref": "#/types/publishState" },
+          "defaultValue": "Default"
         },
         "IncludeHash": {
           "type": "bool"
@@ -292,11 +299,11 @@
     "Analyzer": {
       "description": "An assembly containing diagnostic analyzers",
       "includeDescription": "relative or absolute assembly paths",
-      "type": "file-list"
+      "type": "file"
     },
     "FileWrites": {
       "description": "Files to track for incremental clean",
-      "type": "file-list"
+      "type": "file"
     }
   },
   "properties": {
@@ -334,7 +341,7 @@
     },
     "CheckForOverflowUnderflow": {
       "description": "Whether the compiler should check for integer overflow and underflow",
-      "default": "false",
+      "defaultValue": "false",
       "type": "bool"
     },
     "CodePage": "The codepage the compiler should use when reading source files",
@@ -359,16 +366,18 @@
     "DebugSymbols": {
       "description": "Whether to emit debug symbols",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "DebugType": {
       "description": "What kind of debug information to emit",
       "type": {
-        "none": "No debug information",
-        "pdbonly": "Emit Windows-only PDB debug symbols",
-        "portable": "Emit portable PDB debug symbols",
-        "full": "Emit Windows-only PDB debug symbols",
-        "embedded": "Embed portable debug symbols in the assembly"
+        "values": {
+          "none": "No debug information",
+          "pdbonly": "Emit Windows-only PDB debug symbols",
+          "portable": "Emit portable PDB debug symbols",
+          "full": "Emit Windows-only PDB debug symbols",
+          "embedded": "Embed portable debug symbols in the assembly"
+        }
       }
     },
     "DefaultClientScript": "",
@@ -376,7 +385,8 @@
     "DefaultTargetSchema": "",
     "DefineConstants": {
       "description": "Conditional compiler defines",
-      "type": "string-list"
+      "type": "string",
+      "isList": true
     },
     "DelaySign": {
       "description": "Reserve space for a signature so the assembly can be signed later",
@@ -404,12 +414,14 @@
     "ErrorReport": {
       "description": "Reporting behavior for internal compiler errors",
       "type": {
-        "prompt": "Open a dialog asking whether you want to report the internal compiler error",
-        "queue": "Queue the internal compiler error reports and prompt you later",
-        "send": "Automatically report the internal compiler error to Microsoft",
-        "none": "Do not report internal compiler error"
+        "values": {
+          "prompt": "Open a dialog asking whether you want to report the internal compiler error",
+          "queue": "Queue the internal compiler error reports and prompt you later",
+          "send": "Automatically report the internal compiler error to Microsoft",
+          "none": "Do not report internal compiler error"
+        }
       },
-      "default": "none"
+      "defaultValue": "none"
     },
     "EmbedManifest": "",
     "ErrorReportUrl": "",
@@ -420,7 +432,7 @@
     "FallbackCulture": "",
     "FileAlignment": {
       "description": "Override the boundary on which the compiler aligns sections of the output assembly",
-      "default":  "512",
+      "defaultValue":  "512",
       "type": [ "512", "1024", "2048", "4096", "8192" ]
     },
     "FileUpgradeFlags": "",
@@ -462,7 +474,7 @@
     "Prefer32Bit": {
       "description": "Mark the executable as preferring to run on a 32-bit runtime when on a 64-bit OS",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "HighEntropyVA": {
       "description": "Mark the executable as able to run with Address Space Layout Randomization (ASLR) enable"
@@ -477,7 +489,7 @@
     "NoStdLib": {
       "description": "Whether to disable automatic referencing of standard libraries such as mscorlib",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "NoWarn": "Comma separated list of disabled warnings",
     "OldToolsVersion": "",
@@ -495,15 +507,17 @@
     "OSVersion": "",
     "OutputPath": {
       "description": "Path to output folder, with trailing slash",
-      "type": "folderwithslash"
+      "type": "folder-with-slash"
     },
     "OutputType": {
       "description": "The type of output from the compiler, such as an executable or library",
       "type": {
-        "Exe": "A console executable",
-        "Library": "A library",
-        "Module": "A .NET module",
-        "WinExe": "A Windows executable"
+        "values": {
+          "Exe": "A console executable",
+          "Library": "A library",
+          "Module": "A .NET module",
+          "WinExe": "A Windows executable"
+        }
       }
     },
     "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names",
@@ -517,14 +531,16 @@
     "PlatformTarget": {
       "description": "The platform that the executable targets",
       "type": {
-        "anycpu": "Runs on a 64-bit runtime if available, else 32-bit",
-        "anycpu32bitpreferred": "Runs on a 32-bit runtime if available, else 64-bit",
-        "ARM": "Only runs on ARM processors",
-        "x64": "Only runs on a 64-bit runtime on x86 processors",
-        "x86": "Only runs on a 32-bit runtime on x86 processors",
-        "Itanium": "Only runs on Itanium processors"
+        "values": {
+          "anycpu": "Runs on a 64-bit runtime if available, else 32-bit",
+          "anycpu32bitpreferred": "Runs on a 32-bit runtime if available, else 64-bit",
+          "ARM": "Only runs on ARM processors",
+          "x64": "Only runs on a 64-bit runtime on x86 processors",
+          "x86": "Only runs on a 32-bit runtime on x86 processors",
+          "Itanium": "Only runs on Itanium processors"
+        }
       },
-      "default": "anycpu"
+      "defaultValue": "anycpu"
     },
     "PlatformToolset": "",
     "PostBuildEvent": "Command line to be run at the end of build",
@@ -542,14 +558,17 @@
     "ProjectType": "",
     "ProjectTypeGuids": {
       "description": "A list of GUIDs that activate design-time capabilities in an IDE",
-      "type": "projectkindguid-list-const"
+      "type": "project-kind-guid",
+      "isList": true,
+      "isLiteral": true
     },
     "PublisherName": "",
     "PublishUrl": "",
     "RecursePath": "",
     "ReferencePath": {
       "description": "Semi-colon separated list of folders to search during reference resolution",
-      "type": "folder-list"
+      "type": "folder",
+      "isList": true
     },
     "RegisterForComInterop": "",
     "RemoteDebugEnabled": "",
@@ -565,11 +584,12 @@
     "RootNamespace": "The root namespace to use for new files",
     "RuntimeIdentifier": {
       "description": "Runtime identifier supported by the project (e.g. win10-x64)",
-      "type": "runtimeid"
+      "type": "runtime-id"
     },
     "RuntimeIdentifiers": {
       "description": "Semi-colon separated list of runtime identifiers supported by the project (e.g. win10-x64;osx.10.11-x64;ubuntu.16.04-x64)",
-      "type": "runtimeid-list"
+      "type": "runtime-id",
+      "isList": true
     },
     "SccProjectName": "",
     "SccLocalPath": "",
@@ -599,27 +619,28 @@
     "TargetCulture": "",
     "TargetFramework": {
       "description": "Short moniker of the framework that this project targets, e.g. `netstandard2.0`",
-      "type": "targetframework"
+      "type": "target-framework"
     },
     "TargetFrameworks": {
       "description": "List of short monikers for the frameworks that this project targets, for example `netstandard2.0;net461)`",
-      "type": "targetframework-list"
+      "type": "target-framework",
+      "isList": true
     },
     "TargetFrameworkIdentifier": {
       "description": "The identity of framework that this project targets, for example `.NETFramework`",
-      "type": "targetframeworkidentifier"
+      "type": "target-framework-identifier"
     },
     "TargetFrameworkVersion": {
       "description": "The version of the framework that this project targets, for example `v4.0`",
-      "type": "targetframeworkversion"
+      "type": "target-framework-version"
     },
     "TargetFrameworkProfile": {
       "description": "The profile of the framework that this project targets, for example `Profile259`",
-      "type": "targetframeworkprofile"
+      "type": "target-framework-profile"
     },
     "TargetFrameworkMoniker": {
       "description": "The full moniker for of the framework that this project targets, combining the identifier, version and profile",
-      "type": "targetframeworkmoniker"
+      "type": "target-framework-moniker"
     },
     "TargetPlatformIdentifier": "",
     "TargetPlatformVersion": "",
@@ -694,11 +715,11 @@
     },
     "TargetDir": {
       "description": "Directory path of the project's primary output",
-      "type": "folderwithslash"
+      "type": "folder-with-slash"
     },
     "ProjectDir": {
       "description": "Directory containing the root project",
-      "type": "folderwithslash"
+      "type": "folder-with-slash"
     },
     "ProjectFileName": {
       "description": "Name of the project, formed by appending the extension to the base name",
@@ -718,7 +739,7 @@
     },
     "SolutionDir": {
       "description": "The directory containing the solution file",
-      "type": "folderwithslash"
+      "type": "folder-with-slash"
     },
     "SolutionName": {
       "description": "Base name of the solution file, without its extension",
@@ -754,7 +775,8 @@
     },
     "MSBuildAllProjects": {
       "description": "List of all project files. Targets can use this as an input to trigger rebuilds when these files change, and targets and props files can add themselves to be included in this behavior.",
-      "type": "file-list"
+      "type": "file",
+      "isList": true
     },
     "ExternalConsole": {
       "description": "Whether to close the external console after running a console application in the IDE",
@@ -762,71 +784,76 @@
     },
     "Configurations": {
       "description": "The values that the IDE should list for the `$(Configuration)` property",
-      "type": "configuration-list"
+      "type": "configuration",
+      "isList": true
     },
     "Platforms": {
       "description": "The values that the IDE should list for the `$(Platform)` property",
-      "type": "platform-list"
+      "type": "platform",
+      "isList": true
     }
   },
   "metadata": [
     {
-      "#": "Metadata that controls how assets are consumed/propagated from a reference",
+      // Metadata that controls how assets are consumed/propagated from a reference
       "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference" ],
       "IncludeAssets": {
         "description": "Assets that will be consumed by the project",
-        "default": "all",
-        "type": "@asset-list",
+        "defaultValue": "all",
+        "type": { "$ref": "#/types/asset" },
+        "isList": true,
         "listSeparators": ","
       },
       "ExcludeAssets": {
         "description": "Assets that will not be consumed by the project",
-        "default": "none",
-        "type": "@asset-list",
+        "defaultValue": "none",
+        "type": { "$ref": "#/types/asset" },
+        "isList": true,
         "listSeparators": ","
       },
       "PrivateAssets": {
         "description": "Assets that will be consumed by the project but won't flow to its parent",
-        "default": "contentfiles,analyzers,build",
-        "type": "@asset-list",
+        "defaultValue": "contentfiles,analyzers,build",
+        "type": { "$ref": "#/types/asset" },
+        "isList": true,
         "listSeparators": ","
       }
     },
     {
-      "#": "Metadata that applies to files that are generated by tools",
+      // Metadata that applies to files that are generated by tools
       "$appliesTo": [ "ApplicationDefinition", "None", "EmbeddedResource", "Content", "Page", "Resource" ],
       "Generator": "Name of any file generator that is run on this item",
       "LastGenOutput": "File that was created by any file generator that was run on this item",
       "CustomToolNamespace": "Namespace into which any file generator that is run on this item should create code"
     },
     {
-      "#": "This technically applies to everything declared outside of a target",
+      // This technically applies to everything declared outside of a target
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None", "BootstrapperFile", "PublishFile", "FileAssociation" ],
       "Visible": {
         "description": "Whether the item should be displayed in the IDE solution tree",
         "type": "bool",
-        "default": "true"
+        "defaultValue": "true"
       }
     },
     {
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
       "CopyToOutputDirectory": {
         "description": "Whether to copy the file to the output directory",
-        "type": {
+        "type": { "values": {
           "Never": "Do not copy the file",
           "Always": "Always copy the file",
           "PreserveNewest": "Copy the file if it is newer than the existing copy"
-        },
-        "default": "Never"
+        }},
+        "defaultValue": "Never"
       }
     },
     {
-      "#": "No idea what this is",
+      // No idea what this is
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
       "SubType": ""
     },
     {
-      "#": "Some XAML thing maybe?",
+      // Some XAML thing maybe?
       "$appliesTo": [ "Content", "Page", "Resource", "ApplicationDefinition", "PublishFile" ],
       "Group": ""
     },
@@ -835,27 +862,29 @@
       "DependentUpon": "The file under which this file should be grouped in the IDE solution tree"
     },
     {
-      "#": "This technically applies to everything declared outside of a target",
+      // This technically applies to everything declared outside of a target
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
       "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)"
     }
   ],
-  "customTypes": {
+  "types": {
     "asset": {
-      "$name": "asset-type",
-      "$description": "NuGet package asset type",
-      "compile": "Libraries from the `lib` folder",
-      "runtime": "Contents of the `runtime` folder",
-      "contentFiles": "All of the assets",
-      "build": "MSBuild targets",
-      "buildMultitargeting": "MSBuild targets in the buildMultitargeting folder",
-      "buildTransitive": "MSBuild targets in the buildTransitive folder",
-      "analyzers": "Code analyzers",
-      "native": "Contents of the `native` folder",
-      "none": "None of the assets",
-      "all": "All of the assets"
+      "name": "asset-type",
+      "description": "NuGet package asset type",
+      "values": {
+        "compile": "Libraries from the `lib` folder",
+        "runtime": "Contents of the `runtime` folder",
+        "contentFiles": "All of the assets",
+        "build": "MSBuild targets",
+        "buildMultitargeting": "MSBuild targets in the buildMultitargeting folder",
+        "buildTransitive": "MSBuild targets in the buildTransitive folder",
+        "analyzers": "Code analyzers",
+        "native": "Contents of the `native` folder",
+        "none": "None of the assets",
+        "all": "All of the assets"
+      }
     },
-    "publishstate": [
+    "publishState": [
       "Default",
       "Included",
       "Excluded",
@@ -873,7 +902,7 @@
     "ResolveAssemblyReferences": "Resolves assembly references to assemblies and satellite files",
     "ResolveProjectReferences": "Builds referenced projects and resolves their outputs",
     "AssignLinkMetadata": "Assigns default values for the `Link` metadata on several item types",
-    "AssignProjectConfiguration": "Assigns configurations to project references based on the solutiom configuration mappings",
+    "AssignProjectConfiguration": "Assigns configurations to project references based on the solution configuration mappings",
     "GetTargetPath": "Called by a referencing project to determine the path to the project's output",
     "PrepareResources": "Prepares resources for the Compile step",
     "AssignTargetPaths": "Assigns `%(TargetPath)` metadata on several item types",

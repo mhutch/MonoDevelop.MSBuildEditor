@@ -20,21 +20,21 @@
     },
     "OptionExplicit": {
       "description": "Option Explicit setting",
-      "type": "@onoff"
+      "type": { "$ref": "#/types/onOff" }
     },
     "OptionStrict": {
       "description": "Option Strict setting",
-      "type": "@onoff"
+      "type": { "$ref": "#/types/onOff" }
     },
     "OptionInfer": {
       "description": "Option Infer setting",
-      "type": "@onoff"
+      "type": { "$ref": "#/types/onOff" }
     },
     "VBRuntime": "",
     "LangVersion": "",
     "MyType": ""
   },
-  "customTypes": {
-    "onoff": [ "On", "Off" ]
+  "types": {
+    "onOff": [ "On", "Off" ]
   }
 }

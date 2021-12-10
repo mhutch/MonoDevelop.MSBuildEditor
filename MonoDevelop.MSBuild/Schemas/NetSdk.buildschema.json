@@ -6,66 +6,67 @@
     "EnableDefaultItems": {
       "description": "Whether to include items in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "EnableDefaultCompileItems": {
       "description": "Whether to include source files in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "EnableDefaultEmbeddedResourceItems": {
       "description": "Whether to include embedded resources in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "EnableDefaultNoneItems": {
       "description": "Whether to include none items in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "DefaultItemExcludes": {
       "description": "Files to omit from wildcard item includes",
-      "type": "file-list"
+      "type": "file",
+      "isList": true
     },
     "DisableImplicitFrameworkReferences": {
       "description": "Disable implicit inclusion of framework references",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "SetLinkMetadataAutomatically": {
       "description": "Whether to automatically set Link metadata on items outside the project folder",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "GenerateAssemblyInfo": {
       "description": "Whether to automatically generate an AssemblyInfo file at build time and pass it to the compiler",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "AppendTargetFrameworkToOutputPath": {
       "description": "Whether the framework's short name is added to the output path, which prevents conflicts when multi-targeting",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "EnableDefaultPageItems": {
       "description": "Whether to include XAML page files in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "EnableDefaultApplicationDefinition": {
       "description": "Whether to include XAML application files in the project directory by wildcard",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "UseWindowsForms": {
       "description": "Whether or not the project references Windows Forms",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "UseWPF": {
       "description": "Whether or not the project references Windows Presentation Foundation",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "files.associations": {
+    "*.buildschema.json": "jsonc"
+  },
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/*.buildschema.json"
+      ],
+      "url": "./MonoDevelop.MSBuild/Schemas/buildschema.json"
+    }
+  ],
+  "cSpell.words": [
+    "anycpu",
+    "ASLR",
+    "Bootstrapper",
+    "codepage",
+    "discoverability",
+    "fxcop",
+    "Hotpatchable",
+    "LCID",
+    "mscorlib",
+    "Multitargeting",
+    "netstandard",
+    "overridable",
+    "Precompiled",
+    "resx",
+    "ruleset",
+    "Struct",
+    "Toolset",
+    "VSINSTALLDIR"
+  ]
+}

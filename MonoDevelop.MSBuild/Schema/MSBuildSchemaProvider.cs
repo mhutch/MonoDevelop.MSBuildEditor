@@ -14,12 +14,13 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			var schema = GetSchema (path, sdk, out var loadErrors);
 
+			// FIXME: log which the error came from
 			if (loadErrors != null) {
 				foreach (var error in loadErrors) {
-					if (error.severity == DiagnosticSeverity.Warning) {
-						LoggingService.LogWarning (error.message);
+					if (error.Severity == DiagnosticSeverity.Warning) {
+						LoggingService.LogWarning (error.Message);
 					} else {
-						LoggingService.LogError (error.message);
+						LoggingService.LogError (error.Message);
 					}
 				}
 			}
@@ -27,12 +28,12 @@ namespace MonoDevelop.MSBuild.Schema
 			return schema;
 		}
 
-		public virtual MSBuildSchema GetSchema (string path, string sdk, out IList<(string message, DiagnosticSeverity severity)> loadErrors)
+		public virtual MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
 			string filename = path + ".buildschema.json";
 			if (File.Exists (filename)) {
 				using (var reader = File.OpenText (filename)) {
-					return MSBuildSchema.Load (reader, out loadErrors);
+					return MSBuildSchema.Load (reader, out loadErrors, filename);
 				}
 			}
 
@@ -41,11 +42,11 @@ namespace MonoDevelop.MSBuild.Schema
 
 		// don't inline this, MSBuildSchema.LoadResource gets the calling assembly
 		[MethodImpl (MethodImplOptions.NoInlining)]
-		static MSBuildSchema GetResourceForBuiltin (string filepath, string sdkId, out IList<(string message, DiagnosticSeverity severity)> loadErrors)
+		static MSBuildSchema GetResourceForBuiltin (string filepath, string sdkId, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
 			var resourceId = GetResourceIdForBuiltin (filepath, sdkId);
 			if (resourceId != null) {
-				return MSBuildSchema.LoadResource ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors); ;
+				return MSBuildSchema.LoadResourceFromCallingAssembly ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
 			}
 			loadErrors = null;
 			return null;

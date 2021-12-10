@@ -16,7 +16,7 @@
       }
     },
     "ClCompile": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "PrecompiledHeader": "",
         "OutputFile": "",
@@ -32,7 +32,7 @@
         "BasicRuntimeChecks": "",
         "RuntimeLibrary": "",
         "FunctionLevelLinking": "",
-        "FloatingPointModel ": "",
+        "FloatingPointModel": "",
         "IntrinsicFunctions": "",
         "PrecompiledHeaderFile": "",
         "MultiProcessorCompilation": "",
@@ -55,13 +55,13 @@
       }
     },
     "ClInclude": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "AdditionalIncludeDirectories": ""
       }
     },
     "Manifest": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "AssemblyIdentity": "",
         "AdditionalManifestFiles": "",
@@ -86,7 +86,7 @@
       }
     },
     "Midl": {
-      "type": "file-list",
+      "type": "file",
       "metadata": {
         "IncludeAssets": "",
         "MkTypLibCompatible": "",

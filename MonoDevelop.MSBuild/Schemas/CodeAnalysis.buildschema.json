@@ -4,17 +4,17 @@
     "CodeAnalysisDependentAssemblyPaths": {
       "description": "Additional reference assembly paths to pass to the Code Analysis command line tool.",
       "includeDescription": "fully qualified paths to directories containing reference assemblies to be used by Code Analysis",
-      "type": "folder-list"
+      "type": "folder"
     },
     "CodeAnalysisDictionary": {
       "description": "Code Analysis custom dictionaries.",
       "includeDescription": "Code Analysis custom dictionaries",
-      "type": "folder-list"
+      "type": "folder"
     },
     "CodeAnalysisImport": {
       "description": "Code Analysis projects (*.fxcop) or reports to import.",
       "includeDescription": "Code Analysis projects or reports",
-      "type": "file-list"
+      "type": "file"
     }
   },
   "properties": {
@@ -22,108 +22,114 @@
     "CodeAnalysisApplyLogFileXsl": {
       "description": "Indicates whether to apply the XSL style sheet specified in `$(CodeAnalysisLogFileXsl)` to the Code Analysis report. This report is specified in `$(CodeAnalysisLogFile)`. The default is false.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisConsoleXsl": "Path to the XSL style sheet that will be applied to the Code Analysis console output. The default is an empty string (''), which causes Code Analysis to use its default console output.",
     "CodeAnalysisCulture": "Culture to use for Code Analysis spelling rules, for example, 'en-US' or 'en-AU'. The default is the current user interface language for the operating system.",
     "CodeAnalysisFailOnMissingRules": {
       "description": "Indicates whether Code Analysis should fail if a rule or rule set is missing.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisForceOutput": {
       "description": "Indicates whether Code Analysis generates a report file, even when there are no active warnings or errors.",
-      "default": "true",
+      "defaultValue": "true",
       "type": "bool"
     },
     "CodeAnalysisGenerateSuccessFile": {
       "description": "Indicates whether Code Analysis generates a `$(CodeAnalysisInputAssembly).lastcodeanalysissucceeded` file in the output folder when no build-breaking errors occur.",
-      "default": "true",
+      "defaultValue": "true",
       "type": "bool"
     },
     "CodeAnalysisIgnoreBuiltInRules": {
       "description": "Indicates whether Code Analysis will ignore the default rule directories when searching for rules.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisIgnoreBuiltInRuleSets": {
       "description": "Indicates whether Code Analysis will ignore the default rule set directories when searching for rule sets.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisIgnoreInvalidTargets": {
       "description": "Indicates whether Code Analysis should silently fail when analyzing invalid assemblies, such as those without managed code.",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "CodeAnalysisIgnoreGeneratedCode": {
       "description": "Indicates whether Code Analysis should fail silently when it analyzes invalid assemblies, such as those without managed code.",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     },
     "CodeAnalysisInputAssembly": {
       "description": "Path to the assembly to be analyzed by Code Analysis.",
-      "type": "file-list",
-      "default": "$(OutDir)$(TargetName)$(TargetExt)"
+      "type": "file",
+      "isList": true,
+      "defaultValue": "$(OutDir)$(TargetName)$(TargetExt)"
     },
     "CodeAnalysisLogFile": {
       "description": "Path to the output file for the Code Analysis report.",
-      "type": "file-list",
-      "default": "$(CodeAnalysisInputAssembly).CodeAnalysisLog.xml"
+      "type": "file",
+      "isList": true,
+      "defaultValue": "$(CodeAnalysisInputAssembly).CodeAnalysisLog.xml"
     },
     "CodeAnalysisLogFileXsl": {
       "description": "Path to the XSL style sheet to reference in the Code Analysis output report. This report is specified in `$(CodeAnalysisLogFile)`.",
-      "type": "file-list",
-      "default": ""
+      "type": "file",
+      "isList": true,
+      "defaultValue": ""
     },
     "CodeAnalysisModuleSuppressionsFile": {
       "description": "Name of the file, without the path, where Code Analysis project-level suppressions are stored.",
-      "type": "file-list",
-      "default": "GlobalSuppressions$(DefaultLanguageSourceExtension)"
+      "type": "file",
+      "isList": true,
+      "defaultValue": "GlobalSuppressions$(DefaultLanguageSourceExtension)"
     },
     "CodeAnalysisOverrideRuleVisibilities": {
       "description": "Indicates whether to run all overridable Code Analysis rules against all targets. This will cause specific rules, such as those within the Design and Naming categories, to run against both public and internal APIs, instead of only public APIs.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisOutputToConsole": {
       "description": "Indicates whether to output Code Analysis warnings and errors to the console.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisVerbose": {
       "description": "Indicates whether to output verbose Code Analysis diagnostic info to the console.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisPath": {
       "description": "Path to the Code Analysis installation folder.",
-      "default": "$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\FxCop",
-      "type": "file-list"
+      "defaultValue": "$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\FxCop",
+      "type": "file",
+      "isList": true
     },
     "CodeAnalysisPlatformPath": {
       "description": "Path to the .NET Framework folder that contains platform assemblies, such as mscorlib.dll and System.dll.",
-      "type": "folder-list",
-      "default": ""
+      "type": "folder",
+      "isList": true,
+      "defaultValue": ""
     },
     "CodeAnalysisProject": {
       "description": "Path to the Code Analysis project (*.fxcop) to load.",
-      "default": "true"
+      "defaultValue": "true"
     },
     "CodeAnalysisQuiet": {
       "description": "Indicates whether to suppress all Code Analysis console output other than errors and warnings. This applies when `$(CodeAnalysisOutputToConsole)` is true.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisRuleAssemblies": {
       "description": "Semicolon-separated list of paths either to Code Analysis rule assemblies or to folders that contain Code Analysis rule assemblies. The paths are in the form '[+|-][!][file|folder]', where '+' enables all rules in rule assembly, '-' disables all rules in rule assembly, and '!' causes all rules in rule assembly to be treated as errors. For example '+D:\\Projects\\Rules\\NamingRules.dll;+!D:\\Projects\\Rules\\SecurityRules.dll'.",
-      "default": "$(CodeAnalysisPath)\\Rules"
+      "defaultValue": "$(CodeAnalysisPath)\\Rules"
     },
     "CodeAnalysisRuleDirectories": "Semicolon-separated list of directories in which to search for rules when resolving a rule set. The default is `$(CodeAnalysisPath)\\Rules` unless the CodeAnalysisIgnoreBuiltInRules property is set to true.",
     "CodeAnalysisRules": "Semicolon-separated list of Code Analysis rules. The rules are in the form '[+|-][!]Category#CheckId', where '+' enables the rule, '-' disables the rule, and '!' causes the rule to be treated as an error. For example, '-Microsoft.Naming#CA1700;+!Microsoft.Naming#CA1701'. The default is an empty string ('') which enables all rules.",
     "CodeAnalysisRuleSet": {
       "description": "A .ruleset file which contains a list of rules to run during analysis. The string can be a full path, a path relative to the project file, or a file name. If a file name is specified, the CodeAnalysisRuleSetDirectories property will be searched to find the file.",
-      "default": ""
+      "defaultValue": ""
     },
     "CodeAnalysisRuleSetDirectories": "Semicolon-separated list of directories in which to search for rule sets. The default is `$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\Rule Sets` unless the CodeAnalysisIgnoreBuiltInRuleSets property is set to true.",
     "CodeAnalysisSaveMessagesToReport": {
@@ -134,37 +140,37 @@
         "Absent"
       ],
       "listSeparators": ",",
-      "default": "Active"
+      "defaultValue": "Active"
     },
     "CodeAnalysisSearchGlobalAssemblyCache": {
       "description": "Indicates whether Code Analysis should search the Global Assembly Cache (GAC) for missing references that are encountered during analysis.",
-      "default": "true",
+      "defaultValue": "true",
       "type": "bool"
     },
     "CodeAnalysisSummary": {
       "description": "Indicates whether to output a Code Analysis summary to the console after analysis.",
-      "default": "false",
+      "defaultValue": "false",
       "type": "bool"
     },
     "CodeAnalysisTimeout": {
       "description": "The time, in seconds, that Code Analysis should wait for analysis of a single item to complete before it aborts analysis. Specify 0 to cause Code Analysis to wait indefinitely.",
-      "default": "120",
+      "defaultValue": "120",
       "type": "int"
     },
     "CodeAnalysisTreatWarningsAsErrors": {
       "description": "Indicates whether to treat all Code Analysis warnings as errors.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisUpdateProject": {
       "description": "Indicates whether to update the Code Analysis project (*.fxcop) specified in `$(CodeAnalysisProject)`. This applies when there are changes during analysis.",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "CodeAnalysisUseTypeNameInSuppression": {
       "description": "Indicates whether to include the name of the rule when Code Analysis emits a suppression.",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     }
   }
 }

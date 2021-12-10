@@ -386,9 +386,9 @@ namespace MonoDevelop.MSBuild.Tests
 	[Export(typeof(MSBuildSchemaProvider))]
 	class TestSchemaProvider : MSBuildSchemaProvider
 	{
-		public override MSBuildSchema GetSchema (string path, string sdk, out IList<(string message, Xml.Parser.DiagnosticSeverity severity)> loadErrors)
+		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
-			loadErrors = Array.Empty<(string message, Xml.Parser.DiagnosticSeverity severity)> ();
+			loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
 
 			switch (path) {
 			case "EagerElementTrigger.csproj":

@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var schema = provider.GetSchema (name, sdk, out var loadErrors);
 			Assert.NotNull (schema);
-			Assert.Zero (loadErrors.Count);
+			Assert.IsEmpty (loadErrors);
 		}
 
 		[Test]
@@ -55,21 +55,23 @@ namespace MonoDevelop.MSBuild.Tests
 @"{
 	""properties"": {
 		""MyProp"": {
-			""type"": ""@mycustom""
+			""type"": { ""$ref"": ""#/types/mycustom"" }
 		}
 	},
-	""customTypes"": {
+	""types"": {
 		""mycustom"": {
-			""$"": ""this is a comment"",
-			""$name"": ""type-name"",
-			""One"": ""x"",
-			""Two"": ""y""
+			// this is a comment,
+			""name"": ""type-name"",
+			""values"": {
+				""One"": ""x"",
+				""Two"": ""y""
+			}
 		}
 	}
 }"
-			), out var loadErrors);
+			), out var loadErrors, "CustomTypes");
 
-			Assert.Zero (loadErrors.Count);
+			Assert.IsEmpty (loadErrors);
 
 			var item = new[] { schema }.GetProperty ("MyProp", true);
 			Assert.NotNull (item);

@@ -46,7 +46,7 @@
     },
     "PackageLicenseExpression": {
       "description": "The package's license in SPDX 2.0 expression format",
-      "type": "@spdx"
+      "type": { "$ref": "#/types/spdx" }
     },
     "PackageProjectUrl": {
       "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
@@ -60,7 +60,7 @@
     "PackageTags": "A space-delimited list of tags and keywords that describe the NuGet package and aid discoverability of NuGet packages through search and filtering mechanisms",
     "PackageVersion": {
       "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1). Version numbers may include a pre-release suffix (e.g. 1.0.1-beta)",
-      "type": "suffixedversion"
+      "type": "suffixed-version"
     },
     "Product": "Product name information for the assembly manifest",
     "Version": {
@@ -88,7 +88,7 @@
     "IncludeSource": {
       "description": "Whether to include source files in the NuGet package",
       "type": "bool",
-      "default": "false"
+      "defaultValue": "false"
     },
     "IsTool": {
       "description": "Whether to place output files in the tools folder instead of the lib folder",
@@ -100,7 +100,8 @@
     },
     "NuspecProperties": {
       "description": "Semicolon-separated list of key=value pairs to be set in a custom .nuspec manifest",
-      "type": "string-list"
+      "type": "string",
+      "isList": true
     },
     "NuspecBasePath": {
       "description": "Base path for the custom .nuspec manifest",
@@ -109,12 +110,12 @@
     "IncludeContentInPack": {
       "description": "Whether to include Content files in the package",
       "type": "bool",
-      "default": "true"
+      "defaultValue": "true"
     }
   },
   "metadata": [
     {
-      "#": "Metadata that controls how an item is packaged",
+      // Metadata that controls how an item is packaged
       "$appliesTo": [
         "Content", "Compile", "EmbeddedResource", "ApplicationDefinition", "Page", "Resource",
           "SplashScreen", "DesignData", "DesignDataWithDesignTimeCreateableTypes", "CodeAnalysisDictionary",
@@ -126,7 +127,7 @@
       },
       "PackagePath": {
         "description": "The item's path within the package. If it has a trailing slash, the filename will be appended.",
-        "type": "fileorfolder-list"
+        "type": "file-or-folder"
       },
       "PackageCopyToOutput": {
         "description": "Sets CopyToOutput on the contentFiles entry in the output nuspec",
@@ -138,53 +139,57 @@
       }
     },
     {
-      "#": "Metadata that controls how assets are consumed/propagated from a reference",
+      // Metadata that controls how assets are consumed/propagated from a reference
       "$appliesTo": "ProjectReference",
       "IncludeAssets": {
         "description": "Assets that will be consumed by the project",
-        "default": "all",
-        "type": "@asset",
+        "defaultValue": "all",
+        "type": { "$ref": "#/types/asset" },
         "listSeparators": ","
       },
       "ExcludeAssets": {
         "description": "Assets that will not be consumed by the project",
-        "default": "none",
-        "type": "@asset",
+        "defaultValue": "none",
+        "type": { "$ref": "#/types/asset" },
         "listSeparators": ","
       },
       "PrivateAssets": {
         "description": "Assets that will be consumed by the project but won't flow to its parent",
-        "default": "contentfiles,analyzers,build",
-        "type": "@asset",
+        "defaultValue": "contentfiles,analyzers,build",
+        "type": { "$ref": "#/types/asset" },
         "listSeparators": ","
       }
     }
   ],
-  "customTypes": {
+  "types": {
     "asset": {
-      "$name": "asset-type",
-      "$description": "NuGet package asset type",
-      "compile": "Libraries from the `lib` folder",
-      "runtime": "Contents of the `runtime` folder",
-      "contentFiles": "All of the assets",
-      "build": "MSBuild targets",
-      "buildMultitargeting": "MSBuild targets in the buildMultitargeting folder",
-      "buildTransitive": "MSBuild targets in the buildTransitive folder",
-      "analyzers": "Code analyzers",
-      "native": "Contents of the `native` folder",
-      "none": "None of the assets",
-      "all": "All of the assets"
+      "name": "asset-type",
+      "description": "NuGet package asset type",
+      "values": {
+        "compile": "Libraries from the `lib` folder",
+        "runtime": "Contents of the `runtime` folder",
+        "contentFiles": "All of the assets",
+        "build": "MSBuild targets",
+        "buildMultitargeting": "MSBuild targets in the buildMultitargeting folder",
+        "buildTransitive": "MSBuild targets in the buildTransitive folder",
+        "analyzers": "Code analyzers",
+        "native": "Contents of the `native` folder",
+        "none": "None of the assets",
+        "all": "All of the assets"
+      }
     },
     "spdx": {
-      "$name": "spdx-expression",
-      "$allow-unknown-values": true,
-      "#": "Instead of the entire list, just include some common permissive OSI-approved licenses",
-      "MIT": "MIT License",
-      "Apache-1.1": "Apache License 1.1",
-      "Apache-2.0": "Apache License 2.0",
-      "BSD-2-Clause": "BSD 2-Clause \"Simplified\" License",
-      "BSD-2-Clause-Patent": "BSD-2-Clause Plus Patent License",
-      "BSD-3-Clause": "BSD 3-Clause \"New\" or \"Revised\" License"
+      "name": "spdx-expression",
+      "allowUnknownValues": true,
+      // Instead of the entire list, just include some common permissive OSI-approved licenses
+      "values": {
+        "MIT": "MIT License",
+        "Apache-1.1": "Apache License 1.1",
+        "Apache-2.0": "Apache License 2.0",
+        "BSD-2-Clause": "BSD 2-Clause \"Simplified\" License",
+        "BSD-2-Clause-Patent": "BSD-2-Clause Plus Patent License",
+        "BSD-3-Clause": "BSD 3-Clause \"New\" or \"Revised\" License"
+      }
     }
   },
   "targets": {
