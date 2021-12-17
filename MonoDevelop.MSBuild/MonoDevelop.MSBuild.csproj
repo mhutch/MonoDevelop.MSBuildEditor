@@ -5,7 +5,7 @@
     build net5.0 as well to make sure we don't accidentally add netframework deps
     even though only the net472 version is actually used right now
     -->
-    <TargetFrameworks>net472;net5.0</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -35,8 +35,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="16.8.0" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="16.8.0" />
+    <PackageReference Include="Microsoft.Build" Version="17.0.0" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NuGet.Frameworks" Version="5.8.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />

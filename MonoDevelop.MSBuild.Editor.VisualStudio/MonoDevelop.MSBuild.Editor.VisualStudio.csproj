@@ -93,9 +93,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="16.9.31023.347" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="3.9.0" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.9.31025.194" ExcludeAssets="runtime" IncludeAssets="compile;build;native;contentfiles;analyzers;buildtransitive" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.0.31902.203" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.0.1" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

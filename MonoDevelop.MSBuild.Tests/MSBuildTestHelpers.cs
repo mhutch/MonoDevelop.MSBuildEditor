@@ -101,7 +101,12 @@ namespace MonoDevelop.MSBuild.Tests
 			registeredAssemblies = true;
 
 			if (Platform.IsWindows) {
-				Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults ();
+				var vs17Instance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
+					.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.VisualStudioSetup && x.Version.Major >= 17);
+				if (vs17Instance == null) {
+					throw new InvalidOperationException ("Did not find instance of Visual Studio 17.0 or later");
+				}
+				Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (vs17Instance);
 				return;
 			}
 
