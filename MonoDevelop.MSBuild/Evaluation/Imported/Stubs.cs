@@ -4,6 +4,9 @@
 // Stubs for dependencies of imported classes to limit the amount of imported files
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+
 using Microsoft.Build.FileSystem;
 using NuGet.Frameworks;
 
@@ -23,11 +26,85 @@ namespace Microsoft.Build.Shared.FileSystem
 	{
 		public static MSBuildFileSystemBase Default = GetDefaultFileSystem ();
 
-		private static MSBuildFileSystemBase GetDefaultFileSystem ()
+		private static MSBuildFileSystemBase GetDefaultFileSystem () => new ConcreteMSBuildFileSystem ();
+			/*
 		{
 			var asm = typeof (MSBuildFileSystemBase).Assembly.GetType ("Microsoft.Build.Shared.FileSystem.FileSystems");
-			var prop = asm.GetProperty ("Default", BF.Static | BF.NonPublic | BF.Public);
-			return (MSBuildFileSystemBase) prop.GetValue (null, null);
+			var prop = asm.GetField ("Default", BF.Static | BF.NonPublic | BF.Public);
+			var defaultFilesystem = prop.GetValue (null);
+			return new WrappedFileSystem (defaultFilesystem);
+		}*/
+
+		class ConcreteMSBuildFileSystem : MSBuildFileSystemBase{}
+
+		// eventually this should get simpler once this commit is generally available (committed 2021/05/21)
+		// as it makes MSBuildFileSystemBase nonabstract and routes the default impl to FileSystems.Default
+		// https://github.com/dotnet/msbuild/commit/f4533349fb1b702fc2a4b9657d0e85ba3700282b
+		sealed class WrappedFileSystem : MSBuildFileSystemBase
+		{
+			public WrappedFileSystem (object defaultFilesystem)
+			{
+			}
+
+			public override bool DirectoryExists (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override IEnumerable<string> EnumerateDirectories (string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override IEnumerable<string> EnumerateFiles (string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override IEnumerable<string> EnumerateFileSystemEntries (string path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override bool FileExists (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override bool FileOrDirectoryExists (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override FileAttributes GetAttributes (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override Stream GetFileStream (string path, FileMode mode, FileAccess access, FileShare share)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override DateTime GetLastWriteTimeUtc (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override TextReader ReadFile (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override byte[] ReadFileAllBytes (string path)
+			{
+				throw new NotImplementedException ();
+			}
+
+			public override string ReadFileAllText (string path)
+			{
+				throw new NotImplementedException ();
+			}
 		}
 	}
 }
@@ -124,4 +201,14 @@ namespace Microsoft.Build.Shared
 			public bool IsWindows => isWindows ?? (bool)(isWindows = RuntimeInformation.IsOSPlatform (OSPlatform.Windows));
 		}
 	*/
+
+	class ChangeWaves
+	{
+		public static readonly Version Wave17_0 = new Version (17, 0);
+
+		internal static bool AreFeaturesEnabled (Version wave)
+		{
+			return true;
+		}
+	}
 }

@@ -32,6 +32,19 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return text.Value;
 
 			case ExpressionProperty prop: {
+				if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
+					bool propEvalSuccess = false;
+					string propEvalResult = null;
+					try {
+						propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
+					} catch (Exception ex) {
+						LoggingService.LogError ("Error in property function evaluation", ex);
+					}
+					if (propEvalSuccess) {
+						return propEvalResult;
+					}
+					return null;
+				}
 				if (!prop.IsSimpleProperty) {
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
 					return null;
@@ -117,9 +130,22 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			// recursively yield evaluated property
 			case ExpressionProperty prop: {
+				if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
+					bool propEvalSuccess = false;
+					string propEvalResult = null;
+					try {
+						propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
+					} catch (Exception ex) {
+						LoggingService.LogError ("Error in property function evaluation", ex);
+					}
+					if (propEvalSuccess) {
+						yield return propEvalResult;
+					}
+					yield break;
+				}
 				if (!prop.IsSimpleProperty) {
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
-					break;
+					yield break;
 				}
 				if (context.TryGetProperty (prop.Name, out var p) && p is MSBuildPropertyValue value) {
 					if (value.HasMultipleValues) {
@@ -186,6 +212,82 @@ namespace MonoDevelop.MSBuild.Evaluation
 				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
 				yield break;
 			}
+		}
+
+		static bool TryEvaluatePropertyFunction(this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv, ExpressionClassReference classRef, out string result)
+		{
+			if (string.Equals (classRef.Name, "MSBuild", StringComparison.OrdinalIgnoreCase)) {
+				//var cls = typeof(Microsoft.Build.Evaluation.IntrinsicFunctions);
+				//var methods = cls.GetMethods();
+
+				// FIXME populate this
+				Microsoft.Build.Shared.BuildEnvironmentHelper.Instance = new Microsoft.Build.Shared.BuildEnvironmentHelper {
+					CurrentMSBuildToolsDirectory = "",
+					MSBuildExtensionsPath = "",
+					MSBuildSDKsPath = "",
+					MSBuildToolsDirectory32 = "",
+					MSBuildToolsDirectory64 = "",
+					VisualStudioInstallRootDirectory = ""
+				};
+
+				if (string.Equals (inv.Function.Name, "GetToolsDirectory32")) {
+					if (context.TryGetProperty (ReservedProperties.ToolsPath32, out var td) && td is MSBuildPropertyValue toolsDir) {
+						result = ((ExpressionText)toolsDir.Value).Value;
+						return true;
+					}
+				} else if (string.Equals (inv.Function.Name, "GetDirectoryNameOfFileAbove", StringComparison.OrdinalIgnoreCase)) {
+					var args = AssertArgsList (inv);
+					result = Microsoft.Build.Evaluation.IntrinsicFunctions.GetDirectoryNameOfFileAbove (
+						EvaluatePathArgument (context, args[0]),
+						EvaluatePathArgument (context, args[1]),
+						Microsoft.Build.Shared.FileSystem.FileSystems.Default);
+					return true;
+				} else if (string.Equals (inv.Function.Name, "NormalizePath", StringComparison.OrdinalIgnoreCase)) {
+					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
+					result = Microsoft.Build.Evaluation.IntrinsicFunctions.NormalizePath (args);
+					return true;
+				}
+				LoggingService.LogWarning ($"Unsupported property function [{classRef.Name}]::{inv.Function.Name}");
+			} else if (string.Equals (classRef.Name, "System.IO.Path", StringComparison.OrdinalIgnoreCase)) {
+				if (string.Equals (inv.Function.Name, "Combine")) {
+					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
+					result = System.IO.Path.Combine (args);
+					return true;
+				} else if (string.Equals (inv.Function.Name, "GetFileNameWithoutExtension", StringComparison.OrdinalIgnoreCase)) {
+					var args = AssertArgsList (inv);
+					result = System.IO.Path.GetFileNameWithoutExtension (EvaluatePathArgument (context, args[0]));
+					return true;
+				}
+			}
+
+			LoggingService.LogWarning ($"Unsupported property function [{classRef.Name}]::{inv.Function.Name}");
+			result = null;
+			return false;
+		}
+
+		static List<ExpressionNode> AssertArgsList (ExpressionPropertyFunctionInvocation inv)
+		{
+			if (inv.Arguments is ExpressionArgumentList list) {
+				return list.Arguments;
+			}
+			throw new NotImplementedException ("Error handling for property function arguments");
+		}
+
+		static string EvaluatePathArgument (IMSBuildEvaluationContext context, ExpressionNode argument)
+		{
+			// TODO: unescaping
+			var unquoted = (argument as QuotedExpression)?.Expression ?? argument;
+			string evaluated = Evaluate (context, unquoted);
+			return evaluated;
+		}
+
+		static string[] EvaluatePathParams(IMSBuildEvaluationContext context, List<ExpressionNode> arguments, int startIndex)
+		{
+			var results = new string[arguments.Count - startIndex];
+			for (int i = 0; i < results.Length; i++) {
+				results[i] = EvaluatePathArgument (context, arguments[i + startIndex]);
+			}
+			return results;
 		}
 	}
 }
