@@ -23,7 +23,8 @@ namespace MonoDevelop.MSBuild.Language
 			=> listKind switch {
 				ListKind.Comma => kind.AllowsLists (MSBuildValueKind.ListComma),
 				ListKind.Semicolon => kind.AllowsLists (MSBuildValueKind.ListSemicolon),
-				_ => false
+				ListKind.None => true,
+				_ => throw new ArgumentException($"Unknown ListKind '{listKind}'", nameof(listKind))
 			};
 
 		public static bool IsCondition (this MSBuildResolveResult rr)
