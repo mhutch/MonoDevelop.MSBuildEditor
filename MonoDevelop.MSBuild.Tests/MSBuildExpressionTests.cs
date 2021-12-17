@@ -24,24 +24,30 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (propName, prop.Name);
 		}
 
+		// properties
 		[TestCase ("$(", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("$(    ", ExpressionErrorKind.ExpectingPropertyName)]
-		[TestCase ("@(", ExpressionErrorKind.ExpectingItemName)]
-		[TestCase ("%(", ExpressionErrorKind.ExpectingMetadataOrItemName)]
 		[TestCase ("$(.", ExpressionErrorKind.ExpectingPropertyName)]
 		[TestCase ("$(   .", ExpressionErrorKind.ExpectingPropertyName)]
-		[TestCase ("@(.", ExpressionErrorKind.ExpectingItemName)]
-		[TestCase ("%(.", ExpressionErrorKind.ExpectingMetadataOrItemName)]
 		[TestCase ("$(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
-		[TestCase ("@(a", ExpressionErrorKind.ExpectingRightParenOrDash)]
-		[TestCase ("%(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("$(a-", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
-		[TestCase ("@(a.", ExpressionErrorKind.ExpectingRightParenOrDash)]
-		[TestCase ("%(a-", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		// metadata
+		[TestCase ("%(", ExpressionErrorKind.ExpectingMetadataOrItemName)]
+		[TestCase ("%(.", ExpressionErrorKind.ExpectingMetadataOrItemName)]
+		[TestCase ("%(a", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("%(a.b", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("%(a.b.", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("%(a.", ExpressionErrorKind.ExpectingMetadataName)]
 		[TestCase ("%(a.)", ExpressionErrorKind.ExpectingMetadataName)]
+		// nonstandard qualified metadata syntax used by F# targets
+		[TestCase ("%(a-", ExpressionErrorKind.ExpectingRightAngleBracket)]
+		[TestCase ("%(a->", ExpressionErrorKind.ExpectingMetadataName)]
+		[TestCase ("%(a->b", ExpressionErrorKind.ExpectingRightParen)]
+		// items
+		[TestCase ("@(.", ExpressionErrorKind.ExpectingItemName)]
+		[TestCase ("@(", ExpressionErrorKind.ExpectingItemName)]
+		[TestCase ("@(a", ExpressionErrorKind.ExpectingRightParenOrDash)]
+		[TestCase ("@(a.", ExpressionErrorKind.ExpectingRightParenOrDash)]
 		[TestCase ("@(a-", ExpressionErrorKind.ExpectingRightAngleBracket)]
 		[TestCase ("@(a   -", ExpressionErrorKind.ExpectingRightAngleBracket)]
 		[TestCase ("@(a-.", ExpressionErrorKind.ExpectingRightAngleBracket)]
@@ -54,6 +60,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(a->'' ", ExpressionErrorKind.ExpectingRightParen)]
 		[TestCase ("@(a->a", ExpressionErrorKind.ExpectingLeftParen)]
 		[TestCase ("@(a->  a", ExpressionErrorKind.ExpectingLeftParen)]
+		// instance property functions
 		[TestCase ("$(a.", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a..", ExpressionErrorKind.ExpectingMethodName)]
 		[TestCase ("$(a.b", ExpressionErrorKind.IncompleteProperty)]
@@ -75,6 +82,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$(a.b(true,true)", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("$(a.b(true,true)   ", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
 		[TestCase ("$(a.b(true,true)   _", ExpressionErrorKind.ExpectingRightParenOrPeriod)]
+		// static property functions
 		[TestCase ("$([a", ExpressionErrorKind.ExpectingBracketColonColon)]
 		[TestCase ("$([ a", ExpressionErrorKind.ExpectingBracketColonColon)]
 		[TestCase ("$([a ", ExpressionErrorKind.ExpectingBracketColonColon)]
@@ -195,6 +203,12 @@ namespace MonoDevelop.MSBuild.Tests
 			Assert.AreEqual (metaName, meta.MetadataName);
 			Assert.AreEqual (itemName, meta.ItemName);
 		}
+
+		// %(itename->metadataname) is nonstandard but the F# targets use it and it seems to work
+		[TestCase ("%(Foo->Bar)", "Foo", "Bar")]
+		public void TestNonstandardQualifiedMetadata (string expression, string itemName, string metaName)
+			=> TestQualifiedMetadata (expression, itemName, metaName);
+
 
 		[Test]
 		public void TestPropertyLiteral ()
@@ -654,11 +668,12 @@ namespace MonoDevelop.MSBuild.Tests
 
 			Type tType = typeof (T);
 			Type oType = o.GetType ();
-			Assert.IsTrue (tType.IsAssignableFrom (oType), "Cannot assign {0} from {1}", tType, oType);
 
 			if (o is ExpressionError err && !tType.IsAssignableFrom (typeof (ExpressionError))) {
 				Assert.Fail ($"Unexpected ExpressionError: {err.Kind} @ {err.Offset}");
 			}
+
+			Assert.IsTrue (tType.IsAssignableFrom (oType), "Cannot assign {0} from {1}", tType, oType);
 
 			return (T)o;
 		}

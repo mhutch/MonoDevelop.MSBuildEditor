@@ -11,10 +11,16 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public string ItemName { get; }
 		public string MetadataName { get; }
 
-		public ExpressionMetadata (int offset, int length, string itemName, string metadataName) : base (offset, length)
+		/// <summary>
+		/// Whether the metadata uses the nonstandard qualified syntax %(a->b)
+		/// </summary>
+		public bool IsNonStandardSyntax { get; }
+
+		public ExpressionMetadata (int offset, int length, string itemName, string metadataName, bool isNonStandardSyntax = false) : base (offset, length)
 		{
 			ItemName = itemName;
 			MetadataName = metadataName;
+			IsNonStandardSyntax = isNonStandardSyntax;
 		}
 
 		public bool IsQualified => ItemName != null;

@@ -854,12 +854,26 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return new ExpressionMetadata (baseOffset + start, offset - start, null, name);
 			}
 
-			if (offset > endOffset || buffer [offset] != '.') {
+			if (offset > endOffset || (buffer [offset] != '.' && buffer [offset] != '-')) {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParenOrPeriod,
 					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null),
 					out hasError
 				);
+			}
+
+			//TODO: add warning for nonstandard format
+			bool isNonStandard = false;
+			if (buffer[offset] == '-') {
+				offset++;
+				isNonStandard = true;
+				if (offset > endOffset || buffer[offset] != '>') {
+					return new IncompleteExpressionError (
+						baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightAngleBracket,
+						new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null, isNonStandard),
+						out hasError
+					);
+				}
 			}
 
 			offset++;
@@ -870,7 +884,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			if (metadataName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMetadataName,
-					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null),
+					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, null, isNonStandard),
 					out hasError
 				);
 			}
@@ -880,14 +894,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			if (offset > endOffset || buffer [offset] != ')') {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightParen,
-					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, metadataName),
+					new ExpressionMetadata (baseOffset + start, offset - start + 1, name, metadataName, isNonStandard),
 					out hasError
 				);
 			}
 
 			hasError = false;
 			offset++;
-			return new ExpressionMetadata (baseOffset + start, offset - start, name, metadataName);
+			return new ExpressionMetadata (baseOffset + start, offset - start, name, metadataName, isNonStandard);
 		}
 	}
 }
