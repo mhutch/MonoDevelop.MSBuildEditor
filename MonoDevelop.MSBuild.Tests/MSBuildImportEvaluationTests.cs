@@ -152,7 +152,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var packageRefItem = doc.GetSchemas ().GetItem ("PackageReference");
 			Assert.NotNull (packageRefItem);
 			Assert.NotNull (packageRefItem.Description);
-			Assert.AreEqual (MSBuildValueKind.NuGetID, packageRefItem.ValueKind);
+			Assert.AreEqual (MSBuildValueKind.NuGetID.AsList (), packageRefItem.ValueKind);
 		}
 
 		[Test]
