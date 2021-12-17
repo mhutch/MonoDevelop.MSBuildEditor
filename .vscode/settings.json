@@ -28,6 +28,7 @@
     "ruleset",
     "Struct",
     "Toolset",
+    "unescaping",
     "VSINSTALLDIR"
   ]
 }
