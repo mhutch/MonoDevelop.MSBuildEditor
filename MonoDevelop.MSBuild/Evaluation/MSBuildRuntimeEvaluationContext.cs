@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			this.env = env;
 
-			if (env is Editor.Completion.NullMSBuildEnvironment) {
+			if (env is NullMSBuildEnvironment) {
 				return;
 			}
 

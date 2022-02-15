@@ -27,16 +27,17 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		{
 			var token = CancellationToken.None;
 
-			var (env, _) = MSBuildTestEnvironment.EnsureInitialized ();
-			var host = env.GetEditorHost ();
+			var schemas = new MSBuildSchemaProvider ();
+			var environment = new NullMSBuildEnvironment ();
+			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
 
 			var doc = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
 				"FakeProject.csproj",
 				null,
-				host.GetService<MSBuildSchemaProvider> (),
-				host.GetService<IMSBuildEnvironment> (),
-				host.GetService<ITaskMetadataBuilder> (),
+				schemas,
+				environment,
+				taskMetadataBuilder,
 				token);
 
 			var analyzerDriver = new MSBuildAnalyzerDriver ();

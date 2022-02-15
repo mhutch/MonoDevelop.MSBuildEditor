@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Neteril.VisualStudio.MiniEditor" Version="1.0.52" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.SdkResolution;
 
-namespace MonoDevelop.MSBuild.Editor.Completion
+namespace MonoDevelop.MSBuild
 {
 	class NullMSBuildEnvironment : IMSBuildEnvironment
 	{

@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
