@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
-using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Refactorings
@@ -145,7 +143,17 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			};
 		}
 
-		static TextSpan GetInsertAfterSpan (XElement el) => TextSpan.FromBounds (el.OuterSpan.End, el.NextSibling.Span.Start);
+		static TextSpan? GetInsertAfterPreviousSiblingElementSpan (XElement el)
+		{
+			var previousElement = el.GetPreviousSiblingElement ();
+			if (previousElement != null) {
+				return new TextSpan (previousElement.OuterSpan.End, previousElement.NextSibling.Span.Start);
+			}
+			return null;
+		}
+
+		static TextSpan GetInsertBeforeFirstChildSpan (XElement el) => new TextSpan (el.ParentElement.Span.End, el.ParentElement.Span.Start);
+
 		static TextSpan GetAppendChildElementSpan (XElement el) => TextSpan.FromBounds ((el.LastChild?.OuterSpan ?? el.Span).End, el.ClosingTag.Span.Start);
 
 		static IEnumerable<(TextSpan span, string scopeName, bool create)> GetExtractionPoints (MSBuildRefactoringContext context)
@@ -157,11 +165,11 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 
 			switch (context.ElementSyntax.SyntaxKind) {
 			case MSBuildSyntaxKind.Property: {
-					var propertyGroup = (XElement)beforeElement.Parent;
-					var prev = beforeElement.GetPreviousSiblingElement () ?? propertyGroup;
-					yield return (GetInsertAfterSpan (prev), null, true);
-				}
+				var propertyElement = beforeElement;
+				TextSpan insertSpan = GetInsertAfterPreviousSiblingElementSpan(propertyElement) ?? GetInsertBeforeFirstChildSpan (propertyElement.ParentElement);
+				yield return (insertSpan, null, true);
 				break;
+			}
 			case MSBuildSyntaxKind.Item: {
 					var itemGroup = (XElement)beforeElement.Parent;
 					beforeElement = itemGroup;
