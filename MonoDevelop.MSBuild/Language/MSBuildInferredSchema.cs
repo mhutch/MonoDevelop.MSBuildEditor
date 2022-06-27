@@ -206,6 +206,9 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CollectMetadata (string itemName, string metadataName, ReferenceUsage usage)
 		{
+			if (string.IsNullOrEmpty (metadataName)) {
+				throw new ArgumentException ($"'{nameof (metadataName)}' cannot be null or empty.", nameof (metadataName));
+			}
 			if (itemName == null) {
 				return;
 			}
