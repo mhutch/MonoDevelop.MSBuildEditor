@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild
@@ -16,9 +17,15 @@ namespace MonoDevelop.MSBuild
 		string ToolsVersion { get; }
 		string ToolsPath { get; }
 
-		public bool TryGetToolsetProperty (string propertyName, out string value);
+		/// <summary>
+		/// Properties defined by the environment, such as MSBuildExtensionsPaths
+		/// </summary>
+		IReadOnlyDictionary<string, string> ToolsetProperties { get; }
 
-		IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
+		/// <summary>
+		/// Multivalued fallback properties for use only when evaluating the first property in Import elements. Defined in projectImportSearchPaths in app.config.
+		/// </summary>
+		IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; }
 
 		IList<SdkInfo> GetRegisteredSdks ();
 
@@ -29,7 +36,7 @@ namespace MonoDevelop.MSBuild
 
 	public static class MSBuildEnvironmentExtensions
 	{
-		public static IEnumerable<string> EnumerateFilesInToolsPath(this IMSBuildEnvironment env, string searchPattern)
+		public static IEnumerable<string> EnumerateFilesInToolsPath (this IMSBuildEnvironment env, string searchPattern)
 		{
 			if (env.ToolsPath == null) {
 				return Enumerable.Empty<string> ();

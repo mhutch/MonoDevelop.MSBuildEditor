@@ -203,11 +203,11 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext)
 		{
-			if (!(evaluationContext.TryGetProperty (ReservedProperties.BinPath, out var v) && v is MSBuildPropertyValue binPathProp)) {
+			if (!evaluationContext.TryGetProperty (ReservedProperties.BinPath, out var binPathProp)) {
 				LoggingService.LogError ("Task resolver could not get MSBuildBinPath value from evaluationContext");
 				return null;
 			}
-			string binPath = MSBuildEscaping.FromMSBuildPath (((ExpressionText)binPathProp.Value).Value, null);
+			string binPath = binPathProp.Value.ToNativePath ();
 
 			if (!string.IsNullOrEmpty (assemblyName)) {
 				var name = new AssemblyName (assemblyName);

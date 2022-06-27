@@ -29,8 +29,8 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		}
 
 		// helpers for imported code
-		string SDKsPath => msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
-		string ToolsPath32 => msbuildEnvironment.TryGetToolsetProperty (ReservedProperties.ToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
+		string SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
+		string ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.ToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
 
 		/// <summary>
 		///     Get path on disk to the referenced SDK.

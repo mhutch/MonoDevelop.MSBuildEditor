@@ -14,6 +14,7 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuild.SdkResolution;
+using MonoDevelop.MSBuild.Evaluation;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -104,7 +105,7 @@ namespace MonoDevelop.MSBuild.Language
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
 			{
 				foreach (var prop in pg.Elements) {
-					context.PropertyCollector.Collect (prop.ElementName, prop.Value);
+					context.PropertyCollector.Collect (importResolver.FileEvaluationContext, prop.ElementName, prop.Value);
 				}
 			}
 

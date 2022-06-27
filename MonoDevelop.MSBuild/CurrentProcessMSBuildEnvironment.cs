@@ -4,11 +4,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 
+using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild
@@ -27,8 +30,8 @@ namespace MonoDevelop.MSBuild
 			var projectCollection = ProjectCollection.GlobalProjectCollection;
 			toolset = projectCollection.GetToolset (projectCollection.DefaultToolsVersion);
 
-			var msbuildExtensionsPath = toolset.Properties[ReservedProperties.ExtensionsPath].EvaluatedValue;
-			SearchPaths = GetImportSearchPathsTable (toolset, msbuildExtensionsPath);
+			ToolsetProperties = GetToolsetProperties (toolset);
+			ProjectImportSearchPaths = GetImportSearchPaths (toolset);
 
 			sdkResolver = new MSBuildSdkResolver (this);
 		}
@@ -36,22 +39,13 @@ namespace MonoDevelop.MSBuild
 		public string ToolsVersion => toolset.ToolsVersion;
         public string ToolsPath => toolset.ToolsPath;
 
-		public bool TryGetToolsetProperty (string propertyName, out string value)
-		{
-			if (toolset.Properties.TryGetValue(propertyName, out var propVal)) {
-				value = propVal?.EvaluatedValue;
-				return true;
-			}
-
-			value = null;
-			return false;
-		}
-
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
-		public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; }
-
 		public Version EngineVersion => ProjectCollection.Version;
+
+		public IReadOnlyDictionary<string, string> ToolsetProperties { get; }
+
+		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; }
 
 		public SdkInfo ResolveSdk (
 			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
@@ -70,14 +64,26 @@ namespace MonoDevelop.MSBuild
 			return sdkInfo;
 		}
 
-		static IReadOnlyDictionary<string, IReadOnlyList<string>> GetImportSearchPathsTable (Toolset toolset, string msbuildExtensionsPath)
+		static Dictionary<string, string> GetToolsetProperties (Toolset toolset)
+		{
+			var toolsetProperties = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
+
+			foreach (var prop in toolset.Properties) {
+				var propVal = prop.Value.EvaluatedValue;
+				toolsetProperties.Add (prop.Key, propVal);
+			}
+
+			return toolsetProperties;
+		}
+
+		static Dictionary<string, string[]> GetImportSearchPaths (Toolset toolset)
 		{
 			var dictProp = toolset.GetType ().GetProperty ("ImportPropertySearchPathsTable", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 			var dict = (IDictionary)dictProp.GetValue (toolset);
 			var importPathsType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Evaluation.ProjectImportPathMatch");
 			var pathsField = importPathsType.GetField ("SearchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
-			var converted = new Dictionary<string, IReadOnlyList<string>> ();
+			var converted = new Dictionary<string, string[]> (StringComparer.OrdinalIgnoreCase);
 			var enumerator = dict.GetEnumerator ();
 			while (enumerator.MoveNext ()) {
 				if (enumerator.Value == null) {
@@ -85,16 +91,8 @@ namespace MonoDevelop.MSBuild
 				}
 				var key = (string)enumerator.Key;
 				var val = (List<string>)pathsField.GetValue (enumerator.Value);
-
-				if (key == ReservedProperties.ExtensionsPath || key == ReservedProperties.ExtensionsPath32 || key == ReservedProperties.ExtensionsPath64) {
-					var oldVal = val;
-					val = new List<string> (oldVal.Count + 1) { msbuildExtensionsPath };
-					val.AddRange (oldVal);
-				}
-
-				converted.Add (key, val.AsReadOnly ());
+				converted.Add (key, val.ToArray ());
 			}
-
 			return converted;
 		}
 

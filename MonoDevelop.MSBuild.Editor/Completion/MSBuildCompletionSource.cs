@@ -371,7 +371,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 
 				//FIXME we should be able to cache these
-				doc.Environment.TryGetToolsetProperty (ReservedProperties.SDKsPath, out var sdksPath);
+				doc.Environment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath);
 				if (sdksPath != null) {
 					AddSdksFromDir (sdksPath);
 				}

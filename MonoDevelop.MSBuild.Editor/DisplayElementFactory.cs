@@ -262,22 +262,12 @@ namespace MonoDevelop.MSBuild.Editor
 				(environment.ToolsPath, $"$({ReservedProperties.BinPath})")
 			};
 
-			AddSearchPath (ReservedProperties.ExtensionsPath);
-			AddSearchPath (ReservedProperties.ExtensionsPath32);
-			AddSearchPath (ReservedProperties.ExtensionsPath64);
-
-			void AddSearchPath(string propName) {
-				foreach (var extPath in environment.SearchPaths[propName]) {
-					list.Add ((extPath, $"$({propName})"));
-				}
-			}
-
-			AddProp (ReservedProperties.SDKsPath);
-
-			void AddProp (string propName)
-			{
-				if (environment.TryGetToolsetProperty (propName, out var propVal) && propVal is not null) {
-					list.Add ((propName, $"$({propVal})"));
+			if (environment.ToolsetProperties != null) {
+				var wellKnownPathProperties = new[] { ReservedProperties.SDKsPath, ReservedProperties.ExtensionsPath, ReservedProperties.ExtensionsPath32, ReservedProperties.ExtensionsPath64 };
+				foreach (var propName in wellKnownPathProperties) {
+					if (environment.ToolsetProperties.TryGetValue (propName, out var propVal)) {
+						list.Add ((propVal, $"$({propName})"));
+					}
 				}
 			}
 

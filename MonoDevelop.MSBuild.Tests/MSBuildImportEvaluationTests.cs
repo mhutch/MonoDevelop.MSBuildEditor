@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using MonoDevelop.MSBuild.Evaluation;
@@ -11,7 +12,6 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
 using NUnit.Framework;
 
@@ -36,48 +36,43 @@ namespace MonoDevelop.MSBuild.Tests
 			};
 
 			var evaluated = context.Evaluate (expr);
-			Assert.AreEqual (expected, evaluated);
-		}
-
-
-		[Test]
-		public void TestRecursiveEvaluation ()
-		{
-			var context = new TestEvaluationContext {
-				{ "Foo", "$(Bar)" },
-				{ "Bar", "Hello $(Baz)" },
-				{ "Baz", "World" }
-			};
-
-			var evaluated = context.Evaluate ("$(Foo)");
-			Assert.AreEqual ("Hello World", evaluated);
+			Assert.AreEqual (expected, evaluated.EscapedValue);
 		}
 
 		[Test]
-		public void TestEndlessRecursiveEvaluation ()
+		[TestCase("$([MSBuild]::NormalizePath('Foo','Bar'))", "@Foo\\Bar")]
+		[TestCase("X $([MSBuild]::NormalizePath('Foo','Bar'))Y", "X @Foo\\BarY")]
+		[TestCase("$([MSBuild]::NormalizePath('Foo','Bar', \"Baz\"))", "@Foo\\Bar\\Baz")]
+		[TestCase("$([System.IO.Path]::Combine('Foo', \"Bar\", 'Baz.cs'))", "Foo\\Bar\\Baz.cs")]
+		[TestCase("$([System.IO.Path]::Combine('$(Foo)', \"Bar\", 'Baz.cs'))", "World\\Bar\\Baz.cs")]
+		public void TestPropertyFunctionEvaluation (string expr, string expected)
 		{
+			var workingDir = Environment.CurrentDirectory;
+			if (workingDir[workingDir.Length - 1] != Path.DirectorySeparatorChar) {
+				workingDir += Path.DirectorySeparatorChar;
+			}
+			expected = expected.Replace ("@", workingDir);
+
 			var context = new TestEvaluationContext {
-				{ "Foo", "$(Bar)" },
-				{ "Bar", "Hello $(Baz)" },
-				{ "Baz", "$(Foo)" }
+				{ "Foo", "World" }
 			};
 
-			Assert.Throws<Exception> (() => context.Evaluate ("$(Foo)"));
+			var evaluated = context.Evaluate (expr);
+			Assert.AreEqual (expected, evaluated.EscapedValue);
 		}
 
 		[Test]
 		[TestCase ("$(Foo)", "One", "Two", "Three")]
 		[TestCase ("$(Foo) Thing", "One Thing", "Two Thing", "Three Thing")]
 		[TestCase ("X$(Foo)X", "XOneX", "XTwoX", "XThreeX")]
-		[TestCase ("$(Bar)", "Hello X", "Hello Y")]
+		[TestCase ("$(Foo) $(Bar)", "One X", "One Y", "Two X", "Two Y", "Three X", "Three Y")]
 		public void TestPermutedEvaluation (object[] args)
 		{
 			var expr = (string)args[0];
 
 			var context = new TestEvaluationContext {
-				{ "Foo", new MSBuildPropertyValue (new[] { "One", "Two", "Three" }.Select (t => new ExpressionText (0, t, true)).ToArray ()) },
-				{ "Bar", "Hello $(Baz)" },
-				{ "Baz", new MSBuildPropertyValue (new[] { "X", "Y" }.Select (t => new ExpressionText (0 ,t, true)).ToArray ()) }
+				{ "Foo", new[] { "One", "Two", "Three" } },
+				{ "Bar", new[] { "X", "Y" } }
 			};
 
 			var results = context.EvaluateWithPermutation (expr).ToList ();
@@ -91,12 +86,13 @@ namespace MonoDevelop.MSBuild.Tests
 		public void PropertyCollectorEvaluationContextTest ()
 		{
 			var collector = new PropertyValueCollector (false);
+			var noopEvalCtx = new TestEvaluationContext ();
 			collector.Mark ("Hello");
-			collector.Collect ("Hello", new ExpressionText (0, "One", true));
-			collector.Collect ("Hello", new ExpressionText (0, "Two", true));
+			collector.Collect (noopEvalCtx, "Hello", new ExpressionText (0, "One", true));
+			collector.Collect (noopEvalCtx, "Hello", new ExpressionText (0, "Two", true));
 
 			var ctx = new MSBuildCollectedValuesEvaluationContext (
-				new TestEvaluationContext (),
+				noopEvalCtx,
 				collector
 			);
 
@@ -215,23 +211,37 @@ namespace MonoDevelop.MSBuild.Tests
 
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable
 	{
-		readonly Dictionary<string, MSBuildPropertyValue> properties
-			= new Dictionary<string, MSBuildPropertyValue> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, OneOrMany<EvaluatedValue>> properties = new (StringComparer.OrdinalIgnoreCase);
 
-		public void Add (string name, MSBuildPropertyValue value)
+		public void Add (string name, string[] evaluatedValues)
 		{
-			properties.Add (name, value);
+			properties.Add (name, new OneOrMany<EvaluatedValue> (Array.ConvertAll (evaluatedValues, v => new EvaluatedValue (v))));
+		}
+
+		public void Add (string name, string evaluatedValue)
+		{
+			properties.Add (name, new EvaluatedValue (evaluatedValue));
 		}
 
 		IEnumerator IEnumerable.GetEnumerator () => properties.GetEnumerator ();
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		public bool TryGetProperty (string name, [NotNullWhen (true)] out EvaluatedValue? value)
 		{
-			if (properties.TryGetValue (name, out var val)) {
-				value = val;
+			if (properties.TryGetValue (name, out var values)) {
+				value = values.First;
 				return true;
 			}
-			value = default;
+			value = null;
+			return false;
+		}
+
+		public bool TryGetMultivaluedProperty (string name, [NotNullWhen (true)] out OneOrMany<EvaluatedValue>? value, bool isProjectImportStart = false)
+		{
+			if (properties.TryGetValue (name, out var values)) {
+				value = values;
+				return true;
+			}
+			value = null;
 			return false;
 		}
 	}

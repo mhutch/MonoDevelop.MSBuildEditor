@@ -13,71 +13,23 @@ namespace MonoDevelop.MSBuild.Evaluation
 {
 	static class MSBuildEvaluatorExtensions
 	{
-		const int maxEvaluationDepth = 50;
-
-		public static string Evaluate (this IMSBuildEvaluationContext context, string expression)
+		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
 
-		public static string Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => Evaluate (context, expression, 0);
+		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateInternal (context, expression));
 
-		static string Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression, int depth)
+		static string EvaluateInternal (this IMSBuildEvaluationContext context, ExpressionNode expression)
 		{
-			if (depth == maxEvaluationDepth) {
-				throw new Exception ("Property evaluation exceeded maximum depth");
-			}
-
 			switch (expression) {
 
 			case ExpressionText text:
 				return text.Value;
 
-			case ExpressionProperty prop: {
-				if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
-					bool propEvalSuccess = false;
-					string propEvalResult = null;
-					try {
-						propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
-					} catch (Exception ex) {
-						LoggingService.LogError ("Error in property function evaluation", ex);
-					}
-					if (propEvalSuccess) {
-						return propEvalResult;
-					}
-					return null;
-				}
-				if (!prop.IsSimpleProperty) {
-					LoggingService.LogWarning ("Only simple properties are supported in imports");
-					return null;
-				}
-				if (context.TryGetProperty (prop.Name, out var v) && v is MSBuildPropertyValue value) {
-					return Evaluate (context, value.Value, depth + 1);
-				}
-				return null;
-			}
+			case ExpressionProperty prop:
+				return EvaluateProperty (context, prop);
 
-			case ConcatExpression expr: {
-				var sb = new StringBuilder ();
-				foreach (var n in expr.Nodes) {
-					switch (n) {
-					case ExpressionText t:
-						sb.Append (t.Value);
-						continue;
-					case ExpressionProperty p:
-						if (!p.IsSimpleProperty) {
-							LoggingService.LogWarning ("Only simple properties are supported in imports");
-							return null;
-						}
-						if (context.TryGetProperty (p.Name, out var v) && v is MSBuildPropertyValue value) {
-							sb.Append (Evaluate (context, value.Value, depth + 1));
-						}
-						continue;
-					default:
-						LoggingService.LogWarning ("Only simple properties are supported in imports");
-						return null;
-					}
-				}
-				return sb.ToString ();
-			}
+			case ConcatExpression expr:
+				return EvaluateConcat (context, expr);
 
 			default:
 				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
@@ -85,11 +37,46 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
+		static string EvaluateConcat (IMSBuildEvaluationContext context, ConcatExpression expr)
+		{
+			var sb = new StringBuilder ();
+			foreach (var n in expr.Nodes) {
+				string evaluated = EvaluateInternal (context, n);
+				sb.Append (evaluated);
+			}
+			return sb.ToString ();
+		}
+
+		static string EvaluateProperty (IMSBuildEvaluationContext context, ExpressionProperty prop)
+		{
+			if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
+				bool propEvalSuccess = false;
+				string propEvalResult = null;
+				try {
+					propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
+				} catch (Exception ex) {
+					LoggingService.LogError ("Error in property function evaluation", ex);
+				}
+				if (propEvalSuccess) {
+					return propEvalResult;
+				}
+				return null;
+			}
+			if (!prop.IsSimpleProperty) {
+				LoggingService.LogWarning ("Only simple properties are supported in imports");
+				return null;
+			}
+			if (context.TryGetProperty (prop.Name, out var v) && v is EvaluatedValue value) {
+				return value.EscapedValue;
+			}
+			return null;
+		}
+
 		public static string EvaluatePath (
 			this IMSBuildEvaluationContext context,
 			ExpressionNode expression,
 			string baseDirectory)
-			=> MSBuildEscaping.FromMSBuildPath (context.Evaluate(expression), baseDirectory);
+			=> MSBuildEscaping.FromMSBuildPath (context.Evaluate(expression).EscapedValue, baseDirectory);
 
 		public static string EvaluatePath (
 			this IMSBuildEvaluationContext context,
@@ -147,29 +134,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 					LoggingService.LogWarning ("Only simple properties are supported in imports");
 					yield break;
 				}
-				if (context.TryGetProperty (prop.Name, out var p) && p is MSBuildPropertyValue value) {
-					if (value.HasMultipleValues) {
-						if (value.IsCollapsed) {
-							foreach (var v in value.GetValues ()) {
-								var evaluated = prefix + ((ExpressionText)v).Value;
-								yield return evaluated;
-							}
-						} else {
-							foreach (var v in value.GetValues ()) {
-								foreach (var evaluated in EvaluateWithPermutation (context, prefix, v, depth + 1)) {
-									yield return evaluated;
-								}
-							}
-						}
-					} else {
-						if (value.IsCollapsed) {
-							var evaluated = prefix + ((ExpressionText)value.Value).Value;
-							yield return evaluated;
-						} else {
-							foreach (var evaluated in EvaluateWithPermutation (context, prefix, value.Value, depth + 1)) {
-								yield return evaluated;
-							}
-						}
+				if (context.TryGetMultivaluedProperty (prop.Name, out var p) && p is OneOrMany<EvaluatedValue> values) {
+					foreach (var v in values) {
+						yield return prefix + v.EscapedValue;
 					}
 					break;
 				} else if (prefix != null) {
@@ -231,8 +198,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 				};
 
 				if (string.Equals (inv.Function.Name, "GetToolsDirectory32")) {
-					if (context.TryGetProperty (ReservedProperties.ToolsPath32, out var td) && td is MSBuildPropertyValue toolsDir) {
-						result = ((ExpressionText)toolsDir.Value).Value;
+					if (context.TryGetProperty (ReservedProperties.ToolsPath32, out var td) && td is EvaluatedValue toolsDir) {
+						result = toolsDir.EscapedValue;
 						return true;
 					}
 				} else if (string.Equals (inv.Function.Name, "GetDirectoryNameOfFileAbove", StringComparison.OrdinalIgnoreCase)) {
@@ -277,7 +244,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			// TODO: unescaping
 			var unquoted = (argument as QuotedExpression)?.Expression ?? argument;
-			string evaluated = Evaluate (context, unquoted);
+			string evaluated = EvaluateInternal (context, unquoted);
 			return evaluated;
 		}
 

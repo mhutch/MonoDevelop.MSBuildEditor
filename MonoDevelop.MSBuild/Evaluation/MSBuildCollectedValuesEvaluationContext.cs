@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
 using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -19,14 +20,28 @@ namespace MonoDevelop.MSBuild.Evaluation
 			this.fileContext = fileContext;
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		public bool TryGetProperty (string name, [NotNullWhen (true)] out EvaluatedValue? value)
 		{
 			if (fileContext.TryGetProperty (name, out value)) {
 				return true;
 			}
 
 			if (collector.TryGetValues (name, out var values)) {
-				value = new MSBuildPropertyValue (values);
+				value = values[values.Count - 1];
+				return true;
+			}
+
+			return false;
+		}
+
+		public bool TryGetMultivaluedProperty (string name, [NotNullWhen (true)] out OneOrMany<EvaluatedValue>? value, bool isProjectImportStart = false)
+		{
+			if (fileContext.TryGetMultivaluedProperty (name, out value, isProjectImportStart)) {
+				return true;
+			}
+
+			if (collector.TryGetValues (name, out var values)) {
+				value = new OneOrMany<EvaluatedValue> (values);
 				return true;
 			}
 

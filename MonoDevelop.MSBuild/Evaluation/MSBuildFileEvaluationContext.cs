@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using MonoDevelop.MSBuild.Util;
 
@@ -14,8 +15,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 	/// </summary>
 	class MSBuildFileEvaluationContext : IMSBuildEvaluationContext
 	{
-		readonly Dictionary<string, MSBuildPropertyValue> values
-			= new Dictionary<string, MSBuildPropertyValue> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, EvaluatedValue> values = new(StringComparer.OrdinalIgnoreCase);
 		readonly IMSBuildEvaluationContext runtimeContext;
 
 		public MSBuildFileEvaluationContext (
@@ -27,43 +27,66 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			// this file path properties
 			if (thisFilePath != null) {
-				values[ReservedProperties.ThisFile] = MSBuildEscaping.EscapeString (Path.GetFileName (thisFilePath));
-				values[ReservedProperties.ThisFileDirectory] = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName (thisFilePath)) + "\\";
+				// the path arguments should already be absolute but may not be for tests etc
+				var absFilePath = Path.GetFullPath (thisFilePath);
+				values[ReservedProperties.ThisFile] = EvaluatedValue.FromUnescaped (Path.GetFileName (thisFilePath));
+				values[ReservedProperties.ThisFileDirectory] = EvaluatedValue.FromNativePath (Path.GetDirectoryName (absFilePath) + "\\");
 				//"MSBuildThisFileDirectoryNoRoot" is this actually used for anything?
-				values[ReservedProperties.ThisFileExtension] = MSBuildEscaping.EscapeString (Path.GetExtension (thisFilePath));
-				values[ReservedProperties.ThisFileFullPath] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath (thisFilePath));
-				values[ReservedProperties.ThisFileName] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (thisFilePath));
+				values[ReservedProperties.ThisFileExtension] = EvaluatedValue.FromUnescaped (Path.GetExtension (thisFilePath));
+				values[ReservedProperties.ThisFileFullPath] = EvaluatedValue.FromNativePath (absFilePath);
+				values[ReservedProperties.ThisFileName] = EvaluatedValue.FromUnescaped (Path.GetFileNameWithoutExtension (thisFilePath));
 			}
 
 			if (projectPath == null) {
 				return;
 			}
 
+			// the path arguments should already be absolute but may not be for tests etc
+			var absProjectPath = Path.GetFullPath (projectPath);
+			var projectDir = Path.GetDirectoryName (absProjectPath);
+
 			// project path properties
-			string escapedProjectDir = MSBuildEscaping.ToMSBuildPath (Path.GetDirectoryName(projectPath));
-			values[ReservedProperties.ProjectDirectory] = escapedProjectDir;
+			values[ReservedProperties.ProjectDirectory] = EvaluatedValue.FromNativePath (projectDir);
 			// "MSBuildProjectDirectoryNoRoot" is this actually used for anything?
-			values[ReservedProperties.ProjectExtension] = MSBuildEscaping.EscapeString (Path.GetExtension (projectPath));
-			values[ReservedProperties.ProjectFile] = MSBuildEscaping.EscapeString (Path.GetFileName (projectPath));
-			values[ReservedProperties.ProjectFullPath] = MSBuildEscaping.ToMSBuildPath (Path.GetFullPath(projectPath));
-			values[ReservedProperties.ProjectName] = MSBuildEscaping.EscapeString (Path.GetFileNameWithoutExtension (projectPath));
+			values[ReservedProperties.ProjectExtension] = EvaluatedValue.FromUnescaped (Path.GetExtension (projectPath));
+			values[ReservedProperties.ProjectFile] = EvaluatedValue.FromUnescaped (Path.GetFileName (projectPath));
+			values[ReservedProperties.ProjectFullPath] = EvaluatedValue.FromNativePath (absProjectPath);
+			values[ReservedProperties.ProjectName] = EvaluatedValue.FromUnescaped (Path.GetFileNameWithoutExtension (projectPath));
 
 			//don't have a better value, this is as good as anything
-			values[ReservedProperties.StartupDirectory] = escapedProjectDir;
+			values[ReservedProperties.StartupDirectory] = EvaluatedValue.FromNativePath (projectDir);
 
 			//HACK: we don't get a usable value for this without real evaluation so hardcode 'obj'
-			var projectExtensionsPath = Path.GetFullPath (Path.Combine (Path.GetDirectoryName (projectPath), "obj"));
-			values[ReservedProperties.ProjectExtensionsPath] = MSBuildEscaping.ToMSBuildPath (projectExtensionsPath) + "\\";
+			var projectExtensionsPath = Path.Combine (projectDir, "obj");
+			values[ReservedProperties.ProjectExtensionsPath] = EvaluatedValue.FromNativePath (projectExtensionsPath + "\\");
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		public bool TryGetProperty (string name, [NotNullWhen (true)] out EvaluatedValue? value)
 		{
+			if (runtimeContext.TryGetProperty (name, out value)) {
+				return true;
+			}
+
 			if (values.TryGetValue (name, out var v)) {
 				value = v;
 				return true;
 			}
 
-			return runtimeContext.TryGetProperty (name, out value);
+			return false;
+		}
+
+		public bool TryGetMultivaluedProperty (string name, [NotNullWhen (true)] out OneOrMany<EvaluatedValue>? value, bool isProjectImportStart = false)
+		{
+			if (runtimeContext.TryGetMultivaluedProperty (name, out value, isProjectImportStart)) {
+				return true;
+			}
+
+			if (values.TryGetValue (name, out var v)) {
+				value = v;
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

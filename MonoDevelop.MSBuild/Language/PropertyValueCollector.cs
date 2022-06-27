@@ -5,14 +5,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class PropertyValueCollector : IEnumerable<KeyValuePair<string, List<ExpressionNode>>>
+	class PropertyValueCollector : IEnumerable<KeyValuePair<string, List<EvaluatedValue>>>
 	{
-		Dictionary<string, List<ExpressionNode>> props = new Dictionary<string, List<ExpressionNode>> ();
+		readonly Dictionary<string, List<EvaluatedValue>> props = new (StringComparer.OrdinalIgnoreCase);
 
 		public PropertyValueCollector (bool collectTargetFrameworks)
 		{
@@ -38,21 +39,37 @@ namespace MonoDevelop.MSBuild.Language
 
 				// this is needed for PackageReference-provided imports to load from the global cache
 				Mark ("NuGetPackageRoot");
+
+				Mark ("_DirectoryBuildPropsBasePath");
+				Mark ("_DirectoryBuildPropsFile");
 			}
 		}
 
-		public IEnumerable<List<ExpressionNode>> Values => props.Values;
+		public IEnumerable<List<EvaluatedValue>> Values => props.Values;
 
-		public void Collect (string name, ExpressionNode value)
+
+		// TODO: make this smarter. should avoid collecting same value twice, and outright replace values when the new value is not conditioned in any way.
+		public void Collect (IMSBuildEvaluationContext fileEvaluationContext, string name, ExpressionNode value)
 		{
 			if (value == null) {
 				return;
 			}
-			if (props.TryGetValue (name, out List<ExpressionNode> values) || true) {
+
+			const bool collectAll = false;
+
+			if (props.TryGetValue (name, out List<EvaluatedValue> values) || collectAll) {
+
+				var combinedContext = new MSBuildCollectedValuesEvaluationContext (fileEvaluationContext, this);
+
 				if (values == null) {
-					props [name] = values = new List<ExpressionNode> ();
+					props [name] = values = new List<EvaluatedValue> ();
 				}
-				values.Add (value);
+
+				foreach (var val in combinedContext.EvaluateWithPermutation (value).ToList ()) {
+					if (!string.IsNullOrEmpty (val)) {
+						values.Add (new EvaluatedValue (val));
+					}
+				}
 			}
 		}
 
@@ -63,17 +80,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public IEnumerator<KeyValuePair<string, List<ExpressionNode>>> GetEnumerator ()
-		{
-			return props.GetEnumerator ();
-		}
+		public IEnumerator<KeyValuePair<string, List<EvaluatedValue>>> GetEnumerator () => props.GetEnumerator ();
 
-		IEnumerator IEnumerable.GetEnumerator ()
-		{
-			return props.GetEnumerator ();
-		}
+		IEnumerator IEnumerable.GetEnumerator () => props.GetEnumerator ();
 
-		internal bool TryGetValues (string name, out List<ExpressionNode> values)
+		internal bool TryGetValues (string name, out List<EvaluatedValue> values)
 		{
 			return props.TryGetValue (name, out values) && values != null && values.Count > 0;
 		}
@@ -82,23 +93,17 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var list = new List<NuGetFramework> ();
 
-			void CaptureFramework (ExpressionNode fxExpr)
+			void CaptureFramework (string fxStr)
 			{
-				if (fxExpr is ExpressionText fxStr) {
-					var fx = NuGetFramework.ParseFolder (fxStr.Value);
-					if (fx != null && fx.IsSpecificFramework) {
-						list.Add (fx);
-					}
+				var fx = NuGetFramework.ParseFolder (fxStr);
+				if (fx != null && fx.IsSpecificFramework) {
+					list.Add (fx);
 				}
 			}
 
-			if (TryGetValues ("TargetFrameworks", out List<ExpressionNode> multiFxList)) {
+			if (TryGetValues ("TargetFrameworks", out List<EvaluatedValue> multiFxList)) {
 				foreach (var multiFxExpr in multiFxList) {
-					if (multiFxExpr is ListExpression multiFxArr) {
-						foreach (var fxExpr in multiFxArr.Nodes) {
-							CaptureFramework (fxExpr);
-						}
-					} else if (multiFxExpr is ExpressionText fxExpr) {
+					foreach (var fxExpr in multiFxExpr.EscapedValue.Split (';')) {
 						CaptureFramework (fxExpr);
 					}
 				}
@@ -106,14 +111,15 @@ namespace MonoDevelop.MSBuild.Language
 					return list;
 				}
 			}
-			if (TryGetValues ("TargetFramework", out List<ExpressionNode> fxList)) {
+
+			if (TryGetValues ("TargetFramework", out List<EvaluatedValue> fxList)) {
 				foreach (var fxExpr in fxList) {
-					CaptureFramework (fxExpr);
+					CaptureFramework (fxExpr.EscapedValue);
 				}
 			}
 
-			if (TryGetValues ("TargetFrameworkIdentifier", out List<ExpressionNode> idList) && TryGetValues ("TargetFrameworkVersion", out List<ExpressionNode> versionList)) {
-				var id = (idList.FirstOrDefault (IsConstExpr) as ExpressionText)?.Value;
+			if (TryGetValues ("TargetFrameworkIdentifier", out List<EvaluatedValue> idList) && TryGetValues ("TargetFrameworkVersion", out List<EvaluatedValue> versionList)) {
+				var id = idList[0].EscapedValue;
 				var version = versionList.OfType<ExpressionText> ().Select (v => {
 					string s = v.Value;
 					if (s[0] == 'v') {
@@ -126,12 +132,10 @@ namespace MonoDevelop.MSBuild.Language
 				}).FirstOrDefault (v => v != null);
 
 				if (version != null && !string.IsNullOrEmpty (id)) {
-					if (TryGetValues ("TargetFrameworkProfile", out List<ExpressionNode> profileList)) {
-						var profile = profileList.FirstOrDefault (IsConstExpr) as ExpressionText;
-						if (profile != null) {
-							list.Add (new NuGetFramework (id, version, profile.Value));
-							return list;
-						}
+					if (TryGetValues ("TargetFrameworkProfile", out List<EvaluatedValue> profileList)) {
+						var profile = profileList[0].EscapedValue;
+						list.Add (new NuGetFramework (id, version, profile));
+						return list;
 					}
 					list.Add (new NuGetFramework (id, version, null));
 					return list;
@@ -142,6 +146,5 @@ namespace MonoDevelop.MSBuild.Language
 
 			bool IsConstExpr (ExpressionNode n) => n is ExpressionText;
 		}
-
 	}
 }

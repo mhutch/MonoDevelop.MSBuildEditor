@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.SdkResolution;
 
@@ -16,13 +17,9 @@ namespace MonoDevelop.MSBuild
 
 		public string ToolsPath => null;
 
-		public bool TryGetToolsetProperty (string propertyName, out string value)
-		{
-			value = null;
-			return false;
-		}
+		public IReadOnlyDictionary<string, string> ToolsetProperties { get; } = new Dictionary<string, string> ();
 
-		public IReadOnlyDictionary<string, IReadOnlyList<string>> SearchPaths { get; } = new Dictionary<string, IReadOnlyList<string>> ();
+		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; } = new Dictionary<string, string[]> ();
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 

@@ -108,12 +108,10 @@ namespace MonoDevelop.MSBuild.Language
 				yield break;
 			}
 
-			//TODO: can we we re-use this context? the propvals may change between evaluations
-			var context = new MSBuildCollectedValuesEvaluationContext (fileContext, PropertyCollector);
+			var evalCtx = new MSBuildCollectedValuesEvaluationContext (fileContext, PropertyCollector);
 
 			bool foundAny = false;
 			bool isWildcard = false;
-
 
 			IList<string> basePaths;
 			if (resolvedSdk != null) {
@@ -122,7 +120,7 @@ namespace MonoDevelop.MSBuild.Language
 				basePaths = new[] { Path.GetDirectoryName (thisFilePath) };
 			}
 
-			foreach (var filename in basePaths.SelectMany(basePath => context.EvaluatePathWithPermutation (importExpr, basePath))) {
+			foreach (var filename in basePaths.SelectMany(basePath => evalCtx.EvaluatePathWithPermutation (importExpr, basePath))) {
 				if (string.IsNullOrEmpty (filename)) {
 					continue;
 				}

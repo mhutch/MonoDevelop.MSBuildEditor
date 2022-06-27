@@ -177,9 +177,9 @@ namespace MonoDevelop.MSBuild.Language
 					// will not have been re-evaluated
 					var fx = previous.Frameworks.FirstOrDefault ();
 					if (fx != null) {
-						propVals.Collect ("TargetFramework", new ExpressionText (0, fx.GetShortFolderName (), true));
-						propVals.Collect ("TargetFrameworkVersion", new ExpressionText (0, FrameworkInfoProvider.FormatDisplayVersion (fx.Version), true));
-						propVals.Collect ("TargetFrameworkIdentifier", new ExpressionText (0, fx.Framework, true));
+						propVals.Collect (doc.FileEvaluationContext, "TargetFramework", new ExpressionText (0, fx.GetShortFolderName (), true));
+						propVals.Collect (doc.FileEvaluationContext, "TargetFrameworkVersion", new ExpressionText (0, FrameworkInfoProvider.FormatDisplayVersion (fx.Version), true));
+						propVals.Collect (doc.FileEvaluationContext, "TargetFrameworkIdentifier", new ExpressionText (0, fx.Framework, true));
 					}
 				}
 				doc.Frameworks = propVals.GetFrameworks ();

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
@@ -15,8 +16,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 	/// </summary>
 	class MSBuildRuntimeEvaluationContext : IMSBuildEvaluationContext
 	{
-		readonly Dictionary<string, MSBuildPropertyValue> values
-			= new Dictionary<string, MSBuildPropertyValue> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, EvaluatedValue> values = new (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, OneOrMany<EvaluatedValue>> projectSearchPathValues = new (StringComparer.OrdinalIgnoreCase);
 
 		readonly IMSBuildEnvironment env;
 
@@ -28,45 +29,63 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return;
 			}
 
-			string toolsPath = MSBuildEscaping.ToMSBuildPath (env.ToolsPath);
-
-			values[ReservedProperties.BinPath] = toolsPath;
-			values[ReservedProperties.ToolsPath] = toolsPath;
-
-			ConvertSearchPaths (ReservedProperties.ExtensionsPath);
-			ConvertSearchPaths (ReservedProperties.ExtensionsPath32);
-			ConvertSearchPaths (ReservedProperties.ExtensionsPath64);
-
-			void ConvertSearchPaths (string name)
-			{
-				if (env.SearchPaths.TryGetValue (name, out var vals)) {
-					values[name] = new MSBuildPropertyValue (vals.Select (v => ExpressionParser.Parse (v, ExpressionOptions.ItemsMetadataAndLists)).ToArray ());
-				}
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.BinPath)) {
+				values[ReservedProperties.BinPath] = EvaluatedValue.FromNativePath (env.ToolsPath);
 			}
-
-			values[ReservedProperties.ToolsVersion] = env.ToolsVersion;
-			values[ReservedProperties.VisualStudioVersion] = "17.0";
-
-			values[ReservedProperties.ProgramFiles32] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
-			values[ReservedProperties.ProgramFiles64] = MSBuildEscaping.ToMSBuildPath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.ToolsPath)) {
+				values[ReservedProperties.ToolsPath] = values[ReservedProperties.BinPath];
+			}
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.ToolsVersion)) {
+				values[ReservedProperties.ToolsVersion] = new (env.ToolsVersion);
+			}
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.VisualStudioVersion)) {
+				values[ReservedProperties.VisualStudioVersion] = new ("17.0");
+			}
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.ProgramFiles32)) {
+				values[ReservedProperties.ProgramFiles32] = EvaluatedValue.FromNativePath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFilesX86));
+			}
+			if (!env.ToolsetProperties.ContainsKey (ReservedProperties.ProgramFiles64)) {
+				values[ReservedProperties.ProgramFiles64] = EvaluatedValue.FromNativePath (Environment.GetFolderPath (Environment.SpecialFolder.ProgramFiles));
+			}
 		}
 
-		public bool TryGetProperty (string name, out MSBuildPropertyValue? value)
+		public bool TryGetProperty (string name, [NotNullWhen (true)] out EvaluatedValue? value)
 		{
-			if (values.TryGetValue(name, out var existingVal)) {
+			if (values.TryGetValue (name, out var existingVal)) {
 				value = existingVal;
 				return true;
 			}
 
-			if (env.TryGetToolsetProperty (name, out var propVal) && propVal is not null) {
-				var escPropVal = MSBuildEscaping.ToMSBuildPath (propVal);
-				values[name] = escPropVal;
-				value = escPropVal;
-
+			if (env.ToolsetProperties.TryGetValue (name, out var toolsetValue)) {
+				var escapedValue = EvaluatedValue.FromNativePath (toolsetValue);
+				value = escapedValue;
+				values[name] = escapedValue;
 				return true;
 			}
 
-			value = default;
+			value = null;
+			return false;
+		}
+
+		public bool TryGetMultivaluedProperty (string name, [NotNullWhen (true)] out OneOrMany<EvaluatedValue>? value, bool isProjectImportStart = false)
+		{
+			if (isProjectImportStart) {
+				if (projectSearchPathValues.TryGetValue (name, out var pathValues)) {
+					value = pathValues;
+					return true;
+				}
+
+				if (env.ProjectImportSearchPaths.TryGetValue (name, out var paths)) {
+					//FIXME do we need to add in the values from the toolset props?
+				}
+			}
+
+			if (TryGetProperty (name, out var singleValue)) {
+				value = singleValue;
+				return true;
+			}
+
+			value = null;
 			return false;
 		}
 	}
