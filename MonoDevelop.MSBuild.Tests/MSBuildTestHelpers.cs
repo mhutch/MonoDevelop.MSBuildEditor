@@ -100,6 +100,7 @@ namespace MonoDevelop.MSBuild.Tests
 			registeredAssemblies = true;
 
 			if (Platform.IsWindows) {
+#if NETFRAMEWORK
 				var vs17Instance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
 					.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.VisualStudioSetup && x.Version.Major >= 17);
 				if (vs17Instance == null) {
@@ -107,6 +108,15 @@ namespace MonoDevelop.MSBuild.Tests
 				}
 				Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (vs17Instance);
 				return;
+#else
+				var dotnetInstance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
+					.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.DotNetSdk && x.Version.Major >= 6.0);
+				if (dotnetInstance == null) {
+					throw new InvalidOperationException ("Did not find instance of .NET 6.0 or later");
+				}
+				Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (dotnetInstance);
+				return;
+#endif
 			}
 
 			if (Platform.IsMac) {
