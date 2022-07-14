@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 using ProjectFileTools.NuGetSearch.Contracts;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
 {
 	[Export (typeof (IPackageFeedRegistryProvider))]
 	[Name ("Test Package Feed Registry Provider")]

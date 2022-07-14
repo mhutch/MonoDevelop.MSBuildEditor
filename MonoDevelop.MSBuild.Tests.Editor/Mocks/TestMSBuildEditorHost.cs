@@ -15,7 +15,7 @@ using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Editor.Host;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
 {
 	// this just needs to compose, it doesn't need to work
 	[Export (typeof (IMSBuildEditorHost))]
@@ -42,7 +42,7 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 	}
 
-	[Export (typeof(IStreamingFindReferencesPresenter))]
+	[Export (typeof (IStreamingFindReferencesPresenter))]
 	class TestStreamingFindReferencesPresenter : IStreamingFindReferencesPresenter
 	{
 		public void ClearAll () => throw new System.NotImplementedException ();

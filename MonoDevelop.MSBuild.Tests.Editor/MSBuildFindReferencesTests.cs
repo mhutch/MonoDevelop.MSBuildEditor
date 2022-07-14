@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Util;
+using MonoDevelop.MSBuild.Tests.Editor.Mocks;
+
 using MonoDevelop.Xml.Parser;
 
 using NUnit.Framework;

@@ -2,27 +2,21 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.MiniEditor;
 
 using MonoDevelop.MSBuild.Editor;
-using MonoDevelop.Xml.Tests.Completion;
-using MonoDevelop.Xml.Tests.EditorTestHelpers;
+using MonoDevelop.Xml.Editor.Tests;
 
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	class MSBuildExpandSelection
+	class MSBuildExpandSelection 
 		//subclass the XML tests to make sure we didn't break XML expand selection
-		: Xml.Tests.ExpandSelectionTests
+		: Xml.Editor.Tests.Commands.ExpandSelectionTests
 	{
-		[OneTimeSetUp]
-		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
-
+		protected override EditorCatalog CreateCatalog () => MSBuildTestEnvironment.CreateEditorCatalog ();
 		protected override string ContentTypeName => MSBuildContentType.Name;
-
-		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => MSBuildTestEnvironment.EnsureInitialized ();
 
 		//args are document, line, col, then the expected sequence of expansions
 		[Test]

@@ -89,14 +89,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.0.31902.203" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.0.1" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.2.32505.113" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.2.0" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.2.32505.173" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2186" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">
@@ -119,7 +120,7 @@
     </ProjectReference>
     <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj">
       <Project>{87DE05FC-4B18-4C21-8AA5-237CB5B97780}</Project>
-      <Name>MonoDevelop.Xml</Name>
+      <Name>MonoDevelop.Xml.Core</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>

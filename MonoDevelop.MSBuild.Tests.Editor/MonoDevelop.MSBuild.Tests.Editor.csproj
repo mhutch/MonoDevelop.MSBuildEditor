@@ -6,18 +6,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Neteril.VisualStudio.MiniEditor" Version="1.0.52" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" PrivateAssets="all" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Core.Tests\MonoDevelop.Xml.Core.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Editor.Tests\MonoDevelop.Xml.Editor.Tests.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj" />
-    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
-    <ProjectReference Include="..\MonoDevelop.Xml\Tests\MonoDevelop.Xml.Tests.csproj" />
-    <ProjectReference Include="..\MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj" />
+    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <!-- this preview package is currently required for the adaptor to work on systems where .NET 7 previews are installed -->
+    <PackageReference Include="NUnit3TestAdapter" Version="4.3.0-alpha-net7.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.2.32505.113" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="17.2.3194" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.2.3194" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="17.2.32" />
   </ItemGroup>
 
 </Project>

@@ -1,41 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.MiniEditor;
 
-using MonoDevelop.MSBuild.Editor;
-using MonoDevelop.MSBuild.Editor.Roslyn;
-using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.Xml.Tests.Completion;
-using MonoDevelop.Xml.Tests.EditorTestHelpers;
+using MonoDevelop.Xml.Editor.Tests.Extensions;
 
 using NUnit.Framework;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 {
 	[TestFixture]
-	public class MSBuildCompletionTests : CompletionTestBase
+	public class MSBuildCompletionTests : MSBuildEditorTest
 	{
-		[OneTimeSetUp]
-		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
-
-		protected override string ContentTypeName => MSBuildContentType.Name;
-
-		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => MSBuildTestEnvironment.EnsureInitialized ();
-
 		[Test]
 		public async Task TestElementCompletion ()
 		{
-			var result = await GetCompletionContext ("<Project>$");
+			var result = await this.GetCompletionContext ("<Project>$");
 
 			result.AssertNonEmpty ();
 
@@ -48,7 +30,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ProjectCompletion ()
 		{
-			var result = await GetCompletionContext (@"<Project><$");
+			var result = await this.GetCompletionContext (@"<Project><$");
 
 			result.AssertItemCount (11);
 
@@ -61,7 +43,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task InferredItems ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo /><Bar /><$");
 
 			result.AssertItemCount (5);
@@ -76,7 +58,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task InferredMetadata ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo><Bar>a</Bar></Foo><Foo><$");
 
 			result.AssertItemCount (5);
@@ -87,7 +69,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task InferredMetadataAttribute ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo Bar=""a"" /><Foo $");
 
 			result.AssertItemCount (7);
@@ -99,7 +81,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ProjectConfigurationConfigInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup>
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
@@ -114,7 +96,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ProjectConfigurationPlatformInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup>
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
@@ -129,7 +111,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ConfigurationsInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup><Configurations>Foo;Bar</Configurations></PropertyGroup>
 <ItemGroup>
@@ -146,7 +128,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task PlatformsInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup><Platforms>Foo;Bar</Platforms></PropertyGroup>
 <ItemGroup>
@@ -163,7 +145,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ConditionConfigurationInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""$(Configuration)=='Foo'"" />
 <ItemGroup>
@@ -179,7 +161,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task PlatformConfigurationInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""$(Platform)=='Foo'"" />
 <ItemGroup>
@@ -195,7 +177,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ConfigurationAndPlatformInference ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""'$(Platform)|$(Configuration)'=='Foo|Bar'"" />
 <ItemGroup>
@@ -214,7 +196,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task IntrinsicStaticPropertyFunctionCompletion ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([MSBuild]::^", caretMarker: '^');
@@ -227,7 +209,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task StaticPropertyFunctionCompletion ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.String]::^", caretMarker: '^');
@@ -242,7 +224,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task PropertyStringFunctionCompletion ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$(Foo.^", caretMarker: '^');
@@ -264,7 +246,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task ItemFunctionCompletion ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>@(Foo->^", caretMarker: '^');
@@ -287,7 +269,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task PropertyFunctionClassNames ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([^", caretMarker: '^');
@@ -300,7 +282,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task PropertyFunctionChaining ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.DateTime]::Now.^", caretMarker: '^');
@@ -312,7 +294,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task IndexerChaining ()
 		{
-			var result = await GetCompletionContext (@"
+			var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$(Foo[0].^", caretMarker: '^');
@@ -325,7 +307,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task EagerAttributeTrigger ()
 		{
-			var result = await GetCompletionContext (@"<Project ToolsVersion=$", triggerChar: '"');
+			var result = await this.GetCompletionContext (@"<Project ToolsVersion=$", triggerChar: '"');
 
 			result.AssertNonEmpty ();
 			result.AssertContains ("4.0");
@@ -334,7 +316,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task EagerElementTrigger ()
 		{
-			var result = await GetCompletionContext (@"<Project><PropertyGroup><Foo$", triggerChar: '>', filename: "EagerElementTrigger.csproj");
+			var result = await this.GetCompletionContext (@"<Project><PropertyGroup><Foo$", triggerChar: '>', filename: "EagerElementTrigger.csproj");
 
 			result.AssertNonEmpty ();
 			result.AssertContains ("True");
@@ -343,7 +325,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task TriggerOnBackspace ()
 		{
-			var result = await GetCompletionContext (
+			var result = await this.GetCompletionContext (
 				@"<Project><PropertyGroup><Foo>$",
 				CompletionTriggerReason.Backspace,
 				filename: "EagerElementTrigger.csproj");
@@ -355,7 +337,7 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task NoTriggerOnBackspaceMidExpression ()
 		{
-			var result = await GetCompletionContext (
+			var result = await this.GetCompletionContext (
 				@"<Project><PropertyGroup><Foo>true$",
 				CompletionTriggerReason.Backspace,
 				filename: "EagerElementTrigger.csproj");
@@ -366,38 +348,13 @@ namespace MonoDevelop.MSBuild.Tests
 		[Test]
 		public async Task TriggerOnFirstNameChar ()
 		{
-			var result = await GetCompletionContext (
+			var result = await this.GetCompletionContext (
 				@"<Project><PropertyGroup><$",
 				CompletionTriggerReason.Insertion, 'F',
 				filename: "EagerElementTrigger.csproj");
 
 			result.AssertNonEmpty ();
 			result.AssertContains ("Foo");
-		}
-	}
-
-	[Export (typeof (IRoslynCompilationProvider))]
-	class TestCompilationProvider : IRoslynCompilationProvider
-	{
-		public MetadataReference CreateReference (string assemblyPath)
-			=> MetadataReference.CreateFromFile (assemblyPath);
-	}
-
-	[Export(typeof(MSBuildSchemaProvider))]
-	class TestSchemaProvider : MSBuildSchemaProvider
-	{
-		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
-		{
-			loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
-
-			switch (path) {
-			case "EagerElementTrigger.csproj":
-				return new MSBuildSchema {
-					new PropertyInfo ("Foo", null, valueKind: MSBuildValueKind.Bool)
-				};
-			}
-
-			return base.GetSchema (path, sdk, out loadErrors);
 		}
 	}
 }

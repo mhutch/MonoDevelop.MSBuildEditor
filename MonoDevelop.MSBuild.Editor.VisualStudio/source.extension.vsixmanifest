@@ -30,7 +30,7 @@
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="MonoDevelop.MSBuild.Editor" Path="|MonoDevelop.MSBuild.Editor|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.MSBuild" Path="|MonoDevelop.MSBuild|" AssemblyName="|MonoDevelop.MSBuild;AssemblyName|" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.Xml" Path="|MonoDevelop.Xml|" AssemblyName="|MonoDevelop.Xml;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="MonoDevelop.Xml.Core" Path="|MonoDevelop.Xml.Core|" AssemblyName="|MonoDevelop.Xml.Core;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="MonoDevelop.Xml.Editor" Path="|MonoDevelop.Xml.Editor|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="languages.pkgdef" />

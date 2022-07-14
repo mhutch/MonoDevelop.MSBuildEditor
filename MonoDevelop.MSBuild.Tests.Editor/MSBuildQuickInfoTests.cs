@@ -4,31 +4,20 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.VisualStudio.MiniEditor;
-
-using MonoDevelop.MSBuild.Editor;
-using MonoDevelop.Xml.Tests.Completion;
-using MonoDevelop.Xml.Tests.EditorTestHelpers;
+using MonoDevelop.Xml.Editor.Tests.Extensions;
 
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	public class MSBuildQuickInfoTests : CompletionTestBase
+	public class MSBuildQuickInfoTests : MSBuildEditorTest
 	{
-		[OneTimeSetUp]
-		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
-
-		protected override string ContentTypeName => MSBuildContentType.Name;
-
 		[Test]
 		public async Task TestItemGroupQuickInfo ()
 		{
-			var result = await GetQuickInfoItems ("<Project><Item$Group>");
+			var result = await this.GetQuickInfoItems ("<Project><Item$Group>");
 			Assert.IsTrue (result.Items.Any ());
 		}
-
-		protected override (EditorEnvironment, EditorCatalog) InitializeEnvironment () => MSBuildTestEnvironment.EnsureInitialized ();
 	}
 }
