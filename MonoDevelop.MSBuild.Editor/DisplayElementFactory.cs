@@ -120,16 +120,7 @@ namespace MonoDevelop.MSBuild.Editor
 			runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.WhiteSpace, " "));
 			runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Identifier, label.name));
 
-			string typeInfo = null;
-			if (info is VariableInfo vi) {
-				var tdesc = vi.GetTypeDescription ();
-				if (tdesc.Count > 0) {
-					typeInfo = string.Join (" ", tdesc);
-				}
-			}
-
 			if (info is FunctionInfo fi) {
-				typeInfo = fi.ReturnTypeString;
 				if (!fi.IsProperty) {
 					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, "("));
 
@@ -149,9 +140,13 @@ namespace MonoDevelop.MSBuild.Editor
 				}
 			}
 
-			if (typeInfo != null) {
-				runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, " : "));
-				runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, typeInfo));
+			if (info is ITypedSymbol typedSymbol) {
+				var tdesc = typedSymbol.GetTypeDescription ();
+				if (tdesc.Count > 0) {
+					var typeInfo = string.Join (" ", tdesc);
+					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Other, " : "));
+					runs.Add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, typeInfo));
+				}
 			}
 
 			return new ClassifiedTextElement (runs);

@@ -7,7 +7,7 @@ using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class FunctionInfo : BaseSymbol
+	class FunctionInfo : BaseSymbol, ITypedSymbol
 	{
 		readonly FunctionParameterInfo [] arguments;
 
@@ -16,6 +16,9 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public virtual FunctionParameterInfo [] Parameters => arguments;
 		public List<FunctionInfo> Overloads { get; } = new List<FunctionInfo> ();
 		public virtual bool IsProperty => false;
+
+		MSBuildValueKind ITypedSymbol.ValueKind => ReturnType;
+		CustomTypeInfo ITypedSymbol.CustomType => null;
 
 		protected FunctionInfo (string name, DisplayText description) : base (name, description)
 		{
