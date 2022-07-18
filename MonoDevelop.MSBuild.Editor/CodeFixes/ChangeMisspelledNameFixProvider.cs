@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.CodeFixes
@@ -23,7 +24,9 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			CoreDiagnostics.UnreadPropertyId,
 			CoreDiagnostics.UnwrittenItemId,
 			CoreDiagnostics.UnwrittenMetadataId,
-			CoreDiagnostics.UnwrittenPropertyId
+			CoreDiagnostics.UnwrittenPropertyId,
+			CoreDiagnostics.UnknownValueId,
+			CoreDiagnostics.InvalidBoolId
 		);
 
 		public async override Task RegisterCodeFixesAsync (MSBuildFixContext context)
@@ -32,7 +35,14 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 			foreach (var diag in context.Diagnostics) {
 				var name = (string)diag.Properties["Name"];
-				var spans = (TextSpan[])diag.Properties["Spans"];
+
+				TextSpan[] spans;
+				if (diag.Properties.TryGetValue("Spans", out var spansObj)) {
+					spans = (TextSpan[])spansObj;
+				} else {
+					spans = new[] { diag.Span };
+				}
+
 				switch (diag.Descriptor.Id) {
 				case CoreDiagnostics.UnreadItemId:
 				case CoreDiagnostics.UnwrittenItemId:
@@ -40,6 +50,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 						context.RegisterCodeFix (new FixNameAction (spans, name, item.Name), diag);
 					}
 					break;
+
 				case CoreDiagnostics.UnreadPropertyId:
 				case CoreDiagnostics.UnwrittenPropertyId:
 					foreach (var prop in await spellChecker.FindSimilarProperties (context.Document, name)) {
@@ -50,6 +61,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 						context.RegisterCodeFix (new FixNameAction (spans, name, prop.Name), diag);
 					}
 					break;
+
 				case CoreDiagnostics.UnreadMetadataId:
 				case CoreDiagnostics.UnwrittenMetadataId:
 					var itemName = (string)diag.Properties["ItemName"];
@@ -59,6 +71,15 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 							continue;
 						}
 						context.RegisterCodeFix (new FixNameAction (spans, name, metadata.Name), diag);
+					}
+					break;
+
+				case CoreDiagnostics.UnknownValueId:
+				case CoreDiagnostics.InvalidBoolId:
+					var kind = (MSBuildValueKind)diag.Properties["ValueKind"];
+					var customType = (CustomTypeInfo)diag.Properties["CustomType"];
+					foreach (var value in await spellChecker.FindSimilarValues (context.Document, kind, customType, name)) {
+						context.RegisterCodeFix (new FixNameAction (spans, name, value.Name), diag);
 					}
 					break;
 				}

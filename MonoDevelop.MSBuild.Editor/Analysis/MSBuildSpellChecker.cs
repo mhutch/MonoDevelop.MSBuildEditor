@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Utilities;
 
-using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 
 using Roslyn.Utilities;
 
@@ -24,12 +24,16 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		MSBuildDocument lastDocument;
 
 		Task<SpellChecker> itemCheckerTask, propertyCheckerTask;
-		Dictionary<string, Task<SpellChecker>> metadataCheckerTasks
-			= new Dictionary<string, Task<SpellChecker>> (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, Task<SpellChecker>> metadataCheckerTasks = new(StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<CustomTypeInfo, Task<SpellChecker>> customTypeCheckerTasks = new();
+
+		// this does not need to be cleared when the doc changes
+		readonly Dictionary<MSBuildValueKind, Task<SpellChecker>> valueKindCheckerTasks = new ();
 
 		public MSBuildSpellChecker ()
 		{
 		}
+
 		void CheckHash (MSBuildDocument document)
 		{
 			if (lastDocument?.ImportsHash != document.ImportsHash) {
@@ -37,6 +41,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				itemCheckerTask = null;
 				propertyCheckerTask = null;
 				metadataCheckerTasks.Clear ();
+				customTypeCheckerTasks.Clear ();
 			}
 		}
 
@@ -44,12 +49,12 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			lock (locker) {
 				CheckHash (document);
-				return itemCheckerTask ?? (itemCheckerTask = Task.Run (() =>
+				return itemCheckerTask ??= Task.Run (() =>
 					new SpellChecker (
 						Checksum.Null,
 						document.GetSchemas ().GetItems ().Select (i => new StringSlice (i.Name)))
 					)
-				);
+;
 			}
 		}
 
@@ -57,12 +62,12 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			lock (locker) {
 				CheckHash (document);
-				return propertyCheckerTask ?? (propertyCheckerTask = Task.Run (() =>
+				return propertyCheckerTask ??= Task.Run (() =>
 					new SpellChecker (
 						Checksum.Null,
 						document.GetSchemas ().GetProperties (true).Select (p => new StringSlice (p.Name)))
 					)
-				);
+;
 			}
 		}
 
@@ -76,6 +81,38 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 							Checksum.Null,
 							document.GetSchemas ().GetMetadata (itemName, true).Select (p => new StringSlice (p.Name)))
 						);
+				}
+				return checker;
+			}
+		}
+
+		Task<SpellChecker> GetValueChecker (MSBuildDocument document, MSBuildValueKind kind, CustomTypeInfo customType)
+		{
+			Task<SpellChecker> checker;
+			lock (locker) {
+				if (customType == null) {
+					if (!valueKindCheckerTasks.TryGetValue (kind, out checker)) {
+						return checker;
+					}
+					var knownVals = kind.GetSimpleValues (true);
+
+					valueKindCheckerTasks[kind] = checker = Task.Run (() =>
+						new SpellChecker (
+							Checksum.Null,
+							knownVals.Select (p => new StringSlice (p.Name)))
+						);
+					return checker;
+				}
+
+				CheckHash (document);
+				if (!customTypeCheckerTasks.TryGetValue (customType, out checker)) {
+					customTypeCheckerTasks[customType] = checker = Task.Run (() => {
+						var knownVals = customType.Values;
+						return new SpellChecker (
+							Checksum.Null,
+							knownVals.Select (p => new StringSlice (p.Name))
+						);
+					});
 				}
 				return checker;
 			}
@@ -121,6 +158,23 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 					continue;
 				}
 				if (document.GetSchemas ().GetMetadata (itemName, match, true) is MetadataInfo info) {
+					yield return info;
+				}
+			}
+		}
+
+		public async Task<IEnumerable<ISymbol>> FindSimilarValues (MSBuildDocument document, MSBuildValueKind kind, CustomTypeInfo customType, string name)
+			=> GetValue (await GetValueChecker (document, kind, customType), kind, customType, name);
+
+		IEnumerable<ISymbol> GetValue (SpellChecker checker, MSBuildValueKind kind, CustomTypeInfo customType, string name)
+		{
+			var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (true);
+			var knownValDict = knownVals.ToDictionary (v => v.Name);
+			foreach (var match in checker.FindSimilarWords (name)) {
+				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+				if (knownValDict.TryGetValue (match, out var info)) {
 					yield return info;
 				}
 			}

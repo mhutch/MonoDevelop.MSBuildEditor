@@ -549,7 +549,8 @@ namespace MonoDevelop.MSBuild.Language
 						return;
 					}
 				}
-				AddErrorWithArgs (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
+				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
+
 				return;
 			}
 
@@ -655,6 +656,21 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (offset, value.Length), args);
+
+			// errors expected to be fixed by ChangeMisspelledNameFixProvider
+			// captures the information needed by the fixer
+			void AddFixableError (MSBuildDiagnosticDescriptor d, params object[] args)
+			{
+				Document.Diagnostics.Add (
+					d,
+					new TextSpan (offset, value.Length),
+					ImmutableDictionary<string, object>.Empty
+						.Add ("Name", value)
+						.Add ("ValueKind", kind)
+						.Add ("CustomType", info.CustomType),
+					args
+				);
+			}
 		}
 
 		bool IsItemUsed (string itemName, ReferenceUsage usage)

@@ -305,8 +305,9 @@ namespace MonoDevelop.MSBuild.Language
 			"Import may only have a MinVersion attribute if it has an Sdk attribute",
 			MSBuildDiagnosticSeverity.Warning);
 
-		public static MSBuildDiagnosticDescriptor UnknownValue = new MSBuildDiagnosticDescriptor (
-			"UnknownValue",
+		public const string UnknownValueId = nameof (UnknownValue);
+		public static MSBuildDiagnosticDescriptor UnknownValue = new (
+			UnknownValueId,
 			"{1} has unknown value",
 			"{0} '{1}' has unknown value '{2}'",
 			MSBuildDiagnosticSeverity.Error);
@@ -329,8 +330,9 @@ namespace MonoDevelop.MSBuild.Language
 			"The value '{0}' is not a valid integer",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string InvalidBoolId = nameof(InvalidBool);
 		public static MSBuildDiagnosticDescriptor InvalidBool = new MSBuildDiagnosticDescriptor (
-			"InvalidBool",
+			InvalidBoolId,
 			"Invalid bool",
 			"The value '{0}' is not a valid bool",
 			MSBuildDiagnosticSeverity.Error);
