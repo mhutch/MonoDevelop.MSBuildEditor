@@ -332,7 +332,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			// we can only provide version completions if the item's value type is non-list nugetid
 			var itemInfo = doc.GetSchemas ().GetItem (itemEl.Name.Name);
-			if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID) || itemInfo.ValueKind.AllowsLists ()) {
+			if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID)) {
 				return null;
 			}
 
@@ -340,6 +340,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var packageId = includeAtt.Value;
 			if (string.IsNullOrEmpty (packageId)) {
+				return null;
+			}
+
+			// check it's a non-list literal value, we can't handle anything else
+			var expr = ExpressionParser.Parse (packageId, ExpressionOptions.ItemsMetadataAndLists);
+			if (expr.NodeKind != ExpressionNodeKind.Text) {
 				return null;
 			}
 
