@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (rat.Name, true);
 					if (xat == null) {
-						Document.Diagnostics.Add (CoreDiagnostics.MissingRequiredAttribute, element.NameSpan, element.NameSpan, rat.Name);
+						Document.Diagnostics.Add (CoreDiagnostics.MissingRequiredAttribute, element.NameSpan, element.Name, rat.Name);
 					}
 				}
 			}
@@ -501,26 +501,12 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionPropertyName prop:
 					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write)) {
-						Document.Diagnostics.Add (
-							CoreDiagnostics.UnwrittenProperty,
-							prop.Span,
-							ImmutableDictionary<string, object>.Empty
-								.Add ("Name", prop.Name)
-								.Add ("Spans", new[] { new TextSpan (prop.Offset, prop.Length) }),
-							prop.Name
-						);
+						AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
 					}
 					break;
 				case ExpressionItemName item:
 					if (!IsItemUsed (item.Name, ReferenceUsage.Write)) {
-						Document.Diagnostics.Add (
-							CoreDiagnostics.UnwrittenItem,
-							item.Span,
-							ImmutableDictionary<string, object>.Empty
-								.Add ("Name", item.Name)
-								.Add ("Spans", new[] { new TextSpan (item.Offset, item.Length) }),
-							item.Name
-						);
+						AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
 					}
 					//TODO: deprecation squiggles in expressions
 					break;
@@ -532,6 +518,18 @@ namespace MonoDevelop.MSBuild.Language
 				new TextSpan (n.Offset, n.Length),
 				DescriptionFormatter.GetKindNoun (info),
 				info.Name);
+
+			// errors expected to be fixed by ChangeMisspelledNameFixProvider
+			// captures the information needed by the fixer
+			void AddFixableError (MSBuildDiagnosticDescriptor d, string symbolName, TextSpan symbolSpan, params object[] args)
+			{
+				Document.Diagnostics.Add (
+					d,
+					symbolSpan,
+					ImmutableDictionary<string, object>.Empty
+						.Add ("Name", symbolName)
+					);
+			}
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid

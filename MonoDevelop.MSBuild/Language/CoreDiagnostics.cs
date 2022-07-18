@@ -337,14 +337,16 @@ namespace MonoDevelop.MSBuild.Language
 			"The value '{0}' is not a valid bool",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string InvalidLcidId = nameof (InvalidLcid);
 		public static MSBuildDiagnosticDescriptor InvalidLcid = new MSBuildDiagnosticDescriptor (
-			"InvalidLcid",
+			InvalidLcidId,
 			"Invalid LCID",
 			"The value '{0}' is not a valid LCID integer",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string UnknownLcidId = nameof (UnknownLcid);
 		public static MSBuildDiagnosticDescriptor UnknownLcid = new MSBuildDiagnosticDescriptor (
-			"UnknownLcid",
+			UnknownLcidId,
 			"Unknown LCID",
 			"The value '{0}' is not a known LCID",
 			MSBuildDiagnosticSeverity.Error);
@@ -361,26 +363,30 @@ namespace MonoDevelop.MSBuild.Language
 			"The value '{0}' is not a valid version format",
 			MSBuildDiagnosticSeverity.Error);
 
-		public static MSBuildDiagnosticDescriptor UnknownTargetFramework = new MSBuildDiagnosticDescriptor (
-			"UnknownTargetFramework",
+		public const string UnknownTargetFrameworkId = nameof (UnknownTargetFramework);
+		public static MSBuildDiagnosticDescriptor UnknownTargetFramework = new (
+			UnknownTargetFrameworkId,
 			"Unknown target framework",
 			"The value '{0}' is not a known target framework short name",
 			MSBuildDiagnosticSeverity.Warning);
 
-		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkIdentifier = new MSBuildDiagnosticDescriptor (
-			"UnknownTargetFrameworkIdentifier",
+		public const string UnknownTargetFrameworkIdentifierId = nameof (UnknownTargetFrameworkIdentifier);
+		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkIdentifier = new (
+			UnknownTargetFrameworkIdentifierId,
 			"Unknown target framework identifier",
 			"The value '{0}' is not a known target framework identifier",
 			MSBuildDiagnosticSeverity.Warning);
 
-		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkVersion = new MSBuildDiagnosticDescriptor (
-			"UnknownTargetFrameworkVersion",
+		public const string UnknownTargetFrameworkVersionId = nameof (UnknownTargetFrameworkVersion);
+		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkVersion = new (
+			UnknownTargetFrameworkVersionId,
 			"Unknown target framework version",
 			"The value '{0}' is not a known version for target framework '{1}'",
 			MSBuildDiagnosticSeverity.Warning);
 
-		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkProfile = new MSBuildDiagnosticDescriptor (
-			"UnknownTargetFrameworkProfile",
+		public const string UnknownTargetFrameworkProfileId = nameof (UnknownTargetFrameworkProfile);
+		public static MSBuildDiagnosticDescriptor UnknownTargetFrameworkProfile = new (
+			UnknownTargetFrameworkProfileId,
 			"Unknown target framework profile",
 			"The value '{0}' is not a known profile for target framework '{1},Version={2}'",
 			MSBuildDiagnosticSeverity.Warning);
