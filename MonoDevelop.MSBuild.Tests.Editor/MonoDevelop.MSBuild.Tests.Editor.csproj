@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472</TargetFrameworks>
     <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
   </PropertyGroup>
 
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <!-- this preview package is currently required for the adaptor to work on systems where .NET 7 previews are installed -->
@@ -22,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.2.32505.113" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="17.2.3194" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.2.3194" />

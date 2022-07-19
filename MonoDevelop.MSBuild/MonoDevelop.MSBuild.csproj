@@ -35,13 +35,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NuGet.Frameworks" Version="5.8.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+    These are all expected to be provided at runtime via the host loading then from an MSBuild installation.
+    They are not exposed in the API so referencers need not reference them in any way.
+    -->
+    <PackageReference Include="Microsoft.Build" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="NuGet.Frameworks" Version="5.8.0" IncludeAssets="compile" PrivateAssets="all" />
+    <!-- this is transitive from Microsoft.Build but it's an impl detail -->
+    <PackageReference Include="Microsoft.NET.StringTools" Version="1.0.0" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
