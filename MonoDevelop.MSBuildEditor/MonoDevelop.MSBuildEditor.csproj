@@ -1,30 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>MonoDevelop.MSBuildEditor</RootNamespace>
     <AssemblyName>MonoDevelop.MSBuildEditor</AssemblyName>
     <CreatePackage Condition="'$(Configuration)' == 'Release'">true</CreatePackage>
+    <!--
+    The default behavior of Microsoft.VisualStudioMac.Sdk is to download the AddinReferences
+    from nuget but they do not seem to be available on any public feed.
+    Instead, force it to revert to the original behavior of MonoDevelop.Addins, which
+    resolved them from an app bundle.
+    -->
+    <VSAppDir>/Applications/Visual Studio.app</VSAppDir>
+
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Tests/**" />
-    <PackageReference Include="Microsoft.Build" Version="16.8.0" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="16.8.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
-    <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
+    <PackageReference Include="Microsoft.VisualStudioMac.Sdk" Version="17.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AddinReference Include="MonoDevelop.DesignerSupport" />
     <AddinReference Include="MonoDevelop.SourceEditor2" />
     <AddinReference Include="MonoDevelop.DotNetCore" />
     <AddinReference Include="MonoDevelop.PackageManagement" />
     <AddinReference Include="MonoDevelop.TextEditor" />
     <AddinReference Include="MonoDevelop.Refactoring" />
-    <AddinReference Include="MonoDevelop.TextEditor.Cocoa" />
-    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Tests/**" />
     <None Remove="Syntax\*" />
     <AddinFile Include="Syntax\msbuild.json" />
     <AddinFile Include="Templates\Project.xft.xml" />

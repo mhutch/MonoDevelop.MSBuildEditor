@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.NRefactory.TypeSystem;
 using MonoDevelop.Core;
 using MonoDevelop.Core.Instrumentation;
 using MonoDevelop.Ide;
@@ -31,10 +30,10 @@ namespace MonoDevelop.MSBuildEditor
 
 	// this is borrowed from MonoDevelop.Refactoring/MonoDevelop.Refactoring/StreamingFindUsagesPresenter.cs
 	// as of 8881a5a04f2c414296cd4b4a57ec562c7ecf19a4
-	sealed class MonoDevelopFindUsagesContext : FindReferencesContext
+	sealed partial class MonoDevelopFindUsagesContext : FindReferencesContext
 	{
-		readonly ConcurrentDictionary<SearchResult,object> antiDuplicatesSet
-			= new ConcurrentDictionary<SearchResult,object> (new SearchResultComparer ());
+		readonly ConcurrentDictionary<SearchResult, object> antiDuplicatesSet
+			= new ConcurrentDictionary<SearchResult, object> (new SearchResultComparer ());
 		SearchProgressMonitor monitor;
 		int reportedProgress = 0;
 		ITimeTracker timer = null;
@@ -75,21 +74,11 @@ namespace MonoDevelop.MSBuildEditor
 
 		public override Task OnReferenceFoundAsync (FoundReference reference)
 		{
-			var sr = new MemberReference (
-				new CounterfeitVariable (reference.Name),
-				reference.FilePath,
-				reference.Offset,
-				reference.Length);
+			//FIXME: as of 17.4, VSMac can no longer differentiate between usage (read/write) in search results
+			var sr = SearchResult.Create(reference.FilePath, reference.Offset, reference.Length);
 
-			if (antiDuplicatesSet.TryAdd (sr, null)) {
-				sr.ReferenceUsageType = reference.Usage switch
-				{
-					ReferenceUsage.Declaration => ReferenceUsageType.Declaration,
-					ReferenceUsage.Write => ReferenceUsageType.Write,
-					ReferenceUsage.Read => ReferenceUsageType.Read,
-					_ => ReferenceUsageType.Unknown
-				};
-			}
+			antiDuplicatesSet.TryAdd (sr, null);
+
 			return Task.CompletedTask;
 		}
 
@@ -115,32 +104,6 @@ namespace MonoDevelop.MSBuildEditor
 				hash = hash * 23 + obj.Length.GetHashCode ();
 				hash = hash * 23 + (obj.FileName ?? "").GetHashCode ();
 				return hash;
-			}
-		}
-
-		// HACK: VSMac will only display usage for IVariable/IEntity, so fake one just enough for it to work
-		class CounterfeitVariable : IVariable
-		{
-			public CounterfeitVariable (string name)
-			{
-				Name = name;
-			}
-
-			public string Name { get; }
-
-			public DomRegion Region => throw new System.NotImplementedException ();
-
-			public IType Type => throw new System.NotImplementedException ();
-
-			public bool IsConst => throw new System.NotImplementedException ();
-
-			public object ConstantValue => throw new System.NotImplementedException ();
-
-			public SymbolKind SymbolKind => throw new System.NotImplementedException ();
-
-			public ISymbolReference ToReference ()
-			{
-				throw new System.NotImplementedException ();
 			}
 		}
 	}
