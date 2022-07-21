@@ -4,10 +4,13 @@ on: [push]
 
 jobs:
   VSMac:
-    runs-on: macos-latest
     strategy:
       matrix:
-        config: [ DebugMac ]
+        include:
+        - os:     macos-latest
+          slnconfig: DebugMac
+          config: Debug
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -21,13 +24,13 @@ jobs:
         dotnet-version: '6.0.x'
 
     - name: Restore
-      run: dotnet restore -p:Configuration=${{ matrix.config }}
+      run: dotnet restore -p:Configuration=${{ matrix.slnconfig }}
 
     - name: Build
-      run: dotnet build --no-restore -c ${{ matrix.config }} -p:CreatePackage=true
+      run: dotnet build --no-restore -c ${{ matrix.slnconfig }} -p:CreatePackage=true
 
     - name: Test
-      run: dotnet test --no-build -c ${{ matrix.config }}
+      run: dotnet test --no-build -c ${{ matrix.slnconfig }}
 
     - uses: actions/upload-artifact@v2
       with:
