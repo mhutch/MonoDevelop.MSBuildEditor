@@ -2,9 +2,9 @@
 using Mono.Addins.Description;
 
 [assembly: Addin (
-	"MonoDevelop.MSBuildEditor",
-	Namespace = "MonoDevelop.MSBuildEditor",
-	Version = "2.4.0"
+	"MSBuildEditor",
+	Namespace = "MonoDevelop",
+	Version = ThisAssembly.AssemblyFileVersion
 )]
 
 [assembly: AddinName ("MSBuild Editor")]

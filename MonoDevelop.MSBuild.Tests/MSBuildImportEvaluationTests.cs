@@ -36,7 +36,7 @@ namespace MonoDevelop.MSBuild.Tests
 			};
 
 			var evaluated = context.Evaluate (expr);
-			Assert.AreEqual (expected, evaluated.EscapedValue);
+			AssertEvaluatedExpression (expected, evaluated);
 		}
 
 		[Test]
@@ -58,8 +58,13 @@ namespace MonoDevelop.MSBuild.Tests
 			};
 
 			var evaluated = context.Evaluate (expr);
-			Assert.AreEqual (expected, evaluated.EscapedValue);
+			AssertEvaluatedExpression (expected, evaluated);
 		}
+
+		static string ConvertPathSeparators (string path) => path?.Replace ('\\', Path.DirectorySeparatorChar);
+
+		static void AssertEvaluatedExpression  (string expected, EvaluatedValue actual)
+			=> Assert.AreEqual (ConvertPathSeparators (expected), ConvertPathSeparators (actual.EscapedValue));
 
 		[Test]
 		[TestCase ("$(Foo)", "One", "Two", "Three")]

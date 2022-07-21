@@ -99,8 +99,8 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 			registeredAssemblies = true;
 
-			if (Platform.IsWindows) {
 #if NETFRAMEWORK
+			if (Platform.IsWindows) {
 				var vs17Instance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
 					.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.VisualStudioSetup && x.Version.Major >= 17);
 				if (vs17Instance == null) {
@@ -108,31 +108,21 @@ namespace MonoDevelop.MSBuild.Tests
 				}
 				Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (vs17Instance);
 				return;
-#else
-				var dotnetInstance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
-					.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.DotNetSdk && x.Version.Major >= 6.0);
-				if (dotnetInstance == null) {
-					throw new InvalidOperationException ("Did not find instance of .NET 6.0 or later");
-				}
-				Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (dotnetInstance);
-				return;
+		}
 #endif
+			var dotnetInstance = Microsoft.Build.Locator.MSBuildLocator.QueryVisualStudioInstances ()
+				.FirstOrDefault (x => x.DiscoveryType == Microsoft.Build.Locator.DiscoveryType.DotNetSdk && x.Version.Major >= 6.0);
+			if (dotnetInstance == null) {
+				throw new InvalidOperationException ("Did not find instance of .NET 6.0 or later");
 			}
+			Microsoft.Build.Locator.MSBuildLocator.RegisterInstance (dotnetInstance);
+			return;
+		}
 
-			if (Platform.IsMac) {
-				//TODO: locate app bundle by id
-				var vsmacMSBuildDir = "/Applications/Visual Studio.app/Contents/Resources/lib/monodevelop/bin/MSBuild/Current/bin";
-				if (Directory.Exists(vsmacMSBuildDir)) {
-					Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (vsmacMSBuildDir);
-					return;
-				}
-
-				var corlibDir = Path.GetDirectoryName (typeof (string).Assembly.Location);
-				var msbuildDir = Path.Combine (corlibDir, "..", "msbuild", "Current", "bin");
-				Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath (msbuildDir);
-				return;
-			}
-
+		/*
+		// might need this again, keep it around for now
+		void FindMSBuildInPath ()
+		{
 			var msbuildInPath = FindInPath ("msbuild");
 			if (msbuildInPath != null) {
 				//attempt to read the msbuild.dll location from the launch script
@@ -182,5 +172,6 @@ namespace MonoDevelop.MSBuild.Tests
 
 			return null;
 		}
+		*/
 	}
 }

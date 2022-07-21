@@ -47,6 +47,7 @@ namespace MonoDevelop.MSBuild
 
 		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; }
 
+		//FIXME: caching should be specific to the (projectFile, string solutionPath) pair
 		public SdkInfo ResolveSdk (
 			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
 		{

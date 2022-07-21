@@ -17,6 +17,9 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
 	class MSBuildAnalyzerTest
 	{
+		[OneTimeSetUp]
+		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+
 		protected void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
 			=> VerifyDiagnostics (source, new[] { analyzer }, false, expectedDiagnostics);
 

@@ -22,7 +22,10 @@ namespace MonoDevelop.MSBuildEditor
 		TargetRuntime runtime;
 		List<SdkInfo> registeredSdks;
 		object logger, resolver;
-		MethodInfo getSdkMeth;
+		MethodInfo resolveMeth;
+
+		// FIXME: this is supposed to be specific to each (projectFile, solutionFile), and performs caching on that basis
+		object evalCtx;
 
 		public string DefaultSdkPath { get; }
 
@@ -30,28 +33,54 @@ namespace MonoDevelop.MSBuildEditor
 		{
 			this.runtime = runtime;
 
-			try {
-				var defaultSdksMeth = typeof (MSBuildProjectService).GetMethod ("GetDefaultSdksPath", BF.NonPublic | BF.Static);
-				DefaultSdkPath = (string)defaultSdksMeth.Invoke (null, new object [] { runtime });
-			} catch (Exception ex) {
-				LoggingService.LogError ("Failed to get MSBuild default SDK", ex);
+			var asm = typeof (MSBuildProjectService).Assembly;
+			Type GetTypeOrFail (string typeName) => asm.GetType (typeName) ?? throw new Exception ($"Failed to get type ${typeName}");
+
+			var defaultSdksMeth = typeof (MSBuildProjectService).GetMethod ("GetDefaultSdksPath", BF.NonPublic | BF.Static);
+			DefaultSdkPath = (string)defaultSdksMeth?.Invoke (null, new object [] { runtime });
+			if (DefaultSdkPath is null) {
+				throw new Exception ("Failed to get MSBuild default SDK from MSBuildProjectService");
 			}
 
-			try {
-				var asm = typeof (MSBuildProjectService).Assembly;
-				var logService = asm.GetType ("MonoDevelop.Projects.MSBuild.CustomLoggingService");
-				var logInstanceField = logService.GetField ("Instance", BF.Public | BF.Static);
-				logger = logInstanceField.GetValue (null);
-
-				var resolverType = asm.GetType ("MonoDevelop.Projects.MSBuild.SdkResolution");
-				var getResolverMeth = resolverType.GetMethod ("GetResolver", BF.Public | BF.Static);
-				resolver = getResolverMeth.Invoke (null, new [] { runtime });
-
-				getSdkMeth = resolverType.GetMethod ("GetSdkPath", BF.NonPublic | BF.Public | BF.Instance);
-
-			} catch (Exception ex) {
-				LoggingService.LogError ("Failed to get MSBuild SdkResolution", ex);
+			var logServiceInterface = GetTypeOrFail ("MonoDevelop.Projects.MSBuild.ILoggingService");
+			var logServiceType = GetTypeOrFail ("MonoDevelop.Projects.MSBuild.CustomLoggingService");
+			var logInstanceField = logServiceType?.GetField ("Instance", BF.Public | BF.Static);
+			logger = logInstanceField?.GetValue (null);
+			if (logger is null || !logServiceType.IsAssignableTo (logServiceInterface)) {
+				throw new Exception ("Failed to get MonoDevelop.Projects.MSBuild.CustomLoggingService instance");
 			}
+
+			var resolverType = asm.GetType ("MonoDevelop.Projects.MSBuild.SdkResolution");
+			var getResolverMeth = resolverType?.GetMethod ("GetResolver", BF.Public | BF.Static);
+			resolver = getResolverMeth?.Invoke (null, new [] { runtime });
+			if (resolver is null) {
+				throw new Exception ("Failed to get MonoDevelop.Projects.MSBuild.SdkResolution instance");
+			}
+
+			var evalCtxType = asm.GetType ("MonoDevelop.Projects.MSBuild.MSBuildEvaluationContext");
+			var evalCtxCtor = evalCtxType.GetConstructor (new Type[] { });
+			evalCtx = evalCtxCtor.Invoke (null);
+			if (evalCtx is null) {
+				throw new Exception ("Failed to create MonoDevelop.Projects.MSBuild.MSBuildEvaluationContext instance");
+			}
+
+			resolveMeth = resolverType?.GetMethod ("Resolve", BF.NonPublic | BF.Public | BF.Instance, new Type[] {
+				typeof(SdkReference),
+				logServiceInterface,
+				evalCtxType,
+				GetTypeOrFail("MonoDevelop.Projects.MSBuild.MSBuildContext"),
+				typeof(string),
+				typeof(string)
+			});
+			if (resolveMeth == null || !resolveMeth.ReturnType.IsAssignableTo(typeof(SdkResult))) {
+				throw new Exception ("Failed to get MonoDevelop.Projects.MSBuild.SdkResolution.Resolve method");
+			}
+		}
+
+		public SdkResult Resolve (SdkReference sdk, string projectFile, string solutionPath)
+		{
+			// Resolve (SdkReference sdk, ILoggingService logger, MSBuildEvaluationContext evaluationContext, MSBuildContext? buildEventContext, string projectFile, string solutionFile)
+			return (SdkResult) resolveMeth.Invoke (resolver, new[] { sdk, logger, evalCtx, null, projectFile, solutionPath });
 		}
 
 		/// <summary>
@@ -78,11 +107,10 @@ namespace MonoDevelop.MSBuildEditor
 					var version = (MonoDevelop.Projects.MSBuild.SdkVersion)sdkInfoVersionProp.GetValue (sdkInfo);
 					var path = (string)sdkInfoPathProp.GetValue (sdkInfo);
 
-					//FIXME convert the version
 					registeredSdks.Add (
 						new SdkInfo (
 							name,
-							new MSBuild.SdkResolution.SdkVersion (),
+							version?.ToString (),
 							path
 						)
 					);
@@ -92,12 +120,6 @@ namespace MonoDevelop.MSBuildEditor
 			}
 
 			return registeredSdks;
-		}
-
-		public string GetSdkPath (SdkReference sdk, string projectFile, string solutionPath)
-		{
-			// GetSdkPath (SdkReference sdk, ILoggingService logger, MSBuildContext buildEventContext, string projectFile, string solutionPath)
-			return (string) getSdkMeth.Invoke (resolver, new [] { sdk, logger, null, projectFile, solutionPath });
 		}
 	}
 }

@@ -1,22 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">net472;net6.0</TargetFrameworks>
     <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <!-- this preview package is currently required for the adaptor to work on systems where .NET 7 previews are installed -->
     <PackageReference Include="NUnit3TestAdapter" Version="4.3.0-alpha-net7.4" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>

@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuildEditor.Pads
 		void Update (MSBuildRootDocument doc)
 		{
 			store.Clear ();
-			var shorten = GetDisplayElementFactory ().CreateFilenameShortener (doc.RuntimeInformation);
+			var shorten = GetDisplayElementFactory ().CreateFilenameShortener (doc.Environment);
 			AddNode (store.AddNode (), doc, shorten);
 			ExpandAll ();
 		}

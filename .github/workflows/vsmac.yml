@@ -4,32 +4,35 @@ on: [push]
 
 jobs:
   VSMac:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+        - os:     macos-latest
+          slnconfig: DebugMac
+          config: Debug
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0 # GitVersioning needs deep clone
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '6.0.x'
 
     - name: Restore
-      run: mono /Applications/Visual\ Studio.app/Contents/Resources/lib/monodevelop/bin/MSBuild/Current/bin/MSBuild.dll -t:Restore -p:Configuration=ReleaseMac
+      run: dotnet restore -p:Configuration=${{ matrix.slnconfig }}
 
     - name: Build
-      run: |
-        mono /Applications/Visual\ Studio.app/Contents/Resources/lib/monodevelop/bin/MSBuild/Current/bin/MSBuild.dll MonoDevelop.MSBuildEditor.sln -p:Configuration=ReleaseMac -p:CreatePackage=true
-
-    - name: Download NUnit
-      run: nuget install NUnit.ConsoleRunner -Version 3.11.1 -OutputDirectory testrunner
+      run: dotnet build --no-restore -c ${{ matrix.slnconfig }} -p:CreatePackage=true
 
     - name: Test
-      run: mono ./testrunner/NUnit.ConsoleRunner.3.11.1/tools/nunit3-console.exe ./MonoDevelop.MSBuild.Tests/bin/Release/MonoDevelop.MSBuild.Tests.dll
+      run: dotnet test --no-build -c ${{ matrix.slnconfig }}
 
     - uses: actions/upload-artifact@v2
       with:
         name: MSBuild Editor for Visual Studio for Mac
-        path: MonoDevelop.MSBuildEditor/bin/Release/net472/*.mpack
+        path: MonoDevelop.MSBuildEditor/bin/${{ matrix.config }}/net6.0/*.mpack
