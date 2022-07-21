@@ -35,4 +35,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: MSBuild Editor for Visual Studio
-        path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/Release/MonoDevelop.MSBuild.Editor.VisualStudio.*.vsix
+        path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/${{ matrix.config }}/MonoDevelop.MSBuild.Editor.VisualStudio.*.vsix
