@@ -4,3 +4,6 @@
 [submodule "MonoDevelop.Xml"]
 	path = MonoDevelop.Xml
 	url = https://github.com/mhutch/MonoDevelop.Xml.git
+[submodule "external/NuGet.Client"]
+	path = external/NuGet.Client
+	url = https://github.com/NuGet/NuGet.Client.git

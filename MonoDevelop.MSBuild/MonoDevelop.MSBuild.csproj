@@ -7,6 +7,7 @@
     -->
     <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <DefineConstants>NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,7 +49,6 @@
     -->
     <PackageReference Include="Microsoft.Build" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="NuGet.Frameworks" Version="5.8.0" IncludeAssets="compile" PrivateAssets="all" />
     <!-- this is transitive from Microsoft.Build but it's an impl detail -->
     <PackageReference Include="Microsoft.NET.StringTools" Version="1.0.0" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
@@ -73,6 +73,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs" />
+    <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
