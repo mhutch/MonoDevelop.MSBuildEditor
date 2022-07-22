@@ -3,7 +3,14 @@
   <PropertyGroup>
     <TargetFrameworks>net48;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <DefineConstants>NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- for imported NuGet code in external\NuGet.Frameworks -->
+    <DefineConstants>$(DefineConstants);NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
+    <!-- for imported MSBuild code in Evaluation\Imported -->
+    <DefineConstants>$(DefineConstants);FEATURE_CULTUREINFO_GETCULTURES;FEATURE_ASSEMBLY_LOCATION;FEATURE_ASSEMBLY_GETENTRYASSEMBLY</DefineConstants>
+    <DefineConstants Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))=='.NETCoreApp'">$(DefineConstants);RUNTIME_TYPE_NETCORE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
