@@ -16,9 +16,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
 
-		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateInternal (context, expression));
+		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateNodeAsString (context, expression));
 
-		static string EvaluateInternal (this IMSBuildEvaluationContext context, ExpressionNode expression)
+		static string EvaluateNodeAsString (this IMSBuildEvaluationContext context, ExpressionNode expression) => Stringify (EvaluateNode (context, expression));
+
+		static object EvaluateNode (this IMSBuildEvaluationContext context, ExpressionNode expression)
 		{
 			switch (expression) {
 
@@ -31,6 +33,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 			case ConcatExpression expr:
 				return EvaluateConcat (context, expr);
 
+			case QuotedExpression quotedExpr:
+				// TODO: unescaping
+				return EvaluateNodeAsString (context, quotedExpr.Expression) ?? "";
+
 			default:
 				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
 				return null;
@@ -41,17 +47,17 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			var sb = new StringBuilder ();
 			foreach (var n in expr.Nodes) {
-				string evaluated = EvaluateInternal (context, n);
+				string evaluated = EvaluateNodeAsString (context, n);
 				sb.Append (evaluated);
 			}
 			return sb.ToString ();
 		}
 
-		static string EvaluateProperty (IMSBuildEvaluationContext context, ExpressionProperty prop)
+		static object EvaluateProperty (IMSBuildEvaluationContext context, ExpressionProperty prop)
 		{
 			if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
 				bool propEvalSuccess = false;
-				string propEvalResult = null;
+				object propEvalResult = null;
 				try {
 					propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
 				} catch (Exception ex) {
@@ -101,6 +107,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
+		// make sure stringification is kept consistent across all evaluation methods
+		static string Stringify (object evaluationResult) => evaluationResult?.ToString ();
+
 		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string expression)
 			=> EvaluateWithPermutation (context, null, ExpressionParser.Parse (expression), 0);
 
@@ -119,14 +128,14 @@ namespace MonoDevelop.MSBuild.Evaluation
 			case ExpressionProperty prop: {
 				if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
 					bool propEvalSuccess = false;
-					string propEvalResult = null;
+					object propEvalResult = null;
 					try {
 						propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
 					} catch (Exception ex) {
 						LoggingService.LogError ("Error in property function evaluation", ex);
 					}
 					if (propEvalSuccess) {
-						yield return propEvalResult;
+						yield return Stringify (propEvalResult);
 					}
 					yield break;
 				}
@@ -181,7 +190,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
-		static bool TryEvaluatePropertyFunction(this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv, ExpressionClassReference classRef, out string result)
+		static bool TryEvaluatePropertyFunction(this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv, ExpressionClassReference classRef, out object result)
 		{
 			if (string.Equals (classRef.Name, "MSBuild", StringComparison.OrdinalIgnoreCase)) {
 				//var cls = typeof(Microsoft.Build.Evaluation.IntrinsicFunctions);
@@ -205,24 +214,24 @@ namespace MonoDevelop.MSBuild.Evaluation
 				} else if (string.Equals (inv.Function.Name, "GetDirectoryNameOfFileAbove", StringComparison.OrdinalIgnoreCase)) {
 					var args = AssertArgsList (inv);
 					result = Microsoft.Build.Evaluation.IntrinsicFunctions.GetDirectoryNameOfFileAbove (
-						EvaluatePathArgument (context, args[0]),
-						EvaluatePathArgument (context, args[1]),
+						EvaluateNodeAsString (context, args[0]),
+						EvaluateNodeAsString (context, args[1]),
 						Microsoft.Build.Shared.FileSystem.FileSystems.Default);
 					return true;
 				} else if (string.Equals (inv.Function.Name, "NormalizePath", StringComparison.OrdinalIgnoreCase)) {
-					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
+					var args = EvaluateNodesAsStringArray (context, AssertArgsList (inv), 0);
 					result = Microsoft.Build.Evaluation.IntrinsicFunctions.NormalizePath (args);
 					return true;
 				}
 				LoggingService.LogWarning ($"Unsupported property function [{classRef.Name}]::{inv.Function.Name}");
 			} else if (string.Equals (classRef.Name, "System.IO.Path", StringComparison.OrdinalIgnoreCase)) {
 				if (string.Equals (inv.Function.Name, "Combine")) {
-					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
+					var args = EvaluateNodesAsStringArray (context, AssertArgsList (inv), 0);
 					result = System.IO.Path.Combine (args);
 					return true;
 				} else if (string.Equals (inv.Function.Name, "GetFileNameWithoutExtension", StringComparison.OrdinalIgnoreCase)) {
 					var args = AssertArgsList (inv);
-					result = System.IO.Path.GetFileNameWithoutExtension (EvaluatePathArgument (context, args[0]));
+					result = System.IO.Path.GetFileNameWithoutExtension (EvaluateNodeAsString (context, args[0]));
 					return true;
 				}
 			}
@@ -240,19 +249,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 			throw new NotImplementedException ("Error handling for property function arguments");
 		}
 
-		static string EvaluatePathArgument (IMSBuildEvaluationContext context, ExpressionNode argument)
-		{
-			// TODO: unescaping
-			var unquoted = (argument as QuotedExpression)?.Expression ?? argument;
-			string evaluated = EvaluateInternal (context, unquoted);
-			return evaluated;
-		}
-
-		static string[] EvaluatePathParams(IMSBuildEvaluationContext context, List<ExpressionNode> arguments, int startIndex)
+		static string[] EvaluateNodesAsStringArray (IMSBuildEvaluationContext context, List<ExpressionNode> arguments, int startIndex)
 		{
 			var results = new string[arguments.Count - startIndex];
 			for (int i = 0; i < results.Length; i++) {
-				results[i] = EvaluatePathArgument (context, arguments[i + startIndex]);
+				results[i] = EvaluateNodeAsString (context, arguments[i + startIndex]);
 			}
 			return results;
 		}
