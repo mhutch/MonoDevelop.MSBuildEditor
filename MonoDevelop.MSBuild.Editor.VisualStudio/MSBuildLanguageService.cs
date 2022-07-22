@@ -9,11 +9,9 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {
-	[Guid (Guid)]
+	[Guid (Consts.LanguageServiceGuid)]
 	public class MSBuildLanguageService : LanguageService
 	{
-		public const string Guid = "111e2ecb-9e5f-4945-9d21-d4e5368d620b";
-
 		public override string Name => MSBuildContentType.Name;
 
 		public MSBuildLanguageService (object site)

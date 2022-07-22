@@ -1,12 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--
-    build net5.0 as well to make sure we don't accidentally add netframework deps
-    even though only the net472 version is actually used right now
-    -->
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net48;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <DefineConstants>NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,7 +45,6 @@
     -->
     <PackageReference Include="Microsoft.Build" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="NuGet.Frameworks" Version="5.8.0" IncludeAssets="compile" PrivateAssets="all" />
     <!-- this is transitive from Microsoft.Build but it's an impl detail -->
     <PackageReference Include="Microsoft.NET.StringTools" Version="1.0.0" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
@@ -73,40 +69,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\SemanticVersion.cs" Link="ProjectFileTools.NuGetSearch\SemanticVersion.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IDependencyManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedFactorySelector.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedRegistryProvider.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearchJob.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageFeedSearcher.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageInfo.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageNameSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageQueryConfiguration.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageSearchManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Contracts\IPackageVersionSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Contracts\PackageType.cs" Link="ProjectFileTools.NuGetSearch\Contracts\PackageType.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" Link="ProjectFileTools.NuGetSearch\Feeds\FeedKind.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" Link="ProjectFileTools.NuGetSearch\Feeds\NuSpecReader.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactoryBase.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageFeedFactorySelector.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageInfo.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" Link="ProjectFileTools.NuGetSearch\Feeds\PackageQueryConfiguration.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetDiskFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetPackageMatcher.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV2DiskFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Disk\NuGetV3DiskFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" Link="ProjectFileTools.NuGetSearch\Feeds\Web\NuGetV3ServiceFeed.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\FileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\FileSystem.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" Link="ProjectFileTools.NuGetSearch\IO\IFileSystem.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\IWebRequestFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" Link="ProjectFileTools.NuGetSearch\IO\WebRequestFactoryExtensions.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageFeedSearchJob.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageNameSearchResult.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageSearchManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" Link="ProjectFileTools.NuGetSearch\Search\PackageVersionSearchResult.cs" />
+    <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs" />
+    <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties schemas_4codeanalysis_1buildschema_1json__JsonSchema="buildschema.json" schemas_4commontargets_1buildschema_1json__JsonSchema="buildschema.json" schemas_4cpp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4csharp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4netsdk_1buildschema_1json__JsonSchema="buildschema.json" schemas_4nugetpack_1buildschema_1json__JsonSchema="buildschema.json" schemas_4visualbasic_1buildschema_1json__JsonSchema="buildschema.json" /></VisualStudio></ProjectExtensions>
