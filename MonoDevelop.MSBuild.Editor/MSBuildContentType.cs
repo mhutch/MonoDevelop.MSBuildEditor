@@ -7,6 +7,7 @@ using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuild.Editor
 {
+
 	public static class MSBuildContentType
 	{
 		public const string Name = "MSBuild";
@@ -17,27 +18,27 @@ namespace MonoDevelop.MSBuild.Editor
 		internal static readonly ContentTypeDefinition MSBuildContentTypeDefinition;
 
 		[Export]
-		[FileExtension (".targets")]
+		[FileExtension (MSBuildFileExtension.targets)]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildTargetsFileExtensionDefinition;
 
 		[Export]
-		[FileExtension (".props")]
+		[FileExtension (MSBuildFileExtension.props)]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildPropsFileExtensionDefinition;
 
 		[Export]
-		[FileExtension (".tasks")]
+		[FileExtension (MSBuildFileExtension.tasks)]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildTasksFileExtensionDefinition;
 
 		[Export]
-		[FileExtension (".overridetasks")]
+		[FileExtension (MSBuildFileExtension.overridetasks)]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildOverrideTasksFileExtensionDefinition;
 
 		[Export]
-		[FileExtension (".user")]
+		[FileExtension (MSBuildFileExtension.user)]
 		[ContentType (Name)]
 		internal static FileExtensionToContentTypeDefinition MSBuildUserFileExtensionDefinition;
 	}
