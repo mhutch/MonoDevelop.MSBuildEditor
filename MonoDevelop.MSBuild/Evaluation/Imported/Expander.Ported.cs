@@ -14,6 +14,7 @@
 //     * All methods have been made static.
 //     * Parameters have been added to TryExecuteWellKnownFunction corresponding to the instance fields in the original class,
 //       specifically _receiverType/_methodMethodName/_fileSystem
+//    *  Fixed NREs in ElementsOfType
 
 using System;
 using System.IO;
@@ -683,7 +684,7 @@ namespace Microsoft.Build.Evaluation
             {
                 for (var i = 0; i < args.Length; i++)
                 {
-                    if (args[i].GetType() != type)
+                    if (args[i]?.GetType() != type)
                     {
                         return false;
                     }
