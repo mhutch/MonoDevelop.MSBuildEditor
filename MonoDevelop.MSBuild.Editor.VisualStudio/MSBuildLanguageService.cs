@@ -7,65 +7,53 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Package;
 using Microsoft.VisualStudio.TextManager.Interop;
 
+using Community.VisualStudio.Toolkit;
+
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {
-	[Guid (Consts.LanguageServiceGuid)]
-	public class MSBuildLanguageService : LanguageService
+	[ComVisible (true)]
+	[Guid (PackageConsts.LanguageServiceGuid)]
+	public class MSBuildLanguageService : LanguageBase
 	{
-		public override string Name => MSBuildContentType.Name;
+		public override string Name => PackageConsts.LanguageServiceName;
 
-		public MSBuildLanguageService (object site)
+		public override string[] FileExtensions { get; } = new[] {
+			MSBuildFileExtension.targets,
+			MSBuildFileExtension.props,
+			MSBuildFileExtension.tasks,
+			MSBuildFileExtension.overridetasks,
+			MSBuildFileExtension.csproj,
+			MSBuildFileExtension.vbproj,
+			MSBuildFileExtension.fsproj,
+			MSBuildFileExtension.xproj,
+			MSBuildFileExtension.vcxproj,
+			MSBuildFileExtension.proj,
+			MSBuildFileExtension.user
+		};
+
+		public MSBuildLanguageService (object site) : base (site) { }
+
+		public override void SetDefaultPreferences (LanguagePreferences preferences)
 		{
-			Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread ();
-			SetSite (site);
-		}
+			preferences.EnableMatchBraces = true;
+			preferences.EnableShowMatchingBrace = true;
+			preferences.EnableMatchBracesAtCaret = true;
+			preferences.HighlightMatchingBraceFlags = _HighlightMatchingBraceFlags.HMB_USERECTANGLEBRACES;
 
-		LanguagePreferences preferences;
+			preferences.EnableCodeSense = false;
+			preferences.EnableAsyncCompletion = true;
+			preferences.EnableQuickInfo = true;
 
-		public override LanguagePreferences GetLanguagePreferences ()
-		{
-			if (preferences == null) {
-				preferences = new LanguagePreferences (Site, GetLanguageServiceGuid (), Name);
-				if (preferences != null) {
-					preferences.Init ();
+			preferences.AutoOutlining = false;
+			preferences.ShowNavigationBar = false;
 
-					preferences.EnableMatchBraces = true;
-					preferences.EnableShowMatchingBrace = true;
-					preferences.EnableMatchBracesAtCaret = true;
-					preferences.HighlightMatchingBraceFlags = _HighlightMatchingBraceFlags.HMB_USERECTANGLEBRACES;
+			preferences.IndentSize = 2;
+			preferences.IndentStyle = IndentingStyle.Smart;
+			preferences.TabSize = 2;
+			preferences.InsertTabs = false;
 
-					preferences.EnableCodeSense = true;
-					preferences.EnableAsyncCompletion = true;
-					preferences.EnableQuickInfo = true;
-
-					preferences.AutoOutlining = true;
-					preferences.ShowNavigationBar = false;
-
-					preferences.IndentSize = 2;
-					preferences.IndentStyle = IndentingStyle.Smart;
-					preferences.TabSize = 2;
-					preferences.InsertTabs = false;
-
-					preferences.WordWrap = false;
-					preferences.WordWrapGlyphs = true;
-				}
-			}
-			return preferences;
-		}
-
-		public override IScanner GetScanner (IVsTextLines buffer) => null;
-
-		public override AuthoringScope ParseSource (ParseRequest req) => null;
-
-		public override string GetFormatFilterList ()
-			=> "MSBuild targets (*.targets)|*.targets|MSBuild properties (*.props)|*.props";
-
-		public override void Dispose ()
-		{
-			preferences?.Dispose ();
-			preferences = null;
-
-			base.Dispose ();
+			preferences.WordWrap = false;
+			preferences.WordWrapGlyphs = true;
 		}
 	}
 }
