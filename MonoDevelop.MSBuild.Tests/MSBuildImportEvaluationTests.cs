@@ -48,6 +48,8 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase("$([System.Math]::Max(1, 2))", "2")]
 		[TestCase("$(Foo.ToUpperInvariant())", "WORLD")]
 		[TestCase("$([MSBuild]::GetTargetFrameworkIdentifier('net6.0'))", ".NETCoreApp")]
+		[TestCase("$(Foo[2])", "r")]
+		[TestCase("$(Foo.ToUpperInvariant()[4])", "D")]
 		public void TestPropertyFunctionEvaluation (string expr, string expected)
 		{
 			var workingDir = Environment.CurrentDirectory;

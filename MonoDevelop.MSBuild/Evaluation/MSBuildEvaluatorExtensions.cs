@@ -189,11 +189,18 @@ namespace MonoDevelop.MSBuild.Evaluation
 			} else {
 				instance = EvaluateNode (context, inv.Target);
 				if (instance is null) {
-					LoggingService.LogWarning ($"cannot invoke function on null object");
+					LoggingService.LogWarning ($"Cannot invoke function on null object");
 					result = null;
 					return false;
 				}
 				receiver = instance.GetType ();
+			}
+
+			string functionName;
+			if (inv.IsIndexer) {
+				functionName = IndexerNameForInstance (instance);
+			} else {
+				functionName = inv.IsProperty ? $"get_{inv.Function.Name}" : inv.Function.Name;
 			}
 
 			// FIXME: cache this?
@@ -204,7 +211,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			try {
 				// TODO: reflection based dispatch
-				if (Microsoft.Build.Evaluation.Expander.Function.TryExecuteWellKnownFunction (receiver, inv.Function.Name, filesystem, out result, instance, args)) {
+				if (Microsoft.Build.Evaluation.Expander.Function.TryExecuteWellKnownFunction (receiver, functionName, filesystem, out result, instance, args)) {
 					return true;
 				}
 			} catch (Exception ex) {
@@ -217,6 +224,13 @@ namespace MonoDevelop.MSBuild.Evaluation
 			result = null;
 			return false;
 		}
+
+		// these are the ones supported by MSBuild's Expander.cs; it doesn't check the indexer attribute
+		static string IndexerNameForInstance (object instance) => instance switch {
+			Array => "GetValue",
+			string => "get_Chars",
+			_ => "get_Item"
+		};
 
 		static object[] EvaluateArguments (IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv)
 		{
