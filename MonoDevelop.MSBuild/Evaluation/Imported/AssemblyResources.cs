@@ -9,8 +9,7 @@
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Utilities/AssemblyResources.cs
 //
 //  CHANGES:
-//   * PrimaryResources and SharedResources properties have been modified to load resources from the assembly that
-//     contains Evaluation.Project
+//   * None.
 
 
 
@@ -46,14 +45,14 @@ namespace Microsoft.Build.Shared
         /// </summary>
         /// <remarks>This property is thread-safe.</remarks>
         /// <value>ResourceManager for primary resources.</value>
-        internal static ResourceManager PrimaryResources { get; } = new ResourceManager("Microsoft.Build.Utilities.Core.Strings", typeof(Evaluation.Project).GetTypeInfo().Assembly);
+        internal static ResourceManager PrimaryResources { get; } = new ResourceManager("Microsoft.Build.Utilities.Core.Strings", typeof(AssemblyResources).GetTypeInfo().Assembly);
 
         /// <summary>
         /// Gets the assembly's shared resources i.e. the resources this assembly shares with other assemblies.
         /// </summary>
         /// <remarks>This property is thread-safe.</remarks>
         /// <value>ResourceManager for shared resources.</value>
-        internal static ResourceManager SharedResources { get; } = new ResourceManager("Microsoft.Build.Utilities.Core.Strings.shared", typeof(Evaluation.Project).GetTypeInfo().Assembly);
+        internal static ResourceManager SharedResources { get; } = new ResourceManager("Microsoft.Build.Utilities.Core.Strings.shared", typeof(AssemblyResources).GetTypeInfo().Assembly);
 
         /// <summary>
         /// Formats the given string using the variable arguments passed in. The current thread's culture is used for formatting.

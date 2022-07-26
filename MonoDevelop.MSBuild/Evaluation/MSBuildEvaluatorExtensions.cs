@@ -16,23 +16,46 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
 
-		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateInternal (context, expression));
+		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateNodeAsString (context, expression));
 
-		static string EvaluateInternal (this IMSBuildEvaluationContext context, ExpressionNode expression)
+		static string EvaluateNodeAsString (this IMSBuildEvaluationContext context, ExpressionNode expression) => Stringify (EvaluateNode (context, expression));
+
+		static object EvaluateNode (this IMSBuildEvaluationContext context, ExpressionNode expression)
 		{
-			switch (expression) {
+			switch (expression.NodeKind) {
+			case ExpressionNodeKind.Text:
+				return ((ExpressionText)expression).Value;
 
-			case ExpressionText text:
-				return text.Value;
+			case ExpressionNodeKind.Property:
+				return EvaluateNode (context, ((ExpressionProperty)expression).Expression);
 
-			case ExpressionProperty prop:
-				return EvaluateProperty (context, prop);
+			case ExpressionNodeKind.Concat:
+				return EvaluateConcat (context, (ConcatExpression)expression);
 
-			case ConcatExpression expr:
-				return EvaluateConcat (context, expr);
+			case ExpressionNodeKind.QuotedExpression:
+				// TODO: unescaping?
+				var quotedExpr = EvaluateNode (context, ((QuotedExpression)expression).Expression);
+				return Stringify (quotedExpr);
+
+			case ExpressionNodeKind.PropertyName:
+				context.TryGetProperty (((ExpressionPropertyName)expression).Name, out var propertyValue);
+				return propertyValue?.EscapedValue;
+
+			case ExpressionNodeKind.PropertyFunctionInvocation:
+				TryEvaluatePropertyFunction (context, (ExpressionPropertyFunctionInvocation)expression, out object functionReturn);
+				return functionReturn;
+
+			// HACK: TryExecuteWellKnownFunction only supports doubles on Math.Max so coerce preemptively for now
+			case ExpressionNodeKind.ArgumentLiteralInt:
+				return (double) ((ExpressionArgumentInt)expression).Value;
+
+			case ExpressionNodeKind.ArgumentLiteralFloat:
+			case ExpressionNodeKind.ArgumentLiteralBool:
+			case ExpressionNodeKind.ArgumentLiteralString:
+				return ((ExpressionArgumentLiteral)expression).Value;
 
 			default:
-				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
+				LoggingService.LogWarning ($"Evaluator does not currently support expression node type {expression.NodeKind}");
 				return null;
 			}
 		}
@@ -41,35 +64,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			var sb = new StringBuilder ();
 			foreach (var n in expr.Nodes) {
-				string evaluated = EvaluateInternal (context, n);
+				string evaluated = EvaluateNodeAsString (context, n);
 				sb.Append (evaluated);
 			}
 			return sb.ToString ();
-		}
-
-		static string EvaluateProperty (IMSBuildEvaluationContext context, ExpressionProperty prop)
-		{
-			if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
-				bool propEvalSuccess = false;
-				string propEvalResult = null;
-				try {
-					propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
-				} catch (Exception ex) {
-					LoggingService.LogError ("Error in property function evaluation", ex);
-				}
-				if (propEvalSuccess) {
-					return propEvalResult;
-				}
-				return null;
-			}
-			if (!prop.IsSimpleProperty) {
-				LoggingService.LogWarning ("Only simple properties are supported in imports");
-				return null;
-			}
-			if (context.TryGetProperty (prop.Name, out var v) && v is EvaluatedValue value) {
-				return value.EscapedValue;
-			}
-			return null;
 		}
 
 		public static string EvaluatePath (
@@ -101,6 +99,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
+		// make sure stringification is kept consistent across all evaluation methods
+		static string Stringify (object evaluationResult) => evaluationResult?.ToString ();
+
 		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string expression)
 			=> EvaluateWithPermutation (context, null, ExpressionParser.Parse (expression), 0);
 
@@ -117,16 +118,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			// recursively yield evaluated property
 			case ExpressionProperty prop: {
-				if (prop.Expression is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionClassReference classRef) {
-					bool propEvalSuccess = false;
-					string propEvalResult = null;
-					try {
-						propEvalSuccess = TryEvaluatePropertyFunction (context, inv, classRef, out propEvalResult);
-					} catch (Exception ex) {
-						LoggingService.LogError ("Error in property function evaluation", ex);
-					}
-					if (propEvalSuccess) {
-						yield return propEvalResult;
+				if (prop.Expression is ExpressionPropertyFunctionInvocation inv) {
+					if (TryEvaluatePropertyFunction (context, inv, out object propEvalResult)) {
+						yield return Stringify (propEvalResult);
 					}
 					yield break;
 				}
@@ -181,80 +175,118 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
-		static bool TryEvaluatePropertyFunction(this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv, ExpressionClassReference classRef, out string result)
+		static bool TryEvaluatePropertyFunction (this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv,  out object result)
 		{
-			if (string.Equals (classRef.Name, "MSBuild", StringComparison.OrdinalIgnoreCase)) {
-				//var cls = typeof(Microsoft.Build.Evaluation.IntrinsicFunctions);
-				//var methods = cls.GetMethods();
+			Type receiver = null;
+			object instance = null;
 
-				// FIXME populate this
-				Microsoft.Build.Shared.BuildEnvironmentHelper.Instance = new Microsoft.Build.Shared.BuildEnvironmentHelper {
-					CurrentMSBuildToolsDirectory = "",
-					MSBuildExtensionsPath = "",
-					MSBuildSDKsPath = "",
-					MSBuildToolsDirectory32 = "",
-					MSBuildToolsDirectory64 = "",
-					VisualStudioInstallRootDirectory = ""
-				};
-
-				if (string.Equals (inv.Function.Name, "GetToolsDirectory32")) {
-					if (context.TryGetProperty (ReservedProperties.ToolsPath32, out var td) && td is EvaluatedValue toolsDir) {
-						result = toolsDir.EscapedValue;
-						return true;
-					}
-				} else if (string.Equals (inv.Function.Name, "GetDirectoryNameOfFileAbove", StringComparison.OrdinalIgnoreCase)) {
-					var args = AssertArgsList (inv);
-					result = Microsoft.Build.Evaluation.IntrinsicFunctions.GetDirectoryNameOfFileAbove (
-						EvaluatePathArgument (context, args[0]),
-						EvaluatePathArgument (context, args[1]),
-						Microsoft.Build.Shared.FileSystem.FileSystems.Default);
-					return true;
-				} else if (string.Equals (inv.Function.Name, "NormalizePath", StringComparison.OrdinalIgnoreCase)) {
-					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
-					result = Microsoft.Build.Evaluation.IntrinsicFunctions.NormalizePath (args);
-					return true;
+			if (inv.Target is ExpressionClassReference classRef) {
+				receiver = GetStaticFunctionReceiver (classRef);
+				if (receiver is null) {
+					result = null;
+					return false;
 				}
-				LoggingService.LogWarning ($"Unsupported property function [{classRef.Name}]::{inv.Function.Name}");
-			} else if (string.Equals (classRef.Name, "System.IO.Path", StringComparison.OrdinalIgnoreCase)) {
-				if (string.Equals (inv.Function.Name, "Combine")) {
-					var args = EvaluatePathParams (context, AssertArgsList (inv), 0);
-					result = System.IO.Path.Combine (args);
-					return true;
-				} else if (string.Equals (inv.Function.Name, "GetFileNameWithoutExtension", StringComparison.OrdinalIgnoreCase)) {
-					var args = AssertArgsList (inv);
-					result = System.IO.Path.GetFileNameWithoutExtension (EvaluatePathArgument (context, args[0]));
-					return true;
+			} else {
+				instance = EvaluateNode (context, inv.Target);
+				if (instance is null) {
+					LoggingService.LogWarning ($"Cannot invoke function on null object");
+					result = null;
+					return false;
 				}
+				receiver = instance.GetType ();
 			}
 
-			LoggingService.LogWarning ($"Unsupported property function [{classRef.Name}]::{inv.Function.Name}");
+			string functionName;
+			if (inv.IsIndexer) {
+				functionName = IndexerNameForInstance (instance);
+			} else {
+				functionName = inv.IsProperty ? $"get_{inv.Function.Name}" : inv.Function.Name;
+			}
+
+			// FIXME: cache this?
+			Microsoft.Build.Shared.BuildEnvironmentHelper.Instance = GetBuildEnvironmentFromContext (context);
+			var filesystem = Microsoft.Build.Shared.FileSystem.FileSystems.Default;
+
+			var args = EvaluateArguments (context, inv);
+
+			try {
+				// TODO: reflection based dispatch
+				if (Microsoft.Build.Evaluation.Expander.Function.TryExecuteWellKnownFunction (receiver, functionName, filesystem, out result, instance, args)) {
+					return true;
+				}
+			} catch (Exception ex) {
+				LoggingService.LogError ("Error in property function evaluation", ex);
+				result = null;
+				return false;
+			}
+
+			LoggingService.LogWarning ($"Unsupported property function [{receiver}]::{inv.Function.Name}");
 			result = null;
 			return false;
 		}
 
-		static List<ExpressionNode> AssertArgsList (ExpressionPropertyFunctionInvocation inv)
+		// these are the ones supported by MSBuild's Expander.cs; it doesn't check the indexer attribute
+		static string IndexerNameForInstance (object instance) => instance switch {
+			Array => "GetValue",
+			string => "get_Chars",
+			_ => "get_Item"
+		};
+
+		static object[] EvaluateArguments (IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv)
 		{
-			if (inv.Arguments is ExpressionArgumentList list) {
-				return list.Arguments;
+			if (inv.Arguments is ExpressionArgumentList list && list.Arguments is List<ExpressionNode> args) {
+				return EvaluateNodesAsArray (context, args);
 			}
-			throw new NotImplementedException ("Error handling for property function arguments");
+			return null;
 		}
 
-		static string EvaluatePathArgument (IMSBuildEvaluationContext context, ExpressionNode argument)
+		static object[] EvaluateNodesAsArray (IMSBuildEvaluationContext context, List<ExpressionNode> arguments)
 		{
-			// TODO: unescaping
-			var unquoted = (argument as QuotedExpression)?.Expression ?? argument;
-			string evaluated = EvaluateInternal (context, unquoted);
-			return evaluated;
-		}
-
-		static string[] EvaluatePathParams(IMSBuildEvaluationContext context, List<ExpressionNode> arguments, int startIndex)
-		{
-			var results = new string[arguments.Count - startIndex];
+			var results = new object[arguments.Count];
 			for (int i = 0; i < results.Length; i++) {
-				results[i] = EvaluatePathArgument (context, arguments[i + startIndex]);
+				results[i] = EvaluateNode (context, arguments[i]);
 			}
 			return results;
+		}
+
+		// FIXME: populate this better?
+		static Microsoft.Build.Shared.BuildEnvironmentHelper GetBuildEnvironmentFromContext (IMSBuildEvaluationContext context)
+		{
+			context.TryGetProperty (ReservedProperties.ToolsPath32, out var toolsPath32);
+			context.TryGetProperty (ReservedProperties.ToolsPath64, out var toolsPath64);
+			context.TryGetProperty (ReservedProperties.ToolsPath, out var toolsPath);
+			context.TryGetProperty (ReservedProperties.SDKsPath, out var sdksPath);
+
+			return new Microsoft.Build.Shared.BuildEnvironmentHelper {
+				CurrentMSBuildToolsDirectory = toolsPath?.EscapedValue,
+				MSBuildExtensionsPath = "",
+				MSBuildSDKsPath = sdksPath?.EscapedValue ?? "",
+				MSBuildToolsDirectory32 = toolsPath32?.EscapedValue ?? toolsPath?.EscapedValue ?? "",
+				MSBuildToolsDirectory64 = toolsPath64?.EscapedValue ?? toolsPath?.EscapedValue ?? "",
+				VisualStudioInstallRootDirectory = ""
+			};
+		}
+
+		static Type GetStaticFunctionReceiver (ExpressionClassReference classRef)
+		{
+			// these are the types supported by TryExecuteWellKnownFunction
+			// FIXME: support other types
+			if (string.Equals (classRef.Name, "MSBuild", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (Microsoft.Build.Evaluation.IntrinsicFunctions);
+			} else if (string.Equals (classRef.Name, "System.IO.Path", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (System.IO.Path);
+			} else if (string.Equals (classRef.Name, "System.Math", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (Math);
+			} else if (string.Equals (classRef.Name, "System.String", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (String);
+			} else if (string.Equals (classRef.Name, "System.Version", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (Version);
+			} else if (string.Equals (classRef.Name, "System.Guid", StringComparison.OrdinalIgnoreCase)) {
+				return typeof (Guid);
+			}
+
+			LoggingService.LogWarning ($"Property functions not currently supported on type [{classRef.Name}]");
+			return null;
 		}
 	}
 }

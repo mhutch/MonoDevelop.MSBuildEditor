@@ -3,7 +3,14 @@
   <PropertyGroup>
     <TargetFrameworks>net48;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <DefineConstants>NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- for imported NuGet code in external\NuGet.Frameworks -->
+    <DefineConstants>$(DefineConstants);NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
+    <!-- for imported MSBuild code in Evaluation\Imported -->
+    <DefineConstants>$(DefineConstants);FEATURE_CULTUREINFO_GETCULTURES;FEATURE_ASSEMBLY_LOCATION;FEATURE_ASSEMBLY_GETENTRYASSEMBLY</DefineConstants>
+    <DefineConstants Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))=='.NETCoreApp'">$(DefineConstants);RUNTIME_TYPE_NETCORE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -72,6 +79,11 @@
     <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs" />
     <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Evaluation\Imported\Resources\Strings.resx" LogicalName="Microsoft.Build.Utilities.Core.Strings.resources" Generator="" />
+    <EmbeddedResource Update="Evaluation\Imported\Resources\Strings.shared.resx" LogicalName="Microsoft.Build.Utilities.Core.Strings.shared.resources" Generator="" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties schemas_4codeanalysis_1buildschema_1json__JsonSchema="buildschema.json" schemas_4commontargets_1buildschema_1json__JsonSchema="buildschema.json" schemas_4cpp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4csharp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4netsdk_1buildschema_1json__JsonSchema="buildschema.json" schemas_4nugetpack_1buildschema_1json__JsonSchema="buildschema.json" schemas_4visualbasic_1buildschema_1json__JsonSchema="buildschema.json" /></VisualStudio></ProjectExtensions>
