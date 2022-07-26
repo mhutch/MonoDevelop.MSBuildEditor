@@ -45,6 +45,9 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase("$([MSBuild]::NormalizePath('Foo','Bar', \"Baz\"))", "@Foo\\Bar\\Baz")]
 		[TestCase("$([System.IO.Path]::Combine('Foo', \"Bar\", 'Baz.cs'))", "Foo\\Bar\\Baz.cs")]
 		[TestCase("$([System.IO.Path]::Combine('$(Foo)', \"Bar\", 'Baz.cs'))", "World\\Bar\\Baz.cs")]
+		[TestCase("$([System.Math]::Max(1, 2))", "2")]
+		[TestCase("$(Foo.ToUpperInvariant())", "WORLD")]
+		[TestCase("$([MSBuild]::GetTargetFrameworkIdentifier('net6.0'))", ".NETCoreApp")]
 		public void TestPropertyFunctionEvaluation (string expr, string expected)
 		{
 			var workingDir = Environment.CurrentDirectory;
