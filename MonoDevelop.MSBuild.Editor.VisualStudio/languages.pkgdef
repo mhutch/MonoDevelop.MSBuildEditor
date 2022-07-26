@@ -1,2 +1,27 @@
 [$RootKey$\TextMate\Repositories]
 "MSBuild"="$PackageFolder$\Grammars"
+
+// The .NET C#/VB.NET project system specifically opens the XML editor by factory GUID
+// when using the "Open project file" command.
+//
+// We can work around this using the XmlChooserFactory mechanism, which causes the XML editor to
+// redirect back to our editor:
+// https://docs.microsoft.com/en-us/archive/blogs/xmlteam/visual-studio-editor-choosing-system
+//
+// Note that we only need to do so for csproj and vbproj, not the full range of extensions, as this
+// problem is specific to projects opened by the C#/VB.NET project system. The MSBuild editor factory
+// has a higher priority than the XML editor so in general will be opened by default.
+
+[$RootKey$\XmlChooserFactory\MSBuildCSProj]
+"Extension"="csproj"
+"DefaultLogicalView"="{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"
+"{7651A700-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A703-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+
+[$RootKey$\XmlChooserFactory\MSBuildVBProj]
+"Extension"="vbproj"
+"DefaultLogicalView"="{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"
+"{7651A700-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A703-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
