@@ -18,9 +18,9 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		public static FrameworkInfoProvider Instance { get; } = new FrameworkInfoProvider ();
 
-		readonly List<IdentifierInfo> frameworks = new List<IdentifierInfo> ();
-		readonly Dictionary<string,(IdentifierInfo,VersionInfo)> frameworkByShortName = new Dictionary<string,(IdentifierInfo, VersionInfo)> ();
-		readonly Dictionary<string,IdentifierInfo> frameworkByMoniker = new Dictionary<string,IdentifierInfo> ();
+		readonly List<IdentifierInfo> frameworks = new();
+		readonly Dictionary<string,(IdentifierInfo,VersionInfo)> frameworkByShortName = new();
+		readonly Dictionary<string,IdentifierInfo> frameworkByMoniker = new();
 
 		public FrameworkInfoProvider ()
 		{
@@ -40,7 +40,8 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (4, 7), "net47"),
 					new VersionInfo (new Version (4, 7, 1), "net471"),
 					new VersionInfo (new Version (4, 7, 2), "net472"),
-					new VersionInfo (new Version (4, 8), "net48")
+					new VersionInfo (new Version (4, 8), "net48"),
+					new VersionInfo (new Version (4, 8), "net481")
 				)
 			);
 
@@ -54,7 +55,9 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (2, 2), "netcoreapp2.2"),
 					new VersionInfo (new Version (3, 0), "netcoreapp3.0"),
 					new VersionInfo (new Version (3, 1), "netcoreapp3.1"),
-					new VersionInfo (new Version (5, 0), "netcoreapp5.0")
+					new VersionInfo (new Version (5, 0), "net5.0"),
+					new VersionInfo (new Version (6, 0), "net6.0"),
+					new VersionInfo (new Version (7, 0), "net7.0")
 				)
 			);
 
@@ -68,7 +71,8 @@ namespace MonoDevelop.MSBuild.Schema
 					new VersionInfo (new Version (1, 4), "netstandard1.4"),
 					new VersionInfo (new Version (1, 5), "netstandard1.5"),
 					new VersionInfo (new Version (1, 6), "netstandard1.6"),
-					new VersionInfo (new Version (2, 0), "netstandard2.0")
+					new VersionInfo (new Version (2, 0), "netstandard2.0"),
+					new VersionInfo (new Version (2, 0), "netstandard2.1")
 				)
 			);
 
@@ -244,7 +248,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case ".netstandard":
 				return WithVersion (".NET Standard");
 			case ".netcoreapp":
-				return WithVersion (".NET Core App");
+				return fx.Version.Major < 5 ? WithVersion (".NET Core App") : WithVersion (".NET");
 			case ".netportable":
 				if (fx.Profile == null || fx.Version == null) {
 					return "Portable Class Library";
