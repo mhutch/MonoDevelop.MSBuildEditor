@@ -1,0 +1,72 @@
+name: Build
+
+on: workflow_call
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os:     windows-latest
+          config: Debug
+        - os:     macos-latest
+          config: DebugMac
+    runs-on: ${{ matrix.os }}
+
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0 # GitVersioning needs deep clone
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Find MSBuild
+      if: startsWith(matrix.os, 'windows')
+      uses: microsoft/setup-msbuild@v1.1.0
+
+    - uses: actions/cache@v3
+      with:
+        path: ${{ env.NUGET_PACKAGES }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore (dotnet)
+      if: startsWith(matrix.os, 'macos')
+      run: dotnet restore -p:Configuration=${{ matrix.config }}
+
+    - name: Build (dotnet)
+      if: startsWith(matrix.os, 'macos')
+      run: dotnet build --no-restore -c ${{ matrix.config }} -p:CreatePackage=true
+
+    - name: Restore (MSBuild)
+      if: startsWith(matrix.os, 'windows')
+      run: msbuild -t:Restore -p:Configuration=${{ matrix.config }}
+
+    - name: Build (MSBuild)
+      if: startsWith(matrix.os, 'windows')
+      run: msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=${{ matrix.config }}
+
+    - name: Test
+      run: dotnet test --no-build -c ${{ matrix.config }}
+
+    - uses: actions/upload-artifact@v3
+      if: startsWith(matrix.os, 'windows')
+      with:
+        name: MSBuild Editor Extension Package (VSWin)
+        path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/**/*.vsix
+
+    - uses: actions/upload-artifact@v3
+      if: startsWith(matrix.os, 'macos')
+      with:
+        name: MSBuild Editor Extension Package (VSMac)
+        path: MonoDevelop.MSBuildEditor/bin/**/*.mpack
+        if-no-files-found: error
