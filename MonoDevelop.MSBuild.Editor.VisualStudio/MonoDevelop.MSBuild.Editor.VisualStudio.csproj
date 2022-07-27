@@ -50,7 +50,7 @@
     <Compile Include="Analysis\IWpfDifferenceViewerExtensions.cs" />
     <Compile Include="Analysis\WpfMSBuildSuggestedAction.cs" />
     <Compile Include="Analysis\WpfDifferenceViewElementFactory.cs" />
-    <Compile Include="Consts.cs" />
+    <Compile Include="PackageConsts.cs" />
     <Compile Include="RoslynFindReferences\DependencyObjectExtensions.cs" />
     <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />
     <Compile Include="MSBuildLanguageService.cs" />
@@ -88,6 +88,7 @@
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="VSPackage.resx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -96,6 +97,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.451" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.2.32505.113" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.1.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.2.32505.173" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
@@ -127,7 +129,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- only import these if they exist as they come from NuGet and won't exist before a restore -->
   <PropertyGroup>
