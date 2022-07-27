@@ -1,12 +1,12 @@
-name: Main
+name: Pull Request
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
 concurrency:
-  group: ci-main-${{ github.ref }}-1
+  group: ci-pr-${{ github.ref }}-1
   cancel-in-progress: true
 
 jobs:
