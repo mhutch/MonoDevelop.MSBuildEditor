@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Linq;
+
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 using Newtonsoft.Json.Linq;
@@ -95,42 +98,50 @@ partial class MSBuildSchema
 	}
 
 	static MSBuildValueKind? TryParseValueKind (string valueKind)
-		// NOTE: the order exactly mirrors the "valueTypeIntrinsic" section in the JSON schema, buildschema.json
-		// Please keep them in sync.
-		=> valueKind switch {
-			"data" => MSBuildValueKind.Data,
-			"bool" => MSBuildValueKind.Bool,
-			"int" => MSBuildValueKind.Int,
-			"string" => MSBuildValueKind.String,
-			"guid" => MSBuildValueKind.Guid,
-			"url" => MSBuildValueKind.Url,
-			"version" => MSBuildValueKind.Version,
-			"suffixed-version" => MSBuildValueKind.SuffixedVersion,
-			"lcid" => MSBuildValueKind.Lcid,
-			"target-name" => MSBuildValueKind.TargetName,
-			"item-name" => MSBuildValueKind.ItemName,
-			"property-name" => MSBuildValueKind.PropertyName,
-			"sdk" => MSBuildValueKind.Sdk,
-			"sdk-version" => MSBuildValueKind.SdkVersion,
-			"label" => MSBuildValueKind.Label,
-			"importance" => MSBuildValueKind.Importance,
-			"runtime-id" => MSBuildValueKind.RuntimeID,
-			"target-framework" => MSBuildValueKind.TargetFramework,
-			"target-framework-version" => MSBuildValueKind.TargetFrameworkVersion,
-			"target-framework-identifier" => MSBuildValueKind.TargetFrameworkIdentifier,
-			"target-framework-profile" => MSBuildValueKind.TargetFrameworkProfile,
-			"target-framework-moniker" => MSBuildValueKind.TargetFrameworkMoniker,
-			"nuget-id" => MSBuildValueKind.NuGetID,
-			"nuget-version" => MSBuildValueKind.NuGetVersion,
-			"project-file" => MSBuildValueKind.ProjectFile,
-			"file" => MSBuildValueKind.File,
-			"folder" => MSBuildValueKind.Folder,
-			"folder-with-slash" => MSBuildValueKind.FolderWithSlash,
-			"file-or-folder" => MSBuildValueKind.FileOrFolder,
-			"extension" => MSBuildValueKind.Extension,
-			"configuration" => MSBuildValueKind.Configuration,
-			"platform" => MSBuildValueKind.Platform,
-			"project-kind-guid" => MSBuildValueKind.ProjectKindGuid,
-			_ => null
-		};
+		=> valueKindNameMap.TryGetValue (valueKind, out var parsed) ? parsed : null;
+
+	/// <summary>
+	/// Gets the value kind names as used in the schema file format
+	/// </summary>
+	internal static IEnumerable<(string name, MSBuildValueKind kind)> GetValueKindNames ()
+		=> valueKindNameMap.Select (kvp => (kvp.Key, kvp.Value));
+
+	// NOTE: the order exactly mirrors the "valueTypeIntrinsic" section in the JSON schema, buildschema.json
+	// Please keep them in sync.
+	// Also try to keep DescriptionFormatter.FormatKind consistent with this.
+	static readonly Dictionary<string, MSBuildValueKind> valueKindNameMap = new () {
+		{ "data", MSBuildValueKind.Data },
+		{ "bool", MSBuildValueKind.Bool },
+		{ "int", MSBuildValueKind.Int },
+		{ "string", MSBuildValueKind.String },
+		{ "guid", MSBuildValueKind.Guid },
+		{ "url", MSBuildValueKind.Url },
+		{ "version", MSBuildValueKind.Version },
+		{ "suffixed-version", MSBuildValueKind.SuffixedVersion },
+		{ "lcid", MSBuildValueKind.Lcid },
+		{ "target-name", MSBuildValueKind.TargetName },
+		{ "item-name", MSBuildValueKind.ItemName },
+		{ "property-name", MSBuildValueKind.PropertyName },
+		{ "sdk", MSBuildValueKind.Sdk },
+		{ "sdk-version", MSBuildValueKind.SdkVersion },
+		{ "label", MSBuildValueKind.Label },
+		{ "importance", MSBuildValueKind.Importance },
+		{ "runtime-id", MSBuildValueKind.RuntimeID },
+		{ "target-framework", MSBuildValueKind.TargetFramework },
+		{ "target-framework-version", MSBuildValueKind.TargetFrameworkVersion },
+		{ "target-framework-identifier", MSBuildValueKind.TargetFrameworkIdentifier },
+		{ "target-framework-profile", MSBuildValueKind.TargetFrameworkProfile },
+		{ "target-framework-moniker", MSBuildValueKind.TargetFrameworkMoniker },
+		{ "nuget-id", MSBuildValueKind.NuGetID },
+		{ "nuget-version", MSBuildValueKind.NuGetVersion },
+		{ "project-file", MSBuildValueKind.ProjectFile },
+		{ "file", MSBuildValueKind.File },
+		{ "folder", MSBuildValueKind.Folder },
+		{ "folder-with-slash", MSBuildValueKind.FolderWithSlash },
+		{ "file-or-folder", MSBuildValueKind.FileOrFolder },
+		{ "extension", MSBuildValueKind.Extension },
+		{ "configuration", MSBuildValueKind.Configuration },
+		{ "platform", MSBuildValueKind.Platform },
+		{ "project-kind-guid", MSBuildValueKind.ProjectKindGuid }
+	};
 }

@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Editor.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MonoDevelop.Xml", "MonoDevelop.Xml", "{442FCBDB-C87E-4BA4-BA76-463F7877570F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XsdSchemaImporter", "XsdSchemaImporter\XsdSchemaImporter.csproj", "{36BACB3E-74B0-45D8-9C48-178BB9549BF1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,14 @@ Global
 		{BF75E67F-34E4-412C-B886-E4251366EE57}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BF75E67F-34E4-412C-B886-E4251366EE57}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
 		{BF75E67F-34E4-412C-B886-E4251366EE57}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.DebugMac|Any CPU.Build.0 = Debug|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
+		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
