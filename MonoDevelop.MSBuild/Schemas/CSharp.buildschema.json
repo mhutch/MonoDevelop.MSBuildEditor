@@ -22,7 +22,9 @@
           "7.1": "The compiler accepts syntax from C# 7.1 and below",
           "7.2": "The compiler accepts syntax from C# 7.2 and below",
           "7.3": "The compiler accepts syntax from C# 7.3 and below",
-          "8.0": "The compiler accepts syntax from C# 8.0 and below"
+          "8.0": "The compiler accepts syntax from C# 8.0 and below",
+          "9.0": "The compiler accepts syntax from C# 9.0 and below",
+          "10.0": "The compiler accepts syntax from C# 10.0 and below"
         }
       }
     },
