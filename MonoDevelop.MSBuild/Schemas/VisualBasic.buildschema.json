@@ -31,7 +31,6 @@
       "type": { "$ref": "#/types/onOff" }
     },
     "VBRuntime": "",
-    "LangVersion": "",
     "MyType": ""
   },
   "types": {

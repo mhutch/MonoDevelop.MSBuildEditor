@@ -6,7 +6,7 @@ using System;
 namespace MonoDevelop.MSBuild
 {
 	/// <summary>
-	/// Represents texts that can be displayed to the user
+	/// Represents text that can be displayed to the user and that may have richer formatting available
 	/// </summary>
 	public struct DisplayText
 	{
@@ -20,6 +20,7 @@ namespace MonoDevelop.MSBuild
 		/// An optional formatted display element for tooltip in the editor. If not provided, one will be created from the text.
 		/// </summary>
 		public object DisplayElement { get; }
+
 		public string Text { get; }
 		public bool IsEmpty => string.IsNullOrEmpty (Text);
 

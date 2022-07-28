@@ -47,8 +47,8 @@
 
   <Target Name="RemoveMonoDevelopRoslynAssemblies" BeforeTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <Reference Remove="@(Reference -> WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.Common'))" />
-      <Reference Remove="@(Reference -> WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.CSharp'))" />
+      <Reference Remove="@(Reference -&gt; WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.Common'))" />
+      <Reference Remove="@(Reference -&gt; WithMetadataValue('NuGetPackageId', 'Microsoft.CodeAnalysis.CSharp'))" />
     </ItemGroup>
   </Target>
 

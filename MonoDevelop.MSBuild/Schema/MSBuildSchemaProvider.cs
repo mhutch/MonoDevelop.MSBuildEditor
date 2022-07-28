@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using MonoDevelop.Xml.Parser;
 
@@ -40,41 +41,57 @@ namespace MonoDevelop.MSBuild.Schema
 			return GetResourceForBuiltin (path, sdk, out loadErrors);
 		}
 
-		// don't inline this, MSBuildSchema.LoadResource gets the calling assembly
-		[MethodImpl (MethodImplOptions.NoInlining)]
 		static MSBuildSchema GetResourceForBuiltin (string filepath, string sdkId, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
 			var resourceId = GetResourceIdForBuiltin (filepath, sdkId);
 			if (resourceId != null) {
-				return MSBuildSchema.LoadResourceFromCallingAssembly ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
+				return LoadBuiltinSchema (resourceId, out loadErrors);
 			}
 			loadErrors = null;
 			return null;
 		}
 
+		// don't inline this, MSBuildSchema.LoadResource gets the calling assembly
+		[MethodImpl (MethodImplOptions.NoInlining)]
+		static MSBuildSchema LoadBuiltinSchema (string resourceId, out IList<MSBuildSchemaLoadError> loadErrors)
+			=> MSBuildSchema.LoadResourceFromCallingAssembly ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
+
 		static string GetResourceIdForBuiltin (string filepath, string sdkId)
-		{
-			switch (Path.GetFileName (filepath).ToLower ()) {
-			case "microsoft.common.targets":
-				return "CommonTargets";
-			case "microsoft.codeanalysis.targets":
-				return "CodeAnalysis";
-			case "microsoft.visualbasic.currentversion.targets":
-				return "VisualBasic";
-			case "microsoft.csharp.currentversion.targets":
-				return "CSharp";
-			case "microsoft.cpp.targets":
-				return "Cpp";
-			case "nuget.build.tasks.pack.targets":
-				return "NuGetPack";
-			case "sdk.targets":
-				switch (sdkId?.ToLower()) {
-				case "microsoft.net.sdk":
-					return "NetSdk";
-				}
-				break;
+			=> (Path.GetFileName (filepath).ToLower ()) switch {
+				"microsoft.common.targets" => BuiltinSchema.CommonTargets,
+				"microsoft.codeanalysis.targets" => BuiltinSchema.CodeAnalysis,
+				"microsoft.visualbasic.currentversion.targets" => BuiltinSchema.VisualBasic,
+				"microsoft.csharp.currentversion.targets" => BuiltinSchema.CSharp,
+				"microsoft.cpp.targets" => BuiltinSchema.Cpp,
+				"nuget.build.tasks.pack.targets" => BuiltinSchema.NuGetPack,
+				"sdk.targets" => sdkId?.ToLower () switch {
+					"microsoft.net.sdk" => BuiltinSchema.NetSdk,
+					_ => null
+				},
+				_ => null
+			};
+
+		internal static IEnumerable<(MSBuildSchema schema, IList<MSBuildSchemaLoadError> errors)> GetAllBuiltinSchemas ()
+			=> new string[] {
+				BuiltinSchema.CommonTargets,
+				BuiltinSchema.CodeAnalysis,
+				BuiltinSchema.VisualBasic,
+				BuiltinSchema.CSharp,
+				BuiltinSchema.Cpp,
+				BuiltinSchema.NuGetPack,
+				BuiltinSchema.NetSdk
 			}
-			return null;
+			.Select (s => (LoadBuiltinSchema (s, out var e), e));
+
+		class BuiltinSchema
+		{
+			public const string CommonTargets = nameof (CommonTargets);
+			public const string CodeAnalysis = nameof (CodeAnalysis);
+			public const string VisualBasic = nameof (VisualBasic);
+			public const string CSharp = nameof (CSharp);
+			public const string Cpp = nameof (Cpp);
+			public const string NuGetPack = nameof (NuGetPack);
+			public const string NetSdk = nameof (NetSdk);
 		}
 	}
 }

@@ -161,6 +161,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return modifierList;
 		}
 
+		//FIXME: make consistent with MSBuildSchema.valueKindNameMap
 		static string FormatKind (MSBuildValueKind kind, CustomTypeInfo customTypeInfo)
 		{
 			switch (kind.WithoutModifiers ()) {
