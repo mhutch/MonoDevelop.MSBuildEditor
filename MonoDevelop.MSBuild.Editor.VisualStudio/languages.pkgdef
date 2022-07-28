@@ -1,27 +1,53 @@
 [$RootKey$\TextMate\Repositories]
 "MSBuild"="$PackageFolder$\Grammars"
 
-// The .NET C#/VB.NET project system specifically opens the XML editor by factory GUID
-// when using the "Open project file" command.
+// Register the MSBuild namespace and known extensions to be handled by our editor when
+// using the "Automatic Editor Selector (XML)". The MSBuild editor factory has a higher priority
+// than any of the XML editors so will be used by default, but this allows the chooser to do what
+// it's supposed to and pick the most appropriate editor for these files.
 //
-// We can work around this using the XmlChooserFactory mechanism, which causes the XML editor to
-// redirect back to our editor:
+// This uses the XmlChooserFactory mechanism:
 // https://docs.microsoft.com/en-us/archive/blogs/xmlteam/visual-studio-editor-choosing-system
 //
-// Note that we only need to do so for csproj and vbproj, not the full range of extensions, as this
-// problem is specific to projects opened by the C#/VB.NET project system. The MSBuild editor factory
-// has a higher priority than the XML editor so in general will be opened by default.
+// Note that the VS project system (in 17.3 and earlier) specifically opened the XML editor using
+// the XML editor factory GUID, not the XML selector editor factory guid, so this did not help
+// us with the "Open project file" command.
 
-[$RootKey$\XmlChooserFactory\MSBuildCSProj]
+[$RootKey$\XmlChooserFactory\MSBuild]
+"Namespace"="http://schemas.microsoft.com/developer/msbuild/2003"
+"DefaultLogicalView"="{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"
+"{7651A700-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+"{7651A703-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+
+// All extensions in MSBuildFileExtension
+
+[$RootKey$\XmlChooserFactory\MSBuild\targets]
+"Extension"="targets"
+
+[$RootKey$\XmlChooserFactory\MSBuild\props]
+"Extension"="props"
+
+[$RootKey$\XmlChooserFactory\MSBuild\tasks]
+"Extension"="tasks"
+
+[$RootKey$\XmlChooserFactory\MSBuild\overridetasks]
+"Extension"="overridetasks"
+
+[$RootKey$\XmlChooserFactory\MSBuild\csproj]
 "Extension"="csproj"
-"DefaultLogicalView"="{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"
-"{7651A700-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
-"{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
-"{7651A703-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
 
-[$RootKey$\XmlChooserFactory\MSBuildVBProj]
+[$RootKey$\XmlChooserFactory\MSBuild\vbproj]
 "Extension"="vbproj"
-"DefaultLogicalView"="{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"
-"{7651A700-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
-"{7651A701-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
-"{7651A703-06E5-11D1-8EBD-00A0C90F26EA}"="{111E2ECB-9E5F-4945-9D21-D4E5368D620B}"
+
+[$RootKey$\XmlChooserFactory\MSBuild\fsproj]
+"Extension"="fsproj"
+
+[$RootKey$\XmlChooserFactory\MSBuild\vcxproj]
+"Extension"="vcxproj"
+
+[$RootKey$\XmlChooserFactory\MSBuild\proj]
+"Extension"="proj"
+
+[$RootKey$\XmlChooserFactory\MSBuild\user]
+"Extension"="user"

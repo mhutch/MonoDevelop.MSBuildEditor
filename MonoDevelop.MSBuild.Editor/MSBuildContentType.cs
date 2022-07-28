@@ -7,7 +7,7 @@ using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuild.Editor
 {
-
+	// NOTE: all the extensions ending in "proj" are handled by MSBuildContentTypeProvider
 	public static class MSBuildContentType
 	{
 		public const string Name = "MSBuild";
