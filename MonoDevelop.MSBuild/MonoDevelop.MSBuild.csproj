@@ -76,9 +76,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs" />
-    <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs;..\external\**\obj\**" />
+    <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\obj\**" />
+    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\obj\**" />
   </ItemGroup>
 
   <ItemGroup>
