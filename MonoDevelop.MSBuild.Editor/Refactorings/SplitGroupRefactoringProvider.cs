@@ -56,7 +56,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			return Task.CompletedTask;
 		}
 
-		class SplitGroupAction : SimpleMSBuildAction
+		class SplitGroupAction : SimpleMSBuildCodeAction
 		{
 			readonly XElement previousElement;
 			private readonly string groupName;
@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			}
 
 			public override string Title => $"Split {groupName}";
-			protected override MSBuildActionOperation CreateOperation ()
+			protected override MSBuildCodeActionOperation CreateOperation ()
 			{
 				//insert after the end of the previous element, so we bring along any comment
 				var replaceSpan = TextSpan.FromBounds (

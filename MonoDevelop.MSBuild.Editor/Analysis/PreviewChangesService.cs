@@ -54,7 +54,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			_bufferFactory = bufferFactory;
 		}
 
-		public async Task<object> CreateDiffViewAsync (IEnumerable<MSBuildActionOperation> actions, IEditorOptions options, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
+		public async Task<object> CreateDiffViewAsync (IEnumerable<MSBuildCodeActionOperation> actions, IEditorOptions options, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
 		{
 			// Create a copy of the left hand buffer (we're going to remove all of the
 			// content we don't care about from it).

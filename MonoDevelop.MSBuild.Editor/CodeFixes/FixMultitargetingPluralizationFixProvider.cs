@@ -47,7 +47,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			return Task.CompletedTask;
 		}
 
-		class ChangePropertyNameAction : SimpleMSBuildAction
+		class ChangePropertyNameAction : SimpleMSBuildCodeAction
 		{
 			readonly XElement prop;
 			readonly string newName;
@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 			public override string Title => $"Change '{prop.Name}' to '{newName}'";
 
-			protected override MSBuildActionOperation CreateOperation ()
+			protected override MSBuildCodeActionOperation CreateOperation ()
 				=> new EditTextActionOperation ().RenameElement (prop, newName);
 		}
 	}

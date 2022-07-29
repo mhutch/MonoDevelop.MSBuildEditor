@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	struct MSBuildFixContext
 	{
-		readonly Action<MSBuildAction, ImmutableArray<MSBuildDiagnostic>> reportFix;
+		readonly Action<MSBuildCodeAction, ImmutableArray<MSBuildDiagnostic>> reportFix;
 		public MSBuildDocument Document { get; }
 		public XDocument XDocument { get; }
 		public TextSpan Span { get; }
@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			XDocument xDocument,
 			TextSpan span,
 			ImmutableArray<MSBuildDiagnostic> diagnostics,
-			Action<MSBuildAction, ImmutableArray<MSBuildDiagnostic>> reportFix,
+			Action<MSBuildCodeAction, ImmutableArray<MSBuildDiagnostic>> reportFix,
 			CancellationToken cancellationToken)
 		{
 			this.Buffer = buffer;
@@ -46,13 +46,13 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			CancellationToken = cancellationToken;
 		}
 
-		public void RegisterCodeFix (MSBuildAction action, ImmutableArray<MSBuildDiagnostic> diagnostics)
+		public void RegisterCodeFix (MSBuildCodeAction action, ImmutableArray<MSBuildDiagnostic> diagnostics)
 			=> reportFix (action, diagnostics);
 
-		public void RegisterCodeFix (MSBuildAction action, MSBuildDiagnostic diagnostic)
+		public void RegisterCodeFix (MSBuildCodeAction action, MSBuildDiagnostic diagnostic)
 			=> reportFix (action, ImmutableArray.Create (diagnostic));
 
-		public void RegisterCodeFix (MSBuildAction action, IEnumerable<MSBuildDiagnostic> diagnostics)
+		public void RegisterCodeFix (MSBuildCodeAction action, IEnumerable<MSBuildDiagnostic> diagnostics)
 			=> reportFix (action, ImmutableArray.CreateRange (diagnostics));
 	}
 }

@@ -12,7 +12,7 @@ using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
-	class EditTextActionOperation : MSBuildActionOperation
+	class EditTextActionOperation : MSBuildCodeActionOperation
 	{
 		readonly List<Edit> edits = new List<Edit> ();
 

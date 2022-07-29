@@ -250,7 +250,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			return null;
 		}
 
-		class ExtractExpressionAction : SimpleMSBuildAction
+		class ExtractExpressionAction : SimpleMSBuildCodeAction
 		{
 			readonly string expr;
 			readonly TextSpan sourceSpan;
@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 					? $"Extract expression"
 					: $"Extract expression to {scopeName} scope";
 
-			protected override MSBuildActionOperation CreateOperation ()
+			protected override MSBuildCodeActionOperation CreateOperation ()
 				=> new EditTextActionOperation ()
 				.Replace (
 					insertSpan.Start, insertSpan.Length, $"\n    <{propertyName}>{expr}</{propertyName}>\n    ",

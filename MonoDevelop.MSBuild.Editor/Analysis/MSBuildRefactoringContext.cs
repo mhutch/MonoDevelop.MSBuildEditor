@@ -12,7 +12,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	readonly struct MSBuildRefactoringContext
 	{
-		readonly Action<MSBuildAction> reportRefactoring;
+		readonly Action<MSBuildCodeAction> reportRefactoring;
 		public MSBuildDocument Document { get; }
 		public XDocument XDocument { get; }
 		public TextSpan SelectedSpan { get; }
@@ -26,7 +26,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		internal MSBuildRefactoringContext (
 			MSBuildRootDocument document,
 			TextSpan selectedSpan,
-			Action<MSBuildAction> reportRefactoring,
+			Action<MSBuildCodeAction> reportRefactoring,
 			CancellationToken cancellationToken)
 		{
 			this.reportRefactoring = reportRefactoring;
@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			CancellationToken = cancellationToken;
 		}
 
-		public void RegisterRefactoring (MSBuildAction action)
+		public void RegisterRefactoring (MSBuildCodeAction action)
 		{
 			reportRefactoring (action);
 		}

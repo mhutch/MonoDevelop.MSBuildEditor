@@ -31,7 +31,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public async Task<bool> HasRefactorings (MSBuildParseResult result, SnapshotSpan selectedSpan, CancellationToken cancellationToken)
 		{
 			bool foundRefactoring = false;
-			void ReportRefactoring (MSBuildAction a) => foundRefactoring = true;
+			void ReportRefactoring (MSBuildCodeAction a) => foundRefactoring = true;
 
 			var context = new MSBuildRefactoringContext (
 				result.MSBuildDocument,
@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			CancellationToken cancellationToken)
 		{
 			var refactorings = new List<MSBuildCodeFix> ();
-			void ReportRefactoring (MSBuildAction a)
+			void ReportRefactoring (MSBuildCodeAction a)
 			{
 				lock (refactorings) {
 					refactorings.Add (new MSBuildCodeFix (a, ImmutableArray<MSBuildDiagnostic>.Empty));
