@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			string str = "|abc|d|efg|hi";
 			var indices = MSBuildTestHelpers.GetMarkedIndices (ref str);
-			Assert.AreEqual (string.Join (",", indices), "0,3,4,7");
+			Assert.AreEqual ("0,3,4,7", string.Join (",", indices));
 			Assert.AreEqual ("abcdefghi", str);
 		}
 
