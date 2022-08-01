@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 using Microsoft.VisualStudio.Text;
@@ -29,13 +30,13 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			using var edit = document.CreateEdit ();
 			foreach (var change in edits) {
 				switch (change.Kind) {
-				case Kind.Insert:
+				case EditKind.Insert:
 					edit.Insert (change.Span.Start, change.Text);
 					break;
-				case Kind.Replace:
+				case EditKind.Replace:
 					edit.Replace (change.Span.Start, change.Span.Length, change.Text);
 					break;
-				case Kind.Delete:
+				case EditKind.Delete:
 					edit.Delete (change.Span.Start, change.Span.Length);
 					break;
 				}
@@ -130,7 +131,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 		}
 
-		EditTextActionOperation WithEdit (Edit e)
+		internal EditTextActionOperation WithEdit (Edit e)
 		{
 			edits.Add (e);
 			return this;
@@ -153,28 +154,29 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		}
 
 		public EditTextActionOperation Insert (int offset, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (Kind.Insert, new TextSpan (offset, 0), text, relativeSelections));
+			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections));
 		public EditTextActionOperation Replace (int offset, int length, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (Kind.Replace, new TextSpan (offset, length), text, relativeSelections));
+			=> WithEdit (new Edit (EditKind.Replace, new TextSpan (offset, length), text, relativeSelections));
 		public EditTextActionOperation Replace (TextSpan span, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (Kind.Replace, span, text, relativeSelections));
+			=> WithEdit (new Edit (EditKind.Replace, span, text, relativeSelections));
 		public EditTextActionOperation Delete (int offset, int length)
-			=> WithEdit (new Edit (Kind.Delete, new TextSpan (offset, length)));
+			=> WithEdit (new Edit (EditKind.Delete, new TextSpan (offset, length)));
 		public EditTextActionOperation Delete (TextSpan span)
-			=> WithEdit (new Edit (Kind.Delete, span));
+			=> WithEdit (new Edit (EditKind.Delete, span));
 		public EditTextActionOperation DeleteBetween (int start, int end)
-			=> WithEdit (new Edit (Kind.Delete, TextSpan.FromBounds (start, end)));
+			=> WithEdit (new Edit (EditKind.Delete, TextSpan.FromBounds (start, end)));
 		public EditTextActionOperation Select (TextSpan span)
-			=> WithEdit (new Edit (Kind.Select, new TextSpan (span.Start, 0), relativeSelections: new[] { new TextSpan (0, span.Length) }));
+			=> WithEdit (new Edit (EditKind.Select, new TextSpan (span.Start, 0), relativeSelections: new[] { new TextSpan (0, span.Length) }));
 
-		struct Edit
+		[DebuggerDisplay("{Kind}@{Span}:'{Text}'")]
+		internal struct Edit
 		{
-			public readonly Kind Kind;
-			public readonly TextSpan Span;
-			public string Text;
-			public readonly TextSpan[] RelativeSelections;
+			public EditKind Kind { get; }
+			public TextSpan Span { get; }
+			public string Text { get; internal set; }
+			public TextSpan[] RelativeSelections { get; }
 
-			public Edit (Kind kind, TextSpan span, string text = null, TextSpan[] relativeSelections = null)
+			public Edit (EditKind kind, TextSpan span, string text = null, TextSpan[] relativeSelections = null)
 			{
 				Kind = kind;
 				Span = span;
@@ -183,7 +185,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 		}
 
-		enum Kind
+		internal enum EditKind
 		{
 			Insert,
 			Replace,

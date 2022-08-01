@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -22,42 +24,41 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 				return Task.CompletedTask;
 			}
 
-			ExpressionNode expr = GetExpressionExtractionContext (context, out string exprStr, out int exprOffset);
-			if (expr == null) {
+			if (GetExpressionExtractionContext (context) is not (ExpressionNode, string, int) exprCtx) {
 				return Task.CompletedTask;
 			}
 
-			var span = GetValidExtractionSpan (context.SelectedSpan, expr);
-			if (!(span is TextSpan s)) {
+			var span = GetValidExtractionSpan (context.SelectedSpan, exprCtx.node);
+			if (span is not TextSpan s) {
 				return Task.CompletedTask;
 			}
-			exprStr = exprStr.Substring (s.Start - exprOffset, s.Length);
+
+			var expression = exprCtx.text.Substring (s.Start - exprCtx.offset, s.Length);
 
 			bool isFirst = true;
-			foreach (var pt in GetExtractionPoints (context)) {
-				context.RegisterRefactoring (new ExtractExpressionAction (exprStr, s, "MyNewProperty", isFirst? null: pt.scopeName, pt.span, pt.create));
+			foreach (var pt in GetPropertyInsertionPoints (context.ElementSyntax.SyntaxKind, context.XObject)) {
+				context.RegisterRefactoring (new ExtractExpressionAction (expression, s, "MyNewProperty", isFirst? null: pt.scopeName, pt.span, pt.createGroup));
 				isFirst = false;
 			}
 
 			return Task.CompletedTask;
 		}
 
-		static ExpressionNode GetExpressionExtractionContext (MSBuildRefactoringContext context, out string exprText, out int exprOffset)
+		static (ExpressionNode node, string text, int offset)? GetExpressionExtractionContext (MSBuildRefactoringContext context)
 		{
 			if (context.XObject is XText t) {
 				if (t.Span.Contains (context.SelectedSpan)) {
 					switch (context.ElementSyntax?.SyntaxKind) {
 					case MSBuildSyntaxKind.Property:
 					case MSBuildSyntaxKind.Metadata:
-						exprText = t.Text;
-						exprOffset = t.Span.Start;
-						return ExpressionParser.Parse (t.Text, ExpressionOptions.ItemsMetadataAndLists, t.Span.Start);
+						return (
+							ExpressionParser.Parse (t.Text, ExpressionOptions.ItemsMetadataAndLists, t.Span.Start),
+							t.Text,
+							t.Span.Start);
 					default:
 						break;
 					}
 				}
-				exprText = null;
-				exprOffset = 0;
 				return null;
 			}
 
@@ -74,22 +75,22 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 					case MSBuildSyntaxKind.Target_BeforeTargets:
 					case MSBuildSyntaxKind.Target_DependsOnTargets:
 					case MSBuildSyntaxKind.Target_Inputs:
-						exprText = att.Value;
-						exprOffset = att.ValueOffset;
-						return ExpressionParser.Parse (att.Value, ExpressionOptions.ItemsMetadataAndLists, att.ValueOffset);
+						return (
+							ExpressionParser.Parse (att.Value, ExpressionOptions.ItemsMetadataAndLists, att.ValueOffset),
+							att.Value,
+							att.ValueOffset);
 					default:
 						if ((context.AttributeSyntax?.SyntaxKind & MSBuildSyntaxKind.ConditionAttribute) != 0) {
-							exprText = att.Value;
-							exprOffset = att.ValueOffset;
-							return ExpressionParser.ParseCondition (att.Value, att.ValueOffset);
+							return (
+								ExpressionParser.ParseCondition (att.Value, att.ValueOffset),
+								att.Value,
+								att.ValueOffset);
 						}
 						break;
 					}
 				}
 			}
 
-			exprText = null;
-			exprOffset = 0;
 			return null;
 		}
 
@@ -144,34 +145,38 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 		}
 
 		static TextSpan? GetInsertAfterPreviousSiblingElementSpan (XElement el)
-		{
-			var previousElement = el.GetPreviousSiblingElement ();
-			if (previousElement != null) {
-				return new TextSpan (previousElement.OuterSpan.End, previousElement.NextSibling.Span.Start);
-			}
-			return null;
-		}
+			=> el.GetPreviousSiblingElement () is XElement previousElement
+				? TextSpan.FromBounds (previousElement.OuterSpan.End, previousElement.NextSibling.Span.Start)
+				: null;
 
-		static TextSpan GetInsertBeforeFirstChildSpan (XElement el) => new TextSpan (el.ParentElement.Span.End, el.ParentElement.Span.Start);
+		static TextSpan? GetInsertBeforeFirstChildSpan (XElement el)
+			=> el.FirstChild is XNode firstChild
+				? TextSpan.FromBounds (el.Span.End, firstChild.Span.Start)
+				: null;
 
-		static TextSpan GetAppendChildElementSpan (XElement el) => TextSpan.FromBounds ((el.LastChild?.OuterSpan ?? el.Span).End, el.ClosingTag.Span.Start);
+		static TextSpan? GetInsertAfterLastChildSpan (XElement el)
+			=> el.LastChild is XNode lastChild
+				? TextSpan.FromBounds (lastChild.Span.End, el.ClosingTag.Span.Start)
+				: null;
 
-		static IEnumerable<(TextSpan span, string scopeName, bool create)> GetExtractionPoints (MSBuildRefactoringContext context)
+		internal static IEnumerable<(TextSpan span, string? scopeName, bool createGroup)> GetPropertyInsertionPoints (MSBuildSyntaxKind originKind, XObject originNode)
 		{
 			// this is the point before which the new property must be inserted
 			// if it's inserted after this point, it will be out of order
 			// TODO: we should also examine the properties in the extracted expression and make sure we don't put it before any of them
-			var beforeElement = context.XObject.SelfAndParentsOfType<XElement> ().First ();
+			var beforeElement = originNode.SelfAndParentsOfType<XElement> ().First ();
 
-			switch (context.ElementSyntax.SyntaxKind) {
+			switch (originKind) {
 			case MSBuildSyntaxKind.Property: {
-				var propertyElement = beforeElement;
-				TextSpan insertSpan = GetInsertAfterPreviousSiblingElementSpan(propertyElement) ?? GetInsertBeforeFirstChildSpan (propertyElement.ParentElement);
-				yield return (insertSpan, null, true);
+				var property = beforeElement;
+				var propertyGroup = beforeElement.ParentElement;
+				var insertSpan = GetInsertAfterPreviousSiblingElementSpan (property) ?? GetInsertBeforeFirstChildSpan (propertyGroup);
+				// GetInsertBeforeFirstChildSpan only returns null is it's self closing, and we know it isn't because it has at least one child
+				yield return (insertSpan!.Value, null, false);
 				break;
 			}
 			case MSBuildSyntaxKind.Item: {
-					var itemGroup = (XElement)beforeElement.Parent;
+					var itemGroup = beforeElement.ParentElement;
 					beforeElement = itemGroup;
 					break;
 				}
@@ -199,7 +204,8 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 								break;
 							}
 							if (el.NameEquals (MSBuildElementSyntax.PropertyGroup.Name, true) && el.Attributes.Get ("Condition", true) == null && !el.IsSelfClosing && el.IsClosed) {
-								yield return (GetAppendChildElementSpan (el), syntax.Name, false);
+								// GetInsertAfterLastChildSpan returns null if el.IsSelfClosing but we checked that
+								yield return (GetInsertAfterLastChildSpan (el)!.Value, syntax.Name, false);
 							}
 							break;
 						}
@@ -215,7 +221,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 		static int GetExtractableStart (ExpressionNode node, TextSpan sel) => node is ExpressionText t && t.Span.Contains (sel.Start) ? sel.Start : node.Span.Start;
 		static int GetExtractableEnd (ExpressionNode node, TextSpan sel) => node is ExpressionText t && t.Span.ContainsOuter (sel.End) ? sel.End : node.Span.End;
 
-		static ExpressionNode ExpandToExtractableNode (ExpressionNode node)
+		static ExpressionNode? ExpandToExtractableNode (ExpressionNode node)
 		{
 			switch (node.NodeKind) {
 			case ExpressionNodeKind.IncompleteExpressionError:
@@ -255,11 +261,11 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			readonly string expr;
 			readonly TextSpan sourceSpan;
 			readonly string propertyName;
-			private readonly string scopeName;
+			private readonly string? scopeName;
 			readonly TextSpan insertSpan;
 			readonly bool createGroup;
 
-			public ExtractExpressionAction (string expr, TextSpan sourceSpan, string propertyName, string scopeName, TextSpan insertionSpan, bool createGroup)
+			public ExtractExpressionAction (string expr, TextSpan sourceSpan, string propertyName, string? scopeName, TextSpan insertionSpan, bool createGroup)
 			{
 				this.expr = expr;
 				this.sourceSpan = sourceSpan;
@@ -274,14 +280,31 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 					? $"Extract expression"
 					: $"Extract expression to {scopeName} scope";
 
-			protected override MSBuildCodeActionOperation CreateOperation ()
-				=> new EditTextActionOperation ()
-				.Replace (
-					insertSpan.Start, insertSpan.Length, $"\n    <{propertyName}>{expr}</{propertyName}>\n    ",
-					relativeSelections: new[] {
+			EditTextActionOperation.Edit GetNewPropertyWithGroupEdit () => new (
+				EditTextActionOperation.EditKind.Replace,
+				insertSpan,
+				$"\n    <PropertyGroup>\n      <{propertyName}>{expr}</{propertyName}>\n    </PropertyGroup>\n    ",
+				new[] {
+						new TextSpan (28, propertyName.Length),
+						new TextSpan (28 + propertyName.Length + 1 + expr.Length + 2, propertyName.Length)
+					}
+			);
+
+			EditTextActionOperation.Edit GetNewPropertyEdit () => new (
+				EditTextActionOperation.EditKind.Replace,
+				insertSpan,
+				$"\n    <{propertyName}>{expr}</{propertyName}>\n    ",
+				new[] {
 						new TextSpan (6, propertyName.Length),
 						new TextSpan (6 + propertyName.Length + 1 + expr.Length + 2, propertyName.Length)
-					})
+					}
+			);
+
+			protected override MSBuildCodeActionOperation CreateOperation ()
+				=> new EditTextActionOperation ()
+				.WithEdit (createGroup
+					? GetNewPropertyWithGroupEdit()
+					: GetNewPropertyEdit ())
 				.Replace (
 					sourceSpan.Start, sourceSpan.Length, $"$({propertyName})",
 					relativeSelections: new[] {
