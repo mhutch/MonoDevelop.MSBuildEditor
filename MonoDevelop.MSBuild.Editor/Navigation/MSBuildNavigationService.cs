@@ -125,7 +125,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 				var results = await PackageSearchManager.SearchPackageInfo (nuGetId, null, null).ToTask ();
 
 				if (results.Any (r => r.SourceKind == FeedKind.NuGet)) {
-					var url = $"https://www.nuget.org/packages/{Uri.EscapeUriString (nuGetId)}";
+					var url = $"https://www.nuget.org/packages/{Uri.EscapeDataString (nuGetId)}";
 					Process.Start (url);
 				} else {
 					await JoinableTaskContext.Factory.SwitchToMainThreadAsync ();

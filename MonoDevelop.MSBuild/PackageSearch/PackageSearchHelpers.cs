@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuild.PackageSearch
 
 		public static string GetNuGetOrgUrl (this IPackageInfo package)
 			=> package.SourceKind == FeedKind.NuGet
-				? $"https://www.nuget.org/packages/{Uri.EscapeUriString (package.Id)}"
+				? $"https://www.nuget.org/packages/{Uri.EscapeDataString (package.Id)}"
 				: null;
 	}
 }
