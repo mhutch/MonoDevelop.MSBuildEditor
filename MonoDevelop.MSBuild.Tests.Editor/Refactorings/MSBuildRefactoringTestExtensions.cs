@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Refactorings
 		}
 
 
-		public static Task<CodeFixesWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '$', CancellationToken cancellationToken = default)
+		public static Task<CodeFixesWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '|', CancellationToken cancellationToken = default)
 			where T : MSBuildRefactoringProvider, new()
 		{
 			var refactoringService = new MSBuildRefactoringService (new[] { new T () });

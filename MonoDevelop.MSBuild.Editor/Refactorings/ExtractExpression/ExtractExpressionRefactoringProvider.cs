@@ -37,7 +37,7 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 
 		bool isFirst = true;
 		foreach (var pt in GetPropertyInsertionPoints (context.ElementSyntax.SyntaxKind, context.XObject)) {
-			context.RegisterRefactoring (new ExtractExpressionAction (expression, s, "MyNewProperty", isFirst ? null : pt.scopeName, pt.span, pt.createGroup));
+			context.RegisterRefactoring (new ExtractExpressionAction (expression, s, "MyNewProperty", isFirst ? null : pt.scopeName, pt.span, pt.indentDepth, pt.createGroup));
 			isFirst = false;
 		}
 
@@ -100,7 +100,7 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 	/// <param name="originElementKind">The <see cref="MSBuildSyntaxKind"/> of the element from which the expression is being extracted</param>
 	/// <param name="originNode">The <see cref="XNode"/> of the element or attribute from which the expression is being extracted </param>
 	/// <returns></returns>
-	internal static IEnumerable<(TextSpan span, string scopeName, bool createGroup)> GetPropertyInsertionPoints (MSBuildSyntaxKind originElementKind, XObject originNode)
+	internal static IEnumerable<(TextSpan span, string scopeName, int indentDepth, bool createGroup)> GetPropertyInsertionPoints (MSBuildSyntaxKind originElementKind, XObject originNode)
 	{
 		// this is the point before which the new property must be inserted
 		// if it's inserted after this point, it will be out of order
@@ -111,7 +111,8 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 		if (originElementKind == MSBuildSyntaxKind.Property) {
 			// GetInsertBeforeSpan only returns null if the parent is null and we know it's not
 			TextSpan insertSpan = beforeElement.GetInsertBeforeSpan ()!.Value;
-			yield return (insertSpan, MSBuildElementSyntax.PropertyGroup.Name, false);
+			int indentDepth = beforeElement.SelfAndParentsOfType<XElement> ().Count () - 1;
+			yield return (insertSpan, MSBuildElementSyntax.PropertyGroup.Name, indentDepth, false);
 
 			// next insertion point is before the propertygroup's parent
 			beforeElement = beforeElement.ParentElement?.ParentElement;
@@ -125,12 +126,14 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 				if (elementsBeforeOffset.OfSyntax (MSBuildElementSyntax.PropertyGroup).LastOrDefault (n => !n.HasCondition () && !n.IsSelfClosing && n.IsClosed) is XElement existingPg) {
 					// GetInsertAfterLastChildSpan only returns null if it's self-closing and we already checked it's not
 					var insertionSpan = existingPg.GetInsertAfterLastChildSpan ()!.Value;
-					yield return (insertionSpan, syntax.Name, false);
+					int indentDepth = existingPg.SelfAndParentsOfType<XElement> ().Count ();
+					yield return (insertionSpan, syntax.Name, indentDepth, false);
 				} else {
 					// insert a PropertyGroup
 					// GetInsertBeforeSpan only returns null if the parent is null and we know it's not
 					var insertionSpan = beforeElement.GetInsertBeforeSpan ()!.Value;
-					yield return (insertionSpan, syntax.Name, true);
+					int indentDepth = beforeElement.SelfAndParentsOfType<XElement> ().Count () - 1;
+					yield return (insertionSpan, syntax.Name, indentDepth, true);
 				}
 			}
 			beforeElement = scope;
