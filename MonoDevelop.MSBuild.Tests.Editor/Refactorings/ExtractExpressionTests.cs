@@ -3,11 +3,12 @@
 
 #nullable enable
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Editor.Refactorings;
+using MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Tests.Extensions;
@@ -23,7 +24,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Refactorings
 	class ExtractExpressionTests : MSBuildEditorTest
 	{
 		[Test]
-		public async Task TestExtractExpression ()
+		public async Task ExtractFromProperty ()
 		{
 			var ctx = await this.GetRefactorings<ExtractExpressionRefactoringProvider> (
 @"<Project>
@@ -68,15 +69,62 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Refactorings
 		}
 
 		[Test]
-		public void InsertionPoints ()
+		public void ExtractionPointsFromProperty ()
 		{
-			var doc = TextWithMarkers.Parse (
+			CheckExtractionPoints (
 @"<Project>
   <PropertyGroup>^
     ^<Foo>$</Foo>
   </PropertyGroup>
 </Project>",
-			'^', '$');
+				MSBuildSyntaxKind.Property,
+				("PropertyGroup", false));
+		}
+
+		[Test]
+		public void ExtractionPointsFromItem ()
+		{
+			CheckExtractionPoints (
+@"<Project>^
+  ^<ItemGroup>
+    <Foo Include='$' />
+  </ItemGroup>
+</Project>",
+				MSBuildSyntaxKind.Item,
+				("Project", true));
+		}
+		[Test]
+		public void ExtractionPointsFromItemToExistingPropertyGroup ()
+		{
+			CheckExtractionPoints (
+@"<Project>
+  <PropertyGroup>
+    <Hello>World</Hello>^
+  ^</PropertyGroup>
+  <ItemGroup>
+    <Foo Include='$' />
+  </ItemGroup>
+</Project>",
+				MSBuildSyntaxKind.Item,
+				("Project", false));
+		}
+
+		[Test]
+		public void ExtractionPointsFromTarget ()
+		{
+			CheckExtractionPoints (
+@"<Project>^
+  ^<Target Name='MyTarget'>^
+    ^<SomeTask Arg='$' />
+  </Target>
+</Project>",
+				MSBuildSyntaxKind.Task,
+				("Target", true), ("Project", true));
+		}
+
+		void CheckExtractionPoints (string textWithMarker, MSBuildSyntaxKind originKind, params (string scopeName, bool createGroup)[] expectedSpanProps)
+		{
+			var doc = TextWithMarkers.Parse (textWithMarker, '^', '$');
 
 			var parser = new XmlTreeParser (new XmlRootState ());
 			parser.Parse (doc.Text, preserveWindowsNewlines: true);
@@ -86,15 +134,18 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Refactorings
 
 			var node = parsedDoc.FindAtOffset (doc.GetMarkedPosition ('$'));
 
-			var span = doc.GetMarkedSpan ('^');
+			var expectedSpans = doc.GetMarkedSpans ('^');
+			Array.Reverse (expectedSpans);
 
-			var points = ExtractExpressionRefactoringProvider.GetPropertyInsertionPoints (MSBuildSyntaxKind.Property, node).ToList ();
+			var points = ExtractExpressionRefactoringProvider.GetPropertyInsertionPoints (originKind, node).ToList ();
 
-			Assert.That (points, Has.Count.EqualTo (1));
+			Assert.That (points, Has.Count.EqualTo (expectedSpans.Length));
 
-			Assert.That (points[0].createGroup, Is.False);
-			Assert.That (points[0].scopeName, Is.Null);
-			Assert.That (points[0].span, Is.EqualTo (span));
+			for (int i = 0; i < expectedSpans.Length; i++) {
+				Assert.That (points[i].span, Is.EqualTo (expectedSpans[i]));
+				Assert.That (points[i].scopeName, Is.EqualTo (expectedSpanProps[i].Item1));
+				Assert.That (points[i].createGroup, Is.EqualTo (expectedSpanProps[i].Item2));
+			}
 		}
 	}
 }
