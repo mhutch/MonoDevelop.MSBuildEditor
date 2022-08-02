@@ -1,14 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
@@ -21,9 +26,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 		}
 
-		public sealed override void Apply (IEditorOptions options, ITextBuffer document, CancellationToken cancellationToken, ITextView textView = null)
+		public sealed override void Apply (IEditorOptions options, ITextBuffer document, CancellationToken cancellationToken, ITextView? textView = null)
 		{
-			FixNewlines (edits, options, document.CurrentSnapshot);
+			FixNewLinesAndIndentation (edits, options, document.CurrentSnapshot);
 
 			var selections = textView != null ? GetSelectionTrackingSpans (edits, document.CurrentSnapshot) : null;
 
@@ -43,14 +48,14 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 			edit.Apply ();
 
-			if (selections != null && selections.Count > 0) {
+			if (textView is not null && selections != null && selections.Count > 0) {
 				ApplySelections (selections, textView);
 			}
 		}
 
-		static List<(ITrackingPoint point, TextSpan[] spans)> GetSelectionTrackingSpans (List<Edit> edits, ITextSnapshot snapshot)
+		static List<(ITrackingPoint point, TextSpan[] spans)>? GetSelectionTrackingSpans (List<Edit> edits, ITextSnapshot snapshot)
 		{
-			List<(ITrackingPoint point, TextSpan[] spans)> selections = null;
+			List<(ITrackingPoint point, TextSpan[] spans)>? selections = null;
 			foreach (var change in edits) {
 				selections ??= new List<(ITrackingPoint point, TextSpan[] spans)> ();
 				if (change.RelativeSelections is TextSpan[] selSpans) {
@@ -82,110 +87,163 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 		}
 
-		static void FixNewlines (List<Edit> edits, IEditorOptions options, ITextSnapshot snapshot)
+		static void FixNewLinesAndIndentation (List<Edit> edits, IEditorOptions options, ITextSnapshot snapshot)
 		{
 			var replicateNewLine = options.GetReplicateNewLineCharacter ();
-			var defaultNewLine = options.GetNewLineCharacter ();
+			var defaultNewLine = options.GetNewLineCharacter () ?? "\n";
+			var indent = GetIndent (options);
+			string tabString = new (indent.indentChar, indent.charCount);
 
 			for (int i = 0; i < edits.Count; i++) {
 				var edit = edits[i];
-				if (edit.Text == null || edit.Text.IndexOf ('\n') < 0) {
+				if (edit.Text is not string text || (text.IndexOf ('\n') < 0 && text.IndexOf ('\t') < 0)) {
 					continue;
 				}
 
-				string newLine = null;
-				var currentLine = snapshot.GetLineFromPosition (edit.Span.Start);
-				if (replicateNewLine) {
-					newLine = currentLine.GetLineBreakText ();
-				}
-				if (string.IsNullOrEmpty (newLine)) {
-					newLine = defaultNewLine;
-				}
-				if (newLine == "\n") {
-					continue;
-				}
+				string emptyNewlineString = GetNewlineForPosition (edit.Span.Start);
+				string nonEmptyNewlineString = edit.BaseIndentDepth is int baseIndentDepth && baseIndentDepth > 0
+					? emptyNewlineString + new string (indent.indentChar, indent.charCount * baseIndentDepth)
+					: emptyNewlineString;
 
-				int CountNewlines (int start, int length)
+				int GetAdditionalLength (int start, int end)
 				{
-					int count = 0;
-					for (int offset = start; offset < start + length; offset++) {
-						if (edit.Text[offset] == '\n') {
-							count++;
+					int emptyNewlines = 0, nonEmptyNewlines = 0, tabs = 0;
+					for (int offset = start; offset < end; offset++) {
+						char c = text[offset];
+						if (c == '\n') {
+							if (offset + 1 < text.Length && text[offset + 1] == '\n') {
+								emptyNewlines++;
+							} else {
+								nonEmptyNewlines++;
+							}
+						} else if (c == '\t') {
+							tabs++;
 						}
 					}
-					return count;
+					return emptyNewlines * Math.Max (emptyNewlineString.Length - 1, 0)
+						 + nonEmptyNewlines * Math.Max (nonEmptyNewlineString.Length - 1, 0)
+						 + tabs * Math.Max (tabString.Length - 1, 0);
 				}
 
 				if (edit.RelativeSelections != null) {
 					for (int s = 0; s < edit.RelativeSelections.Length; s++) {
 						ref var sel = ref edit.RelativeSelections[s];
-						var newStart = sel.Start + CountNewlines (0, sel.Start);
-						var newLength = sel.Length + CountNewlines (sel.Start, sel.Length);
+						var newStart = sel.Start + GetAdditionalLength (0, sel.Start);
+						var newLength = sel.Length + GetAdditionalLength (sel.Start, sel.Start + sel.Length);
 						sel = new TextSpan (newStart, newLength);
 					}
 				}
 
-				edit.Text = edit.Text.Replace ("\n", newLine);
+				var sb = new StringBuilder (text.Length + GetAdditionalLength (0, text.Length));
 
+				for (int offset = 0; offset < text.Length; offset++) {
+					char c = text[offset];
+					if (c == '\n') {
+						if (offset + 1 < text.Length && text[offset + 1] == '\n') {
+							sb.Append (emptyNewlineString);
+						} else {
+							sb.Append (nonEmptyNewlineString);
+						}
+					} else if (c == '\t') {
+						sb.Append (tabString);
+					} else {
+						sb.Append (c);
+					}
+				}
+
+				edit.Text = sb.ToString ();
 				edits[i] = edit;
+			}
+
+			string GetNewlineForPosition (int position)
+			{
+				string? newLineText = null;
+				if (replicateNewLine) {
+					var currentLine = snapshot.GetLineFromPosition (position);
+					newLineText = currentLine?.GetLineBreakText ();
+				}
+				return newLineText ?? defaultNewLine ?? "\n";
+			}
+
+			static (char indentChar, int charCount) GetIndent (IEditorOptions options)
+			{
+				var indentSize = options.GetIndentSize ();
+				if (options.IsConvertTabsToSpacesEnabled ()) {
+					return (' ', indentSize);
+				} else {
+					var tabSize = options.GetTabSize ();
+					var tabsPerIndent = tabSize > 0? indentSize / tabSize : 1;
+					return ('\t', tabsPerIndent);
+				}
 			}
 		}
 
-		internal EditTextActionOperation WithEdit (Edit e)
+		EditTextActionOperation WithEdit (Edit e)
 		{
 			edits.Add (e);
 			return this;
 		}
 
-		static string GetTextWithCorrectNewLines (bool replicateNewLine, string defaultNewLine, Edit edit, ITextSnapshot snapshot)
-		{
-			string newLine = null;
-			var currentLine = snapshot.GetLineFromPosition (edit.Span.Start);
-			if (replicateNewLine) {
-				newLine = currentLine.GetLineBreakText ();
-			}
-			if (string.IsNullOrEmpty (newLine)) {
-				newLine = defaultNewLine;
-			}
-			if (newLine != "\n") {
-				return edit.Text.Replace ("\n", newLine);
-			}
-			return edit.Text;
-		}
+		public EditTextActionOperation Insert (int offset, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections, baseIndentDepth));
+		public EditTextActionOperation InsertAndSelect (int offset, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections ?? new[] { new TextSpan (0, text.Length) }, baseIndentDepth));
+		public EditTextActionOperation InsertAndSelect (int offset, string text, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Insert, new TextSpan (offset, 0), text, selectionMarker, baseIndentDepth));
 
-		public EditTextActionOperation Insert (int offset, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections));
-		public EditTextActionOperation Replace (int offset, int length, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (EditKind.Replace, new TextSpan (offset, length), text, relativeSelections));
-		public EditTextActionOperation Replace (TextSpan span, string text, TextSpan[] relativeSelections = null)
-			=> WithEdit (new Edit (EditKind.Replace, span, text, relativeSelections));
+		public EditTextActionOperation Replace (int offset, int length, string text, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Replace, new TextSpan (offset, length), text));
+		public EditTextActionOperation Replace (TextSpan span, string text, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Replace, span, text));
+
+		public EditTextActionOperation ReplaceAndSelect (int offset, int length, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Replace, new TextSpan (offset, length), text, relativeSelections ?? new[] { new TextSpan (0, text.Length) }, baseIndentDepth));
+		public EditTextActionOperation ReplaceAndSelect (TextSpan span, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
+			=> WithEdit (new Edit (EditKind.Replace, span, text, relativeSelections ?? new[] { new TextSpan (0, text.Length) }, baseIndentDepth));
+
+		public EditTextActionOperation ReplaceAndSelect (int offset, int length, string text, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, new TextSpan (offset, length), text, selectionMarker, baseIndentDepth));
+		public EditTextActionOperation ReplaceAndSelect (TextSpan span, string text, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, span, text, selectionMarker, baseIndentDepth));
+
 		public EditTextActionOperation Delete (int offset, int length)
 			=> WithEdit (new Edit (EditKind.Delete, new TextSpan (offset, length)));
 		public EditTextActionOperation Delete (TextSpan span)
 			=> WithEdit (new Edit (EditKind.Delete, span));
+
 		public EditTextActionOperation DeleteBetween (int start, int end)
 			=> WithEdit (new Edit (EditKind.Delete, TextSpan.FromBounds (start, end)));
+
 		public EditTextActionOperation Select (TextSpan span)
 			=> WithEdit (new Edit (EditKind.Select, new TextSpan (span.Start, 0), relativeSelections: new[] { new TextSpan (0, span.Length) }));
 
-		[DebuggerDisplay("{Kind}@{Span}:'{Text}'")]
-		internal struct Edit
+		[DebuggerDisplay ("{Kind}@{Span}:'{Text}'")]
+		struct Edit
 		{
 			public EditKind Kind { get; }
 			public TextSpan Span { get; }
-			public string Text { get; internal set; }
-			public TextSpan[] RelativeSelections { get; }
+			public string? Text { get; internal set; }
+			public TextSpan[]? RelativeSelections { get; }
+			public int? BaseIndentDepth { get; }
 
-			public Edit (EditKind kind, TextSpan span, string text = null, TextSpan[] relativeSelections = null)
+			public Edit (EditKind kind, TextSpan span, string? text = null, TextSpan[]? relativeSelections = null, int? baseIndentDepth = null)
 			{
 				Kind = kind;
 				Span = span;
 				Text = text;
 				RelativeSelections = relativeSelections;
+				BaseIndentDepth = baseIndentDepth;
+			}
+
+			public static Edit WithMarkedSelection (EditKind kind, TextSpan span, string text, char selectionMarker, int? baseIndentDepth = null)
+			{
+				var parsed = TextWithMarkers.Parse (text, selectionMarker);
+				var relativeSelections = parsed.GetMarkedSpans ();
+				return new Edit (kind, span, parsed.Text, relativeSelections, baseIndentDepth);
 			}
 		}
 
-		internal enum EditKind
+		enum EditKind
 		{
 			Insert,
 			Replace,

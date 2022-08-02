@@ -9,12 +9,12 @@ using System.Text;
 
 using MonoDevelop.Xml.Dom;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Util
 {
 	/// <summary>
 	/// Represents text with various marked positions.
 	/// </summary>
-	public class TextWithMarkers
+	class TextWithMarkers
 	{
 		TextWithMarkers (string text, char[] markerChars, List<int>[] markedPositionsById)
 		{

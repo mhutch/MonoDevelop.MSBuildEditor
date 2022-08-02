@@ -17,7 +17,7 @@ partial class ExtractExpressionRefactoringProvider
 		readonly string propertyName;
 		private readonly string? scopeName;
 		readonly TextSpan insertionSpan;
-		readonly string indent;
+		readonly int indentDepth;
 		readonly bool createPropertyGroup;
 
 		public ExtractExpressionAction (string expr, TextSpan sourceSpan, string propertyName, string? scopeName, TextSpan insertionSpan, int indentDepth, bool createPropertyGroup)
@@ -27,7 +27,7 @@ partial class ExtractExpressionRefactoringProvider
 			this.propertyName = propertyName;
 			this.scopeName = scopeName;
 			this.insertionSpan = insertionSpan;
-			this.indent = new string(' ', indentDepth * 2);
+			this.indentDepth = indentDepth;
 			this.createPropertyGroup = createPropertyGroup;
 		}
 
@@ -36,36 +36,17 @@ partial class ExtractExpressionRefactoringProvider
 				? $"Extract expression"
 				: $"Extract expression to {scopeName} scope";
 
-		EditTextActionOperation.Edit GetNewPropertyWithGroupEdit () => new (
-			EditTextActionOperation.EditKind.Replace,
-			insertionSpan,
-			$"\n{indent}<PropertyGroup>\n{indent}  <{propertyName}>{expr}</{propertyName}>\n{indent}</PropertyGroup>\n\n{indent}",
-			new[] {
-				new TextSpan (20 + indent.Length*2, propertyName.Length),
-				new TextSpan (20 + indent.Length*2 + propertyName.Length + 1 + expr.Length + 2, propertyName.Length)
-			}
-		);
-
-		EditTextActionOperation.Edit GetNewPropertyEdit () => new (
-			EditTextActionOperation.EditKind.Replace,
-			insertionSpan,
-			$"\n{indent}<{propertyName}>{expr}</{propertyName}>\n{indent}",
-			new[] {
-				new TextSpan (2 + indent.Length, propertyName.Length),
-				new TextSpan (2 + indent.Length + propertyName.Length + 1 + expr.Length + 2, propertyName.Length)
-			}
-		);
-
 		protected override MSBuildCodeActionOperation CreateOperation ()
 			=> new EditTextActionOperation ()
-			.WithEdit (createPropertyGroup
-				? GetNewPropertyWithGroupEdit ()
-				: GetNewPropertyEdit ())
-			.Replace (
-				sourceSpan.Start, sourceSpan.Length, $"$({propertyName})",
-				relativeSelections: new[] {
-					new TextSpan (2, propertyName.Length),
-				}
-			);
+			.ReplaceAndSelect (
+				insertionSpan,
+				createPropertyGroup
+					? $"\n<PropertyGroup>\n\t<|{propertyName}|>{expr}</|{propertyName}|>\n</PropertyGroup>\n\n"
+					: $"\n<|{propertyName}|>{expr}</|{propertyName}|>\n",
+				selectionMarker: '|', baseIndentDepth: indentDepth)
+			.ReplaceAndSelect (
+				sourceSpan,
+				$"$(|{propertyName}|)",
+				selectionMarker: '|', baseIndentDepth: indentDepth);
 	}
 }

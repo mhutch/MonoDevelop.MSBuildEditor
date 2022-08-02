@@ -12,10 +12,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Tests.Editor.Refactorings
 {
-	readonly record struct CodeFixesWithContext (List<MSBuildCodeFix> CodeFixes, ITextBuffer TextBuffer, ITextView? TextView = null);
+	readonly record struct CodeFixesWithContext (List<MSBuildCodeFix> CodeFixes, ITextBuffer TextBuffer, ITextView TextView);
 
 	static class MSBuildRefactoringTestExtensions
 	{

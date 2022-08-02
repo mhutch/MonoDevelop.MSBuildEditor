@@ -8,10 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.VisualStudio.Text.Editor;
+
 using MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
-
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 using MonoDevelop.Xml.Parser;
@@ -94,8 +96,13 @@ class ExtractExpressionTests : MSBuildEditorTest
 
 		var operations = await fix.Action.ComputeOperationsAsync (CancellationToken.None);
 
+		var options = ctx.TextView.Options;
+		options.SetOptionValue (DefaultOptions.ConvertTabsToSpacesOptionId, true);
+		options.SetOptionValue (DefaultOptions.IndentSizeOptionId, 2);
+		options.SetOptionValue (DefaultOptions.TabSizeOptionId, 2);
+
 		foreach (var op in operations) {
-			op.Apply (ctx.TextView?.Options, ctx.TextBuffer, CancellationToken.None, ctx.TextView);
+			op.Apply (options, ctx.TextBuffer, CancellationToken.None, ctx.TextView);
 		}
 
 		Assert.That (
@@ -122,7 +129,7 @@ class ExtractExpressionTests : MSBuildEditorTest
   </PropertyGroup>
 </Project>",
 			MSBuildSyntaxKind.Property,
-			("PropertyGroup", false, 2));
+			("PropertyGroup", false));
 	}
 
 	[Test]
@@ -135,7 +142,7 @@ class ExtractExpressionTests : MSBuildEditorTest
   </ItemGroup>
 </Project>",
 			MSBuildSyntaxKind.Item,
-			("Project", true, 1));
+			("Project", true));
 	}
 	[Test]
 	public void ExtractionPointsFromItemToExistingPropertyGroup ()
@@ -150,7 +157,7 @@ class ExtractExpressionTests : MSBuildEditorTest
   </ItemGroup>
 </Project>",
 			MSBuildSyntaxKind.Item,
-			("Project", false, 2));
+			("Project", false));
 	}
 
 	[Test]
@@ -163,10 +170,10 @@ class ExtractExpressionTests : MSBuildEditorTest
   </Target>
 </Project>",
 			MSBuildSyntaxKind.Task,
-			("Target", true, 2), ("Project", true, 1));
+			("Target", true), ("Project", true));
 	}
 
-	void CheckExtractionPoints (string textWithMarkers, MSBuildSyntaxKind originKind, params (string scopeName, bool createGroup, int indentDepth)[] expectedSpanProps)
+	void CheckExtractionPoints (string textWithMarkers, MSBuildSyntaxKind originKind, params (string scopeName, bool createGroup)[] expectedSpanProps)
 	{
 		var doc = TextWithMarkers.Parse (textWithMarkers, '^', '$');
 
@@ -190,7 +197,6 @@ class ExtractExpressionTests : MSBuildEditorTest
 				Assert.That (points[i].span, Is.EqualTo (expectedSpans[i]));
 				Assert.That (points[i].scopeName, Is.EqualTo (expectedSpanProps[i].scopeName));
 				Assert.That (points[i].createGroup, Is.EqualTo (expectedSpanProps[i].createGroup));
-				Assert.That (points[i].indentDepth, Is.EqualTo (expectedSpanProps[i].indentDepth));
 			});
 		}
 	}
