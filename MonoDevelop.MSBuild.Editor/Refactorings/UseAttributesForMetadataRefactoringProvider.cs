@@ -76,7 +76,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			return foundAny;
 		}
 
-		class UseAttributeForMetadataAction : SimpleMSBuildAction
+		class UseAttributeForMetadataAction : SimpleMSBuildCodeAction
 		{
 			readonly XElement itemElement;
 
@@ -86,7 +86,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			}
 
 			public override string Title => $"Use attributes for metadata";
-			protected override MSBuildActionOperation CreateOperation ()
+			protected override MSBuildCodeActionOperation CreateOperation ()
 			{
 				var insertionPoint = (itemElement.Attributes.Last?.Span ?? itemElement.NameSpan).End;
 

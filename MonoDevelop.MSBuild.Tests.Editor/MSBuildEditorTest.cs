@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 	internal static class MSBuildEditorTestExtensions
 	{
-		public static async Task ApplyCodeAction (this ITextView textView, MSBuildAction action, IEditorOptions options = null, CancellationToken cancellationToken = default)
+		public static async Task ApplyCodeAction (this ITextView textView, MSBuildCodeAction action, IEditorOptions options = null, CancellationToken cancellationToken = default)
 		{
 			var operations = await action.ComputeOperationsAsync (cancellationToken);
 			foreach (var op in operations) {

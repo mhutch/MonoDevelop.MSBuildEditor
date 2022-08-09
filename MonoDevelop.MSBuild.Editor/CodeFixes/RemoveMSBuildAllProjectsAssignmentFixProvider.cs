@@ -27,12 +27,12 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			return Task.CompletedTask;
 		}
 
-		class RemoveMSBuildAllProjectsAssignmentAction : SimpleMSBuildAction
+		class RemoveMSBuildAllProjectsAssignmentAction : SimpleMSBuildCodeAction
 		{
 			readonly XElement element;
 			public RemoveMSBuildAllProjectsAssignmentAction (XElement element) => this.element = element;
 			public override string Title => $"Remove redundant assignment of 'MSBuildAllProjectsAssignment'";
-			protected override MSBuildActionOperation CreateOperation () => new EditTextActionOperation ().RemoveElement (element);
+			protected override MSBuildCodeActionOperation CreateOperation () => new EditTextActionOperation ().RemoveElement (element);
 		}
 	}
 }

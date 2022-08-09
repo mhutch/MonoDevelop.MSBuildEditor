@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			var filteredDiags = result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length)));
 
 			bool foundFix = false;
-			void ReportFix (MSBuildAction a, ImmutableArray<MSBuildDiagnostic> d) => foundFix = true;
+			void ReportFix (MSBuildCodeAction a, ImmutableArray<MSBuildDiagnostic> d) => foundFix = true;
 
 			//TODO invoke the provider once for all the diagnostics it supports 
 			foreach (var diagnostic in filteredDiags) {
@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			var severity = MSBuildDiagnosticSeverity.None;
 
-			void ReportFix (MSBuildAction a, ImmutableArray<MSBuildDiagnostic> diags) {
+			void ReportFix (MSBuildCodeAction a, ImmutableArray<MSBuildDiagnostic> diags) {
 				foreach (var d in diags) {
 					severity |= d.Descriptor.Severity;
 				}
@@ -128,7 +128,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length))));
 
 			var fixes = new List<MSBuildCodeFix> ();
-			void ReportFix (MSBuildAction a, ImmutableArray<MSBuildDiagnostic> d)
+			void ReportFix (MSBuildCodeAction a, ImmutableArray<MSBuildDiagnostic> d)
 			{
 				lock (fixes) {
 					fixes.Add (new MSBuildCodeFix (a, d));
@@ -164,10 +164,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	class MSBuildCodeFix
 	{
 		public string Category { get; }
-		public MSBuildAction Action { get; }
+		public MSBuildCodeAction Action { get; }
 		public ImmutableArray<MSBuildDiagnostic> Diagnostics { get; }
 
-		public MSBuildCodeFix (MSBuildAction action, ImmutableArray<MSBuildDiagnostic> diagnostics)
+		public MSBuildCodeFix (MSBuildCodeAction action, ImmutableArray<MSBuildDiagnostic> diagnostics)
 		{
 			Action = action;
 			Diagnostics = diagnostics;

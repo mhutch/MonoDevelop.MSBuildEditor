@@ -86,7 +86,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			}
 		}
 
-		class FixNameAction : SimpleMSBuildAction
+		class FixNameAction : SimpleMSBuildCodeAction
 		{
 			readonly TextSpan[] spans;
 			readonly string oldName, newName;
@@ -100,7 +100,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 			public override string Title => $"Change '{oldName}' to '{newName}'";
 
-			protected override MSBuildActionOperation CreateOperation ()
+			protected override MSBuildCodeActionOperation CreateOperation ()
 			{
 				var op = new EditTextActionOperation ();
 				foreach (var span in spans) {

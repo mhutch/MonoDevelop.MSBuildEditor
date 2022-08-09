@@ -18,6 +18,7 @@
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.3.0" />
     <!-- this preview package is currently required for the adaptor to work on systems where .NET 7 previews are installed -->
     <PackageReference Include="NUnit3TestAdapter" Version="4.3.0-alpha-net7.4" />
   </ItemGroup>

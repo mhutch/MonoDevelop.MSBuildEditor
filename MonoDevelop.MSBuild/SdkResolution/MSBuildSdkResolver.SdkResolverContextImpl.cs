@@ -4,7 +4,7 @@
 using System;
 using Microsoft.Build.Framework;
 
-/// this is originally from MonoDevelop - MonoDevelop.Projects.MSBuild.MSBuildSdkResolver
+// this is originally from MonoDevelop - MonoDevelop.Projects.MSBuild.MSBuildSdkResolver
 namespace MonoDevelop.MSBuild.SdkResolution
 {
 	partial class MSBuildSdkResolver

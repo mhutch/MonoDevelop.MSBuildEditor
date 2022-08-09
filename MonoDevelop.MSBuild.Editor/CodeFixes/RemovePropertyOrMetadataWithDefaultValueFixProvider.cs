@@ -38,7 +38,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			return Task.CompletedTask;
 		}
 
-		class RemoveRedundantElementAction : SimpleMSBuildAction
+		class RemoveRedundantElementAction : SimpleMSBuildCodeAction
 		{
 			readonly XElement element;
 			readonly string kindNoun;
@@ -48,10 +48,10 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				this.kindNoun = kindNoun;
 			}
 			public override string Title => $"Remove redundant {kindNoun} '{element.Name}'";
-			protected override MSBuildActionOperation CreateOperation () => new EditTextActionOperation ().RemoveElement (element);
+			protected override MSBuildCodeActionOperation CreateOperation () => new EditTextActionOperation ().RemoveElement (element);
 		}
 
-		class RemoveRedundantAttributeAction : SimpleMSBuildAction
+		class RemoveRedundantAttributeAction : SimpleMSBuildCodeAction
 		{
 			readonly XAttribute att;
 			readonly string kindNoun;
@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				this.kindNoun = kindNoun;
 			}
 			public override string Title => $"Remove redundant {kindNoun} '{att.Name}'";
-			protected override MSBuildActionOperation CreateOperation () => new EditTextActionOperation ().RemoveAttribute (att);
+			protected override MSBuildCodeActionOperation CreateOperation () => new EditTextActionOperation ().RemoveAttribute (att);
 		}
 	}
 }

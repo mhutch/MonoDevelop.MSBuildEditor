@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuild.Tests
 		{
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, "hello.csproj", (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider))
+				.SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider))
 				.ToList ();
 		}
 
@@ -207,15 +207,6 @@ namespace MonoDevelop.MSBuild.Tests
 				(MSBuildReferenceKind.Keyword, "include"),
 				(MSBuildReferenceKind.Keyword, "DependsOnTargets")
 			);
-		}
-
-		[Test]
-		public void TestMarkedIndicesHelper ()
-		{
-			string str = "|abc|d|efg|hi";
-			var indices = MSBuildTestHelpers.GetMarkedIndices (ref str);
-			Assert.AreEqual (string.Join (",", indices), "0,3,4,7");
-			Assert.AreEqual ("abcdefghi", str);
 		}
 
 		[Test]

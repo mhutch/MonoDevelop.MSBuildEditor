@@ -21,9 +21,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Util;
@@ -35,43 +33,35 @@ namespace MonoDevelop.MSBuild.Tests
 	{
 		const char defaultMarker = '|';
 
-		public static List<int> GetMarkedIndices (ref string docString, char marker = defaultMarker)
-		{
-			var indices = new List<int> ();
-			var docBuilder = new StringBuilder ();
-			for (int i = 0; i < docString.Length; i++) {
-				var ch = docString [i];
-				if (ch == marker) {
-					indices.Add (i - indices.Count);
-				} else {
-					docBuilder.Append (ch);
-				}
-			}
-			docString = docBuilder.ToString ();
-			return indices;
-		}
+		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (
+			string docString,
+			Func<(XmlSpineParser parser, ITextSource textSource, MSBuildDocument doc, int offset), T> selector,
+			string filename = null,
+			char marker = defaultMarker)
+			=> SelectAtMarkers (TextWithMarkers.Parse (docString, marker), selector, filename);
 
 		public static IEnumerable<(int index, T result)> SelectAtMarkers<T> (
-			string docString, string filename,
+			TextWithMarkers text,
 			Func<(XmlSpineParser parser, ITextSource textSource, MSBuildDocument doc, int offset), T> selector,
-			char marker = defaultMarker)
+			string filename = null,
+			char? marker = null)
 		{
-			var indices = new Queue<int> (GetMarkedIndices (ref docString, marker));
+			var indices = new Queue<int> (text.GetMarkedPositions (marker));
 
-			var textDoc = new StringTextSource (docString);
+			var textDoc = new StringTextSource (text.Text);
 
 			var treeParser = new XmlTreeParser (new XmlRootState ());
 			var (xdoc, _) = treeParser.Parse (textDoc.CreateReader ());
 			var parseContext = new MSBuildParserContext (
-				new NullMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, null, default);
+				new NullMSBuildEnvironment (), null, null, null, filename ?? "test.csproj", new PropertyValueCollector (false), null, null, default);
 			var doc = CreateEmptyDocument ();
 			doc.Build (xdoc, parseContext);
 
 			var parser = new XmlSpineParser (treeParser.RootState);
 
 			var nextIndex = indices.Dequeue ();
-			for (int i = 0; i < docString.Length; i++) {
-				parser.Push (docString [i]);
+			for (int i = 0; i < textDoc.Length; i++) {
+				parser.Push (textDoc[i]);
 				if (parser.Position != nextIndex) {
 					continue;
 				}

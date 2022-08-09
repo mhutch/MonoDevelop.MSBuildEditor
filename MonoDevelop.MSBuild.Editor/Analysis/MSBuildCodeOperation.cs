@@ -8,7 +8,10 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
-	abstract class MSBuildActionOperation
+	/// <summary>
+	/// Encapsulates an operation that modifies MSBuild code
+	/// </summary>
+	abstract class MSBuildCodeActionOperation
 	{
 		public abstract void Apply (IEditorOptions options, ITextBuffer document, CancellationToken cancellationToken, ITextView textView = null);
 	}
