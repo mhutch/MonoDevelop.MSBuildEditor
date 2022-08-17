@@ -10,11 +10,10 @@
     </Metadata>
     <Installation>
         <!-- need 16.4 for the editor -->
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.4, 17.0)" />
-        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Community">
+        <InstallationTarget Version="[17.3,18.0)" Id="Microsoft.VisualStudio.Community">
             <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
-        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Community">
+        <InstallationTarget Version="[17.3,18.0)" Id="Microsoft.VisualStudio.Community">
             <ProductArchitecture>x86</ProductArchitecture>
         </InstallationTarget>
     </Installation>
@@ -23,9 +22,9 @@
         These don't seem to cleanly map to VS versions. However, the InstallationTarget dep should take care of the 16.4 editor version dep,
         so we can be lax about the exact lower bound for these.
         -->
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[17.0)" DisplayName="C# and Visual Basic" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.NuGet" Version="[17.0)" DisplayName="NuGet package manager" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.3)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[17.3)" DisplayName="C# and Visual Basic" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.NuGet" Version="[17.3)" DisplayName="NuGet package manager" />
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
