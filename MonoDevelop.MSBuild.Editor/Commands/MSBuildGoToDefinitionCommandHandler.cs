@@ -17,8 +17,13 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	[Name (nameof (MSBuildGoToDefinitionCommandHandler))]
 	class MSBuildGoToDefinitionCommandHandler : ICommandHandler<GoToDefinitionCommandArgs>
 	{
-		[Import]
-		internal MSBuildNavigationService NavigationService { get; set; }
+		[ImportingConstructor]
+		public MSBuildGoToDefinitionCommandHandler (MSBuildNavigationService navigationService)
+		{
+			NavigationService = navigationService;
+		}
+
+		internal MSBuildNavigationService NavigationService { get; }
 
 		public string DisplayName { get; } = "Go to Definition";
 

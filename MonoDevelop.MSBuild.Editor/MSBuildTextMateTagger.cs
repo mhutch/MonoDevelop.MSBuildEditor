@@ -16,11 +16,16 @@ namespace MonoDevelop.MSBuild.Editor
 	[ContentType (MSBuildContentType.Name)]
 	sealed class MSBuildTextMateTagger : ITaggerProvider
 	{
-		[Import]
-		ICommonEditorAssetServiceFactory assetServiceFactory = null;
+		[ImportingConstructor]
+		public MSBuildTextMateTagger (ICommonEditorAssetServiceFactory assetServiceFactory)
+		{
+			AssetServiceFactory = assetServiceFactory;
+		}
+
+		public ICommonEditorAssetServiceFactory AssetServiceFactory { get; }
 
 		public ITagger<T> CreateTagger<T> (ITextBuffer buffer) where T : ITag =>
-			assetServiceFactory.GetOrCreate (buffer)
+			AssetServiceFactory.GetOrCreate (buffer)
 			.FindAsset<ITaggerProvider> (
 				(metadata) => metadata.TagTypes.Any (tagType => typeof (T).IsAssignableFrom (tagType))
 			)

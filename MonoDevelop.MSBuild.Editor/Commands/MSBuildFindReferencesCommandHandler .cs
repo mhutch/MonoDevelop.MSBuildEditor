@@ -4,13 +4,10 @@
 using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-using MonoDevelop.MSBuild.Editor.Host;
 using MonoDevelop.MSBuild.Editor.Navigation;
-using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Editor.Commands
 {
@@ -19,8 +16,13 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	[Name ("MSBuild Find References")]
 	class MSBuildFindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
 	{
-		[Import]
-		internal MSBuildNavigationService NavigationService { get; set; }
+		[ImportingConstructor]
+		public MSBuildFindReferencesCommandHandler (MSBuildNavigationService navigationService)
+		{
+			NavigationService = navigationService;
+		}
+
+		public MSBuildNavigationService NavigationService { get; }
 
 		public string DisplayName { get; } = "Find References";
 

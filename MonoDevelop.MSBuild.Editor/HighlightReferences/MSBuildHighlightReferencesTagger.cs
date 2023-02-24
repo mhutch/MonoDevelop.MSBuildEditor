@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			ITextView textView,
 			MSBuildHighlightReferencesTaggerProvider provider
 			)
-			: base (textView, provider.JoinableTaskContext)
+			: base (textView, provider.JoinableTaskContext, provider.Logger)
 		{
 			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 			this.provider = provider;

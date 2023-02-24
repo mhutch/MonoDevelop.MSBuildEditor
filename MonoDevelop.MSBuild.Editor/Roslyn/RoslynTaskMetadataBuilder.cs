@@ -24,8 +24,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 	[Export (typeof (ITaskMetadataBuilder))]
 	class TaskMetadataBuilder : ITaskMetadataBuilder
 	{
-		[Import]
-		public IRoslynCompilationProvider CompilationProvider { get; set; }
+		[ImportingConstructor]
+		public TaskMetadataBuilder (IRoslynCompilationProvider compilationProvider)
+		{
+			CompilationProvider = compilationProvider;
+		}
+
+		public IRoslynCompilationProvider CompilationProvider { get; }
 
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,

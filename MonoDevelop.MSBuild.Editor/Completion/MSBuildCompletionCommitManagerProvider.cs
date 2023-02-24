@@ -16,11 +16,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	[ContentType (MSBuildContentType.Name)]
 	class MSBuildCompletionCommitManagerProvider : IAsyncCompletionCommitManagerProvider
 	{
-		[Import]
-		public JoinableTaskContext JoinableTaskContext { get; set; }
+		[ImportingConstructor]
+		public MSBuildCompletionCommitManagerProvider (
+			JoinableTaskContext joinableTaskContext,
+			IEditorCommandHandlerServiceFactory commandServiceFactory)
+		{
+			JoinableTaskContext = joinableTaskContext;
+			CommandServiceFactory = commandServiceFactory;
+		}
 
-		[Import]
-		public IEditorCommandHandlerServiceFactory CommandServiceFactory { get; set; }
+		public JoinableTaskContext JoinableTaskContext { get; }
+		public IEditorCommandHandlerServiceFactory CommandServiceFactory { get; }
 
 		public IAsyncCompletionCommitManager GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (

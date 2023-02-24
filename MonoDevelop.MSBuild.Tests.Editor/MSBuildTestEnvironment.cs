@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Tests;
@@ -11,13 +12,12 @@ namespace MonoDevelop.MSBuild.Tests
 {
 	class MSBuildTestEnvironment : XmlTestEnvironment
 	{
-		public static new MSBuildEditorCatalog CreateEditorCatalog () => new (EnsureInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
+		public static new MSBuildEditorCatalog CreateEditorCatalog () => new (GetInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
 
-		protected override void OnInitialize ()
+		protected override Task OnInitialize ()
 		{
 			MSBuildTestHelpers.RegisterMSBuildAssemblies ();
-
-			base.OnInitialize ();
+			return base.OnInitialize ();
 		}
 
 		protected override IEnumerable<string> GetAssembliesToCompose ()
@@ -27,8 +27,7 @@ namespace MonoDevelop.MSBuild.Tests
 			});
 
 		protected override bool ShouldIgnoreCompositionError (string error)
-			=> error.Contains ("MonoDevelop.MSBuild.Editor.Navigation.MSBuildNavigationService")
-				|| error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
+			=> error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
 				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
 				|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
 			;

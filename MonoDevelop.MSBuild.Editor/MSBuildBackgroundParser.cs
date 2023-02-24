@@ -2,16 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
 
@@ -19,28 +15,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
+		readonly MSBuildParserProvider provider;
 		string filepath;
 
 		//FIXME: move this to a lower priority BackgroundProcessor
 		MSBuildAnalyzerDriver analyzerDriver;
 
-		public IMSBuildEnvironment RuntimeInformation { get; }
-		public MSBuildSchemaProvider SchemaProvider { get; }
-		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
-
 		public XmlBackgroundParser XmlParser { get; }
 
-		public MSBuildBackgroundParser (
-			ITextBuffer buffer,
-			IMSBuildEnvironment runtimeInformation,
-			MSBuildSchemaProvider schemaProvider,
-			ITaskMetadataBuilder taskMetadataBuilder)
+		public MSBuildBackgroundParser (ITextBuffer buffer, MSBuildParserProvider provider)
 		{
-			RuntimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
-			SchemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
-			TaskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
-
-			XmlParser = XmlBackgroundParser.GetParser (buffer);
+			XmlParser = provider.XmlParserProvider.GetParser (buffer);
 			XmlParser.ParseCompleted += XmlParseCompleted;
 
 			if (buffer.Properties.TryGetProperty<ITextDocument> (typeof (ITextDocument), out var doc)) {
@@ -50,6 +35,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			analyzerDriver = new MSBuildAnalyzerDriver ();
 			analyzerDriver.AddBuiltInAnalyzers ();
+			this.provider = provider;
 		}
 
 		void OnFileAction (object sender, TextDocumentFileActionEventArgs e)
@@ -79,9 +65,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						input.TextSnapshot.GetTextSource (),
 						filepath,
 						oldDoc,
-						SchemaProvider,
-						RuntimeInformation,
-						TaskMetadataBuilder,
+						provider.SchemaProvider,
+						provider.MSBuildEnvironment,
+						provider.TaskMetadataBuilder,
 						token);
 
 					var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);

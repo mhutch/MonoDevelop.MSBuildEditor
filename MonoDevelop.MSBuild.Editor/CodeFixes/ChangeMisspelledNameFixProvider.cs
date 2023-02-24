@@ -15,8 +15,13 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 	[Export (typeof (MSBuildFixProvider))]
 	class ChangeMisspelledNameFixProvider : MSBuildFixProvider
 	{
-		[Import]
-		MSBuildSpellCheckerProvider SpellCheckerProvider { get; set; }
+		[ImportingConstructor]
+		public ChangeMisspelledNameFixProvider (MSBuildSpellCheckerProvider spellCheckerProvider)
+		{
+			SpellCheckerProvider = spellCheckerProvider;
+		}
+
+		MSBuildSpellCheckerProvider SpellCheckerProvider { get; }
 
 		public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create (
 			CoreDiagnostics.UnreadItemId,

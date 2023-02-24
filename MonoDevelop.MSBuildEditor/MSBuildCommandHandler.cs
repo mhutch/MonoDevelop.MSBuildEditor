@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
@@ -20,11 +20,15 @@ namespace MonoDevelop.MSBuildEditor
 	[TextViewRole (PredefinedTextViewRoles.PrimaryDocument)]
 	sealed class MSBuildCommandHandlerContentProvider : EditorContentInstanceProvider<MSBuildCommandHandler>
 	{
-		[Import]
-		public ITextDocumentFactoryService TextDocumentFactory { get; private set; }
+		[ImportingConstructor]
+		public MSBuildCommandHandlerContentProvider (ITextDocumentFactoryService textDocumentFactory)
+		{
+			TextDocumentFactory = textDocumentFactory;
+		}
 
-		protected override MSBuildCommandHandler CreateInstance (ITextView view)
-						=> new MSBuildCommandHandler (view, this);
+		public ITextDocumentFactoryService TextDocumentFactory { get; }
+
+		protected override MSBuildCommandHandler CreateInstance (ITextView view) => new (view, this);
 	}
 
 	class MSBuildCommandHandler

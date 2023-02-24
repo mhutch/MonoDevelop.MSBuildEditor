@@ -12,20 +12,40 @@ using Microsoft.VisualStudio.Text.Projection;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export]
 	class MSBuildParserProvider
 	{
-		[Import (typeof (ITaskMetadataBuilder))]
-		public ITaskMetadataBuilder TaskMetadataBuilder { get; set; }
+		[ImportingConstructor]
+		public MSBuildParserProvider (
+			XmlParserProvider xmlParserProvider,
+			[Import (AllowDefault = true)] ITaskMetadataBuilder taskMetadataBuilder,
+			[Import (AllowDefault = true)] MSBuildSchemaProvider schemaProvider,
+			[Import (AllowDefault = true)] IMSBuildEnvironment msbuildEnvironment
+			)
+		{
+			if (msbuildEnvironment == null) {
+				try {
+					msbuildEnvironment = new CurrentProcessMSBuildEnvironment ();
+				} catch (Exception ex) {
+					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
+					msbuildEnvironment = new NullMSBuildEnvironment ();
+				}
+			}
 
-		[Import (typeof (MSBuildSchemaProvider), AllowDefault = true)]
-		public MSBuildSchemaProvider SchemaProvider { get; set; }
+			XmlParserProvider = xmlParserProvider;
+			TaskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder ();
+			SchemaProvider = schemaProvider ?? new MSBuildSchemaProvider ();
+			MSBuildEnvironment = msbuildEnvironment;
+		}
 
-		[Import (typeof (IMSBuildEnvironment), AllowDefault = true)]
-		public IMSBuildEnvironment MSBuildEnvironment { get; set; }
+		public XmlParserProvider XmlParserProvider { get; }
+		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
+		public MSBuildSchemaProvider SchemaProvider { get; }
+		public IMSBuildEnvironment MSBuildEnvironment { get; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 		{
@@ -38,21 +58,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
 			buffer.ContentTypeChanged += ContentTypeChanged;
 
-			var env = MSBuildEnvironment;
-			if (env == null) {
-				try {
-					env = new CurrentProcessMSBuildEnvironment ();
-				} catch (Exception ex) {
-					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
-					env = new NullMSBuildEnvironment ();
-				}
-			}
-			return new MSBuildBackgroundParser (
-				buffer,
-				env,
-				SchemaProvider ?? new MSBuildSchemaProvider (),
-				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder ()
-			);
+			return new (buffer, this);
 		}
 
 		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.XmlCore)

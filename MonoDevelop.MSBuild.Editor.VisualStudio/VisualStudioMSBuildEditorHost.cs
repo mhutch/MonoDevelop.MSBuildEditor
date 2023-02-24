@@ -22,10 +22,18 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[Export (typeof (IMSBuildEditorHost))]
 	class VisualStudioMSBuildEditorHost : IMSBuildEditorHost
 	{
-		[Import]
-		internal SVsServiceProvider ServiceProvider { get; set; }
+		[ImportingConstructor]
+		public VisualStudioMSBuildEditorHost (
+			SVsServiceProvider serviceProvider,
+			IVsEditorAdaptersFactoryService editorAdapter)
+		{
+			ServiceProvider = serviceProvider;
+			EditorAdapter = editorAdapter;
+		}
 
-		[Import] IVsEditorAdaptersFactoryService EditorAdapter { get; set; }
+		public SVsServiceProvider ServiceProvider { get; }
+
+		public IVsEditorAdaptersFactoryService EditorAdapter { get; }
 
 		public bool OpenFile (string destFile, int destOffset, bool isPreview = false)
 		{

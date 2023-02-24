@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -10,7 +9,6 @@ using Microsoft.VisualStudio.Threading;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Commands
 {
@@ -21,14 +19,20 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	[Export, PartCreationPolicy(CreationPolicy.Shared)]
 	class MSBuildCachingResolver
 	{
-		[Import]
-		public IFunctionTypeProvider FunctionTypeProvider { get; set; }
+		[ImportingConstructor]
+		public MSBuildCachingResolver (
+			IFunctionTypeProvider functionTypeProvider,
+			JoinableTaskContext joinableTaskContext,
+			MSBuildParserProvider ParserProvider)
+		{
+			FunctionTypeProvider = functionTypeProvider;
+			JoinableTaskContext = joinableTaskContext;
+			this.ParserProvider = ParserProvider;
+		}
 
-		[Import]
-		public JoinableTaskContext JoinableTaskContext { get; set; }
-
-		[Import]
-		public MSBuildParserProvider ParserProvider { get; set; }
+		public IFunctionTypeProvider FunctionTypeProvider { get; }
+		public JoinableTaskContext JoinableTaskContext { get; }
+		public MSBuildParserProvider ParserProvider { get; }
 
 		struct CachedResult
 		{

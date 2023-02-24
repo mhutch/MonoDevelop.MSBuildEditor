@@ -38,10 +38,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		readonly MSBuildBackgroundParser parser;
 		readonly MSBuildCompletionSourceProvider provider;
 
-		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, MSBuildBackgroundParser parser) : base (textView)
+		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider) : base (textView, provider.Logger, provider.XmlParserProvider)
 		{
-			this.parser = parser;
 			this.provider = provider;
+			this.parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 		}
 
 		class MSBuildCompletionSessionContext
