@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Tagging;
 
 namespace MonoDevelop.MSBuild.Editor.HighlightReferences
@@ -25,22 +26,23 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			JoinableTaskContext joinableTaskContext,
 			IFunctionTypeProvider functionTypeProvider,
 			MSBuildParserProvider parserProvider,
-			ILogger<MSBuildHighlightReferencesTagger> logger)
+			IEditorLoggerService loggerService)
 		{
 			JoinableTaskContext = joinableTaskContext;
 			FunctionTypeProvider = functionTypeProvider;
 			ParserProvider = parserProvider;
-			Logger = logger;
+			LoggerService = loggerService;
 		}
 
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public IFunctionTypeProvider FunctionTypeProvider { get; }
 		public MSBuildParserProvider ParserProvider { get; }
-		public ILogger Logger { get; }
+		public IEditorLoggerService LoggerService { get; }
 
 		public ITagger<T> CreateTagger<T> (ITextView textView, ITextBuffer buffer) where T : ITag
-			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (
-				() => new MSBuildHighlightReferencesTagger (textView, this)
-			);
+			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (() => {
+				var logger = LoggerService.CreateLogger<MSBuildHighlightReferencesTagger> (textView);
+				return new MSBuildHighlightReferencesTagger (textView, this, logger);
+			});
 	}
 }

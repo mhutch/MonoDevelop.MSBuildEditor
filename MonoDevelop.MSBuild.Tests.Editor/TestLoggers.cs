@@ -6,8 +6,12 @@
 using System.ComponentModel.Composition;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Editor.HighlightReferences;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.Xml.Editor.Tests;
 
@@ -18,12 +22,16 @@ static class TestLoggers
 		.SetMinimumLevel (LogLevel.Debug)
 	);
 
-	public static ILogger CreateLogger (string categoryName) => loggerFactory.CreateLogger (categoryName);
 	public static ILogger<T> CreateLogger<T> () => loggerFactory.CreateLogger<T> ();
+}
 
-	[Export]
-	public static ILogger<MSBuildCompletionSource> MSBuildCompletionSource => CreateLogger<MSBuildCompletionSource> ();
+[Export (typeof (IEditorLoggerFactory))]
+[ContentType (XmlContentTypeNames.XmlCore)]
+class TestEditorLoggerFactory : IEditorLoggerFactory
+{
+	public ILogger<T> CreateLogger<T> () => TestLoggers.CreateLogger<T> ();
 
-	[Export]
-	public static ILogger<MSBuildHighlightReferencesTagger> MSBuildHighlightReferencesTagger => CreateLogger<MSBuildHighlightReferencesTagger> ();
+	public ILogger<T> CreateLogger<T> (ITextBuffer buffer) => CreateLogger<T> ();
+
+	public ILogger<T> CreateLogger<T> (ITextView textView) => CreateLogger<T> ();
 }
