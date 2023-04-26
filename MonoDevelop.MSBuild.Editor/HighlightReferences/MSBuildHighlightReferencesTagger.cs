@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -26,9 +26,9 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 
 		public MSBuildHighlightReferencesTagger (
 			ITextView textView,
-			MSBuildHighlightReferencesTaggerProvider provider
-			)
-			: base (textView, provider.JoinableTaskContext)
+			MSBuildHighlightReferencesTaggerProvider provider,
+			ILogger logger)
+			: base (textView, provider.JoinableTaskContext, logger)
 		{
 			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 			this.provider = provider;

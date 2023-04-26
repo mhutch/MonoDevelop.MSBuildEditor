@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.TextStructure
 {
@@ -17,14 +18,17 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 	{
 		readonly ITextStructureNavigatorSelectorService navigatorService;
 		readonly IContentTypeRegistryService contentTypeRegistry;
+		readonly XmlParserProvider xmlParserProvider;
 
 		[ImportingConstructor]
 		public MSBuildTextStructureNavigatorProvider (
 			ITextStructureNavigatorSelectorService navigatorService,
-			IContentTypeRegistryService contentTypeRegistry)
+			IContentTypeRegistryService contentTypeRegistry,
+			XmlParserProvider xmlParserProvider)
 		{
 			this.navigatorService = navigatorService;
 			this.contentTypeRegistry = contentTypeRegistry;
+			this.xmlParserProvider = xmlParserProvider;
 		}
 
 		public ITextStructureNavigator CreateTextStructureNavigator (ITextBuffer textBuffer)
@@ -33,7 +37,7 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 				textBuffer,
 				contentTypeRegistry.GetContentType (XmlContentTypeNames.XmlCore)
 			);
-			return new MSBuildTextStructureNavigator (textBuffer, codeNavigator);
+			return new MSBuildTextStructureNavigator (textBuffer, codeNavigator, xmlParserProvider);
 		}
 	}
 }

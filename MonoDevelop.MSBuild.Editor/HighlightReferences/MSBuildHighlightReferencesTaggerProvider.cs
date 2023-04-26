@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Tagging;
 
 namespace MonoDevelop.MSBuild.Editor.HighlightReferences
@@ -28,9 +29,12 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 		[Import]
 		public MSBuildParserProvider ParserProvider { get; set; }
 
+		[Import]
+		public IEditorLoggerService EditorLoggerService { get; set; }
+
 		public ITagger<T> CreateTagger<T> (ITextView textView, ITextBuffer buffer) where T : ITag
 			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (
-				() => new MSBuildHighlightReferencesTagger (textView, this)
+				() => new MSBuildHighlightReferencesTagger (textView, this, EditorLoggerService.CreateLogger<MSBuildHighlightReferencesTagger>(textView))
 			);
 	}
 }

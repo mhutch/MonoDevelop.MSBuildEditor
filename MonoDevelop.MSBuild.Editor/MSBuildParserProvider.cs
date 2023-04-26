@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -26,6 +27,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		[Import (typeof (IMSBuildEnvironment), AllowDefault = true)]
 		public IMSBuildEnvironment MSBuildEnvironment { get; set; }
+
+		[Import (typeof (XmlParserProvider), AllowDefault = true)]
+		public XmlParserProvider XmlParserProvider { get; set; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 		{
@@ -51,7 +55,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				buffer,
 				env,
 				SchemaProvider ?? new MSBuildSchemaProvider (),
-				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder ()
+				TaskMetadataBuilder ?? new NoopTaskMetadataBuilder (),
+				XmlParserProvider
 			);
 		}
 

@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Tests;
 
@@ -11,13 +11,13 @@ namespace MonoDevelop.MSBuild.Tests
 {
 	class MSBuildTestEnvironment : XmlTestEnvironment
 	{
-		public static new MSBuildEditorCatalog CreateEditorCatalog () => new (EnsureInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
+		public static new MSBuildEditorCatalog CreateEditorCatalog () => new (GetInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
 
-		protected override void OnInitialize ()
+		protected override async Task OnInitialize ()
 		{
 			MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 
-			base.OnInitialize ();
+			await base.OnInitialize ();
 		}
 
 		protected override IEnumerable<string> GetAssembliesToCompose ()

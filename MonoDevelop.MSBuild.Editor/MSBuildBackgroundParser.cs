@@ -34,13 +34,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			ITextBuffer buffer,
 			IMSBuildEnvironment runtimeInformation,
 			MSBuildSchemaProvider schemaProvider,
-			ITaskMetadataBuilder taskMetadataBuilder)
+			ITaskMetadataBuilder taskMetadataBuilder,
+			XmlParserProvider xmlParserProvider)
 		{
 			RuntimeInformation = runtimeInformation ?? throw new ArgumentNullException (nameof (runtimeInformation));
 			SchemaProvider = schemaProvider ?? throw new ArgumentNullException (nameof (schemaProvider));
 			TaskMetadataBuilder = taskMetadataBuilder ?? throw new ArgumentNullException (nameof (taskMetadataBuilder));
 
-			XmlParser = XmlBackgroundParser.GetParser (buffer);
+			XmlParser = xmlParserProvider.GetParser (buffer);
 			XmlParser.ParseCompleted += XmlParseCompleted;
 
 			if (buffer.Properties.TryGetProperty<ITextDocument> (typeof (ITextDocument), out var doc)) {

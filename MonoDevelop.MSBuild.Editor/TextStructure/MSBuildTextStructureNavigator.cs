@@ -20,11 +20,13 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 	{
 		readonly ITextBuffer textBuffer;
 		readonly ITextStructureNavigator xmlNavigator;
+		readonly XmlParserProvider xmlParserProvider;
 
-		public MSBuildTextStructureNavigator (ITextBuffer textBuffer, ITextStructureNavigator xmlNavigator)
+		public MSBuildTextStructureNavigator (ITextBuffer textBuffer, ITextStructureNavigator xmlNavigator, XmlParserProvider xmlParserProvider)
 		{
 			this.textBuffer = textBuffer;
 			this.xmlNavigator = xmlNavigator;
+			this.xmlParserProvider = xmlParserProvider;
 		}
 
 		public IContentType ContentType => textBuffer.ContentType;
@@ -49,7 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 
 		public SnapshotSpan GetSpanOfEnclosing (SnapshotSpan activeSpan)
 		{
-			if (!XmlBackgroundParser.TryGetParser (activeSpan.Snapshot.TextBuffer, out var parser)) {
+			if (!xmlParserProvider.TryGetParser (activeSpan.Snapshot.TextBuffer, out var parser)) {
 				return xmlNavigator.GetSpanOfEnclosing (activeSpan);
 			}
 

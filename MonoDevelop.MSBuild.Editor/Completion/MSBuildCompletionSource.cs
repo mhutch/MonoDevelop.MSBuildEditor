@@ -30,6 +30,7 @@ using MonoDevelop.Xml.Parser;
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
+using Microsoft.Extensions.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -38,7 +39,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		readonly MSBuildBackgroundParser parser;
 		readonly MSBuildCompletionSourceProvider provider;
 
-		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, MSBuildBackgroundParser parser) : base (textView)
+		public MSBuildCompletionSource (
+			ITextView textView,
+			MSBuildCompletionSourceProvider provider,
+			MSBuildBackgroundParser parser,
+			XmlParserProvider xmlParserProvider,
+			ILogger logger) : base (textView, logger, xmlParserProvider)
 		{
 			this.parser = parser;
 			this.provider = provider;

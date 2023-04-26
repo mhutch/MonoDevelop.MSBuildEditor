@@ -9,7 +9,8 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Language;
-
+using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
@@ -35,10 +36,21 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[Import]
 		public MSBuildParserProvider ParserProvider { get; set; }
 
+		[Import]
+		public IEditorLoggerService EditorLoggerService { get; set; }
+
+		[Import]
+		public XmlParserProvider XmlParserProvider { get; set; }
+
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
 				typeof (MSBuildCompletionSource),
-				() => new MSBuildCompletionSource (textView, this, ParserProvider.GetParser (textView.TextBuffer))
+				() => new MSBuildCompletionSource (
+					textView,
+					this,
+					ParserProvider.GetParser (textView.TextBuffer),
+					XmlParserProvider,
+					EditorLoggerService.CreateLogger<MSBuildCompletionSource>(textView))
 			);
 	}
 }
