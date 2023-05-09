@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
+
+using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
-	static class MSBuildEvaluatorExtensions
+	static partial class MSBuildEvaluatorExtensions
 	{
 		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
@@ -55,7 +58,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return ((ExpressionArgumentLiteral)expression).Value;
 
 			default:
-				LoggingService.LogWarning ($"Evaluator does not currently support expression node type {expression.NodeKind}");
+				LogUnsupportedNodeKind (context.Logger, expression.NodeKind);
 				return null;
 			}
 		}
@@ -125,7 +128,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 					yield break;
 				}
 				if (!prop.IsSimpleProperty) {
-					LoggingService.LogWarning ("Only simple properties are supported in imports");
+					LogOnlySupportSimpleProperties (context.Logger);
 					yield break;
 				}
 				if (context.TryGetMultivaluedProperty (prop.Name, out var p) && p is OneOrMany<EvaluatedValue> values) {
@@ -170,7 +173,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 
 			default:
-				LoggingService.LogWarning ("Only simple properties and expressions are supported in imports");
+				LogOnlySupportSimplePropertiesAndExpressions (context.Logger);
 				yield break;
 			}
 		}
@@ -181,15 +184,16 @@ namespace MonoDevelop.MSBuild.Evaluation
 			object instance = null;
 
 			if (inv.Target is ExpressionClassReference classRef) {
-				receiver = GetStaticFunctionReceiver (classRef);
+				receiver = TryGetStaticFunctionReceiver (classRef);
 				if (receiver is null) {
+					LogPropertyFunctionsNotSupportedOnType (context.Logger, classRef.Name);
 					result = null;
 					return false;
 				}
 			} else {
 				instance = EvaluateNode (context, inv.Target);
 				if (instance is null) {
-					LoggingService.LogWarning ($"Cannot invoke function on null object");
+					LogCannotInvokeFunctionOnNull (context.Logger);
 					result = null;
 					return false;
 				}
@@ -215,12 +219,12 @@ namespace MonoDevelop.MSBuild.Evaluation
 					return true;
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ("Error in property function evaluation", ex);
+				LogErrorInPropertyFunctionEvaluation (context.Logger, ex);
 				result = null;
 				return false;
 			}
 
-			LoggingService.LogWarning ($"Unsupported property function [{receiver}]::{inv.Function.Name}");
+			LogUnsupportedPropertyFunction (context.Logger, receiver, inv.Function.Name);
 			result = null;
 			return false;
 		}
@@ -267,7 +271,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			};
 		}
 
-		static Type GetStaticFunctionReceiver (ExpressionClassReference classRef)
+		static Type TryGetStaticFunctionReceiver (ExpressionClassReference classRef)
 		{
 			// these are the types supported by TryExecuteWellKnownFunction
 			// FIXME: support other types
@@ -285,8 +289,34 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return typeof (Guid);
 			}
 
-			LoggingService.LogWarning ($"Property functions not currently supported on type [{classRef.Name}]");
 			return null;
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Evaluator does not currently support expression node type {nodeKind}")]
+		static partial void LogUnsupportedNodeKind (ILogger logger, ExpressionNodeKind nodeKind);
+
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Warning, Message = "Only simple properties are supported in imports")]
+		static partial void LogOnlySupportSimpleProperties (ILogger logger);
+
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Warning, Message = "Only simple properties and expressions are supported in imports")]
+		static partial void LogOnlySupportSimplePropertiesAndExpressions (ILogger logger);
+
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Warning, Message = "Cannot invoke function on null object")]
+		static partial void LogCannotInvokeFunctionOnNull (ILogger logger);
+
+
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error in property function evaluation")]
+		static partial void LogErrorInPropertyFunctionEvaluation (ILogger logger, Exception ex);
+
+
+		[LoggerMessage (EventId = 5, Level = LogLevel.Warning, Message = "Unsupported property function '[{receiver}]::{functionName}'")]
+		static partial void LogUnsupportedPropertyFunction (ILogger logger, Type receiver, string functionName);
+
+
+		[LoggerMessage (EventId = 6, Level = LogLevel.Warning, Message = "Property functions not currently supported on type [{className}]")]
+		static partial void LogPropertyFunctionsNotSupportedOnType (ILogger logger, string className);
 	}
 }

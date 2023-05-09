@@ -17,7 +17,7 @@ using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
+	partial class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
 		readonly ILogger logger;
 		readonly MSBuildParserProvider provider;
@@ -84,7 +84,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					doc.Diagnostics.AddRange (analyzerDiagnostics);
 				}
 				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
-					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
+					LogUnhandledParserError (logger, ex);
 					doc = MSBuildRootDocument.Empty;
 				}
 				// for some reason the VS debugger thinks cancellation exceptions aren't handled?
@@ -95,6 +95,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return new MSBuildParseResult (doc, doc.Diagnostics, input.TextSnapshot);
 			}, token);
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error in MSBuild parser")]
+		static partial void LogUnhandledParserError (ILogger logger, Exception ex);
 
 		protected override int CompareInputs (XmlParseResult a, XmlParseResult b)
 			=> a.TextSnapshot.Version.VersionNumber.CompareTo (b.TextSnapshot.Version.VersionNumber);
