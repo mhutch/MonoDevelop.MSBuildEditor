@@ -26,7 +26,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 			JoinableTaskContext joinableTaskContext,
 			IFunctionTypeProvider functionTypeProvider,
 			MSBuildParserProvider parserProvider,
-			IEditorLoggerService loggerService)
+			IEditorLoggerFactory loggerService)
 		{
 			JoinableTaskContext = joinableTaskContext;
 			FunctionTypeProvider = functionTypeProvider;
@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public IFunctionTypeProvider FunctionTypeProvider { get; }
 		public MSBuildParserProvider ParserProvider { get; }
-		public IEditorLoggerService LoggerService { get; }
+		public IEditorLoggerFactory LoggerService { get; }
 
 		public ITagger<T> CreateTagger<T> (ITextView textView, ITextBuffer buffer) where T : ITag
 			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (() => {

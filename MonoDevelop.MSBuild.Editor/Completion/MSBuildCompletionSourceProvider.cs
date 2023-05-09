@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			JoinableTaskContext joinableTaskContext,
 			MSBuildParserProvider parserProvider,
 			XmlParserProvider xmlParserProvider,
-			IEditorLoggerService loggerService)
+			IEditorLoggerFactory loggerService)
 		{
 			FunctionTypeProvider = functionTypeProvider;
 			PackageSearchManager = packageSearchManager;
@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public DisplayElementFactory DisplayElementFactory { get; }
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public MSBuildParserProvider ParserProvider { get; }
-		public IEditorLoggerService LoggerService { get; }
+		public IEditorLoggerFactory LoggerService { get; }
 		public XmlParserProvider XmlParserProvider { get; }
 
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>

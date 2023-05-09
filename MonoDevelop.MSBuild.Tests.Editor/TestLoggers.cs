@@ -6,32 +6,19 @@
 using System.ComponentModel.Composition;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using MonoDevelop.MSBuild.Editor.Completion;
-using MonoDevelop.MSBuild.Editor.HighlightReferences;
+
+using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Tests;
 
-namespace MonoDevelop.Xml.Editor.Tests;
+namespace MonoDevelop.MSBuild.Tests.Editor;
 
-static class TestLoggers
+[Export (typeof (IEditorLoggerProvider))]
+[ContentType (MSBuildContentType.Name)]
+class MSBuildTestEditorLoggerProvider : IEditorLoggerProvider
 {
-	static readonly ILoggerFactory loggerFactory = LoggerFactory.Create (builder => builder
-		.AddConsole ()
-		.SetMinimumLevel (LogLevel.Debug)
-	);
+	public ILogger CreateLogger (string categoryName) => TestLoggerFactory.CreateLogger (categoryName);
 
-	public static ILogger<T> CreateLogger<T> () => loggerFactory.CreateLogger<T> ();
-}
-
-[Export (typeof (IEditorLoggerFactory))]
-[ContentType (XmlContentTypeNames.XmlCore)]
-class TestEditorLoggerFactory : IEditorLoggerFactory
-{
-	public ILogger<T> CreateLogger<T> () => TestLoggers.CreateLogger<T> ();
-
-	public ILogger<T> CreateLogger<T> (ITextBuffer buffer) => CreateLogger<T> ();
-
-	public ILogger<T> CreateLogger<T> (ITextView textView) => CreateLogger<T> ();
+	public void Dispose () { }
 }
