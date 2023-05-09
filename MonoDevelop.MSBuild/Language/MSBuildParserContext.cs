@@ -237,8 +237,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var sdkInfo = Environment.ResolveSdk (
-					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null);
+				var sdkInfo = Environment.ResolveSdk ((sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null, Logger);
 				if (sdk != null) {
 					return sdkInfo;
 				}

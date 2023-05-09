@@ -31,7 +31,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			if (msbuildEnvironment == null) {
 				try {
-					msbuildEnvironment = new CurrentProcessMSBuildEnvironment ();
+					msbuildEnvironment = new CurrentProcessMSBuildEnvironment (environmentLogger.Logger);
 				} catch (Exception ex) {
 					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
 					msbuildEnvironment = new NullMSBuildEnvironment ();

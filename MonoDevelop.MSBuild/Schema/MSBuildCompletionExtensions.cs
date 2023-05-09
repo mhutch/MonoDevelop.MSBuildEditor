@@ -240,8 +240,7 @@ namespace MonoDevelop.MSBuild.Schema
 					return new[] { new FileOrFolderInfo ("AutoImport.props", false, "Auto-imported workload properties") };
 				}
 
-				var sdkInfo = doc.Environment.ResolveSdk (
-					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null);
+				var sdkInfo = doc.Environment.ResolveSdk ((sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null, doc.FileEvaluationContext.Logger);
 
 				// only do path completion for single-path SDKs
 				// handling multiple value correctly would involve computing the files that exists in all paths

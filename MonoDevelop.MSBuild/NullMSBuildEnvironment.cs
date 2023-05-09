@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.SdkResolution;
 
@@ -23,8 +25,6 @@ namespace MonoDevelop.MSBuild
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
-		public SdkInfo ResolveSdk (
-			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath
-			) => null;
+		public SdkInfo ResolveSdk ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath, ILogger logger) => null;
 	}
 }
