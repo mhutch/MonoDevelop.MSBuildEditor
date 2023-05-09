@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -31,6 +33,7 @@ namespace MonoDevelop.MSBuild.Language
 		public CancellationToken Token { get; }
 		public MSBuildRuntimeEvaluationContext RuntimeEvaluationContext { get; }
 		public IMSBuildEnvironment Environment { get; }
+		public ILogger Logger { get; }
 
 		public MSBuildParserContext (
 			IMSBuildEnvironment env,
@@ -40,6 +43,7 @@ namespace MonoDevelop.MSBuild.Language
 			string projectPath,
 			PropertyValueCollector propVals,
 			ITaskMetadataBuilder taskBuilder,
+			ILogger logger,
 			MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
@@ -50,10 +54,11 @@ namespace MonoDevelop.MSBuild.Language
 			ProjectPath = projectPath;
 			PropertyCollector = propVals;
 			TaskBuilder = taskBuilder;
+			Logger = logger;
 			SchemaProvider = schemaProvider;
 			Token = token;
 
-			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env);
+			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env, logger);
 		}
 
 		public bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && Token.IsCancellationRequested);

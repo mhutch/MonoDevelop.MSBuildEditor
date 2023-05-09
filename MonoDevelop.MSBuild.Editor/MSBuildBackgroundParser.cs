@@ -5,16 +5,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
+
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
+		readonly ILogger logger;
 		readonly MSBuildParserProvider provider;
 		string filepath;
 
@@ -33,6 +38,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				doc.FileActionOccurred += OnFileAction;
 			}
 
+			logger = provider.LoggerFactory.CreateLogger<MSBuildBackgroundParser> (buffer);
 			analyzerDriver = new MSBuildAnalyzerDriver ();
 			analyzerDriver.AddBuiltInAnalyzers ();
 			this.provider = provider;
@@ -68,6 +74,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						provider.SchemaProvider,
 						provider.MSBuildEnvironment,
 						provider.TaskMetadataBuilder,
+						logger,
 						token);
 
 					var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);

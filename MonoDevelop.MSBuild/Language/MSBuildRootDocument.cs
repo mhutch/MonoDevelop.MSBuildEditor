@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -49,6 +51,7 @@ namespace MonoDevelop.MSBuild.Language
 			ITextSource textSource, string filePath, MSBuildRootDocument previous,
 			MSBuildSchemaProvider schemaProvider, IMSBuildEnvironment environment,
 			ITaskMetadataBuilder taskBuilder,
+			ILogger logger,
 			CancellationToken token)
 		{
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
@@ -81,11 +84,12 @@ namespace MonoDevelop.MSBuild.Language
 				filePath,
 				propVals,
 				taskBuilder,
+				logger,
 				schemaProvider,
 				token);
 
 			if (filePath != null) {
-				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, filePath, filePath);
+				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, logger, filePath, filePath);
 			} else {
 				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
 			}

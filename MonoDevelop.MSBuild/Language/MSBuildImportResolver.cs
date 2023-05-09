@@ -39,6 +39,7 @@ namespace MonoDevelop.MSBuild.Language
 		public IMSBuildEvaluationContext FileEvaluationContext
 			=> fileEvalContext ??= new MSBuildFileEvaluationContext (
 					parseContext.RuntimeEvaluationContext,
+					parseContext.Logger,
 					parseContext.ProjectPath, parentFilePath);
 	}
 }

@@ -3,6 +3,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 
+using Microsoft.Extensions.Logging;
+
 namespace MonoDevelop.MSBuild.Evaluation
 {
 	interface IMSBuildEvaluationContext
@@ -13,6 +15,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 		/// <summary>Gets all defined or permuted values for the property</summary>
 		/// <param name="isProjectImportStart">Certain properties are multivalued only at the beginning of a project import</param>
 		bool TryGetMultivaluedProperty (string name, [NotNullWhen (true)] out OneOrMany<EvaluatedValue>? value, bool isProjectImportStart = false);
+
+		ILogger Logger { get; }
 	}
 }
 

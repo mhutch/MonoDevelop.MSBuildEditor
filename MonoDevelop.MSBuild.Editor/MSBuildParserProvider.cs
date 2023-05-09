@@ -13,6 +13,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -22,6 +23,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[ImportingConstructor]
 		public MSBuildParserProvider (
 			XmlParserProvider xmlParserProvider,
+			MSBuildEnvironmentLogger environmentLogger,
 			[Import (AllowDefault = true)] ITaskMetadataBuilder taskMetadataBuilder,
 			[Import (AllowDefault = true)] MSBuildSchemaProvider schemaProvider,
 			[Import (AllowDefault = true)] IMSBuildEnvironment msbuildEnvironment
@@ -37,6 +39,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			XmlParserProvider = xmlParserProvider;
+			LoggerFactory = environmentLogger.Factory;
 			TaskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder ();
 			SchemaProvider = schemaProvider ?? new MSBuildSchemaProvider ();
 			MSBuildEnvironment = msbuildEnvironment;
@@ -46,6 +49,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
 		public IMSBuildEnvironment MSBuildEnvironment { get; }
+		public IEditorLoggerFactory LoggerFactory { get; internal set; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 		{

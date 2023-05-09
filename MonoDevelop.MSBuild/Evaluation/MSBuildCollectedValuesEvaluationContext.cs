@@ -2,6 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Evaluation
@@ -13,6 +16,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 	{
 		readonly PropertyValueCollector collector;
 		readonly IMSBuildEvaluationContext fileContext;
+
 
 		public MSBuildCollectedValuesEvaluationContext (IMSBuildEvaluationContext fileContext, PropertyValueCollector collector)
 		{
@@ -47,5 +51,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			return false;
 		}
+
+		public ILogger Logger => fileContext.Logger;
 	}
 }

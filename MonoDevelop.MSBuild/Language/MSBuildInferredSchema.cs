@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -327,7 +326,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
 				//FIXME create this lazily and cache it
-				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
+				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.Logger, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
 				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx);
 				if (info != null) {
 					Tasks[info.Name] = info;
