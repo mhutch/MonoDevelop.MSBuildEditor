@@ -8,7 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
+
+using Microsoft.Extensions.Logging;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -25,6 +28,9 @@ using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
+using MonoDevelop.Xml.Logging;
+using MonoDevelop.Xml.Editor.Logging;
+
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
 
@@ -34,15 +40,19 @@ using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 namespace MonoDevelop.MSBuild.Editor
 {
 	[Export, PartCreationPolicy (CreationPolicy.Shared)]
-	class DisplayElementFactory
+	partial class DisplayElementFactory
 	{
+		readonly IEditorLoggerFactory loggerService;
+
 		[ImportingConstructor]
 		public DisplayElementFactory (
 			IMSBuildEditorHost host,
-			MSBuildNavigationService navigationService)
+			MSBuildNavigationService navigationService,
+			IEditorLoggerFactory loggerService)
 		{
 			Host = host;
 			NavigationService = navigationService;
+			this.loggerService = loggerService;
 		}
 
 		public IMSBuildEditorHost Host { get; }
@@ -63,11 +73,13 @@ namespace MonoDevelop.MSBuild.Editor
 				);
 			}
 
+			var logger = loggerService.GetLogger<DisplayElementFactory> (buffer);
+
 			var elements = new List<object> { nameElement };
 
 			switch (info.Description.DisplayElement) {
 			case IRoslynSymbol symbol:
-				await AddSymbolDescriptionElements (symbol, elements.Add, token);
+				await AddSymbolDescriptionElements (symbol, elements.Add, logger, token);
 				break;
 			case object obj:
 				elements.Add (obj);
@@ -354,7 +366,7 @@ namespace MonoDevelop.MSBuild.Editor
 			return null;
 		}
 
-		static Task AddSymbolDescriptionElements (IRoslynSymbol symbol, Action<ClassifiedTextElement> add, CancellationToken token)
+		static Task AddSymbolDescriptionElements (IRoslynSymbol symbol, Action<ClassifiedTextElement> add, ILogger logger, CancellationToken token)
 		{
 			return Task.Run (() => {
 				try {
@@ -366,17 +378,17 @@ namespace MonoDevelop.MSBuild.Editor
 					}
 					var docs = symbol.GetDocumentationCommentXml (expandIncludes: true, cancellationToken: token);
 					if (!string.IsNullOrEmpty (docs)) {
-						GetDocsXmlSummaryElement (docs, add);
+						GetDocsXmlSummaryElement (docs, add, logger);
 					}
 				} catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
-					LoggingService.LogError ("Error loading docs summary", ex);
+					LogDocsLoadingError (logger, ex);
 				}
 			}, token);
 		}
 
 		// roslyn's IDocumentationCommentFormattingService seems to be basically unusable
 		// without internals access, so do some basic formatting ourselves
-		static void GetDocsXmlSummaryElement (string docs, Action<ClassifiedTextElement> addTextElement)
+		static void GetDocsXmlSummaryElement (string docs, Action<ClassifiedTextElement> addTextElement, ILogger logger)
 		{
 			var docsXml = XDocument.Parse (docs);
 			var summaryEl = docsXml.Root?.Element ("summary");
@@ -394,23 +406,23 @@ namespace MonoDevelop.MSBuild.Editor
 				case XElement el:
 					switch (el.Name.LocalName) {
 					case "see":
-						ConvertSeeCrefElement (el, runs.Add);
+						ConvertSeeCrefElement (el, runs.Add, logger);
 						continue;
 					case "attribution":
 						continue;
 					case "para":
 						FlushRuns ();
-						var para = RenderXmlDocsPara (el);
+						var para = RenderXmlDocsPara (el, logger);
 						if (para != null) {
 							addTextElement (para);
 						}
 						continue;
 					default:
-						LoggingService.LogDebug ($"Docs summary has unexpected '{el.Name}' element");
+						LogDocsUnexpectedElement (logger, "summary", el.Name.ToString ());
 						continue;
 					}
 				default:
-					LoggingService.LogDebug ($"Docs summary has unexpected '{node.NodeType}' node");
+					LogDocsUnexpectedNode (logger, "summary", node.NodeType);
 					continue;
 				}
 			}
@@ -426,7 +438,7 @@ namespace MonoDevelop.MSBuild.Editor
 			}
 		}
 
-		static void ConvertSeeCrefElement (XElement el, Action<ClassifiedTextRun> add)
+		static void ConvertSeeCrefElement (XElement el, Action<ClassifiedTextRun> add, ILogger logger)
 		{
 			var cref = (string)el.Attribute ("cref");
 			if (cref != null) {
@@ -438,11 +450,11 @@ namespace MonoDevelop.MSBuild.Editor
 					add (new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, cref));
 				}
 			} else {
-				LoggingService.LogDebug ("Docs 'see' element is missing cref attribute");
+				LogDocsMissingAttribute (logger, "see", "cref");
 			}
 		}
 
-		static ClassifiedTextElement RenderXmlDocsPara (XElement para)
+		static ClassifiedTextElement RenderXmlDocsPara (XElement para, ILogger logger)
 		{
 			var runs = new List<ClassifiedTextRun> ();
 			foreach (var node in para.Nodes ()) {
@@ -453,14 +465,14 @@ namespace MonoDevelop.MSBuild.Editor
 				case XElement el:
 					switch (el.Name.LocalName) {
 					case "see":
-						ConvertSeeCrefElement (el, runs.Add);
+						ConvertSeeCrefElement (el, runs.Add, logger);
 						continue;
 					default:
-						LoggingService.LogDebug ($"Docs summary para has unexpected '{el.Name}' element");
+						LogDocsUnexpectedElement (logger, "para", el.Name.ToString ());
 						continue;
 					}
 				default:
-					LoggingService.LogDebug ($"Docs summary para has unexpected '{node.NodeType}' node");
+					LogDocsUnexpectedNode (logger, "para", node.NodeType);
 					continue;
 				}
 			}
@@ -469,9 +481,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		public object GetPackageInfoTooltip (string packageId, IPackageInfo package, FeedKind feedKind)
 		{
-			var stackedElements = new List<object> ();
-
-			stackedElements.Add (
+			var stackedElements = new List<object> {
 				new ContainerElement (
 					ContainerElementStyle.Wrapped,
 					GetImageElement (feedKind),
@@ -481,7 +491,7 @@ namespace MonoDevelop.MSBuild.Editor
 						new ClassifiedTextRun (PredefinedClassificationTypeNames.Type, package?.Id ?? packageId)
 					)
 				)
-			);
+			};
 
 			ClassifiedTextElement descEl;
 			if (package != null) {
@@ -556,6 +566,21 @@ namespace MonoDevelop.MSBuild.Editor
 				yield return new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, description.Substring (startIndex, length));
 			}
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected element '{childElementName}'")]
+		static partial void LogDocsUnexpectedElement (ILogger logger, string elementName, UserIdentifiableString childElementName);
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected attribute '{attributeName}'")]
+		static partial void LogDocsUnexpectedAttribute (ILogger logger, string elementName, UserIdentifiableString attributeName);
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected attribute '{attributeName}'")]
+		static partial void LogDocsMissingAttribute (ILogger logger, string elementName, UserIdentifiableString attributeName);
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected node of type {nodeType}")]
+		static partial void LogDocsUnexpectedNode (ILogger logger, string elementName, XmlNodeType nodeType);
+
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error loading XML docs")]
+		static partial void LogDocsLoadingError (ILogger logger, Exception ex);
 	}
 
 
