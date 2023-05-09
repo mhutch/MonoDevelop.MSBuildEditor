@@ -210,7 +210,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						out int triggerLength,
 						out ExpressionNode _,
 						out var _,
-						out IReadOnlyList<ExpressionNode> _
+						out IReadOnlyList<ExpressionNode> _,
+						Logger
 					);
 					if (triggerState != TriggerState.None) {
 						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
@@ -256,7 +257,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						out int triggerLength,
 						out ExpressionNode triggerExpression,
 						out var listKind,
-						out IReadOnlyList<ExpressionNode> comparandVariables
+						out IReadOnlyList<ExpressionNode> comparandVariables,
+						Logger
 					);
 					if (triggerState != TriggerState.None) {
 						var info = rr.GetElementOrAttributeValueInfo (doc);

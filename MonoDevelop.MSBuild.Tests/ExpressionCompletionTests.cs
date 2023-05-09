@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
 
@@ -460,7 +461,8 @@ namespace MonoDevelop.MSBuild.Tests
 				expr, reason, typedChar, false,
 				out int triggerLength, out ExpressionNode _,
 				out ListKind _,
-				out IReadOnlyList<ExpressionNode> _
+				out IReadOnlyList<ExpressionNode> _,
+				TestLoggerFactory.CreateTestMethodLogger ()
 			);
 
 			Assert.AreEqual (expectedState, state);
@@ -487,7 +489,8 @@ namespace MonoDevelop.MSBuild.Tests
 			var state = GetTriggerState (
 				expr, TriggerReason.Invocation, '\0', true,
 				out int triggerLength, out _, out _,
-				out IReadOnlyList<ExpressionNode> comparandVariables
+				out IReadOnlyList<ExpressionNode> comparandVariables,
+				TestLoggerFactory.CreateTestMethodLogger()
 			);
 
 			Assert.AreEqual (expectedState, state);

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -13,7 +15,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	static class ExpressionCompletion
+	static partial class ExpressionCompletion
 	{
 		public static bool IsPossibleExpressionCompletionContext (XmlSpineParser parser)
 			=> parser.IsInAttributeValue () || parser.IsInText () || parser.IsRootFree ();
@@ -35,11 +37,11 @@ namespace MonoDevelop.MSBuild.Language
 		public static TriggerState GetTriggerState (
 			string expression, TriggerReason reason, char typedChar, bool isCondition,
 			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind,
-			out IReadOnlyList<ExpressionNode> comparandVariables)
+			out IReadOnlyList<ExpressionNode> comparandVariables, ILogger logger)
 		{
 			comparandVariables = null;
 
-			var state = GetTriggerState (expression, reason, typedChar, isCondition, out triggerLength, out triggerExpression, out var triggerNode, out listKind);
+			var state = GetTriggerState (expression, reason, typedChar, isCondition, out triggerLength, out triggerExpression, out var triggerNode, out listKind, logger);
 
 			if (state != TriggerState.None && isCondition) {
 				comparandVariables = GetComparandVariables (triggerNode).ToList ();
@@ -50,7 +52,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		static TriggerState GetTriggerState (
 			string expression, TriggerReason reason, char typedChar, bool isCondition,
-			out int triggerLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode, out ListKind listKind)
+			out int triggerLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
 		{
 			triggerLength = 0;
 			listKind = ListKind.None;
@@ -61,7 +63,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (isTypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
 				triggerNode = null;
-				LoggingService.LogWarning ($"Expression text '{expression}' is not consistent with typed character '{typedChar}'");
+				LogInconsistentExpressionAndTypedChar (logger, expression, typedChar);
 				return TriggerState.None;
 			}
 
@@ -79,12 +81,12 @@ namespace MonoDevelop.MSBuild.Language
 				triggerExpression = ExpressionParser.Parse (expression, options);
 			}
 
-			return GetTriggerState (triggerExpression, reason, typedChar, out triggerLength, out triggerNode, out listKind);
+			return GetTriggerState (triggerExpression, reason, typedChar, out triggerLength, out triggerNode, out listKind, logger);
 		}
 
 		static TriggerState GetTriggerState (
 			ExpressionNode triggerExpression, TriggerReason reason, char typedChar,
-			out int triggerLength, out ExpressionNode triggerNode, out ListKind listKind)
+			out int triggerLength, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
 		{
 			triggerLength = 0;
 			listKind = ListKind.None;
@@ -171,7 +173,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (p is QuotedExpression quotedExpr) {
 						return GetTriggerState (
 								quotedExpr.Expression, reason, typedChar,
-								out triggerLength, out triggerNode, out _);
+								out triggerLength, out triggerNode, out _, logger);
 					}
 					p = p.Parent;
 				}
@@ -310,7 +312,7 @@ namespace MonoDevelop.MSBuild.Language
 							) {
 							var s = GetTriggerState (
 								expressionText.Value, reason, typedChar, false,
-								out triggerLength, out triggerExpression, out triggerNode, out _);
+								out triggerLength, out triggerExpression, out triggerNode, out _, logger);
 							if (error.Kind != ExpressionErrorKind.IncompleteString && s == TriggerState.Value) {
 								return TriggerState.BareFunctionArgumentValue;
 							}
@@ -478,5 +480,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 			throw new InvalidOperationException ($"Unhandled trigger type {trigger}");
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Expression text '{expression}' is not consistent with typed character '{typedChar}")]
+		static partial void LogInconsistentExpressionAndTypedChar (ILogger logger, string expression, char typedChar);
 	}
 }
