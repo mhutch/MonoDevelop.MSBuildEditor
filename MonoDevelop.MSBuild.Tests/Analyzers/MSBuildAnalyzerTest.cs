@@ -46,7 +46,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				logger,
 				token);
 
-			var analyzerDriver = new MSBuildAnalyzerDriver ();
+			var analyzerDriver = new MSBuildAnalyzerDriver (TestLoggerFactory.CreateLogger<MSBuildAnalyzerDriver> ());
 
 			if (analyzers != null && analyzers.Count > 0) {
 				analyzerDriver.AddAnalyzers (analyzers);

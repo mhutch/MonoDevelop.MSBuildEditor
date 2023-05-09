@@ -39,7 +39,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			logger = provider.LoggerFactory.CreateLogger<MSBuildBackgroundParser> (buffer);
-			analyzerDriver = new MSBuildAnalyzerDriver ();
+
+			var analyzerDriverLogger = provider.LoggerFactory.GetLogger<MSBuildAnalyzerDriver> (buffer);
+			analyzerDriver = new MSBuildAnalyzerDriver (analyzerDriverLogger);
 			analyzerDriver.AddBuiltInAnalyzers ();
 			this.provider = provider;
 		}

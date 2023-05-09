@@ -4,23 +4,28 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language.Syntax;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	class MSBuildAnalysisContextImpl : MSBuildAnalysisContext
+	partial class MSBuildAnalysisContextImpl : MSBuildAnalysisContext
 	{
-		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)>> elementActions
-			= new Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)>> ();
+		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<ElementDiagnosticContext>)>> elementActions = new();
 
-		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> attributeActions
-			= new Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> ();
+		readonly Dictionary<MSBuildSyntaxKind, List<(MSBuildAnalyzer, Action<AttributeDiagnosticContext>)>> attributeActions = new();
 
-		readonly Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> propertyWriteActions
-			= new Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> ();
+		readonly Dictionary<string, List<(MSBuildAnalyzer, Action<PropertyWriteDiagnosticContext>)>> propertyWriteActions = new();
 
-		readonly Dictionary<string, List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)>> coreDiagnosticFilters
-			= new Dictionary<string, List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)>> ();
+		readonly Dictionary<string, List<(MSBuildAnalyzer, Func<MSBuildDiagnostic, bool>)>> coreDiagnosticFilters = new();
+		private readonly ILogger logger;
+
+		public MSBuildAnalysisContextImpl (ILogger logger)
+		{
+			this.logger = logger;
+		}
 
 		public override void RegisterElementAction (Action<ElementDiagnosticContext> action, ImmutableArray<MSBuildSyntaxKind> elementKinds)
 		{
@@ -98,8 +103,11 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public void ReportAnalyzerError (MSBuildAnalyzer analyzer, Exception ex)
 		{
-			LoggingService.LogError ($"Failure in analyzer {analyzer.GetType ().FullName}, disabling", ex);
+			LogAnalyzerError(logger, ex, analyzer.GetType ().FullName);
 			analyzer.Disabled = true;
 		}
+
+		[LoggerMessage (Level = LogLevel.Error, Message = "Failure in analyzer {analyzer}, disabling")]
+		static partial void LogAnalyzerError (ILogger logger, Exception ex, string analyzer);
 	}
 }

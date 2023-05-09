@@ -6,18 +6,22 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
-	class MSBuildAnalyzerDriver
+	partial class MSBuildAnalyzerDriver
 	{
 		readonly MSBuildAnalysisContextImpl context;
+		private readonly ILogger logger;
 
-		public MSBuildAnalyzerDriver ()
+		public MSBuildAnalyzerDriver (ILogger logger)
 		{
-			context = new MSBuildAnalysisContextImpl ();
+			context = new MSBuildAnalysisContextImpl (logger);
+			this.logger = logger;
 		}
 
 		public void AddBuiltInAnalyzers ()
@@ -34,13 +38,16 @@ namespace MonoDevelop.MSBuild.Analysis
 					try {
 						analyzer = (MSBuildAnalyzer)Activator.CreateInstance (type);
 					} catch (Exception ex) {
-						LoggingService.LogError ($"Failed to create instance of analyzer {type.FullName}", ex);
+						LogAnalyzerCreationError(logger, ex, type.FullName);
 						continue;
 					}
 					context.RegisterAnalyzer (analyzer);
 				}
 			}
 		}
+
+		[LoggerMessage (Level = LogLevel.Error, Message = "Failed to create instance of analyzer {analyzer}")]
+		static partial void LogAnalyzerCreationError (ILogger logger, Exception ex, string analyzer);
 
 		public void AddAnalyzers (IEnumerable<MSBuildAnalyzer> analyzers)
 		{
