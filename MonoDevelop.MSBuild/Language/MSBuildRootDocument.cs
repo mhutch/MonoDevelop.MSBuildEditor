@@ -194,8 +194,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			try {
 				//this has to run in a second pass so that it runs after all the schemas are loaded
-				var validator = new MSBuildDocumentValidator ();
-				validator.Run (doc.XDocument, textSource, doc);
+				var validator = new MSBuildDocumentValidator (doc, textSource, logger);
+				validator.Run (doc.XDocument.RootElement, token: token);
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
 				LoggingService.LogError ("Error in validation", ex);
 			}

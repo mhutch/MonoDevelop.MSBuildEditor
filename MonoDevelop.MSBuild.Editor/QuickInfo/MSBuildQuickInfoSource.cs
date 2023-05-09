@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -15,6 +16,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Logging;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -26,12 +28,14 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		readonly MSBuildBackgroundParser parser;
 		readonly ITextBuffer textBuffer;
 		readonly MSBuildQuickInfoSourceProvider provider;
+		readonly ILogger logger;
 
 		public MSBuildQuickInfoSource (ITextBuffer textBuffer, MSBuildQuickInfoSourceProvider provider)
 		{
 			this.textBuffer = textBuffer;
 			this.provider = provider;
 			parser = provider.ParserProvider.GetParser (textBuffer);
+			logger = provider.LoggerFactory.GetLogger<MSBuildQuickInfoSource> (textBuffer);
 		}
 
 		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
@@ -59,7 +63,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			await provider.FunctionTypeProvider.EnsureInitialized (cancellationToken);
 
 			var rr = MSBuildResolver.Resolve (
-				spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, cancellationToken
+				spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, logger, cancellationToken
 			);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {

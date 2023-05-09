@@ -43,7 +43,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, ILogger logger) : base (textView, logger, provider.XmlParserProvider)
 		{
 			this.provider = provider;
-			this.parser = provider.ParserProvider.GetParser (textView.TextBuffer);
+			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 		}
 
 		class MSBuildCompletionSessionContext
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = XmlParser.GetSpineParser (triggerLocation);
 			// clone the spine because the resolver alters it
-			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, token);
+			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, Logger, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;
@@ -197,7 +197,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = XmlParser.GetSpineParser (triggerLocation);
-			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, token);
+			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, Logger, token);
 			if (rr?.ElementSyntax != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {

@@ -4,11 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Tests.Editor.Mocks;
-
+using MonoDevelop.Xml.Tests;
 using MonoDevelop.Xml.Parser;
 
 using NUnit.Framework;
@@ -18,26 +19,29 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class MSBuildFindReferencesTests
 	{
-		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference)
+		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference, [CallerMemberName] string testMethodName = null)
 		{
 			var textDoc = new StringTextSource (docString);
 
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
 			var (xdoc, _) = xmlParser.Parse (new StringReader (docString));
 
+			var logger = TestLoggerFactory.CreateLogger (testMethodName);
 			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
 			var parseContext = new MSBuildParserContext (
-				new TestMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, null, default);
+				new TestMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, logger, null, default);
 			doc.Build (xdoc, parseContext);
 
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 
 			var results = new List<(int Offset, int Length, ReferenceUsage Usage)> ();
-			var collector = MSBuildReferenceCollector.Create (new MSBuildResolveResult {
-				ReferenceKind = kind,
-				Reference = reference,
-			}, functionTypeProvider, results.Add);
-			collector.Run (xdoc, textDoc, doc);
+			var collector = MSBuildReferenceCollector.Create (
+				doc, textDoc,logger,
+				new MSBuildResolveResult {
+					ReferenceKind = kind,
+					Reference = reference,
+				}, functionTypeProvider, results.Add);
+			collector.Run (xdoc.RootElement);
 			return results;
 		}
 

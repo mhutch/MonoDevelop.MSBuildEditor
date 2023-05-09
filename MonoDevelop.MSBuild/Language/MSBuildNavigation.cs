@@ -6,11 +6,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -113,16 +116,20 @@ namespace MonoDevelop.MSBuild.Language
 				.Where (a => !(a is IRegionAnnotation ra) || ra.Span.Contains (offset));
 		}
 
-		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length)
+		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length, ILogger logger)
 		{
-			var visitor = new MSBuildNavigationVisitor ();
-			visitor.Run (doc, offset, length);
+			var visitor = new MSBuildNavigationVisitor (doc, doc.Text, logger);
+			visitor.Run (doc.XDocument.RootElement, offset, length);
 			return visitor.Navigations;
 		}
 
 		class MSBuildNavigationVisitor : MSBuildResolvingVisitor
 		{
-			public List<MSBuildNavigationResult> Navigations { get; } = new List<MSBuildNavigationResult> ();
+			public MSBuildNavigationVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
+			{
+			}
+
+			public List<MSBuildNavigationResult> Navigations { get; } = new ();
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,

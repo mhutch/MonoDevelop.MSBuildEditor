@@ -28,10 +28,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
+
+using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
 
@@ -40,17 +44,18 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class MSBuildResolverTests
 	{
-		List<(int offset, MSBuildResolveResult result)> Resolve (string doc)
+		List<(int offset, MSBuildResolveResult result)> Resolve (string doc, ILogger logger)
 		{
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
 			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider))
+				.SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider, logger))
 				.ToList ();
 		}
 
 		void AssertReferences (string doc, params (MSBuildReferenceKind kind, object reference)[] expected)
 		{
-			var results = Resolve (doc);
+			var logger = TestLoggerFactory.CreateTestMethodLogger ();
+			var results = Resolve (doc, logger);
 
 			if (results.Count != expected.Length) {
 				Dump ();

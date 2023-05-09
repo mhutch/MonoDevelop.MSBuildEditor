@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
+using System.Threading;
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -9,6 +10,7 @@ using Microsoft.VisualStudio.Threading;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Commands
 {
@@ -46,7 +48,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 		/// <summary>
 		/// Gets a resolved reference from the document. The schema may be stale, in which case it returns false.
 		/// </summary>
-		public bool GetResolvedReference (ITextBuffer buffer, SnapshotPoint position, out MSBuildRootDocument doc, out MSBuildResolveResult rr)
+		public bool GetResolvedReference (ITextBuffer buffer, SnapshotPoint position, out MSBuildRootDocument doc, out MSBuildResolveResult rr, CancellationToken cancellationToken = default)
 		{
 			// grab the field into a local to make this thread safe
 			var cached = this.cached;
@@ -68,14 +70,19 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 				return false;
 			}
 
+			var logger = ParserProvider.LoggerFactory.GetLogger<MSBuildCachingResolver> (buffer);
+
 			// actually do the work
 			cached.Doc = doc = lastResult.MSBuildDocument;
 			cached.Result = rr = MSBuildResolver.Resolve (
 				parser.XmlParser.GetSpineParser (position),
 				position.Snapshot.GetTextSource (),
-				doc, FunctionTypeProvider);
-			cached.Position = position;
+				doc,
+				FunctionTypeProvider,
+				logger,
+				cancellationToken);
 
+			cached.Position = position;
 			this.cached = cached;
 
 			return lastResult.Snapshot == position.Snapshot;

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -23,6 +24,8 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Logging;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Contracts;
@@ -31,7 +34,7 @@ using ProjectFileTools.NuGetSearch.Feeds;
 namespace MonoDevelop.MSBuild.Editor.Navigation
 {
 	[Export, PartCreationPolicy (CreationPolicy.Shared)]
-	class MSBuildNavigationService
+	partial class MSBuildNavigationService
 	{
 		[ImportingConstructor]
 		public MSBuildNavigationService (
@@ -42,7 +45,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			MSBuildCachingResolver resolver,
 			IContentTypeRegistryService contentTypeRegistry,
 			ITextBufferFactoryService bufferFactory,
-			MSBuildParserProvider parserProvider)
+			MSBuildParserProvider parserProvider,
+			IEditorLoggerFactory loggerService)
 		{
 			PackageSearchManager = packageSearchManager;
 			EditorHost = editorHost;
@@ -52,6 +56,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			ContentTypeRegistry = contentTypeRegistry;
 			BufferFactory = bufferFactory;
 			ParserProvider = parserProvider;
+			LoggerService = loggerService;
 		}
 
 		public IPackageSearchManager PackageSearchManager { get; }
@@ -62,6 +67,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		public IContentTypeRegistryService ContentTypeRegistry { get; }
 		public ITextBufferFactoryService BufferFactory { get; }
 		public MSBuildParserProvider ParserProvider { get; }
+		public IEditorLoggerFactory LoggerService { get; }
 
 		public bool CanNavigate (ITextBuffer buffer, SnapshotPoint point) => CanNavigate (buffer, point, out _);
 
@@ -107,7 +113,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					return true;
 				}
 				if (result.Paths.Length > 1) {
-					ShowMultipleFiles (result.Paths);
+					ShowMultipleFiles (result.Paths, buffer);
 					return true;
 				}
 			}
@@ -125,6 +131,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			return false;
 		}
 
+		ILogger GetLogger (ITextBuffer buffer) => LoggerService.GetLogger<MSBuildReferenceCollector>(buffer);
+
 		void OpenNuGetUrl (string nuGetId, IMSBuildEditorHost host)
 		{
 			Task.Run (async () => {
@@ -140,10 +148,11 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			});
 		}
 
-		async void ShowMultipleFiles (string[] files)
+		async void ShowMultipleFiles (string[] files, ITextBuffer buffer)
 		{
 			var openDocuments = EditorHost.GetOpenDocuments ();
 			var searchCtx = Presenter.StartSearch ($"Go to files", null, false);
+			var logger = new Lazy<ILogger>(() => GetLogger (buffer));
 			try {
 				var msbuildContentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
 				foreach (var file in files) {
@@ -158,7 +167,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 						lineText = buf.CurrentSnapshot.GetLineFromPosition (0).GetText ();
 
 					} catch (Exception ex) {
-						LoggingService.LogError ($"Error getting text for file {file}", ex);
+						LogErrorGettingFileText (logger.Value, ex, file);
 						continue;
 					}
 					var classifiedSpans = ImmutableArray<ClassifiedText>.Empty;
@@ -175,7 +184,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					);
 				}
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
-				LoggingService.LogError ($"Error in show multiple imports", ex);
+				LogErrorShowingNavigateMultiple(logger.Value, ex);
 			}
 			await searchCtx.OnCompletedAsync ();
 		}
@@ -197,34 +206,38 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			if (!MSBuildReferenceCollector.CanCreate (resolveResult)) {
 				return false;
 			}
-			FindReferencesAsync (buffer, resolveResult);
+			var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
+			FindReferencesAsync (buffer, resolveResult, logger).CatchAndLogWarning (logger);
 			return true;
 		}
 
-		async void FindReferencesAsync (ITextBuffer buffer, MSBuildResolveResult reference)
+		async Task FindReferencesAsync (ITextBuffer buffer, MSBuildResolveResult reference, ILogger logger)
 		{
 			var referenceName = reference.GetReferenceName ();
 			var searchCtx = Presenter.StartSearch ($"'{referenceName}' references", referenceName, true);
+
 			try {
-				await FindReferences (searchCtx, a => MSBuildReferenceCollector.Create (reference, Resolver.FunctionTypeProvider, a), buffer);
+				await FindReferences (searchCtx, (doc, text, logger, reporter) => MSBuildReferenceCollector.Create (doc, text, logger, reference, Resolver.FunctionTypeProvider, reporter), buffer);
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
-				LoggingService.LogError ($"Error in find references", ex);
+				LogErrorFindReferences (logger, ex);
 			}
 			await searchCtx.OnCompletedAsync ();
 		}
 
-		async void FindTargetDefinitions (string targetName, ITextBuffer buffer)
+		async Task FindTargetDefinitions (string targetName, ITextBuffer buffer)
 		{
 			var searchCtx = Presenter.StartSearch ($"'{targetName}' definitions", targetName, true);
+
 			try {
-				await FindReferences (searchCtx, (a) => new MSBuildTargetDefinitionCollector (targetName, a), buffer);
+				await FindReferences (searchCtx, (doc, text, logger, reporter) => new MSBuildTargetDefinitionCollector (doc, text, logger, targetName, reporter), buffer);
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
-				LoggingService.LogError ($"Error in find references", ex);
+				var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
+				LogErrorFindReferences (logger, ex);
 			}
 			await searchCtx.OnCompletedAsync ();
 		}
 
-		delegate MSBuildReferenceCollector ReferenceCollectorFactory (Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
+		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
 
 		async Task FindReferences (
 			FindReferencesContext searchCtx,
@@ -238,6 +251,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			var parser = ParserProvider.GetParser (buffer);
 			var r = await parser.GetOrProcessAsync (buffer.CurrentSnapshot, searchCtx.CancellationToken);
 			var doc = r.MSBuildDocument;
+			var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
 
 			var jobs = doc.GetDescendentImports ()
 				.Where (imp => imp.IsResolved)
@@ -263,8 +277,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 					token.ThrowIfCancellationRequested ();
 
-					var collector = collectorFactory (ReportResult);
-					collector.Run (job.Document, job.TextSource, doc);
+					var collector = collectorFactory (doc, job.TextSource, logger, ReportResult);
+					collector.Run (job.Document.RootElement);
 
 					var progress = Interlocked.Increment (ref jobsCompleted);
 					await searchCtx.ReportProgressAsync (progress, jobs.Count);
@@ -294,10 +308,22 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					}
 
 				} catch (Exception ex) {
-					LoggingService.LogError ($"Error searching MSBuild file {job.Filename}", ex);
+					LogErrorSearchingFile (logger, ex, job.Filename);
 				}
 			}, searchCtx.CancellationToken);
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Error searching for references in MSBuild file '{filename}'")]
+		static partial void LogErrorSearchingFile (ILogger logger, Exception ex, UserIdentifiableFileName filename);
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Error, Message = "Unhandled error in Find References'")]
+		static partial void LogErrorFindReferences (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Error, Message = "Unhandled error navigating to multiple files")]
+		static partial void LogErrorShowingNavigateMultiple (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Error, Message = "Error getting text for file '{filename}'")]
+		static partial void LogErrorGettingFileText (ILogger logger, Exception ex, UserIdentifiableFileName filename);
 
 		class FindReferencesSearchJob
 		{
