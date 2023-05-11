@@ -11,20 +11,24 @@ using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.TextStructure
 {
 	class MSBuildTextStructureNavigator : ITextStructureNavigator
 	{
+		readonly MSBuildTextStructureNavigatorProvider provider;
 		readonly ITextBuffer textBuffer;
 		readonly ITextStructureNavigator xmlNavigator;
 
-		public MSBuildTextStructureNavigator (ITextBuffer textBuffer, ITextStructureNavigator xmlNavigator)
+		public MSBuildTextStructureNavigator (ITextBuffer textBuffer, MSBuildTextStructureNavigatorProvider provider)
 		{
 			this.textBuffer = textBuffer;
-			this.xmlNavigator = xmlNavigator;
+			this.provider = provider;
+			xmlNavigator = provider.NavigatorService.CreateTextStructureNavigator (
+				textBuffer,
+				provider.ContentTypeRegistry.GetContentType (XmlContentTypeNames.XmlCore)
+			);
 		}
 
 		public IContentType ContentType => textBuffer.ContentType;
@@ -49,7 +53,7 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 
 		public SnapshotSpan GetSpanOfEnclosing (SnapshotSpan activeSpan)
 		{
-			if (!XmlBackgroundParser.TryGetParser (activeSpan.Snapshot.TextBuffer, out var parser)) {
+			if (!provider.XmlParserProvider.TryGetParser (activeSpan.Snapshot.TextBuffer, out var parser)) {
 				return xmlNavigator.GetSpanOfEnclosing (activeSpan);
 			}
 

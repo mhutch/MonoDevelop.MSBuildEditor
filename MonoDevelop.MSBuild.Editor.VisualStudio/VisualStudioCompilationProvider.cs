@@ -14,8 +14,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[Export(typeof(IRoslynCompilationProvider))]
 	class VisualStudioCompilationProvider : IRoslynCompilationProvider
 	{
-		[Import]
-		public VisualStudioWorkspace Workspace { get; set; }
+		[ImportingConstructor]
+		public VisualStudioCompilationProvider (VisualStudioWorkspace workspace)
+		{
+			Workspace = workspace;
+		}
+
+		public VisualStudioWorkspace Workspace { get; }
 
 		public MetadataReference CreateReference (string assemblyPath)
 			=> Workspace.CreatePortableExecutableReference (assemblyPath, MetadataReferenceProperties.Assembly);

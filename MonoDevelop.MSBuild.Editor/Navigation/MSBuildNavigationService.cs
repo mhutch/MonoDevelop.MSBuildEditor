@@ -33,29 +33,35 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 	[Export, PartCreationPolicy (CreationPolicy.Shared)]
 	class MSBuildNavigationService
 	{
-		[Import]
-		public IPackageSearchManager PackageSearchManager { get; set; }
+		[ImportingConstructor]
+		public MSBuildNavigationService (
+			IPackageSearchManager packageSearchManager,
+			IMSBuildEditorHost editorHost,
+			JoinableTaskContext joinableTaskContext,
+			IStreamingFindReferencesPresenter presenter,
+			MSBuildCachingResolver resolver,
+			IContentTypeRegistryService contentTypeRegistry,
+			ITextBufferFactoryService bufferFactory,
+			MSBuildParserProvider parserProvider)
+		{
+			PackageSearchManager = packageSearchManager;
+			EditorHost = editorHost;
+			JoinableTaskContext = joinableTaskContext;
+			Presenter = presenter;
+			Resolver = resolver;
+			ContentTypeRegistry = contentTypeRegistry;
+			BufferFactory = bufferFactory;
+			ParserProvider = parserProvider;
+		}
 
-		[Import]
-		public IMSBuildEditorHost EditorHost { get; set; }
-
-		[Import]
-		public JoinableTaskContext JoinableTaskContext { get; set; }
-
-		[Import]
-		public IStreamingFindReferencesPresenter Presenter { get; set; }
-
-		[Import]
-		public MSBuildCachingResolver Resolver { get; set; }
-
-		[Import]
-		public IContentTypeRegistryService ContentTypeRegistry { get; set; }
-
-		[Import]
-		public ITextBufferFactoryService BufferFactory { get; set; }
-
-		[Import]
-		public MSBuildParserProvider ParserProvider { get; set; }
+		public IPackageSearchManager PackageSearchManager { get; }
+		public IMSBuildEditorHost EditorHost { get; }
+		public JoinableTaskContext JoinableTaskContext { get; }
+		public IStreamingFindReferencesPresenter Presenter { get; }
+		public MSBuildCachingResolver Resolver { get; }
+		public IContentTypeRegistryService ContentTypeRegistry { get; }
+		public ITextBufferFactoryService BufferFactory { get; }
+		public MSBuildParserProvider ParserProvider { get; }
 
 		public bool CanNavigate (ITextBuffer buffer, SnapshotPoint point) => CanNavigate (buffer, point, out _);
 

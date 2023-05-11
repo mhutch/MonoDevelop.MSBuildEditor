@@ -13,8 +13,13 @@ namespace MonoDevelop.MSBuild.Editor
 	[FileExtension("*")]
 	class MSBuildContentTypeProvider : IFilePathToContentTypeProvider
 	{
-		[Import]
-		private IContentTypeRegistryService ContentTypeRegistryService { get; set; }
+		[ImportingConstructor]
+		public MSBuildContentTypeProvider (IContentTypeRegistryService contentTypeRegistryService)
+		{
+			ContentTypeRegistryService = contentTypeRegistryService;
+		}
+
+		public IContentTypeRegistryService ContentTypeRegistryService { get; }
 
 		public bool TryGetContentTypeForFilePath (string filePath, out IContentType contentType)
 		{

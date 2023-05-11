@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -38,10 +40,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		readonly MSBuildBackgroundParser parser;
 		readonly MSBuildCompletionSourceProvider provider;
 
-		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, MSBuildBackgroundParser parser) : base (textView)
+		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, ILogger logger) : base (textView, logger, provider.XmlParserProvider)
 		{
-			this.parser = parser;
 			this.provider = provider;
+			this.parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 		}
 
 		class MSBuildCompletionSessionContext

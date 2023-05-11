@@ -8,8 +8,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-using MonoDevelop.MSBuild.Language;
-
 namespace MonoDevelop.MSBuild.Editor.Navigation
 {
 	[Export (typeof (INavigableSymbolSourceProvider))]
@@ -17,8 +15,13 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 	[ContentType (MSBuildContentType.Name)]
 	class MSBuildNavigableSymbolSourceProvider : INavigableSymbolSourceProvider
 	{
-		[Import]
-		internal MSBuildNavigationService NavigationService { get; set; }
+		[ImportingConstructor]
+		public MSBuildNavigableSymbolSourceProvider (MSBuildNavigationService navigationService)
+		{
+			NavigationService = navigationService;
+		}
+
+		public MSBuildNavigationService NavigationService { get; }
 
 		public INavigableSymbolSource TryCreateNavigableSymbolSource (ITextView textView, ITextBuffer buffer) =>
 			textView.Properties.GetOrCreateSingletonProperty (

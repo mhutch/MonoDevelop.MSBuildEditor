@@ -22,24 +22,17 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 	[Export (typeof (IFunctionTypeProvider))]
 	class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
-		[Import (AllowDefault=true)]
-		public IRoslynCompilationProvider AssemblyLoader { get; set; }
+		[ImportingConstructor]
+		public RoslynFunctionTypeProvider ([Import (AllowDefault = true)] IRoslynCompilationProvider assemblyLoader)
+		{
+			AssemblyLoader = assemblyLoader;
+		}
+
+		public IRoslynCompilationProvider AssemblyLoader { get; }
 
 		readonly object locker = new object ();
 		Compilation compilation;
 		Task compilationLoadTask;
-
-		public RoslynFunctionTypeProvider ()
-		{
-		}
-
-		public RoslynFunctionTypeProvider (Compilation compilation)
-		{
-			if (compilation == null) {
-				this.compilation = compilation;
-				compilationLoadTask = Task.CompletedTask;
-			}
-		}
 
 		//we need the reference assembly to get docs
 		static string GetMscorlibReferenceAssembly ()

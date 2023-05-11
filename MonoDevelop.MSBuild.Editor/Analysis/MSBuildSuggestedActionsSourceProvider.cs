@@ -19,30 +19,37 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	[ContentType (MSBuildContentType.Name)]
 	class MSBuildSuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
 	{
-		[Import]
-		public IViewTagAggregatorFactoryService ViewTagAggregatorFactoryService { get; set; }
+		[ImportingConstructor]
+		public MSBuildSuggestedActionsSourceProvider (
+			IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
+			JoinableTaskContext joinableTaskContext,
+			ISuggestedActionCategoryRegistryService2 categoryRegistry,
+			MSBuildParserProvider parserProvider,
+			MSBuildCodeFixService codeFixService,
+			MSBuildRefactoringService refactoringService,
+			// allow default because we don't have a Mac version yet
+			[Import (AllowDefault = true)] PreviewChangesService previewService,
+			IMSBuildSuggestedActionFactory suggestedActionFactory
+			)
+		{
+			ViewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
+			JoinableTaskContext = joinableTaskContext;
+			CategoryRegistry = categoryRegistry;
+			ParserProvider = parserProvider;
+			CodeFixService = codeFixService;
+			RefactoringService = refactoringService;
+			PreviewService = previewService;
+			SuggestedActionFactory = suggestedActionFactory;
+		}
 
-		[Import]
-		public JoinableTaskContext JoinableTaskContext { get; set; }
-
-		[Import]
-		public ISuggestedActionCategoryRegistryService2 CategoryRegistry { get; set; }
-
-		[Import]
-		public MSBuildParserProvider ParserProvider { get; set; }
-
-		[Import]
-		public MSBuildCodeFixService CodeFixService { get; set; }
-
-		[Import]
-		public MSBuildRefactoringService RefactoringService { get; set; }
-
-		// allow default because we don't have a Mac version yet
-		[Import (AllowDefault = true)]
-		public PreviewChangesService PreviewService { get; set; }
-
-		[Import]
-		public IMSBuildSuggestedActionFactory SuggestedActionFactory { get; set; }
+		public IViewTagAggregatorFactoryService ViewTagAggregatorFactoryService { get; }
+		public JoinableTaskContext JoinableTaskContext { get; }
+		public ISuggestedActionCategoryRegistryService2 CategoryRegistry { get; }
+		public MSBuildParserProvider ParserProvider { get; }
+		public MSBuildCodeFixService CodeFixService { get; }
+		public MSBuildRefactoringService RefactoringService { get; }
+		public PreviewChangesService PreviewService { get; }
+		public IMSBuildSuggestedActionFactory SuggestedActionFactory { get; }
 
 		public ISuggestedActionsSource CreateSuggestedActionsSource (ITextView textView, ITextBuffer textBuffer)
 		{

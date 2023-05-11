@@ -90,17 +90,16 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		{
 			Task<SpellChecker> checker;
 			lock (locker) {
-				if (customType == null) {
+				if (customType is null) {
 					if (!valueKindCheckerTasks.TryGetValue (kind, out checker)) {
-						return checker;
-					}
-					var knownVals = kind.GetSimpleValues (true);
+						var knownVals = kind.GetSimpleValues (true);
 
-					valueKindCheckerTasks[kind] = checker = Task.Run (() =>
-						new SpellChecker (
-							Checksum.Null,
-							knownVals.Select (p => new StringSlice (p.Name)))
-						);
+						valueKindCheckerTasks[kind] = checker = Task.Run (() =>
+							new SpellChecker (
+								Checksum.Null,
+								knownVals.Select (p => new StringSlice (p.Name)))
+							);
+					}
 					return checker;
 				}
 
@@ -169,7 +168,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		IEnumerable<ISymbol> GetValue (SpellChecker checker, MSBuildValueKind kind, CustomTypeInfo customType, string name)
 		{
 			var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (true);
-			var knownValDict = knownVals.ToDictionary (v => v.Name);
+			var knownValDict = knownVals.ToDictionary (v => v.Name, StringComparer.OrdinalIgnoreCase);
 			foreach (var match in checker.FindSimilarWords (name)) {
 				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
 					continue;

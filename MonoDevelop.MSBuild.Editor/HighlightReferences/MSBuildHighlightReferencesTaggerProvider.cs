@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -9,6 +10,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Tagging;
 
 namespace MonoDevelop.MSBuild.Editor.HighlightReferences
@@ -19,18 +21,28 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 	[TextViewRole (PredefinedTextViewRoles.Interactive)]
 	class MSBuildHighlightReferencesTaggerProvider : IViewTaggerProvider
 	{
-		[Import]
-		public JoinableTaskContext JoinableTaskContext { get; set; }
+		[ImportingConstructor]
+		public MSBuildHighlightReferencesTaggerProvider (
+			JoinableTaskContext joinableTaskContext,
+			IFunctionTypeProvider functionTypeProvider,
+			MSBuildParserProvider parserProvider,
+			IEditorLoggerService loggerService)
+		{
+			JoinableTaskContext = joinableTaskContext;
+			FunctionTypeProvider = functionTypeProvider;
+			ParserProvider = parserProvider;
+			LoggerService = loggerService;
+		}
 
-		[Import]
-		public IFunctionTypeProvider FunctionTypeProvider { get; set; }
-
-		[Import]
-		public MSBuildParserProvider ParserProvider { get; set; }
+		public JoinableTaskContext JoinableTaskContext { get; }
+		public IFunctionTypeProvider FunctionTypeProvider { get; }
+		public MSBuildParserProvider ParserProvider { get; }
+		public IEditorLoggerService LoggerService { get; }
 
 		public ITagger<T> CreateTagger<T> (ITextView textView, ITextBuffer buffer) where T : ITag
-			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (
-				() => new MSBuildHighlightReferencesTagger (textView, this)
-			);
+			=>  (ITagger<T>) buffer.Properties.GetOrCreateSingletonProperty (() => {
+				var logger = LoggerService.CreateLogger<MSBuildHighlightReferencesTagger> (textView);
+				return new MSBuildHighlightReferencesTagger (textView, this, logger);
+			});
 	}
 }

@@ -44,13 +44,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\PackageFeedRegistryProvider.cs">
-      <Link>PackageFeedRegistryProvider.cs</Link>
-    </Compile>
     <Compile Include="Analysis\IWpfDifferenceViewerExtensions.cs" />
     <Compile Include="Analysis\WpfMSBuildSuggestedAction.cs" />
     <Compile Include="Analysis\WpfDifferenceViewElementFactory.cs" />
     <Compile Include="PackageConsts.cs" />
+    <Compile Include="PackageFeedRegistryProvider.cs" />
     <Compile Include="RoslynFindReferences\DependencyObjectExtensions.cs" />
     <Compile Include="RoslynFindReferences\FindUsagesValueUsageInfoColumnDefinition.cs" />
     <Compile Include="MSBuildLanguageService.cs" />
@@ -99,9 +97,15 @@
   <ItemGroup>
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.451" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.2.32505.113" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.1.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.2.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.2.32505.173" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2186" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" />
+    <PackageReference Include="NuGet.VisualStudio" Version="17.3.0" ExcludeAssets="runtime" />
+    <!-- resolve conflicts -->
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.2.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.2.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.2.32505.113" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">

@@ -36,11 +36,17 @@ namespace MonoDevelop.MSBuild.Editor
 	[Export, PartCreationPolicy (CreationPolicy.Shared)]
 	class DisplayElementFactory
 	{
-		[Import]
-		IMSBuildEditorHost Host { get; set; }
+		[ImportingConstructor]
+		public DisplayElementFactory (
+			IMSBuildEditorHost host,
+			MSBuildNavigationService navigationService)
+		{
+			Host = host;
+			NavigationService = navigationService;
+		}
 
-		[Import]
-		MSBuildNavigationService NavigationService { get; set; }
+		public IMSBuildEditorHost Host { get; }
+		public MSBuildNavigationService NavigationService { get; }
 
 		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, CancellationToken token)
 		{

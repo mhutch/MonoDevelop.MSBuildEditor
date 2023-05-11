@@ -566,7 +566,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildValueKind.Bool:
 				if (!bool.TryParse (value, out _)) {
-					AddErrorWithArgs (CoreDiagnostics.InvalidBool, value);
+					AddFixableError (CoreDiagnostics.InvalidBool, value);
 				}
 				break;
 			case MSBuildValueKind.Url:

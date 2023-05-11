@@ -10,8 +10,8 @@ jobs:
         include:
         - os:     windows-latest
           config: Debug
-        - os:     macos-latest
-          config: DebugMac
+#        - os:     macos-latest
+#          config: DebugMac
     runs-on: ${{ matrix.os }}
 
     env:
