@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, string packageType, CancellationToken token)
 		{
 			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm, packageType));
+			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm, packageType, Logger));
 
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;

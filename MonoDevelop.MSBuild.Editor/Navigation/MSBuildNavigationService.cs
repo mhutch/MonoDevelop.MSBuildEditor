@@ -102,8 +102,9 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		public bool Navigate (MSBuildNavigationResult result, ITextBuffer buffer)
 		{
+			var logger = GetLogger (buffer);
 			if (result.Kind == MSBuildReferenceKind.Target) {
-				FindTargetDefinitions (result.Name, buffer);
+				FindTargetDefinitions (result.Name, buffer).CatchAndLogWarning (logger);
 				return true;
 			}
 
@@ -113,7 +114,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					return true;
 				}
 				if (result.Paths.Length > 1) {
-					ShowMultipleFiles (result.Paths, buffer);
+					ShowMultipleFiles (result.Paths, buffer, logger).CatchAndLogWarning (logger);
 					return true;
 				}
 			}
@@ -124,7 +125,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			}
 
 			if (result.Kind == MSBuildReferenceKind.NuGetID) {
-				OpenNuGetUrl (result.Name, EditorHost);
+				OpenNuGetUrl (result.Name, EditorHost, logger);
 				return true;
 			}
 
@@ -133,7 +134,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		ILogger GetLogger (ITextBuffer buffer) => LoggerService.GetLogger<MSBuildReferenceCollector>(buffer);
 
-		void OpenNuGetUrl (string nuGetId, IMSBuildEditorHost host)
+		void OpenNuGetUrl (string nuGetId, IMSBuildEditorHost host, ILogger logger)
 		{
 			Task.Run (async () => {
 				var results = await PackageSearchManager.SearchPackageInfo (nuGetId, null, null).ToTask ();
@@ -145,14 +146,13 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					await JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 					host.ShowStatusBarMessage ("Package is not from NuGet.org");
 				}
-			});
+			}).CatchAndLogWarning(logger);
 		}
 
-		async void ShowMultipleFiles (string[] files, ITextBuffer buffer)
+		async Task ShowMultipleFiles (string[] files, ITextBuffer buffer, ILogger logger)
 		{
 			var openDocuments = EditorHost.GetOpenDocuments ();
 			var searchCtx = Presenter.StartSearch ($"Go to files", null, false);
-			var logger = new Lazy<ILogger>(() => GetLogger (buffer));
 			try {
 				var msbuildContentType = ContentTypeRegistry.GetContentType (MSBuildContentType.Name);
 				foreach (var file in files) {
@@ -167,7 +167,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 						lineText = buf.CurrentSnapshot.GetLineFromPosition (0).GetText ();
 
 					} catch (Exception ex) {
-						LogErrorGettingFileText (logger.Value, ex, file);
+						LogErrorGettingFileText (logger, ex, file);
 						continue;
 					}
 					var classifiedSpans = ImmutableArray<ClassifiedText>.Empty;
@@ -184,7 +184,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					);
 				}
 			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
-				LogErrorShowingNavigateMultiple(logger.Value, ex);
+				LogErrorShowingNavigateMultiple(logger, ex);
 			}
 			await searchCtx.OnCompletedAsync ();
 		}
