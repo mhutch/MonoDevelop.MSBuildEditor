@@ -439,7 +439,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			if (comparandVariables != null && isValue) {
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables)) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables, Logger)) {
 					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
@@ -486,7 +486,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider);
+				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, Logger);
 			}
 
 			if (cinfos != null) {

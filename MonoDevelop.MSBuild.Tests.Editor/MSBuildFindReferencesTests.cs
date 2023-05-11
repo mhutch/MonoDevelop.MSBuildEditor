@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuild.Tests
 				new TestMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, logger, null, default);
 			doc.Build (xdoc, parseContext);
 
-			var functionTypeProvider = new RoslynFunctionTypeProvider (null);
+			var functionTypeProvider = new RoslynFunctionTypeProvider (null, parseContext.Logger);
 
 			var results = new List<(int Offset, int Length, ReferenceUsage Usage)> ();
 			var collector = MSBuildReferenceCollector.Create (

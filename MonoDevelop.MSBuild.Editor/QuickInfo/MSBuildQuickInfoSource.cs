@@ -23,7 +23,7 @@ using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
-	class MSBuildQuickInfoSource : IAsyncQuickInfoSource
+	partial class MSBuildQuickInfoSource : IAsyncQuickInfoSource
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly ITextBuffer textBuffer;
@@ -110,7 +110,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 					?? infos.FirstOrDefault ();
 			}
 			catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
-				LoggingService.LogError ("Error loading package description", ex);
+				LogErrorLoadingPackageDescription (logger, ex);
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
@@ -120,5 +120,8 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		public void Dispose ()
 		{
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error getting navigation path for node")]
+		static partial void LogErrorLoadingPackageDescription (ILogger logger, Exception ex);
 	}
 }

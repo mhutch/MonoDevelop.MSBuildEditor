@@ -17,7 +17,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	static class MSBuildNavigation
+	static partial class MSBuildNavigation
 	{
 		public static bool CanNavigate (MSBuildRootDocument doc, int offset, MSBuildResolveResult rr)
 		{
@@ -185,13 +185,13 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.Unknown:
 					if (node is ListExpression list) {
 						foreach (var n in list.Nodes) {
-							var p = GetPathFromNode (n, (MSBuildRootDocument)Document);
+							var p = GetPathFromNode (n, (MSBuildRootDocument)Document, Logger);
 							if (p != null) {
 								Navigations.Add (p);
 							}
 						}
 					}
-					var path = GetPathFromNode (node, (MSBuildRootDocument)Document);
+					var path = GetPathFromNode (node, (MSBuildRootDocument)Document, Logger);
 					if (path != null) {
 						Navigations.Add (path);
 					}
@@ -200,7 +200,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document)
+		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document, ILogger logger)
 		{
 			try {
 				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPaths (node, document).FirstOrDefault ();
@@ -210,10 +210,13 @@ namespace MonoDevelop.MSBuild.Language
 					);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error checking path for file '{node}'", ex);
+				LogNodePathError (logger, ex);
 			}
 			return null;
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error getting navigation path for node")]
+		static partial void LogNodePathError (ILogger logger, Exception ex);
 	}
 
 	class MSBuildNavigationResult

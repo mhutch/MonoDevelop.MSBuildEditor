@@ -7,22 +7,26 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildCompletionCommitManager : IAsyncCompletionCommitManager
+	partial class MSBuildCompletionCommitManager : IAsyncCompletionCommitManager
 	{
 		readonly MSBuildCompletionCommitManagerProvider provider;
+		readonly ILogger<MSBuildCompletionSource> logger;
 
-		public MSBuildCompletionCommitManager (MSBuildCompletionCommitManagerProvider provider)
+		public MSBuildCompletionCommitManager (MSBuildCompletionCommitManagerProvider provider, ILogger<MSBuildCompletionSource> logger)
 		{
 			this.provider = provider;
+			this.logger = logger;
 		}
 
 		static readonly char[] commitChars = new[] { ' ', '(', ')', '.', '-', ';', '[' };
@@ -78,7 +82,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return CommitResult.Handled;
 			}
 
-			LoggingService.LogError ($"MSBuild commit manager did not handle unknown special completion kind {kind}");
+			LogUnhandledItemKind (logger, kind);
 			return CommitResult.Unhandled;
 		}
 
@@ -100,5 +104,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			bufferEdit.Replace (span, text);
 			bufferEdit.Apply ();
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "MSBuild commit manager did not handle unknown special completion kind {kind}")]
+		static partial void LogUnhandledItemKind (ILogger logger, MSBuildSpecialCommitKind kind);
 	}
 }

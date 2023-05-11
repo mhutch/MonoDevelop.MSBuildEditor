@@ -404,7 +404,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static IEnumerable<ISymbol> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables)
+		public static IEnumerable<ISymbol> GetComparandCompletions (MSBuildRootDocument doc, IReadOnlyList<ExpressionNode> variables, ILogger logger)
 		{
 			var names = new HashSet<string> ();
 			foreach (var variable in variables) {
@@ -432,7 +432,7 @@ namespace MonoDevelop.MSBuild.Language
 					cinfos = info.CustomType.Values;
 				} else {
 					var kind = info.InferValueKindIfUnknown ();
-					cinfos = MSBuildCompletionExtensions.GetValueCompletions (kind, doc);
+					cinfos = MSBuildCompletionExtensions.GetValueCompletions (kind, doc, logger);
 				}
 
 				if (cinfos != null) {
@@ -449,11 +449,12 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildResolveResult rr,
 			TriggerState trigger, MSBuildValueKind kind,
 			ExpressionNode triggerExpression, int triggerLength,
-			MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider)
+			MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider,
+			ILogger logger)
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr, triggerExpression);
+				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, logger, rr, triggerExpression);
 			case TriggerState.ItemName:
 				return doc.GetItems ();
 			case TriggerState.MetadataName:
@@ -463,7 +464,7 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.MetadataOrItemName:
 				return ((IEnumerable<ISymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
-				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength, rr);
+				return MSBuildCompletionExtensions.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength, logger, rr);
 			case TriggerState.PropertyFunctionName:
 				return functionTypeProvider.GetPropertyFunctionNameCompletions (triggerExpression);
 			case TriggerState.ItemFunctionName:

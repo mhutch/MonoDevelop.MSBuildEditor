@@ -7,10 +7,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace Roslyn.Utilities
 {
-	internal class SpellChecker : IObjectWritable, IChecksummedObject
+	internal partial class SpellChecker : IObjectWritable, IChecksummedObject
 	{
 		private const string SerializationFormat = "3";
 
@@ -52,23 +53,26 @@ namespace Roslyn.Utilities
 			_bkTree.WriteTo (writer);
 		}
 
-		internal static SpellChecker TryReadFrom (ObjectReader reader)
+		internal static SpellChecker TryReadFrom (ObjectReader reader, ILogger logger)
 		{
 			try {
 				var formatVersion = reader.ReadString ();
 				if (string.Equals (formatVersion, SerializationFormat, StringComparison.Ordinal)) {
 					var checksum = Checksum.ReadFrom (reader);
-					var bkTree = BKTree.ReadFrom (reader);
+					var bkTree = BKTree.ReadFrom (reader, logger);
 					if (bkTree != null) {
 						return new SpellChecker (checksum, bkTree);
 					}
 				}
-			} catch {
-				Logger.Log (FunctionId.SpellChecker_ExceptionInCacheRead);
+			} catch (Exception ex) {
+				LogExceptionInCacheRead (logger, ex);
 			}
 
 			return null;
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Exception in SpellChecker cache read")]
+		static partial void LogExceptionInCacheRead (ILogger logger, Exception ex);
 	}
 
 	internal class WordSimilarityChecker

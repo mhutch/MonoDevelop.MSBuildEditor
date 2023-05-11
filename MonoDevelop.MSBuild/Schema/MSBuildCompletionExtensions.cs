@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -13,12 +15,13 @@ using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Logging;
 
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	static class MSBuildCompletionExtensions
+	static partial class MSBuildCompletionExtensions
 	{
 		public const string WorkloadAutoImportPropsLocatorName = "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator";
 
@@ -157,6 +160,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<ISymbol> GetValueCompletions (
 			MSBuildValueKind kind,
 			MSBuildRootDocument doc,
+			ILogger logger,
 			MSBuildResolveResult rr = null,
 			ExpressionNode triggerExpression = null)
 		{
@@ -198,7 +202,7 @@ namespace MonoDevelop.MSBuild.Schema
 				break;
 			}
 
-			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, rr);
+			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, logger, rr);
 			if (fileCompletions != null) {
 				return fileCompletions;
 			}
@@ -208,7 +212,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static IReadOnlyList<ISymbol> GetFilenameCompletions (
 			MSBuildValueKind kind, MSBuildRootDocument doc,
-			ExpressionNode triggerExpression, int triggerLength, MSBuildResolveResult rr = null)
+			ExpressionNode triggerExpression, int triggerLength, ILogger logger, MSBuildResolveResult rr = null)
 		{
 			bool includeFiles = false;
 			switch (kind) {
@@ -253,7 +257,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			var basePaths = EvaluateExpressionAsPaths (triggerExpression, doc, triggerLength + 1, baseDir).ToList ();
-			return basePaths.Count == 0 ? null : GetPathCompletions (basePaths, includeFiles);
+			return basePaths.Count == 0 ? null : GetPathCompletions (basePaths, includeFiles, logger);
 		}
 
 		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0, string baseDir = null)
@@ -297,7 +301,7 @@ namespace MonoDevelop.MSBuild.Schema
 			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
 		}
 
-		static IReadOnlyList<FileOrFolderInfo> GetPathCompletions (List<string> completionBasePaths, bool includeFiles)
+		static IReadOnlyList<FileOrFolderInfo> GetPathCompletions (List<string> completionBasePaths, bool includeFiles, ILogger logger)
 		{
 			var infos = new List<FileOrFolderInfo> ();
 
@@ -318,7 +322,7 @@ namespace MonoDevelop.MSBuild.Schema
 						}
 					}
 				} catch (Exception ex) {
-					LoggingService.LogError ($"Error enumerating paths under '{basePath}'", ex);
+					LogFailedToEnumeratePaths (logger, basePath, ex);
 				}
 			}
 
@@ -530,5 +534,8 @@ namespace MonoDevelop.MSBuild.Schema
 													   && char.IsUpper (variable.Name[prefix.Length]);
 			bool EndsWith (string suffix) => variable.Name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Failed to enumerate children for file path {filePath}")]
+		static partial void LogFailedToEnumeratePaths (ILogger logger, UserIdentifiableFileName filePath, Exception ex);
 	}
 }

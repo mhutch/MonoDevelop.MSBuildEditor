@@ -281,7 +281,7 @@ namespace MonoDevelop.MSBuild.Language
 					case MSBuildValueKind.ProjectFile:
 					case MSBuildValueKind.TaskAssemblyFile:
 						var pathNode = lit.Parent as ConcatExpression ?? (ExpressionNode)lit;
-						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document);
+						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document, Logger);
 						if (path != null) {
 							rr.ReferenceKind = MSBuildReferenceKind.FileOrFolder;
 							rr.ReferenceOffset = path.Offset;

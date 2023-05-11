@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.Xml.Editor.Logging;
+
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export (typeof (IAsyncCompletionCommitManagerProvider))]
@@ -19,18 +21,24 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		[ImportingConstructor]
 		public MSBuildCompletionCommitManagerProvider (
 			JoinableTaskContext joinableTaskContext,
-			IEditorCommandHandlerServiceFactory commandServiceFactory)
+			IEditorCommandHandlerServiceFactory commandServiceFactory,
+			IEditorLoggerFactory loggerService)
 		{
 			JoinableTaskContext = joinableTaskContext;
 			CommandServiceFactory = commandServiceFactory;
+			LoggerService = loggerService;
 		}
 
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public IEditorCommandHandlerServiceFactory CommandServiceFactory { get; }
+		public IEditorLoggerFactory LoggerService { get; }
 
 		public IAsyncCompletionCommitManager GetOrCreate (ITextView textView) =>
 			textView.Properties.GetOrCreateSingletonProperty (
-				typeof (MSBuildCompletionCommitManager), () => new MSBuildCompletionCommitManager (this)
+				typeof (MSBuildCompletionCommitManager), () => {
+					var logger = LoggerService.CreateLogger<MSBuildCompletionSource> (textView);
+					return new MSBuildCompletionCommitManager (this, logger);
+				}
 			);
 	}
 }
