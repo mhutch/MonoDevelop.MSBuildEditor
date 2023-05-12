@@ -41,6 +41,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		public IEditorLoggerFactory LoggerFactory { get; }
 
 		public IAsyncQuickInfoSource TryCreateQuickInfoSource (ITextBuffer textBuffer)
-			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildQuickInfoSource (textBuffer, this));
+			=> textBuffer.Properties.GetOrCreateSingletonProperty (() => {
+				var logger = LoggerFactory.CreateLogger<MSBuildQuickInfoSource> (textBuffer);
+				return new MSBuildQuickInfoSource (textBuffer, logger, this);
+			});
 	}
 }

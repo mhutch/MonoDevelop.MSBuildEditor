@@ -16,7 +16,6 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Editor.Logging;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -30,12 +29,12 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		readonly MSBuildQuickInfoSourceProvider provider;
 		readonly ILogger logger;
 
-		public MSBuildQuickInfoSource (ITextBuffer textBuffer, MSBuildQuickInfoSourceProvider provider)
+		public MSBuildQuickInfoSource (ITextBuffer textBuffer, ILogger logger, MSBuildQuickInfoSourceProvider provider)
 		{
 			this.textBuffer = textBuffer;
 			this.provider = provider;
 			parser = provider.ParserProvider.GetParser (textBuffer);
-			logger = provider.LoggerFactory.GetLogger<MSBuildQuickInfoSource> (textBuffer);
+			this.logger = logger;
 		}
 
 		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
