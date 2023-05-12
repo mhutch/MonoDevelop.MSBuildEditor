@@ -6,15 +6,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	static class MSBuildNavigation
+	static partial class MSBuildNavigation
 	{
 		public static bool CanNavigate (MSBuildRootDocument doc, int offset, MSBuildResolveResult rr)
 		{
@@ -113,16 +116,20 @@ namespace MonoDevelop.MSBuild.Language
 				.Where (a => !(a is IRegionAnnotation ra) || ra.Span.Contains (offset));
 		}
 
-		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length)
+		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length, ILogger logger)
 		{
-			var visitor = new MSBuildNavigationVisitor ();
-			visitor.Run (doc, offset, length);
+			var visitor = new MSBuildNavigationVisitor (doc, doc.Text, logger);
+			visitor.Run (doc.XDocument.RootElement, offset, length);
 			return visitor.Navigations;
 		}
 
 		class MSBuildNavigationVisitor : MSBuildResolvingVisitor
 		{
-			public List<MSBuildNavigationResult> Navigations { get; } = new List<MSBuildNavigationResult> ();
+			public MSBuildNavigationVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
+			{
+			}
+
+			public List<MSBuildNavigationResult> Navigations { get; } = new ();
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
@@ -178,13 +185,13 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.Unknown:
 					if (node is ListExpression list) {
 						foreach (var n in list.Nodes) {
-							var p = GetPathFromNode (n, (MSBuildRootDocument)Document);
+							var p = GetPathFromNode (n, (MSBuildRootDocument)Document, Logger);
 							if (p != null) {
 								Navigations.Add (p);
 							}
 						}
 					}
-					var path = GetPathFromNode (node, (MSBuildRootDocument)Document);
+					var path = GetPathFromNode (node, (MSBuildRootDocument)Document, Logger);
 					if (path != null) {
 						Navigations.Add (path);
 					}
@@ -193,7 +200,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document)
+		public static MSBuildNavigationResult GetPathFromNode (ExpressionNode node, MSBuildRootDocument document, ILogger logger)
 		{
 			try {
 				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPaths (node, document).FirstOrDefault ();
@@ -203,10 +210,13 @@ namespace MonoDevelop.MSBuild.Language
 					);
 				}
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error checking path for file '{node}'", ex);
+				LogNodePathError (logger, ex);
 			}
 			return null;
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error getting navigation path for node")]
+		static partial void LogNodePathError (ILogger logger, Exception ex);
 	}
 
 	class MSBuildNavigationResult

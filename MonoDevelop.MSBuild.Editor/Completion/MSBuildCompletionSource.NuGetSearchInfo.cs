@@ -6,8 +6,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+
+using MonoDevelop.Xml.Logging;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -16,18 +19,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	partial class MSBuildCompletionSource
 	{
-		public class NuGetSearchUpdater
+		public partial class NuGetSearchUpdater
 		{
-			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm, string packageType)
+			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm, string packageType, ILogger logger)
 			{
 				this.tfm = tfm;
 				this.packageType = packageType;
+				this.logger = logger;
 				this.parent = parent;
 				this.session = session;
 			}
 
 			readonly string tfm;
 			readonly string packageType;
+			readonly ILogger logger;
 			readonly IAsyncCompletionSession session;
 			readonly MSBuildCompletionSource parent;
 			MSBuildCompletionItemManager completionItemManager;
@@ -141,7 +146,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						parent.session,
 						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Invoke, data.Snapshot)),
 						token
-					);
+					).CatchAndLogWarning (parent.logger);
 
 					if (token.IsCancellationRequested || remainingFeeds > search.RemainingFeeds.Count) {
 						return;

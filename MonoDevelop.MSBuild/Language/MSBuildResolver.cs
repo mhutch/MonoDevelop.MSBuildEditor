@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -22,6 +25,7 @@ namespace MonoDevelop.MSBuild.Language
 			ITextSource textSource,
 			MSBuildDocument context,
 			IFunctionTypeProvider functionTypeProvider,
+			ILogger logger,
 			CancellationToken cancellationToken = default)
 		{
 			int offset = spineParser.Position;
@@ -78,13 +82,13 @@ namespace MonoDevelop.MSBuild.Language
 				Attribute = att
 			};
 
-			var rv = new MSBuildResolveVisitor (offset, rr, functionTypeProvider);
+			var rv = new MSBuildResolveVisitor (context, textSource, logger, offset, rr, functionTypeProvider);
 
 			try {
-				rv.Run (el, languageElement, textSource, context, token: cancellationToken);
+				rv.Run (el, languageElement, token: cancellationToken);
 			} catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
 				// callers always have to handle the possibility this returns null
-				// so this means callers don't need to handle cancellation exceptions explciitly
+				// so this means callers don't need to handle cancellation exceptions explicitly
 				return null;
 			}
 
@@ -97,7 +101,8 @@ namespace MonoDevelop.MSBuild.Language
 			readonly MSBuildResolveResult rr;
 			readonly IFunctionTypeProvider functionTypeProvider;
 
-			public MSBuildResolveVisitor (int offset, MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider)
+			public MSBuildResolveVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger, int offset, MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider)
+				: base (document, textSource, logger)
 			{
 				this.offset = offset;
 				this.rr = rr;
@@ -276,7 +281,7 @@ namespace MonoDevelop.MSBuild.Language
 					case MSBuildValueKind.ProjectFile:
 					case MSBuildValueKind.TaskAssemblyFile:
 						var pathNode = lit.Parent as ConcatExpression ?? (ExpressionNode)lit;
-						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document);
+						var path = MSBuildNavigation.GetPathFromNode (pathNode, (MSBuildRootDocument)Document, Logger);
 						if (path != null) {
 							rr.ReferenceKind = MSBuildReferenceKind.FileOrFolder;
 							rr.ReferenceOffset = path.Offset;

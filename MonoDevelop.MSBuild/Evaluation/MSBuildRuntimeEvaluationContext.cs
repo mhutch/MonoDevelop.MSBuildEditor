@@ -5,9 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Util;
+
+using Microsoft.Extensions.Logging;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
@@ -21,10 +20,12 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		readonly IMSBuildEnvironment env;
 
-		public MSBuildRuntimeEvaluationContext (IMSBuildEnvironment env)
+		public ILogger Logger { get; }
+
+		public MSBuildRuntimeEvaluationContext (IMSBuildEnvironment env, ILogger logger)
 		{
 			this.env = env;
-
+			Logger = logger;
 			if (env is NullMSBuildEnvironment) {
 				return;
 			}

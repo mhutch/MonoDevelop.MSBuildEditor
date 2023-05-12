@@ -10,6 +10,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
 
@@ -33,6 +34,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			var schemas = new MSBuildSchemaProvider ();
 			var environment = new NullMSBuildEnvironment ();
 			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
+			var logger = TestLoggerFactory.CreateTestMethodLogger ();
 
 			var doc = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
@@ -41,9 +43,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				schemas,
 				environment,
 				taskMetadataBuilder,
+				logger,
 				token);
 
-			var analyzerDriver = new MSBuildAnalyzerDriver ();
+			var analyzerDriver = new MSBuildAnalyzerDriver (TestLoggerFactory.CreateLogger<MSBuildAnalyzerDriver> ());
 
 			if (analyzers != null && analyzers.Count > 0) {
 				analyzerDriver.AddAnalyzers (analyzers);

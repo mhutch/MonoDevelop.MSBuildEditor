@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.Build.Framework;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -16,10 +18,12 @@ using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
+using SdkReference = Microsoft.Build.Framework.SdkReference;
+
 namespace MonoDevelop.MSBuild.Language
 {
 	// represents the context for a parse operation
-	class MSBuildParserContext
+	partial class MSBuildParserContext
 	{
 		public MSBuildRootDocument RootDocument { get; }
 		public MSBuildRootDocument PreviousRootDocument { get; }
@@ -31,6 +35,7 @@ namespace MonoDevelop.MSBuild.Language
 		public CancellationToken Token { get; }
 		public MSBuildRuntimeEvaluationContext RuntimeEvaluationContext { get; }
 		public IMSBuildEnvironment Environment { get; }
+		public ILogger Logger { get; }
 
 		public MSBuildParserContext (
 			IMSBuildEnvironment env,
@@ -40,6 +45,7 @@ namespace MonoDevelop.MSBuild.Language
 			string projectPath,
 			PropertyValueCollector propVals,
 			ITaskMetadataBuilder taskBuilder,
+			ILogger logger,
 			MSBuildSchemaProvider schemaProvider,
 			CancellationToken token)
 		{
@@ -50,17 +56,25 @@ namespace MonoDevelop.MSBuild.Language
 			ProjectPath = projectPath;
 			PropertyCollector = propVals;
 			TaskBuilder = taskBuilder;
+			Logger = logger;
 			SchemaProvider = schemaProvider;
 			Token = token;
 
-			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env);
+			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env, logger);
 		}
 
 		public bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && Token.IsCancellationRequested);
 
+		record struct ImportLogScope (Import Import)
+		{
+			public override string ToString () => $"Import: {Import.Filename}";
+		}
+
 		public Import ParseImport (Import import)
 		{
 			Token.ThrowIfCancellationRequested ();
+
+			using var scope = Logger.BeginScope (new ImportLogScope (import));
 
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
 			ITextSource textSource;
@@ -69,16 +83,16 @@ namespace MonoDevelop.MSBuild.Language
 				textSource = new StringTextSource (File.ReadAllText (import.Filename));
 				(doc, _) = xmlParser.Parse (textSource.CreateReader ());
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
-				LoggingService.LogError ("Unhandled error parsing xml document", ex);
+				LogUnhandledXmlParserError (Logger, ex);
 				return import;
 			}
 
 			import.Document = new MSBuildDocument (import.Filename, false);
 			import.Document.Build (doc, this);
 			try {
-				import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk);
+				import.Document.Schema = SchemaProvider.GetSchema (import.Filename, import.Sdk, Logger);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error loading schema for '{import.Filename}'", ex);
+				LogErrorLoadingSchema (Logger, ex);
 			}
 
 			return import;
@@ -161,7 +175,7 @@ namespace MonoDevelop.MSBuild.Language
 
 						files = Directory.GetFiles (dir, pattern);
 					} catch (Exception ex) when (IsNotCancellation (ex)) {
-						LoggingService.LogError ($"Error evaluating wildcard in import candidate '{filename}'", ex);
+						LogErrorEvaluatingImportWildcardCandidate (Logger, ex, filename);
 						continue;
 					}
 
@@ -170,7 +184,7 @@ namespace MonoDevelop.MSBuild.Language
 						try {
 							wildImport = GetCachedOrParse (importExprString, f, sdk, resolvedSdk, File.GetLastWriteTimeUtc (f));
 						} catch (Exception ex) when (IsNotCancellation (ex)) {
-							LoggingService.LogError ($"Error reading wildcard import candidate '{files}'", ex);
+							LogErrorReadingImportWildcardCandidate (Logger, ex, f);
 							continue;
 						}
 						yield return wildImport;
@@ -187,7 +201,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					import = GetCachedOrParse (importExprString, filename, sdk, resolvedSdk, fi.LastWriteTimeUtc);
 				} catch (Exception ex) when (IsNotCancellation (ex)) {
-					LoggingService.LogError ($"Error reading import candidate '{filename}'", ex);
+						LogErrorReadingImportCandidate (Logger, ex, filename);
 					continue;
 				}
 
@@ -205,7 +219,7 @@ namespace MonoDevelop.MSBuild.Language
 			// this is here (rather than being folded into the next condition) for ease of breakpointing
 			if (!foundAny && !isWildcard) {
 				if (PreviousRootDocument == null && failedImports.Add (importExprString)) {
-					LoggingService.LogDebug ($"Could not resolve MSBuild import '{importExprString}'");
+					LogCouldNotResolveImport (Logger, importExprString);
 				}
 			}
 		}
@@ -223,8 +237,7 @@ namespace MonoDevelop.MSBuild.Language
 		public SdkInfo ResolveSdk (MSBuildDocument doc, string sdk, TextSpan loc)
 		{
 			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
-				string parseErrorMsg = $"Could not parse SDK '{sdk}'";
-				LoggingService.LogError (parseErrorMsg);
+				LogCouldNotParseSdk (Logger, sdk);
 				if (doc.IsToplevel) {
 					doc.Diagnostics.Add (CoreDiagnostics.InvalidSdkAttribute, loc, sdk);
 				}
@@ -232,22 +245,55 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			try {
-				var sdkInfo = Environment.ResolveSdk (
-					(sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null);
+				var sdkInfo = Environment.ResolveSdk ((sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null, Logger);
 				if (sdk != null) {
 					return sdkInfo;
 				}
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
-				LoggingService.LogError ("Error in SDK resolver", ex);
+				LogErrorInSdkResolver (Logger, ex);
 				return null;
 			}
 
-			string notFoundMsg = $"Did not find SDK '{sdk}'";
-			LoggingService.LogError (notFoundMsg);
+			LogDidNotFindSdk (Logger, sdk);
 			if (doc.IsToplevel) {
 				doc.Diagnostics.Add (CoreDiagnostics.SdkNotFound, loc, sdk);
 			}
 			return null;
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error parsing xml document")]
+		static partial void LogUnhandledXmlParserError (ILogger logger, Exception ex);
+
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Error, Message = "Error loading schema for import")]
+		static partial void LogErrorLoadingSchema (ILogger logger, Exception ex);
+
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Debug, Message = "Error evaluating import wildcard candidate '{candidateFilename}'")]
+		static partial void LogErrorEvaluatingImportWildcardCandidate (ILogger logger, Exception ex, string candidateFilename);
+
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Debug, Message = "Error reading import wildcard candidate '{candidateFilename}'")]
+		static partial void LogErrorReadingImportWildcardCandidate (ILogger logger, Exception ex, string candidateFilename);
+
+
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error reading import candidate '{candidateFilename}'")]
+		static partial void LogErrorReadingImportCandidate (ILogger logger, Exception ex, string candidateFilename);
+
+
+		[LoggerMessage (EventId = 5, Level = LogLevel.Debug, Message = "Could not resolve import '{importExpr}'")]
+		static partial void LogCouldNotResolveImport (ILogger logger, string importExpr);
+
+
+		[LoggerMessage (EventId = 6, Level = LogLevel.Error, Message = "Could not parse SDK reference '{sdk}'")]
+		static partial void LogCouldNotParseSdk (ILogger logger, string sdk);
+
+
+		[LoggerMessage (EventId = 7, Level = LogLevel.Error, Message = "Error in SDK resolver")]
+		static partial void LogErrorInSdkResolver (ILogger logger, Exception ex);
+
+
+		[LoggerMessage (EventId = 8, Level = LogLevel.Error, Message = "Did not find SDK '{sdk}'")]
+		static partial void LogDidNotFindSdk (ILogger logger, string sdk);
 	}
 }

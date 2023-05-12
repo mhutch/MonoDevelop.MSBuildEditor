@@ -1,9 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
+
 using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
+
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 // this is originally from MonoDevelop - MonoDevelop.Projects.MSBuild.MSBuildSdkResolver
 //
@@ -18,87 +25,74 @@ namespace MonoDevelop.MSBuild.SdkResolution
 	/// </summary>
 	partial class MSBuildSdkResolver
 	{
-		readonly object _lockObject = new ();
-		IList<SdkResolver> _resolvers;
-
+		readonly Lazy<IList<SdkResolver>> resolvers;
 		readonly IMSBuildEnvironment msbuildEnvironment;
+		readonly ILogger environmentLogger;
 
-		internal MSBuildSdkResolver (IMSBuildEnvironment environment)
+		internal MSBuildSdkResolver (IMSBuildEnvironment environment, ILogger environmentLogger)
 		{
 			this.msbuildEnvironment = environment;
+			this.environmentLogger = environmentLogger;
+			this.resolvers = new (() => LoadResolvers (environmentLogger));
 		}
 
 		// helpers for imported code
-		string SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
+		string? SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
 		string ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.ToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
 
 		/// <summary>
 		///     Get path on disk to the referenced SDK.
 		/// </summary>
 		/// <param name="sdk">SDK referenced by the Project.</param>
-		/// <param name="logger">Logging service.</param>
-		/// <param name="buildEventContext">Build event context for logging.</param>
 		/// <param name="projectFile">Location of the element within the project which referenced the SDK.</param>
 		/// <param name="solutionPath">Path to the solution if known.</param>
 		/// <returns>Path to the root of the referenced SDK.</returns>
-		internal SdkInfo ResolveSdk (SdkReference sdk, ILoggingService logger, MSBuildContext buildEventContext,
-			string projectFile, string solutionPath)
+		internal SdkInfo? ResolveSdk (SdkReference sdk, string projectFile, string solutionPath, ILogger logger)
 		{
-			if (_resolvers == null) Initialize (logger);
+			using var logScope = logger.BeginScope (projectFile);
+
+			// errors specific to this call go to the logger we were pass if possible, else to the env logger
+			logger ??= environmentLogger;
 
 			var results = new List<SdkResultImpl> ();
 
-			try {
-				var buildEngineLogger = new SdkLoggerImpl (logger, buildEventContext);
-				foreach (var sdkResolver in _resolvers) {
-					var context = new SdkResolverContextImpl (buildEngineLogger, projectFile, solutionPath, msbuildEnvironment.EngineVersion);
-					var resultFactory = new SdkResultFactoryImpl (sdk);
-					try {
-						var result = (SdkResultImpl)sdkResolver.Resolve (sdk, context, resultFactory);
-						if (result != null && result.Success) {
-							LogWarnings (logger, buildEventContext, projectFile, result);
-							return new SdkInfo(sdk.Name, result);
-						}
-
-						if (result != null)
-							results.Add (result);
-					} catch (Exception e) {
-						logger.LogFatalBuildError (buildEventContext, e, projectFile);
+			var buildEngineLogger = new SdkLoggerImpl (logger);
+			foreach (var sdkResolver in resolvers.Value) {
+				var context = new SdkResolverContextImpl (buildEngineLogger, projectFile, solutionPath, msbuildEnvironment.EngineVersion);
+				var resultFactory = new SdkResultFactoryImpl (sdk);
+				try {
+					var result = (SdkResultImpl)sdkResolver.Resolve (sdk, context, resultFactory);
+					if (result is null) {
+						continue;
 					}
-				}
-			} catch (Exception e) {
-				logger.LogFatalBuildError (buildEventContext, e, projectFile);
-				throw;
-			}
-
-			foreach (var result in results) {
-				LogWarnings (logger, buildEventContext, projectFile, result);
-
-				if (result.Errors != null) {
-					foreach (var error in result.Errors) {
-						logger.LogErrorFromText (buildEventContext, subcategoryResourceName: null, errorCode: null,
-							helpKeyword: null, file: projectFile, message: error);
+					LogResolverMessages (logger, LogLevel.Warning, result.Warnings);
+					LogResolverMessages (logger, LogLevel.Error, result.Errors);
+					if (result.Success) {
+						return new SdkInfo(sdk.Name, result);
 					}
+				} catch (Exception ex) {
+					LogUnhandledSdkResolverError (logger, ex, sdkResolver.Name);
 				}
 			}
 
 			return null;
 		}
 
-		void Initialize (ILoggingService logger)
+		static void LogResolverMessages (ILogger logger, LogLevel logLevel, IEnumerable<string>? messages)
 		{
-			lock (_lockObject) {
-				if (_resolvers != null) return;
-				_resolvers = LoadResolvers (logger, logger);
+			if (messages is null || !logger.IsEnabled(logLevel)) {
+				return;
+			}
+			foreach (var message in messages) {
+				if (message is not null) {
+					logger.Log (logLevel, SdkResolverLogMessageId, message);
+				}
 			}
 		}
 
-		static void LogWarnings (ILoggingService loggingContext, MSBuildContext bec, string projectFile, SdkResultImpl result)
-		{
-			if (result.Warnings == null) return;
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error in SDK resolver '{resolverName}'")]
+		static partial void LogUnhandledSdkResolverError (ILogger logger, Exception ex, string resolverName);
 
-			foreach (var warning in result.Warnings)
-				loggingContext.LogWarningFromText (bec, null, null, null, projectFile, warning);
-		}
+		static EventId SdkResolverLogMessageId = new (1, "SdkResolverLogMessage");
 	}
 }

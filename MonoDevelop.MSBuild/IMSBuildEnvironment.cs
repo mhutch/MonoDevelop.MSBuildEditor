@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.SdkResolution;
 
@@ -29,9 +33,10 @@ namespace MonoDevelop.MSBuild
 
 		IList<SdkInfo> GetRegisteredSdks ();
 
-		//NOTE: we don't use SdkReference so as not to expose Microsoft.Build API publically
+		//NOTE: we don't use SdkReference so as not to expose Microsoft.Build API publicly
 		//as that causes issues in VSMac's unit test discovery
-		SdkInfo ResolveSdk ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath);
+		// TODO: should this support reporting warnings up to the caller as user-visible warnings rather than log messages?
+		SdkInfo ResolveSdk ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath, ILogger? logger);
 	}
 
 	public static class MSBuildEnvironmentExtensions

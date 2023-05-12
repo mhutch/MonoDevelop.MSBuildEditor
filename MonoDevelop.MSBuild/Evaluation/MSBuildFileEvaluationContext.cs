@@ -6,7 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using MonoDevelop.MSBuild.Util;
+
+using Microsoft.Extensions.Logging;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
@@ -18,12 +19,16 @@ namespace MonoDevelop.MSBuild.Evaluation
 		readonly Dictionary<string, EvaluatedValue> values = new(StringComparer.OrdinalIgnoreCase);
 		readonly IMSBuildEvaluationContext runtimeContext;
 
+		public ILogger Logger { get; }
+
 		public MSBuildFileEvaluationContext (
 			IMSBuildEvaluationContext runtimeContext,
+			ILogger logger,
 			string projectPath,
 			string thisFilePath)
 		{
 			this.runtimeContext = runtimeContext ?? throw new ArgumentNullException (nameof (runtimeContext));
+			Logger = logger;
 
 			// this file path properties
 			if (thisFilePath != null) {

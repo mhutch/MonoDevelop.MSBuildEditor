@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -21,17 +22,19 @@ using ProjectFileTools.NuGetSearch.Feeds;
 
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
-	class MSBuildQuickInfoSource : IAsyncQuickInfoSource
+	partial class MSBuildQuickInfoSource : IAsyncQuickInfoSource
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly ITextBuffer textBuffer;
 		readonly MSBuildQuickInfoSourceProvider provider;
+		readonly ILogger logger;
 
-		public MSBuildQuickInfoSource (ITextBuffer textBuffer, MSBuildQuickInfoSourceProvider provider)
+		public MSBuildQuickInfoSource (ITextBuffer textBuffer, ILogger logger, MSBuildQuickInfoSourceProvider provider)
 		{
 			this.textBuffer = textBuffer;
 			this.provider = provider;
 			parser = provider.ParserProvider.GetParser (textBuffer);
+			this.logger = logger;
 		}
 
 		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
@@ -59,7 +62,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			await provider.FunctionTypeProvider.EnsureInitialized (cancellationToken);
 
 			var rr = MSBuildResolver.Resolve (
-				spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, cancellationToken
+				spine, snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, logger, cancellationToken
 			);
 			if (rr != null) {
 				if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
@@ -106,7 +109,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 					?? infos.FirstOrDefault ();
 			}
 			catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
-				LoggingService.LogError ("Error loading package description", ex);
+				LogErrorLoadingPackageDescription (logger, ex);
 			}
 
 			var span = snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive);
@@ -116,5 +119,8 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		public void Dispose ()
 		{
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error getting navigation path for node")]
+		static partial void LogErrorLoadingPackageDescription (ILogger logger, Exception ex);
 	}
 }

@@ -4,10 +4,13 @@
 using System;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -24,9 +27,8 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		readonly Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult;
 
-		public string Name { get; }
-
-		protected MSBuildReferenceCollector (string name, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+		protected MSBuildReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string name, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger)
 		{
 			if (string.IsNullOrEmpty (name)) {
 				throw new ArgumentException ("Name cannot be null or empty", name);
@@ -34,6 +36,8 @@ namespace MonoDevelop.MSBuild.Language
 			Name = name;
 			this.reportResult = reportResult;
 		}
+
+		public string Name { get; }
 
 		protected bool IsMatch (string name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
@@ -84,32 +88,32 @@ namespace MonoDevelop.MSBuild.Language
 			return false;
 		}
 
-		public static MSBuildReferenceCollector Create (MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+		public static MSBuildReferenceCollector Create (MSBuildDocument document, ITextSource textSource, ILogger logger, MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Property:
-				return new MSBuildPropertyReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildPropertyReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.Item:
-				return new MSBuildItemReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildItemReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.Metadata:
 				var m = rr.ReferenceAsMetadata;
-				return new MSBuildMetadataReferenceCollector (m.itemName, m.metaName, reportResult);
+				return new MSBuildMetadataReferenceCollector (document, textSource, logger, m.itemName, m.metaName, reportResult);
 			case MSBuildReferenceKind.Task:
-				return new MSBuildTaskReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildTaskReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.Target:
-				return new MSBuildTargetReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildTargetReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.ItemFunction:
-				return new MSBuildItemFunctionReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildItemFunctionReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				(string className, string name) = ((string, string))rr.Reference;
-				return new MSBuildStaticPropertyFunctionReferenceCollector (className, name, reportResult);
+				return new MSBuildStaticPropertyFunctionReferenceCollector (document, textSource, logger, className, name, reportResult);
 			case MSBuildReferenceKind.PropertyFunction:
 				(MSBuildValueKind valueKind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
-				return new MSBuildPropertyFunctionReferenceCollector (valueKind, funcName, functionTypeProvider, reportResult);
+				return new MSBuildPropertyFunctionReferenceCollector (document, textSource, logger, valueKind, funcName, functionTypeProvider, reportResult);
 			case MSBuildReferenceKind.ClassName:
-				return new MSBuildClassReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildClassReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			case MSBuildReferenceKind.Enum:
-				return new MSBuildEnumReferenceCollector ((string)rr.Reference, reportResult);
+				return new MSBuildEnumReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
@@ -118,8 +122,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildItemReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildItemReferenceCollector (string itemName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (itemName, reportResult) { }
+		public MSBuildItemReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string itemName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, itemName, reportResult) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
@@ -161,8 +165,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildPropertyReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildPropertyReferenceCollector (string propertyName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (propertyName, reportResult) { }
+		public MSBuildPropertyReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string propertyName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, propertyName, reportResult) { }
 
 
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
@@ -200,8 +204,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildTaskReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTaskReferenceCollector (string taskName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (taskName, reportResult) { }
+		public MSBuildTaskReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string taskName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, taskName, reportResult) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
@@ -230,8 +234,8 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		readonly string itemName;
 
-		public MSBuildMetadataReferenceCollector (string itemName, string metadataName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (metadataName, reportResult)
+		public MSBuildMetadataReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string itemName, string metadataName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, metadataName, reportResult)
 		{
 			this.itemName = itemName;
 		}
@@ -321,8 +325,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildTargetReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTargetReferenceCollector (string targetName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (targetName, reportResult) { }
+		public MSBuildTargetReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string targetName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, targetName, reportResult) { }
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
@@ -358,8 +362,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildTargetDefinitionCollector : MSBuildReferenceCollector
 	{
-		public MSBuildTargetDefinitionCollector (string targetName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (targetName, reportResult) { }
+		public MSBuildTargetDefinitionCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string targetName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, targetName, reportResult) { }
 
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
@@ -377,8 +381,8 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		readonly string className;
 
-		public MSBuildStaticPropertyFunctionReferenceCollector (string className, string functionName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (MSBuildPropertyFunctionReferenceCollector.StripGetPrefix (functionName), reportResult)
+		public MSBuildStaticPropertyFunctionReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string className, string functionName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, MSBuildPropertyFunctionReferenceCollector.StripGetPrefix (functionName), reportResult)
 		{
 			this.className = className;
 		}
@@ -420,9 +424,10 @@ namespace MonoDevelop.MSBuild.Language
 		readonly IFunctionTypeProvider functionTypeProvider;
 
 		public MSBuildPropertyFunctionReferenceCollector (
+			MSBuildDocument document, ITextSource textSource, ILogger logger,
 			MSBuildValueKind valueKind, string functionName, IFunctionTypeProvider functionTypeProvider,
 			Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (StripGetPrefix (functionName), reportResult)
+			: base (document, textSource, logger, StripGetPrefix(functionName), reportResult)
 		{
 			if (valueKind == MSBuildValueKind.Unknown) {
 				valueKind = MSBuildValueKind.String;
@@ -460,8 +465,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildItemFunctionReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildItemFunctionReferenceCollector (string functionName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (functionName, reportResult) { }
+		public MSBuildItemFunctionReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string functionName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, functionName, reportResult) { }
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
@@ -482,8 +487,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildClassReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildClassReferenceCollector (string className, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (className, reportResult) { }
+		public MSBuildClassReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string className, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, className, reportResult) { }
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,
@@ -504,8 +509,8 @@ namespace MonoDevelop.MSBuild.Language
 
 	class MSBuildEnumReferenceCollector : MSBuildReferenceCollector
 	{
-		public MSBuildEnumReferenceCollector (string enumName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
-			: base (enumName, reportResult) { }
+		public MSBuildEnumReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, string enumName, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+			: base (document, textSource, logger, enumName, reportResult) { }
 
 		protected override void VisitValueExpression (
 			XElement element, XAttribute attribute,

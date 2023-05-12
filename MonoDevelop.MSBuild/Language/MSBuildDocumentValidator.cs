@@ -7,17 +7,25 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class MSBuildDocumentValidator : MSBuildResolvingVisitor
+	partial class MSBuildDocumentValidator : MSBuildResolvingVisitor
 	{
+		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
+		{
+		}
+
 		protected override void VisitUnknownElement (XElement element)
 		{
 			Document.Diagnostics.Add (CoreDiagnostics.UnknownElement, element.Span, element.Name.FullName);
@@ -40,7 +48,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			} catch (Exception ex) when (!(ex is OperationCanceledException && CancellationToken.IsCancellationRequested)) {
 				Document.Diagnostics.Add (CoreDiagnostics.InternalError, element.NameSpan, ex.Message);
-				LoggingService.LogError ("Internal error in MSBuildDocumentValidator", ex);
+				LogInternalError (Logger, ex);
 			}
 		}
 
@@ -727,5 +735,9 @@ namespace MonoDevelop.MSBuild.Language
 			}
 			return false;
 		}
+
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error in MSBuildDocumentValidator")]
+		static partial void LogInternalError (ILogger logger, Exception ex);
 	}
 }

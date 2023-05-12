@@ -3,14 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using MonoDevelop.MSBuild;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-	static class Logger
-	{
-		public static void Log (string functionId) => LoggingService.LogError ($"Internal error in {functionId}");
-	}
 
 	static class FunctionId
 	{

@@ -1,16 +1,24 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Logging;
+
+using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Parser;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Language.Syntax;
-using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
 {
 	abstract class MSBuildResolvingVisitor : MSBuildVisitor
 	{
+		protected MSBuildResolvingVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
+		{
+		}
+
 		protected override void VisitElementValue (XElement element, MSBuildElementSyntax resolved, string value, int offset)
 		{
 			base.VisitElementValue (element, resolved, value, offset);

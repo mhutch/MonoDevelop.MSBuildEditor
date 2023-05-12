@@ -5,7 +5,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Emit;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 
@@ -13,15 +15,17 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export]
-	class MSBuildParserProvider
+	partial class MSBuildParserProvider
 	{
 		[ImportingConstructor]
 		public MSBuildParserProvider (
 			XmlParserProvider xmlParserProvider,
+			MSBuildEnvironmentLogger environmentLogger,
 			[Import (AllowDefault = true)] ITaskMetadataBuilder taskMetadataBuilder,
 			[Import (AllowDefault = true)] MSBuildSchemaProvider schemaProvider,
 			[Import (AllowDefault = true)] IMSBuildEnvironment msbuildEnvironment
@@ -29,14 +33,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			if (msbuildEnvironment == null) {
 				try {
-					msbuildEnvironment = new CurrentProcessMSBuildEnvironment ();
+					msbuildEnvironment = new CurrentProcessMSBuildEnvironment (environmentLogger.Logger);
 				} catch (Exception ex) {
-					LoggingService.LogError ("Failed to initialize runtime info for parser", ex);
+					LogFailedRuntimeInitialization (environmentLogger.Logger, ex);
 					msbuildEnvironment = new NullMSBuildEnvironment ();
 				}
 			}
 
 			XmlParserProvider = xmlParserProvider;
+			LoggerFactory = environmentLogger.Factory;
 			TaskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder ();
 			SchemaProvider = schemaProvider ?? new MSBuildSchemaProvider ();
 			MSBuildEnvironment = msbuildEnvironment;
@@ -46,6 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public ITaskMetadataBuilder TaskMetadataBuilder { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
 		public IMSBuildEnvironment MSBuildEnvironment { get; }
+		public IEditorLoggerFactory LoggerFactory { get; internal set; }
 
 		public MSBuildBackgroundParser GetParser (ITextBuffer buffer)
 		{
@@ -85,5 +91,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				buffer.Properties.RemoveProperty (typeof (MSBuildBackgroundParser));
 			}
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Failed to initialize MSBuild runtime info")]
+		static partial void LogFailedRuntimeInitialization (ILogger logger, Exception ex);
 	}
 }

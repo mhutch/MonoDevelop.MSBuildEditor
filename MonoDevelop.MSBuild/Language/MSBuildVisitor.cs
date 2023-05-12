@@ -2,9 +2,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuild.Language.Syntax;
@@ -18,6 +23,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected string Filename => Document.Filename;
 		protected ITextSource TextSource { get; private set; }
 		protected string Extension { get; private set; }
+		protected ILogger Logger { get; private set; }
 		protected CancellationToken CancellationToken { get; private set; }
 		protected void CheckCancellation () => CancellationToken.ThrowIfCancellationRequested ();
 		protected bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && CancellationToken.IsCancellationRequested);
@@ -25,28 +31,18 @@ namespace MonoDevelop.MSBuild.Language
 		protected bool IsTargetsFile => string.Equals (Extension, ".targets", StringComparison.OrdinalIgnoreCase);
 		protected bool IsPropsFile => string.Equals (Extension, ".props", StringComparison.OrdinalIgnoreCase);
 
-		public void Run (MSBuildRootDocument doc, int offset = 0, int length = 0, CancellationToken token = default)
-		{
-			Run (doc.XDocument, doc.Text, doc, offset, length, token);
-		}
-
-		public void Run (
-			XDocument xDocument, ITextSource textSource, MSBuildDocument doc, int offset = 0, int length = 0,
-			CancellationToken token = default
-			)
-		{
-			Run (xDocument.RootElement, null, textSource, doc, offset, length, token);
-		}
-
-		public virtual void Run (
-			XElement element, MSBuildElementSyntax resolvedElement,
-			ITextSource textSource, MSBuildDocument document,
-			int offset = 0, int length = 0,
-			CancellationToken token = default)
+		protected MSBuildVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger)
 		{
 			Document = document;
-			Extension = Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
+			Extension = document.Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
 			TextSource = textSource;
+			Logger = logger;
+		}
+
+		public void Run (XElement element, int offset = 0, int length = 0, CancellationToken token = default) => Run (element, null, offset, length, token);
+
+		public void Run (XElement element, MSBuildElementSyntax? resolvedElement, int offset = 0, int length = 0, CancellationToken token = default)
+		{
 			CancellationToken = token;
 
 			range = new TextSpan (offset, length > 0 ? length + offset : int.MaxValue);

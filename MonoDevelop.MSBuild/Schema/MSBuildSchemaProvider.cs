@@ -5,29 +5,34 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Schema
 {
 	class MSBuildSchemaProvider
 	{
-		public MSBuildSchema GetSchema (string path, string sdk)
+		public MSBuildSchema GetSchema (string path, string sdk, ILogger logger)
 		{
 			var schema = GetSchema (path, sdk, out var loadErrors);
 
-			// FIXME: log which the error came from
+			// FIXME: log which schema the error came from
 			if (loadErrors != null) {
+				using var logScope = logger.BeginScope (path);
 				foreach (var error in loadErrors) {
-					if (error.Severity == DiagnosticSeverity.Warning) {
-						LoggingService.LogWarning (error.Message);
-					} else {
-						LoggingService.LogError (error.Message);
+					var logLevel = error.Severity == DiagnosticSeverity.Warning ? LogLevel.Warning : LogLevel.Error;
+					if (logger.IsEnabled (logLevel)) {
+						logger.Log (logLevel, schemaLoadErrorId, null, error.Message);
 					}
 				}
 			}
 
 			return schema;
 		}
+
+		static readonly EventId schemaLoadErrorId = new (0, "SchemaLoadError");
 
 		public virtual MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
@@ -83,7 +88,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 			.Select (s => (LoadBuiltinSchema (s, out var e), e));
 
-		class BuiltinSchema
+		static class BuiltinSchema
 		{
 			public const string CommonTargets = nameof (CommonTargets);
 			public const string CodeAnalysis = nameof (CodeAnalysis);

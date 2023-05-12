@@ -4,28 +4,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 
-using MonoDevelop.MSBuild.Evaluation;
-using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.SdkResolution;
+
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace MonoDevelop.MSBuild
 {
 	/// <summary>
 	/// Describes the MSBuild environment of the current process
 	/// </summary>
-	class CurrentProcessMSBuildEnvironment : IMSBuildEnvironment
+	partial class CurrentProcessMSBuildEnvironment : IMSBuildEnvironment
 	{
 		readonly Toolset toolset;
 		readonly Dictionary<SdkReference, SdkInfo> resolvedSdks = new();
 		readonly MSBuildSdkResolver sdkResolver;
+		readonly ILogger logger;
 
-		public CurrentProcessMSBuildEnvironment ()
+		public CurrentProcessMSBuildEnvironment (ILogger logger)
 		{
 			var projectCollection = ProjectCollection.GlobalProjectCollection;
 			toolset = projectCollection.GetToolset (projectCollection.DefaultToolsVersion);
@@ -33,7 +34,8 @@ namespace MonoDevelop.MSBuild
 			ToolsetProperties = GetToolsetProperties (toolset);
 			ProjectImportSearchPaths = GetImportSearchPaths (toolset);
 
-			sdkResolver = new MSBuildSdkResolver (this);
+			sdkResolver = new MSBuildSdkResolver (this, logger);
+			this.logger = logger;
 		}
 
 		public string ToolsVersion => toolset.ToolsVersion;
@@ -49,16 +51,14 @@ namespace MonoDevelop.MSBuild
 
 		//FIXME: caching should be specific to the (projectFile, string solutionPath) pair
 		public SdkInfo ResolveSdk (
-			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath)
+			(string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath, ILogger logger = null)
 		{
 			var sdkRef = new SdkReference (sdk.name, sdk.version, sdk.minimumVersion);
 			if (!resolvedSdks.TryGetValue (sdkRef, out SdkInfo sdkInfo)) {
 				try {
-					//FIXME: capture errors & warnings from logger and return those too?
-					// FIX THIS, at least log to the static logger
-					sdkInfo = sdkResolver.ResolveSdk (sdkRef, new NoopLoggingService (), null, projectFile, solutionPath);
+					sdkInfo = sdkResolver.ResolveSdk (sdkRef, projectFile, solutionPath, logger ?? this.logger);
 				} catch (Exception ex) {
-					LoggingService.LogError ("Error in SDK resolver", ex);
+					LogUnhandledErrorInSdkResolver (logger, ex);
 				}
 				resolvedSdks[sdkRef] = sdkInfo;
 			}
@@ -97,27 +97,7 @@ namespace MonoDevelop.MSBuild
 			return converted;
 		}
 
-		class NoopLoggingService : ILoggingService
-		{
-			public void LogCommentFromText (MSBuildContext buildEventContext, MessageImportance messageImportance, string message)
-			{
-			}
-
-			public void LogErrorFromText (MSBuildContext buildEventContext, object subcategoryResourceName, object errorCode, object helpKeyword, string file, string message)
-			{
-			}
-
-			public void LogFatalBuildError (MSBuildContext buildEventContext, Exception e, string projectFile)
-			{
-			}
-
-			public void LogWarning (string message)
-			{
-			}
-
-			public void LogWarningFromText (MSBuildContext bec, object p1, object p2, object p3, string projectFile, string warning)
-			{
-			}
-		}
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error in SDK resolver")]
+		static partial void LogUnhandledErrorInSdkResolver (ILogger logger, Exception ex);
 	}
 }

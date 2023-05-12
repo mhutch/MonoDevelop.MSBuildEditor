@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.Extensions.Logging;
 
 namespace Roslyn.Utilities
 {
@@ -28,7 +29,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static BKTree ReadFrom(ObjectReader reader)
+        internal static BKTree ReadFrom(ObjectReader reader, ILogger logger)
         {
             try
             {
@@ -54,11 +55,14 @@ namespace Roslyn.Utilities
 
                 return new BKTree(concatenatedLowerCaseWords, nodes.MoveToImmutable(), edges.MoveToImmutable());
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log(FunctionId.BKTree_ExceptionInCacheRead);
+				LogExceptionInCacheRead (logger, ex);
                 return null;
             }
         }
-    }
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Exception in BKTree cache read")]
+		static partial void LogExceptionInCacheRead (ILogger logger, Exception ex);
+	}
 }

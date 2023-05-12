@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 				return Empty;
 			}
 
-			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider, token);
+			var rr = MSBuildResolver.Resolve (spineParser, textSource, doc, provider.FunctionTypeProvider, Logger, token);
 			if (!MSBuildReferenceCollector.CanCreate (rr)) {
 				return Empty;
 			}
@@ -62,10 +62,11 @@ namespace MonoDevelop.MSBuild.Editor.HighlightReferences
 
 			var references = new List<(ReferenceUsage usage, SnapshotSpan span)> ();
 			var collector = MSBuildReferenceCollector.Create (
+				doc, doc.Text, Logger,
 				rr, provider.FunctionTypeProvider,
 				r => references.Add ((r.Usage, new SnapshotSpan (snapshot, r.Offset, r.Length))));
 
-			await Task.Run (() => collector.Run (doc, token: token), token);
+			await Task.Run (() => collector.Run (doc.XDocument.RootElement, token: token), token);
 
 			return (
 				new SnapshotSpan (caretLocation.Snapshot, rr.ReferenceOffset, rr.ReferenceLength),

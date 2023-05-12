@@ -3,24 +3,29 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Utilities;
 
-using ProjectFileTools.NuGetSearch.Contracts;
+using MonoDevelop.MSBuild.Editor.Completion;
 
 using NuGet.VisualStudio;
+
+using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {
 	[Export (typeof (IPackageFeedRegistryProvider))]
 	[Name ("Visual Studio Package Feed Registry Provider")]
-	class PackageFeedRegistryProvider : IPackageFeedRegistryProvider
+	partial class PackageFeedRegistryProvider : IPackageFeedRegistryProvider
 	{
 		readonly IVsPackageSourceProvider provider;
+		readonly ILogger logger;
 
 		[ImportingConstructor]
-		public PackageFeedRegistryProvider (IVsPackageSourceProvider provider)
+		public PackageFeedRegistryProvider (IVsPackageSourceProvider provider, MSBuildEnvironmentLogger logger)
 		{
 			this.provider = provider;
+			this.logger = logger.Logger;
 		}
 
 		public IReadOnlyList<string> ConfiguredFeeds {
@@ -36,7 +41,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 						sources.Add (source);
 					}
 				} catch (Exception ex) {
-					LoggingService.LogError ("Failed to get configured NuGet sources", ex);
+					LogFailedToGetConfiguredSources (logger, ex);
 					sources.Add ("https://api.nuget.org/v3/index.json");
 				}
 
@@ -47,5 +52,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 				return sources;
 			}
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Failed to get configured NuGet sources")]
+		static partial void LogFailedToGetConfiguredSources (ILogger logger, Exception ex);
 	}
 }

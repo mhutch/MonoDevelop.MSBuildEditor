@@ -184,6 +184,7 @@ class ExtractExpressionTests : MSBuildEditorTest
 		Assert.That (errors, Is.Empty);
 
 		var node = parsedDoc.FindAtOffset (doc.GetMarkedPosition ('$'));
+		Assert.NotNull (node);
 
 		var expectedSpans = doc.GetMarkedSpans ('^');
 		Array.Reverse (expectedSpans);

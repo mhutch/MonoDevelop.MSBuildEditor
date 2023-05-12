@@ -5,6 +5,7 @@ using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using Microsoft.Extensions.Logging;
 
 namespace MonoDevelop.MSBuild
 {
@@ -12,7 +13,7 @@ namespace MonoDevelop.MSBuild
 	{
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
-			string declaredInFile, int declaredAtOffset, IMSBuildEvaluationContext evaluationContext)
+			string declaredInFile, int declaredAtOffset, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
 			return null;
 		}

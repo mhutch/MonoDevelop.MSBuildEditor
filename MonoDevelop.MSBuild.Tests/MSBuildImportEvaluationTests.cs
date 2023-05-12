@@ -7,12 +7,19 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.Xml.Tests;
+
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests
@@ -177,12 +184,13 @@ namespace MonoDevelop.MSBuild.Tests
 
 		static MSBuildRootDocument ParseDoc (string contents, string filename = "myfile.csproj")
 		{
-			var runtimeInfo = new CurrentProcessMSBuildEnvironment ();
+			var logger = TestLoggerFactory.CreateTestMethodLogger ();
+			var runtimeInfo = new CurrentProcessMSBuildEnvironment (logger);
 			var textSource = new StringTextSource (contents);
 			var schemaProvider = new MSBuildSchemaProvider ();
 			var taskBuilder = new NoopTaskMetadataBuilder ();
 
-			return MSBuildRootDocument.Parse (textSource, filename, null, schemaProvider, runtimeInfo, taskBuilder, default);
+			return MSBuildRootDocument.Parse (textSource, filename, null, schemaProvider, runtimeInfo, taskBuilder, logger, default);
 		}
 
 		static void AssertImportsExist (MSBuildRootDocument rootDoc, params string[] filenames)
@@ -222,6 +230,10 @@ namespace MonoDevelop.MSBuild.Tests
 	class TestEvaluationContext : IMSBuildEvaluationContext, IEnumerable
 	{
 		readonly Dictionary<string, OneOrMany<EvaluatedValue>> properties = new (StringComparer.OrdinalIgnoreCase);
+
+		static readonly ILogger logger = TestLoggerFactory.CreateTestMethodLogger ();
+
+		public ILogger Logger => logger;
 
 		public void Add (string name, string[] evaluatedValues)
 		{

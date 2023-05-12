@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.IO;
 using Microsoft.Build.Framework;
 
@@ -32,52 +31,9 @@ namespace MonoDevelop.MSBuild.SdkResolution
 			var sdkPath = Path.Combine (SdksPath, sdkReference.Name, "Sdk");
 
 			// Note: On failure MSBuild will log a generic message, no need to indicate a failure reason here.
-			return System.IO.Directory.Exists (sdkPath)
+			return Directory.Exists (sdkPath)
 				? factory.IndicateSuccess (sdkPath, string.Empty)
 				: factory.IndicateFailure (null);
 		}
-	}
-
-	interface ILoggingService
-	{
-		void LogErrorFromText (MSBuildContext buildEventContext, object subcategoryResourceName, object errorCode, object helpKeyword, string file, string message);
-		void LogFatalBuildError (MSBuildContext buildEventContext, Exception e, string projectFile);
-		void LogWarningFromText (MSBuildContext bec, object p1, object p2, object p3, string projectFile, string warning);
-		void LogCommentFromText (MSBuildContext buildEventContext, MessageImportance messageImportance, string message);
-		void LogWarning (string message);
-	}
-
-	class CustomLoggingService : ILoggingService
-	{
-		public static CustomLoggingService Instance = new CustomLoggingService ();
-
-		public void LogCommentFromText (MSBuildContext buildEventContext, MessageImportance messageImportance, string message)
-		{
-			LoggingService.LogInfo ("[MSBuild] " + message);
-		}
-
-		public void LogErrorFromText (MSBuildContext buildEventContext, object subcategoryResourceName, object errorCode, object helpKeyword, string file, string message)
-		{
-			LoggingService.LogError ("[MSBuild] " + message);
-		}
-
-		public void LogFatalBuildError (MSBuildContext buildEventContext, Exception e, string projectFile)
-		{
-			LoggingService.LogError ("[MSBuild]", e);
-		}
-
-		public void LogWarning (string message)
-		{
-			LoggingService.LogWarning ("[MSBuild] " + message);
-		}
-
-		public void LogWarningFromText (MSBuildContext bec, object p1, object p2, object p3, string projectFile, string warning)
-		{
-			LoggingService.LogWarning ("[MSBuild] " + warning);
-		}
-	}
-
-	class MSBuildContext
-	{
 	}
 }

@@ -18,7 +18,7 @@ static class ElementInsertionSpanExtensions
 	/// <returns>The insertion span, or <c>null</c> if element's parent is <c>null</c></returns>
 	public static TextSpan? GetInsertBeforeSpan (this XElement el)
 		=> el.GetPreviousSiblingElement () is XElement previousElement
-			? TextSpan.FromBounds (previousElement.OuterSpan.End, previousElement.NextSibling.Span.Start)
+			? TextSpan.FromBounds (previousElement.OuterSpan.End, (previousElement.NextSibling ?? el).Span.Start)
 			: el.ParentElement?.GetInsertBeforeFirstChildSpan ();
 
 	/// <summary>
@@ -35,9 +35,15 @@ static class ElementInsertionSpanExtensions
 	/// </summary>
 	/// <returns>The insertion span, or <c>null</c> if element is self-closing</returns>
 	public static TextSpan? GetInsertAfterLastChildSpan (this XElement parent)
-		=> parent.LastChild is XNode lastChild
-			? TextSpan.FromBounds (lastChild.OuterSpan.End, parent.ClosingTag.Span.Start)
-			: parent.GetInsertBeforeFirstChildSpan ();
+	{
+		if (parent.LastChild is XNode lastChild) {
+			if (parent.ClosingTag is XClosingTag ct) {
+				return TextSpan.FromBounds (lastChild.OuterSpan.End, ct.Span.Start);
+			}
+			return TextSpan.FromBounds (lastChild.OuterSpan.End, lastChild.OuterSpan.End);
+		}
+		return parent.GetInsertBeforeFirstChildSpan ();
+	}
 
 	/// <summary>
 	/// Gets text span to insert new node in this <see cref="XElement" />, assuming it has no existing children.

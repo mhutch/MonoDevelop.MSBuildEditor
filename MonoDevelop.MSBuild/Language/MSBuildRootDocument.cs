@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -19,7 +21,7 @@ using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
+	partial class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
 	{
 		MSBuildToolsVersion? toolsVersion;
 
@@ -49,6 +51,7 @@ namespace MonoDevelop.MSBuild.Language
 			ITextSource textSource, string filePath, MSBuildRootDocument previous,
 			MSBuildSchemaProvider schemaProvider, IMSBuildEnvironment environment,
 			ITaskMetadataBuilder taskBuilder,
+			ILogger logger,
 			CancellationToken token)
 		{
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
@@ -66,9 +69,9 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (filePath != null) {
 				try {
-					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filePath, null);
+					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filePath, null, logger);
 				} catch (Exception ex) {
-					LoggingService.LogError ("Error loading schema", ex);
+					LogUnhandledErrorLoadingSchema (logger, ex);
 				}
 				importedFiles.Add (filePath);
 			}
@@ -81,11 +84,12 @@ namespace MonoDevelop.MSBuild.Language
 				filePath,
 				propVals,
 				taskBuilder,
+				logger,
 				schemaProvider,
 				token);
 
 			if (filePath != null) {
-				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, filePath, filePath);
+				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, logger, filePath, filePath);
 			} else {
 				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
 			}
@@ -107,7 +111,7 @@ namespace MonoDevelop.MSBuild.Language
 						return imp;
 					}
 				} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
-					LoggingService.LogError ($"Error importing '{possibleFile}'", ex);
+					LogUnhandledErrorImportingFile (logger, ex, possibleFile);
 				}
 				return null;
 			}
@@ -156,19 +160,19 @@ namespace MonoDevelop.MSBuild.Language
 					TryImportIntellisenseImports (targetsImport.Document.Schema);
 				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
-				LoggingService.LogError ($"Error building document '{filePath ?? "[unnamed]"}'", ex);
+				LogUnhandledErrorBuildingDocumentModel (logger, ex, filePath ?? "[unnamed]");
 			}
 
 			try {
 				var env = parseContext.Environment;
-				foreach (var t in env.EnumerateFilesInToolsPath("*.tasks")) {
+				foreach (var t in env.EnumerateFilesInToolsPath ("*.tasks")) {
 					doc.LoadTasks (parseContext, "(core tasks)", t);
 				}
 				foreach (var t in env.EnumerateFilesInToolsPath ("*.overridetasks")) {
 					doc.LoadTasks (parseContext, "(core overridetasks)", t);
 				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
-				LoggingService.LogError ("Error resolving tasks", ex);
+				LogUnhandledErrorResolvingTasksFiles (logger, ex);
 			}
 
 			try {
@@ -184,16 +188,16 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				doc.Frameworks = propVals.GetFrameworks ();
 			} catch (Exception ex) {
-				LoggingService.LogError ("Error determining project framework", ex);
+				LogUnhandledErrorDeterminingTargetFramework (logger, ex);
 				doc.Frameworks = new List<NuGetFramework> ();
 			}
 
 			try {
 				//this has to run in a second pass so that it runs after all the schemas are loaded
-				var validator = new MSBuildDocumentValidator ();
-				validator.Run (doc.XDocument, textSource, doc);
+				var validator = new MSBuildDocumentValidator (doc, textSource, logger);
+				validator.Run (doc.XDocument.RootElement, token: token);
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
-				LoggingService.LogError ("Error in validation", ex);
+				LogUnhandledErrorValidatingDocument (logger, ex);
 			}
 
 			return doc;
@@ -205,7 +209,7 @@ namespace MonoDevelop.MSBuild.Language
 				var import = context.GetCachedOrParse (label, filename, null, null, File.GetLastWriteTimeUtc (filename));
 				AddImport (import);
 			} catch (Exception ex) when (context.IsNotCancellation (ex)) {
-				LoggingService.LogError ($"Error loading tasks file {filename}", ex);
+				LogUnhandledErrorResolvingTasksFile (context.Logger, ex, filename);
 			}
 		}
 
@@ -257,5 +261,26 @@ namespace MonoDevelop.MSBuild.Language
 				return toolsVersion.Value;
 			}
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Error loading schema")]
+		static partial void LogUnhandledErrorLoadingSchema (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Warning, Message = "Error importing file '{importFile}'")]
+		static partial void LogUnhandledErrorImportingFile  (ILogger logger, Exception ex, string importFile);
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Warning, Message = "Error building document model '{importFile}'")]
+		static partial void LogUnhandledErrorBuildingDocumentModel (ILogger logger, Exception ex, string importFile);
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Warning, Message = "Error resolving tasks files")]
+		static partial void LogUnhandledErrorResolvingTasksFiles (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error resolving tasks file '{tasksFile}'")]
+		static partial void LogUnhandledErrorResolvingTasksFile (ILogger logger, Exception ex, string tasksFile);
+
+		[LoggerMessage (EventId = 5, Level = LogLevel.Warning, Message = "Error determining target framework")]
+		static partial void LogUnhandledErrorDeterminingTargetFramework (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 6, Level = LogLevel.Warning, Message = "Error validating document")]
+		static partial void LogUnhandledErrorValidatingDocument (ILogger logger, Exception ex);
 	}
 }

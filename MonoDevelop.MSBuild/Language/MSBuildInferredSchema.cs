@@ -4,17 +4,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+
+using Microsoft.Extensions.Logging;
+
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
-using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	class MSBuildInferredSchema : IMSBuildSchema
+	partial class MSBuildInferredSchema : IMSBuildSchema
 	{
 		//FIXME: this means we can't re-use the inferred schema from other toplevels
 		readonly bool isToplevel;
@@ -73,7 +76,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				schema.Build (project, parseContext);
 			} catch (Exception ex) {
-				LoggingService.LogError ($"Error in schema inference for {filename}", ex);
+				LogInternalError (parseContext.Logger, filename, ex);
 			}
 			return schema;
 		}
@@ -327,8 +330,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
 				//FIXME create this lazily and cache it
-				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
-				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx);
+				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.Logger, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
+				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
 				if (info != null) {
 					Tasks[info.Name] = info;
 					return;
@@ -441,5 +444,8 @@ namespace MonoDevelop.MSBuild.Language
 				Platforms.Add (value);
 			}
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error in schema inference for {filename}")]
+		static partial void LogInternalError (ILogger logger, UserIdentifiableFileName filename, Exception ex);
 	}
 }

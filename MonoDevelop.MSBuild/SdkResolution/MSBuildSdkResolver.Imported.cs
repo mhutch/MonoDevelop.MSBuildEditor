@@ -22,8 +22,6 @@
 //    * alias LoggingContext and ElementLocation to ILoggingService to noninvasively remove dependencies
 //    * import the Microsoft.Build.BackEnd.SdkResolution namespace so other imported MSBuild internal types can be used
 
-using LoggingContext = MonoDevelop.MSBuild.SdkResolution.ILoggingService;
-using ElementLocation = MonoDevelop.MSBuild.SdkResolution.ILoggingService;
 using Microsoft.Build.BackEnd.SdkResolution;
 
 using System;
@@ -32,8 +30,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+
 using Microsoft.Build.Framework;
 using Microsoft.Build.Shared;
+
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.Extensions.Logging;
 
 namespace MonoDevelop.MSBuild.SdkResolution
 {
@@ -55,15 +57,13 @@ namespace MonoDevelop.MSBuild.SdkResolution
 #endif
             ) ?? Environment.GetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER");
 
-        internal virtual IList<SdkResolver> LoadResolvers(LoggingContext loggingContext,
-            ElementLocation location)
+        internal virtual IList<SdkResolver> LoadResolvers(ILogger logger)
         {
             var resolvers = !String.Equals(IncludeDefaultResolver, "false", StringComparison.OrdinalIgnoreCase) ?
                 new List<SdkResolver> {new DefaultSdkResolver(SDKsPath) }
                 : new List<SdkResolver>();
 
-            var potentialResolvers = FindPotentialSdkResolvers(
-                Path.Combine(ToolsPath32, "SdkResolvers"), location);
+            var potentialResolvers = FindPotentialSdkResolvers(Path.Combine(ToolsPath32, "SdkResolvers"), logger);
 
             if (potentialResolvers.Count == 0)
             {
@@ -72,7 +72,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
             foreach (var potentialResolver in potentialResolvers)
             {
-                LoadResolvers(potentialResolver, loggingContext, location, resolvers);
+                LoadResolvers(potentialResolver, logger, resolvers);
             }
 
             return resolvers.OrderBy(t => t.Priority).ToList();
@@ -83,9 +83,8 @@ namespace MonoDevelop.MSBuild.SdkResolution
         ///     Root\SdkResolver\(ResolverName)\(ResolverName).dll.
         /// </summary>
         /// <param name="rootFolder"></param>
-        /// <param name="location"></param>
         /// <returns></returns>
-        internal virtual IList<string> FindPotentialSdkResolvers(string rootFolder, ElementLocation location)
+        internal virtual IList<string> FindPotentialSdkResolvers(string rootFolder, ILogger logger)
         {
             var assembliesList = new List<string>();
 
@@ -104,12 +103,12 @@ namespace MonoDevelop.MSBuild.SdkResolution
                 var assemblyAdded = TryAddAssembly(assembly, assembliesList);
                 if (!assemblyAdded)
                 {
-                    assemblyAdded = TryAddAssemblyFromManifest(manifest, subfolder.FullName, assembliesList, location);
+                    assemblyAdded = TryAddAssemblyFromManifest(manifest, subfolder.FullName, assembliesList, logger);
                 }
 
                 if (!assemblyAdded)
                 {
-					location.LogWarning ("SDK Resolver folder exists but without an SDK Resolver DLL or manifest file. This may indicate a corrupt or invalid installation of MSBuild. SDK resolver path: " + subfolder.FullName);
+					LogEmptySdkResolverFolder (logger, subfolder.FullName);
 				}
             }
 
@@ -154,7 +153,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
             }
         }
 
-        private bool TryAddAssemblyFromManifest(string pathToManifest, string manifestFolder, List<string> assembliesList, ElementLocation location)
+        private bool TryAddAssemblyFromManifest(string pathToManifest, string manifestFolder, List<string> assembliesList, ILogger logger)
         {
             if (!string.IsNullOrEmpty(pathToManifest) && !FileUtilities.FileExistsNoThrow(pathToManifest)) return false;
 
@@ -169,16 +168,16 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
                 if (manifest == null || string.IsNullOrEmpty(manifest.Path))
                 {
-					location.LogWarning ($"Could not load SDK Resolver. A manifest file exists, but the path to the SDK Resolver DLL file could not be found. Manifest file path '{pathToManifest}'.");
+					LogCouldNotLoadSdkResolverUnspecifiedAssembly (logger, path);
 					return false;
 				}
 
                 path = FileUtilities.FixFilePath(manifest.Path);
             }
-            catch (XmlException e)
+            catch (XmlException ex)
             {
 				// Note: Not logging e.ToString() as most of the information is not useful, the Message will contain what is wrong with the XML file.
-				location.LogWarning ($"SDK Resolver manifest file is invalid. This may indicate a corrupt or invalid installation of MSBuild. Manifest file path '{pathToManifest}'. Message: {e.Message}");
+				LogCouldNotLoadSdkResolverManifestInvalid (logger, pathToManifest, ex.Message);
 				return false;
 			}
 
@@ -186,24 +185,23 @@ namespace MonoDevelop.MSBuild.SdkResolution
             {
                 path = Path.Combine(manifestFolder, path);
                 path = Path.GetFullPath(path);
-            }
+			}
 
-            if (!TryAddAssembly(path, assembliesList))
-            {
-				location.LogWarning ($"Could not load SDK Resolver. A manifest file exists, but the path to the SDK Resolver DLL file could not be found. Manifest file path '{pathToManifest}'. SDK resolver path: {path}");
-				return false;
+			if (!TryAddAssembly(path, assembliesList)) {
+				LogCouldNotLoadSdkResolverMissingAssembly(logger, pathToManifest, path);
 			}
 
             return true;
         }
 
-        private bool TryAddAssembly(string assemblyPath, List<string> assembliesList)
-        {
-            if (string.IsNullOrEmpty(assemblyPath) || !FileUtilities.FileExistsNoThrow(assemblyPath)) return false;
-
-            assembliesList.Add(assemblyPath);
-            return true;
-        }
+		bool TryAddAssembly(string assemblyPath, List<string> assembliesList)
+		{
+			if (string.IsNullOrEmpty (assemblyPath) || !FileUtilities.FileExistsNoThrow (assemblyPath)) {
+				return false;
+			}
+			assembliesList.Add (assemblyPath);
+			return true;
+		}
 
         protected virtual IEnumerable<Type> GetResolverTypes(Assembly assembly)
         {
@@ -213,25 +211,23 @@ namespace MonoDevelop.MSBuild.SdkResolution
                 .Select(t => t.type);
         }
 
-        protected virtual Assembly LoadResolverAssembly(string resolverPath, LoggingContext loggingContext, ElementLocation location)
-        {
+        protected virtual Assembly LoadResolverAssembly(string resolverPath) => 
 #if !FEATURE_ASSEMBLYLOADCONTEXT
-            return Assembly.LoadFrom(resolverPath);
+            Assembly.LoadFrom(resolverPath);
 #else
-            return s_loader.LoadFromPath(resolverPath);
+            s_loader.LoadFromPath(resolverPath);
 #endif
-        }
 
-        protected virtual void LoadResolvers(string resolverPath, LoggingContext loggingContext, ElementLocation location, List<SdkResolver> resolvers)
+        protected virtual void LoadResolvers(string resolverPath, ILogger logger, List<SdkResolver> resolvers)
         {
             Assembly assembly;
             try
             {
-                assembly = LoadResolverAssembly(resolverPath, loggingContext, location);
+                assembly = LoadResolverAssembly(resolverPath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-				location.LogWarning ($"The SDK resolver assembly \"{resolverPath}\" could not be loaded. {e.Message}");
+				LogSdkResolverTypeLoadFailed (logger, ex, resolverPath);
                 return;
             }
 
@@ -241,19 +237,33 @@ namespace MonoDevelop.MSBuild.SdkResolution
                 {
                     resolvers.Add((SdkResolver)Activator.CreateInstance(type));
                 }
-                catch (TargetInvocationException e)
+                catch (Exception ex)
                 {
-                    // .NET wraps the original exception inside of a TargetInvocationException which masks the original message
-                    // Attempt to get the inner exception in this case, but fall back to the top exception message
-                    string message = e.InnerException?.Message ?? e.Message;
+                    // .NET wraps the original exception inside of a TargetInvocationException which masks the original message so get the inner exception in this case
+					if (ex is TargetInvocationException invEx && invEx.InnerException is Exception innerEx) {
+						ex = innerEx;
+					}
+					LogSdkResolverTypeLoadFailed(logger, ex, type.Name);
+				}
+			}
+		}
 
-					location.LogWarning ($"The SDK resolver type \"{type.Name}\" failed to load. {e.Message}");
-				}
-                catch (Exception e)
-                {
-					location.LogWarning ($"The SDK resolver type \"{type.Name}\" failed to load. {e.Message}");
-				}
-            }
-        }
-    }
+		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "SDK resolver type '{typeName}' failed to load")]
+		static partial void LogSdkResolverTypeLoadFailed (ILogger logger, Exception ex, string typeName);
+
+		[LoggerMessage (EventId = 1, Level = LogLevel.Warning, Message = "SDK resolver assembly '{assembly}' failed to load")]
+		static partial void LogSdkResolverAssemblyLoadFailed (ILogger logger, Exception ex, string assembly);
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Warning, Message = "Could not load SDK resolver as the manifest '{manifestFile}' was invalid: {message}")]
+		static partial void LogCouldNotLoadSdkResolverManifestInvalid (ILogger logger, string manifestFile, string message);
+
+		[LoggerMessage (EventId = 3, Level = LogLevel.Warning, Message = "Empty SDK resolver folder '{resolverFolder}' may indicate corrupt MSBuild installation")]
+		static partial void LogEmptySdkResolverFolder (ILogger logger, string resolverFolder);
+
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Could not load SDK resolver as the manifest '{manifestFile}' refers to missing assembly '{assembly}'")]
+		static partial void LogCouldNotLoadSdkResolverMissingAssembly (ILogger logger, string manifestFile, string assembly);
+
+		[LoggerMessage (EventId = 5, Level = LogLevel.Warning, Message = "Could not load SDK resolver as the manifest '{manifestFile}' does not specify an assembly")]
+		static partial void LogCouldNotLoadSdkResolverUnspecifiedAssembly (ILogger logger, string manifestFile);
+	}
 }

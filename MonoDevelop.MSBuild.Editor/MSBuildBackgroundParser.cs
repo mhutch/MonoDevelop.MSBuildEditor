@@ -5,16 +5,21 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
+
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
+
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
+	partial class MSBuildBackgroundParser : BackgroundProcessor<XmlParseResult,MSBuildParseResult>
 	{
+		readonly ILogger logger;
 		readonly MSBuildParserProvider provider;
 		string filepath;
 
@@ -33,7 +38,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				doc.FileActionOccurred += OnFileAction;
 			}
 
-			analyzerDriver = new MSBuildAnalyzerDriver ();
+			logger = provider.LoggerFactory.CreateLogger<MSBuildBackgroundParser> (buffer);
+
+			var analyzerDriverLogger = provider.LoggerFactory.GetLogger<MSBuildAnalyzerDriver> (buffer);
+			analyzerDriver = new MSBuildAnalyzerDriver (analyzerDriverLogger);
 			analyzerDriver.AddBuiltInAnalyzers ();
 			this.provider = provider;
 		}
@@ -68,6 +76,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						provider.SchemaProvider,
 						provider.MSBuildEnvironment,
 						provider.TaskMetadataBuilder,
+						logger,
 						token);
 
 					var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);
@@ -75,7 +84,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					doc.Diagnostics.AddRange (analyzerDiagnostics);
 				}
 				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
-					LoggingService.LogError ("Unhandled error in MSBuild parser", ex);
+					LogUnhandledParserError (logger, ex);
 					doc = MSBuildRootDocument.Empty;
 				}
 				// for some reason the VS debugger thinks cancellation exceptions aren't handled?
@@ -86,6 +95,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return new MSBuildParseResult (doc, doc.Diagnostics, input.TextSnapshot);
 			}, token);
 		}
+
+		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error in MSBuild parser")]
+		static partial void LogUnhandledParserError (ILogger logger, Exception ex);
 
 		protected override int CompareInputs (XmlParseResult a, XmlParseResult b)
 			=> a.TextSnapshot.Version.VersionNumber.CompareTo (b.TextSnapshot.Version.VersionNumber);

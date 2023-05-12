@@ -25,7 +25,9 @@ using System.Linq;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Util;
+
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.Xml.Tests;
 
 namespace MonoDevelop.MSBuild.Tests
 {
@@ -52,8 +54,9 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var treeParser = new XmlTreeParser (new XmlRootState ());
 			var (xdoc, _) = treeParser.Parse (textDoc.CreateReader ());
+			var logger = TestLoggerFactory.CreateTestMethodLogger ();
 			var parseContext = new MSBuildParserContext (
-				new NullMSBuildEnvironment (), null, null, null, filename ?? "test.csproj", new PropertyValueCollector (false), null, null, default);
+				new NullMSBuildEnvironment (), null, null, null, filename ?? "test.csproj", new PropertyValueCollector (false), null, logger, null, default);
 			var doc = CreateEmptyDocument ();
 			doc.Build (xdoc, parseContext);
 
