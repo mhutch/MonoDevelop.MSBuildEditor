@@ -4,6 +4,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)private.snk</AssemblyOriginatorKeyFile>
     <LangVersion>latest</LangVersion>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
