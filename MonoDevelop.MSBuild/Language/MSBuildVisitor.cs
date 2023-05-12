@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -37,9 +39,9 @@ namespace MonoDevelop.MSBuild.Language
 			Logger = logger;
 		}
 
-		public void Run (XElement element, int offset = 0, int length = 0, CancellationToken token = default) => Run (element, offset, length, token);
+		public void Run (XElement element, int offset = 0, int length = 0, CancellationToken token = default) => Run (element, null, offset, length, token);
 
-		public void Run (XElement element, MSBuildElementSyntax resolvedElement, int offset = 0, int length = 0, CancellationToken token = default)
+		public void Run (XElement element, MSBuildElementSyntax? resolvedElement, int offset = 0, int length = 0, CancellationToken token = default)
 		{
 			CancellationToken = token;
 
