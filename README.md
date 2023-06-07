@@ -70,6 +70,10 @@ The extension includes documentation tooltips for the MSBuild language and many 
 
 The extension adds a formatting policy for MSBuild files, allowing you to customize the formatting behaviour. The default formatting policy uses two spaces for indentation, matching the project files created by Visual Studio.
 
+## Installationn
+
+Currently there only CI builds which you can get from [GitHub Actions tab](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions)
+
 ## Development
 
 See the [TODO](TODO.md) for a list of proposed/planned features. If you're interested in implementing one of them please contact Mikayla.
