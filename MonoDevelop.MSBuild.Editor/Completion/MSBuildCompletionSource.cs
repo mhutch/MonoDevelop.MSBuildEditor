@@ -65,7 +65,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			MSBuildParseResult parseResult = parser.LastOutput ?? await parser.GetOrProcessAsync (triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-			var spine = XmlParser.GetSpineParser (triggerLocation);
+			var spine = GetSpineParser (triggerLocation);
 			// clone the spine because the resolver alters it
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, Logger, token);
 			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
@@ -196,7 +196,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
 		{
 			//we don't care need a real document here we're doing very basic resolution for triggering
-			var spine = XmlParser.GetSpineParser (triggerLocation);
+			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, Logger, token);
 			if (rr?.ElementSyntax != null) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);

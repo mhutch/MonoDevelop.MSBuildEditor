@@ -285,13 +285,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Error loading tasks assembly name='{assemblyName}' file='{assemblyFile}' in '{declaredInFile}'")]
-		static partial void LogErrorLoadingTasksAssembly (ILogger logger, Exception ex, UserIdentifiableString assemblyName, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
+		static partial void LogErrorLoadingTasksAssembly (ILogger logger, Exception ex, UserIdentifiable<string> assemblyName, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
 
 		[LoggerMessage (EventId = 1, Level = LogLevel.Warning, Message = "Did not find tasks assembly file '{assemblyFile}' from file '{declaredInFile}'")]
 		static partial void LogDidNotFindTasksAssemblyFile (ILogger logger, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
 
 		[LoggerMessage (EventId = 2, Level = LogLevel.Warning, Message = "Did not find tasks assembly '{assemblyName}' from file '{declaredInFile}'")]
-		static partial void LogDidNotFindTasksAssembly (ILogger logger, UserIdentifiableString assemblyName, UserIdentifiableFileName declaredInFile);
+		static partial void LogDidNotFindTasksAssembly (ILogger logger, UserIdentifiable<string> assemblyName, UserIdentifiableFileName declaredInFile);
 
 		[LoggerMessage (EventId = 3, Level = LogLevel.Warning, Message = "Task resolver could not get MSBuildBinPath value from evaluation context'")]
 		static partial void LogCouldNotGetBinPath (ILogger logger);

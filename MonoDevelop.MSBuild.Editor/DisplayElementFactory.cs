@@ -568,13 +568,13 @@ namespace MonoDevelop.MSBuild.Editor
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected element '{childElementName}'")]
-		static partial void LogDocsUnexpectedElement (ILogger logger, string elementName, UserIdentifiableString childElementName);
+		static partial void LogDocsUnexpectedElement (ILogger logger, string elementName, UserIdentifiable<string> childElementName);
 
 		[LoggerMessage (EventId = 1, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected attribute '{attributeName}'")]
-		static partial void LogDocsUnexpectedAttribute (ILogger logger, string elementName, UserIdentifiableString attributeName);
+		static partial void LogDocsUnexpectedAttribute (ILogger logger, string elementName, UserIdentifiable<string> attributeName);
 
 		[LoggerMessage (EventId = 2, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected attribute '{attributeName}'")]
-		static partial void LogDocsMissingAttribute (ILogger logger, string elementName, UserIdentifiableString attributeName);
+		static partial void LogDocsMissingAttribute (ILogger logger, string elementName, UserIdentifiable<string> attributeName);
 
 		[LoggerMessage (EventId = 3, Level = LogLevel.Debug, Message = "XML docs element '{elementName}' has unexpected node of type {nodeType}")]
 		static partial void LogDocsUnexpectedNode (ILogger logger, string elementName, XmlNodeType nodeType);
