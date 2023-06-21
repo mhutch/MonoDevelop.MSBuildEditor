@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Remove="Evaluation\Imported\Expander.cs" />
     <None Include="Evaluation\Imported\Expander.cs" />
+    <Compile Include="..\MonoDevelop.Xml\Core\NullabilityAttributes.cs" />
   </ItemGroup>
 
   <ItemGroup>

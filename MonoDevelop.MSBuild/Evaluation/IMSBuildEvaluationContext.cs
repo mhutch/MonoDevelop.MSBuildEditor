@@ -19,18 +19,3 @@ namespace MonoDevelop.MSBuild.Evaluation
 		ILogger Logger { get; }
 	}
 }
-
-#if !NETCOREAPP3_0_OR_GREATER
-
-namespace System.Diagnostics.CodeAnalysis
-{
-	[AttributeUsage (AttributeTargets.Parameter, Inherited = false)]
-	public sealed class NotNullWhenAttribute : Attribute
-	{
-		public NotNullWhenAttribute (bool returnValue)
-		{
-		}
-	}
-}
-
-#endif
