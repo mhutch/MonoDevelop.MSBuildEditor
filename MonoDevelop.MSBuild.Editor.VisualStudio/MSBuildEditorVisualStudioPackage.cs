@@ -10,6 +10,9 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
+using MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
+using MonoDevelop.MSBuild.Editor.VisualStudio.Options;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
@@ -60,15 +63,34 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.proj, 65535)]
 	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.user, 65535)]
 
+	[ProvideOptionPage(typeof(MSBuildTelemetryOptionsPage), "MSBuild Editor", "Telemetry", PackageResxId.EditorName, PackageResxId.TelemetryOptionsPageName, false, PackageResxId.TelemetryOptionsPageKeywords)]
+	[ProvideProfile(typeof(MSBuildTelemetryOptionsPage), "MSBuild Editor", "Telemetry", PackageResxId.EditorName, PackageResxId.TelemetryOptionsPageName, false)]
+
 	public sealed class MSBuildEditorVisualStudioPackage : AsyncPackage
 	{
-		protected override Task InitializeAsync (CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+		MSBuildExtensionLogger logger;
+
+		protected override async Task InitializeAsync (CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
 		{
 			var language = new MSBuildLanguageService (this);
 			RegisterEditorFactory (language);
 			((IServiceContainer)this).AddService (typeof (MSBuildLanguageService), language, true);
 
-			return base.InitializeAsync (cancellationToken, progress);
+			var settingsStorage = new MSBuildEditorSettingsStorage ();
+			var telemetryOptions = await MSBuildTelemetryOptions.GetLiveInstanceAsync ();
+
+			logger = new MSBuildExtensionLogger (settingsStorage, telemetryOptions);
+			MSBuildTelemetryOptions.Saved += logger.UpdateTelemetryOptions;
+
+			((IServiceContainer)this).AddService (typeof (MSBuildExtensionLogger), logger, true);
+
+			await base.InitializeAsync (cancellationToken, progress);
+		}
+
+		protected override int QueryClose (out bool canClose)
+		{
+			logger.ShutdownTelemetry ();
+			return base.QueryClose (out canClose);
 		}
 	}
 }

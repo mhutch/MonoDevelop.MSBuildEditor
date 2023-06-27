@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		TextSpan range;
 
-		void ResolveAndVisit (XElement element, MSBuildElementSyntax parent)
+		void ResolveAndVisit (XElement element, MSBuildElementSyntax? parent)
 		{
 			CheckCancellation ();
 

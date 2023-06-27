@@ -1,7 +1,7 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-	<PropertyGroup>
-		<TargetFramework>net48</TargetFramework>
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
     <MinimumVisualStudioVersion>17.6</MinimumVisualStudioVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
@@ -12,6 +12,7 @@
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <!-- copying the lock file assemblies is pointless and makes it unclear what's being included in the vsix -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <!-- deploy and run the extension in VS -->
   <PropertyGroup>
@@ -24,24 +25,34 @@
     <ProjectCapability Include="ExtensibilityProjectExtension" />
   </ItemGroup>
   <ItemGroup>
+    <Page Remove="Properties\DesignTimeResources.xaml" />
+    <None Include="Properties\DesignTimeResources.xaml" ContainsDesignTimeResources="true" />
+    <Page Remove="Options\OptionsResources.xaml" />
+    <Resource Include="Options\OptionsResources.xaml" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="languages.pkgdef" IncludeInVSIX="true" />
     <Content Include="..\MonoDevelop.MSBuildEditor\Syntax\msbuild.json" IncludeInVSIX="true" Link="Grammars\msbuild.json" />
     <None Include="..\MonoDevelop.MSBuildEditor\Syntax\OSSREADME.json" Link="Grammars\OSSREADME.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.451" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0-1.final" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" ExcludeAssets="runtime" IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.5.4074" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" PrivateAssets="all" />
-    <PackageReference Include="NuGet.VisualStudio" Version="17.5.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0-1.final" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.5.4074" />
+    <PackageReference Include="NuGet.VisualStudio" Version="17.5.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.21.0" />
+    <PackageReference Include="Markdig.Signed" Version="0.31.0" PrivateAssets="runtime" />
     <!-- resolve conflicts -->
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0-1.final" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.6.0-1.final" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0-1.final" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="17.5.279" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="17.5.279" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0-1.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.6.0-1.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0-1.final" />
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="17.5.279" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="17.5.279" />
+    <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.0.8" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">
@@ -69,6 +80,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+
   <!-- Microsoft.VsSDK.targets must be imported after the SDK targets -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <!-- only import these if they exist as they come from NuGet and won't exist before a restore -->
@@ -80,5 +92,36 @@
     <PropertyGroup>
       <TargetVsixContainer>$([System.IO.Path]::ChangeExtension('$(TargetVsixContainer)', '$(BuildVersion).vsix'))</TargetVsixContainer>
     </PropertyGroup>
+  </Target>
+  <Target Name="AddPackageRefAsmsToVsix" AfterTargets="GetVsixSourceItems">
+    <ItemGroup>
+      <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.ApplicationInsights'" />
+      <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel'" />
+      <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Markdig.Signed'" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <EmbeddedResource Update="@(EmbeddedResource)" XStronglyTypedLanguage="CSharp" XStronglyTypedClassName="%(FileName)" XStronglyTypedNamespace="MonoDevelop.MSBuild.Editor.VisualStudio" Generator="MSBuild:Compile" XStronglyTypedFileName="$(IntermediateOutputPath)MonoDevelop.MSBuild.Editor.VisualStudio.%(FileName).g.cs" PublicClass="true" />
+  </ItemGroup>
+
+  <!--
+  https://github.com/dotnet/msbuild/issues/4751-->
+  <!--
+  NOTE: this causes some kind of recursive build overflow with the WPF targets
+  <PropertyGroup>
+    <CoreCompileDependsOn>PrepareResources;$(CoreCompileDependsOn)</CoreCompileDependsOn>
+  </PropertyGroup>
+  -->
+  <!--
+  Work around the WPF resgen ordering issue by wiring in an additional resgen target just to generate the resx .g.cs files.
+  It nay not produce accurate resources as it runs before the resource preparation targets, so it discards the compiled resources.
+  However, it should be close enough to generate the source files we need.
+  -->
+  <Target Name="GenerateStronglyTypesResourceClasses" BeforeTargets="CoreCompile">
+    <GenerateResource Sources="@(EmbeddedResource)" UseSourcePath="$(UseSourcePath)" References="@(ReferencePathWithRefAssemblies)" AdditionalInputs="$(MSBuildAllProjects)" NeverLockTypeAssemblies="$(GenerateResourceNeverLockTypeAssemblies)" StronglyTypedClassName="%(EmbeddedResource.XStronglyTypedClassName)" StronglyTypedFileName="%(EmbeddedResource.XStronglyTypedFileName)" StronglyTypedLanguage="%(EmbeddedResource.XStronglyTypedLanguage)" StronglyTypedNamespace="%(EmbeddedResource.XStronglyTypedNamespace)" StronglyTypedManifestPrefix="%(EmbeddedResource.XStronglyTypedManifestPrefix)" PublicClass="%(EmbeddedResource.PublicClass)" OutputResources="@(EmbeddedResource->'$(IntermediateOutputPath)%(ManifestResourceName).IGNORE.resources')" Condition="'%(EmbeddedResource.XStronglyTypedFileName)' !=''" SdkToolsPath="$(ResgenToolPath)" ExecuteAsTool="$(ResGenExecuteAsTool)" EnvironmentVariables="$(ResGenEnvironment)" MSBuildRuntime="$(GenerateResourceMSBuildRuntime)" MSBuildArchitecture="$(GenerateResourceMSBuildArchitecture)">
+      <Output TaskParameter="FilesWritten" ItemName="FileWrites" />
+      <Output TaskParameter="StronglyTypedFileName" ItemName="Compile" />
+    </GenerateResource>
   </Target>
 </Project>

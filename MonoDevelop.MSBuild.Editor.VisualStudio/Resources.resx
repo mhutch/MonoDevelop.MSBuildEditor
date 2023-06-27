@@ -117,23 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="110" xml:space="preserve">
-    <value>MSBuild Editor</value>
-    <comment>EditorName, PackageName</comment>
+  <data name="Telemetry_Enable" xml:space="preserve">
+    <value>Send extension telemetry when Visual Studio telemetry is enabled</value>
   </data>
-  <data name="111" xml:space="preserve">
-    <value>MSBuild</value>
-    <comment>LanguageName</comment>
-  </data>
-  <data name="112" xml:space="preserve">
-    <value>Language service for MSBuild projects and targets</value>
-    <comment>PackageDescription</comment>
-  </data>
-  <data name="113" xml:space="preserve">
-    <value>Telemetry</value>
-    <comment>TelemetryOptionsPageName</comment>
-  </data>
-  <data name="114" xml:space="preserve">
-    <value>MSBuild;Privacy;Telemetry</value>
+  <data name="Telemetry_PrivacyStatement_md" xml:space="preserve">
+    <value>MSBuild Editor extension telemetry sends anonymized error traces and usage information to the publisher of the extension to help identify and diagnose problems in the extension, and to prioritize bug fixes and feature development.
+
+For more information, see the [privacy statement](link://privacy-statement).</value>
   </data>
 </root>

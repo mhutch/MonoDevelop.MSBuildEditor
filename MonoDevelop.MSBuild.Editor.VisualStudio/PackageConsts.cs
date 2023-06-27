@@ -12,6 +12,8 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 
 		public const string LanguageServiceName = "MSBuild";
 		public const string LanguageServiceKey = @"Languages\Language Services\" + LanguageServiceName;
+
+		public const string TelemetryOptionsPageGuid = "87B7A322-33D9-40C2-B56A-876C38111DE9";
 	}
 
 	class PackageResxId
@@ -36,5 +38,17 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		/// </summary>
 		public const int PackageDescription = 112;
 		public const string PackageDescriptionStr = "#112";
+
+		/// <summary>
+		/// General options page name
+		/// </summary>
+		public const int TelemetryOptionsPageName = 113;
+		public const string GeneralOptionsPageNameStr = "#113";
+
+		/// <summary>
+		/// General options page keywords
+		/// </summary>
+		public const int TelemetryOptionsPageKeywords = 114;
+		public const string GeneralOptionsPageKeywordsStr = "#114";
 	}
 }
