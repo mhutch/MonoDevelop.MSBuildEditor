@@ -1,7 +1,11 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Xml;
 using System.Xml.Schema;
-using MonoDevelop.MSBuild.Language.Typesystem;
 using System.Diagnostics.CodeAnalysis;
+
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language;
 
@@ -15,8 +19,8 @@ class MSBuildXsdSchemaReader
 
 	public void Read(XmlSchemaSet schemaSet)
 	{
-		foreach (System.Xml.Schema.XmlSchemaElement el in schemaSet.GlobalElements.Values) {
-			if (el.SubstitutionGroup is System.Xml.XmlQualifiedName n && n.Namespace == MSBuildSchemaUri) {
+		foreach (XmlSchemaElement el in schemaSet.GlobalElements.Values) {
+			if (el.SubstitutionGroup is XmlQualifiedName n && n.Namespace == MSBuildSchemaUri) {
 				ISymbol? symbol = n.Name switch {
 					"Item" => ReadItem(el),
 					"Property" => ReadProperty(el),
@@ -45,8 +49,7 @@ class MSBuildXsdSchemaReader
 			return null;
 		}
 
-		string? includeDescription = null;
-		var itemMetadata = ReadItemMetadataElements(complexType);
+		var itemMetadata = ReadItemMetadataElements(complexType, out string? includeDescription);
 
 		// note: the includeDescription is not entirely correct, it's meant to be a noun, not a whole sentence
 		return new ItemInfo(
@@ -251,7 +254,12 @@ class MSBuildXsdSchemaReader
 
 	void LogUnhandled(XmlSchemaObject? location, string message)
 	{
-		Console.WriteLine(message);
+		if (location is not null && location.SourceUri is not null) {
+			var file = Path.GetFileName(location.SourceUri);
+			Console.Error.WriteLine ($"{file}({location.LineNumber}): {message}");
+		} else {
+			Console.Error.WriteLine (message);
+		}
 	}
 
 	string? GetDocMarkup(XmlSchemaAnnotated annotated)
@@ -277,10 +285,10 @@ class MSBuildXsdSchemaReader
 		}
 		string? text = null;
 		foreach (var node in doc.Markup) {
-			if (node is System.Xml.XmlComment) {
+			if (node is XmlComment) {
 				continue;
 			}
-			if (node is not System.Xml.XmlText textNode) {
+			if (node is not XmlText textNode) {
 				LogUnhandled(doc, $"Unknown node in doc markup {node}");
 				continue;
 			}

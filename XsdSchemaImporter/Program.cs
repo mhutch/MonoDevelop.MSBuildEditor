@@ -1,7 +1,12 @@
-using System.Threading.Tasks;
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Runtime.CompilerServices;
 using System.Xml.Schema;
+
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+
 using SchemaImporter;
 
 // This tool downloads the MSBuild XSD schema and prints out the
@@ -37,7 +42,7 @@ var commonTypesSchema = XmlSchema.Read(xsdStream, null)!;
 var schemaSet = new XmlSchemaSet {
 	XmlResolver = new ConstrainedXmlResolver(
 		(uri) => downloadCache.GetStream(uri.ToString(), cts.Token).Result,
-		(uri) => Console.WriteLine($"Blocked resolving '{uri}' in schema loader")
+		(uri) => Console.Error.WriteLine($"Blocked resolving '{uri}' in schema loader")
 		) {
 			{ xsdUrlCore },
 			{ xsdUrlCommonTypes }
@@ -49,9 +54,9 @@ schemaSet.Compile();
 var xsdSchemaReader = new MSBuildXsdSchemaReader();
 xsdSchemaReader.Read(schemaSet);
 
-var builtin = CombineSchemas(MSBuildSchemaProvider.GetAllBuiltinSchemas().Select(s => s.schema));
+var builtInSchemas = LoadBuiltInSchemas ();
 
-var diff = GetAddedOrChanged(builtin, xsdSchemaReader.Schema);
+var diff = GetAddedOrChanged(builtInSchemas, xsdSchemaReader.Schema);
 
 using var writer = new MSBuildSchemaWriter(Console.Out);
 writer.Write(diff);
@@ -80,14 +85,49 @@ static void AddRangeOfItems (
 				d[item.Key] = item.Value;
 			}
 			foreach (var meta in mergeFrom.Metadata) {
-				if (mergeTo.Metadata.TryAdd(meta.Key, meta.Value)) {
-					Console.Error.WriteLine($"Duplicate metadata '{item.Key}.{meta.Key}'");
+				if (mergeTo.Metadata.TryGetValue(meta.Key, out var existing)) {
+					Console.Error.WriteLine ($"Duplicate metadata '{item.Key}.{meta.Key}'");
+				} else {
+					mergeTo.Metadata.Add(meta.Key, meta.Value);
 				}
 			}
 		} else {
 			d.Add(item.Key, item.Value);
 		}
 	}
+}
+
+static MSBuildSchema LoadBuiltInSchemas([CallerFilePath]string? thisFilePath = null)
+{
+	var schemas = new List<MSBuildSchema>();
+	var errors = new List<MSBuildSchemaLoadError>();
+
+	var dir = Path.GetFullPath (Path.Combine(Path.GetDirectoryName(thisFilePath)!, "..", "MonoDevelop.MSBuild", "Schemas"));
+	foreach (var schemaFile in Directory.GetFiles(dir, "*.buildschema.json")) {
+		var reader = File.OpenText(schemaFile);
+		var schema = MSBuildSchema.Load(reader, out var loadErrors, schemaFile);
+		schemas.Add(schema);
+		errors.AddRange(loadErrors);
+	}
+
+	if (schemas.Count == 0) {
+		Console.Error.WriteLine($"No built-in schemas found in '{dir}'");
+	}
+
+	// check for errors as it's likely we have edited the schemas since last running this tool
+	foreach (var error in errors) {
+		if (error is not null) {
+			if (error.Origin is not null) {
+				Console.Error.Write(Path.GetFileName(error.Origin));
+				if (error.FilePosition is (int line, _)) {
+					Console.Error.Write($"({line}): "); ;
+				}
+			}
+			Console.Error.WriteLine($"{error.Severity.ToString().ToLower()}: {error.Message}");
+		}
+	}
+
+	return CombineSchemas (schemas);
 }
 
 static MSBuildSchema CombineSchemas(IEnumerable<MSBuildSchema> schemas)
