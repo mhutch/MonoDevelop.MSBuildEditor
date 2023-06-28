@@ -59,10 +59,10 @@ class MSBuildXsdSchemaReader
 			metadata: itemMetadata);
 	}
 
-	Dictionary<string, MetadataInfo>? ReadItemMetadataElements(XmlSchemaComplexType complexType)
+	Dictionary<string, MetadataInfo>? ReadItemMetadataElements(XmlSchemaComplexType complexType, out string? includeDescription)
 	{
 		Dictionary<string, MetadataInfo>? itemMetadata = null;
-		string? includeDescription = null;
+		includeDescription = null;
 
 		foreach (var metadataEl in EnumerateFromSequenceOrChoice<XmlSchemaElement>(complexType.ContentTypeParticle)) {
 			if (metadataEl.Name is not string metadataName) {
@@ -72,20 +72,67 @@ class MSBuildXsdSchemaReader
 
 			var metadataDoc = GetDocMarkup(metadataEl);
 
-			if (metadataName == "Include") {
+			if (metadataName == "Include" && !string.IsNullOrEmpty(metadataDoc)) {
 				includeDescription = metadataDoc;
 				continue;
 			}
 
-			var type = ConvertValueType(metadataEl);
+			var type = ConvertValueType(metadataEl, metadataName, metadataEl.ElementSchemaType);
 
-			(itemMetadata ??= new Dictionary<string, MetadataInfo>()).Add(
-				metadataName,
-				new MetadataInfo(metadataName, metadataDoc, valueKind: type.kind, customType: type.customType)
-			);
+			AddIfBetter(ref itemMetadata, new MetadataInfo(metadataName, metadataDoc, valueKind: type.kind, customType: type.customType, required: false));
+		}
+
+		if (complexType.ContentModel?.Content is XmlSchemaComplexContentExtension extension) {
+			foreach (var att in extension.Attributes) {
+				if (att is not XmlSchemaAttribute metadataAtt) {
+					continue;
+				}
+				if (metadataAtt.Name is not string metadataName) {
+					LogUnhandled(metadataAtt, "Metadata definition has no name");
+					continue;
+				}
+
+				bool required = metadataAtt.Use == XmlSchemaUse.Required;
+
+				var metadataDoc = GetDocMarkup(metadataAtt);
+
+				if (metadataName == "Include" && !string.IsNullOrEmpty(metadataDoc)) {
+					includeDescription = metadataDoc;
+					continue;
+				}
+
+				var type = ConvertValueType(metadataAtt, metadataName, metadataAtt.AttributeSchemaType);
+
+				AddIfBetter(ref itemMetadata, new MetadataInfo(metadataName, metadataDoc, valueKind: type.kind, customType: type.customType, required: required));
+			}
 		}
 
 		return itemMetadata;
+	}
+
+	// FIXME: inspecting the ContentTypeParticle may duplicate items we got from the ContentModel.Content, can we simplify to a single loop?
+	// there also may be duplicate items in the XSD itself, check which has the most information
+	static void AddIfBetter(ref Dictionary<string, MetadataInfo>? itemMetadata, MetadataInfo meta)
+	{
+		itemMetadata ??= new();
+
+		if (!itemMetadata.TryGetValue(meta.Name, out MetadataInfo? existing)) {
+			itemMetadata[meta.Name] = meta;
+			return;
+		}
+
+		if (existing.Description.Text == meta.Description.Text && existing.ValueKind == meta.ValueKind && existing.Required == meta.Required) {
+			return;
+		}
+
+		// if they are not identical, merge info from both
+		itemMetadata[meta.Name] = new MetadataInfo(
+			existing.Name,
+			string.IsNullOrEmpty(existing.Description.Text)? meta.Description.Text : existing.Description.Text,
+			valueKind: existing.ValueKind == MSBuildValueKind.Unknown? meta.ValueKind : existing.ValueKind,
+			customType: existing.CustomType ?? meta.CustomType,
+			required: existing.Required || meta.Required
+		);
 	}
 
 	/// <summary>
@@ -148,25 +195,31 @@ class MSBuildXsdSchemaReader
 			XmlSchema.Namespace => typeName.Name switch {
 				"boolean" => MSBuildValueKind.Bool,
 				"anyType" => MSBuildValueKind.Unknown,
+				"anySimpleType" => MSBuildValueKind.Unknown,
+				"string" => MSBuildValueKind.String,
 				_ => null
 			},
 			_ => null
 		};
 
-	(MSBuildValueKind kind, CustomTypeInfo? customType) ConvertValueType(XmlSchemaElement el)
+	(MSBuildValueKind kind, CustomTypeInfo? customType) ConvertValueType (XmlSchemaObject el, string name, XmlSchemaType? type)
 	{
-		if (el.ElementSchemaType?.QualifiedName is XmlQualifiedName typeName) {
+		if (type is null) {
+			return (MSBuildValueKind.Unknown, null);
+		}
+
+		if (type.QualifiedName is XmlQualifiedName typeName) {
 			if (MapBuiltinType(typeName) is MSBuildValueKind mappedKind) {
 				return (mappedKind, null);
 			}
 			if (!typeName.IsEmpty) {
-				LogUnhandled(el, $"Unknown named schema type '{typeName.Name}' on '{el.Name}'");
+				LogUnhandled(el, $"Unknown named schema type '{typeName.Name}' on '{name}'");
 			}
 		}
 
 		MSBuildValueKind kind = MSBuildValueKind.Unknown;
 		CustomTypeInfo? customType = null;
-		if (el.ElementSchemaType is XmlSchemaSimpleType simpleType) {
+		if (type is XmlSchemaSimpleType simpleType) {
 			if (simpleType.Content is XmlSchemaSimpleTypeRestriction restriction) {
 				// TODO: use this
 				var baseType = simpleType.BaseXmlSchemaType?.QualifiedName;
@@ -178,21 +231,21 @@ class MSBuildXsdSchemaReader
 							enumValues.Add(new CustomTypeValue (enumValue, enumValueDocs));
 						}
 					} else {
-						LogUnhandled(el, $"Unknown facet {facet.GetType()} on '{el.Name}'");
+						LogUnhandled(el, $"Unknown facet {facet.GetType()} on '{name}'");
 					}
 				}
 				customType = new CustomTypeInfo(enumValues);
 				kind = MSBuildValueKind.CustomType;
 			} else {
-				LogUnhandled(el, $"Simple type has unknown content {simpleType.Content?.GetType()} on '{el.Name}'");
+				LogUnhandled(el, $"Simple type has unknown content {simpleType.Content?.GetType()} on '{name}'");
 			}
-		} else if (el.ElementSchemaType is XmlSchemaComplexType complexType) {
+		} else if (type is XmlSchemaComplexType complexType) {
 			// TODO
 			if (!IsMetadataConditionAttribute(complexType)) {
-				LogUnhandled(el, $"Unknown complex type on '{el.Name}'");
+				LogUnhandled(el, $"Unknown complex type on '{name}'");
 			}
 		} else {
-			LogUnhandled(el, $"Unknown schema type {el.ElementSchemaType?.GetType()} on '{el.Name}'");
+			LogUnhandled(el, $"Unknown schema type {type?.GetType()} on '{name}'");
 		}
 
 		return (kind, customType);
@@ -213,12 +266,15 @@ class MSBuildXsdSchemaReader
 
 	PropertyInfo? ReadProperty(XmlSchemaElement el)
 	{
+		if (el.Name is not string name) {
+			return null;
+		}
 		var docMarkup = GetDocMarkup(el);
-		var type = ConvertValueType(el);
+		var type = ConvertValueType(el, el.Name, el.ElementSchemaType);
 
 		//TODO: anything else we can salvage here?
 		return new PropertyInfo(
-			el.Name,
+			name,
 			docMarkup,
 			valueKind: type.kind,
 			customType: type.customType);
