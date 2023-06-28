@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case FileOrFolderInfo value:
 				return (value.IsFolder? "folder" : "file", info.Name);
 			case FrameworkInfo fxi:
-				return ("framework", fxi.Reference.DotNetFrameworkName);
+				return ("framework", FrameworkInfoProvider.Instance.FormatNameForTitle (fxi.Reference));
 			case TaskParameterInfo tpi:
 				return ("parameter", tpi.Name);
 			case FunctionInfo fi:
