@@ -400,12 +400,16 @@ namespace MonoDevelop.MSBuild.Schema
 			case ".netstandard":
 				return WithVersion (".NET Standard");
 			case ".netcoreapp":
-				return fx.Version.Major < 5 ? WithVersion (".NET Core") : WithVersion (".NET");
+				if (fx.Version.Major <= 5) {
+					return WithVersion (".NET Core");
+				}
+				return WithVersionAndPlatform (".NET");
 			case ".netportable":
-				if (fx.Profile == null || fx.Version == null) {
+				if (string.IsNullOrEmpty (fx.Profile)) {
 					return "Portable Class Library";
 				}
-				return $"Portable Class Library Profile {fx.Profile}";
+				string profileNumber = fx.Profile.StartsWith ("Profile", StringComparison.OrdinalIgnoreCase) ? fx.Profile.Substring ("Profile".Length) : fx.Profile;
+				return $"Portable Class Library Profile {profileNumber}";
 			case "monoandroid":
 				return WithVersion ("Xamarin.Android");
 			case "xamarinmac":
@@ -423,10 +427,24 @@ namespace MonoDevelop.MSBuild.Schema
 
 			string WithVersion (string description)
 			{
-				if (fx.Version == null) {
+				if (fx.Version.Major == 0) {
 					return description;
 				}
 				return $"{description} {FormatDisplayVersion (fx.Version)}";
+			}
+
+			string WithVersionAndPlatform (string description)
+			{
+				if (fx.Version.Major == 0) {
+					return description;
+				}
+				if (string.IsNullOrEmpty (fx.Platform)) {
+					return $"{description} {FormatDisplayVersion (fx.Version)}";
+				}
+				if (fx.PlatformVersion.Major == 0) {
+					return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)}";
+				}
+				return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)} {FormatDisplayVersion (fx.PlatformVersion)}";
 			}
 		}
 
@@ -438,27 +456,28 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			var sb = new StringBuilder (titleName);
-
-			var platformName = reference.Platform.ToLowerInvariant () switch {
-				"windows" => Platform.Windows,
-				"android" => Platform.Android,
-				"ios" => Platform.iOS,
-				"macos" => Platform.macOS,
-				"tvos" => Platform.tvOS,
-				"maccatalyst" => Platform.MacCatalyst,
-				_ => reference.Platform
-			};
+			string platformName = FormatPlatformNameForTitle (reference);
 
 			sb.Append (" | ");
 			sb.Append (platformName);
 			sb.Append (" ");
 
-			AppendVersion (sb, reference.PlatformVersion);
+			AppendDisplayVersion (sb, reference.PlatformVersion);
 
 			return sb.ToString ();
 		}
 
-		private static void AppendVersion (StringBuilder sb, Version version)
+		static string FormatPlatformNameForTitle (NuGetFramework reference) => reference.Platform.ToLowerInvariant () switch {
+			"windows" => Platform.Windows,
+			"android" => Platform.Android,
+			"ios" => Platform.iOS,
+			"macos" => Platform.macOS,
+			"tvos" => Platform.tvOS,
+			"maccatalyst" => Platform.MacCatalyst,
+			_ => reference.Platform
+		};
+
+		static void AppendDisplayVersion (StringBuilder sb, Version version)
 		{
 			if (version.Major <= 0)
 				return;
