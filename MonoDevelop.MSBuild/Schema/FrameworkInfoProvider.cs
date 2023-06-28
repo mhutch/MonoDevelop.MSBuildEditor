@@ -305,6 +305,8 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
+		static NuGetFramework ToNugetFramework (KnownFramework fx) => new (fx.Moniker, fx.Version, fx.Profile ?? "", fx.Platform ?? "", fx.PlatformVersion ?? FrameworkConstants.EmptyVersion);
+
 		public bool IsFrameworkProfileValid (string moniker, Version version, string profile)
 		{
 			foreach (var fx in GetFrameworksWithMonikerAndVersion (moniker, version)) {
@@ -319,7 +321,7 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			foreach (var fx in frameworks) {
 				if (fx.ShortName != null) {
-					yield return new FrameworkInfo (fx.ShortName, fx.Moniker, fx.Version, null);
+					yield return new FrameworkInfo (fx.ShortName, ToNugetFramework (fx));
 				}
 			}
 		}
@@ -333,7 +335,7 @@ namespace MonoDevelop.MSBuild.Schema
 					continue;
 				}
 				lastId = fx.Moniker;
-				yield return new FrameworkInfo (fx.Moniker, fx.Moniker, null, null);
+				yield return new FrameworkInfo (fx.Moniker, new NuGetFramework (lastId));
 			}
 		}
 
@@ -345,21 +347,21 @@ namespace MonoDevelop.MSBuild.Schema
 					continue;
 				}
 				lastReturned = fx.Version;
-				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), fx.Moniker, fx.Version, null);
+				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), new NuGetFramework (fx.Moniker, fx.Version));
 			}
 		}
 
 		public IEnumerable<FrameworkInfo> GetFrameworkProfiles (string moniker, Version version)
 		{
-			foreach (var id in frameworks) {
-				if (!string.Equals (id.Moniker, moniker, StringComparison.OrdinalIgnoreCase)) {
+			foreach (var fx in frameworks) {
+				if (!string.Equals (fx.Moniker, moniker, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
-				if (!AreVersionsEquivalent (version, id.Version)) {
+				if (!AreVersionsEquivalent (version, fx.Version)) {
 					continue;
 				}
-				if (id.Profile is string profile) {
-					yield return new FrameworkInfo (profile, id.Moniker, id.Version, profile);
+				if (fx.Profile is string profile) {
+					yield return new FrameworkInfo (profile, new NuGetFramework (fx.Moniker, fx.Version, fx.Profile));
 				}
 			}
 		}

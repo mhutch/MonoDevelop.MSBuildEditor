@@ -19,11 +19,6 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			Reference = reference;
 		}
 
-		public FrameworkInfo (string name, string identifier, Version version, string profile)
-			: this (name, new NuGetFramework (identifier, version, profile))
-		{
-		}
-
 		public NuGetFramework Reference { get; }
 	}
 }
