@@ -115,7 +115,18 @@ partial class MSBuildSchema
 
 				var typeLoader = new TypeInfoReader (this, items, true);
 
-				foreach (var ikv in (JObject)kv.Value) {
+				if (kv.Value is JValue val && val.Type == JTokenType.String) {
+					description = (string)val.Value;
+					yield return (name, new ItemInfo (name, description));
+					continue;
+				}
+
+				if (kv.Value is not JObject obj) {
+					AddError (kv.Value ?? items, $"Item '{name}' value must be an object or description string");
+					continue;
+				}
+
+				foreach (var ikv in obj) {
 					switch (ikv.Key) {
 					case "description":
 						description = (string)((JValue)ikv.Value).Value;
