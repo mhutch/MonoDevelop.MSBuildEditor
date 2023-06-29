@@ -33,7 +33,7 @@ partial class MSBuildSchema
 						message,
 						severity,
 						origin,
-						position is IJsonLineInfo lineInfo ? (lineInfo.LinePosition, lineInfo.LinePosition) : null,
+						position is IJsonLineInfo lineInfo ? (lineInfo.LineNumber, lineInfo.LinePosition) : null,
 						position.Path
 					)
 				);
