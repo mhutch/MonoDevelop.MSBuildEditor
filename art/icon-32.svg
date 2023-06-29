@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="32"
+   height="32"
+   viewBox="0 0 8.4666667 8.4666667"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="Icon-32.svg"
+   inkscape:export-filename="Icon.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#393939"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="29.276992"
+     inkscape:cx="2.6983646"
+     inkscape:cy="17.112414"
+     inkscape:window-width="3440"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="1275"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid547"
+       originx="0"
+       originy="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="fill_between_many"
+       method="originald"
+       linkedpaths="#path218,0,1|#path224,0,1"
+       id="path-effect489"
+       is_visible="true"
+       lpeversion="0"
+       join="true"
+       close="true"
+       autoreverse="true" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       d="M 7.291488,10.179263 4.5299609,10.179642 3.8388514,4.8880708 4.5285054,-0.40369082 7.3763302,-0.40408249 7.981142,4.8875011 Z"
+       id="path224-0-8"
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;fill:#1c2224;stroke-width:0.852603"
+       class="UnoptimicedTransforms"
+       transform="matrix(-1.5138546,-1.2676248,0.39283681,-0.46907892,11.32543,14.01775)"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       inkscape:original-d="M 0,0"
+       inkscape:path-effect="#path-effect489"
+       d="M 0,0"
+       id="path491"
+       class="UnoptimicedTransforms"
+       transform="matrix(0.7276629,0.59711695,-0.60904875,0.71340735,5.8761448,-2.1453296)" />
+    <path
+       d="M 2.5641805,2.9483934 Z"
+       id="path220"
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;stroke-width:0.191485" />
+    <path
+       d="M 3.10562,3.9362477 Z"
+       id="path222"
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;stroke-width:0.191485" />
+    <path
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;fill:#d400aa;stroke-width:0.852603"
+       d="M -0.82913706,9.0750578 -0.37302209,3.3940392 3.875212,-0.40523986 4.8232417,0.06519504 0.57500768,3.8644741 0.11889288,9.5454935 Z"
+       id="path218-2"
+       class="UnoptimicedTransforms"
+       transform="matrix(-0.61684498,-0.16175813,0.13221794,-0.60411925,6.7553322,8.8487005)"
+       sodipodi:nodetypes="ccccccc" />
+    <g
+       aria-label="$"
+       transform="scale(0.95567283,1.0463832)"
+       id="text1489"
+       style="font-size:6.91632px;font-family:Dubai;-inkscape-font-specification:'Dubai, Normal';fill:#ffffff;stroke-width:0.399015"
+       inkscape:transform-center-x="0.052084767"
+       inkscape:transform-center-y="-0.94125422">
+      <path
+         d="m 5.9681427,5.1110213 c 0,0.3596487 -0.1106611,0.6478287 -0.3319833,0.86454 C 5.4148371,6.1922726 5.107691,6.2706579 4.7065445,6.3213776 l -0.00409,0.9752008 H 4.1560669 V 6.3974568 C 3.8701924,6.3882351 3.6027613,6.3398208 3.3537738,6.2522141 3.1093972,6.1646074 2.8903804,6.0447245 2.6967234,5.8925654 L 3.0010415,5.4360883 c 0.1844352,0.1429373 0.3919248,0.251293 0.6224688,0.3250671 0.2351549,0.069163 0.4564771,0.1037448 0.6639667,0.1037448 0.3319833,0 0.5832763,-0.059941 0.7538789,-0.1798243 C 5.2165693,5.565193 5.304176,5.3830632 5.304176,5.1386866 5.304176,4.9957493 5.2719,4.8781719 5.207348,4.7859543 5.1474063,4.6937367 5.0459668,4.6107409 4.9030295,4.5369668 4.7647031,4.4585818 4.5641298,4.3732805 4.3013096,4.2810629 L 4.1837322,4.239565 C 3.8932468,4.1381257 3.6580919,4.0389917 3.4782676,3.9421632 3.2984433,3.8407239 3.1532005,3.7093138 3.0425394,3.547933 2.9318783,3.3865522 2.8765477,3.1836735 2.8765477,2.9392969 c 0,-0.230544 0.057636,-0.4288118 0.172908,-0.5948035 C 3.1647277,2.1738908 3.3191922,2.0424807 3.5128492,1.9502631 3.7065061,1.8534346 3.920912,1.7934932 4.1560669,1.7704388 V 0.86440092 H 4.7024562 V 1.7704388 c 0.4242009,0.041498 0.8207366,0.1844353 1.189607,0.4288118 L 5.6015778,2.6557278 C 5.3986991,2.5266231 5.2027367,2.4344055 5.0136906,2.379075 4.8246445,2.3191335 4.6125441,2.2891628 4.3773892,2.2891628 c -0.2443767,0 -0.4472554,0.05072 -0.6086362,0.152159 -0.1613808,0.1014394 -0.2420712,0.2582093 -0.2420712,0.4703098 0,0.1106611 0.02536,0.2074896 0.07608,0.2904854 0.055331,0.082996 0.1475483,0.1613808 0.2766528,0.2351549 0.1337155,0.073774 0.3181507,0.152159 0.5533056,0.2351549 l 0.1175775,0.041498 c 0.3089289,0.1060503 0.555611,0.2074896 0.7400462,0.3043181 0.1844352,0.092218 0.3435105,0.2282385 0.477226,0.4080628 0.1337155,0.1752135 0.2005731,0.403452 0.2005728,0.6847156 z"
+         id="path410"
+         sodipodi:nodetypes="ssccccccccscscccccsscccccccccsssccscccs" />
+    </g>
+    <path
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;fill:#d400aa;stroke-width:0.852603"
+       d="m -0.98757375,9.5224337 0.69121837,-5.5636468 c 0,0 4.05036248,-3.69784291 4.24693358,-3.80073271 L 4.8987689,0.62816461 0.65183533,4.4288974 -0.03938303,9.9925442 Z"
+       id="path218"
+       class="UnoptimicedTransforms"
+       transform="matrix(0.61679968,0.16196487,-0.13242905,0.60406386,1.8701816,-0.7353292)"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       d="m 5.5523817,10.153784 -0.79375,1.1e-4 L 2.9058206,4.8624816 5.0217595,-0.42947613 5.8155094,-0.4295853 3.6995706,4.8623724 Z"
+       id="path224-0-5"
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;fill:#0066ff;stroke-width:0.852603"
+       class="UnoptimicedTransforms"
+       transform="matrix(0.49372943,0.41349789,-0.39269651,0.46919639,2.0298627,-1.5468154)"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       d="m 5.8170812,10.153748 -0.79375,1.1e-4 L 2.9059368,4.8624821 5.0218757,-0.42947559 5.8156256,-0.42958475 3.6996868,4.862373 Z"
+       id="path224-0"
+       style="font-size:3.175px;font-family:'CaskaydiaCove Nerd Font Mono';-inkscape-font-specification:'CaskaydiaCove Nerd Font Mono, Normal';white-space:pre;inline-size:7.45048;fill:#0066ff;stroke-width:0.852603"
+       class="UnoptimicedTransforms"
+       transform="matrix(-0.49372943,-0.41349789,0.39269651,-0.46919639,6.5675074,10.01353)"
+       sodipodi:nodetypes="ccccccc" />
+  </g>
+</svg>
