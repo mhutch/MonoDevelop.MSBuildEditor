@@ -92,16 +92,18 @@ class MSBuildSchemaWriter : IDisposable
 		if (item.Metadata.Count > 0) {
 			json.WritePropertyName ("metadata");
 			var sortedMetadata = SortedByName (item.Metadata);
+			/*
 			if (item.Metadata.Values.All (m => m.Description.IsEmpty && IsOnlyDescription (m))) {
 				WriteMetadataAsArray (sortedMetadata);
-			} else {
-				WriteMetadataAsObject (sortedMetadata);
-			}
+			} else {*/
+			WriteMetadataAsObject (sortedMetadata);
 		}
 
 		json.WriteEndObject ();
 	}
 
+	// writing metadata as an array is not actually valid right now
+	/*
 	void WriteMetadataAsArray (IEnumerable<MetadataInfo> metadata)
 	{
 		json.WriteStartArray ();
@@ -109,7 +111,7 @@ class MSBuildSchemaWriter : IDisposable
 			json.WriteValue (m.Name);
 		}
 		json.WriteEndArray ();
-	}
+	}*/
 
 	void WriteMetadataAsObject (IEnumerable<MetadataInfo> metadata)
 	{
