@@ -12,64 +12,97 @@ static class MSBuildSchemaUtils
 	/// <summary>
 	/// Returns a schema containing symbols from <c>other</c> that differ from those in the <c>basis</c>
 	/// </summary>
-	public static MSBuildSchema GetAddedOrChanged(MSBuildSchema basis, MSBuildSchema other)
+	public static MSBuildSchema GetAddedOrChanged(MSBuildSchema basisSchema, MSBuildSchema otherSchema)
 	{
+		// ignore description docs in otherSchema when the basisSchema already has a description
+		const bool ignoreDifferentDocs = true;
+
+		// ignore valueKinds in otherSchema when the basisSchema already has a non-unknown valueKind
+		const bool ignoreDifferentValueKinds = true;
+
+		// ignore string valueKinds in otherSchema as the the XSD schema often treats strings as default
+		const bool treatStringValueKindAsUnknownInOther = true;
+
+		MSBuildValueKind MapStringKindToUnknown(MSBuildValueKind kind) => treatStringValueKindAsUnknownInOther && kind == MSBuildValueKind.String? MSBuildValueKind.Unknown : kind;
+
+		bool IsBetterDescription(BaseSymbol basis, BaseSymbol other) => IsBetterDocString(basis.Description.Text, other.Description.Text);
+		bool IsBetterDocString(string basis, string other) => !string.IsNullOrEmpty(other) && (string.IsNullOrEmpty(basis) || (!ignoreDifferentDocs && !string.Equals(basis, other)));
+		bool IsBetterValueKind(VariableInfo basis, VariableInfo other)
+		{
+			if (basis.ValueKind == MSBuildValueKind.Unknown) {
+				return MapStringKindToUnknown (other.ValueKind) != MSBuildValueKind.Unknown;
+			}
+			return ignoreDifferentValueKinds? false : other.ValueKind != basis.ValueKind;
+		}
+
 		var diff = new MSBuildSchema();
 
-		foreach (var item in other.Items.Values) {
-			if (item.Description.IsEmpty) {
+		foreach (var otherItem in otherSchema.Items.Values) {
+			if (!basisSchema.Items.TryGetValue(otherItem.Name, out var basisItem)) {
+				diff.Items.Add(otherItem.Name, otherItem);
 				continue;
 			}
 
-			if (basis.Items.TryGetValue(item.Name, out var basisItem)
-				&& basisItem.Description.Text == item.Description.Text
-				&& item.Metadata.Values.All(otherMeta =>
-					basisItem.Metadata.TryGetValue(otherMeta.Name, out var basisMeta)
-					&& (otherMeta.Description.IsEmpty
-						|| basisMeta.Description.Text == otherMeta.Description.Text))) {
-				continue;
+			//TODO: check the item's customtype, deprecation messdage, deprecation state
+			bool betterDescription = IsBetterDescription(basisItem, otherItem);
+			bool betterValueKind = IsBetterValueKind(basisItem, otherItem);
+			bool betterIncludeDescription = IsBetterDocString(basisItem.IncludeDescription, otherItem.IncludeDescription);
+			bool itemIsBetter = betterDescription || betterValueKind || betterIncludeDescription;
+
+			var newMetadata = new Dictionary<string,MetadataInfo>();
+			foreach ((var metadataName, var otherMetadata) in otherItem.Metadata) {
+				// TODO: check more properties of the metadata
+				if (basisItem.Metadata.TryGetValue(metadataName, out var basisMetadata)) {
+					if (IsBetterDescription(basisMetadata, otherMetadata) || IsBetterValueKind(basisMetadata, otherMetadata)) {
+						newMetadata.Add(metadataName, otherMetadata);
+					}
+				}
 			}
 
-			diff.Items.Add(item.Name, item);
+			if (itemIsBetter || newMetadata.Count > 0) {
+				diff.Items.Add(otherItem.Name, new ItemInfo(
+					otherItem.Name,
+					betterDescription? otherItem.Description.Text : null,
+					betterIncludeDescription? otherItem.IncludeDescription : null,
+					betterValueKind? otherItem.ValueKind : MSBuildValueKind.Unknown,
+					betterValueKind? otherItem.CustomType : null,
+					newMetadata.Count > 0? newMetadata : null,
+					false,
+					null
+				));
+			}
 		}
 
-		foreach (var otherProp in other.Properties.Values) {
-			if (otherProp.Description.IsEmpty) {
+		foreach (var op in otherSchema.Properties.Values) {
+			var otherProp = op;
+			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
+				otherProp = new PropertyInfo(otherProp.Name, otherProp.Description, otherProp.Reserved, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
+			}
+			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
+				diff.Properties.Add(otherProp.Name, otherProp);
 				continue;
 			}
 
-			if (basis.Properties.TryGetValue(otherProp.Name, out var basisProp)
-				&& basisProp.Description.Text == otherProp.Description.Text) {
-				continue;
+			if (IsBetterDescription(basisProp, otherProp) || IsBetterValueKind (basisProp, otherProp)) {
+				diff.Properties.Add(otherProp.Name, otherProp);
 			}
-
-			diff.Properties.Add(otherProp.Name, otherProp);
 		}
 
-		foreach (var otherTask in other.Tasks.Values) {
-			if (otherTask.Description.IsEmpty) {
+		foreach (var otherTask in otherSchema.Tasks.Values) {
+			// ignore tasks without descriptions & parameters, we'll pick them up from inference
+			if (otherTask.Description.IsEmpty && otherTask.Parameters.Count == 0) {
 				continue;
 			}
-
-			if (basis.Tasks.TryGetValue(otherTask.Name, out var basisTask)
-				&& basisTask.Description.Text == otherTask.Description.Text) {
-				continue;
-			}
-
-			diff.Tasks.Add(otherTask.Name, otherTask);
+			//TODO: diff task parameters
+			if (!basisSchema.Tasks.TryGetValue(otherTask.Name, out var basisTask) || IsBetterDescription(basisTask, otherTask)) {
+				diff.Tasks.Add(otherTask.Name, otherTask);
+			};
 		}
 
-		foreach (var target in other.Targets.Values) {
-			if (target.Description.IsEmpty) {
-				continue;
+		foreach (var otherTarget in otherSchema.Targets.Values) {
+			if (!basisSchema.Targets.TryGetValue(otherTarget.Name, out var basisTarget) || IsBetterDescription(otherTarget, basisTarget)) {
+				diff.Targets.Add(otherTarget.Name, otherTarget);
 			}
-
-			if (basis.Targets.TryGetValue(target.Name, out var existing)
-				&& existing.Description.Text == target.Description.Text) {
-				continue;
-			}
-
-			diff.Targets.Add(target.Name, target);
 		}
 
 		return diff;
