@@ -1,7 +1,5 @@
 {
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
-  "items": {
-  },
   "properties": {
     "LangVersion": {
       "description": "The version of the C# language the compiler should accept",
@@ -36,7 +34,56 @@
       "description": "The nullable context options for the project",
       "type": { "$ref": "#/types/nullableContextOptions" },
       "defaultValue": "disable"
+    },
+    "AnalysisMode": {
+      "description": "Customizes the set of rules that are enabled by default.",
+      "type": [
+        "none",
+        "default",
+        "minimum",
+        "recommended",
+        "all"
+      ]
+    },
+    "AnalysisLevel": {
+      "description": "Customizes the set of rules that are enabled by default.",
+      "type": [
+        "none",
+        "latest",
+        "latest-minimum",
+        "latest-recommended",
+        "latest-all",
+        "preview",
+        "preview-minimum",
+        "preview-recommended",
+        "preview-all",
+        "5.0",
+        "5.0-minimum",
+        "5.0-recommended",
+        "5.0-all",
+        "6.0",
+        "6.0-minimum",
+        "6.0-recommended",
+        "6.0-all"
+      ]
+    },
+    "ImplicitUsings": {
+      "description": "Enable implicit global usings for the C# project. Possible values are enable, true, and disable.",
+      "type": [
+        "enable",
+        "true",
+        "disable"
+      ]
     }
+  },
+  "items": {
+    "Using": {
+      "description": "A C# global using to add to the project.",
+      "metadata": {
+        "Alias": "Optional alias for the namespace or type.",
+        "Static": "Determines whether the identifier should be registered as a static import."
+      }
+    },
   },
   "types": {
     "nullableContextOptions": {

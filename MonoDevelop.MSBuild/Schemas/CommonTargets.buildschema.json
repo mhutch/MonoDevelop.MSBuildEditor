@@ -304,6 +304,14 @@
     "FileWrites": {
       "description": "Files to track for incremental clean",
       "type": "file"
+    },
+    "UpToDateCheckInput": "Defines an item to be considered an input to the project for the fast up-to-date check.",
+    "UpToDateCheckOutput": "Defines an item to be considered an output of the project for the fast up-to-date check.",
+    "UpToDateCheckBuilt": {
+      "description": "Defines an item to be considered an output of the project for the fast up-to-date check, with optional corresponding input via 'Original' metadata. When 'Original' metadata is specified, the input and output are considered in isolation. Useful when a single file will be copied (and potentially transformed in doing so) during build.",
+      "metadata": {
+        "Original": "Optional location of the input item that produces this output. Useful when a file is copied (and potentially transformed in doing so) during build. If multiple inputs and/or outputs are involved, use 'Set' metadata instead."
+      }
     }
   },
   "properties": {
@@ -865,6 +873,11 @@
       // This technically applies to everything declared outside of a target
       "$appliesTo": [ "Compile", "EmbeddedResource", "Content", "Page", "Resource", "ApplicationDefinition", "None" ],
       "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional)"
+    },
+    {
+      "$appliesTo": [ "UpToDateCheckInput", "UpToDateCheckOutput", "UpToDateCheckBuilt" ],
+        "Set": "Optional group(s) of inputs and outputs that should be considered in isolation during build. Useful when a build involves multiple discrete compilation/transpilation steps. Semicolon-delimited when multiple sets are required.",
+        "Kind": "Optional identifier for this item that allows it to be omitted from the fast up-to-date check via a global property."
     }
   ],
   "types": {

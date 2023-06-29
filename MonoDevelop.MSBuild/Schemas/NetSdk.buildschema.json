@@ -67,6 +67,19 @@
       "description": "Whether or not the project references Windows Presentation Foundation",
       "type": "bool",
       "defaultValue": "false"
+    },
+    "UseMaui": {
+      "description": "Whether or not the project references .NET Multi-platform App UI (.NET MAUI)",
+      "type": "bool",
+      "defaultValue": "false"
+    }
+  },
+  "items": {
+    "InternalsVisibleTo": {
+      "description": "Specifies that internal types and members are visible to the specified friend assemblies.",
+      "metadata": {
+        "Key": "Optional public key associated with the strong name signature of the friend assembly."
+      }
     }
   }
 }
