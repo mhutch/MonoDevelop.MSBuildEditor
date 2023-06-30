@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
+using Newtonsoft.Json;
+
 static class MSBuildSchemaUtils
 {
 
@@ -79,7 +81,9 @@ static class MSBuildSchemaUtils
 				otherProp = new PropertyInfo(otherProp.Name, otherProp.Description, otherProp.Reserved, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
-				diff.Properties.Add(otherProp.Name, otherProp);
+				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {
+					diff.Properties.Add(otherProp.Name, otherProp);
+				}
 				continue;
 			}
 
@@ -155,7 +159,7 @@ static class MSBuildSchemaUtils
 		string thisFilePath = GetThisFilePath();
 		var schemaSourceDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(thisFilePath)!, "..", "MonoDevelop.MSBuild", "Schemas"));
 
-		var schemas = TryLoadSchemasFromDirectory(schemaSourceDir) ?? LoadBuiltinSchemasFromResources();
+		var schemas = TryLoadSchemasFromDirectory(schemaSourceDir) ?? LoadBuiltInSchemasFromResources();
 		return CombineSchemas(schemas);
 	}
 
@@ -170,10 +174,15 @@ static class MSBuildSchemaUtils
 		var schemas = new List<MSBuildSchema>();
 
 		foreach (var schemaFile in Directory.GetFiles(schemaDirectory, "*.buildschema.json")) {
-			var reader = File.OpenText(schemaFile);
-			var schema = MSBuildSchema.Load(reader, out var loadErrors, schemaFile);
-			schemas.Add(schema);
-			PrintSchemaErrors(loadErrors);
+			using var reader = File.OpenText(schemaFile);
+			try {
+				var schema = MSBuildSchema.Load(reader, out var loadErrors, schemaFile);
+				schemas.Add(schema);
+				PrintSchemaErrors(loadErrors);
+			} catch (JsonReaderException jex) {
+				Console.Error.WriteLine($"{Path.GetFileName (schemaFile)}({jex.LineNumber}, {jex.LinePosition}): error: {jex.Message}'");
+				continue;
+			}
 		}
 
 		if (schemas.Count == 0) {
@@ -184,7 +193,7 @@ static class MSBuildSchemaUtils
 		return schemas;
 	}
 
-	static IEnumerable<MSBuildSchema> LoadBuiltinSchemasFromResources ()
+	static IEnumerable<MSBuildSchema> LoadBuiltInSchemasFromResources ()
 	{
 		foreach ((var schema, var errors) in MSBuildSchemaProvider.GetAllBuiltinSchemas()) {
 			PrintSchemaErrors(errors);
@@ -199,8 +208,8 @@ static class MSBuildSchemaUtils
 			if (error is not null) {
 				if (error.Origin is not null) {
 					Console.Error.Write(Path.GetFileName(error.Origin));
-					if (error.FilePosition is (int line, _)) {
-						Console.Error.Write($"({line}): "); ;
+					if (error.FilePosition is (int line, int col)) {
+						Console.Error.Write($"({line}, {col}): ");
 					}
 				}
 				Console.Error.WriteLine($"{error.Severity.ToString().ToLower()}: {error.Message}");
