@@ -477,7 +477,7 @@ namespace MonoDevelop.MSBuild.Language
 				//FIXME: enum completion etc
 				return MSBuildValueKind.Bool.GetSimpleValues (true);
 			case TriggerState.ConditionFunctionName:
-				return Builtins.ConditionFunctions.Values;
+				return MSBuildIntrinsics.ConditionFunctions.Values;
 			}
 			throw new InvalidOperationException ($"Unhandled trigger type {trigger}");
 		}

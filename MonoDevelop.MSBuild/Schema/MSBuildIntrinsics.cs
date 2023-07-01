@@ -9,8 +9,7 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-
-	static class Builtins
+	static class MSBuildIntrinsics
 	{
 		public static Dictionary<string, MetadataInfo> Metadata { get; } = new Dictionary<string, MetadataInfo> (StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
@@ -28,7 +27,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		static void AddTask (TaskInfo task) => Tasks.Add (task.Name, task);
 
-		static Builtins ()
+		static MSBuildIntrinsics ()
 		{
 			AddMetadata ("FullPath", "The full path of the item", MSBuildValueKind.File);
 			AddMetadata ("RootDir", "The root directory of the item", MSBuildValueKind.FolderWithSlash);

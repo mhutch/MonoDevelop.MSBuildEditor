@@ -197,7 +197,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.Condition:
 				//FIXME: relax this a bit
 				if (triggerExpression != null && triggerExpression is ExpressionText t && t.Length == 0) {
-					return Builtins.ConditionFunctions.Values;
+					return MSBuildIntrinsics.ConditionFunctions.Values;
 				}
 				break;
 			}
@@ -376,7 +376,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildReferenceKind.Enum:
 				return functionTypeProvider.GetEnumInfo ((string)rr.Reference);
 			case MSBuildReferenceKind.ConditionFunction:
-				if (Builtins.ConditionFunctions.TryGetValue ((string)rr.Reference, out var conditionFunctionName)) {
+				if (MSBuildIntrinsics.ConditionFunctions.TryGetValue ((string)rr.Reference, out var conditionFunctionName)) {
 					return conditionFunctionName;
 				}
 				return null;
