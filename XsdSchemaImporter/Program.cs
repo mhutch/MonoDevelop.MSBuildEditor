@@ -58,6 +58,13 @@ var builtInSchemas = MSBuildSchemaUtils.LoadBuiltInSchemas ();
 
 var diff = MSBuildSchemaUtils.GetAddedOrChanged(builtInSchemas, xsdSchemaReader.Schema);
 
+foreach (string intrinsicProp in new string[] { "MSBuildTreatWarningsAsErrors", "MSBuildWarningsAsErrors", "MSBuildWarningsAsMessages" }) {
+	diff.Properties.Remove(intrinsicProp);
+}
+
+// I can't find targets from the WsdlXsd* properties anywhere, so don't bother trying to import them
+diff.Properties.Keys.Where(k => k.StartsWith ("WsdlXsd", StringComparison.OrdinalIgnoreCase)).ToList().ForEach(k => diff.Properties.Remove(k));
+
 using var writer = new MSBuildSchemaWriter(Console.Out);
 writer.Write(diff);
 
