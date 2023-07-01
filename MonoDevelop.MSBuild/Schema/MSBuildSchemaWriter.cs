@@ -87,6 +87,7 @@ class MSBuildSchemaWriter : IDisposable
 		json.WriteStartObject ();
 
 		WriteDescriptionWithKey (item);
+		WriteIncludeDescriptionWithKey (item);
 		WriteTypeWithKey (item);
 
 		if (item.Metadata.Count > 0) {
@@ -187,6 +188,14 @@ class MSBuildSchemaWriter : IDisposable
 		if (!symbol.Description.IsEmpty) {
 			json.WritePropertyName ("description");
 			WriteDescription (symbol);
+		}
+	}
+
+	void WriteIncludeDescriptionWithKey (ItemInfo symbol)
+	{
+		if (!string.IsNullOrEmpty (symbol.IncludeDescription)) {
+			json.WritePropertyName ("includeDescription");
+			json.WriteValue (symbol.IncludeDescription ?? "");
 		}
 	}
 
