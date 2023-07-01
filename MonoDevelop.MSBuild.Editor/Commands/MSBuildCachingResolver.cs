@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 			var lastResult = parser.LastOutput;
 
 			// if it's still at the same position and the last result is the same stale version, there's no point trying again
-			if (cached.Position == position && lastResult.MSBuildDocument == cached.Doc) {
+			if (lastResult is null || (cached.Position == position && lastResult.MSBuildDocument == cached.Doc)) {
 				doc = cached.Doc;
 				rr = cached.Result;
 				return false;
