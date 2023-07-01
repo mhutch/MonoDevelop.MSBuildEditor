@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -181,6 +182,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return "version-suffixed";
 			case MSBuildValueKind.Lcid:
 				return "lcid";
+			case MSBuildValueKind.Culture:
+				return "culture";
 			case MSBuildValueKind.DateTime:
 				return "datetime";
 			case MSBuildValueKind.Char:

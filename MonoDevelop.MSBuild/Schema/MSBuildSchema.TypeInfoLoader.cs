@@ -119,6 +119,7 @@ partial class MSBuildSchema
 		{ "version", MSBuildValueKind.Version },
 		{ "suffixed-version", MSBuildValueKind.SuffixedVersion },
 		{ "lcid", MSBuildValueKind.Lcid },
+		{ "culture", MSBuildValueKind.Culture },
 		{ "target-name", MSBuildValueKind.TargetName },
 		{ "item-name", MSBuildValueKind.ItemName },
 		{ "property-name", MSBuildValueKind.PropertyName },

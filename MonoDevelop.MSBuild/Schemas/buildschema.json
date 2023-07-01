@@ -305,6 +305,7 @@
         "version",
         "suffixed-version",
         "lcid",
+        "culture",
         "target-name",
         "item-name",
         "property-name",

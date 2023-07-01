@@ -31,6 +31,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		Version,
 		SuffixedVersion,
 		Lcid,
+		Culture,
 		DateTime,
 		Object,
 		Char,
