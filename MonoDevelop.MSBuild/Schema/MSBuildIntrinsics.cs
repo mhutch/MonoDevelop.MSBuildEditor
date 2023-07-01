@@ -79,6 +79,9 @@ namespace MonoDevelop.MSBuild.Schema
 			AddProperty ("MSBuildTreatWarningsAsErrors", "Name of the property that indicates that all warnings should be treated as errors", MSBuildValueKind.PropertyName, true);
 			AddProperty ("MSBuildWarningsAsErrors", "Name of the property that indicates a list of warnings to treat as errors", MSBuildValueKind.PropertyName, true);
 			AddProperty ("MSBuildWarningsAsMessages", "Name of the property that indicates the list of warnings to treat as messages", MSBuildValueKind.PropertyName, true);
+			AddProperty ("MSBuildAllProjects",
+				"List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.",
+				MSBuildValueKind.ProjectFile, true);
 
 			AddTask (new TaskInfo (
 				"CallTarget",

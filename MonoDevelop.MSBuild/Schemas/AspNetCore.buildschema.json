@@ -1,0 +1,12 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AspNetCoreHostingModel": "Indicates whether to run an ASP.NET Core application using IIS in-process or out-of-process.",
+    "AspNetCoreModuleName": "Indicates which AspNetCoreModule version to use. Versions include V1 and V2.",
+    "UserSecretsId": "The ID that will be used to locate the file storing secret configuration values for this project at development time.",
+  },
+  "items": {
+  },
+  "types": {
+  }
+}

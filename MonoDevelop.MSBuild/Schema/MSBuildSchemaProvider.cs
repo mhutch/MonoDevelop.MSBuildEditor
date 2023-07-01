@@ -70,13 +70,21 @@ namespace MonoDevelop.MSBuild.Schema
 		const string sdkTargets = "sdk.targets";
 
 		static readonly (string resourceId, string? sdkId, string filename)[] builtInSchemas = new[] {
+			("Android", null, "Xamarin.Android.Common.targets"),
+			("Appx", null, "Microsoft.DesktopBridge.targets"),
+			("AspNetCore", "Microsoft.NET.Sdk.Web", sdkTargets),
 			("CodeAnalysis", null, "Microsoft.CodeAnalysis.targets"),
 			("CommonTargets", null, "Microsoft.common.targets"),
 			("Cpp", null, "Microsoft.Cpp.targets"),
 			("CSharp", null, "Microsoft.CSharp.CurrentVersion.targets"),
 			("NetSdk", "Microsoft.NET.sdk", sdkTargets),
+			("NuGet", null, "NuGet.targets"),
 			("NuGetPack", null, "NuGet.Build.Tasks.Pack.targets"),
-			("VisualBasic", null, "Microsoft.VisualBasic.CurrentVersion.targets")
+			("GrpcProtobuf", null, "Google.Protobuf.Tools.targets"),
+			("RazorSdk", "Microsoft.NET.Sdk.Razor", sdkTargets),
+			("Roslyn", null, "Microsoft.Managed.Core.targets"),
+			("VisualBasic", null, "Microsoft.VisualBasic.CurrentVersion.targets"),
+			("WindowsDesktop", null, "Microsoft.NET.Sdk.WindowsDesktop.targets")
 		};
 
 		static readonly Dictionary<(string? sdkId, string filename), string> builtInSchemaMap = builtInSchemas.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());

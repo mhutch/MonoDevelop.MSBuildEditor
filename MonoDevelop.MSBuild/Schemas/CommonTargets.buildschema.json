@@ -161,8 +161,13 @@
         },
         "Package": "",
         "EmbedInteropTypes": {
+          "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only",
           "type": "bool"
-        }
+        },
+        "ProduceReferenceAssembly": {
+          "description": "Whether to produce a separate reference assembly in addition to the runtime assembly",
+          "type": "bool"
+        },
       }
     },
     "Compile": {
@@ -328,14 +333,23 @@
     "ApplicationVersion": {
       "type": "version"
     },
-    "AppDesignerFolder": "Name of folder for Application Designer",
+    "AppDesignerFolder": {
+      "description": "Name of folder for Application Designer",
+      "type": "folder"
+    },
     "AspNetConfiguration": "",
-    "AssemblyName": "Name of output assembly",
+    "AssemblyName": {
+      "description": "Name of output assembly",
+      "type": "string"
+    },
     "AssemblyOriginatorKeyFile": {
       "description": "The file that contains the key used to sign the assembly",
       "type": "file"
     },
-    "AutoGenerateBindingRedirects": "Indicates whether BindingRedirect elements should be automatically generated for referenced assemblies.",
+    "AutoGenerateBindingRedirects": {
+      "description": "Indicates whether BindingRedirect elements should be automatically generated for referenced assemblies.",
+      "type": "bool"
+    },
     "AutorunEnabled": {
       "type": "bool"
     },
@@ -452,10 +466,6 @@
     "GenerateLibraryLayout": {
       "type": "bool"
     },
-    "GeneratePackageOnBuild": {
-      "description": "Value indicating whether a NuGet package will be generated when the project is built",
-      "type": "bool"
-    },
     "DisableXbfGeneration": {
       "type": "bool"
     },
@@ -499,7 +509,11 @@
       "type": "bool",
       "defaultValue": "false"
     },
-    "NoWarn": "Comma separated list of disabled warnings",
+    "NoWarn": {
+      "description": "Comma separated list of disabled warnings",
+      "type": "string",
+      "isList": true
+    },
     "OldToolsVersion": "",
     "OutDir": {
       "description": "The output directory",
@@ -781,11 +795,6 @@
       "description": "The configuration-specific directory in which intermediate build outputs are stored",
       "type": "folder"
     },
-    "MSBuildAllProjects": {
-      "description": "List of all project files. Targets can use this as an input to trigger rebuilds when these files change, and targets and props files can add themselves to be included in this behavior.",
-      "type": "file",
-      "isList": true
-    },
     "ExternalConsole": {
       "description": "Whether to close the external console after running a console application in the IDE",
       "type": "bool"
@@ -799,7 +808,66 @@
       "description": "The values that the IDE should list for the `$(Platform)` property",
       "type": "platform",
       "isList": true
-    }
+    },
+    "AssemblySearchPaths": {
+      "description": "Semicolon-delimited ordered list of paths to search when the ResolveAssemblyReference task looks for an assembly. Some well-known or non-path locations can be specified using, such as {GAC}.",
+      "type": { "$ref": "#/types/assemblySearchPath" },
+      "isList": true
+    },
+    "AssemblySearchPath_UseAssemblyFolders": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes legacy assembly folders, via the `{AssemblyFolders}` token",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseAssemblyFoldersConfigFileSearchPath": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes `$(AssemblyFoldersConfigFileSearchPath)`, registered in the MSBuild installation",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseCandidateAssemblyFiles": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes assemblies from the current project, via the token `{CandidateAssemblyFiles}`",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseGAC": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes assemblies in the Global Assembly Cache, via the `{GAC}` token",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseHintPathFromItem": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes the `Reference` item's `HintPath` metadata, via the `{HintPathFromItem}` token",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseOutDir": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes the project's output directory",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseRawFileName": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value treats the `Reference` item's `Include` as a file path, via the `{RawFileName}` token",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseReferencePath": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes the `$(ReferencePath)` value",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseRegistry": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes assembly folders registered in the Windows Registry",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AssemblySearchPath_UseTargetFrameworkDirectory": {
+      "description": "Controls whether the default `$(AssemblySearchPaths)` value includes assemblies from the target framework, via the `{TargetFramework}` token",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AccelerateBuildsInVisualStudio": {
+      "description": "Indicates whether to enable acceleration when building in Visual Studio (boolean).",
+      "type": "bool"
+    },
   },
   "metadata": [
     {
@@ -903,7 +971,19 @@
       "Excluded",
       "DataFile",
       "Prerequisite"
-    ]
+    ],
+    "assemblySearchPath": {
+      "description": "Locations to search for assemblies when resolving references",
+      "values": {
+        "{CandidateAssemblyFiles}" : "Assemblies from the current project",
+        "{HintPathFromItem}" : "The assembly indicated by HintPath metadata on the reference item",
+        "{TargetFrameworkDirectory}" : "Assemblies in the target framework",
+        "{AssemblyFolders}" : "Assemblies in legacy registered assembly folders",
+        "{GAC}" : "Assemblies in the .NET Framework Global Assembly Cache",
+        "{RawFileName}" : "Treat the reference include as a raw assembly path"
+      },
+      "allowUnknownValues": true
+    }
   },
   "targets": {
     "Build": "Builds the project",

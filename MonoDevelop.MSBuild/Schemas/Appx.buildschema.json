@@ -1,0 +1,261 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AppxAutoIncrementPackageRevision": "Flag indicating whether to auto-increment package revision.",
+    "AppxBundle": "Flag indicating whether packaging targets will produce an app bundle.",
+    "AppxBundleAutoResourcePackageQualifiers": "'|'-delimited list of resource qualifiers which will be used for automatic resource pack splitting.",
+    "AppxBundleDir": "Full path to a folder where app bundle will be produced.",
+    "AppxBundleFolderSuffix": "Suffix to append to app bundle folder.",
+    "AppxBundleMainPackageFileMapGeneratedFilesListPath": "Full path to a log file containing a list of generated files during generation of main package file map.",
+    "AppxBundleMainPackageFileMapIntermediatePath": "Full path to an intermediate main package file map.",
+    "AppxBundleMainPackageFileMapIntermediatePrefix": "Prefix used for intermediate main package resources .pri and .map.txt files.",
+    "AppxBundleMainPackageFileMapIntermediatePriPath": "Full path to an intermediate main package .pri file.",
+    "AppxBundleMainPackageFileMapPath": "Full path to a main package file map.",
+    "AppxBundleMainPackageFileMapPrefix": "Prefix used for main package resources .pri and .map.txt files.",
+    "AppxBundleMainPackageFileMapSuffix": "Suffix used before extension of resource map files.",
+    "AppxBundlePlatforms": "'|'-delimited list of platforms which will be included in an app bundle.",
+    "AppxBundlePriConfigXmlForMainPackageFileMapFileName": "Full path to the priconfig.xml file used for generating main package file map.",
+    "AppxBundlePriConfigXmlForSplittingFileName": "Full path to the priconfig.xml file used for splitting resource packs.",
+    "AppxBundleProducingPlatform": "A platform which will be used to produce an app bundle.",
+    "AppxBundleResourcePacksProducingPlatform": "A platform which will be used to produce resource packs for an app bundle.",
+    "AppxBundleSplitResourcesGeneratedFilesListPath": "Full path to a log file containing a list of generated files during resource splitting.",
+    "AppxBundleSplitResourcesPriPath": "Full path to split resources .pri file.",
+    "AppxBundleSplitResourcesPriPrefix": "Prefix used for split resources .pri and .map.txt files.",
+    "AppxBundleSplitResourcesQualifiersPath": "Full path to a log file containing a detected qualifiers during resource splitting.",
+    "AppxCopyLocalFilesOutputGroupIncludeXmlFiles": "Flag indicating whether CopyLocal files group should include XML files.",
+    "AppxCreatePriFilesForPortableLibrariesAdditionalMakepriExeParameters": "Additional parameters to pass to makepri.exe when generating PRI file for a portable library.",
+    "AppxDefaultHashAlgorithmId": "Default hash algorithm ID, used for signing an app package.",
+    "AppxDefaultResourceQualifiers": "'|'-delimited list of key=value pairs representing default resource qualifiers.",
+    "AppxExcludeXamlFromLibraryLayoutsWhenXbfIsPresent": "Flag to exclude XAML files when XBF is present.",
+    "AppxExcludeXbfFromSdkPayloadWhenXamlIsPresent": "Flag to exclude XBF files when XAML is present.",
+    "AppxExpandPriContentAdditionalMakepriExeParameters": "Additional parameters to pass to makepri.exe when extracting payload file names.",
+    "AppxFilterOutUnusedLanguagesResourceFileMaps": "Flag indicating whether to filter out unused language resource file maps.",
+    "AppxGeneratePriEnabled": "Flag indicating whether to generate resource index files (PRI files) during packaging.",
+    "AppxGenerateProjectPriFileAdditionalMakepriExeParameters": "Additional parameters to pass to makepri.exe when generating project PRI file.",
+    "AppxHarvestWinmdRegistration": "Flag indicating whether to enable harvesting of WinMD registration information.",
+    "AppxLayoutDir": "Full path to the folder where package layout will be prepared when producing an app bundle.",
+    "AppxLayoutFolderName": "Name of the folder where package layout will be prepared when producing an app bundle.",
+    "AppxMSBuildTaskAssembly": "Full path to packaging build tasks assembly.",
+    "AppxMSBuildToolsPath": "Full path to a folder containing packaging build targets and tasks assembly.",
+    "AppxOSMaxVersionTested": "Targeted maximum OS version tested.",
+    "AppxOSMaxVersionTestedReplaceManifestVersion": "Flag indicating whether maximum OS version tested in app manifest should be replaced.",
+    "AppxOSMinVersion": "Targeted minimum OS version.",
+    "AppxOSMinVersionReplaceManifestVersion": "Flag indicating whether minimum OS version in app manifest should be replaced.",
+    "AppxPackage": "Flag marking current project as capable of being packaged as an app package.",
+    "AppxPackageAllowDebugFrameworkReferencesInManifest": "Flag indicating whether to allow inclusion of debug framework references in an app manifest.",
+    "AppxPackageArtifactsDir": "Additional qualifier to append to AppxPackageDir.",
+    "AppxPackageDir": "Full path to a folder where app packages will be saved.",
+    "AppxPackageDirName": "Name of the folder where app packages are produced.",
+    "AppxPackageFileMap": "Full path to app package file map.",
+    "AppxPackageIncludePrivateSymbols": "Flag indicating whether to include private symbols in symbol packages.",
+    "AppxPackageName": "Name of the app package to generate.",
+    "AppxPackageOutput": "Full path to the app package file.",
+    "AppxPackageRecipe": "Full path to the app package recipe.",
+    "AppxPackageSigningEnabled": "Flag indicating whether to enable signing of app packages.",
+    "AppxPackageSigningTimestampDigestAlgorithm": "Digest algorithm used by the RFC 3161 timestamp server.",
+    "AppxPackageSigningTimestampServerUrl": "RFC 3161 timestamp server's URL.",
+    "AppxPackageTestDir": "Name of the folder where test app packages will be copied",
+    "AppxPackageValidationEnabled": "Flag indicating whether to enable validation of app packages.",
+    "AppxPackagingInfoFile": "Full path to the packaging info file which will contain paths to produced packages.",
+    "AppxPrependPriInitialPath": "Flag indicating whether to enable prepending initial path when indexing RESW and RESJSON files in class libraries.",
+    "AppxPriConfigXmlDefaultSnippetPath": "Path to an XML file containing default element for priconfi.xml file.",
+    "AppxPriConfigXmlPackagingSnippetPath": "Path to an XML file containing packaging element for priconfi.xml file.",
+    "AppxPriInitialPath": "Initial path when indexing RESW and RESJSON files in class libraries.",
+    "AppxSkipUnchangedFiles": "Flag indicating whether to skip unchanged files when copying files during creation of app packages.",
+    "AppxStoreContainer": "Name of the app store container to generate.",
+    "AppxStrictManifestValidationEnabled": "Flag indicating whether to enable strict manifest validation.",
+    "AppxSymbolPackageEnabled": "Flag indicating whether to generate a symbol package when an app package is created.",
+    "AppxSymbolPackageOutput": "Full path to the app symbol package file.",
+    "AppxSymbolStrippedDir": "Full path to a directory where stripped PDBs will be stored.",
+    "AppxTestLayoutEnabled": "Flag indicating whether to create test layout when an app package is created.",
+    "AppxUseHardlinksIfPossible": "Flag indicating whether to use hard links if possible when copying files during creation of app packages.",
+    "AppxValidateAppxManifest": "Flag indicating whether to validate app manifest.",
+    "AppxValidateStoreManifest": "Flag indicating whether to validate store manifest.",
+    "AppxWinMdCacheDir": "Path to the folder where harvested WinMD registration information will be cached.",
+    "AppxWinMdCacheEnabled": "Flag indicating whether to cache the harvested WinMD registration information.",
+    "FinalAppxManifestName": "Path to the final app manifest.",
+    "FinalAppxPackageRecipe": "Full path to the final app package recipe.",
+    "GenerateAppxPackageOnBuild": "Flag indicating whether to generate app package during the build.",
+    "MakeAppxExeFullPath": "Full path to makeappx.exe utility.",
+    "MakePriExeFullPath": "Full path to makepri.exe utility.",
+    "SignAppxPackageExeFullPath": "Full path to signtool.exe utility.",
+    "UapAppxPackageBuildMode": "Configures the created packages. Possible values are: StoreAndSideload (produces the appxupload and the sideloaded packages), StoreUpload (produces only the appxupload package), and SideloadOnly(produces only the packages for sideloading).",
+    "UseIncrementalAppxRegistration": "Flag indicating whether to enable incremental registration of the app layout.",
+    "PlatformSpecificBundleArtifactsListDir": "Full path to a folder where platform-specific bundle artifact list files are stored.",
+    "PlatformSpecificBundleArtifactsListDirName": "Name of the folder where platform-specific bundle artifact lists are stored.",
+    "ProjectPriFileName": "File name to use for project-specific resource index file (PRI).",
+    "ProjectPriFullPath": "Full path to project-specific resource index file (PRI).",
+    "ProjectPriIndexName": "Name of the resource index used in the generated .pri file.",
+    "IncludeBuiltProjectOutputGroup": "Flag indicating whether to include primary build outputs into the app package payload.",
+    "IncludeComFilesOutputGroup": "Flag indicating whether to include COM files into the app package payload.",
+    "IncludeContentFilesProjectOutputGroup": "Flag indicating whether to include content files into the app package payload.",
+    "IncludeCopyLocalFilesOutputGroup": "Flag indicating whether to include files marked as 'Copy local' into the app package payload.",
+    "IncludeCopyWinmdArtifactsOutputGroup": "Flag indicating whether to include WinMD artifacts into the app package payload.",
+    "IncludeCustomOutputGroupForPackaging": "Flag indicating whether to include custom output group into the app package payload.",
+    "IncludeDebugSymbolsProjectOutputGroup": "Flag indicating whether to include debug symbols into the app package payload.",
+    "IncludeDocumentationProjectOutputGroup": "Flag indicating whether to include documentation into the app package payload.",
+    "IncludeGetResolvedSDKReferences": "Flag indicating whether to include resolved SDK references into the app package payload.",
+    "IncludePriFilesOutputGroup": "Flag indicating whether to include resource index (PRI) files into the app package payload.",
+    "IncludeSatelliteDllsProjectOutputGroup": "Flag indicating whether to include satellite DLLs into the app package payload.",
+    "IncludeSDKRedistOutputGroup": "Flag indicating whether to include SDK redist into the app package payload.",
+    "IncludeSGenFilesOutputGroup": "Flag indicating whether to include SGen files into the app package payload.",
+    "IncludeSourceFilesProjectOutputGroup": "Flag indicating whether to include source files into the app package payload.",
+    "InsertReverseMap": "Flag indicating whether to insert reverse resource map during resource index generation.",
+    "EnableDirectStoreSubmission": "Enable Store Submission from the packaging wizard.",
+    "EnableSigningChecks": "Flag indicating whether to enable signing checks during app package generation.",
+    "OverwritePendingSubmission": "Overwrite Store Submission that has been queued by a previous build.",
+    "PackageCertificateKeyFile": "App package certificate key file.",
+    "PackagingDirectoryWritesLogPath": "Full path to a text file containing packaging directory writes log.",
+    "PackagingFileWritesLogPath": "Full path to a text file containing packaging file writes log.",
+    "AssetTargetFallback": "Can be set to one or more target framework monikers. When determining package compatibility, if the package does not have compatible assets for the project's real target framework, compatibility will be rechecked using each target framework from the AssetTargetFramework project of the referencing project.",
+    "AutoIncrementPackageRevision": "Flag indicating whether to enable auto increment of an app package revision.",
+    "StoreManifestName": "Name of the store manifest file.",
+    "ManagedWinmdInprocImplementation": "Name of the binary containing managed WinMD in-proc implementation.",
+    "AllowLocalNetworkLoopback": "Flag indicating whether to allow local network loopback.",
+  },
+  "items": {
+    "AppxHashUri": {
+      "description": "Hash algorithm URI.",
+      "metadata": {
+        "Id": "Hash algorithm ID corresponding to given hash URI."
+      }
+    },
+    "AppxManifest": {
+      "description": "app manifest template",
+      "metadata": {
+        "DependentUpon": "Notional path within project to indicate parent item of the current item (optional).",
+        "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional).",
+        "SubType": "Visual Studio sub-type for this item (optional).",
+        "Visible": {
+          "description": "Display in user interface (optional, boolean).",
+          "type": "bool"
+        }
+      }
+    },
+    "AppxManifestFileNameQuery": "XPath queries used to extract file names from the app manifest.",
+    "AppxManifestImageFileNameQuery": {
+      "description": "XPath queries used to define image files in the app manifest and restrictions on them.",
+      "metadata": {
+        "DescriptionID": "ID of description string resource describing this type of the image.",
+        "ExpectedScaleDimensions": "Semicolon-delimited list of expected scale dimensions in format '{scale}:{width}x{height}'.",
+        "ExpectedTargetSizes": "Semicolon-delimited list of expected target sizes.",
+        "MaximumFileSize": "Maximum file size in bytes."
+      }
+    },
+    "AppxManifestMetadata": {
+      "description": "App manifest metadata item. Can be a literal, or it can be a path to a binary to extract version from.",
+      "metadata": {
+        "Name": "Name of app manifest metadata to insert into manifest.",
+        "Value": "Literal value of app manifest metadata to insert into manifest.",
+        "Version": "Version to be inserted as a value of app manifest metadata to insert into manifest."
+      }
+    },
+    "AppxManifestSchema": {
+      "description": "App manifest schema file.",
+      "metadata": {
+        "NamespaceAlias": "Namespace alias used for this schema.",
+        "NamespaceUri": "Namespace URI used for this schema."
+      }
+    },
+    "AppxPackagePayload": {
+      "metadata": {
+        "OutputGroup": "",
+        "TargetPath": ""
+      }
+    },
+    "AppxReservedFileName": "Reserved file name which cannot appear in the app package.",
+    "AppxSystemBinary": "Name of any file which is present on the machine and should not be part of the app payload.",
+    "_AppxBundleResourceFileMapsIntermediate": {
+      "metadata": {
+        "ResourcePack": ""
+      }
+    },
+    "StoreAssociationFile": {
+      "description": "A file containing app store association data.",
+      "metadata": {
+        "DependentUpon": "Notional path within project to indicate parent item of the current item (optional).",
+        "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional).",
+        "Visible": {
+          "description": "Display in user interface (optional, boolean).",
+          "type": "bool"
+        }
+      }
+    },
+    "StoreManifestSchema": {
+      "description": "Store manifest schema file.",
+      "metadata": {
+        "NamespaceAlias": "Namespace alias used for this schema.",
+        "NamespaceUri": "Namespace URI used for this schema."
+      }
+    },
+    "_GetResolvedSDKReferencesOutput": {
+      "metadata": {
+        "OutputGroup": "",
+        "ProjectName": ""
+      }
+    },
+    "_PackagingOutputsUnexpanded": {
+      "metadata": {
+        "OutputGroup": "",
+        "ProjectName": "",
+        "TargetPath": {
+          "type": "string"
+        }
+      }
+    },
+    "_ProjectArchitectureFromPayload": {
+      "metadata": {
+        "MSBuildSourceProjectFile": ""
+      }
+    },
+    "_ProjectArchitectureItem": {
+      "metadata": {
+        "OutputGroup": "",
+        "ProjectName": ""
+      }
+    },
+    "PlatformVersionDescription": {
+      "description": "Platform version description. Used to map between internal OS version and marketing OS version.",
+      "metadata": {
+        "OSVersion": "Internal OS version.",
+        "TargetPlatformIdentifier": "Target platform identifier.",
+        "TargetPlatformVersion": "Target platform version."
+      }
+    },
+    "PRIResource": {
+      "description": "String resources to be indexed in app package's resource index.",
+      "metadata": {
+        "DependentUpon": "Notional path within project to indicate parent item of the current item (optional).",
+        "Link": "Notional path within project to display if the file is physically located outside of the project file's cone (optional).",
+        "Visible": {
+          "description": "Display in user interface (optional, boolean).",
+          "type": "bool"
+        }
+      }
+    },
+    "ProjectPriFile": {
+      "metadata": {
+        "OutputGroup": "",
+        "ProjectName": "",
+        "TargetPath": ""
+      }
+    },
+    "CopyLocalFilesOutputGroupOutput": {
+      "metadata": {
+        "TargetPath": ""
+      }
+    },
+    "CopyWinmdArtifactsOutputGroupOutputs": {
+      "metadata": {
+        "TargetPath": ""
+      }
+    },
+    "ComFilesOutputGroupOutputs": {
+      "metadata": {
+        "TargetPath": ""
+      }
+    }
+  },
+  "types": {
+  }
+}

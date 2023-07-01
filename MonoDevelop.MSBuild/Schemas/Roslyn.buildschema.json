@@ -1,0 +1,21 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "Deterministic": {
+      "description": "Enables reproducible builds, such that a given set of inputs will always produce byte-for-byte identical output",
+      "type": "bool"
+    },
+    "EmitCompilerGeneratedFiles": {
+      "description": "Controls whether source generated files will be saved.",
+      "type": "bool"
+    },
+    "CompilerGeneratedFilesOutputPath": {
+      "description": "Controls where source generated files are saved.",
+      "type": "folder"
+    }
+  },
+  "items": {
+  },
+  "types": {
+  }
+}

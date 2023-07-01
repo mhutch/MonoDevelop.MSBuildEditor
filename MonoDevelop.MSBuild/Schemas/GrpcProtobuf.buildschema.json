@@ -1,0 +1,13 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "DisableProtobufDesignTimeBuild": {
+      "description": "Indicates whether Design Time Build should be disabled for referenced @(Protobuf) files.",
+      "type": "bool"
+    },
+  },
+  "items": {
+  },
+  "types": {
+  }
+}
