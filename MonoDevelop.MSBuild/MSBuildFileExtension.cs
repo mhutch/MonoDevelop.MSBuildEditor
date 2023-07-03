@@ -25,5 +25,7 @@ namespace MonoDevelop.MSBuild
 		public const string vcxproj = ".vcxproj";
 		public const string proj = ".proj";
 		public const string user = ".user";
+
+		public static readonly string[] All = new[] { targets, props, tasks, overridetasks, csproj, vbproj, fsproj, xproj, vcxproj, proj, user };
 	}
 }
