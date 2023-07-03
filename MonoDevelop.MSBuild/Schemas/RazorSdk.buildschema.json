@@ -1,0 +1,47 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "EnableDefaultRazorComponentItems": {
+      "description": "Set to true to automatically include Razor (.razor) files in @(RazorComponent) from @(Content).",
+      "type": "bool"
+    },
+    "EnableDefaultRazorGenerateItems": {
+      "description": "Set to true to automatically include Razor (.cshtml) files in @(RazorGenerate) from @(Content).",
+      "type": "bool"
+    },
+    "EmbedRazorGenerateSources": {
+      "description": "Configures whether all of the @(RazorGenerate) items will be added as embedded files to the produced assembly. When true, everything in @(RazorGenerate) will be added to @(RazorEmbeddedFiles) and passed to CSC.",
+      "type": "bool"
+    },
+    "RazorCompileOnBuild": {
+      "description": "Indicates whether Razor files should be compiled at build time.",
+      "type": "bool"
+    },
+    "RazorCompileOnPublish": {
+      "description": "Indicates whether Razor files should be compiled at publish time.",
+      "type": "bool"
+    },
+    "RazorOutputPath": "Directory for Razor output.",
+    "RazorTargetName": "File name (without extension) of the assembly produced by Razor.",
+    "IncludeRazorContentInPack": {
+      "description": "Configures whether all Razor content items (.cshtml files) will be marked to be included in the produced NuGet package as content. All Content items are included in a NuGet package as content files. This setting can be used to control this behavior for Razor content items.",
+      "type": "bool"
+    },
+    "UseRazorBuildServer": {
+      "description": "Indicates whether Razor code generation should use a persistent build server process.",
+      "type": "bool"
+    },
+    "CopyRazorGenerateFilesToPublishDirectory": {
+      "description": "Set to true to copy RazorGenerate items (.cshtml) to the publish directory. Typically Razor files are not needed for a published application if they participate in compilation at build-time or publish-time. By default, the Razor SDK will suppress the copying of RazorGenerate items to the publish directory.",
+      "type": "bool"
+    },
+    "CopyRefAssembliesToPublishDirectory": {
+      "description": "Set to true to copy reference assembly items to the publish directory. Typically reference assemblies are not needed for a published application if Razor compilation occurs at build-time or publish-time. By default, the Razor SDK will suppress the copying of reference assemblies to the publish directory.",
+      "type": "bool"
+    }
+  },
+  "items": {
+  },
+  "types": {
+  }
+}

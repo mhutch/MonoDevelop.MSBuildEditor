@@ -18,14 +18,22 @@
     }
   },
   "properties": {
-    "CodeAnalysisAdditionalOptions": "Additional options to pass to the Code Analysis command line tool.",
+    "CodeAnalysisAdditionalOptions": {
+      "description": "Additional options to pass to the Code Analysis command line tool.",
+      "type": "string"
+    },
     "CodeAnalysisApplyLogFileXsl": {
       "description": "Indicates whether to apply the XSL style sheet specified in `$(CodeAnalysisLogFileXsl)` to the Code Analysis report. This report is specified in `$(CodeAnalysisLogFile)`. The default is false.",
       "type": "bool",
       "defaultValue": "false"
     },
-    "CodeAnalysisConsoleXsl": "Path to the XSL style sheet that will be applied to the Code Analysis console output. The default is an empty string (''), which causes Code Analysis to use its default console output.",
-    "CodeAnalysisCulture": "Culture to use for Code Analysis spelling rules, for example, 'en-US' or 'en-AU'. The default is the current user interface language for the operating system.",
+    "CodeAnalysisConsoleXsl": {
+      "description": "Path to the XSL style sheet that will be applied to the Code Analysis console output. The default is an empty string (''), which causes Code Analysis to use its default console output.",
+      "type": "file"
+    },
+    "CodeAnalysisCulture": {
+      "description": "Culture to use for Code Analysis spelling rules, for example, 'en-US' or 'en-AU'. The default is the current user interface language for the operating system.",
+    },
     "CodeAnalysisFailOnMissingRules": {
       "description": "Indicates whether Code Analysis should fail if a rule or rule set is missing.",
       "type": "bool",
@@ -126,7 +134,11 @@
       "defaultValue": "$(CodeAnalysisPath)\\Rules"
     },
     "CodeAnalysisRuleDirectories": "Semicolon-separated list of directories in which to search for rules when resolving a rule set. The default is `$(CodeAnalysisPath)\\Rules` unless the CodeAnalysisIgnoreBuiltInRules property is set to true.",
-    "CodeAnalysisRules": "Semicolon-separated list of Code Analysis rules. The rules are in the form '[+|-][!]Category#CheckId', where '+' enables the rule, '-' disables the rule, and '!' causes the rule to be treated as an error. For example, '-Microsoft.Naming#CA1700;+!Microsoft.Naming#CA1701'. The default is an empty string ('') which enables all rules.",
+    "CodeAnalysisRules": {
+      "description": "Semicolon-separated list of Code Analysis rules. The rules are in the form '[+|-][!]Category#CheckId', where '+' enables the rule, '-' disables the rule, and '!' causes the rule to be treated as an error. For example, '-Microsoft.Naming#CA1700;+!Microsoft.Naming#CA1701'. The default is an empty string ('') which enables all rules.",
+      "type": "string",
+      "isList": true
+    },
     "CodeAnalysisRuleSet": {
       "description": "A .ruleset file which contains a list of rules to run during analysis. The string can be a full path, a path relative to the project file, or a file name. If a file name is specified, the CodeAnalysisRuleSetDirectories property will be searched to find the file.",
       "defaultValue": ""

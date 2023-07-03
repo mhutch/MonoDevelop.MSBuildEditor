@@ -22,23 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Schemas\CodeAnalysis.buildschema.json" />
-    <None Remove="Schemas\CommonTargets.buildschema.json" />
-    <None Remove="Schemas\Cpp.buildschema.json" />
-    <None Remove="Schemas\CSharp.buildschema.json" />
-    <None Remove="Schemas\NetSdk.buildschema.json" />
-    <None Remove="Schemas\NuGetPack.buildschema.json" />
-    <None Remove="Schemas\VisualBasic.buildschema.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Schemas\CodeAnalysis.buildschema.json" />
-    <EmbeddedResource Include="Schemas\CommonTargets.buildschema.json" />
-    <EmbeddedResource Include="Schemas\Cpp.buildschema.json" />
-    <EmbeddedResource Include="Schemas\CSharp.buildschema.json" />
-    <EmbeddedResource Include="Schemas\NetSdk.buildschema.json" />
-    <EmbeddedResource Include="Schemas\NuGetPack.buildschema.json" />
-    <EmbeddedResource Include="Schemas\VisualBasic.buildschema.json" />
+    <None Remove="Schemas\*.buildschema.json" />
+    <EmbeddedResource Include="Schemas\*.buildschema.json" />
   </ItemGroup>
 
   <ItemGroup>

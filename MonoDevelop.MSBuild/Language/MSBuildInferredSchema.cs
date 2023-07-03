@@ -194,7 +194,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 				usage |= existingUsage;
-			} else if (!Builtins.Properties.ContainsKey (propertyName)) {
+			} else if (!MSBuildIntrinsics.Properties.ContainsKey (propertyName)) {
 				Properties.Add (propertyName, new PropertyInfo (propertyName, null));
 			}
 			PropertyUsage[propertyName] = usage;
@@ -221,7 +221,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 				usage |= existingUsage;
-			} else if (!Builtins.Metadata.ContainsKey (metadataName)) {
+			} else if (!MSBuildIntrinsics.Metadata.ContainsKey (metadataName)) {
 				var item = Items[itemName];
 				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
 			}

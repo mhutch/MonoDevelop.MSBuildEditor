@@ -1,0 +1,54 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AndroidApplication": {
+      "description": "Used by Xamarin.Android projects. A boolean value that indicates whether the project is for an Android Application (True) or for an Android Library Project (False or not present).",
+      "type": "bool"
+    },
+    "AndroidDexTool": {
+      "description": "Used by Xamarin.Android projects. A string property that indicates which Android dex compiler is used during the Xamarin.Android build process.",
+      "type": [
+        "d8",
+        "dx"
+      ]
+    },
+    "AndroidEnableProfiledAot": {
+      "description": "Used by Xamarin.Android projects. A boolean property that determines whether or not AOT profiles are used during Ahead-of-Time compilation.",
+      "type": "bool"
+    },
+    "AndroidLinkMode": {
+      "description": "Used by Xamarin.Android projects. A string property that specifies which type of linking should be performed on assemblies contained within the Android package. Only used in Android Application projects.",
+      "type": [
+        "None",
+        "SdkOnly",
+        "Full"
+      ]
+    },
+    "AndroidLinkTool": {
+      "description": "Used by Xamarin.Android projects. A string property that indicates which code shrinker is used for Java code.",
+      "type": [
+        "r8",
+        "proguard"
+      ]
+    },
+    "AndroidLinkSkip": "Used by Xamarin.Android projects. Specifies a semicolon-delimited (;) list of assembly names, without file extensions, of assemblies that should not be linked.",
+    "AndroidPackageFormat": {
+      "description": "Used by Xamarin.Android projects. A string property that indicates if you want to package the Android application as an APK file or Android App Bundle.",
+      "type": [
+        "apk",
+        "aab"
+      ]
+    },
+    "AndroidSupportedAbis": "Used by Xamarin.Android projects. A string property that contains a semicolon (;)-delimited list of ABIs which should be included into the application.",
+    "AotAssemblies": {
+      "description": "Used by Xamarin.Android projects. A boolean property that determines whether or not assemblies will be Ahead-of-Time compiled into native code.",
+      "type": "bool"
+    },
+  },
+  "items": {
+    "AndroidResource": "Android resource files to be used within a Xamarin.Android project.",
+    "ProguardConfiguration": "ProGuard configuration files to be used within a Xamarin.Android project.",
+  },
+  "types": {
+  }
+}

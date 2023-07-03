@@ -349,7 +349,21 @@ namespace MonoDevelop.MSBuild.Language
 			UnknownLcidId,
 			"Unknown LCID",
 			"The value '{0}' is not a known LCID",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string InvalidCultureId = nameof (InvalidCulture);
+		public static MSBuildDiagnosticDescriptor InvalidCulture = new MSBuildDiagnosticDescriptor (
+			InvalidLcidId,
+			"Invalid LCID",
+			"The value '{0}' is not a valid culture name",
 			MSBuildDiagnosticSeverity.Error);
+
+		public const string UnknownCultureId = nameof (UnknownCulture);
+		public static MSBuildDiagnosticDescriptor UnknownCulture = new MSBuildDiagnosticDescriptor (
+			UnknownLcidId,
+			"Unknown LCID",
+			"The value '{0}' is not a known culture",
+			MSBuildDiagnosticSeverity.Warning);
 
 		public static MSBuildDiagnosticDescriptor InvalidUrl = new MSBuildDiagnosticDescriptor (
 			"InvalidUrl",

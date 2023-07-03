@@ -1,14 +1,6 @@
 {
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "items": {
-    "ProjectReference":  {
-      "metadata": {
-        "TreatAsPackageReference": {
-          "description": "Whether to treat this project reference as a package reference in the output package",
-          "type": "bool"
-        }
-      }
-    }
   },
   "properties": {
     "Authors": "A comma-separated list of NuGet packages authors",
@@ -111,7 +103,21 @@
       "description": "Whether to include Content files in the package",
       "type": "bool",
       "defaultValue": "true"
-    }
+    },
+    "IsPackable": {
+      "description": "Indicates whether the project can be used to create a NuGet package.",
+      "type": "bool"
+    },
+    "PackAsTool": {
+      "description": "Indicate whether the NuGet package should be configured as a .NET tool suitable for use with `dotnet tool install`.",
+      "type": "bool"
+    },
+    "PackageOutputPath": "Path to the output folder for the package generated when calling Pack.",
+    "GeneratePackageOnBuild": {
+      "description": "Value indicating whether a NuGet package will be generated when the project is built",
+      "type": "bool"
+    },
+    "ToolCommandName": "Specifies the command that will invoke the tool after it's installed."
   },
   "metadata": [
     {
@@ -139,27 +145,12 @@
       }
     },
     {
-      // Metadata that controls how assets are consumed/propagated from a reference
       "$appliesTo": "ProjectReference",
-      "IncludeAssets": {
-        "description": "Assets that will be consumed by the project",
-        "defaultValue": "all",
-        "type": { "$ref": "#/types/asset" },
-        "listSeparators": ","
-      },
-      "ExcludeAssets": {
-        "description": "Assets that will not be consumed by the project",
-        "defaultValue": "none",
-        "type": { "$ref": "#/types/asset" },
-        "listSeparators": ","
-      },
-      "PrivateAssets": {
-        "description": "Assets that will be consumed by the project but won't flow to its parent",
-        "defaultValue": "contentfiles,analyzers,build",
-        "type": { "$ref": "#/types/asset" },
-        "listSeparators": ","
+      "TreatAsPackageReference": {
+        "description": "Whether to treat this project reference as a package reference in the output package",
+        "type": "bool"
       }
-    }
+    },
   ],
   "types": {
     "asset": {

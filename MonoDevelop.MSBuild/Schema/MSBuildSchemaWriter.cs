@@ -1,18 +1,21 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 using Newtonsoft.Json;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Schema;
 
+/// <summary>
+/// Writes a schema as a JSON file. Currently omits some information, and does not roundtrip JSON references and $appliesTo metadata as they are fully resolved during schema load.
+/// </summary>
 class MSBuildSchemaWriter : IDisposable
 {
 	readonly JsonTextWriter json;
@@ -28,13 +31,15 @@ class MSBuildSchemaWriter : IDisposable
 
 	public void Dispose () => ((IDisposable)json)?.Dispose ();
 
+	static IEnumerable<TSymbol> SortedByName<TSymbol> (Dictionary<string, TSymbol> dictionary) where TSymbol : BaseSymbol => dictionary.Values.OrderBy (p => p.Name, StringComparer.OrdinalIgnoreCase);
+
 	public void Write (MSBuildSchema schema)
 	{
 		json.WriteStartObject ();
 
 		json.WritePropertyName ("properties");
 		json.WriteStartObject ();
-		foreach (var property in schema.Properties.Values) {
+		foreach (var property in SortedByName (schema.Properties)) {
 			json.WritePropertyName (property.Name);
 			WriteProperty (property);
 		}
@@ -42,12 +47,12 @@ class MSBuildSchemaWriter : IDisposable
 
 		json.WritePropertyName ("items");
 		json.WriteStartObject ();
-		WriteItems (schema.Items.Values);
+		WriteItems (SortedByName (schema.Items));
 		json.WriteEndObject ();
 
 		json.WritePropertyName ("tasks");
 		json.WriteStartObject ();
-		foreach (var task in schema.Tasks.Values) {
+		foreach (var task in SortedByName (schema.Tasks)) {
 			json.WritePropertyName (task.Name);
 			WriteTask (task);
 		}
@@ -55,7 +60,7 @@ class MSBuildSchemaWriter : IDisposable
 
 		json.WritePropertyName ("targets");
 		json.WriteStartObject ();
-		foreach (var target in schema.Targets.Values) {
+		foreach (var target in SortedByName (schema.Targets)) {
 			json.WritePropertyName (target.Name);
 			WriteTarget (target);
 		}
@@ -82,20 +87,24 @@ class MSBuildSchemaWriter : IDisposable
 		json.WriteStartObject ();
 
 		WriteDescriptionWithKey (item);
+		WriteIncludeDescriptionWithKey (item);
 		WriteTypeWithKey (item);
 
 		if (item.Metadata.Count > 0) {
 			json.WritePropertyName ("metadata");
+			var sortedMetadata = SortedByName (item.Metadata);
+			/*
 			if (item.Metadata.Values.All (m => m.Description.IsEmpty && IsOnlyDescription (m))) {
-				WriteMetadataAsArray (item.Metadata.Values);
-			} else {
-				WriteMetadataAsObject (item.Metadata.Values);
-			}
+				WriteMetadataAsArray (sortedMetadata);
+			} else {*/
+			WriteMetadataAsObject (sortedMetadata);
 		}
 
 		json.WriteEndObject ();
 	}
 
+	// writing metadata as an array is not actually valid right now
+	/*
 	void WriteMetadataAsArray (IEnumerable<MetadataInfo> metadata)
 	{
 		json.WriteStartArray ();
@@ -103,7 +112,7 @@ class MSBuildSchemaWriter : IDisposable
 			json.WriteValue (m.Name);
 		}
 		json.WriteEndArray ();
-	}
+	}*/
 
 	void WriteMetadataAsObject (IEnumerable<MetadataInfo> metadata)
 	{
@@ -161,6 +170,9 @@ class MSBuildSchemaWriter : IDisposable
 
 		WriteDescriptionWithKey (task);
 
+		// TODO: write parameters
+		// task.Parameters
+
 		json.WriteEndObject ();
 	}
 
@@ -176,6 +188,14 @@ class MSBuildSchemaWriter : IDisposable
 		if (!symbol.Description.IsEmpty) {
 			json.WritePropertyName ("description");
 			WriteDescription (symbol);
+		}
+	}
+
+	void WriteIncludeDescriptionWithKey (ItemInfo symbol)
+	{
+		if (!string.IsNullOrEmpty (symbol.IncludeDescription)) {
+			json.WritePropertyName ("includeDescription");
+			json.WriteValue (symbol.IncludeDescription ?? "");
 		}
 	}
 

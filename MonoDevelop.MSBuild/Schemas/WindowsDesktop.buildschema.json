@@ -1,0 +1,38 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "ApplicationDefaultFont": "Customizes the application default font. The format equivalent to the output of FontConverter.ConvertToInvariantString(). Applies only to Windows Forms projects.",
+    "ApplicationHighDpiMode": {
+      "description": "Customizes the application DPI awareness mode. Applies only to Windows Forms projects.",
+      "type": [
+        "SystemAware",
+        "PerMonitorV2",
+        "PerMonitor",
+        "DpiUnaware",
+        "DpiUnawareGdiScaled"
+      ]
+    },
+    "ApplicationUseCompatibleTextRendering": {
+      "description": "Indicates whether to set UseCompatibleTextRendering property defined on certain controls (boolean). Applies only to Windows Forms projects.",
+      "type": "bool"
+    },
+    "ApplicationVisualStyles": {
+      "description": "Indicates whether to enable or disable visual styles (boolean). Applies only to Windows Forms projects.",
+      "type": "bool"
+    },
+    "EnableDefaultPageItems": {
+      "description": "Whether to include XAML page files in the project directory by wildcard",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "EnableDefaultApplicationDefinition": {
+      "description": "Whether to include XAML application files in the project directory by wildcard",
+      "type": "bool",
+      "defaultValue": "true"
+    }
+  },
+  "items": {
+  },
+  "types": {
+  }
+}

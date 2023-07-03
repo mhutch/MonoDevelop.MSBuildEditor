@@ -1,7 +1,5 @@
 {
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
-  "items": {
-  },
   "properties": {
     "LangVersion": {
       "description": "The version of the C# language the compiler should accept",
@@ -28,15 +26,35 @@
         }
       }
     },
-    "Deterministic": {
-      "description": "Enables reproducible builds, such that a given set of inputs will always produce byte-for-byte identical output",
-      "type": "bool"
-    },
     "Nullable": {
       "description": "The nullable context options for the project",
       "type": { "$ref": "#/types/nullableContextOptions" },
       "defaultValue": "disable"
+    },
+    "ImplicitUsings": {
+      "description": "Enable implicit global usings for the C# project.",
+      "type": [
+        "enable",
+        "true",
+        "disable"
+      ]
     }
+  },
+  "items": {
+    "Using": {
+      "description": "A C# global using to add to the project.",
+      "includeDescription": "The namespace or type identifier to add, e.g. Microsoft.AspNetCore",
+      "metadata": {
+        "Alias": {
+          "description": "Optional alias for the namespace or type.",
+          "type": "string"
+        },
+        "Static": {
+          "description": "Determines whether the identifier should be registered as a static import.",
+          "type": "bool"
+        }
+      }
+    },
   },
   "types": {
     "nullableContextOptions": {

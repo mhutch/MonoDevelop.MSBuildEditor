@@ -476,6 +476,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.Lcid:
 					items.AddRange (GetLcidCompletions ());
 					break;
+				case MSBuildValueKind.Culture:
+					items.AddRange (GetCultureCompletions ());
+					break;
 				}
 			}
 
@@ -588,11 +591,24 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
 			foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
-				string name = culture.Name;
-				string id = culture.LCID.ToString ();
-				string display = culture.DisplayName;
-				string displayText = $"{id} - ({display})";
-				yield return new CompletionItem (displayText, this, imageEl, ImmutableArray<CompletionFilter>.Empty, string.Empty, id, id, displayText, ImmutableArray<ImageElement>.Empty);
+				string cultureLcid = culture.LCID.ToString ();
+				string displayName = culture.DisplayName;
+				// display the culture name so ppl can just type it instead of looking up the LCID
+				string displayText = $"{cultureLcid} - ({displayName})";
+				string filterText = $"{cultureLcid} {displayName}";
+				yield return new CompletionItem (displayText, this, imageEl, ImmutableArray<CompletionFilter>.Empty, string.Empty, cultureLcid, cultureLcid, filterText, ImmutableArray<ImageElement>.Empty);
+			}
+		}
+
+		IEnumerable<CompletionItem> GetCultureCompletions ()
+		{
+			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
+			foreach (var culture in System.Globalization.CultureInfo.GetCultures (System.Globalization.CultureTypes.AllCultures)) {
+				string cultureName = culture.Name;
+				string filterText = $"{culture.Name} {culture.DisplayName}";
+				var item = new CompletionItem (cultureName, this, imageEl, ImmutableArray<CompletionFilter>.Empty, string.Empty, cultureName, cultureName, cultureName, ImmutableArray<ImageElement>.Empty);
+				item.AddDocumentation (culture.DisplayName);
+				yield return item;
 			}
 		}
 	}

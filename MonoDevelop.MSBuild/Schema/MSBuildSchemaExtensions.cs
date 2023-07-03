@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<MetadataInfo> GetMetadata (this IEnumerable<IMSBuildSchema> schemas, string itemName, bool includeBuiltins)
 		{
 			if (includeBuiltins) {
-				foreach (var b in Builtins.Metadata) {
+				foreach (var b in MSBuildIntrinsics.Metadata) {
 					yield return b.Value;
 				}
 			}
@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuild.Schema
 				yield break;
 			}
 
-			var names = new HashSet<string> (Builtins.Metadata.Keys, StringComparer.OrdinalIgnoreCase);
+			var names = new HashSet<string> (MSBuildIntrinsics.Metadata.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var item in schemas.GetAllItemDefinitions (itemName)) {
 				foreach (var m in item.Metadata) {
 					if (names.Add (m.Key)) {
@@ -77,7 +77,7 @@ namespace MonoDevelop.MSBuild.Schema
 		//collect all known definitions for this metadata
 		static IEnumerable<MetadataInfo> GetAllMetadataDefinitions (this IEnumerable<IMSBuildSchema> schemas, string itemName, string metadataName, bool includeBuiltins)
 		{
-			if (includeBuiltins && Builtins.Metadata.TryGetValue (metadataName, out MetadataInfo builtinMetaInfo)) {
+			if (includeBuiltins && MSBuildIntrinsics.Metadata.TryGetValue (metadataName, out MetadataInfo builtinMetaInfo)) {
 				yield return builtinMetaInfo;
 			}
 
@@ -160,13 +160,13 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeBuiltins)
 		{
 			if (includeBuiltins) {
-				foreach (var b in Builtins.Properties) {
+				foreach (var b in MSBuildIntrinsics.Properties) {
 					yield return b.Value;
 				}
 			}
 
 			bool showPrivateSymbols = MSBuildHost.Options.ShowPrivateSymbols;
-			var names = new HashSet<string> (Builtins.Properties.Keys, StringComparer.OrdinalIgnoreCase);
+			var names = new HashSet<string> (MSBuildIntrinsics.Properties.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Properties) {
 					if ((showPrivateSymbols || !schema.IsPrivate (item.Key)) && names.Add (item.Key)) {
@@ -179,7 +179,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<PropertyInfo> GetAllPropertyVariants (
 			this IEnumerable<IMSBuildSchema> schemas, string propertyName, bool includeBuiltins)
 		{
-			if (includeBuiltins && Builtins.Properties.TryGetValue (propertyName, out var b)) {
+			if (includeBuiltins && MSBuildIntrinsics.Properties.TryGetValue (propertyName, out var b)) {
 				yield return b;
 			}
 			foreach (var schema in schemas) {

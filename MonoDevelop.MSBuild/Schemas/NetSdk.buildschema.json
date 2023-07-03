@@ -23,6 +23,10 @@
       "type": "bool",
       "defaultValue": "true"
     },
+    "EnableDefaultContentItems": {
+      "description": "Set to true to automatically include certain file types, such as .cshtml files, as content in the project. When referenced via Microsoft.NET.Sdk.Web, this additionally includes all files under wwwroot, and any config files.",
+      "type": "bool"
+    },
     "DefaultItemExcludes": {
       "description": "Files to omit from wildcard item includes",
       "type": "file",
@@ -48,16 +52,6 @@
       "type": "bool",
       "defaultValue": "true"
     },
-    "EnableDefaultPageItems": {
-      "description": "Whether to include XAML page files in the project directory by wildcard",
-      "type": "bool",
-      "defaultValue": "true"
-    },
-    "EnableDefaultApplicationDefinition": {
-      "description": "Whether to include XAML application files in the project directory by wildcard",
-      "type": "bool",
-      "defaultValue": "true"
-    },
     "UseWindowsForms": {
       "description": "Whether or not the project references Windows Forms",
       "type": "bool",
@@ -67,6 +61,141 @@
       "description": "Whether or not the project references Windows Presentation Foundation",
       "type": "bool",
       "defaultValue": "false"
+    },
+    "UseMaui": {
+      "description": "Whether or not the project references .NET Multi-platform App UI (.NET MAUI)",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "PublishReadyToRun": {
+      "description": "Indicates whether the project should produce ReadyToRun images during publish.",
+      "type": "bool"
+    },
+    "PublishAot": {
+      "description": "Indicates whether the project should produce native ahead-of-time compiled images during publish.",
+      "type": "bool"
+    },
+    "PublishSingleFile": {
+      "description": "Indicates whether the project should bundle all application-dependent files into a single binary during publish.",
+      "type": "bool"
+    },
+    "PublishTrimmed": {
+      "description": "Indicates whether the project should produce trimmed assembly images during publish.",
+      "type": "bool"
+    },
+    "IsAotCompatible": {
+      "description": "Indicates whether a class library is compatible with native AOT. Setting to true will enable analyzers for trimming, single file, and AOT.",
+      "type": "bool"
+    },
+    "DisableTransitiveProjectReferences": {
+      "description": "When true, do not discover ProjectReference items representing projects referenced by this project's ProjectReferences. Applies only to projects using the .NET SDK.",
+      "type": "bool"
+    },
+    "EnableNETAnalyzers": {
+      "description": "Indicates whether the .NET analyzers are enabled. They are enabled by default for projects that target .NET 5.0 or later.",
+      "type": "bool"
+    },
+    "RunAnalyzers": {
+      "description": "Disables analyzers at both build and design time. This property takes precedence over RunAnalyzersDuringBuild and RunAnalyzersDuringLiveAnalysis. Default is true.",
+      "type": "bool"
+    },
+    "RunAnalyzersDuringBuild": {
+      "description": "Controls whether analyzers run at build time. Default is true.",
+      "type": "bool"
+    },
+    "RunAnalyzersDuringLiveAnalysis": {
+      "description": "Controls whether analyzers analyze code live at design time. Default is true.",
+      "type": "bool"
+    },
+    "TrimmerRootAssembly": "Assemblies that should not be trimmed (specify the assembly name without extension).",
+    "TrimmerRootDescriptor": "XML files that specify assemblies, types, and their members that should not be trimmed.",
+    "EnforceCodeStyleInBuild": {
+      "description": "Controls whether code style analysis rules configured as warnings or errors should execute on build and report violations. The default is false.",
+      "type": "bool"
+    },
+    "AnalysisMode": {
+      "description": "Customizes the set of rules that are enabled by default.",
+      "type": [
+        "none",
+        "default",
+        "minimum",
+        "recommended",
+        "all"
+      ]
+    },
+    "AnalysisLevel": {
+      "description": "Customizes the set of rules that are enabled by default.",
+      "type": [
+        "none",
+        "latest",
+        "latest-minimum",
+        "latest-recommended",
+        "latest-all",
+        "preview",
+        "preview-minimum",
+        "preview-recommended",
+        "preview-all",
+        "5.0",
+        "5.0-minimum",
+        "5.0-recommended",
+        "5.0-all",
+        "6.0",
+        "6.0-minimum",
+        "6.0-recommended",
+        "6.0-all"
+      ]
+    },
+    "TieredCompilation": {
+      "description": "Indicates whether the runtime should enable tiered JIT compilation.",
+      "type": "bool"
+    },
+    "InvariantGlobalization": {
+      "description": "Indicates whether an app runs in globalization-invariant mode without access to culture-specific data and behavior.",
+      "type": "bool"
+    },
+    "ServerGarbageCollection": {
+      "description": "Indicates whether the runtime should enable the server garbage collection mode.",
+      "type": "bool"
+    },
+    "GenerateDocumentationFile": {
+      "description": "Value indicating whether a documentation file will be generated by the compiler",
+      "type": "bool"
+    },
+    "CopyDebugSymbolFilesFromPackages": {
+      "description": "Value indicating whether symbol files will be copied from NuGet packages by the compiler",
+      "type": "bool"
+    },
+    "CopyDocumentationFilesFromPackages": {
+      "description": "Value indicating whether documentation files will be copied from NuGet packages by the compiler",
+      "type": "bool"
+    },
+    "SatelliteResourceLanguages": {
+      "description": "Semi-colon separated list of culture names to preserve satellite resource assemblies during build and publish. If left empty, all satellite resource assemblies will be preserved.",
+      "type": "culture",
+      "isList": true,
+      "defaultValue": ""
+    }
+  },
+  "items": {
+    "InternalsVisibleTo": {
+      "description": "Specifies that internal types and members are visible to the specified friend assemblies.",
+      "includeDescription": "The name of the friend assembly to make internal types and members visible to.",
+      "metadata": {
+        "Key": "Optional public key associated with the strong name signature of the friend assembly."
+      },
+    },
+    "FrameworkReference": {
+      "description": "Reference to a shared framework.",
+      "metadata": {
+        "IsTrimmable": {
+          "description": "Controls whether the runtime assets of this shared framework can be trimmed by the IL Linker (if PublishTrimmed is true).",
+          "type": "string"
+        },
+        "TargetLatestRuntimePatch": {
+          "description": "Controls whether the app will target the latest patch of the runtime.  Defaults to true for self-contained apps, false otherwise.",
+          "type": "string"
+        }
+      }
     }
   }
 }

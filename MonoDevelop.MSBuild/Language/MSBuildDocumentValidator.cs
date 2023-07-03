@@ -616,6 +616,22 @@ namespace MonoDevelop.MSBuild.Language
 					AddErrorWithArgs (CoreDiagnostics.InvalidLcid, value);
 				}
 				break;
+			case MSBuildValueKind.Culture:
+				static bool IsAsciiLetter (char c) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90);
+				static bool IsValidCultureName (string name) =>
+					name.Length >= 2 && IsAsciiLetter (name[0]) && IsAsciiLetter (name[1])
+					&& (name.Length == 2 || (name.Length == 5 && name[2] == '-' && IsAsciiLetter (name[3]) && IsAsciiLetter (name[4])));
+
+				if (IsValidCultureName (value)) {
+					try {
+						CultureInfo.GetCultureInfo(value);
+					} catch (CultureNotFoundException) {
+						AddErrorWithArgs (CoreDiagnostics.UnknownCulture, value);
+					}
+				} else {
+					AddErrorWithArgs (CoreDiagnostics.InvalidCulture, value);
+				}
+				break;
 			case MSBuildValueKind.TargetFramework:
 				if (!FrameworkInfoProvider.Instance.IsFrameworkShortNameValid (value)) {
 					AddErrorWithArgs (CoreDiagnostics.UnknownTargetFramework, value);

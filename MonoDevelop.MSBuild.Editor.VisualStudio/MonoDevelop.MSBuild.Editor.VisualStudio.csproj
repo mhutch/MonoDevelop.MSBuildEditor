@@ -22,6 +22,10 @@
     <DeployExtension Condition="'$(VisualStudioVersion)' != '17.0' OR '$(BuildingInsideVisualStudio)' != 'true'">False</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="..\art\icon.png" Link="Resources\icon.png" IncludeInVSIX="True" />
+    <Content Include="..\LICENSE" Link="Resources\LICENSE" IncludeInVSIX="True" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectCapability Include="ExtensibilityProjectExtension" />
   </ItemGroup>
   <ItemGroup>
@@ -40,7 +44,7 @@
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0-1.final" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.5.4074" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.6.2164" />
     <PackageReference Include="NuGet.VisualStudio" Version="17.5.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.21.0" />

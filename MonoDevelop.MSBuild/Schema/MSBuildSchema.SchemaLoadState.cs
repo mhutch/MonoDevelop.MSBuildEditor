@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -24,8 +27,8 @@ partial class MSBuildSchema
 			this.origin = origin;
 		}
 
-		public Dictionary<string, CustomTypeInfo> CustomTypes { get; private set; }
-		public List<MSBuildSchemaLoadError> Errors { get; private set; }
+		public Dictionary<string, CustomTypeInfo>? CustomTypes { get; private set; }
+		public List<MSBuildSchemaLoadError>? Errors { get; private set; }
 
 		void AddError (JToken position, string message, DiagnosticSeverity severity)
 			=> (Errors ??= new List<MSBuildSchemaLoadError> ()).Add (
@@ -33,7 +36,7 @@ partial class MSBuildSchema
 						message,
 						severity,
 						origin,
-						position is IJsonLineInfo lineInfo ? (lineInfo.LinePosition, lineInfo.LinePosition) : null,
+						position is IJsonLineInfo lineInfo ? (lineInfo.LineNumber, lineInfo.LinePosition) : null,
 						position.Path
 					)
 				);
@@ -41,174 +44,235 @@ partial class MSBuildSchema
 		public void AddError (JToken position, string error) => AddError (position, error, DiagnosticSeverity.Error);
 		public void AddWarning (JToken position, string error) => AddError (position, error, DiagnosticSeverity.Warning);
 
-		public void LoadCustomTypes (JObject value)
+		[MemberNotNull(nameof (CustomTypes))]
+		public void LoadCustomTypes (JObject customTypeCollection)
 		{
 			var dict = new Dictionary<string, CustomTypeInfo> ();
-			foreach (var kv in value) {
-				if (ReadCustomTypeDefinition (kv.Value) is CustomTypeInfo definition) {
-					dict.Add (kv.Key, definition);
+			foreach ((string customTypeId, JToken? customTypeDef) in customTypeCollection) {
+				if (ReadCustomTypeDefinition (customTypeCollection, customTypeId, customTypeDef) is CustomTypeInfo definition) {
+					dict.Add (customTypeId, definition);
 				}
 			}
 			CustomTypes = dict;
 		}
 
-		public IEnumerable<(string name, PropertyInfo property)> ReadProperties (JObject properties)
+		public IEnumerable<(string name, PropertyInfo property)> ReadProperties (JObject propertyCollection)
 		{
-			foreach (var kv in properties) {
-				var name = kv.Key;
-				if (GetErrorIfInvalidMSBuildIdentifier (name) is string error) {
-					AddError (kv.Value ?? properties, error);
+			foreach ((string propertyName, JToken? propertyDef) in propertyCollection) {
+				if (GetErrorIfInvalidMSBuildIdentifier (propertyName) is string error) {
+					AddError (propertyDef ?? propertyCollection, error);
 					continue;
 				}
 
-				if (kv.Value is JValue simpleVal) {
-					yield return (name, new PropertyInfo (name, (string)simpleVal.Value));
+				if (propertyDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+					yield return (propertyName, new PropertyInfo (propertyName, simpleDesc));
 					continue;
 				}
 
-				var propObj = (JObject)kv.Value;
+				if (propertyDef is not JObject propertyDefObj) {
+					AddError (propertyDef ?? propertyCollection, $"Property '{propertyName}' definition must be an object or description string");
+					continue;
+				}
 
-				string description = null, defaultValue = null, deprecationMessage = null;
+				string? description = null, defaultValue = null, deprecationMessage = null;
 				bool isDeprecated = false;
 
-				var typeLoader = new TypeInfoReader (this, propObj, false);
+				var typeLoader = new TypeInfoReader (this, propertyDefObj, false);
 
-				foreach (var pkv in propObj) {
-					switch (pkv.Key) {
+				foreach ((string defPropName, JToken? defPropVal) in propertyDefObj) {
+
+					bool GetValueString ([NotNullWhen (true)] out string? value)
+					{
+						if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+							return true;
+						}
+						AddError (defPropVal ?? propertyDefObj, $"Item metadata '{propertyName}' definition property '{defPropName}' must be a string");
+						value = null;
+						return false;
+					}
+
+					switch (defPropName) {
 					case "description":
-						description = pkv.Value.Value<string> ();
+						GetValueString (out description);
 						break;
 					case "defaultValue":
-						defaultValue = (string)((JValue)pkv.Value).Value;
+						GetValueString (out defaultValue);
 						break;
 					case "deprecationMessage":
 						isDeprecated = true;
-						deprecationMessage = (string)((JValue)pkv.Value).Value;
+						GetValueString (out deprecationMessage);
 						break;
 					default:
-						if (typeLoader.TryHandle (pkv.Key, pkv.Value)) {
+						if (typeLoader.TryHandle (defPropName, defPropVal)) {
 							break;
 						}
-						AddWarning (pkv.Value ?? properties, $"Unknown property");
+						AddWarning (defPropVal ?? propertyDefObj, $"Property '{propertyName}' definition has unknown property '{defPropName}'");
 						break;
 					}
 				}
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return (name, new PropertyInfo (name, description, false, kind, customType, defaultValue, isDeprecated, deprecationMessage));
+				yield return (propertyName, new PropertyInfo (propertyName, description, false, kind, customType, defaultValue, isDeprecated, deprecationMessage));
 			}
 		}
 
-		public IEnumerable<(string name, ItemInfo item)> ReadItems (JObject items)
+		public IEnumerable<(string name, ItemInfo item)> ReadItems (JObject itemCollection)
 		{
-			foreach (var kv in items) {
-				var name = kv.Key;
-				if (GetErrorIfInvalidMSBuildIdentifier (name) is string error) {
-					AddError (kv.Value ?? items, error);
+			foreach ((string itemName, JToken? itemDef) in itemCollection) {
+				if (GetErrorIfInvalidMSBuildIdentifier (itemName) is string error) {
+					AddError (itemDef ?? itemCollection, error);
 					continue;
 				}
 
-				string description = null, includeDescription = null, deprecationMessage = null;
-				JObject metadata = null;
+				string? description = null, includeDescription = null, deprecationMessage = null;
+				JObject? metadata = null;
 				bool isDeprecated = false;
 
-				var typeLoader = new TypeInfoReader (this, items, true);
+				var typeLoader = new TypeInfoReader (this, itemCollection, true);
 
-				foreach (var ikv in (JObject)kv.Value) {
-					switch (ikv.Key) {
+				if (itemDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+					yield return (itemName, new ItemInfo (itemName, simpleDesc));
+					continue;
+				}
+
+				if (itemDef is not JObject itemDefObj) {
+					AddError (itemDef ?? itemCollection, $"Item '{itemName}' value must be an object or description string");
+					continue;
+				}
+
+				foreach ((string defPropName, JToken? defPropVal) in itemDefObj) {
+
+					bool GetValueString ([NotNullWhen (true)] out string? value)
+					{
+						if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+							return true;
+						}
+						AddError (defPropVal ?? itemDefObj, $"Item '{itemName}' definition property '{defPropName}' must be a string");
+						value = null;
+						return false;
+					}
+
+					switch (defPropName) {
 					case "description":
-						description = (string)((JValue)ikv.Value).Value;
+						GetValueString (out description);
 						break;
 					case "includeDescription":
-						includeDescription = (string)((JValue)ikv.Value).Value;
+						GetValueString (out includeDescription);
 						break;
 					case "metadata":
-						metadata = (JObject)ikv.Value;
+						if ((metadata = defPropVal as JObject) is null) {
+							AddError (defPropVal ?? itemDef, $"Item '{itemName}' property '{defPropName}' must be an object");
+						}
 						break;
 					case "deprecationMessage":
 						isDeprecated = true;
-						deprecationMessage = (string)((JValue)ikv.Value).Value;
+						GetValueString (out deprecationMessage);
 						break;
 					default:
-						if (typeLoader.TryHandle (ikv.Key, ikv.Value)) {
+						if (typeLoader.TryHandle (defPropName, defPropVal)) {
 							break;
 						}
-						AddWarning (ikv.Value ?? items, $"Unknown property");
+						AddWarning (defPropVal ?? itemDefObj, $"Item '{itemName}' definition has unknown property '{defPropName}'");
 						break;
 					}
 				}
 
-				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
+				(MSBuildValueKind kind, CustomTypeInfo? customType) = typeLoader.TryMaterialize ();
 
 				// FIXME: why this restriction?
-				// NOTE: even when the kind is not custom, the customType object might be a nuget package type, which is valid
+				// NOTE: even when the kind is not custom, the customType object might be a NuGet package type, which is valid
 				if (kind.IsCustomType ()) {
-					AddError (kv.Value ?? items, $"Item '{name}' has custom type value, which is not permitted for items");
+					AddError (itemDefObj ?? itemCollection, $"Item '{itemName}' has custom type value, which is not permitted for items");
 					kind = MSBuildValueKind.Unknown;
 					customType = null;
 				}
 
-				var item = new ItemInfo (name, description, includeDescription, kind, customType, null, isDeprecated, deprecationMessage);
+				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, isDeprecated, deprecationMessage);
 
 				if (metadata != null) {
-					AddMetadata (item, metadata);
+					AddItemMetadata (item, metadata);
 				}
 
-				yield return (name, item);
+				yield return (itemName, item);
 			}
 		}
 
-		void AddMetadata (ItemInfo item, JObject metaObj)
+		void AddItemMetadata (ItemInfo item, JObject metadataCollection)
 		{
-			foreach (var kv in metaObj) {
-				var name = kv.Key;
-				if (GetErrorIfInvalidMSBuildIdentifier (name) is string error) {
-					AddError (kv.Value ?? metaObj, error);
+			foreach ((string metadataName, JToken? metadataDef) in metadataCollection) {
+				if (GetErrorIfInvalidMSBuildIdentifier (metadataName) is string error) {
+					AddError (metadataDef ?? metadataCollection, error);
 					continue;
 				}
-				var val = ReadMetadata (name, kv.Value);
-				val.Item = item;
-				item.Metadata.Add (name, val);
+				if (ReadMetadata (item.Name, metadataName, metadataDef, metadataCollection) is MetadataInfo metadataInfo) {
+					metadataInfo.Item = item;
+					item.Metadata.Add (metadataName, metadataInfo);
+				}
 			}
 		}
 
-		MetadataInfo ReadMetadata (string name, JToken value)
+		MetadataInfo? ReadMetadata (string? itemName, string metadataName, JToken? metadataDef, JObject metadataContainer)
 		{
+			string FormatName() => itemName is null ? metadataName : $"{itemName}.{metadataName}";
+
 			//simple version, just a description string
-			if (value is JValue v) {
-				var desc = ((string)v.Value).Trim ();
-				return new MetadataInfo (name, desc);
+			if (metadataDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+				return new MetadataInfo (metadataName, simpleDesc);
 			}
 
-			var metaObj = (JObject)value;
+			if (metadataDef is not JObject metadataDefObj) {
+				AddError (metadataDef ?? metadataContainer, $"Item metadata '{FormatName()}' definition must be an object or description string");
+				return null;
+			}
 
-			string description = null, defaultValue = null, deprecationMessage = null;
-			bool required = false;
+			string? description = null, defaultValue = null, deprecationMessage = null;
+			bool? required = null;
 			bool isDeprecated = false;
 
-			var typeLoader = new TypeInfoReader (this, metaObj, false);
+			var typeLoader = new TypeInfoReader (this, metadataDefObj, false);
 
-			foreach (var mkv in metaObj) {
-				switch (mkv.Key) {
+			foreach ((string defPropName, JToken? defPropVal) in metadataDefObj) {
+
+				bool GetValueString ([NotNullWhen (true)] out string? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+						return true;
+					}
+					AddError (defPropVal ?? metadataDefObj, $"Item metadata '{FormatName()}' definition property '{defPropName}' must be a string");
+					value = null;
+					return false;
+				}
+
+				bool GetValueBool ([NotNullWhen (true)] out bool? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as bool?) is not null) {
+						return true;
+					}
+					AddError (defPropVal ?? metadataDefObj, $"Item metadata '{FormatName ()}' definition property '{defPropName}' must be a bool");
+					value = null;
+					return false;
+				}
+
+				switch (defPropName) {
 				case "description":
-					description = (string)((JValue)mkv.Value).Value;
+					GetValueString (out description);
 					break;
 				case "defaultValue":
-					defaultValue = (string)((JValue)mkv.Value).Value;
+					GetValueString (out defaultValue);
 					break;
 				case "isRequired":
-					required = (bool)((JValue)mkv.Value).Value;
+					GetValueBool (out required);
 					break;
 				case "deprecationMessage":
 					isDeprecated = true;
-					deprecationMessage = (string)((JValue)mkv.Value).Value;
+					GetValueString (out deprecationMessage);
 					break;
 				default:
-					if (typeLoader.TryHandle (mkv.Key, mkv.Value)) {
+					if (typeLoader.TryHandle (defPropName, defPropVal)) {
 						break;
 					}
-					AddWarning (mkv.Value ?? value, $"Unknown property");
+					AddWarning (defPropVal ?? metadataDefObj, $"Item metadata '{FormatName()}' definition has unknown property '{defPropName}'");
 					break;
 				}
 			}
@@ -216,25 +280,28 @@ partial class MSBuildSchema
 			(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
 			return new MetadataInfo (
-				name, description, false, required, kind, null,
+				metadataName, description, false, required ?? false, kind, null,
 				customType, defaultValue, isDeprecated, deprecationMessage
 			);
 		}
 
-		public (MetadataGroup metadata, string[] appliesTo) ReadMetadataGroup (JObject obj)
+		public (MetadataGroup metadata, string[] appliesTo) ReadMetadataGroup (JObject metadataGroup)
 		{
-			string[] appliesTo = null;
+			string[]? appliesTo = null;
 			var metadata = new List<MetadataInfo> ();
 
-			foreach (var kv in obj) {
-				if (kv.Key == "$appliesTo") {
-					if (kv.Value is JArray arr) {
+			foreach ((string groupPropName, JToken? groupPropVal) in metadataGroup) {
+				if (groupPropName == "$appliesTo") {
+					if (groupPropVal is JArray conciseMetadataDef) {
 						bool hasErrors = false;
-						appliesTo = new string[arr.Count];
-						for (int i = 0; i < arr.Count; i++) {
-							var appliesToName = (string)((JValue)arr[i]).Value;
+						appliesTo = new string[conciseMetadataDef.Count];
+						for (int i = 0; i < conciseMetadataDef.Count; i++) {
+							if (conciseMetadataDef[i] is not JValue jv || jv.Value is not string appliesToName) {
+								AddError (conciseMetadataDef[i] ?? groupPropVal ?? metadataGroup, "$appliesTo array values must be strings");
+								continue;
+							}
 							if (GetErrorIfInvalidMSBuildIdentifier (appliesToName) is string error) {
-								AddError (arr, error);
+								AddError (conciseMetadataDef, error);
 								continue;
 							}
 							appliesTo[i] = appliesToName;
@@ -242,16 +309,25 @@ partial class MSBuildSchema
 						if (hasErrors) {
 							appliesTo = appliesTo.Where (v => v != null).ToArray ();
 						}
+					} else if (groupPropVal is JValue v && v.Value is string simpleValue) {
+						if (GetErrorIfInvalidMSBuildIdentifier (simpleValue) is string error) {
+							AddError (groupPropVal, error);
+							continue;
+						}
+						appliesTo = new[] { simpleValue };
 					} else {
-						appliesTo = new[] { (string)kv.Value };
+						AddError (groupPropVal ?? metadataGroup, "$appliesTo must be a string or array of strings");
 					}
 					continue;
 				}
-				metadata.Add (ReadMetadata (kv.Key, kv.Value));
+
+				if (ReadMetadata (null, groupPropName, groupPropVal, metadataGroup) is MetadataInfo metadataInfo) {
+					metadata.Add (metadataInfo);
+				}
 			}
 
 			if (appliesTo == null) {
-				AddError (obj, "Metadata groups must have $appliesTo keys");
+				AddError (metadataGroup, "Metadata groups must have a $appliesTo key");
 				appliesTo = Array.Empty<string> ();
 			}
 
@@ -281,28 +357,32 @@ partial class MSBuildSchema
 			}
 		}
 
-		public (MSBuildValueKind kind, CustomTypeInfo customType) ReadType (JToken token)
+		public (MSBuildValueKind kind, CustomTypeInfo? customType) ReadType (JToken token)
 		{
-			if (token is JValue typeVal) {
-				string kindStr = (string)typeVal.Value;
+			if (token is JValue typeVal && typeVal.Value is string kindStr) {
 				if (TryParseValueKind (kindStr) is MSBuildValueKind parsedKind) {
 					return (parsedKind, null);
 				}
-				AddWarning (token, $"Unknown value kind '{kindStr}'");
+				AddWarning (token, $"Unknown intrinsic type '{kindStr}'");
 				return (MSBuildValueKind.Unknown, null);
 			}
 
 			if (token is JArray conciseDef) {
-				return (MSBuildValueKind.CustomType, ReadMinimalCustomTypeDefinition (conciseDef));
+				return (MSBuildValueKind.CustomType, ReadConciseCustomTypeDefinition (conciseDef));
 			}
 
-			(var definition, var reference) = ReadCustomTypeDefinitionOrReference ((JObject)token);
+			if (token is not JObject typeDefObj) {
+				AddError (token, "Type must be an intrinsic type string, type definition array, type definition object, or type reference object");
+				return (MSBuildValueKind.Unknown, null);
+			}
+
+			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (typeDefObj);
 
 			if (reference != null) {
-				if (CustomTypes.TryGetValue (reference, out var resolved)) {
+				if (CustomTypes is not null && CustomTypes.TryGetValue (reference, out var resolved)) {
 					return (MSBuildValueKind.CustomType, resolved);
 				}
-				AddWarning (token, $"Could not resolve type reference '{reference}'");
+				AddError (token, $"Could not resolve type reference '{reference}'");
 			}
 
 			if (definition != null) {
@@ -313,92 +393,134 @@ partial class MSBuildSchema
 			return (MSBuildValueKind.Unknown, null);
 		}
 
-		CustomTypeInfo ReadCustomTypeDefinition (JToken token)
+		CustomTypeInfo? ReadCustomTypeDefinition (JObject customTypeContainer, string? customTypeId, JToken? customTypeDef)
 		{
-			if (token is JArray conciseDef) {
-				return ReadMinimalCustomTypeDefinition (conciseDef);
+			if (customTypeDef is JArray conciseDef) {
+				return ReadConciseCustomTypeDefinition (conciseDef);
+			}
+			if (customTypeDef is not JObject customTypeDefObj) {
+				AddError (customTypeDef ?? customTypeContainer, customTypeId is not null
+					? $"Custom type definition '{customTypeId}' must be an object or array"
+					: $"Custom type definition must be an object or array");
+				return null;
 			}
 
-			(var definition, var reference) = ReadCustomTypeDefinitionOrReference ((JObject)token);
+			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (customTypeDefObj);
 			if (reference != null) {
-				AddWarning (token, $"Type definition cannot be a type reference");
+				AddWarning (customTypeDefObj, customTypeId is not null
+					? $"Custom type definition '{customTypeId}' cannot be a type reference"
+					: $"Custom type definition cannot be a type reference");
 				return null;
 			}
 
 			return definition;
 		}
 
-		static CustomTypeInfo ReadMinimalCustomTypeDefinition (JArray value) => new (
-			value
-			.Select (v => new CustomTypeValue (v.Value<string> (), null))
-			.ToArray ()
-		);
-
-		(CustomTypeInfo definition, string reference) ReadCustomTypeDefinitionOrReference (JObject obj)
+		CustomTypeInfo ReadConciseCustomTypeDefinition (JArray conciseCustomTypeDef)
 		{
-			var enumerator = obj.GetEnumerator ();
+			var values = new List<CustomTypeValue> (conciseCustomTypeDef.Count);
+			foreach (var defVal in conciseCustomTypeDef) {
+				if (defVal is not JValue jv || jv.Value is not string customTypeValue) {
+					AddError (defVal ?? conciseCustomTypeDef, "Concise custom type definition values must be strings");
+					continue;
+				}
+				values.Add (new CustomTypeValue (customTypeValue, null));
+			}
+			return new (values);
+		}
+
+		(CustomTypeInfo? definition, string? reference) ReadCustomTypeDefinitionOrReference (JObject customTypeObj)
+		{
+			var enumerator = customTypeObj.GetEnumerator ();
 			if (!enumerator.MoveNext ()) {
-				AddWarning (obj, $"Empty custom type");
+				AddWarning (customTypeObj, $"Empty custom type definition");
 				return (null, null);
 			}
 
 			var values = new List<CustomTypeValue> ();
 
-			string name = null;
-			string description = null;
-			bool allowUnknownValues = false;
+			string? name = null;
+			string? description = null;
+			bool? allowUnknownValues = null;
 
 			bool foundAnyNonRef = false;
 
 			do {
-				var ikv = enumerator.Current;
-				switch (ikv.Key) {
-				case "$ref":
-					if (foundAnyNonRef) {
-						AddWarning (obj, "When '$ref' is present it should be the only property");
+				(string defPropName, JToken? defPropVal) = enumerator.Current;
+
+				bool GetValueString ([NotNullWhen (true)] out string? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+						return true;
 					}
-					var target = (string)((JValue)ikv.Value).Value;
+					AddError (defPropVal ?? customTypeObj, $"Custom type definition property '{defPropName}' must be a string");
+					value = null;
+					return false;
+				}
+
+				bool GetValueBool ([NotNullWhen (true)] out bool? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as bool?) is not null) {
+						return true;
+					}
+					AddError (defPropVal ?? customTypeObj, $"Custom type definition property '{defPropName}' must be a bool");
+					value = null;
+					return false;
+				}
+
+				switch (defPropName) {
+				case "$ref":
+					if (foundAnyNonRef || enumerator.MoveNext ()) {
+						AddWarning (customTypeObj, "Custom type references must have only the property '$ref'");
+					}
 					const string refPrefix = "#/types/";
-					if (target.StartsWith (refPrefix, StringComparison.OrdinalIgnoreCase)) {
+					if (GetValueString (out var target) && target.StartsWith (refPrefix, StringComparison.OrdinalIgnoreCase)) {
 						target = target.Substring (refPrefix.Length);
 						return (null, target);
 					}
-					AddWarning (obj, $"Only references of the form '{refPrefix}name' are supported");
+					AddWarning (customTypeObj, $"Custom type references must have the the form '{refPrefix}name'");
 					return (null, null);
 				case "name":
-					name = (string)((JValue)ikv.Value).Value;
-					if (GetErrorIfInvalidCustomTypeDisplayName (name) is string error) {
-						AddWarning (obj, error);
+					if (GetValueString (out name) && GetErrorIfInvalidCustomTypeDisplayName (name) is string error) {
+						AddWarning (customTypeObj, error);
 						name = null;
 					}
 					break;
 				case "description":
-					description = (string)((JValue)ikv.Value).Value;
+					GetValueString (out description);
 					break;
 				case "allowUnknownValues":
-					allowUnknownValues = (bool)((JValue)ikv.Value).Value;
+					GetValueBool(out allowUnknownValues);
 					break;
 				case "values":
-					foreach (var val in (JObject)ikv.Value) {
-						values.Add (new CustomTypeValue (val.Key, (string)((JValue)val.Value).Value));
+					if (defPropVal is not JObject valuesObj || valuesObj.Count == 0) {
+						AddError (defPropVal ?? customTypeObj, $"Custom type definition property 'values' must be a non-empty object");
+						return (null, null);
+					}
+					foreach ((string valueName, JToken? valueDescToken) in valuesObj) {
+						string? valueDescription = null;
+						if (valueDescToken is not null && (valueDescToken is not JValue valVal || (valueDescription = valVal.Value as string) is null)) {
+							AddError (customTypeObj, $"Custom type definition value description must be a string");
+						}
+						values.Add (new CustomTypeValue (valueName,valueDescription));
 					}
 					break;
 				default:
-					AddWarning (obj, $"Unknown key '{ikv.Key}'");
+					AddWarning (defPropVal ?? customTypeObj, $"Custom type definition has unknown property '{defPropName}'");
 					break;
 				}
 				foundAnyNonRef = true;
 			} while (enumerator.MoveNext ());
 
 			if (values.Count == 0) {
-				AddWarning (obj, $"Empty custom type");
+				AddWarning (customTypeObj, $"Custom type definition has no valid values");
 				return (null, null);
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false), null);
 		}
 
-		public static string GetErrorIfInvalidCustomTypeDisplayName (string name)
+		public static string? GetErrorIfInvalidCustomTypeDisplayName (string name)
 		{
 			// matches schema logic: ^([a-z][a-z\\d-]*)$
 			if (name.Length == 0) {
@@ -428,7 +550,7 @@ partial class MSBuildSchema
 			return null;
 		}
 
-		public static string GetErrorIfInvalidMSBuildIdentifier (string identifier)
+		public static string? GetErrorIfInvalidMSBuildIdentifier (string identifier)
 		{
 			// matches schema logic: ^([A-Za-z_][A-Za-z\\d_-]*)$
 			if (identifier.Length == 0) {
