@@ -245,7 +245,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var doc = context.doc;
 			var spine = context.spine;
 
-			if (rr?.ElementSyntax != null) {
+			if (rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && elementSyntax.ValueKind != MSBuildValueKind.Nothing) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
