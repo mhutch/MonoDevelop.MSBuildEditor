@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 			out Guid pguidCmdUI,
 			out int pgrfCDW)
 		{
+			Shell.ThreadHelper.ThrowIfNotOnUIThread ();
 			Contract.ThrowIfNull (_oleServiceProvider);
 
 			ppunkDocView = IntPtr.Zero;
@@ -58,16 +59,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 			pgrfCDW = 0;
 
 			var physicalView = pszPhysicalView ?? "Code";
-			IVsTextBuffer? textBuffer = null;
+			IVsTextLines? textLines = null;
 
-			// Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
+			// Is this document already open? If so, let's see if it's a IVsTextLines we should re-use. This allows us
 			// to properly handle multiple windows open for the same document.
 			if (punkDocDataExisting != IntPtr.Zero) {
 				var docDataExisting = Marshal.GetObjectForIUnknown (punkDocDataExisting);
 
-				textBuffer = docDataExisting as IVsTextBuffer;
+				textLines = docDataExisting as IVsTextLines;
 
-				if (textBuffer == null) {
+				if (textLines is null && docDataExisting is IVsTextBufferProvider textBufferProvider) {
+					textBufferProvider.GetTextBuffer (out textLines);
+				}
+
+				if (textLines == null) {
 					// We are incompatible with the existing doc data
 					return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
 				}
@@ -76,15 +81,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 			var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService> ();
 
 			// Do we need to create a text buffer?
-			if (textBuffer == null) {
-				textBuffer = (IVsTextBuffer)GetDocumentData (grfCreateDoc, pszMkDocument, vsHierarchy, itemid);
-				Contract.ThrowIfNull (textBuffer, $"Failed to get document data for {pszMkDocument}");
+			if (textLines == null) {
+				textLines = GetDocumentData (grfCreateDoc, pszMkDocument, vsHierarchy, itemid) as IVsTextLines;
+				Contract.ThrowIfNull (textLines, $"Failed to get document data for {pszMkDocument}");
 			}
 
 			// If the text buffer is marked as read-only, ensure that the padlock icon is displayed
 			// next the new window's title and that [Read Only] is appended to title.
 			var readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
-			if (ErrorHandler.Succeeded (textBuffer.GetStateFlags (out var textBufferFlags)) &&
+			if (ErrorHandler.Succeeded (textLines.GetStateFlags (out var textBufferFlags)) &&
 				0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY))) {
 				readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
 			}
@@ -94,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 			case "Code":
 
 				var codeWindow = editorAdaptersFactoryService.CreateVsCodeWindowAdapter (_oleServiceProvider);
-				codeWindow.SetBuffer ((IVsTextLines)textBuffer);
+				codeWindow.SetBuffer (textLines);
 
 				codeWindow.GetEditorCaption (readOnlyStatus, out pbstrEditorCaption);
 
@@ -108,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 				return VSConstants.E_INVALIDARG;
 			}
 
-			ppunkDocData = Marshal.GetIUnknownForObject (textBuffer);
+			ppunkDocData = Marshal.GetIUnknownForObject (textLines);
 
 			return VSConstants.S_OK;
 		}
