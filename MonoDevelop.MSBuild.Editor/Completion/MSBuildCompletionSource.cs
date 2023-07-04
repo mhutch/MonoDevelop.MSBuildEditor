@@ -46,12 +46,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 		}
 
-		class MSBuildCompletionSessionContext
-		{
-			public MSBuildRootDocument doc;
-			public MSBuildResolveResult rr;
-			public XmlSpineParser spine;
-		}
+		record class MSBuildCompletionSessionContext (MSBuildRootDocument document, MSBuildResolveResult resolved, XmlSpineParser spine);
 
 		// this is primarily used to pass info from GetCompletionContextAsync to GetDocumentationAsync
 		// but also reuses the values calculated for expression completion in GetCompletionContextAsync
@@ -68,7 +63,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var spine = GetSpineParser (triggerLocation);
 			// clone the spine because the resolver alters it
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, Logger, token);
-			context = new MSBuildCompletionSessionContext { doc = doc, rr = rr, spine = spine };
+			context = new MSBuildCompletionSessionContext (doc, rr, spine);
 			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), context);
 			return context;
 		}
@@ -84,7 +79,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			CancellationToken token)
 		{
 			var context = await GetSessionContext (session, triggerLocation, token);
-			var doc = context.doc;
+			var doc = context.document;
 
 			// we can't use the LanguageElement from the resolveresult here.
 			// if completion is triggered in an existing element's name, the resolveresult
@@ -132,8 +127,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			CancellationToken token)
 		{
 			var context = await GetSessionContext (session, triggerLocation, token);
-			var rr = context.rr;
-			var doc = context.doc;
+			var rr = context.resolved;
+			var doc = context.document;
 
 			if (rr?.ElementSyntax == null) {
 				return CompletionContext.Empty;
@@ -170,12 +165,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			// note that the value is a tuple despite the key
 			if (item.Properties.TryGetProperty<Tuple<string, FeedKind>> (typeof (Tuple<string, FeedKind>), out var packageSearchResult)) {
-				return GetPackageDocumentationAsync (context.doc, packageSearchResult.Item1, packageSearchResult.Item2, token);
+				return GetPackageDocumentationAsync (context.document, packageSearchResult.Item1, packageSearchResult.Item2, token);
 			}
 
 			if (item.Properties.TryGetProperty<ISymbol> (typeof (ISymbol), out var info) && info != null) {
 				return provider.DisplayElementFactory.GetInfoTooltipElement (
-					session.TextView.TextBuffer, context.doc, info, context.rr, token
+					session.TextView.TextBuffer, context.document, info, context.resolved, token
 				);
 			}
 
@@ -198,7 +193,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, Logger, token);
-			if (rr?.ElementSyntax != null) {
+			if (rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && elementSyntax.ValueKind != MSBuildValueKind.Nothing) {
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
@@ -240,38 +235,52 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public override async Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
 		{
-			var context = await GetSessionContext (session, triggerLocation, token);
-			var rr = context.rr;
-			var doc = context.doc;
-			var spine = context.spine;
+			var baseCompletionsTask = base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
 
-			if (rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && elementSyntax.ValueKind != MSBuildValueKind.Nothing) {
-				var reason = ConvertReason (trigger.Reason, trigger.Character);
-				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
-					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
-					var triggerState = GetTriggerState (
-						expression,
-						reason.Value,
-						trigger.Character,
-						rr.IsCondition (),
-						out int triggerLength,
-						out ExpressionNode triggerExpression,
-						out var listKind,
-						out IReadOnlyList<ExpressionNode> comparandVariables,
-						Logger
-					);
-					if (triggerState != TriggerState.None) {
-						var info = rr.GetElementOrAttributeValueInfo (doc);
-						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
-							session.Properties.AddProperty (typeof (TriggerState), triggerState);
-							return await GetExpressionCompletionsAsync (
-								session, info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
-						}
-					}
-				}
+			var expressionCompletionsTask = GetExpressionCompletionItems (session, trigger, triggerLocation, token);
+
+			await Task.WhenAll (baseCompletionsTask, expressionCompletionsTask).ConfigureAwait (false);
+
+			var expressionItems = await expressionCompletionsTask.ConfigureAwait (false);
+			var baseCompletionContext = await baseCompletionsTask.ConfigureAwait (false);
+
+			if (expressionItems == null || expressionItems.Count == 0) {
+				return baseCompletionContext;
 			}
 
-			return await base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
+			return new CompletionContext (baseCompletionContext.Items.AddRange (expressionItems), null, InitialSelectionHint.SoftSelection);
+		}
+
+		async Task<List<CompletionItem>> GetExpressionCompletionItems (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
+		{
+			var context = await GetSessionContext (session, triggerLocation, token).ConfigureAwait (false);
+
+			if (context.resolved?.ElementSyntax is null) {
+				return null;
+			}
+
+			var reason = ConvertReason (trigger.Reason, trigger.Character);
+			if (!reason.HasValue || !IsPossibleExpressionCompletionContext (context.spine)) {
+				return null;
+			}
+
+			string expression = context.spine.GetIncompleteValue (triggerLocation.Snapshot);
+			var triggerState = GetTriggerState (expression, reason.Value, trigger.Character, context.resolved.IsCondition (),
+				out int triggerLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
+				Logger
+			);
+
+			var info = context.resolved.GetElementOrAttributeValueInfo (context.document);
+			if (info is null || info.ValueKind == MSBuildValueKind.Nothing) {
+				return null;
+			}
+
+			session.Properties.AddProperty (typeof (TriggerState), triggerState);
+			return await GetExpressionCompletionsAsync (
+					session, info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables,
+					context.resolved, triggerLocation, context.document, token
+				).ConfigureAwait (false);
+
 		}
 
 		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, string packageType, CancellationToken token)
@@ -412,7 +421,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}, token);
 		}
 
-		async Task<CompletionContext> GetExpressionCompletionsAsync (
+		async Task<List<CompletionItem>> GetExpressionCompletionsAsync (
 			IAsyncCompletionSession session,
 			ITypedSymbol valueSymbol, TriggerState triggerState, ListKind listKind,
 			int triggerLength, ExpressionNode triggerExpression,
@@ -423,7 +432,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var kind = valueSymbol.InferValueKindIfUnknown ();
 
 			if (!ValidateListPermitted (listKind, kind)) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			bool allowExpressions = kind.AllowsExpressions ();
@@ -431,7 +440,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			kind = kind.WithoutModifiers ();
 
 			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
-				return CompletionContext.Empty;
+				return null;
 			}
 
 			bool isValue = triggerState == TriggerState.Value;
@@ -509,11 +518,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			if (items.Count > 0) {
-				return CreateCompletionContext (items);
-			}
-
-			return CompletionContext.Empty;
+			return items;
 		}
 
 		//FIXME: improve logic for determining where metadata is permitted
