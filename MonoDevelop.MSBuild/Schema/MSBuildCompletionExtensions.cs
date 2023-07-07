@@ -448,7 +448,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return null;
 			}
 
-			if (rr.AttributeName != null) {
+			if (rr.AttributeName is not null && rr.AttributeSyntax is not null) {
 				return schemas.GetAttributeInfo (rr.AttributeSyntax, rr.ElementName, rr.AttributeName);
 			}
 
