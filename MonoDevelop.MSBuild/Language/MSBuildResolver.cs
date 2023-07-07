@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 
@@ -348,21 +347,15 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					return;
 				case MSBuildValueKind.Lcid:
-					if (int.TryParse (value, out int lcid)) {
-						try {
-							var culture = CultureInfo.GetCultureInfo (lcid);
-							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
-							rr.Reference = new ConstantSymbol (value, culture.DisplayName, MSBuildValueKind.Lcid);
-						} catch {
-						}
-					}
-					return;
-				case MSBuildValueKind.Culture:
-					try {
-						var culture = CultureInfo.GetCultureInfo (value);
+					if (CultureHelper.TryGetLcidSymbol (value, out ISymbol lcidSymbol)) {
 						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
-						rr.Reference = new ConstantSymbol (value, culture.DisplayName, MSBuildValueKind.Culture);
-					} catch {
+						rr.Reference = lcidSymbol;
+					}
+					break;
+				case MSBuildValueKind.Culture:
+					if (CultureHelper.TryGetCultureSymbol (value, out ISymbol cultureSymbol)) {
+						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
+						rr.Reference = cultureSymbol;
 					}
 					return;
 				}

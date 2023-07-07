@@ -10,10 +10,13 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+
 using MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 using MonoDevelop.MSBuild.Editor.VisualStudio.Options;
 
 using Task = System.Threading.Tasks.Task;
+using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {
@@ -21,14 +24,14 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[PackageRegistration (UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[Guid (PackageConsts.PackageGuid)]
 
-	[ProvideLanguageService (
-		typeof (MSBuildLanguageService),
-		PackageConsts.LanguageServiceName,
-		PackageResxId.EditorName,
+	[ProvideLanguageService (typeof (MSBuildLanguageService), PackageConsts.LanguageServiceName, PackageResxId.LanguageName,
 		ShowDropDownOptions = false,
 		RequestStockColors = true,
 		DefaultToInsertSpaces = true,
-		ShowSmartIndent = true
+		ShowSmartIndent = true,
+		MatchBraces = true,
+		EnableAsyncCompletion = true,
+		ShowCompletion = true
 		)]
 
 	// dunno why this isn't part of ProvideLanguageService 🤷‍
@@ -46,36 +49,39 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.proj)]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.user)]
 
-	[ProvideEditorFactory (typeof (MSBuildLanguageService), PackageResxId.EditorName, CommonPhysicalViewAttributes = (int)__VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview)]
-	[ProvideEditorLogicalView (typeof (MSBuildLanguageService), VSConstants.LOGVIEWID.TextView_string)]
-	[ProvideEditorLogicalView (typeof (MSBuildLanguageService), VSConstants.LOGVIEWID.Code_string)]
-	[ProvideEditorLogicalView (typeof (MSBuildLanguageService), VSConstants.LOGVIEWID.Debugging_string)]
+	[ProvideEditorFactory (typeof (MSBuildEditorFactory), PackageResxId.EditorName, deferUntilIntellisenseIsReady: false, CommonPhysicalViewAttributes = (int)__VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview)]
+	[ProvideEditorLogicalView (typeof (MSBuildEditorFactory), VSConstants.LOGVIEWID.TextView_string)]
+	[ProvideEditorLogicalView (typeof (MSBuildEditorFactory), VSConstants.LOGVIEWID.Code_string)]
+	[ProvideEditorLogicalView (typeof (MSBuildEditorFactory), VSConstants.LOGVIEWID.Debugging_string)]
 
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.targets, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.props, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.tasks, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.overridetasks, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.csproj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.vbproj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.fsproj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.xproj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.vcxproj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.proj, 65535)]
-	[ProvideEditorExtension (typeof (MSBuildLanguageService), MSBuildFileExtension.user, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.targets, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.props, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.tasks, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.overridetasks, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.csproj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.vbproj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.fsproj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.xproj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.vcxproj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.proj, 65535)]
+	[ProvideEditorExtension (typeof (MSBuildEditorFactory), MSBuildFileExtension.user, 65535)]
 
 	[ProvideOptionPage(typeof(MSBuildTelemetryOptionsPage), "MSBuild Editor", "Telemetry", PackageResxId.EditorName, PackageResxId.TelemetryOptionsPageName, false, PackageResxId.TelemetryOptionsPageKeywords)]
 	[ProvideProfile(typeof(MSBuildTelemetryOptionsPage), "MSBuild Editor", "Telemetry", PackageResxId.EditorName, PackageResxId.TelemetryOptionsPageName, false)]
 
-	public sealed class MSBuildEditorVisualStudioPackage : AsyncPackage
+	sealed class MSBuildEditorVisualStudioPackage : AbstractPackage<MSBuildEditorVisualStudioPackage, MSBuildLanguageService>
 	{
 		MSBuildExtensionLogger logger;
 
+		protected override IEnumerable<IVsEditorFactory> CreateEditorFactories ()
+		{
+			yield return new MSBuildEditorFactory (ComponentModel);
+		}
+
+		protected override MSBuildLanguageService CreateLanguageService () => new (this);
+
 		protected override async Task InitializeAsync (CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
 		{
-			var language = new MSBuildLanguageService (this);
-			RegisterEditorFactory (language);
-			((IServiceContainer)this).AddService (typeof (MSBuildLanguageService), language, true);
-
 			var settingsStorage = new MSBuildEditorSettingsStorage ();
 			var telemetryOptions = await MSBuildTelemetryOptions.GetLiveInstanceAsync ();
 

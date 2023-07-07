@@ -34,10 +34,10 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 
 			result.AssertItemCount (11);
 
-			result.AssertContains ("PropertyGroup");
-			result.AssertContains ("Choose");
-			result.AssertContains ("/Project");
-			result.AssertContains ("!--");
+			result.AssertContains ("<PropertyGroup");
+			result.AssertContains ("<Choose");
+			result.AssertContains ("</Project");
+			result.AssertContains ("<!--");
 		}
 
 		[Test]
@@ -48,11 +48,11 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 
 			result.AssertItemCount (5);
 
-			result.AssertContains ("Foo");
-			result.AssertContains ("Bar");
-			result.AssertContains ("/ItemGroup");
-			result.AssertContains ("/Project");
-			result.AssertContains ("!--");
+			result.AssertContains ("<Foo");
+			result.AssertContains ("<Bar");
+			result.AssertContains ("</ItemGroup");
+			result.AssertContains ("</Project");
+			result.AssertContains ("<!--");
 		}
 
 		[Test]
@@ -63,7 +63,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 
 			result.AssertItemCount (5);
 
-			result.AssertContains ("Bar");
+			result.AssertContains ("<Bar");
 		}
 
 		[Test]
