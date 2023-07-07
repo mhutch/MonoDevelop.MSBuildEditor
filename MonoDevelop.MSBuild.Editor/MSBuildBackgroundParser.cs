@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+# nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		readonly ILogger logger;
 		readonly MSBuildParserProvider provider;
-		string filepath;
+		string? filePath;
 
 		//FIXME: move this to a lower priority BackgroundProcessor
 		MSBuildAnalyzerDriver analyzerDriver;
@@ -34,7 +36,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			XmlParser.ParseCompleted += XmlParseCompleted;
 
 			if (buffer.Properties.TryGetProperty<ITextDocument> (typeof (ITextDocument), out var doc)) {
-				filepath = doc.FilePath;
+				filePath = doc.FilePath;
 				doc.FileActionOccurred += OnFileAction;
 			}
 
@@ -49,7 +51,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		void OnFileAction (object sender, TextDocumentFileActionEventArgs e)
 		{
 			if (e.FileActionType == FileActionTypes.DocumentRenamed) {
-				filepath = ((ITextDocument)sender).FilePath;
+				filePath = ((ITextDocument)sender).FilePath;
 			}
 		}
 
@@ -71,7 +73,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				try {
 					doc = MSBuildRootDocument.Parse (
 						input.TextSnapshot.GetTextSource (),
-						filepath,
+						filePath,
 						oldDoc,
 						provider.SchemaProvider,
 						provider.MSBuildEnvironment,
@@ -86,10 +88,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LogUnhandledParserError (logger, ex);
 					doc = MSBuildRootDocument.Empty;
-				}
-				// for some reason the VS debugger thinks cancellation exceptions aren't handled?
-				catch (OperationCanceledException) when (token.IsCancellationRequested) {
-					return null;
 				}
 
 				return new MSBuildParseResult (doc, doc.Diagnostics, input.TextSnapshot);
@@ -113,6 +111,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			ParseCompleted?.Invoke (this, new ParseCompletedEventArgs<MSBuildParseResult> (output, output.Snapshot));
 		}
 
-		public event EventHandler<ParseCompletedEventArgs<MSBuildParseResult>> ParseCompleted;
+		public event EventHandler<ParseCompletedEventArgs<MSBuildParseResult>>? ParseCompleted;
 	}
 }
