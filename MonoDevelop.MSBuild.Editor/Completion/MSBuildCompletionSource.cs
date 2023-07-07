@@ -147,6 +147,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
+		protected override async Task<IList<CompletionItem>> GetEntityCompletionsAsync (IAsyncCompletionSession session, SnapshotPoint triggerLocation, List<XObject> nodePath, CancellationToken token)
+		{
+			var context = await GetMSBuildSessionContext (session);
+
+			// don't want entity completion in elements we know don't have text content
+			if (context.resolved is not null && context.resolved.AttributeName is null && context.resolved.ElementSyntax is MSBuildElementSyntax element && element.ValueKind == MSBuildValueKind.Nothing) {
+				return null;
+			}
+
+			return GetBuiltInEntityItems ();
 		}
 
 		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
@@ -194,6 +204,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
 		{
+			var baseCompletion = base.InitializeCompletion (trigger, triggerLocation, token);
+
 			//we don't care need a real document here we're doing very basic resolution for triggering
 			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, Logger, token);
@@ -218,7 +230,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return base.InitializeCompletion (trigger, triggerLocation, token);
+			return baseCompletion;
 		}
 
 		static TriggerReason? ConvertReason (CompletionTriggerReason reason, char typedChar)
