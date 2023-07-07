@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Utilities;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Editor.Parsing;
+
 using ProjectFileTools.NuGetSearch.Contracts;
 
 namespace MonoDevelop.MSBuild.Editor.Completion

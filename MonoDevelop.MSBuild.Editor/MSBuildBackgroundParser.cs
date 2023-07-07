@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-# nullable enable
+#nullable enable
 
 using System;
 using System.Threading;
@@ -14,8 +14,8 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 
 using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Editor.Parsing;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public XmlBackgroundParser XmlParser { get; }
 
-		public MSBuildBackgroundParser (ITextBuffer buffer, MSBuildParserProvider provider)
+		public MSBuildBackgroundParser (ITextBuffer buffer, MSBuildParserProvider provider, IBackgroundParseService parseService) : base (parseService)
 		{
 			XmlParser = provider.XmlParserProvider.GetParser (buffer);
 			XmlParser.ParseCompleted += XmlParseCompleted;
@@ -48,22 +48,22 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			this.provider = provider;
 		}
 
-		void OnFileAction (object sender, TextDocumentFileActionEventArgs e)
+		void OnFileAction (object? sender, TextDocumentFileActionEventArgs e)
 		{
-			if (e.FileActionType == FileActionTypes.DocumentRenamed) {
-				filePath = ((ITextDocument)sender).FilePath;
+			if (e.FileActionType == FileActionTypes.DocumentRenamed && sender is ITextDocument doc) {
+				filePath = doc.FilePath;
 			}
 		}
 
-		void XmlParseCompleted (object sender, ParseCompletedEventArgs<XmlParseResult> e)
+		void XmlParseCompleted (object? sender, ParseCompletedEventArgs<XmlParseResult> e)
 		{
 			StartProcessing (e.ParseResult);
 		}
 
 		protected override Task<MSBuildParseResult> StartOperationAsync (
 			XmlParseResult input,
-			MSBuildParseResult previousOutput,
-			XmlParseResult previousInput,
+			MSBuildParseResult? previousOutput,
+			XmlParseResult? previousInput,
 			CancellationToken token)
 		{
 			return Task.Run (() => {

@@ -9,8 +9,6 @@ using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
 
-using MonoDevelop.Xml.Logging;
-
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 
 class MSBuildEditorLogger : ILogger
