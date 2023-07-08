@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Emit;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
@@ -14,18 +13,21 @@ using Microsoft.VisualStudio.Text.Projection;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
-using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Editor.Parsing;
 
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export]
 	partial class MSBuildParserProvider
 	{
+		readonly IBackgroundParseService parseService;
+
 		[ImportingConstructor]
 		public MSBuildParserProvider (
 			XmlParserProvider xmlParserProvider,
 			MSBuildEnvironmentLogger environmentLogger,
+			BackgroundParseServiceProvider parseServiceProvider,
 			[Import (AllowDefault = true)] ITaskMetadataBuilder taskMetadataBuilder,
 			[Import (AllowDefault = true)] MSBuildSchemaProvider schemaProvider,
 			[Import (AllowDefault = true)] IMSBuildEnvironment msbuildEnvironment
@@ -45,6 +47,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			TaskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder ();
 			SchemaProvider = schemaProvider ?? new MSBuildSchemaProvider ();
 			MSBuildEnvironment = msbuildEnvironment;
+
+			parseService = parseServiceProvider.GetParseServiceForContentType (MSBuildContentType.Name);
 		}
 
 		public XmlParserProvider XmlParserProvider { get; }
@@ -64,7 +68,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Debug.Assert (buffer.ContentType.IsOfType (MSBuildContentType.Name));
 			buffer.ContentTypeChanged += ContentTypeChanged;
 
-			return new (buffer, this);
+			return new (buffer, this, parseService);
 		}
 
 		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.XmlCore)

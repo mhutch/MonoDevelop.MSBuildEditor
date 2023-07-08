@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
-using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Parsing;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {

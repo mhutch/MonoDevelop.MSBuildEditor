@@ -2,21 +2,20 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
 using MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 using MonoDevelop.MSBuild.Editor.VisualStudio.Options;
 
 using Task = System.Threading.Tasks.Task;
-using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio
 {
@@ -91,6 +90,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 			((IServiceContainer)this).AddService (typeof (MSBuildExtensionLogger), logger, true);
 
 			await base.InitializeAsync (cancellationToken, progress);
+		}
+
+		protected override async Task LoadComponentsAsync (CancellationToken cancellationToken)
+		{
+			await base.LoadComponentsAsync (cancellationToken);
+
+			await ComponentModel.GetService<MSBuildTaskCenterProgressReporter> ().InitializeAsync ().ConfigureAwait (false);
 		}
 
 		protected override int QueryClose (out bool canClose)

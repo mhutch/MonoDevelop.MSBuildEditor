@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using MonoDevelop.MSBuild.Editor.Completion;
-using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Editor.Parsing;
 
 namespace MonoDevelop.MSBuild.Editor
 {
