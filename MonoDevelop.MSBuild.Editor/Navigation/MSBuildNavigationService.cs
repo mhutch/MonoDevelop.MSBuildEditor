@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		{
 			var logger = GetLogger (buffer);
 			if (result.Kind == MSBuildReferenceKind.Target) {
-				FindTargetDefinitions (result.Name, buffer).CatchAndLogWarning (logger);
+				FindTargetDefinitions (result.Name, buffer).LogExceptionsAndForget (logger);
 				return true;
 			}
 
@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					return true;
 				}
 				if (result.Paths.Length > 1) {
-					ShowMultipleFiles (result.Paths, buffer, logger).CatchAndLogWarning (logger);
+					ShowMultipleFiles (result.Paths, buffer, logger).LogExceptionsAndForget (logger);
 					return true;
 				}
 			}
@@ -146,7 +146,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					await JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 					host.ShowStatusBarMessage ("Package is not from NuGet.org");
 				}
-			}).CatchAndLogWarning(logger);
+			}).LogExceptionsAndForget (logger);
 		}
 
 		async Task ShowMultipleFiles (string[] files, ITextBuffer buffer, ILogger logger)
@@ -207,7 +207,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 				return false;
 			}
 			var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
-			FindReferencesAsync (buffer, resolveResult, logger).CatchAndLogWarning (logger);
+			FindReferencesAsync (buffer, resolveResult, logger).LogExceptionsAndForget (logger);
 			return true;
 		}
 

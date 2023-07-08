@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Task.Run (async () => {
 				await provider.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 				provider.CommandServiceFactory.GetService (textView).Execute ((v, b) => new InvokeCompletionListCommandArgs (v, b), null);
-			}).CatchAndLogWarning (logger);
+			}).LogExceptionsAndForget (logger);
 		}
 
 		void InsertGuid (IAsyncCompletionSession session, ITextBuffer buffer) => Insert (session, buffer, Guid.NewGuid ().ToString ("B").ToUpper ());

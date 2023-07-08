@@ -67,7 +67,9 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 				nodePath = n.GetPath ();
 			} else {
 				spine = parser.GetSpineParser (activeSpan.Start);
-				nodePath = spine.AdvanceToNodeEndAndGetNodePath (activeSpan.Snapshot);
+				if (!spine.TryAdvanceToNodeEndAndGetNodePath (activeSpan.Snapshot, out nodePath)) {
+					return xmlNavigator.GetSpanOfEnclosing (activeSpan);
+				}
 			}
 
 			if (nodePath.Count > 0) {

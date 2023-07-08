@@ -29,7 +29,9 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			int offset = spineParser.Position;
 
-			var nodePath = spineParser.AdvanceToNodeEndAndGetNodePath (textSource);
+			if (!spineParser.TryAdvanceToNodeEndAndGetNodePath (textSource, out List<XObject>? nodePath, cancellationToken: cancellationToken)) {
+				return null;
+			}
 			nodePath.ConnectParents ();
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
