@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public event EventHandler<EventArgs> SuggestedActionsChanged;
 
 		public IEnumerable<SuggestedActionSet> GetSuggestedActions (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
-			=> GetSuggestedActionsInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+			=> logger.InvokeAndLogExceptions (() => GetSuggestedActionsInternal (requestedActionCategories, range, cancellationToken));
 
 		IEnumerable<SuggestedActionSet> GetSuggestedActionsInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
@@ -128,7 +128,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 
 		public Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
-			=> HasSuggestedActionsAsyncInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+			=> logger.InvokeAndLogExceptions (() => HasSuggestedActionsAsyncInternal (requestedActionCategories, range, cancellationToken));
 
 		async Task<bool> HasSuggestedActionsAsyncInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
@@ -152,7 +152,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		}
 
 		public Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
-			=> GetSuggestedActionCategoriesAsyncInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+			=> logger.InvokeAndLogExceptions (() => GetSuggestedActionCategoriesAsyncInternal (requestedActionCategories, range, cancellationToken));
 
 		async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsyncInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
