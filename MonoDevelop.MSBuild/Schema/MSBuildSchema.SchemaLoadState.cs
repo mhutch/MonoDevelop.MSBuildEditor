@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.Xml.Parser;
+using MonoDevelop.Xml.Analysis;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,7 +30,7 @@ partial class MSBuildSchema
 		public Dictionary<string, CustomTypeInfo>? CustomTypes { get; private set; }
 		public List<MSBuildSchemaLoadError>? Errors { get; private set; }
 
-		void AddError (JToken position, string message, DiagnosticSeverity severity)
+		void AddError (JToken position, string message, XmlDiagnosticSeverity severity)
 			=> (Errors ??= new List<MSBuildSchemaLoadError> ()).Add (
 				new MSBuildSchemaLoadError (
 						message,
@@ -41,8 +41,8 @@ partial class MSBuildSchema
 					)
 				);
 
-		public void AddError (JToken position, string error) => AddError (position, error, DiagnosticSeverity.Error);
-		public void AddWarning (JToken position, string error) => AddError (position, error, DiagnosticSeverity.Warning);
+		public void AddError (JToken position, string error) => AddError (position, error, XmlDiagnosticSeverity.Error);
+		public void AddWarning (JToken position, string error) => AddError (position, error, XmlDiagnosticSeverity.Warning);
 
 		[MemberNotNull(nameof (CustomTypes))]
 		public void LoadCustomTypes (JObject customTypeCollection)

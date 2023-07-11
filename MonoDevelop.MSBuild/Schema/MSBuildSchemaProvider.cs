@@ -11,8 +11,6 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Extensions.Logging;
 
-using MonoDevelop.Xml.Parser;
-
 namespace MonoDevelop.MSBuild.Schema
 {
 	class MSBuildSchemaProvider
@@ -25,7 +23,7 @@ namespace MonoDevelop.MSBuild.Schema
 			if (loadErrors != null) {
 				using var logScope = logger.BeginScope (path);
 				foreach (var error in loadErrors) {
-					var logLevel = error.Severity == DiagnosticSeverity.Warning ? LogLevel.Warning : LogLevel.Error;
+					var logLevel = error.Severity == Xml.Analysis.XmlDiagnosticSeverity.Warning ? LogLevel.Warning : LogLevel.Error;
 					if (logger.IsEnabled (logLevel)) {
 						logger.Log (logLevel, schemaLoadErrorId, null, error.Message);
 					}

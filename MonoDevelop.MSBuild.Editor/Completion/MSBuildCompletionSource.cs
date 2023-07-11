@@ -32,6 +32,7 @@ using MonoDevelop.Xml.Parser;
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
+using MonoDevelop.Xml.Logging;
 
 // todo: switch to IAsyncCompletionUniversalSource to allow per-item span and commit chars
 namespace MonoDevelop.MSBuild.Editor.Completion
@@ -72,6 +73,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		// this can only be called after SetMSBuildSessionContext
 		Task<MSBuildCompletionSessionContext> GetMSBuildSessionContext (IAsyncCompletionSession session)
 			=> session.Properties.GetProperty<Task<MSBuildCompletionSessionContext>> (typeof (MSBuildCompletionSessionContext));
+
+		public override Task<object> GetDescriptionAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
+			=> Logger.InvokeAndLogExceptions (
+				() => base.GetDescriptionAsync (session, item, token));
 
 		protected override async Task<IList<CompletionItem>> GetElementCompletionsAsync (
 			IAsyncCompletionSession session,
@@ -169,9 +174,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (
-			IAsyncCompletionSession session, CompletionItem item,
-			CancellationToken token)
+		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
 		{
 #pragma warning disable VSTHRD103 // we know this is completed here
 			var context = GetMSBuildSessionContext (session).Result;
@@ -203,6 +206,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
+			=> Logger.InvokeAndLogExceptions (
+				() => InitializeCompletionInternal (trigger, triggerLocation, token));
+
+		CompletionStartData InitializeCompletionInternal (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
 		{
 			var baseCompletion = base.InitializeCompletion (trigger, triggerLocation, token);
 
@@ -250,6 +257,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		public override Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
+			=> Logger.InvokeAndLogExceptions (
+				() => GetCompletionContextAsyncInternal (session, trigger, triggerLocation, applicableToSpan, token));
+
+		Task<CompletionContext> GetCompletionContextAsyncInternal (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
 		{
 			InitializeMSBuildSessionContext (session, triggerLocation, token);
 

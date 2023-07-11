@@ -16,6 +16,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Logging;
 
 using ProjectFileTools.NuGetSearch.Contracts;
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -37,7 +38,10 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 			this.logger = logger;
 		}
 
-		public async Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
+		public Task<QuickInfoItem> GetQuickInfoItemAsync (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
+			=> logger.InvokeAndLogExceptions (() => GetQuickInfoItemAsyncInternal (session, cancellationToken));
+
+		async Task<QuickInfoItem> GetQuickInfoItemAsyncInternal (IAsyncQuickInfoSession session, CancellationToken cancellationToken)
 		{
 			var snapshot = textBuffer.CurrentSnapshot;
 

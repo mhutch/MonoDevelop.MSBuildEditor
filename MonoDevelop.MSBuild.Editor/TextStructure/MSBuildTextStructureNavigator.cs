@@ -11,6 +11,8 @@ using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
+using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Logging;
 using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.TextStructure
@@ -52,6 +54,9 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 		}
 
 		public SnapshotSpan GetSpanOfEnclosing (SnapshotSpan activeSpan)
+			=> provider.LoggerFactory.GetLogger<MSBuildTextStructureNavigator> (textBuffer).InvokeAndLogExceptions (() => GetSpanOfEnclosingInternal (activeSpan));
+
+		SnapshotSpan GetSpanOfEnclosingInternal (SnapshotSpan activeSpan)
 		{
 			if (!provider.XmlParserProvider.TryGetParser (activeSpan.Snapshot.TextBuffer, out var parser)) {
 				return xmlNavigator.GetSpanOfEnclosing (activeSpan);

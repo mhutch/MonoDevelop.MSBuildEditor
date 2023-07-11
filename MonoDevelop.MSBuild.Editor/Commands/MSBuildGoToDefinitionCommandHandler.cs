@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Commanding;
@@ -9,6 +10,8 @@ using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Editor.Navigation;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Commands
 {
@@ -17,19 +20,31 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 	[Name (nameof (MSBuildGoToDefinitionCommandHandler))]
 	class MSBuildGoToDefinitionCommandHandler : ICommandHandler<GoToDefinitionCommandArgs>
 	{
-		[ImportingConstructor]
-		public MSBuildGoToDefinitionCommandHandler (MSBuildNavigationService navigationService)
-		{
-			NavigationService = navigationService;
-		}
+		readonly MSBuildNavigationService navigationService;
+		readonly IEditorLoggerFactory loggerFactory;
 
-		internal MSBuildNavigationService NavigationService { get; }
+		[ImportingConstructor]
+		public MSBuildGoToDefinitionCommandHandler (MSBuildNavigationService navigationService, IEditorLoggerFactory loggerFactory)
+		{
+			this.navigationService = navigationService;
+			this.loggerFactory = loggerFactory;
+		}
 
 		public string DisplayName { get; } = "Go to Definition";
 
 		public CommandState GetCommandState (GoToDefinitionCommandArgs args)
 		{
-			if (NavigationService.CanNavigate (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition, out var kind)) {
+			try {
+				return GetCommandStateInternal (args);
+			} catch (Exception ex) {
+				loggerFactory.GetLogger<MSBuildGoToDefinitionCommandHandler> (args.TextView).LogInternalException (ex);
+				throw;
+			}
+		}
+
+		CommandState GetCommandStateInternal (GoToDefinitionCommandArgs args)
+		{
+			if (navigationService.CanNavigate (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition, out var kind)) {
 				if (kind == MSBuildReferenceKind.NuGetID) {
 					return new CommandState (true, displayText: "Open on NuGet.org");
 				}
@@ -42,7 +57,13 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 
 		public bool ExecuteCommand (GoToDefinitionCommandArgs args, CommandExecutionContext executionContext)
 		{
-			return NavigationService.Navigate (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition);
+
+			try {
+				return navigationService.Navigate (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition);
+			} catch (Exception ex) {
+				loggerFactory.GetLogger<MSBuildGoToDefinitionCommandHandler> (args.TextView).LogInternalException (ex);
+				throw;
+			}
 		}
 	}
 }

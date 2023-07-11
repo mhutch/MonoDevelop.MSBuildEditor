@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -14,6 +15,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Parsing;
+using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -22,14 +24,15 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		readonly MSBuildSuggestedActionsSourceProvider provider;
 		readonly ITextView textView;
 		readonly ITextBuffer textBuffer;
+		readonly ILogger logger;
 		MSBuildBackgroundParser parser;
 
-		public MSBuildSuggestedActionSource (MSBuildSuggestedActionsSourceProvider provider, ITextView textView, ITextBuffer textBuffer)
+		public MSBuildSuggestedActionSource (MSBuildSuggestedActionsSourceProvider provider, ITextView textView, ITextBuffer textBuffer, ILogger logger)
 		{
 			this.provider = provider;
 			this.textView = textView;
 			this.textBuffer = textBuffer;
-
+			this.logger = logger;
 			parser = provider.ParserProvider.GetParser (textBuffer);
 			parser.ParseCompleted += ParseCompleted;
 		}
@@ -42,6 +45,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public event EventHandler<EventArgs> SuggestedActionsChanged;
 
 		public IEnumerable<SuggestedActionSet> GetSuggestedActions (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+			=> GetSuggestedActionsInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+
+		IEnumerable<SuggestedActionSet> GetSuggestedActionsInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var fixes = GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken).WaitAndGetResult (cancellationToken);
 			if (fixes == null) {
@@ -121,7 +127,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		}
 
 
-		public async Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+		public Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+			=> HasSuggestedActionsAsyncInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+
+		async Task<bool> HasSuggestedActionsAsyncInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			var cats = await GetSuggestedActionCategoriesAsync (requestedActionCategories, range, cancellationToken);
 			return cats?.Contains (PredefinedSuggestedActionCategoryNames.Any) ?? false;
@@ -142,8 +151,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 		}
 
-		public async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync (
-			ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+		public Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+			=> GetSuggestedActionCategoriesAsyncInternal (requestedActionCategories, range, cancellationToken).WithExceptionLogger (logger);
+
+		async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsyncInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
 			SnapshotSpan? possibleSelection = provider.JoinableTaskContext.IsOnMainThread ? TryGetSelectedSpan () : null;
 

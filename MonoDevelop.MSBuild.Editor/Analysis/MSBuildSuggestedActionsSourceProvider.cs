@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -19,6 +20,8 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	[ContentType (MSBuildContentType.Name)]
 	class MSBuildSuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
 	{
+		readonly IEditorLoggerFactory loggerFactory;
+
 		[ImportingConstructor]
 		public MSBuildSuggestedActionsSourceProvider (
 			IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
@@ -27,6 +30,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			MSBuildParserProvider parserProvider,
 			MSBuildCodeFixService codeFixService,
 			MSBuildRefactoringService refactoringService,
+			IEditorLoggerFactory loggerFactory,
 			// allow default because we don't have a Mac version yet
 			[Import (AllowDefault = true)] PreviewChangesService previewService,
 			IMSBuildSuggestedActionFactory suggestedActionFactory
@@ -38,6 +42,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			ParserProvider = parserProvider;
 			CodeFixService = codeFixService;
 			RefactoringService = refactoringService;
+			this.loggerFactory = loggerFactory;
 			PreviewService = previewService;
 			SuggestedActionFactory = suggestedActionFactory;
 		}
@@ -53,7 +58,8 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public ISuggestedActionsSource CreateSuggestedActionsSource (ITextView textView, ITextBuffer textBuffer)
 		{
-			return new MSBuildSuggestedActionSource (this, textView, textBuffer);
+			var logger = loggerFactory.CreateLogger<MSBuildSuggestedActionSource> (textView);
+			return new MSBuildSuggestedActionSource (this, textView, textBuffer, logger);
 		}
 	}
 }
