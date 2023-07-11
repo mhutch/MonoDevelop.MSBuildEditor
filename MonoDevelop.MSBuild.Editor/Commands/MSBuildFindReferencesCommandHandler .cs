@@ -37,6 +37,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 		public bool ExecuteCommand (FindReferencesCommandArgs args, CommandExecutionContext executionContext)
 		{
 			try {
+				// note: this does not need the cancellation token because it created UI that handles cancellation
 				return navigationService.FindReferences (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition);
 			} catch (Exception ex) {
 				loggerFactory.GetLogger<MSBuildFindReferencesCommandHandler> (args.TextView).LogInternalException (ex);

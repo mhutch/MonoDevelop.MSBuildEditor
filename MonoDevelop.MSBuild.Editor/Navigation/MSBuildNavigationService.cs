@@ -100,6 +100,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			return false;
 		}
 
+		// note: this does not need a cancellation token because it creates UI that handles cancellation of long-running work
 		public bool Navigate (MSBuildNavigationResult result, ITextBuffer buffer)
 		{
 			var logger = GetLogger (buffer);
@@ -239,6 +240,9 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
 
+		/// <remarks>
+		/// this does not need a cancellation token because it creates UI that handles cancellation
+		/// </remarks>
 		async Task FindReferences (
 			FindReferencesContext searchCtx,
 			ReferenceCollectorFactory collectorFactory,
@@ -272,7 +276,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
 						}
 						job.TextSource = buf.CurrentSnapshot.GetTextSource ();
-						(job.Document, _) = xmlParser.Parse (job.TextSource.CreateReader ());
+						(job.Document, _) = xmlParser.Parse (job.TextSource.CreateReader (), token);
 					}
 
 					token.ThrowIfCancellationRequested ();

@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Language
 			CancellationToken token)
 		{
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
-			var (xdocument, _) = xmlParser.Parse (textSource.CreateReader ());
+			var (xdocument, _) = xmlParser.Parse (textSource.CreateReader (), token);
 
 			var propVals = new PropertyValueCollector (true);
 

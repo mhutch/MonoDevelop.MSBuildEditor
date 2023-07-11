@@ -59,6 +59,7 @@ namespace MonoDevelop.MSBuild.Editor.Commands
 		{
 
 			try {
+				// note: this does not need the cancellation token because it created UI that handles cancellation
 				return navigationService.Navigate (args.SubjectBuffer, args.TextView.Caret.Position.BufferPosition);
 			} catch (Exception ex) {
 				loggerFactory.GetLogger<MSBuildGoToDefinitionCommandHandler> (args.TextView).LogInternalException (ex);
