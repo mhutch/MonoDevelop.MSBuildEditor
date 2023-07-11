@@ -5,6 +5,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>1591;1573</NoWarn>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
