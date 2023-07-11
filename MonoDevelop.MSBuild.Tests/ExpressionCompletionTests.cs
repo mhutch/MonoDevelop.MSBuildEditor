@@ -458,15 +458,15 @@ namespace MonoDevelop.MSBuild.Tests
 			}
 
 			var state = GetTriggerState (
-				expr, reason, typedChar, false,
-				out int triggerLength, out ExpressionNode _,
+				expr, expr.Length, reason, typedChar, false,
+				out int spanStart, out int spanLength, out ExpressionNode _,
 				out ListKind _,
 				out IReadOnlyList<ExpressionNode> _,
 				TestLoggerFactory.CreateTestMethodLogger ()
 			);
 
 			Assert.AreEqual (expectedState, state);
-			Assert.AreEqual (expectedLength, triggerLength);
+			Assert.AreEqual (expectedLength, spanLength);
 		}
 
 		[TestCase ("", TriggerState.Value, 0)]
@@ -487,14 +487,14 @@ namespace MonoDevelop.MSBuild.Tests
 			var expectedComparands = args.Skip (3).Cast<string> ().ToList ();
 
 			var state = GetTriggerState (
-				expr, TriggerReason.Invocation, '\0', true,
-				out int triggerLength, out _, out _,
+				expr, expr.Length, TriggerReason.Invocation, '\0', true,
+				out int spaanStart, out int spanLength,  out _, out _,
 				out IReadOnlyList<ExpressionNode> comparandVariables,
 				TestLoggerFactory.CreateTestMethodLogger()
 			);
 
 			Assert.AreEqual (expectedState, state);
-			Assert.AreEqual (expectedLength, triggerLength);
+			Assert.AreEqual (expectedLength, spanLength);
 			Assert.AreEqual (expectedComparands.Count, comparandVariables?.Count ?? 0);
 			for (int i = 0; i < expectedComparands.Count; i++) {
 				Assert.AreEqual (expectedComparands[i], ((ExpressionProperty)comparandVariables[i]).Name);

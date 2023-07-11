@@ -220,19 +220,23 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				var reason = ConvertReason (trigger.Reason, trigger.Character);
 				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
+					int exprStartPos = triggerLocation - expression.Length;
 					var triggerState = GetTriggerState (
 						expression,
+						triggerLocation - exprStartPos,
 						reason.Value,
 						trigger.Character,
 						rr.IsCondition (),
-						out int triggerLength,
+						out int spanStart,
+						out int spanLength,
 						out ExpressionNode _,
 						out var _,
 						out IReadOnlyList<ExpressionNode> _,
 						Logger
 					);
 					if (triggerState != TriggerState.None) {
-						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
+						spanStart = exprStartPos + spanStart;
+						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, spanStart, spanLength));
 					}
 				}
 			}
@@ -281,10 +285,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			string expression = context.spine.GetIncompleteValue (triggerLocation.Snapshot);
-			var triggerState = GetTriggerState (expression, reason.Value, trigger.Character, context.resolved.IsCondition (),
-				out int triggerLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
+			int exprStartPos = triggerLocation.Position - expression.Length;
+			var triggerState = GetTriggerState (expression, triggerLocation - exprStartPos, reason.Value, trigger.Character, context.resolved.IsCondition (),
+				out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
 				Logger
 			);
+			spanStart = exprStartPos + spanStart;
 
 			var info = context.resolved.GetElementOrAttributeValueInfo (context.document);
 			if (info is null || info.ValueKind == MSBuildValueKind.Nothing) {
@@ -293,10 +299,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			session.Properties.AddProperty (typeof (TriggerState), triggerState);
 			return await GetExpressionCompletionsAsync (
-					session, info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables,
+					session, info, triggerState, listKind, spanLength, triggerExpression, comparandVariables,
 					context.resolved, triggerLocation, context.document, token
-				).ConfigureAwait (false);
-
+				);
 		}
 
 		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, string packageType, CancellationToken token)

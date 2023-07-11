@@ -35,13 +35,13 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static TriggerState GetTriggerState (
-			string expression, TriggerReason reason, char typedChar, bool isCondition,
-			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind,
-			out IReadOnlyList<ExpressionNode> comparandVariables, ILogger logger)
+			string expression, int triggerPos, TriggerReason reason, char typedChar, bool isCondition,
+			out int spanStart, out int spanLength, out ExpressionNode triggerExpression,
+			out ListKind listKind, out IReadOnlyList<ExpressionNode> comparandVariables, ILogger logger)
 		{
 			comparandVariables = null;
 
-			var state = GetTriggerState (expression, reason, typedChar, isCondition, out triggerLength, out triggerExpression, out var triggerNode, out listKind, logger);
+			var state = GetTriggerState (expression, triggerPos, reason, typedChar, isCondition, out spanStart, out spanLength, out triggerExpression, out var triggerNode, out listKind, logger);
 
 			if (state != TriggerState.None && isCondition) {
 				comparandVariables = GetComparandVariables (triggerNode).ToList ();
@@ -51,10 +51,12 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		static TriggerState GetTriggerState (
-			string expression, TriggerReason reason, char typedChar, bool isCondition,
-			out int triggerLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
+			string expression, int triggerPos, TriggerReason reason, char typedChar, bool isCondition,
+			out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode,
+			out ListKind listKind, ILogger logger)
 		{
-			triggerLength = 0;
+			spanStart = triggerPos;
+			spanLength = 0;
 			listKind = ListKind.None;
 
 			var isNewline = typedChar == '\n';
@@ -71,6 +73,7 @@ namespace MonoDevelop.MSBuild.Language
 				//automatically trigger at the start of an expression regardless
 				triggerExpression = new ExpressionText (0, expression, true);
 				triggerNode = triggerExpression;
+
 				return TriggerState.Value;
 			}
 
@@ -81,14 +84,16 @@ namespace MonoDevelop.MSBuild.Language
 				triggerExpression = ExpressionParser.Parse (expression, options);
 			}
 
-			return GetTriggerState (triggerExpression, reason, typedChar, out triggerLength, out triggerNode, out listKind, logger);
+			return GetTriggerState (triggerExpression, triggerPos, reason, typedChar, out spanStart, out spanLength, out triggerNode, out listKind, logger);
 		}
 
 		static TriggerState GetTriggerState (
-			ExpressionNode triggerExpression, TriggerReason reason, char typedChar,
-			out int triggerLength, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
+			ExpressionNode triggerExpression, int triggerPos, TriggerReason reason, char typedChar,
+			out int spanStart, out int spanLength, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
 		{
-			triggerLength = 0;
+			spanStart = triggerPos;
+			spanLength = 0;
+
 			listKind = ListKind.None;
 
 			var isExplicit = reason == TriggerReason.Invocation;
@@ -100,7 +105,7 @@ namespace MonoDevelop.MSBuild.Language
 				triggerExpression = el.Nodes.Last ();
 				listKind = el.Separator == ',' ? ListKind.Comma : ListKind.Semicolon;
 				if (triggerExpression is ExpressionError e && e.Kind == ExpressionErrorKind.EmptyListEntry) {
-					triggerLength = 0;
+					spanLength = 0;
 					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
@@ -114,7 +119,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (typedChar == '\\' || (!isTypedChar && text.Value[text.Length-1] == '\\')) {
-					triggerLength = 0;
+					spanLength = 0;
 					triggerNode = triggerExpression;
 					return TriggerState.DirectorySeparator;
 				}
@@ -131,14 +136,15 @@ namespace MonoDevelop.MSBuild.Language
 
 				var length = val.Length - leadingWhitespace;
 				if (length == 0) {
-					triggerLength = 0;
+					spanLength = 0;
 					triggerNode = triggerExpression;
 					return isExplicit ? TriggerState.Value : TriggerState.None;
 				}
 
 				//auto trigger on first char
 				if (length == 1 && !isBackspace) {
-					triggerLength = 1;
+					spanLength = 1;
+					spanStart = triggerPos - spanLength;
 					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
@@ -146,16 +152,16 @@ namespace MonoDevelop.MSBuild.Language
 				if (isExplicit) {
 					var lastSlash = text.Value.LastIndexOf ('\\');
 					if (lastSlash != -1) {
-						triggerLength = text.Length - lastSlash - 1;
+						spanLength = text.Length - lastSlash - 1;
 					triggerNode = triggerExpression;
 						return TriggerState.DirectorySeparator;
 					}
-					triggerLength = length;
+					spanLength = length;
+					spanStart = triggerPos - spanLength;
 					triggerNode = triggerExpression;
 					return TriggerState.Value;
 				}
 
-				triggerLength = 0;
 				triggerNode = null;
 				return TriggerState.None;
 			}
@@ -172,8 +178,8 @@ namespace MonoDevelop.MSBuild.Language
 				while (p != null && p != triggerExpression) {
 					if (p is QuotedExpression quotedExpr) {
 						return GetTriggerState (
-								quotedExpr.Expression, reason, typedChar,
-								out triggerLength, out triggerNode, out _, logger);
+								quotedExpr.Expression, triggerPos, reason, typedChar,
+								out spanStart, out spanLength, out triggerNode, out _, logger);
 					}
 					p = p.Parent;
 				}
@@ -189,14 +195,16 @@ namespace MonoDevelop.MSBuild.Language
 				if (isExplicit) {
 					var lastSlash = lit.Value.LastIndexOf ('\\');
 					if (lastSlash != -1) {
-						triggerLength = lit.Length - lastSlash - 1;
+						spanLength = lit.Length - lastSlash - 1;
+						spanStart = triggerPos - spanLength;
 						return TriggerState.DirectorySeparator;
 					}
 				}
 
 				//eager trigger on first char after /
 				if (!isExplicit && lit.Length > 1 && lit.Value[lit.Value.Length-2] == '\\' && IsPossiblePathSegmentStart (typedChar)) {
-					triggerLength = 1;
+					spanLength = 1;
+					spanStart = triggerPos - spanLength;
 					return TriggerState.DirectorySeparator;
 				}
 			}
@@ -229,7 +237,8 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionItemName ein:
 					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrDash) {
 						if (ShouldTriggerName (ein.Name)) {
-							triggerLength = ein.Name.Length;
+							spanLength = ein.Name.Length;
+							spanStart = triggerPos - spanLength;
 							return TriggerState.ItemName;
 						}
 						return TriggerState.None;
@@ -238,7 +247,8 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionPropertyName pn:
 					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (pn.Name)) {
-							triggerLength = pn.Name.Length;
+							spanLength = pn.Name.Length;
+							spanStart = triggerPos - spanLength;
 							return TriggerState.PropertyName;
 						}
 						return TriggerState.None;
@@ -247,7 +257,8 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionFunctionName fn:
 					if (ee.Kind == ExpressionErrorKind.IncompleteProperty) {
 						if (ShouldTriggerName (fn.Name)) {
-							triggerLength = fn.Name.Length;
+							spanLength = fn.Name.Length;
+							spanStart = triggerPos - spanLength;
 							if (IsConditionFunctionError (ee)) {
 								return TriggerState.ConditionFunctionName;
 							}
@@ -257,7 +268,8 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					if (ee.Kind == ExpressionErrorKind.ExpectingLeftParen) {
 						if (ShouldTriggerName (fn.Name)) {
-							triggerLength = fn.Name.Length;
+							spanLength = fn.Name.Length;
+							spanStart = triggerPos - spanLength;
 							if (IsConditionFunctionError (ee)) {
 								return TriggerState.ConditionFunctionName;
 							}
@@ -279,7 +291,8 @@ namespace MonoDevelop.MSBuild.Language
 						|| ((ee.Kind == ExpressionErrorKind.ExpectingRightParenOrValue || ee.Kind == ExpressionErrorKind.ExpectingRightParenOrComma) && parent is ExpressionArgumentList)
 						) {
 						if (ShouldTriggerName (cr.Name)) {
-							triggerLength = cr.Name.Length;
+							spanLength = cr.Name.Length;
+							spanStart = triggerPos - spanLength;
 							return parent is ExpressionArgumentList? TriggerState.BareFunctionArgumentValue : TriggerState.PropertyFunctionClassName;
 						}
 						return TriggerState.None;
@@ -291,14 +304,16 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					if (ee.Kind == ExpressionErrorKind.ExpectingRightParenOrPeriod) {
 						if (ShouldTriggerName (m.ItemName)) {
-							triggerLength = m.ItemName.Length;
+							spanLength = m.ItemName.Length;
+							spanStart = triggerPos - spanLength;
 							return TriggerState.MetadataOrItemName;
 						}
 						return TriggerState.None;
 					}
 					if (ee.Kind == ExpressionErrorKind.ExpectingRightParen) {
 						if (ShouldTriggerName (m.MetadataName)) {
-							triggerLength = m.MetadataName.Length;
+							spanLength = m.MetadataName.Length;
+							spanStart = triggerPos - spanLength;
 							return TriggerState.MetadataName;
 						}
 						return TriggerState.None;
@@ -311,8 +326,8 @@ namespace MonoDevelop.MSBuild.Language
 							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && parent is ExpressionArgumentList)
 							) {
 							var s = GetTriggerState (
-								expressionText.Value, reason, typedChar, false,
-								out triggerLength, out triggerExpression, out triggerNode, out _, logger);
+								expressionText.Value, triggerPos, reason, typedChar, false,
+								out spanStart, out spanLength, out triggerExpression, out triggerNode, out _, logger);
 							if (error.Kind != ExpressionErrorKind.IncompleteString && s == TriggerState.Value) {
 								return TriggerState.BareFunctionArgumentValue;
 							}
