@@ -40,13 +40,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	partial class MSBuildCompletionSource : XmlCompletionSource, ICompletionDocumentationProvider
 	{
 		readonly MSBuildBackgroundParser parser;
+		readonly IMSBuildFileSystem fileSystem;
 		readonly MSBuildCompletionSourceProvider provider;
 
 		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, ILogger logger) : base (textView, logger, provider.XmlParserProvider)
 		{
 			this.provider = provider;
 			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
-		}
+			fileSystem = provider.FileSystem ?? DefaultMSBuildFileSystem.Instance;
+        }
 
 		record class MSBuildCompletionSessionContext (MSBuildRootDocument document, MSBuildResolveResult resolved, XmlSpineParser spine);
 
@@ -469,7 +471,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			if (comparandVariables != null && isValue) {
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, comparandVariables, Logger)) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, comparandVariables, Logger)) {
 					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
@@ -519,7 +521,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, Logger);
+				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger);
 			}
 
 			if (cinfos != null) {

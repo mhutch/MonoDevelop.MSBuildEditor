@@ -160,6 +160,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<ISymbol> GetValueCompletions (
 			MSBuildValueKind kind,
 			MSBuildRootDocument doc,
+			IMSBuildFileSystem fileSystem,
 			ILogger logger,
 			MSBuildResolveResult rr = null,
 			ExpressionNode triggerExpression = null)
@@ -202,7 +203,7 @@ namespace MonoDevelop.MSBuild.Schema
 				break;
 			}
 
-			var fileCompletions = GetFilenameCompletions (kind, doc, triggerExpression, 0, logger, rr);
+			var fileCompletions = fileSystem.GetFilenameCompletions (kind, doc, triggerExpression, 0, logger, rr);
 			if (fileCompletions != null) {
 				return fileCompletions;
 			}
@@ -211,6 +212,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IReadOnlyList<ISymbol> GetFilenameCompletions (
+			this IMSBuildFileSystem fileSystem,
 			MSBuildValueKind kind, MSBuildRootDocument doc,
 			ExpressionNode triggerExpression, int triggerLength, ILogger logger, MSBuildResolveResult rr = null)
 		{
@@ -257,7 +259,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			var basePaths = EvaluateExpressionAsPaths (triggerExpression, doc, triggerLength + 1, baseDir).ToList ();
-			return basePaths.Count == 0 ? null : GetPathCompletions (basePaths, includeFiles, logger);
+			return basePaths.Count == 0 ? null : fileSystem.GetPathCompletions (basePaths, includeFiles, logger);
 		}
 
 		public static IEnumerable<string> EvaluateExpressionAsPaths (ExpressionNode expression, MSBuildRootDocument doc, int skipEndChars = 0, string baseDir = null)
@@ -301,22 +303,22 @@ namespace MonoDevelop.MSBuild.Schema
 			string TrimEndChars (string s) => s.Substring (0, Math.Min (s.Length, s.Length - skipEndChars));
 		}
 
-		static IReadOnlyList<FileOrFolderInfo> GetPathCompletions (List<string> completionBasePaths, bool includeFiles, ILogger logger)
+		static IReadOnlyList<FileOrFolderInfo> GetPathCompletions (this IMSBuildFileSystem fileSystem, List<string> completionBasePaths, bool includeFiles, ILogger logger)
 		{
 			var infos = new List<FileOrFolderInfo> ();
 
 			foreach (var basePath in completionBasePaths) {
 				try {
-					if (!Directory.Exists (basePath)) {
+					if (!fileSystem.DirectoryExists (basePath)) {
 						continue;
 					}
-					foreach (var e in Directory.GetDirectories (basePath)) {
+					foreach (var e in fileSystem.GetDirectories (basePath)) {
 						var name = Path.GetFileName (e);
 						infos.Add (new FileOrFolderInfo (name, true, e));
 					}
 
 					if (includeFiles) {
-						foreach (var e in Directory.GetFiles (basePath)) {
+						foreach (var e in fileSystem.GetFiles (basePath)) {
 							var name = Path.GetFileName (e);
 							infos.Add (new FileOrFolderInfo (name, false, e));
 						}
@@ -448,7 +450,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return null;
 			}
 
-			if (rr.AttributeName is not null && rr.AttributeSyntax is not null) {
+			if (rr.AttributeName != null) {
 				return schemas.GetAttributeInfo (rr.AttributeSyntax, rr.ElementName, rr.AttributeName);
 			}
 
