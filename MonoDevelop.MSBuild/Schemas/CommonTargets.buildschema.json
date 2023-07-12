@@ -878,21 +878,21 @@
         "defaultValue": "all",
         "type": { "$ref": "#/types/asset" },
         "isList": true,
-        "listSeparators": ","
+        "listSeparators": ";,"
       },
       "ExcludeAssets": {
         "description": "Assets that will not be consumed by the project",
         "defaultValue": "none",
         "type": { "$ref": "#/types/asset" },
         "isList": true,
-        "listSeparators": ","
+        "listSeparators": ";,"
       },
       "PrivateAssets": {
         "description": "Assets that will be consumed by the project but won't flow to its parent",
         "defaultValue": "contentfiles,analyzers,build",
         "type": { "$ref": "#/types/asset" },
         "isList": true,
-        "listSeparators": ","
+        "listSeparators": ";,"
       }
     },
     {
