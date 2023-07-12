@@ -17,9 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 			private readonly IVsCodeWindow _codeWindow;
 			private readonly ComEventSink _sink;
 
-			private IDisposable? _navigationBarController;
-			private IVsDropdownBarClient? _dropdownBarClient;
-
 			public VsCodeWindowManager (TLanguageService languageService, IVsCodeWindow codeWindow)
 			{
 				_languageService = languageService;
