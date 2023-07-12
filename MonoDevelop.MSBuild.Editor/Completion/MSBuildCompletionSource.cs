@@ -294,12 +294,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			);
 			spanStart = exprStartPos + spanStart;
 
+			if (triggerState == TriggerState.None) {
+				return null;
+			}
+
+			session.Properties.AddProperty (typeof (TriggerState), triggerState);
+
 			var info = context.resolved.GetElementOrAttributeValueInfo (context.document);
 			if (info is null || info.ValueKind == MSBuildValueKind.Nothing) {
 				return null;
 			}
 
-			session.Properties.AddProperty (typeof (TriggerState), triggerState);
 			return await GetExpressionCompletionsAsync (
 					session, info, triggerState, listKind, spanLength, triggerExpression, comparandVariables,
 					context.resolved, triggerLocation, context.document, token

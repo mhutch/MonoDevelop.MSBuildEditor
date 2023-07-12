@@ -495,7 +495,7 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.ConditionFunctionName:
 				return MSBuildIntrinsics.ConditionFunctions.Values;
 			}
-			throw new InvalidOperationException ($"Unhandled trigger type {trigger}");
+			throw new InvalidOperationException ($"Unhandled TriggerState {trigger}");
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Expression text '{expression}' is not consistent with typed character '{typedChar}")]
