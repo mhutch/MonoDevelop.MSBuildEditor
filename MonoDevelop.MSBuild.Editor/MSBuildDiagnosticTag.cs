@@ -30,6 +30,8 @@ namespace MonoDevelop.MSBuild.Editor
 			case MSBuildDiagnosticSeverity.Warning:
 				return PredefinedErrorTypeNames.Warning;
 			case MSBuildDiagnosticSeverity.Suggestion:
+				return PredefinedErrorTypeNames.HintedSuggestion;
+			case MSBuildDiagnosticSeverity.None:
 				return PredefinedErrorTypeNames.Suggestion;
 			}
 			throw new ArgumentException ($"Unknown DiagnosticSeverity value {severity}", nameof (severity));

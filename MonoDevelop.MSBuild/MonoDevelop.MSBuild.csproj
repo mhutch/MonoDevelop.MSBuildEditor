@@ -20,6 +20,7 @@
     <Compile Remove="Evaluation\Imported\Expander.cs" />
     <None Include="Evaluation\Imported\Expander.cs" />
     <Compile Include="..\MonoDevelop.Xml\Core\NullabilityAttributes.cs" />
+    <Compile Include="..\MonoDevelop.Xml\Core\StringSyntaxAttribute.cs" />
   </ItemGroup>
 
   <ItemGroup>

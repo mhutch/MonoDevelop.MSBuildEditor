@@ -3,6 +3,7 @@
 
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MonoDevelop.MSBuild.Analysis
 {
@@ -10,10 +11,12 @@ namespace MonoDevelop.MSBuild.Analysis
 	{
 		public string Title { get; }
 		public string Id { get; }
+
+		[StringSyntax (StringSyntaxAttribute.CompositeFormat)]
 		public string Message { get; }
 		public MSBuildDiagnosticSeverity Severity { get; }
 
-		public MSBuildDiagnosticDescriptor (string id, string title, string message, MSBuildDiagnosticSeverity severity)
+		public MSBuildDiagnosticDescriptor (string id, string title, [StringSyntax (StringSyntaxAttribute.CompositeFormat)] string message, MSBuildDiagnosticSeverity severity)
 		{
 			Title = title ?? throw new ArgumentNullException (nameof (title));
 			Id = id ?? throw new ArgumentNullException (nameof (id));
