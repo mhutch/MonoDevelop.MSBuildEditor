@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 using MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 using MonoDevelop.MSBuild.Editor.VisualStudio.Options;
+using MonoDevelop.Xml.Logging;
 
 using Task = System.Threading.Tasks.Task;
 
@@ -89,7 +90,13 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 
 			((IServiceContainer)this).AddService (typeof (MSBuildExtensionLogger), logger, true);
 
-			await base.InitializeAsync (cancellationToken, progress);
+			try {
+				await base.InitializeAsync (cancellationToken, progress);
+			} catch (Exception ex) {
+				logger.LogInternalException (ex);
+				throw;
+			}
+
 		}
 
 		protected override async Task LoadComponentsAsync (CancellationToken cancellationToken)

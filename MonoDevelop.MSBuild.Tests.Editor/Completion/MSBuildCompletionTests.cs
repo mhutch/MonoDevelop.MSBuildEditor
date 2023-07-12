@@ -356,5 +356,29 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 			result.AssertNonEmpty ();
 			result.AssertContains ("Foo");
 		}
+
+		[Test]
+		public async Task PathCompletion ()
+		{
+			var testDirectory = TestMSBuildFileSystem.Instance.AddTestDirectory ();
+			testDirectory.AddFiles ("foo.txt", "bar.cs", "baz.cs");
+			testDirectory.AddDirectory ("foo").AddFiles ("hello.cs", "bye.cs");
+
+			var result = await this.GetCompletionContext (
+				@"<Project><PropertyGroup><FooPath>$</FooPath>",
+				CompletionTriggerReason.Insertion, 'f',
+				filename: testDirectory.Combine ("PathCompletion.csproj"));
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("foo.txt");
+
+			result = await this.GetCompletionContext (
+				@"<Project><PropertyGroup><FooPath>foo$</FooPath>",
+				CompletionTriggerReason.Insertion, '\\',
+				filename: testDirectory.Combine ("PathCompletion.csproj"));
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("hello.cs");
+		}
 	}
 }

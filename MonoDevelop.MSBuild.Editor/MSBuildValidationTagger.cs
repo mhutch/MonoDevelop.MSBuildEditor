@@ -4,11 +4,15 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
+
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Parsing;
+using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -16,13 +20,15 @@ namespace MonoDevelop.MSBuild.Editor
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly JoinableTaskContext joinableTaskContext;
+		readonly ILogger logger;
 		ParseCompletedEventArgs<MSBuildParseResult> lastArgs;
 
-		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext, MSBuildParserProvider parserProvider)
+		public MSBuildValidationTagger (ITextBuffer buffer, JoinableTaskContext joinableTaskContext, MSBuildParserProvider parserProvider, ILogger logger)
 		{
 			parser = parserProvider.GetParser (buffer);
 			parser.ParseCompleted += ParseCompleted;
 			this.joinableTaskContext = joinableTaskContext;
+			this.logger = logger;
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> args)
@@ -44,6 +50,9 @@ namespace MonoDevelop.MSBuild.Editor
 		}
 
 		public IEnumerable<ITagSpan<IErrorTag>> GetTags (NormalizedSnapshotSpanCollection spans)
+			=> logger.InvokeAndLogExceptions (() => GetTagsInternal (spans));
+
+		public IEnumerable<ITagSpan<IErrorTag>> GetTagsInternal (NormalizedSnapshotSpanCollection spans)
 		{
 			//this may be assigned from another thread so capture a consistent value
 			var args = lastArgs;

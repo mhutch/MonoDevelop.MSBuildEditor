@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	static class MSBuildResolver
 	{
-		public static MSBuildResolveResult Resolve (
+		public static MSBuildResolveResult? Resolve (
 			XmlSpineParser spineParser,
 			ITextSource textSource,
 			MSBuildDocument context,
@@ -29,16 +31,20 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			int offset = spineParser.Position;
 
-			var nodePath = spineParser.AdvanceToNodeEndAndGetNodePath (textSource);
+			if (!spineParser.TryAdvanceToNodeEndAndGetNodePath (textSource, out List<XObject>? nodePath, cancellationToken: cancellationToken)) {
+				return null;
+			}
+
 			nodePath.ConnectParents ();
 
 			//need to look up element by walking how the path, since at each level, if the parent has special children,
 			//then that gives us information to identify the type of its children
-			MSBuildElementSyntax languageElement = null;
-			MSBuildAttributeSyntax languageAttribute = null;
-			XElement el = null;
-			XAttribute att = null;
+			MSBuildElementSyntax? languageElement = null;
+			MSBuildAttributeSyntax? languageAttribute = null;
+			XElement? el = null;
+			XAttribute? att = null;
 
+			// todo: need to wind forward a bit further to get the whole value if cursor is right at the start
 			foreach (var node in nodePath) {
 				if (node is XAttribute xatt && xatt.Name.Prefix == null) {
 					att = xatt;
@@ -113,8 +119,7 @@ namespace MonoDevelop.MSBuild.Language
 			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 			{
 				var start = element.NameOffset;
-				bool inName = element.IsNamed && IsIn (start, element.Name.Name.Length);
-				if (inName) {
+				if (element.Name.IsValid && IsIn (start, element.Name.Name.Length)) {
 					rr.ReferenceOffset = start;
 					rr.Reference = element.Name.Name;
 					rr.ReferenceLength = element.Name.Name.Length;
@@ -162,11 +167,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				rr.AttributeSyntax = resolvedAttribute
-					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name);
+					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name!);
 
-				bool inName = attribute.NameSpan.Contains (offset);
-
-				if (inName) {
+				if (attribute.Name.IsValid && attribute.NameSpan.Contains (offset)) {
 					rr.ReferenceOffset = attribute.Span.Start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
 					switch (resolvedAttribute.AbstractKind) {

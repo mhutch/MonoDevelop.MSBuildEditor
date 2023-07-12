@@ -37,6 +37,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		public bool ShouldCommitCompletion (IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken token)
 		{
+			try {
+				return ShouldCommitCompletionInternal (session, location, typedChar, token);
+			} catch (Exception ex) {
+				logger.LogInternalException (ex);
+				throw;
+			}
+		}
+
+		bool ShouldCommitCompletionInternal (IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken token)
+		{
 			if (!PotentialCommitCharacters.Contains (typedChar)) {
 				return false;
 			}
@@ -60,6 +70,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		public CommitResult TryCommit (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
+		{
+			try {
+				return TryCommitInternal (session, buffer, item, typedChar, token);
+			} catch (Exception ex) {
+				logger.LogInternalException (ex);
+				throw;
+			}
+		}
+
+		CommitResult TryCommitInternal (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
 			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
 				return CommitResult.Unhandled;
@@ -93,7 +113,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			Task.Run (async () => {
 				await provider.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 				provider.CommandServiceFactory.GetService (textView).Execute ((v, b) => new InvokeCompletionListCommandArgs (v, b), null);
-			}).CatchAndLogWarning (logger);
+			}).LogTaskExceptionsAndForget (logger);
 		}
 
 		void InsertGuid (IAsyncCompletionSession session, ITextBuffer buffer) => Insert (session, buffer, Guid.NewGuid ().ToString ("B").ToUpper ());

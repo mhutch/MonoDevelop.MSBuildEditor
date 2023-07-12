@@ -100,11 +100,12 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			return false;
 		}
 
+		// note: this does not need a cancellation token because it creates UI that handles cancellation of long-running work
 		public bool Navigate (MSBuildNavigationResult result, ITextBuffer buffer)
 		{
 			var logger = GetLogger (buffer);
 			if (result.Kind == MSBuildReferenceKind.Target) {
-				FindTargetDefinitions (result.Name, buffer).CatchAndLogWarning (logger);
+				FindTargetDefinitions (result.Name, buffer).LogTaskExceptionsAndForget (logger);
 				return true;
 			}
 
@@ -114,7 +115,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					return true;
 				}
 				if (result.Paths.Length > 1) {
-					ShowMultipleFiles (result.Paths, buffer, logger).CatchAndLogWarning (logger);
+					ShowMultipleFiles (result.Paths, buffer, logger).LogTaskExceptionsAndForget (logger);
 					return true;
 				}
 			}
@@ -146,7 +147,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					await JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 					host.ShowStatusBarMessage ("Package is not from NuGet.org");
 				}
-			}).CatchAndLogWarning(logger);
+			}).LogTaskExceptionsAndForget (logger);
 		}
 
 		async Task ShowMultipleFiles (string[] files, ITextBuffer buffer, ILogger logger)
@@ -207,7 +208,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 				return false;
 			}
 			var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
-			FindReferencesAsync (buffer, resolveResult, logger).CatchAndLogWarning (logger);
+			FindReferencesAsync (buffer, resolveResult, logger).LogTaskExceptionsAndForget (logger);
 			return true;
 		}
 
@@ -239,6 +240,9 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
 
+		/// <remarks>
+		/// this does not need a cancellation token because it creates UI that handles cancellation
+		/// </remarks>
 		async Task FindReferences (
 			FindReferencesContext searchCtx,
 			ReferenceCollectorFactory collectorFactory,
@@ -272,7 +276,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 							buf = BufferFactory.CreateTextBuffer (File.OpenText (job.Filename), msbuildContentType);
 						}
 						job.TextSource = buf.CurrentSnapshot.GetTextSource ();
-						(job.Document, _) = xmlParser.Parse (job.TextSource.CreateReader ());
+						(job.Document, _) = xmlParser.Parse (job.TextSource.CreateReader (), token);
 					}
 
 					token.ThrowIfCancellationRequested ();

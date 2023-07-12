@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Parsing;
 
 namespace MonoDevelop.MSBuild.Editor.TextStructure
@@ -19,16 +20,19 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 		public MSBuildTextStructureNavigatorProvider (
 			ITextStructureNavigatorSelectorService navigatorService,
 			IContentTypeRegistryService contentTypeRegistry,
-			XmlParserProvider xmlParserProvider)
+			XmlParserProvider xmlParserProvider,
+			IEditorLoggerFactory loggerFactory)
 		{
 			NavigatorService = navigatorService;
 			ContentTypeRegistry = contentTypeRegistry;
 			XmlParserProvider = xmlParserProvider;
+			LoggerFactory = loggerFactory;
 		}
 
 		public ITextStructureNavigatorSelectorService NavigatorService { get; }
 		public IContentTypeRegistryService ContentTypeRegistry { get; }
 		public XmlParserProvider XmlParserProvider { get; }
+		public IEditorLoggerFactory LoggerFactory { get; }
 
 		public ITextStructureNavigator CreateTextStructureNavigator (ITextBuffer textBuffer)
 		{

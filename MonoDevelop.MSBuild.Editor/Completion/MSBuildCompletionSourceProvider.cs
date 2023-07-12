@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Parsing;
 
@@ -30,7 +29,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			JoinableTaskContext joinableTaskContext,
 			MSBuildParserProvider parserProvider,
 			XmlParserProvider xmlParserProvider,
-			IEditorLoggerFactory loggerService)
+			IEditorLoggerFactory loggerService,
+			[Import(AllowDefault = true)] IMSBuildFileSystem fileSystem)
 		{
 			FunctionTypeProvider = functionTypeProvider;
 			PackageSearchManager = packageSearchManager;
@@ -39,6 +39,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			ParserProvider = parserProvider;
 			XmlParserProvider = xmlParserProvider;
 			LoggerService = loggerService;
+			FileSystem = fileSystem;
 		}
 
 		public IFunctionTypeProvider FunctionTypeProvider { get; }
@@ -47,6 +48,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public MSBuildParserProvider ParserProvider { get; }
 		public IEditorLoggerFactory LoggerService { get; }
+		public IMSBuildFileSystem FileSystem { get; }
 		public XmlParserProvider XmlParserProvider { get; }
 
 		public IAsyncCompletionSource GetOrCreate (ITextView textView) =>

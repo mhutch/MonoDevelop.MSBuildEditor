@@ -392,7 +392,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return $"{version.Major}.{version.Minor}";
 		}
 
-		public static string GetDescription (NuGetFramework fx)
+		public static string? GetDescription (NuGetFramework fx)
 		{
 			switch (fx.Framework.ToLowerInvariant ()) {
 			case ".netframework":

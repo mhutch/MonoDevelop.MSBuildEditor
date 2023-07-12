@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
+using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Logging;
+
 namespace MonoDevelop.MSBuild.Editor.Navigation
 {
 	class MSBuildNavigableSymbolSource : INavigableSymbolSource
@@ -21,6 +24,9 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		}
 
 		public Task<INavigableSymbol> GetNavigableSymbolAsync (SnapshotSpan triggerSpan, CancellationToken token)
+			=> provider.LoggerFactory.GetLogger<MSBuildNavigableSymbolSource> (buffer).InvokeAndLogExceptions (() => GetNavigableSymbolAsyncInternal (triggerSpan, token));
+
+		public Task<INavigableSymbol> GetNavigableSymbolAsyncInternal (SnapshotSpan triggerSpan, CancellationToken token)
 		{
 			var point = triggerSpan.Start;
 			var navResult = provider.NavigationService.GetNavigationResult (buffer, point);

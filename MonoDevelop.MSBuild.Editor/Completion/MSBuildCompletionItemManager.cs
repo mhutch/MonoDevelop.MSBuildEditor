@@ -12,6 +12,9 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.Xml.Editor.Logging;
+using MonoDevelop.Xml.Logging;
+
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	[Export (typeof (IAsyncCompletionItemManagerProvider))]
@@ -22,23 +25,34 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	[Order (Before = PredefinedCompletionNames.DefaultCompletionItemManager)]
 	internal sealed class MSBuildCompletionItemManagerProvider : IAsyncCompletionItemManagerProvider
 	{
-		[ImportMany]
-		IEnumerable<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> UnorderedCompletionItemManagerProviders { get; set; }
+		IEnumerable<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> unorderedCompletionItemManagerProviders;
 
 		IList<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> _orderedCompletionItemManagerProviders;
 		IList<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> OrderedCompletionItemManagerProviders
-			=> _orderedCompletionItemManagerProviders ?? (_orderedCompletionItemManagerProviders = Orderer.Order (UnorderedCompletionItemManagerProviders));
+			=> _orderedCompletionItemManagerProviders ??= Orderer.Order (unorderedCompletionItemManagerProviders);
+
+		public IEditorLoggerFactory LoggerFactory { get; }
+
+		[ImportingConstructor]
+		public MSBuildCompletionItemManagerProvider (
+			IEditorLoggerFactory loggerFactory,
+			[ImportMany] IEnumerable<Lazy<IAsyncCompletionItemManagerProvider, IOrderableContentTypeAndOptionalTextViewRoleMetadata>> unorderedCompletionItemManagerProviders)
+		{
+			this.LoggerFactory = loggerFactory;
+			this.unorderedCompletionItemManagerProviders = unorderedCompletionItemManagerProviders;
+		}
 
 		IAsyncCompletionItemManager IAsyncCompletionItemManagerProvider.GetOrCreate (ITextView textView)
-		{
-			return textView.Properties.GetOrCreateSingletonProperty (typeof (MSBuildCompletionItemManagerProvider), () => {
+			=> LoggerFactory.GetLogger<MSBuildCompletionItemManagerProvider> (textView).InvokeAndLogExceptions (() => GetOrCreate (textView));
+
+		IAsyncCompletionItemManager GetOrCreate (ITextView textView)
+			=> textView.Properties.GetOrCreateSingletonProperty (typeof (MSBuildCompletionItemManagerProvider), () => {
 				// each content type can only have a single item manager. we don't want to replace the item manager as
 				// the existing one provides important functionality. instead, we find the next provider after this one
 				// that's valid for MSBuild, which should be the XML one, but should fall back to the default one
 				IAsyncCompletionItemManager nextManager = GetNextProvider (textView, textView.TextSnapshot.ContentType, textView.Roles);
 				return new MSBuildCompletionItemManager (nextManager, this);
 			});
-		}
 
 		IAsyncCompletionItemManager GetNextProvider (ITextView textView, IContentType contentType, ITextViewRoleSet roles)
 		{
@@ -87,6 +101,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		public Task<FilteredCompletionModel> UpdateCompletionListAsync (IAsyncCompletionSession session, AsyncCompletionSessionDataSnapshot data, CancellationToken token)
+			=> provider.LoggerFactory.GetLogger<MSBuildCompletionItemManager> (session.TextView).InvokeAndLogExceptions (() => UpdateCompletionListAsyncInternal (session, data, token));
+
+		public Task<FilteredCompletionModel> UpdateCompletionListAsyncInternal (IAsyncCompletionSession session, AsyncCompletionSessionDataSnapshot data, CancellationToken token)
 		{
 			Task<FilteredCompletionModel> Next () => nextManager.UpdateCompletionListAsync (session, data, token);
 

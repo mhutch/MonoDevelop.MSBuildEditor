@@ -64,7 +64,7 @@ static class MSBuildSchemaUtils
 			if (itemIsBetter || newMetadata.Count > 0) {
 				diff.Items.Add(otherItem.Name, new ItemInfo(
 					otherItem.Name,
-					betterDescription? otherItem.Description.Text : null,
+					betterDescription? otherItem.Description.Text : "",
 					betterIncludeDescription? otherItem.IncludeDescription : null,
 					betterValueKind? otherItem.ValueKind : MSBuildValueKind.Unknown,
 					betterValueKind? otherItem.CustomType : null,
@@ -154,7 +154,7 @@ static class MSBuildSchemaUtils
 		}
 	}
 
-	public static MSBuildSchema? LoadBuiltInSchemas()
+	public static MSBuildSchema LoadBuiltInSchemas()
 	{
 		string thisFilePath = GetThisFilePath();
 		var schemaSourceDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(thisFilePath)!, "..", "MonoDevelop.MSBuild", "Schemas"));

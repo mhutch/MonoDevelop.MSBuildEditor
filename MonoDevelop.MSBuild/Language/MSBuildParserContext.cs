@@ -81,7 +81,7 @@ namespace MonoDevelop.MSBuild.Language
 			XDocument doc;
 			try {
 				textSource = new StringTextSource (File.ReadAllText (import.Filename));
-				(doc, _) = xmlParser.Parse (textSource.CreateReader ());
+				(doc, _) = xmlParser.Parse (textSource.CreateReader (), Token);
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
 				LogUnhandledXmlParserError (Logger, ex);
 				return import;

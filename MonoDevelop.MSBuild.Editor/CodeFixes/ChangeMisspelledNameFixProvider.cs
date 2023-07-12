@@ -24,14 +24,14 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 		MSBuildSpellCheckerProvider SpellCheckerProvider { get; }
 
 		public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create (
-			CoreDiagnostics.UnreadItemId,
-			CoreDiagnostics.UnreadMetadataId,
-			CoreDiagnostics.UnreadPropertyId,
-			CoreDiagnostics.UnwrittenItemId,
-			CoreDiagnostics.UnwrittenMetadataId,
-			CoreDiagnostics.UnwrittenPropertyId,
-			CoreDiagnostics.UnknownValueId,
-			CoreDiagnostics.InvalidBoolId
+			CoreDiagnostics.UnreadItem_Id,
+			CoreDiagnostics.UnreadMetadata_Id,
+			CoreDiagnostics.UnreadProperty_Id,
+			CoreDiagnostics.UnwrittenItem_Id,
+			CoreDiagnostics.UnwrittenMetadata_Id,
+			CoreDiagnostics.UnwrittenProperty_Id,
+			CoreDiagnostics.UnknownValue_Id,
+			CoreDiagnostics.InvalidBool_Id
 		);
 
 		public async override Task RegisterCodeFixesAsync (MSBuildFixContext context)
@@ -49,38 +49,38 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				}
 
 				switch (diag.Descriptor.Id) {
-				case CoreDiagnostics.UnreadItemId:
-				case CoreDiagnostics.UnwrittenItemId:
+				case CoreDiagnostics.UnreadItem_Id:
+				case CoreDiagnostics.UnwrittenItem_Id:
 					foreach (var item in await spellChecker.FindSimilarItems (context.Document, name)) {
 						context.RegisterCodeFix (new FixNameAction (spans, name, item.Name), diag);
 					}
 					break;
 
-				case CoreDiagnostics.UnreadPropertyId:
-				case CoreDiagnostics.UnwrittenPropertyId:
+				case CoreDiagnostics.UnreadProperty_Id:
+				case CoreDiagnostics.UnwrittenProperty_Id:
 					foreach (var prop in await spellChecker.FindSimilarProperties (context.Document, name)) {
 						// don't fix writes with reserved properties
-						if (prop.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadataId) {
+						if (prop.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadata.Id) {
 							continue;
 						}
 						context.RegisterCodeFix (new FixNameAction (spans, name, prop.Name), diag);
 					}
 					break;
 
-				case CoreDiagnostics.UnreadMetadataId:
-				case CoreDiagnostics.UnwrittenMetadataId:
+				case CoreDiagnostics.UnreadMetadata_Id:
+				case CoreDiagnostics.UnwrittenMetadata_Id:
 					var itemName = (string)diag.Properties["ItemName"];
 					foreach (var metadata in await spellChecker.FindSimilarMetadata (context.Document, itemName, name)) {
 						// don't fix writes with reserved metadata
-						if (metadata.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadataId) {
+						if (metadata.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadata.Id) {
 							continue;
 						}
 						context.RegisterCodeFix (new FixNameAction (spans, name, metadata.Name), diag);
 					}
 					break;
 
-				case CoreDiagnostics.UnknownValueId:
-				case CoreDiagnostics.InvalidBoolId:
+				case CoreDiagnostics.UnknownValue_Id:
+				case CoreDiagnostics.InvalidBool_Id:
 					var kind = (MSBuildValueKind)diag.Properties["ValueKind"];
 					var customType = (CustomTypeInfo)diag.Properties["CustomType"];
 					foreach (var value in await spellChecker.FindSimilarValues (context.Document, kind, customType, name)) {

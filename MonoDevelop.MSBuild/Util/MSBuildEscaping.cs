@@ -25,6 +25,7 @@
 //
 //
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -162,11 +163,18 @@ namespace MonoDevelop.MSBuild.Util
 					return false;
 			}
 
-			bool isRooted = Path.IsPathRooted (path);
+			bool isRooted;
 
-			if (!isRooted && baseDirectory != null) {
-				path = Path.Combine (baseDirectory, path);
+			try {
 				isRooted = Path.IsPathRooted (path);
+
+				if (!isRooted && baseDirectory != null) {
+					path = Path.Combine (baseDirectory, path);
+					isRooted = Path.IsPathRooted (path);
+				}
+			// FIXME: need non-throwing version of Path.IsPathRooted "illegal characters in path"
+			} catch (ArgumentException) {
+				return false;
 			}
 
 			// Return relative paths as-is, we can't do anything else with them

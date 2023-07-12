@@ -179,7 +179,7 @@ class ExtractExpressionTests : MSBuildEditorTest
 
 		var parser = new XmlTreeParser (new XmlRootState ());
 		parser.Parse (doc.Text, preserveWindowsNewlines: true);
-		(var parsedDoc, var errors) = parser.FinalizeDocument ();
+		(var parsedDoc, var errors) = parser.EndAllNodes ();
 
 		Assert.That (errors, Is.Empty);
 

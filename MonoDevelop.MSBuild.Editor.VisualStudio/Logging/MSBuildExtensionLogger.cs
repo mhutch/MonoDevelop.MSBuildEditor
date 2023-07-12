@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell;
@@ -20,10 +18,11 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 class MSBuildExtensionLogger : ILogger
 {
 	MSBuildEditorExtensionTelemetry telemetry;
+	MSBuildOutputPaneWriter outputPaneWriter;
 
 	const LogLevel activityLogLogLevel = LogLevel.Warning;
 	const LogLevel telemetryLogLevel = LogLevel.Warning;
-	const LogLevel outputWindowLogLevel = LogLevel.Information;
+	const LogLevel outputWindowLogLevel = LogLevel.Error;
 	const LogLevel debuggerLogLogLevel = LogLevel.Information;
 
 	static LogLevel GetCombinedLogLevel (bool telemetryEnabled)
@@ -39,13 +38,14 @@ class MSBuildExtensionLogger : ILogger
 		return logLevel;
 	}
 
-	static bool ShouldLog(LogLevel threshold, LogLevel messageLevel) => messageLevel >= threshold;
+	static bool ShouldLog (LogLevel threshold, LogLevel messageLevel) => messageLevel >= threshold;
 
 	LogLevel combinedLogLevel;
 
 	public MSBuildExtensionLogger (MSBuildEditorSettingsStorage settingsStorage, MSBuildTelemetryOptions options)
 	{
 		telemetry = new (this, settingsStorage);
+		outputPaneWriter = new (this);
 
 		UpdateTelemetryOptions (options);
 	}
@@ -66,16 +66,16 @@ class MSBuildExtensionLogger : ILogger
 	public void Log<TState> (LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		=> Log (null, null, logLevel, eventId, state, exception, formatter);
 
-	public void Log<TState> (string? categoryName, IEnumerable<KeyValuePair<string,string>>? properties, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+	public void Log<TState> (string? categoryName, IEnumerable<KeyValuePair<string, string>>? properties, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 	{
 		string? message = null;
-		string GetMessage() => message ??= formatter (state, exception);
+		string GetMessage () => message ??= formatter (state, exception);
 
 		// Community Toolkit, logs to VS output window
 		// hacky to log a null exception but there doesn't seem to be an easy alternative
 		// and it does handle null exceptions
 		if (ShouldLog (outputWindowLogLevel, logLevel)) {
-			System.ExceptionExtensions.Log (exception!, GetMessage ());
+			outputPaneWriter.WriteMessage (exception, eventId, logLevel, GetMessage ());
 		}
 
 		if (ShouldLog (debuggerLogLogLevel, logLevel) && Debugger.IsLogging ()) {

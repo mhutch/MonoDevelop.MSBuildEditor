@@ -146,7 +146,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						parent.session,
 						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Invoke, data.Snapshot)),
 						token
-					).CatchAndLogWarning (parent.logger);
+					).LogTaskExceptionsAndForget (parent.logger);
 
 					if (token.IsCancellationRequested || remainingFeeds > search.RemainingFeeds.Count) {
 						return;

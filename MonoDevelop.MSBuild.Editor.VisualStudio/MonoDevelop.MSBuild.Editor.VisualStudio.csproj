@@ -102,6 +102,8 @@
       <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.ApplicationInsights'" />
       <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel'" />
       <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Markdig.Signed'" />
+      <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Extensions.Logging.Abstractions'" />
+      <VSIXSourceItem Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'System.Collections.Immutable'" />
     </ItemGroup>
   </Target>
 
