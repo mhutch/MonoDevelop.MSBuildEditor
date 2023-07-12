@@ -1,79 +1,81 @@
 # MonoDevelop.MSBuildEditor
 
-The MSBuild Editor extension provides improved support for editing MSBuild files in Visual Studio and Visual Studio for Mac.
-It can be installed from the Extension Manager.
-
 [![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio/badge.svg)](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions?query=workflow%3A%22Visual+Studio%22)
-[![](https://github.com/mhutch/MonoDevelop.MSBuildEditor/workflows/Visual%20Studio%20for%20Mac/badge.svg)](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions?query=workflow%3A%22Visual+Studio+for+Mac%22)
+
+
+MSBuild Editor is an open-source language service that provides enhanced support for editing MSBuild files in Visual Studio. It includes IntelliSense, Quick Info, navigation, validation, code fixes, and refactorings, all driven by a powerful and customizable schema-based type system.
+
+You can install the extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mhutch.msbuildeditor), download a [CI build](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions), or build from source.
+<br><br>
+
+**⚠️ The editor is currently in preview.<br>
+📝 Please report bugs and feature requests in the GitHub repo.<br>
+🎉 Pull requests are also much appreciated!**
+<br><br>
+
+## Development
+
+Bugs and proposed features are tracked in [GitHub issues](issues), though some older items have not yet been migrated from the [TODO](TODO.md). If you're interested in implementing a feature or fixing a bug and have any questions at all, please cc @mhutch on a comment on the appropriate new or existing GitHub issue.
 
 ## Features
 
 ### IntelliSense
 
-MSBuild-specific IntelliSense helps you write your project and target files, with rich contextual completion for MSBuild elements, attributes and expressions.
+MSBuild-specific IntelliSense helps you write your project and target files, with rich contextual completion for MSBuild elements, attributes and expressions. The completion for `PackageReference` attributes queries NuGet.org as you type, and provides completion for package names and package versions.
 
-The completion for `PackageReference` attributes queries NuGet.org as you type.
+![](images/vs-packageref-completion.gif)
 
-![](images/completion.gif)
+There's completion for MSBuild expressions, including condition comparisons, property functions and item functions. The editor also supports *Expand Selection* within MSBuild expressions.
 
-There's completion for condition comparisons:
+![](images/vs-expression-completion.png)
 
-![](images/condition-completion.png)
-
-And there's also completion for property functions:
-
-![](images/property-function-completion.png)
+![](images/vs-condition-completion.png)
 
 ### Navigation
 
-You can use the *Go to Definition* command or *Command*-click to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
+You can use the *Go to Definition* command or *Ctrl-Click* to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
 
-The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports.
+The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports, including in expressions.
 
-![](images/find-references.png)
+![](images/vs-find-references.png)
 
-If you have "Highlight Identifiers" feature enabled, it'll work for MSBuild files too.
+### Quick Info
 
-### Imports
+Quick Info tooltips for items, properties, metadata and values allow you to see their descriptions and expected value types, and see which imports they have been referenced in. Tooltips for imports and SDKs show you the paths of the imported files.
 
-The extension resolves your project's imports recursively, and scans all the found MSBuild files for items, properties, metadata, targets and tasks to be included in IntelliSense and *Find References*. It attempts to resolve imports as broadly as possible, ignoring conditions and checking multiple values. It also has full support for SDKs that are resolved via SDK resolvers.
+![](images/vs-quick-info.png)
 
-### Tooltips
+### Validation and Analyzers
 
-Tooltips for items, properties and metadata allow you to see their descriptions and expected value types, and see which imports they have been referenced in.
+The editor validates your document against the MSBuild language and any imported schemas, and shows these errors and warnings as you type.
 
-![](images/tooltip.png)
+![](images/vs-validation.png)
 
-Tooltips for imports and SDKs show you the paths of the imported files.
+The core validator performs several other diagnostics such as warning about unused symbols, and there is a Roslyn-like analyzer mechanism, and examples of current built-in analyzers include:
 
-![](images/import-tooltip.png)
+* Package references should only pivot on target framework
+* Use `<TargetFramework>` instead of `<TargetFrameworks>` when there is a single value, and vice versa
 
-### Schemas
+### Code Fixes and Refactorings
 
-In addition to the schema inferred from the items, metadata, properties and tasks used in a project's imports, the extension also defines a schema format for describing them in more detail. The IntelliSense system uses these to provide a richer editing and validation experience.
+The editor supports code fixes for several diagnostics, and has refactorings such as *Extract Expression*.
 
-Targets can provide a schema 'sidecar', which has the same name as the targets file except with the suffix `.buildschema.json`.
+![](images/vs-code-fixes.png)
 
-The extension includes built-in schemas for `Microsoft.Common.targets` and other common targets.
+### Schema-driven Type System
 
-### Validation
+In addition to the schema inferred from the items, metadata, properties and tasks used in a project's imports, the extension also defines a json-based MSBuild-specific schema format that can be used to provide documentation, type annotations, allowed values, and other information that is used to provide a richer editing and validation experience.
 
-The editor validates your document against the MSBuild language and schema, and shows these errors and warnings as you type.
+Any targets file can provide a schema 'sidecar', which has the same name as the targets file except with the suffix `.buildschema.json`. The editor will load the sidecar schemas for any targets that it imports. This allows MSBuild targets to provide their own documentation.
 
-![](images/validation.png)
+![](images/vs-schema.png)
 
-### Documentation
+The extension includes built-in schemas for `Microsoft.Common.targets`, `Microsoft.NET.Sdk`, and other common targets and MSBuild SDKs.
 
-The extension includes documentation tooltips for the MSBuild language and many common items, properties and metadata.
+### Broad Import Model
 
-### Formatting Style
+The extension resolves your project's imports recursively, and scans all the found MSBuild files for items, properties, metadata, targets and tasks to be included in IntelliSense and *Find References*. It attempts to resolve imports as broadly as possible so that IntelliSense and navigation are not dependent on the current evaluated state of your project. It ignoring conditions on imports and attempts to evaluate them with multiple property values. It also has full support for SDKs that are resolved via SDK resolvers.
 
-The extension adds a formatting policy for MSBuild files, allowing you to customize the formatting behaviour. The default formatting policy uses two spaces for indentation, matching the project files created by Visual Studio.
+## Privacy Statement
 
-## Installationn
-
-Currently there only CI builds which you can get from [GitHub Actions tab](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions)
-
-## Development
-
-See the [TODO](TODO.md) for a list of proposed/planned features. If you're interested in implementing one of them please contact Mikayla.
+The extension has telemetry that sends anonymized error traces and usage information to the publisher of the extension. This information is used to help improve the extension. The extension's telemetry is enabled when Visual Studio's telemetry is enabled, but you can explicitly opt out. For details, see the [full privacy statement](docs/PrivacyStatement.md).
