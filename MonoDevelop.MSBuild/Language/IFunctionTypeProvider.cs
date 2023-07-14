@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
@@ -16,7 +17,6 @@ namespace MonoDevelop.MSBuild.Language
 		MSBuildValueKind ResolveType (ExpressionPropertyNode node);
 		IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ();
 		IEnumerable<ClassInfo> GetClassNameCompletions ();
-		ICollection<FunctionInfo> CollapseOverloads (IEnumerable<FunctionInfo> infos);
 		FunctionInfo GetStaticPropertyFunctionInfo (string className, string name);
 		FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name);
 		FunctionInfo GetItemFunctionInfo (string name);
