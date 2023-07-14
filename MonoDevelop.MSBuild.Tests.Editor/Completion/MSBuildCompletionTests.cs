@@ -244,6 +244,30 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 		}
 
 		[Test]
+		public async Task PropertyFunctionArrayPropertyCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"
+<Project>
+<PropertyGroup>
+<Foo>$([System.IO.Directory]::GetDirectories('.').^", caretMarker: '^');
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("Length");
+		}
+
+		[Test]
+		public async Task PropertyFunctionArrayIndexerCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"
+<Project>
+<PropertyGroup>
+<Foo>$([System.IO.Directory]::GetDirectories('.')[0].^", caretMarker: '^');
+
+			result.AssertNonEmpty ();
+			result.AssertContains ("get_Chars");
+		}
+
+		[Test]
 		public async Task ItemFunctionCompletion ()
 		{
 			var result = await this.GetCompletionContext (@"

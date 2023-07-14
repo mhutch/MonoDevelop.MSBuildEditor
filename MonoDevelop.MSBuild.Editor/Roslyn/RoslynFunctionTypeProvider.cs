@@ -3,11 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using EnvDTE;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -146,6 +149,11 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				//FIXME: maybe this could pass the types along directly instead of constantly converting
 				var targetType = ResolveType (epn);
 
+				// array indexer
+				if (inv.IsIndexer && (targetType & MSBuildValueKind.ListSemicolonOrComma) != 0) {
+					return targetType.WithoutModifiers ();
+				}
+
 				//FIXME: overload resolution
 				var match = Find (GetInstanceFunctions (targetType, true, true), inv.Function?.Name);
 				if (match != null) {
@@ -231,12 +239,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		IEnumerable<FunctionInfo> GetInstanceFunctions (MSBuildValueKind kind, bool includeProperties, bool includeIndexers)
 		{
-			// FIXME: support arrays
-			if (kind.AllowsLists ()) {
-				return Array.Empty<FunctionInfo> ();
-			}
+			bool isArray = (kind & MSBuildValueKind.ListSemicolonOrComma) != 0;
+			kind = kind.WithoutModifiers ();
 
-			INamedTypeSymbol type = null;
+			ITypeSymbol type = null;
 
 			if (DotNetTypeMap.FromValueKind (kind) is string dotNetType) {
 				type = compilation?.GetTypeByMetadataName (dotNetType);
@@ -245,6 +251,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			// if unresolved, assume it's coerced to string?
 			type ??= compilation?.GetTypeByMetadataName ("System.String");
 
+			if (isArray) {
+				type = compilation.CreateArrayTypeSymbol (type);
+			}
+
 			if (type is not null) {
 				return GetInstanceFunctions (type, includeProperties, includeIndexers);
 			}
@@ -252,9 +262,19 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return Array.Empty<FunctionInfo> ();
 		}
 
-		static IEnumerable<FunctionInfo> GetInstanceFunctions (INamedTypeSymbol type, bool includeProperties, bool includeIndexers)
+		static IEnumerable<FunctionInfo> GetInstanceFunctions (ITypeSymbol type, bool includeProperties, bool includeIndexers)
 		{
-			foreach (var member in type.GetMembers ()) {
+			ImmutableArray<Microsoft.CodeAnalysis.ISymbol> members;
+
+			MSBuildValueKind? arrayElementType = null;;
+			if (type is IArrayTypeSymbol arraySymbol) {
+				members = type.BaseType.GetMembers ();
+				arrayElementType = ConvertType (arraySymbol.ElementType);
+			} else {
+				members = type.GetMembers ();
+			}
+
+			foreach (var member in members) {
 				if (member.IsStatic || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 					continue;
 				}
@@ -289,13 +309,15 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					if (!includeIndexers && prop.IsIndexer) {
 						continue;
 					}
-					yield return new RoslynPropertyInfo (prop);
+					yield return new RoslynPropertyInfo (prop, arrayElementType);
 				}
 			}
 		}
 
 		IEnumerable<FunctionInfo> GetStaticFunctions (string className, Predicate<string> filter)
 		{
+			// TODO: Microsoft.Build.Utilities.ToolLocationHelper should come from Microsoft.Build.Utilities.Core, not corlib
+			// and Microsoft.Build.Framework.OperatingSystem comes from Microsoft.Build.Framework on < .NET 5.0
 			var type = compilation?.GetTypeByMetadataName (className);
 			if (type == null) {
 				yield break;
@@ -345,7 +367,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					if (ConvertType (prop.Type).IsUnknown ()) {
 						continue;
 					}
-					yield return new RoslynPropertyInfo (prop);
+					yield return new RoslynPropertyInfo (prop, null);
 				}
 			}
 		}

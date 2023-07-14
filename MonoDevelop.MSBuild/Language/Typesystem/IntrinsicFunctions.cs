@@ -204,7 +204,7 @@ static class IntrinsicFunctions
 	public static bool TryGetPermittedStaticFunctions (string fullTypeName, out Predicate<string> isPermitted)
 	{
 		if (permittedFunctions.TryGetValue (fullTypeName, out var permittedNames)) {
-			isPermitted = ((Predicate<string>) permittedNames.Contains) ?? ((string _) => true);
+			isPermitted = permittedNames is not null? permittedNames.Contains : ((string _) => true);
 			return true;
 		} else {
 			isPermitted = (_) => false;

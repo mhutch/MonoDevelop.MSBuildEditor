@@ -12,7 +12,7 @@ static class DotNetTypeMap
 {
 	public static string? FromValueKind (MSBuildValueKind kind)
 	{
-		if (kind.AllowsLists ()) {
+		if ((kind & MSBuildValueKind.ListSemicolonOrComma) != 0) {
 			throw new ArgumentException ("Cannot convert a list value kind to a .NET type name");
 		}
 
