@@ -218,6 +218,7 @@ static class IntrinsicFunctions
 			{ "System.Char", null },
 			{ "System.Convert", null },
 			{ "System.DateTime", null },
+			{ "System.DateTimeOffset", null },
 			{ "System.Decimal", null },
 			{ "System.Double", null },
 			{ "System.Enum", null },
@@ -241,6 +242,7 @@ static class IntrinsicFunctions
 			{ "Microsoft.Build.Utilities.ToolLocationHelper", null },
 			{ "System.Runtime.InteropServices.RuntimeInformation", null },
 			{ "System.Runtime.InteropServices.OSPlatform", null },
+			{ "System.OperatingSystem", null }, // NET 5.0 +
 			{ "System.Environment", new HashSet<string> {
 				"ExpandEnvironmentVariables",
 				"GetEnvironmentVariable",
@@ -251,6 +253,7 @@ static class IntrinsicFunctions
 				"Is64BitOperatingSystem",
 				"Is64BitProcess",
 				"MachineName",
+				"NewLine",
 				"OSVersion",
 				"ProcessorCount",
 				"StackTrace",
@@ -280,7 +283,7 @@ static class IntrinsicFunctions
 			} },
 			{ "System.Globalization.CultureInfo", new HashSet<string> {
 				"GetCultureInfo",
-				".ctor",
+				".ctor", // FIXME: alias this as "new"?
 				"CurrentUICulture"
 			} }
 		};
