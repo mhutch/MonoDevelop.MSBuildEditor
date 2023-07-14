@@ -419,276 +419,183 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return null;
 		}
 
-		static IEnumerable<FunctionInfo> GetIntrinsicItemFunctions ()
-		{
-			yield return new FunctionInfo (
-				"Count",
-				"Counts the number of items.",
-				MSBuildValueKind.Int);
-			yield return new FunctionInfo (
-				"DirectoryName",
-				"Transforms each item into its directory name.",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"Metadata",
-				"Returns the values of the specified metadata.",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName));
-			yield return new FunctionInfo (
-				"DistinctWithCase",
-				"Returns the items with distinct ItemSpecs, respecting case but ignoring metadata.",
-				MSBuildValueKind.MatchItem.AsList());
-			yield return new FunctionInfo (
-				"Distinct",
-				"Returns the items with distinct ItemSpecs, ignoring case and metadata.",
-				MSBuildValueKind.MatchItem.AsList());
-			yield return new FunctionInfo (
-				"Reverse",
-				"Reverses the list.",
-				MSBuildValueKind.MatchItem.AsList());
-			yield return new FunctionInfo (
-				"ClearMetadata",
-				"Returns the items with their metadata cleared.",
-				MSBuildValueKind.MatchItem.AsList());
-			yield return new FunctionInfo (
-				"HasMetadata",
-				"Returns the items that have non-empty values for the specified metadata.",
-				MSBuildValueKind.MatchItem.AsList(),
-				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName));
-			yield return new FunctionInfo (
-				"WithMetadataValue",
-				"Returns items that have the specified metadata value, ignoring case.",
-				MSBuildValueKind.MatchItem.AsList (),
-				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName),
-				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"AnyHaveMetadataValue",
-				"Returns true if any item has the specified metadata name and value, ignoring case.",
-				MSBuildValueKind.Bool,
-				new FunctionParameterInfo ("name", "Name of the metadata", MSBuildValueKind.MetadataName),
-				new FunctionParameterInfo ("value", "Value of the metadata", MSBuildValueKind.String));
-		}
+		static FunctionInfo FInfo (string name, MSBuildValueKind returnType, string documentation, params FunctionParameterInfo[] args)
+			=> new (name, documentation, returnType, args);
+		static FunctionParameterInfo FArg (string name, MSBuildValueKind kind, string documentation)
+			=> new (name, documentation, kind);
 
-		static IEnumerable<FunctionInfo> GetIntrinsicPropertyFunctions ()
-		{
+		static FunctionInfo[] intrinsicItemFunctions;
+
+		static FunctionInfo[] GetIntrinsicItemFunctions () => intrinsicItemFunctions ?? CreateIntrinsicItemFunctions ();
+
+		static FunctionInfo[] CreateIntrinsicPropertyFunctions () => new[] {
+			FInfo ("Count", MSBuildValueKind.Int, "Counts the number of items."),
+			FInfo ("DirectoryName", MSBuildValueKind.String, "Transforms each item into its directory name."),
+			FInfo ("Metadata", MSBuildValueKind.String, "Returns the values of the specified metadata.",
+				FArg ("name", MSBuildValueKind.MetadataName, "Name of the metadata")
+			),
+			FInfo ("DistinctWithCase", MSBuildValueKind.ItemName.AsList(), "Returns the items with distinct ItemSpecs, respecting case but ignoring metadata."),
+			FInfo ("Distinct", MSBuildValueKind.ItemName.AsList(),  "Returns the items with distinct ItemSpecs, ignoring case and metadata."),
+			FInfo ("Reverse", MSBuildValueKind.MatchItem.AsList(), "Reverses the list."),
+			FInfo ("ClearMetadata", MSBuildValueKind.MatchItem.AsList(), "Returns the items with their metadata cleared."),
+			FInfo ("HasMetadata", MSBuildValueKind.MatchItem.AsList(),  "Returns the items that have non-empty values for the specified metadata.",
+				FArg ("name", MSBuildValueKind.MetadataName, "Name of the metadata")
+			),
+			FInfo ("WithMetadataValue", MSBuildValueKind.MatchItem.AsList (), "Returns items that have the specified metadata value, ignoring case.",
+				FArg ("name", MSBuildValueKind.MetadataName, "Name of the metadata"),
+				FArg ("value", MSBuildValueKind.String, "Value of the metadata")
+			),
+			FInfo ("AnyHaveMetadataValue", MSBuildValueKind.Bool, "Returns true if any item has the specified metadata name and value, ignoring case.",
+				FArg ("name", MSBuildValueKind.MetadataName, "Name of the metadata"),
+				FArg ("value", MSBuildValueKind.String, "Value of the metadata")
+			),
+		};
+
+		static FunctionInfo[] intrinsicPropertyFunctions;
+
+		static FunctionInfo[] GetIntrinsicPropertyFunctions () => intrinsicPropertyFunctions ?? CreateIntrinsicPropertyFunctions ();
+
+		static FunctionInfo[] CreateIntrinsicItemFunctions () => new[] {
 			//these are all really doubles and longs but MSBuildValueKind doesn't make a distinction
-			yield return new FunctionInfo (
-				"Add",
-				"Add two doubles",
-				MSBuildValueKind.Float,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
-			yield return new FunctionInfo (
-				"Add",
-				"Add two longs",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"Subtract",
-				"Subtract two doubles",
-				MSBuildValueKind.Float,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
-			yield return new FunctionInfo (
-				"Subtract",
-				"Subtract two longs",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"Multiply",
-				"Multiply two doubles",
-				MSBuildValueKind.Float,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
-			yield return new FunctionInfo (
-				"Multiply",
-				"Multiply two longs",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"Divide",
-				"Divide two doubles",
-				MSBuildValueKind.Float,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
-			yield return new FunctionInfo (
-				"Divide",
-				"Divide two longs",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"Modulo",
-				"Modulo two doubles",
-				MSBuildValueKind.Float,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Float),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Float));
-			yield return new FunctionInfo (
-				"Modulo",
-				"Modulo two longs",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
+			// math functions
+			FInfo ("Add", MSBuildValueKind.Float, "Add two doubles",
+				FArg ("a", MSBuildValueKind.Float, "First operand"),
+				FArg ("b", MSBuildValueKind.Float, "Second operand")
+			),
+			FInfo ("Add", MSBuildValueKind.Int, "Add two longs",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("Subtract", MSBuildValueKind.Float, "Subtract two doubles",
+				FArg ("a", MSBuildValueKind.Float, "First operand"),
+				FArg ("b", MSBuildValueKind.Float, "Second operand")
+			),
+			FInfo ("Subtract", MSBuildValueKind.Int, "Subtract two longs",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("Multiply", MSBuildValueKind.Float, "Multiply two doubles",
+				FArg ("a", MSBuildValueKind.Float, "First operand"),
+				FArg ("b", MSBuildValueKind.Float, "Second operand")
+			),
+			FInfo ("Multiply", MSBuildValueKind.Int, "Multiply two longs",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("Divide", MSBuildValueKind.Float, "Divide two doubles",
+				FArg ("a", MSBuildValueKind.Float, "First operand"),
+				FArg ("b", MSBuildValueKind.Float, "Second operand")
+			),
+			FInfo ("Divide", MSBuildValueKind.Int, "Divide two longs",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("Modulo", MSBuildValueKind.Float, "Modulo two doubles",
+				FArg ("a", MSBuildValueKind.Float, "First operand"),
+				FArg ("b", MSBuildValueKind.Float, "Second operand")
+			),
+			FInfo ("Modulo", MSBuildValueKind.Int, "Modulo two longs",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
 
-			yield return new FunctionInfo (
-				"Escape",
-				"Escape the string according to MSBuild's escaping rules",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("unescaped", "The unescaped string", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"Unescape",
-				"Unescape the string according to MSBuild's escaping rules",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("escaped", "The escaped string", MSBuildValueKind.String));
+			//escaping
+			FInfo ("Escape", MSBuildValueKind.String, "Escape the string according to MSBuild's escaping rules",
+				FArg ("unescaped", MSBuildValueKind.String, "The unescaped string")
+			),
+			FInfo ("Unescape", MSBuildValueKind.String, "Unescape the string according to MSBuild's escaping rules",
+				FArg ("escaped", MSBuildValueKind.String, "The escaped string")
+			),
 
+			// bitwise ops
+			FInfo ("BitwiseOr", MSBuildValueKind.Int, "Perform a bitwise OR on the first and second (first | second)",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("BitwiseAnd", MSBuildValueKind.Int, "Perform a bitwise AND on the first and second (first & second)",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("BitwiseXor", MSBuildValueKind.Int, "Perform a bitwise XOR on the first and second (first ^ second)",
+				FArg ("a", MSBuildValueKind.Int, "First operand"),
+				FArg ("b", MSBuildValueKind.Int, "Second operand")
+			),
+			FInfo ("BitwiseNot", MSBuildValueKind.Int, "Perform a bitwise NOT on the first (~first)",
+				FArg ("a", MSBuildValueKind.Int, "First operand")
+			),
 
-			yield return new FunctionInfo (
-				"BitwiseOr",
-				"Perform a bitwise OR on the first and second (first | second)",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"BitwiseAnd",
-				"Perform a bitwise AND on the first and second (first & second)",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"BitwiseXor",
-				"Perform a bitwise XOR on the first and second (first ^ second)",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int),
-				new FunctionParameterInfo ("b", "Second operand", MSBuildValueKind.Int));
-			yield return new FunctionInfo (
-				"BitwiseNot",
-				"Perform a bitwise NOT on the first (~first)",
-				MSBuildValueKind.Int,
-				new FunctionParameterInfo ("a", "First operand", MSBuildValueKind.Int));
-
-			yield return new FunctionInfo (
-				"GetRegistryValue",
-				"Get the value of the registry key and value, default value is null",
-				MSBuildValueKind.Object,
-				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
-				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"GetRegistryValue",
-				"Get the value of the registry key and value",
-				MSBuildValueKind.Object,
-				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
-				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String),
-				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.Object));
-			yield return new FunctionInfo (
-				"GetRegistryValueFromView",
-				"Get the value of the registry key from one of the RegistryViews specified",
-				MSBuildValueKind.Object,
-				new FunctionParameterInfo ("keyName", "The key name", MSBuildValueKind.String),
-				new FunctionParameterInfo ("valueName", "The value name", MSBuildValueKind.String),
-				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.Object),
+			//registry
+			FInfo ("GetRegistryValue", MSBuildValueKind.Object, "Get the value of the registry key and value, default value is null",
+				FArg ("keyName", MSBuildValueKind.String, "The key name"),
+				FArg ("valueName", MSBuildValueKind.String, "The value name")
+			),
+			FInfo ("GetRegistryValue", MSBuildValueKind.Object, "Get the value of the registry key and value",
+				FArg ("keyName", MSBuildValueKind.String, "The key name"),
+				FArg ("valueName", MSBuildValueKind.String, "The value name"),
+				FArg ("defaultValue", MSBuildValueKind.Object, "The default value")
+			),
+			FInfo ("GetRegistryValueFromView", MSBuildValueKind.Object, "Get the value of the registry key from one of the RegistryViews specified",
+				FArg ("keyName", MSBuildValueKind.String, "The key name"),
+				FArg ("valueName", MSBuildValueKind.String, "The value name"),
+				FArg ("defaultValue", MSBuildValueKind.Object, "The default value"),
 				//todo params, registryView enum
-				new FunctionParameterInfo ("views", "Which registry view(s) to use", MSBuildValueKind.Object.AsList()));
+				FArg ("views", MSBuildValueKind.Object.AsList(), "Which registry view(s) to use")
+			),
 
-			yield return new FunctionInfo (
-				"MakeRelative",
-				"Converts a file path to be relative to the specified base path.",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("basePath", "The base path", MSBuildValueKind.String),
-				new FunctionParameterInfo ("path", "The path to convert", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"GetDirectoryNameOfFileAbove",
-				"Searches upward for a directory containing the specified file, beginning in the specified directory.",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("startingDirectory", "The starting directory", MSBuildValueKind.String),
-				new FunctionParameterInfo ("fileName", "The filename for which to search", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"GetPathOfFileAbove",
-				"Searches upward for the specified file, beginning in the specified directory.",
-				MSBuildValueKind.String,
+			// path manipulation
+			FInfo ("MakeRelative", MSBuildValueKind.String, "Converts a file path to be relative to the specified base path.",
+				FArg ("basePath", MSBuildValueKind.String, "The base path"),
+				FArg ("path", MSBuildValueKind.String, "The path to convert")
+			),
+			FInfo ("GetDirectoryNameOfFileAbove", MSBuildValueKind.String, "Searches upward for a directory containing the specified file, beginning in the specified directory.",
+				FArg ("startingDirectory", MSBuildValueKind.String, "The starting directory"),
+				FArg ("fileName", MSBuildValueKind.String, "The filename for which to search")
+			),
+			FInfo ("GetPathOfFileAbove", MSBuildValueKind.String, "Searches upward for the specified file, beginning in the specified directory.",
 				//yes, GetPathOfFileAbove and GetDirectoryNameOfFileAbove have reversed args
-				new FunctionParameterInfo ("file", "The filename for which to search", MSBuildValueKind.String),
-				new FunctionParameterInfo ("startingDirectory", "The starting directory", MSBuildValueKind.String));
+				FArg ("file", MSBuildValueKind.String, "The filename for which to search"),
+				FArg ("startingDirectory", MSBuildValueKind.String, "The starting directory")
+			),
 
-			yield return new FunctionInfo (
-				"ValueOrDefault",
-				"Return the string in parameter 'defaultValue' only if parameter 'conditionValue' is empty, else, return the value conditionValue",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("conditionValue", "The condition", MSBuildValueKind.String),
-				new FunctionParameterInfo ("defaultValue", "The default value", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"DoesTaskHostExist",
-				"Returns true if a task host exists that can service the requested runtime and architecture",
-				MSBuildValueKind.Bool,
+			// other
+
+			FInfo ("ValueOrDefault", MSBuildValueKind.String, "Return the string in parameter 'defaultValue' only if parameter 'conditionValue' is empty, else, return the value conditionValue",
+				FArg ("conditionValue", MSBuildValueKind.String, "The condition"),
+				FArg ("defaultValue", MSBuildValueKind.String, "The default value")
+			),
+			FInfo ("DoesTaskHostExist", MSBuildValueKind.Bool, "Returns true if a task host exists that can service the requested runtime and architecture",
 				//FIXME type these more strongly for intellisense
-				new FunctionParameterInfo ("runtime", "The runtime", MSBuildValueKind.String),
-				new FunctionParameterInfo ("architecture", "The architecture", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"EnsureTrailingSlash",
-				"If the given path doesn't have a trailing slash then add one. If empty, leave it empty.",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("path", "The path", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"NormalizeDirectory",
-				"Gets the canonical full path of the provided directory, with correct directory separators for the current OS and a trailing slash.",
-				MSBuildValueKind.String,
-				//FIXME params
-				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.AsList()));
-			yield return new FunctionInfo (
-				"NormalizePath",
-				"Gets the canonical full path of the provided path, with correct directory separators for the current OS.",
-				MSBuildValueKind.String,
-				new FunctionParameterInfo ("path", "The path components", MSBuildValueKind.String.AsList ()));
-			yield return new FunctionInfo (
-				"IsOSPlatform",
-				"Whether the current OS platform is the specified OSPlatform value. Case insensitive.",
-				MSBuildValueKind.Bool,
-				//FIXME stronger typing
-				new FunctionParameterInfo ("platformString", "The OSPlatform value", MSBuildValueKind.String));
-			yield return new FunctionInfo (
-				"IsOsUnixLike",
-				"True if current OS is a Unix system.",
-				MSBuildValueKind.Bool);
-			yield return new FunctionInfo (
-				"IsOsBsdLike",
-				"True if current OS is a BSD system.",
-				MSBuildValueKind.Bool);
-			yield return new FunctionInfo (
-				"GetCurrentToolsDirectory",
-				"Gets the path of the current tools directory",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetToolsDirectory32",
-				"Gets the path of the 32-bit tools directory",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetToolsDirectory64",
-				"Gets the path of the 64-bit tools directory",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetMSBuildSDKsPath",
-				"Gets the path of the MSBuild SDKs directory",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetVsInstallRoot",
-				"Gets the root directory of the Visual Studio installation",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetProgramFiles32",
-				"Gets the path of the 32-bit Program Files directory",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"GetMSBuildExtensionsPath",
-				"Gets the value of MSBuildExtensionsPath",
-				MSBuildValueKind.String);
-			yield return new FunctionInfo (
-				"IsRunningFromVisualStudio",
-				"Whether MSBuild is running from Visual Studio",
-				MSBuildValueKind.Bool);
-		}
+				FArg ("runtime", MSBuildValueKind.String, "The runtime"),
+				FArg ("architecture", MSBuildValueKind.String, "The architecture")
+			),
+			FInfo ("EnsureTrailingSlash", MSBuildValueKind.String, "If the given path doesn't have a trailing slash then add one. If empty, leave it empty.",
+				FArg ("path", MSBuildValueKind.String, "The path")
+			),
 
+			FInfo ("NormalizeDirectory", MSBuildValueKind.String, "Gets the canonical full path of the provided directory, with correct directory separators for the current OS and a trailing slash.",
+				//FIXME params
+				FArg ("path", MSBuildValueKind.String.AsList(), "The path components")
+			),
+			FInfo ("NormalizePath", MSBuildValueKind.String, "Gets the canonical full path of the provided path, with correct directory separators for the current OS.",
+				FArg ("path", MSBuildValueKind.String.AsList (), "The path components")
+			),
+			FInfo ("IsOSPlatform", MSBuildValueKind.Bool, "Whether the current OS platform is the specified OSPlatform value. Case insensitive.",
+				//FIXME stronger typing
+				FArg ("platformString", MSBuildValueKind.String, "The OSPlatform value")
+			),
+			FInfo ("IsOsUnixLike", MSBuildValueKind.Bool, "True if current OS is a Unix system."),
+			FInfo ("IsOsBsdLike", MSBuildValueKind.Bool, "True if current OS is a BSD system."),
+			FInfo ("GetCurrentToolsDirectory", MSBuildValueKind.String, "Gets the path of the current tools directory"),
+			FInfo ("GetToolsDirectory32", MSBuildValueKind.String, "Gets the path of the 32-bit tools directory"),
+			FInfo ("GetToolsDirectory64", MSBuildValueKind.String, "Gets the path of the 64-bit tools directory"),
+			FInfo ("GetMSBuildSDKsPath", MSBuildValueKind.String,  "Gets the path of the MSBuild SDKs directory"),
+			FInfo ("GetVsInstallRoot", MSBuildValueKind.String, "Gets the root directory of the Visual Studio installation"),
+			FInfo ("GetProgramFiles32", MSBuildValueKind.String, "Gets the path of the 32-bit Program Files directory"),
+			FInfo ("GetMSBuildExtensionsPath", MSBuildValueKind.String, "Gets the value of MSBuildExtensionsPath"),
+			FInfo ("IsRunningFromVisualStudio", MSBuildValueKind.Bool, "Whether MSBuild is running from Visual Studio")
+		};
+
+		// TODO: use MSBuild's src/Build/Resources/Constants.cs
 		//FIXME put this on some context class instead of static
 		static readonly Dictionary<string, HashSet<string>> permittedFunctions = new Dictionary<string, HashSet<string>> {
 			{ "System.Byte", null },
