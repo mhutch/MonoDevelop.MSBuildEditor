@@ -396,8 +396,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
-			foreach (var result in results) {
-				items.Add (CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
+			var index = 0;
+			foreach (var result in results.Reverse ()) {
+				items.Add (CreateOrderedNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue, index++));
 			}
 
 			return items;
@@ -601,6 +602,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var kindImage = provider.DisplayElementFactory.GetImageElement (info.Item2);
 			var item = new CompletionItem (info.Item1, this, kindImage);
+			item.AddKind (xmlCompletionItemKind);
+			item.Properties.AddProperty (typeof (Tuple<string, FeedKind>), info);
+			item.AddDocumentationProvider (this);
+			return item;
+		}
+
+		CompletionItem CreateOrderedNuGetCompletionItem (Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind, int index)
+		{
+			var kindImage = provider.DisplayElementFactory.GetImageElement (info.Item2);
+			string displayText = info.Item1;
+			var item = new CompletionItem (displayText, this, kindImage, ImmutableArray<CompletionFilter>.Empty, string.Empty, displayText, $"_{index:D5}", displayText, ImmutableArray<ImageElement>.Empty);
 			item.AddKind (xmlCompletionItemKind);
 			item.Properties.AddProperty (typeof (Tuple<string, FeedKind>), info);
 			item.AddDocumentationProvider (this);
