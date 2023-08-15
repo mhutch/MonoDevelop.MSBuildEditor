@@ -82,7 +82,9 @@ namespace MonoDevelop.MSBuild
 			var dictProp = toolset.GetType ().GetProperty ("ImportPropertySearchPathsTable", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 			var dict = (IDictionary)dictProp.GetValue (toolset);
 			var importPathsType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Evaluation.ProjectImportPathMatch");
-			var pathsField = importPathsType.GetField ("SearchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+			var pathsField = importPathsType.GetField ("SearchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+				// in MSBuild15 'SearchPaths' is a public property, and '_searchPaths' is the backing field
+				?? importPathsType.GetField ("_searchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
 			var converted = new Dictionary<string, string[]> (StringComparer.OrdinalIgnoreCase);
 			var enumerator = dict.GetEnumerator ();

@@ -11,7 +11,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		public ExpressionNode Expression { get; }
 
 		public bool IsSimpleProperty => Expression is ExpressionPropertyName;
-		public string Name => (Expression as ExpressionPropertyName)?.Name;
+		public string? Name => (Expression as ExpressionPropertyName)?.Name;
 		public int? NameOffset => (Expression as ExpressionPropertyName)?.Offset;
 
 		public ExpressionProperty (int offset, int length, ExpressionNode expression) : base (offset, length)
