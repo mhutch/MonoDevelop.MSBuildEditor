@@ -280,7 +280,7 @@ namespace MonoDevelop.MSBuild.Schema
 					yield return baseDir;
 					yield break;
 				}
-				var path = TrimEndChars (lit.GetUnescapedValue ());
+				var path = TrimEndChars (lit.GetUnescapedValue (false, out _, out _));
 				if (string.IsNullOrEmpty (path)) {
 					yield return baseDir;
 					yield break;

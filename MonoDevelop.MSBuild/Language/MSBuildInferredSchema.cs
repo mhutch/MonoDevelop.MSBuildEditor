@@ -370,7 +370,7 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionText literal:
 					if (literal.IsPure) {
-						var value = literal.GetUnescapedValue ().Trim ();
+						var value = literal.GetUnescapedValue (true, out _, out _);
 						switch (kind.WithoutModifiers ()) {
 						case MSBuildValueKind.ItemName:
 							CollectItem (value, ReferenceUsage.Unknown);

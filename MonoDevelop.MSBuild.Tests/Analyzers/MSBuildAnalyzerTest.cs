@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 
 using MonoDevelop.MSBuild.Analysis;
@@ -13,6 +16,7 @@ using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
@@ -22,23 +26,35 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 
 		protected void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, new[] { analyzer }, false, expectedDiagnostics);
+			=> VerifyDiagnostics (source, new[] { analyzer }, false, false, null, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, analyzers, false, expectedDiagnostics);
+			=> VerifyDiagnostics (source, analyzers, false, false, null, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
+			=> VerifyDiagnostics (source, analyzers, includeCoreDiagnostics, false, null, expectedDiagnostics);
+
+		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, bool checkUnexpectedDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
+			=> VerifyDiagnostics (source, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, null, expectedDiagnostics);
+
+		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, bool checkUnexpectedDiagnostics, MSBuildSchema schema, params MSBuildDiagnostic[] expectedDiagnostics)
 		{
+			const string projectFileName = "FakeProject.csproj";
+
 			var token = CancellationToken.None;
 
-			var schemas = new MSBuildSchemaProvider ();
+			var schemas = new TestSchemaProvider ();
+			if (schema is not null) {
+				schemas.AddTestSchema (projectFileName, null, schema);
+			}
+
 			var environment = new NullMSBuildEnvironment ();
 			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
 			var logger = TestLoggerFactory.CreateTestMethodLogger ();
 
 			var doc = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
-				"FakeProject.csproj",
+				projectFileName,
 				null,
 				schemas,
 				environment,
@@ -50,8 +66,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			if (analyzers != null && analyzers.Count > 0) {
 				analyzerDriver.AddAnalyzers (analyzers);
-			}
-			else if (!includeCoreDiagnostics) {
+			} else if (!includeCoreDiagnostics) {
 				throw new ArgumentException ("Analyzers can only be null or empty if core diagnostics are included", nameof (analyzers));
 			}
 
@@ -61,8 +76,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				bool found = false;
 				for (int i = 0; i < actualDiagnostics.Count; i++) {
 					var actualDiag = actualDiagnostics[i];
-					// todo: compare properties
 					if (actualDiag.Descriptor == expectedDiag.Descriptor && actualDiag.Span.Equals (expectedDiag.Span)) {
+						Assert.That (actualDiag.Properties ?? Enumerable.Empty<KeyValuePair<string,object>>(),
+							Is.EquivalentTo (expectedDiag.Properties ?? Enumerable.Empty<KeyValuePair<string, object>> ())
+							.UsingDictionaryComparer<string,object> ());
 						found = true;
 						actualDiagnostics.RemoveAt (i);
 						break;
@@ -73,9 +90,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				}
 			}
 
-			if (actualDiagnostics.Count > 0) {
-				var diag = actualDiagnostics[0];
-				Assert.Fail ($"Found unexpected diagnostic {diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}");
+			if (checkUnexpectedDiagnostics && actualDiagnostics.Count > 0) {
+				Assert.Fail ($"Found unexpected diagnostics: {string.Join ("", actualDiagnostics.Select (diag => $"\n\t{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
 			}
 		}
 
@@ -106,6 +122,27 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				}
 			}
 			throw new ArgumentOutOfRangeException ($"Reached line {currentLine}");
+		}
+
+	}
+
+	class TestSchemaProvider : MSBuildSchemaProvider
+	{
+		readonly Dictionary<(string filename, string sdk), MSBuildSchema> schemas = new ();
+
+		public void AddTestSchema (string filename, string sdk, MSBuildSchema schema)
+		{
+			schemas.Add ((filename, sdk), schema);
+		}
+
+		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
+		{
+			if (schemas.TryGetValue ((Path.GetFileName (path), sdk), out MSBuildSchema schema)) {
+				loadErrors = null;
+				return schema;
+			}
+
+			return base.GetSchema (path, sdk, out loadErrors);
 		}
 	}
 }

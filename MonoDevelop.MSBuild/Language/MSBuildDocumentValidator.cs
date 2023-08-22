@@ -474,7 +474,7 @@ namespace MonoDevelop.MSBuild.Language
 				} else {
 					foreach (var listVal in list.Nodes) {
 						if (listVal is ExpressionText listValText) {
-							VisitPureLiteral (info, kind.WithoutModifiers (), listValText.GetUnescapedValue (), listValText.Offset);
+							VisitPureLiteral (info, kind.WithoutModifiers (), listValText);
 						}
 					}
 				}
@@ -485,7 +485,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 			} else if (node is ExpressionText lit) {
-				VisitPureLiteral (info, kind.WithoutModifiers (), lit.GetUnescapedValue (), lit.Offset);
+				VisitPureLiteral (info, kind.WithoutModifiers (), lit);
 			} else {
 				if (!allowExpressions) {
 					AddExpressionWarning (node);
@@ -546,8 +546,10 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
-		void VisitPureLiteral (ITypedSymbol info, MSBuildValueKind kind, string value, int offset)
+		void VisitPureLiteral (ITypedSymbol info, MSBuildValueKind kind, ExpressionText expressionText)
 		{
+			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
+
 			if (info.CustomType != null && info.CustomType.AllowUnknownValues) {
 				return;
 			}
@@ -669,7 +671,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (offset, value.Length), args);
+			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (trimmedOffset, escapedLength), args);
 
 			// errors expected to be fixed by ChangeMisspelledNameFixProvider
 			// captures the information needed by the fixer
@@ -677,11 +679,11 @@ namespace MonoDevelop.MSBuild.Language
 			{
 				Document.Diagnostics.Add (
 					d,
-					new TextSpan (offset, value.Length),
+					new TextSpan (trimmedOffset, escapedLength),
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", value)
 						.Add ("ValueKind", kind)
-						.Add ("CustomType", info.CustomType),
+						.AddIfNotNull ("CustomType", info.CustomType),
 					args
 				);
 			}
