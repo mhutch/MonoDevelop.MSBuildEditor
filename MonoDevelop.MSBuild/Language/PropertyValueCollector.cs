@@ -73,8 +73,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public void Mark (string name)
+		public void Mark (string? name)
 		{
+			if (name == null)
+				return;
+
 			if (!props.ContainsKey (name)) {
 				props [name] = null;
 			}
