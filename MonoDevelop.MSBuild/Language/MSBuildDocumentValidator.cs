@@ -540,8 +540,9 @@ namespace MonoDevelop.MSBuild.Language
 					d,
 					symbolSpan,
 					ImmutableDictionary<string, object>.Empty
-						.Add ("Name", symbolName)
-					);
+						.Add ("Name", symbolName),
+					args
+				);
 			}
 		}
 
