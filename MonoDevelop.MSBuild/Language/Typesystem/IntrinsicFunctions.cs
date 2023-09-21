@@ -210,8 +210,11 @@ static class IntrinsicFunctions
 		),
 		FInfo ("GetTargetFrameworkVersion", MSBuildValueKind.String, "Parse the `TargetFrameworkVersion` from a `TargetFramework` value.",
 			FArg ("targetFramework", MSBuildValueKind.String, "The target framework"),
-			// FIXME: add default value support
-			FArg ("minVersionPartCount", MSBuildValueKind.Int, "The minimum number of parts the returned version should have. This may be omitted and defaults to `2`.")
+			FArg ("minVersionPartCount", MSBuildValueKind.Int, "The minimum number of parts the returned version should have. Any zero-valued components beyond this minimum will be omitted.")
+		),
+		// as we don't support default values (minVersionPartCount = 2), add an overlead instead
+		FInfo ("GetTargetFrameworkVersion", MSBuildValueKind.String, "Parse the `TargetFrameworkVersion` from a `TargetFramework` value, omitting any zero-valued components beyond the major and minor version",
+			FArg ("targetFramework", MSBuildValueKind.String, "The target framework")
 		),
 		FInfo ("IsTargetFrameworkCompatible", MSBuildValueKind.Bool, "Check whether the first `TargetFramework` can reference the second `TargetFramework`.",
 			FArg ("baseTargetFramework", MSBuildValueKind.String, "The base TargetFramework"),
@@ -222,8 +225,11 @@ static class IntrinsicFunctions
 		),
 		FInfo ("GetTargetPlatformVersion", MSBuildValueKind.String, "Parse the `TargetPlatformVersion` from a `TargetFramework` value.",
 			FArg ("targetFramework", MSBuildValueKind.String, "The target framework"),
-			// FIXME: add default value support
-			FArg ("minVersionPartCount", MSBuildValueKind.Int, "The minimum number of parts the returned version should have. This may be omitted and defaults to `2`.")
+			FArg ("minVersionPartCount", MSBuildValueKind.Int, "The minimum number of parts the returned version should have. Any zero-valued components beyond this minimum will be omitted.")
+		),
+		// as we don't support default values (minVersionPartCount = 2), add an overlead instead
+		FInfo ("GetTargetPlatformVersion", MSBuildValueKind.String, "Parse the `TargetPlatformVersion` from a `TargetFramework` value, omitting any zero-valued components beyond the major and minor version.",
+			FArg ("targetFramework", MSBuildValueKind.String, "The target framework")
 		),
 		// https://github.com/dotnet/msbuild/pull/8350
 		FInfo ("FilterTargetFrameworks", MSBuildValueKind.TargetFramework.AsList (),
