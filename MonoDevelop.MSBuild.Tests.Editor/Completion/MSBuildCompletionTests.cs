@@ -201,9 +201,10 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 <PropertyGroup>
 <Foo>$([MSBuild]::^", caretMarker: '^');
 
-			result.AssertItemCount (32);
-
+			// check a few different expected values are in the list
 			result.AssertContains ("GetDirectoryNameOfFileAbove");
+			result.AssertContains ("Add");
+			result.AssertContains ("GetTargetPlatformVersion");
 		}
 
 		[Test]
