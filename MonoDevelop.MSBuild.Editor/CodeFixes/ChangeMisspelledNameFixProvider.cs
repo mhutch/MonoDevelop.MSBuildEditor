@@ -82,7 +82,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				case CoreDiagnostics.UnknownValue_Id:
 				case CoreDiagnostics.InvalidBool_Id:
 					var kind = (MSBuildValueKind)diag.Properties["ValueKind"];
-					var customType = (CustomTypeInfo)diag.Properties["CustomType"];
+					CustomTypeInfo customType = kind == MSBuildValueKind.CustomType? (CustomTypeInfo)diag.Properties["CustomType"] : null;
 					foreach (var value in await spellChecker.FindSimilarValues (context.Document, kind, customType, name)) {
 						context.RegisterCodeFix (new FixNameAction (spans, name, value.Name), diag);
 					}

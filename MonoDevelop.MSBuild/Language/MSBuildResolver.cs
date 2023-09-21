@@ -298,12 +298,12 @@ namespace MonoDevelop.MSBuild.Language
 
 			void VisitPureLiteral (XElement element, ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionText node)
 			{
-				string value = node.GetUnescapedValue ();
+				string value = node.GetUnescapedValue (true, out int trimmedOffset, out int escapedLength);
 				if (string.IsNullOrEmpty(value)) {
 					return;
 				}
-				rr.ReferenceOffset = node.Offset;
-				rr.ReferenceLength = node.Value.Length;
+				rr.ReferenceOffset = trimmedOffset;
+				rr.ReferenceLength = escapedLength;
 				rr.Reference = value;
 
 				switch (inferredKind) {

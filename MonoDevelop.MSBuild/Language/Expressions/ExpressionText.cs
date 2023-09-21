@@ -3,13 +3,46 @@
 
 using System.Diagnostics;
 
+using MonoDevelop.Xml.Parser;
+
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("{Value} (IsPure: {IsPure})")]
 	public class ExpressionText : ExpressionNode
 	{
 		public string Value { get; }
-		public string GetUnescapedValue () => XmlEscaping.UnescapeEntities (Value);
+
+		/// <summary>
+		/// Gets the unescaped value of this text, optionally trimming whitespace.
+		/// </summary>
+		/// <param name="trim">Whether to trim leading and trailing whitespace.</param>
+		/// <param name="trimmedOffset">The offset of the text, taking optional trimming into account.</param>
+		/// <param name="escapedLength">The length of the escaped text, taking optional trimming into account.</param>
+		/// <returns>The unescaped value of this text, optionally trimmed.</returns>
+		public string GetUnescapedValue (bool trim, out int trimmedOffset, out int escapedLength)
+		{
+			string value = Value;
+			escapedLength = value.Length;
+			trimmedOffset = Offset;
+
+			if (trim) {
+				int start = 0;
+				while (start < value.Length && XmlChar.IsWhitespace (value[start])) {
+					start++;
+				}
+				int end = value.Length - 1;
+				while (end >= start && XmlChar.IsWhitespace (value[end])) {
+					end--;
+				}
+				if (start > 0 || end < value.Length - 1) {
+					escapedLength = end - start + 1;
+					value = value.Substring (start, end - start + 1);
+				}
+				trimmedOffset = start + Offset;
+			}
+
+			return XmlEscaping.UnescapeEntities (value);
+		}
 
 		/// <summary>
 		/// Indicates whether this exists by itself, as opposed to being concatenated with other values.

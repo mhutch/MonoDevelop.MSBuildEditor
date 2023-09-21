@@ -35,7 +35,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			readonly ILogger logger;
 			readonly IAsyncCompletionSession session;
 			readonly MSBuildCompletionSource parent;
-			MSBuildCompletionItemManager completionItemManager;
+			IAsyncCompletionItemManager completionItemManager;
 
 			// these fields are protected by the locker
 			object locker = new object ();
@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			bool isUpdatedListEnqueued;
 
 			public ImmutableArray<CompletionItem> Update (
-				MSBuildCompletionItemManager completionItemManager,
+				IAsyncCompletionItemManager completionItemManager,
 				AsyncCompletionSessionDataSnapshot data)
 			{
 				lock (locker) {
