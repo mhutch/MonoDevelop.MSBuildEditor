@@ -58,15 +58,19 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 	class RoslynPropertyInfo : FunctionInfo
 	{
-		public RoslynPropertyInfo (IPropertySymbol symbol) : base (symbol.Name, null)
+		// is this is a property on an array, contains the array element type
+		readonly MSBuildValueKind? arrayElementType;
+
+		public RoslynPropertyInfo (IPropertySymbol symbol, MSBuildValueKind? arrayElementType) : base (symbol.Name, null)
 		{
 			Symbol = symbol;
+			this.arrayElementType = arrayElementType;
 		}
 
 		public override DisplayText Description => RoslynHelpers.GetDescription (Symbol);
 
 		public IPropertySymbol Symbol { get; }
-		public override MSBuildValueKind ReturnType => RoslynFunctionTypeProvider.ConvertType (Symbol.Type);
+		public override MSBuildValueKind ReturnType => arrayElementType ?? RoslynFunctionTypeProvider.ConvertType (Symbol.Type);
 		public override FunctionParameterInfo [] Parameters => null;
 		public override bool IsProperty => true;
 	}
