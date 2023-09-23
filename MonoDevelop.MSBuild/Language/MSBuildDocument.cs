@@ -100,7 +100,20 @@ namespace MonoDevelop.MSBuild.Language
 
 			var importResolver = context.CreateImportResolver (Filename);
 
-			AddSdkImports ("Sdk.props", sdks, context.PropertyCollector, importResolver);
+
+			var sdkPropsExpr = new ExpressionText (0, "Sdk.props", true);
+			var sdkTargetsExpr = new ExpressionText (0, "Sdk.targets", true);
+
+			void AddSdkImport (ExpressionText importExpr, string importText, string sdkString, SdkInfo sdk, bool isImplicit = false)
+			{
+				if (importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit) is Import sdkImport) {
+					AddImport (sdkImport);
+				}
+			}
+
+			foreach (var sdk in sdks) {
+				AddSdkImport (sdkPropsExpr, sdkPropsExpr.Value, sdk.sdk, sdk.resolved, false);
+			}
 
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
 			{
@@ -127,7 +140,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			AddSdkImports("Sdk.targets", sdks, context.PropertyCollector, importResolver);
+			foreach (var sdk in sdks) {
+				AddSdkImport (sdkTargetsExpr, sdkTargetsExpr.Value, sdk.sdk, sdk.resolved, false);
+			}
 		}
 
 		void ResolveImport (MSBuildImportElement element, MSBuildParserContext parseContext, MSBuildImportResolver importResolver)
@@ -283,24 +298,6 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			ImportsHash ^= import.Document?.GetHashCode () ?? 0;
 			Imports.Add (import);
-		}
-
-		public void AddImport (IEnumerable<Import> imports)
-		{
-			foreach (var import in imports) {
-				AddImport (import);
-			}
-		}
-
-		void AddSdkImports (string import, IEnumerable<(string id, SdkInfo resolved, TextSpan loc)> sdks, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
-		{
-			var importExpr = new ExpressionText (0, import, true);
-			foreach (var sdk in sdks) {
-				var sdkTargets = importResolver.Resolve (importExpr, import, sdk.id, sdk.resolved).FirstOrDefault ();
-				if (sdkTargets != null) {
-					AddImport (sdkTargets);
-				}
-			}
 		}
 
 		public IEnumerable<Import> GetDescendentImports ()

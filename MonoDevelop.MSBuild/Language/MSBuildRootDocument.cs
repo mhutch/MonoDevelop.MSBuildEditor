@@ -102,12 +102,12 @@ namespace MonoDevelop.MSBuild.Language
 				return Path.GetFullPath (Path.Combine (dir, path));
 			}
 
-			Import TryAddImport (string label, string possibleFile)
+			Import TryAddImport (string label, string possibleFile, bool isImplicitImport)
 			{
 				try {
 					var fi = new FileInfo (possibleFile);
 					if (fi.Exists) {
-						var imp = parseContext.GetCachedOrParse (label, possibleFile, null, null, fi.LastWriteTimeUtc);
+						var imp = parseContext.GetCachedOrParse (label, possibleFile, null, null, fi.LastWriteTimeUtc, isImplicitImport);
 						doc.AddImport (imp);
 						return imp;
 					}
@@ -124,13 +124,13 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				var siblingFilename = Path.ChangeExtension (filePath, thenTryThisExtension);
-				return TryAddImport ("(implicit)", siblingFilename);
+				return TryAddImport ("(implicit)", siblingFilename, true);
 			}
 
 			void TryImportIntellisenseImports (MSBuildSchema schema)
 			{
 				foreach (var intellisenseImport in schema.IntelliSenseImports) {
-					TryAddImport ("(from schema)", MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+					TryAddImport ("(from schema)", MakeRelativeMSBuildPathAbsolute (intellisenseImport), false);
 				}
 			}
 

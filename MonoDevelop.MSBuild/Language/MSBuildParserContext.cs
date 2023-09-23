@@ -98,15 +98,15 @@ namespace MonoDevelop.MSBuild.Language
 			return import;
 		}
 
-		public Import GetCachedOrParse (string importExpr, string resolvedFilename, string sdk, SdkInfo resolvedSdk, DateTime mtimeUtc)
+		public Import GetCachedOrParse (string importExpr, string resolvedFilename, string sdk, SdkInfo resolvedSdk, DateTime mtimeUtc, bool isImplicitImport = false)
 		{
 			var oldDoc = PreviousRootDocument;
-			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc) {
+			if (oldDoc != null && oldDoc.resolvedImportsMap.TryGetValue (resolvedFilename ?? importExpr, out Import oldImport) && oldImport.TimeStampUtc == mtimeUtc && oldImport.IsImplicitImport == isImplicitImport) {
 				//TODO: check mtimes of descendent imports too
 				return oldImport;
 			}
 			//TODO: guard against cyclic imports
-			return ParseImport (new Import (importExpr, sdk, resolvedFilename, resolvedSdk, mtimeUtc));
+			return ParseImport (new Import (importExpr, sdk, resolvedFilename, resolvedSdk, mtimeUtc, isImplicitImport));
 		}
 
 		internal IEnumerable<Import> ResolveImport (
@@ -115,7 +115,8 @@ namespace MonoDevelop.MSBuild.Language
 			ExpressionNode importExpr,
 			string importExprString,
 			string sdk,
-			SdkInfo resolvedSdk)
+			SdkInfo resolvedSdk,
+			bool isImplicitImport = false)
 		{
 			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
 			if (importExprString.IndexOf ("$(MSBuildUserExtensionsPath)", StringComparison.OrdinalIgnoreCase) > -1) {
@@ -199,9 +200,9 @@ namespace MonoDevelop.MSBuild.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importExprString, filename, sdk, resolvedSdk, fi.LastWriteTimeUtc);
+					import = GetCachedOrParse (importExprString, filename, sdk, resolvedSdk, fi.LastWriteTimeUtc, isImplicitImport);
 				} catch (Exception ex) when (IsNotCancellation (ex)) {
-						LogErrorReadingImportCandidate (Logger, ex, filename);
+					LogErrorReadingImportCandidate (Logger, ex, filename);
 					continue;
 				}
 
@@ -212,7 +213,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			//yield a placeholder for tooltips, imports pad etc to query
 			if (!foundAny) {
-				yield return new Import (importExprString, sdk, null, resolvedSdk, DateTime.MinValue);
+				yield return new Import (importExprString, sdk, null, resolvedSdk, DateTime.MinValue, false);
 			}
 
 			// we skip logging for wildcards as these are generally extensibility points that are often unused
