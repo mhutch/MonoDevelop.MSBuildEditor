@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,11 +11,9 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuild.SdkResolution;
-using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Workspace;
+using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -31,14 +30,15 @@ namespace MonoDevelop.MSBuild.Language
 
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<MSBuildDiagnostic> Diagnostics { get; }
-		public bool IsToplevel { get; }
+		public bool IsToplevel => Diagnostics is not null;
+		public MSBuildFileKind FileKind { get; }
 
 		public MSBuildProjectElement ProjectElement { get; private set; }
 
 		public MSBuildDocument (string filename, bool isToplevel)
 		{
 			Filename = filename;
-			IsToplevel = isToplevel;
+			FileKind = MSBuildFileKindExtensions.GetFileKind (Filename);
 
 			if (isToplevel) {
 				Diagnostics = new List<MSBuildDiagnostic> ();

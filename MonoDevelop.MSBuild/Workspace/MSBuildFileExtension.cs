@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace MonoDevelop.MSBuild
+namespace MonoDevelop.MSBuild.Workspace
 {
+	// See MSBuildFileKind
 	/// <summary>
 	/// Known extensions of MSBuild files
 	/// </summary>
@@ -25,7 +26,8 @@ namespace MonoDevelop.MSBuild
 		public const string vcxproj = ".vcxproj";
 		public const string proj = ".proj";
 		public const string user = ".user";
+		public const string sfxproj = ".sfxproj";
 
-		public static readonly string[] All = new[] { targets, props, tasks, overridetasks, csproj, vbproj, fsproj, xproj, vcxproj, proj, user };
+		public static readonly string[] All = new[] { targets, props, tasks, overridetasks, csproj, vbproj, fsproj, xproj, vcxproj, proj, user, sfxproj };
 	}
 }

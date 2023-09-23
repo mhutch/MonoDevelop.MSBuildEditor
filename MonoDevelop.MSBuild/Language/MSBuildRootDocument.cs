@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Workspace;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -101,7 +102,7 @@ namespace MonoDevelop.MSBuild.Language
 				return Path.GetFullPath (Path.Combine (dir, path));
 			}
 
-			Import TryImportFile (string label, string possibleFile)
+			Import TryAddImport (string label, string possibleFile)
 			{
 				try {
 					var fi = new FileInfo (possibleFile);
@@ -116,29 +117,36 @@ namespace MonoDevelop.MSBuild.Language
 				return null;
 			}
 
-			Import TryImportSibling (string ifHasThisExtension, string thenTryThisExtension)
+			Import TryImportSibling (MSBuildFileKind ifThisKind, string thenTryThisExtension)
 			{
-				if (filePath == null) {
+				if (doc.FileKind != ifThisKind || filePath is null) {
 					return null;
 				}
-				var extension = Path.GetExtension (filePath);
-				if (string.Equals (ifHasThisExtension, extension, StringComparison.OrdinalIgnoreCase)) {
-					var siblingFilename = Path.ChangeExtension (filePath, thenTryThisExtension);
-					return TryImportFile ("(implicit)", siblingFilename);
-				}
-				return null;
+
+				var siblingFilename = Path.ChangeExtension (filePath, thenTryThisExtension);
+				return TryAddImport ("(implicit)", siblingFilename);
 			}
 
 			void TryImportIntellisenseImports (MSBuildSchema schema)
 			{
 				foreach (var intellisenseImport in schema.IntelliSenseImports) {
-					TryImportFile ("(from schema)", MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+					TryAddImport ("(from schema)", MakeRelativeMSBuildPathAbsolute (intellisenseImport));
+				}
+			}
+
+			void TryAddTasksImport (MSBuildParserContext context, string label, string filename)
+			{
+				try {
+					var import = context.GetCachedOrParse (label, filename, null, null, File.GetLastWriteTimeUtc (filename), true);
+					doc.AddImport (import);
+				} catch (Exception ex) when (context.IsNotCancellation (ex)) {
+					LogUnhandledErrorResolvingTasksFile (context.Logger, ex, filename);
 				}
 			}
 
 			try {
-				//if this is a targets file, try to import the props _at the top_
-				var propsImport = TryImportSibling (".targets", ".props");
+				//if this is a targets file, try to import the sibling props file at the top_
+				var propsImport = TryImportSibling (MSBuildFileKind.Targets, MSBuildFileExtension.props);
 
 				// this currently only happens in the root file
 				// it's a quick hack to allow files to get some basic intellisense by
@@ -152,8 +160,8 @@ namespace MonoDevelop.MSBuild.Language
 
 				doc.Build (xdocument, parseContext);
 
-				//if this is a props file, try to import the targets _at the bottom_
-				var targetsImport = TryImportSibling (".props", ".targets");
+				//if this is a props file, try to import the sibling targets file _at the bottom_
+				var targetsImport = TryImportSibling (MSBuildFileKind.Props, MSBuildFileExtension.targets);
 
 				//and if we didn't load intellisense import already, try to load them from the sibling targets
 				if (schema == null && targetsImport?.Document?.Schema != null) {
@@ -166,10 +174,10 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				var env = parseContext.Environment;
 				foreach (var t in env.EnumerateFilesInToolsPath ("*.tasks")) {
-					doc.LoadTasks (parseContext, "(core tasks)", t);
+					TryAddTasksImport (parseContext, "(core tasks)", t);
 				}
 				foreach (var t in env.EnumerateFilesInToolsPath ("*.overridetasks")) {
-					doc.LoadTasks (parseContext, "(core overridetasks)", t);
+					TryAddTasksImport (parseContext, "(core overridetasks)", t);
 				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
 				LogUnhandledErrorResolvingTasksFiles (logger, ex);
@@ -201,16 +209,6 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			return doc;
-		}
-
-		void LoadTasks (MSBuildParserContext context, string label, string filename)
-		{
-			try {
-				var import = context.GetCachedOrParse (label, filename, null, null, File.GetLastWriteTimeUtc (filename));
-				AddImport (import);
-			} catch (Exception ex) when (context.IsNotCancellation (ex)) {
-				LogUnhandledErrorResolvingTasksFile (context.Logger, ex, filename);
-			}
 		}
 
 		//hack for MSBuildParserContext to access

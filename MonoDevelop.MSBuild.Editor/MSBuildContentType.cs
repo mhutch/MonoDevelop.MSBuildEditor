@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.Composition;
+
 using Microsoft.VisualStudio.Utilities;
+
+using MonoDevelop.MSBuild.Workspace;
 using MonoDevelop.Xml.Editor;
 
 namespace MonoDevelop.MSBuild.Editor
