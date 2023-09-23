@@ -15,6 +15,11 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	class MSBuildSchemaProvider
 	{
+		public MSBuildSchemaProvider ()
+		{
+			builtInSchemaMap = builtInSchemas.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
+		}
+
 		public MSBuildSchema? GetSchema (string path, string sdk, ILogger logger)
 		{
 			var schema = GetSchema (path, sdk, out var loadErrors);
@@ -46,7 +51,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return GetResourceIdForBuiltInSchema (path, sdk, out loadErrors);
 		}
 
-		static MSBuildSchema? GetResourceIdForBuiltInSchema (string filePath, string sdkId, out IList<MSBuildSchemaLoadError>? loadErrors)
+		MSBuildSchema? GetResourceIdForBuiltInSchema (string filePath, string sdkId, out IList<MSBuildSchemaLoadError>? loadErrors)
 		{
 			if (GetResourceIdForBuiltInSchema (filePath, sdkId) is string resourceId) {
 				return LoadBuiltInSchema (resourceId, out loadErrors);
@@ -60,14 +65,14 @@ namespace MonoDevelop.MSBuild.Schema
 		static MSBuildSchema LoadBuiltInSchema (string resourceId, out IList<MSBuildSchemaLoadError> loadErrors)
 			=> MSBuildSchema.LoadResourceFromCallingAssembly ($"MonoDevelop.MSBuild.Schemas.{resourceId}.buildschema.json", out loadErrors);
 
-		static string? GetResourceIdForBuiltInSchema (string filePath, string sdkId) => builtInSchemaMap.TryGetValue(new (sdkId, Path.GetFileName (filePath)), out var resourceId) ? resourceId : null;
+		string? GetResourceIdForBuiltInSchema (string filePath, string sdkId) => builtInSchemaMap.TryGetValue(new (sdkId, Path.GetFileName (filePath)), out var resourceId) ? resourceId : null;
 
-		internal static IEnumerable<(MSBuildSchema schema, IList<MSBuildSchemaLoadError> errors)> GetAllBuiltInSchemas ()
+		internal IEnumerable<(MSBuildSchema schema, IList<MSBuildSchemaLoadError> errors)> GetAllBuiltInSchemas ()
 			=> builtInSchemas.Select (s => (LoadBuiltInSchema (s.resourceId, out var e), e));
 
 		const string sdkTargets = "sdk.targets";
 
-		static readonly (string resourceId, string? sdkId, string filename)[] builtInSchemas = new[] {
+		readonly (string resourceId, string? sdkId, string filename)[] builtInSchemas = new[] {
 			("Android", null, "Xamarin.Android.Common.targets"),
 			("Appx", null, "Microsoft.DesktopBridge.targets"),
 			("AspNetCore", "Microsoft.NET.Sdk.Web", sdkTargets),
@@ -85,7 +90,7 @@ namespace MonoDevelop.MSBuild.Schema
 			("WindowsDesktop", null, "Microsoft.NET.Sdk.WindowsDesktop.targets")
 		};
 
-		static readonly Dictionary<(string? sdkId, string filename), string> builtInSchemaMap = builtInSchemas.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
+		readonly Dictionary<(string? sdkId, string filename), string> builtInSchemaMap;
 
 		class OrdinalIgnoreCaseTupleComparer : IEqualityComparer<(string?, string)>
 		{

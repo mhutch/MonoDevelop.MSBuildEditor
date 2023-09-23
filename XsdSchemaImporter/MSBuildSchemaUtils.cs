@@ -195,7 +195,8 @@ static class MSBuildSchemaUtils
 
 	static IEnumerable<MSBuildSchema> LoadBuiltInSchemasFromResources ()
 	{
-		foreach ((var schema, var errors) in MSBuildSchemaProvider.GetAllBuiltInSchemas()) {
+		var schemaProvider = new MSBuildSchemaProvider();
+		foreach ((var schema, var errors) in schemaProvider.GetAllBuiltInSchemas()) {
 			PrintSchemaErrors(errors);
 			yield return schema;
 		};

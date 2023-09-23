@@ -49,6 +49,8 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildSchema Schema { get; internal set; }
 		public MSBuildInferredSchema InferredSchema { get; private set; }
 
+		MSBuildSchema[] additionalSchemas;
+
 		public void Build (XDocument doc, MSBuildParserContext context)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.NameEquals ("Project", true));
@@ -106,7 +108,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			void AddSdkImport (ExpressionText importExpr, string importText, string sdkString, SdkInfo sdk, bool isImplicit = false)
 			{
-				if (importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit) is Import sdkImport) {
+				foreach (var sdkImport in importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit)) {
 					AddImport (sdkImport);
 				}
 			}
@@ -143,6 +145,20 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var sdk in sdks) {
 				AddSdkImport (sdkTargetsExpr, sdkTargetsExpr.Value, sdk.sdk, sdk.resolved, false);
 			}
+
+			// if we didn't find any explicit imports, add some default schemas and imports
+			if (!IsToplevel && !Imports.Any (imp => imp.IsImplicitImport)) {
+				return;
+			}
+
+			var defaultSdk = context.ResolveSdk (this, "Microsoft.NET.Sdk", project.XElement.NameSpan);
+			if (defaultSdk is not null) {
+				AddSdkImport (sdkPropsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+			}
+
+			additionalSchemas = context.PreviousRootDocument?.additionalSchemas
+				?? context.SchemaProvider.GetAllBuiltInSchemas ().Select(s => s.schema).ToArray ();
 		}
 
 		void ResolveImport (MSBuildImportElement element, MSBuildParserContext parseContext, MSBuildImportResolver importResolver)
@@ -348,6 +364,12 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var d in GetDescendentDocuments ()) {
 				if (d.InferredSchema is IMSBuildSchema descendent) {
 					yield return descendent;
+				}
+			}
+
+			if (additionalSchemas is not null) {
+				foreach (var schema in additionalSchemas) {
+					yield return schema;
 				}
 			}
 		}
