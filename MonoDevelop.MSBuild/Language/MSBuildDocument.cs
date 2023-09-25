@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,11 +11,9 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Language.Typesystem;
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Parser;
 using MonoDevelop.MSBuild.SdkResolution;
-using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Workspace;
+using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -31,14 +30,15 @@ namespace MonoDevelop.MSBuild.Language
 
 		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
 		public List<MSBuildDiagnostic> Diagnostics { get; }
-		public bool IsToplevel { get; }
+		public bool IsToplevel => Diagnostics is not null;
+		public MSBuildFileKind FileKind { get; }
 
 		public MSBuildProjectElement ProjectElement { get; private set; }
 
 		public MSBuildDocument (string filename, bool isToplevel)
 		{
 			Filename = filename;
-			IsToplevel = isToplevel;
+			FileKind = MSBuildFileKindExtensions.GetFileKind (Filename);
 
 			if (isToplevel) {
 				Diagnostics = new List<MSBuildDiagnostic> ();
@@ -48,6 +48,8 @@ namespace MonoDevelop.MSBuild.Language
 		public string Filename { get; }
 		public MSBuildSchema Schema { get; internal set; }
 		public MSBuildInferredSchema InferredSchema { get; private set; }
+
+		MSBuildSchema[] additionalSchemas;
 
 		public void Build (XDocument doc, MSBuildParserContext context)
 		{
@@ -100,7 +102,20 @@ namespace MonoDevelop.MSBuild.Language
 
 			var importResolver = context.CreateImportResolver (Filename);
 
-			AddSdkImports ("Sdk.props", sdks, context.PropertyCollector, importResolver);
+
+			var sdkPropsExpr = new ExpressionText (0, "Sdk.props", true);
+			var sdkTargetsExpr = new ExpressionText (0, "Sdk.targets", true);
+
+			void AddSdkImport (ExpressionText importExpr, string importText, string sdkString, SdkInfo sdk, bool isImplicit = false)
+			{
+				foreach (var sdkImport in importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit)) {
+					AddImport (sdkImport);
+				}
+			}
+
+			foreach (var sdk in sdks) {
+				AddSdkImport (sdkPropsExpr, sdkPropsExpr.Value, sdk.sdk, sdk.resolved, false);
+			}
 
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
 			{
@@ -127,7 +142,23 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			AddSdkImports("Sdk.targets", sdks, context.PropertyCollector, importResolver);
+			foreach (var sdk in sdks) {
+				AddSdkImport (sdkTargetsExpr, sdkTargetsExpr.Value, sdk.sdk, sdk.resolved, false);
+			}
+
+			// if we didn't find any explicit imports, add some default schemas and imports
+			if (!IsToplevel && !Imports.Any (imp => imp.IsImplicitImport)) {
+				return;
+			}
+
+			var defaultSdk = context.ResolveSdk (this, "Microsoft.NET.Sdk", project.XElement.NameSpan);
+			if (defaultSdk is not null) {
+				AddSdkImport (sdkPropsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+			}
+
+			additionalSchemas = context.PreviousRootDocument?.additionalSchemas
+				?? context.SchemaProvider.GetAllBuiltInSchemas ().Select(s => s.schema).ToArray ();
 		}
 
 		void ResolveImport (MSBuildImportElement element, MSBuildParserContext parseContext, MSBuildImportResolver importResolver)
@@ -285,24 +316,6 @@ namespace MonoDevelop.MSBuild.Language
 			Imports.Add (import);
 		}
 
-		public void AddImport (IEnumerable<Import> imports)
-		{
-			foreach (var import in imports) {
-				AddImport (import);
-			}
-		}
-
-		void AddSdkImports (string import, IEnumerable<(string id, SdkInfo resolved, TextSpan loc)> sdks, PropertyValueCollector propVals, MSBuildImportResolver importResolver)
-		{
-			var importExpr = new ExpressionText (0, import, true);
-			foreach (var sdk in sdks) {
-				var sdkTargets = importResolver.Resolve (importExpr, import, sdk.id, sdk.resolved).FirstOrDefault ();
-				if (sdkTargets != null) {
-					AddImport (sdkTargets);
-				}
-			}
-		}
-
 		public IEnumerable<Import> GetDescendentImports ()
 		{
 			foreach (var i in Imports) {
@@ -351,6 +364,12 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var d in GetDescendentDocuments ()) {
 				if (d.InferredSchema is IMSBuildSchema descendent) {
 					yield return descendent;
+				}
+			}
+
+			if (additionalSchemas is not null) {
+				foreach (var schema in additionalSchemas) {
+					yield return schema;
 				}
 			}
 		}

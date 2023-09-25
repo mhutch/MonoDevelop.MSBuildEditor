@@ -20,12 +20,18 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildDocument Document { get; set; }
 		public bool IsResolved { get { return Document != null; } }
 
-		public Import (string importExpr, string sdk, string resolvedFilename, SdkInfo resolvedSdk, DateTime timeStampUtc)
+		/// <summary>
+		///  Whether the import was added implicitly rather than being an actual import in the file.
+		/// </summary>
+		public bool IsImplicitImport { get; }
+
+		public Import (string importExpr, string sdk, string resolvedFilename, SdkInfo resolvedSdk, DateTime timeStampUtc, bool isImplicitImport)
 		{
 			OriginalImport = importExpr;
 			Filename = resolvedFilename;
 			Sdk = sdk;
 			TimeStampUtc = timeStampUtc;
+			IsImplicitImport = isImplicitImport;
 			ResolvedSdk = resolvedSdk;
 		}
 	}

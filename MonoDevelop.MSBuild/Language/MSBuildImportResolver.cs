@@ -27,14 +27,15 @@ namespace MonoDevelop.MSBuild.Language
 			this.fileEvalContext = fileEvalContext;
 		}
 
-		public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string sdkString, SdkInfo resolvedSdk)
+		public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string sdkString, SdkInfo resolvedSdk, bool isImplicitImport = false)
 			=> parseContext.ResolveImport (
 				FileEvaluationContext,
 				parentFilePath,
 				importExpr,
 				importExprString,
 				sdkString,
-				resolvedSdk);
+				resolvedSdk,
+				isImplicitImport);
 
 		public IMSBuildEvaluationContext FileEvaluationContext
 			=> fileEvalContext ??= new MSBuildFileEvaluationContext (

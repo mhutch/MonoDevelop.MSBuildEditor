@@ -188,8 +188,9 @@ namespace MonoDevelop.MSBuild.Language
 		public const string NoTargets_Id = nameof(NoTargets);
 		public static readonly MSBuildDiagnosticDescriptor NoTargets = new (
 			NoTargets_Id,
-			"No targets in project",
-			"Project does not define or import any targets",
+			"No targets or imports in project",
+			"Project does not use an SDK, import any other MSBuild files, or define any targets. The Microsoft.NET.Sdk SDK " +
+			"and all known schemas will be imported to support completion and analysis.",
 			MSBuildDiagnosticSeverity.Error
 		);
 

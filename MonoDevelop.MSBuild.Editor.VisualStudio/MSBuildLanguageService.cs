@@ -9,6 +9,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.TextManager.Interop;
 
+using MonoDevelop.MSBuild.Workspace;
+
 namespace MonoDevelop.MSBuild.Editor.VisualStudio;
 
 [ComVisible (true)]

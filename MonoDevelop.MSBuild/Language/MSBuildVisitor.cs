@@ -22,19 +22,14 @@ namespace MonoDevelop.MSBuild.Language
 		protected MSBuildDocument Document { get; private set; }
 		protected string Filename => Document.Filename;
 		protected ITextSource TextSource { get; private set; }
-		protected string Extension { get; private set; }
 		protected ILogger Logger { get; private set; }
 		protected CancellationToken CancellationToken { get; private set; }
 		protected void CheckCancellation () => CancellationToken.ThrowIfCancellationRequested ();
 		protected bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && CancellationToken.IsCancellationRequested);
 
-		protected bool IsTargetsFile => string.Equals (Extension, ".targets", StringComparison.OrdinalIgnoreCase);
-		protected bool IsPropsFile => string.Equals (Extension, ".props", StringComparison.OrdinalIgnoreCase);
-
 		protected MSBuildVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger)
 		{
 			Document = document;
-			Extension = document.Filename == null ? ".props" : System.IO.Path.GetExtension (Filename);
 			TextSource = textSource;
 			Logger = logger;
 		}

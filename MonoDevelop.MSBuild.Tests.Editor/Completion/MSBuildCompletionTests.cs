@@ -46,8 +46,6 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 			var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo /><Bar /><$");
 
-			result.AssertItemCount (5);
-
 			result.AssertContains ("<Foo");
 			result.AssertContains ("<Bar");
 			result.AssertContains ("</ItemGroup");

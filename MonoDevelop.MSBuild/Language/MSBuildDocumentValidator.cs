@@ -16,6 +16,7 @@ using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Workspace;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -68,7 +69,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (resolved.SyntaxKind) {
 			case MSBuildSyntaxKind.Project:
-				if (!IsPropsFile) {
+				if (Document.FileKind.IsProject ()) {
 					ValidateProjectHasTarget (element);
 				}
 				break;
@@ -432,7 +433,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
 			ITypedSymbol valueDescriptor, string value, int offset)
 		{
-			if (!IsTargetsFile && !IsPropsFile && valueDescriptor is IHasDefaultValue hasDefault) {
+			if (Document.FileKind.IsProject () && valueDescriptor is IHasDefaultValue hasDefault) {
 				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
