@@ -144,6 +144,7 @@ class ExtractExpressionTests : MSBuildEditorTest
 			MSBuildSyntaxKind.Item,
 			("Project", true));
 	}
+
 	[Test]
 	public void ExtractionPointsFromItemToExistingPropertyGroup ()
 	{
@@ -178,8 +179,7 @@ class ExtractExpressionTests : MSBuildEditorTest
 		var doc = TextWithMarkers.Parse (textWithMarkers, '^', '$');
 
 		var parser = new XmlTreeParser (new XmlRootState ());
-		parser.Parse (doc.Text, preserveWindowsNewlines: true);
-		(var parsedDoc, var errors) = parser.EndAllNodes ();
+		(var parsedDoc, var errors) =  parser.Parse (doc.Text, preserveWindowsNewlines: true);
 
 		Assert.That (errors, Is.Empty);
 
