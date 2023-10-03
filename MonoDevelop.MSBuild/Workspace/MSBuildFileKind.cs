@@ -35,6 +35,11 @@ namespace MonoDevelop.MSBuild.Workspace
 		OverrideTasks = 4,
 
 		/// <summary>
+		/// The file is a .NET publish profile
+		/// </summary>
+		PubXml = 5,
+
+		/// <summary>
 		/// The file is a project file of unknown type.
 		/// </summary>
 		/// <remarks>
