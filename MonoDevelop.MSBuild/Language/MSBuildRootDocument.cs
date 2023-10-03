@@ -89,11 +89,7 @@ namespace MonoDevelop.MSBuild.Language
 				schemaProvider,
 				token);
 
-			if (filePath != null) {
-				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, logger, filePath, filePath);
-			} else {
-				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
-			}
+			doc.FileEvaluationContext = MSBuildFileEvaluationContext.Create (parseContext.ProjectEvaluationContext, logger, filePath);
 
 			string MakeRelativeMSBuildPathAbsolute (string path)
 			{

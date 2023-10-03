@@ -330,7 +330,11 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
 				//FIXME create this lazily and cache it
-				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.Logger, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
+				var evalCtx = new MSBuildCollectedValuesEvaluationContext (
+					MSBuildFileEvaluationContext.Create (parseContext.ProjectEvaluationContext, parseContext.Logger, Filename),
+					parseContext.PropertyCollector
+				);
+
 				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
 				if (info != null) {
 					Tasks[info.Name] = info;

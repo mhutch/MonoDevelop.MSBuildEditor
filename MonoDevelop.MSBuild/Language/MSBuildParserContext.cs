@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Language
 		public ITaskMetadataBuilder TaskBuilder { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
 		public CancellationToken Token { get; }
-		public MSBuildRuntimeEvaluationContext RuntimeEvaluationContext { get; }
+		public MSBuildProjectEvaluationContext ProjectEvaluationContext { get; }
 		public IMSBuildEnvironment Environment { get; }
 		public ILogger Logger { get; }
 
@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Language
 			SchemaProvider = schemaProvider;
 			Token = token;
 
-			RuntimeEvaluationContext = new MSBuildRuntimeEvaluationContext (env, logger);
+			ProjectEvaluationContext = new MSBuildProjectEvaluationContext (env, projectPath, logger);
 		}
 
 		public bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && Token.IsCancellationRequested);
