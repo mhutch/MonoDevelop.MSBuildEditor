@@ -64,6 +64,13 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return true;
 			}
 
+			if (env.EnvironmentVariables.TryGetValue (name, out var envValue)) {
+				var escapedValue = EvaluatedValue.FromNativePath (envValue);
+				value = escapedValue;
+				values[name] = escapedValue;
+				return true;
+			}
+
 			value = null;
 			return false;
 		}

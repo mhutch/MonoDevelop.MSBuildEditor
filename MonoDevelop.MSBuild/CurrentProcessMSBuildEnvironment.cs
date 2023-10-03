@@ -34,6 +34,8 @@ namespace MonoDevelop.MSBuild
 			ToolsetProperties = GetToolsetProperties (toolset);
 			ProjectImportSearchPaths = GetImportSearchPaths (toolset, logger);
 
+			EnvironmentVariables = GetEnvironmentVariables ();
+
 			sdkResolver = new MSBuildSdkResolver (this, logger);
 			this.logger = logger;
 		}
@@ -46,6 +48,8 @@ namespace MonoDevelop.MSBuild
 		public Version EngineVersion => ProjectCollection.Version;
 
 		public IReadOnlyDictionary<string, string> ToolsetProperties { get; }
+
+		public IReadOnlyDictionary<string, string> EnvironmentVariables { get; init; }
 
 		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; }
 
@@ -75,6 +79,17 @@ namespace MonoDevelop.MSBuild
 			}
 
 			return toolsetProperties;
+		}
+
+		static Dictionary<string, string> GetEnvironmentVariables ()
+		{
+			var environmentVariables = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
+
+			foreach (DictionaryEntry envVar in Environment.GetEnvironmentVariables ()) {
+				environmentVariables.Add ((string)envVar.Key, (string)envVar.Value);
+			}
+
+			return environmentVariables;
 		}
 
 		static Dictionary<string, string[]> GetImportSearchPaths (Toolset toolset, ILogger logger)
