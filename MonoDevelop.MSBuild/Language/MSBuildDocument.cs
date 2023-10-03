@@ -139,6 +139,11 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildImportElement imp:
 					ResolveImport (imp, context, importResolver);
 					break;
+				case MSBuildImportGroupElement importGroup:
+					foreach (var import in importGroup.GetElements<MSBuildImportElement> ()) {
+						ResolveImport (import, context, importResolver);
+					}
+					break;
 				}
 			}
 
