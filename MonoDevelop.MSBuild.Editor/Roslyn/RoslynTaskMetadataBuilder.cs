@@ -21,6 +21,8 @@ using MonoDevelop.MSBuild.Util;
 
 using MonoDevelop.Xml.Logging;
 
+using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
+
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
 	[Export (typeof (ITaskMetadataBuilder))]
@@ -210,7 +212,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
-			if (!evaluationContext.TryGetProperty (ReservedProperties.BinPath, out var binPathProp)) {
+			if (!evaluationContext.TryGetProperty (ReservedPropertyNames.binPath, out var binPathProp)) {
 				LogCouldNotGetBinPath (logger);
 				return null;
 			}

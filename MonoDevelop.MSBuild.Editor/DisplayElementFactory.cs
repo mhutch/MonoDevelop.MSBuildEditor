@@ -36,6 +36,7 @@ using ProjectFileTools.NuGetSearch.Feeds;
 
 using IRoslynSymbol = Microsoft.CodeAnalysis.ISymbol;
 using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
+using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -272,11 +273,11 @@ namespace MonoDevelop.MSBuild.Editor
 		static List<(string prefix, string subst)> GetPrefixes (IMSBuildEnvironment environment)
 		{
 			var list = new List<(string prefix, string subst)> {
-				(environment.ToolsPath, $"$({ReservedProperties.BinPath})")
+				(environment.ToolsPath, $"$({ReservedPropertyNames.binPath})")
 			};
 
 			if (environment.ToolsetProperties != null) {
-				var wellKnownPathProperties = new[] { ReservedProperties.SDKsPath, ReservedProperties.ExtensionsPath, ReservedProperties.ExtensionsPath32, ReservedProperties.ExtensionsPath64 };
+				var wellKnownPathProperties = new[] { WellKnownProperties.MSBuildSDKsPath, WellKnownProperties.MSBuildExtensionsPath, WellKnownProperties.MSBuildExtensionsPath32, WellKnownProperties.MSBuildExtensionsPath64 };
 				foreach (var propName in wellKnownPathProperties) {
 					if (environment.ToolsetProperties.TryGetValue (propName, out var propVal)) {
 						list.Add ((propVal, $"$({propName})"));
