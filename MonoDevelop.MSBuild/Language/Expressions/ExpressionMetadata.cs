@@ -3,6 +3,8 @@
 
 using System.Diagnostics;
 
+using MonoDevelop.Xml.Dom;
+
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
 	[DebuggerDisplay ("Metadata: {ItemName}.{MetadataName}")]
@@ -27,6 +29,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		public int MetadataNameOffset => ItemName == null ? Offset + 2 : Offset + 3 + ItemName.Length;
 		public int ItemNameOffset => Offset + 2;
+
+		public TextSpan ItemNameSpan => new (Offset + 2, ItemName.Length);
+		public TextSpan MetadataNameSpan => new (MetadataNameOffset, MetadataName.Length);
 
 		public string GetItemName ()
 		{

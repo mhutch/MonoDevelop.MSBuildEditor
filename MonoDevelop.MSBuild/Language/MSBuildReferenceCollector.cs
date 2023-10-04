@@ -61,9 +61,8 @@ namespace MonoDevelop.MSBuild.Language
 			return false;
 		}
 
-		protected void AddResult (XElement el, ReferenceUsage usage) => reportResult ((el.Span.Start + 1, el.Name.Name.Length, usage));
-		protected void AddResult (XAttribute att, ReferenceUsage usage) => reportResult ((att.Span.Start, att.Name.Name.Length, usage));
 		protected void AddResult (int offset, int length, ReferenceUsage usage) => reportResult ((offset, length, usage));
+		protected void AddResult (TextSpan span, ReferenceUsage usage) => reportResult ((span.Start, span.Length, usage));
 
 		public static bool CanCreate (MSBuildResolveResult rr)
 		{
@@ -128,7 +127,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Item || resolved.SyntaxKind == MSBuildSyntaxKind.ItemDefinition) && IsMatch (element.Name.Name)) {
-				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (element.NameSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -136,7 +135,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.ValueKind == MSBuildValueKind.ItemName.AsLiteral () && IsMatch (attribute.Value)) {
-				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (attribute.ValueSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -150,12 +149,12 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionItemName ei:
 					if (IsMatch (ei.Name)) {
-						AddResult (ei.Offset, ei.Name.Length, ReferenceUsage.Read);
+						AddResult (ei.Span, ReferenceUsage.Read);
 					}
 					break;
 				case ExpressionMetadata em:
 					if (em.IsQualified && IsMatch (em.ItemName)) {
-						AddResult (em.ItemNameOffset, em.ItemName.Length, ReferenceUsage.Read);
+						AddResult (em.ItemNameSpan, ReferenceUsage.Read);
 					}
 					break;
 				}
@@ -172,7 +171,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if ((resolved.SyntaxKind == MSBuildSyntaxKind.Property) && IsMatch (element.Name.Name)) {
-				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (element.NameSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -180,7 +179,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.ValueKind == MSBuildValueKind.PropertyName.AsLiteral () && IsMatch (attribute.Value)) {
-				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (attribute.ValueSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -194,7 +193,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionPropertyName ep:
 					if (IsMatch (ep.Name)) {
-						AddResult (ep.Offset, ep.Length, ReferenceUsage.Read);
+						AddResult (ep.Span, ReferenceUsage.Read);
 					}
 					break;
 				}
@@ -212,7 +211,7 @@ namespace MonoDevelop.MSBuild.Language
 			switch (resolved.SyntaxKind) {
 			case MSBuildSyntaxKind.Task:
 				if (IsMatch (element.Name.Name)) {
-					AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Read);
+					AddResult (element.NameSpan, ReferenceUsage.Read);
 				}
 				break;
 			case MSBuildSyntaxKind.UsingTask:
@@ -243,7 +242,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Metadata && IsMatch (element.Name.Name) && IsItemNameMatch (element.ParentElement.Name.Name)) {
-				AddResult (element.NameOffset, element.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (element.NameSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedElement (element, resolved);
 		}
@@ -251,7 +250,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
 			if (resolvedAttribute.AbstractKind == MSBuildSyntaxKind.Metadata && IsMatch (attribute.Name.Name) && IsItemNameMatch (element.Name.Name)) {
-				AddResult (attribute.Span.Start, attribute.Name.Name.Length, ReferenceUsage.Write);
+				AddResult (attribute.NameSpan, ReferenceUsage.Write);
 			}
 			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
 		}
@@ -313,7 +312,7 @@ namespace MonoDevelop.MSBuild.Language
 				case ExpressionMetadata em:
 					var iname = em.GetItemName ();
 					if (iname != null && IsItemNameMatch (iname) && IsMatch (em.MetadataName)) {
-						AddResult (em.MetadataNameOffset, em.MetadataName.Length, ReferenceUsage.Read);
+						AddResult (em.MetadataNameSpan, ReferenceUsage.Read);
 					}
 					break;
 				}
@@ -370,7 +369,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (resolved.SyntaxKind == MSBuildSyntaxKind.Target) {
 				var nameAtt = element.Attributes.Get ("Name", true);
 				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					AddResult (nameAtt.ValueSpan.Start, nameAtt.ValueSpan.Length, ReferenceUsage.Declaration);
+					AddResult (nameAtt.ValueSpan, ReferenceUsage.Declaration);
 				}
 			}
 			base.VisitResolvedElement (element, resolved);
@@ -398,7 +397,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (func.Parent is ExpressionPropertyFunctionInvocation inv) {
 						string baseName = MSBuildPropertyFunctionReferenceCollector.StripGetPrefix (func.Name);
 						if (IsMatch (baseName) && inv.Target is ExpressionClassReference cn && cn.Name == className) {
-							AddResult (func.Offset, func.Length, ReferenceUsage.Read);
+							AddResult (func.Span, ReferenceUsage.Read);
 						}
 					}
 					break;
@@ -453,7 +452,7 @@ namespace MonoDevelop.MSBuild.Language
 								resolvedKind = MSBuildValueKind.String;
 							}
 							if (resolvedKind == valueKind) {
-								AddResult (func.Offset, func.Length, ReferenceUsage.Read);
+								AddResult (func.Span, ReferenceUsage.Read);
 							}
 						}
 					}
@@ -477,7 +476,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionFunctionName func:
 					if (func.Parent is ExpressionItemFunctionInvocation inv && IsMatch (func.Name)) {
-						AddResult (func.Offset, func.Length, ReferenceUsage.Read);
+						AddResult (func.Span, ReferenceUsage.Read);
 					}
 					break;
 				}
@@ -499,7 +498,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionClassReference classRef:
 					if (IsMatch (classRef.Name) && classRef.Parent is ExpressionPropertyFunctionInvocation) {
-						AddResult (classRef.Offset, classRef.Length, ReferenceUsage.Read);
+						AddResult (classRef.Span, ReferenceUsage.Read);
 					}
 					break;
 				}
@@ -521,7 +520,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (n) {
 				case ExpressionClassReference classRef:
 					if (IsMatch (classRef.Name) && classRef.Parent is ExpressionArgumentList) {
-						AddResult (classRef.Offset, classRef.Length, ReferenceUsage.Read);
+						AddResult (classRef.Span, ReferenceUsage.Read);
 					}
 					break;
 				}
