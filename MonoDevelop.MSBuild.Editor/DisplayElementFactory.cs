@@ -119,8 +119,8 @@ namespace MonoDevelop.MSBuild.Editor
 
 		static ClassifiedTextElement GetDeprecationMessage (ISymbol info)
 		{
-			if (info is VariableInfo val && val.IsDeprecated) {
-				var msg = string.IsNullOrEmpty (val.DeprecationMessage) ? "Deprecated" : $"Deprecated: {val.DeprecationMessage}";
+			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
+				var msg = string.IsNullOrEmpty (deprecatable.DeprecationMessage) ? "Deprecated" : $"Deprecated: {deprecatable.DeprecationMessage}";
 				return new ClassifiedTextElement (new ClassifiedTextRun ("syntax error", msg));
 			}
 			return null;

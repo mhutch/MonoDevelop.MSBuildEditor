@@ -8,7 +8,7 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax
 {
-	public abstract class MSBuildSyntax : ISymbol, ITypedSymbol
+	public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable
 	{
 		protected MSBuildSyntax (
 			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,

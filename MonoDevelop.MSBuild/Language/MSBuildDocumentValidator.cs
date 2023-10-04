@@ -54,6 +54,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ValidateResolvedElement (XElement element, MSBuildElementSyntax resolved)
 		{
+			CheckDeprecated (resolved, element);
 			foreach (var rat in resolved.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (rat.Name, true);
@@ -399,6 +400,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
+			CheckDeprecated (resolvedAttribute, attribute);
 			if (resolvedAttribute.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
 				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read)) {
 					Document.Diagnostics.Add (
@@ -418,6 +420,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		void ValidateAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
 		{
+			CheckDeprecated (resolvedAttribute, attribute);
+
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
 				if (resolvedAttribute.Required) {
 					Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);

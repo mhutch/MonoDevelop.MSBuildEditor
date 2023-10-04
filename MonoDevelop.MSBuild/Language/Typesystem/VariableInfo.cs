@@ -6,7 +6,7 @@ using System;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public abstract class VariableInfo : BaseSymbol, ITypedSymbol
+	public abstract class VariableInfo : BaseSymbol, ITypedSymbol, IDeprecatable
 	{
 		protected VariableInfo (
 			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
