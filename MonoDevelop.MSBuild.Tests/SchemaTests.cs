@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections;
 using System.IO;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -31,7 +32,20 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class SchemaTests
 	{
-		MSBuildSchemaProvider provider = new MSBuildSchemaProvider ();
+		class BuiltInSchemaSource : IEnumerable
+		{
+			public IEnumerator GetEnumerator () => Enum.GetValues (typeof (BuiltInSchemaId)).GetEnumerator ();
+		}
+
+		// verify that no built-in schemas have errors
+		[Test]
+		[TestCaseSource (typeof (BuiltInSchemaSource))]
+		public void LoadBuiltInSchema (object schemaId)
+		{
+			var schema = BuiltInSchema.Load ((BuiltInSchemaId)schemaId, out var loadErrors);
+			Assert.NotNull (schema);
+			Assert.IsEmpty (loadErrors);
+		}
 
 		[Test]
 		[TestCase("microsoft.codeanalysis.targets", null)]
@@ -41,8 +55,9 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase("microsoft.cpp.targets", null)]
 		[TestCase("nuget.build.tasks.pack.targets", null)]
 		[TestCase("sdk.targets", "microsoft.net.sdk")]
-		public void LoadCoreSchemas (string name, string sdk)
+		public void LoadBuiltInSchemaByFileName (string name, string sdk)
 		{
+			var provider = new MSBuildSchemaProvider ();
 			var schema = provider.GetSchema (name, sdk, out var loadErrors);
 			Assert.NotNull (schema);
 			Assert.IsEmpty (loadErrors);

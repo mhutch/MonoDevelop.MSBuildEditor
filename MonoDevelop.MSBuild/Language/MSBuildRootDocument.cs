@@ -233,8 +233,7 @@ namespace MonoDevelop.MSBuild.Language
 				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
 			}
 
-			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas
-				?? parseContext.SchemaProvider.GetAllBuiltInSchemas ().Select (s => s.schema).ToArray ();
+			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas ?? BuiltInSchema.GetAllBuiltInFileSchemas ().ToArray ();
 		}
 
 		//hack for MSBuildParserContext to access
