@@ -48,6 +48,10 @@ static class BuiltInSchema
 		}
 		.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
 
+	static MSBuildSchema? projectSystemMpsSchema, projectSystemCpsSchema;
+	public static MSBuildSchema ProjectSystemMpsSchema => projectSystemMpsSchema ??= BuiltInSchema.Load (BuiltInSchemaId.ProjectSystemMps, out _);
+	public static MSBuildSchema ProjectSystemCpsSchema => projectSystemCpsSchema ??= BuiltInSchema.Load (BuiltInSchemaId.ProjectSystemCps, out _);
+
 	class OrdinalIgnoreCaseTupleComparer : IEqualityComparer<(string?, string)>
 	{
 		public bool Equals ((string?, string) x, (string?, string) y) => string.Equals (x.Item1, y.Item1, StringComparison.OrdinalIgnoreCase) && string.Equals (x.Item2, y.Item2, StringComparison.OrdinalIgnoreCase);

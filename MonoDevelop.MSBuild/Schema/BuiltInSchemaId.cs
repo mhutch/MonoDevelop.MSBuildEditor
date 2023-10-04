@@ -19,5 +19,7 @@ enum BuiltInSchemaId
 	RazorSdk,
 	Roslyn,
 	VisualBasic,
-	WindowsDesktop
+	WindowsDesktop,
+	ProjectSystemMps,
+	ProjectSystemCps
 }

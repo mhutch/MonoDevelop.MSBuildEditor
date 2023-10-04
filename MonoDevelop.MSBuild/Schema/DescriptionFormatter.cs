@@ -268,8 +268,6 @@ namespace MonoDevelop.MSBuild.Schema
 				return "nuget-id";
 			case MSBuildValueKind.NuGetVersion:
 				return "nuget-version";
-			case MSBuildValueKind.ProjectKindGuid:
-				return "flavor-guid";
 			case MSBuildValueKind.CustomType:
 				if (customTypeInfo != null && customTypeInfo.Name != null) {
 					return customTypeInfo.Name;

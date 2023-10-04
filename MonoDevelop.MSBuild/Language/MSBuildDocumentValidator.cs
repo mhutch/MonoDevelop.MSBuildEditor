@@ -571,7 +571,6 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (kindOrBaseKind) {
 			case MSBuildValueKind.Guid:
-			case MSBuildValueKind.ProjectKindGuid:
 				if (!Guid.TryParseExact (value, "B", out _)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidGuid, value);
 				}

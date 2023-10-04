@@ -97,8 +97,6 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		NuGetID,
 		NuGetVersion,
 
-		ProjectKindGuid,
-
 		// --------- MODIFIER FLAGS ---------
 
 		/// <summary>

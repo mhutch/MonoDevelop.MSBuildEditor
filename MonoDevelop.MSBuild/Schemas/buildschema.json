@@ -339,8 +339,7 @@
         "file-or-folder",
         "extension",
         "configuration",
-        "platform",
-        "project-kind-guid"
+        "platform"
       ]
     }
   }

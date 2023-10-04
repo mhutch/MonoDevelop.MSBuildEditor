@@ -1,0 +1,43 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "ProjectTypeGuids": {
+      "description": "A list of GUIDs that activate Visual Studio design-time capabilities in projects that use the non-SDK format.",
+      "isList": true,
+      "isLiteral": true,
+      "deprecationMessage": "This property is not used in SDK-format projects"
+    },
+    "ProjectGuid": {
+      "description": "A GUID that uniquely identifies the project within the solution",
+      "isLiteral": true,
+      "type": "guid",
+      "deprecationMessage": "This property is not used in SDK-format projects"
+    }
+  },
+  "items": {
+    "ProjectCapability": {
+      "description": "ID that activates Common Project System extensions in Visual Studio"
+    },
+    "PropertyPageSchema": {
+      "description": "XAML rules that control how items, properties and metadata are treated by the Common Project System in Visual Studio",
+      "type": "file",
+      "metadata": {
+        "Context": {
+          "description": "The Common Project System context to which the XAML rules apply",
+          "isRequired": true,
+          "type": {
+            "description": "Common Project System XAML rule context",
+            "allowUnknownValues": true,
+            "values": {
+              "File": "The rules apply at a per-item level, or apply defaults to items at the project level",
+              "Project": "The rules apply at the project level",
+              "PropertySheet": "The rules apply only to property sheets.",
+              "BrowseObject": "The rules apply to an item in the the Properties tool window when it is selected in the Solution Explorer."
+            }
+          },
+          "isList": true
+        }
+      }
+    }
+  }
+}
