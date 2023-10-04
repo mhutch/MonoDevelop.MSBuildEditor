@@ -11,6 +11,7 @@ using System.Threading;
 
 using Microsoft.Extensions.Logging;
 
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -25,6 +26,7 @@ namespace MonoDevelop.MSBuild.Language
 	partial class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
 	{
 		MSBuildToolsVersion? toolsVersion;
+		MSBuildSchema[] fallbackSchemas;
 
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public ITextSource Text { get; private set; }
@@ -156,6 +158,11 @@ namespace MonoDevelop.MSBuild.Language
 
 				doc.Build (xdocument, parseContext);
 
+				// if we didn't find any explicit imports, add some default schemas and imports
+				if (!doc.Imports.Any (imp => imp.IsImplicitImport)) {
+					AddFallbackImports (doc, parseContext);
+				}
+
 				//if this is a props file, try to import the sibling targets file _at the bottom_
 				var targetsImport = TryImportSibling (MSBuildFileKind.Props, MSBuildFileExtension.targets);
 
@@ -207,6 +214,29 @@ namespace MonoDevelop.MSBuild.Language
 			return doc;
 		}
 
+		static void AddFallbackImports (MSBuildRootDocument doc, MSBuildParserContext parseContext)
+		{
+			var sdkPropsExpr = new ExpressionText (0, "Sdk.props", true);
+			var sdkTargetsExpr = new ExpressionText (0, "Sdk.targets", true);
+			var importResolver = parseContext.CreateImportResolver (doc.Filename);
+
+			void AddSdkImport (ExpressionText importExpr, string importText, string sdkString, SdkResolution.SdkInfo sdk, bool isImplicit = false)
+			{
+				foreach (var sdkImport in importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit)) {
+					doc.AddImport (sdkImport);
+				}
+			}
+
+			var defaultSdk = parseContext.ResolveSdk (doc, "Microsoft.NET.Sdk", doc.ProjectElement.XElement.NameSpan);
+			if (defaultSdk is not null) {
+				AddSdkImport (sdkPropsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+			}
+
+			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas
+				?? parseContext.SchemaProvider.GetAllBuiltInSchemas ().Select (s => s.schema).ToArray ();
+		}
+
 		//hack for MSBuildParserContext to access
 		internal readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
 
@@ -253,6 +283,19 @@ namespace MonoDevelop.MSBuild.Language
 
 				toolsVersion = MSBuildToolsVersion.Unknown;
 				return toolsVersion.Value;
+			}
+		}
+
+		public override IEnumerable<IMSBuildSchema> GetSchemas (bool skipThisDocumentInferredSchema = false)
+		{
+			foreach (var baseSchema in base.GetSchemas (skipThisDocumentInferredSchema)) {
+				yield return baseSchema;
+			}
+
+			if (fallbackSchemas is not null) {
+				foreach (var schema in fallbackSchemas) {
+					yield return schema;
+				}
 			}
 		}
 
