@@ -96,13 +96,13 @@ namespace MonoDevelop.MSBuild.Schema
 				state.LoadCustomTypes (customTypes);
 			}
 			if (properties != null) {
-				foreach ((var name, var prop) in state.ReadProperties(properties)) {
-					Properties.Add (name, prop);
+				foreach (var prop in state.ReadProperties(properties)) {
+					Properties.Add (prop.Name, prop);
 				}
 			}
 			if (items != null) {
-				foreach ((var name, var item) in state.ReadItems (items)) {
-					Items.Add (name, item);
+				foreach (var item in state.ReadItems (items)) {
+					Items.Add (item.Name, item);
 				}
 			}
 			// metadataGroups must come after items, as it may apply metadata to existing items
@@ -119,7 +119,9 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 			if (targets != null) {
-				LoadTargets (targets, state);
+				foreach (var target in state.ReadTargets (targets)) {
+					Targets.Add (target.Name, target);
+				}
 			}
 
 			loadErrors = (IList< MSBuildSchemaLoadError>)state.Errors ?? Array.Empty<MSBuildSchemaLoadError>();
@@ -129,15 +131,6 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			// everything in a schema is public
 			return false;
-		}
-
-		void LoadTargets (JObject items, SchemaLoadState state)
-		{
-			foreach (var kv in items) {
-				var name = kv.Key;
-				var desc = (string)((JValue)kv.Value).Value;
-				Targets.Add (name, new TargetInfo (name, desc));
-			}
 		}
 
 		void LoadIntelliSenseImports (JArray intelliSenseImports)

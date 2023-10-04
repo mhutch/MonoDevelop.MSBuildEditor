@@ -3,11 +3,17 @@
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class TargetInfo : BaseSymbol
+	class TargetInfo : BaseSymbol, IDeprecatable
 	{
-		public TargetInfo (string name, DisplayText description)
+		public TargetInfo (string name, DisplayText description, bool isDeprecated = false, string? deprecationMessage = null)
 			: base (name, description)
 		{
+			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
+			DeprecationMessage = deprecationMessage;
 		}
+
+		public bool IsDeprecated { get; }
+
+		public string DeprecationMessage { get; }
 	}
 }
