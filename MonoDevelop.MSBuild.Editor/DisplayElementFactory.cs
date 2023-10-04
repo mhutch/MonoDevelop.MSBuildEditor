@@ -173,7 +173,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		ContainerElement GetSeenInElement (ITextBuffer buffer, MSBuildResolveResult rr, ISymbol info, MSBuildRootDocument doc)
 		{
-			var seenIn = doc.GetFilesSeenIn (info).ToList ();
+			var seenIn = doc.GetDescendedDocumentsReferencingSymbol (info).ToList ();
 			if (seenIn.Count == 0) {
 				return null;
 			}

@@ -252,7 +252,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return attribute;
 		}
 
-		public static ITypedSymbol GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string parentName, string elementName, bool omitEmpty = false)
+		public static ITypedSymbol GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string? parentName, string elementName, bool omitEmpty = false)
 		{
 			if (element.IsAbstract) {
 				switch (element.SyntaxKind) {
@@ -263,7 +263,10 @@ namespace MonoDevelop.MSBuild.Schema
 					}
 					return schemas.GetItem (elementName);
 				case MSBuildSyntaxKind.Metadata:
-					return schemas.GetMetadata (parentName, elementName, false);
+					if (parentName is not null) {
+						return schemas.GetMetadata (parentName, elementName, false);
+					}
+					break;
 				case MSBuildSyntaxKind.Property:
 					return schemas.GetProperty (elementName, false);
 				case MSBuildSyntaxKind.Task:

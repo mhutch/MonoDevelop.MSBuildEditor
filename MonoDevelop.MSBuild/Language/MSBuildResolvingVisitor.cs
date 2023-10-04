@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -19,6 +20,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language;
 
+// FIXME: split this into two variants, one that operates on elements from an XDocument or spine parse, and one that operates on a MSBuildRootDocument.ProjectElement DOM
 abstract class MSBuildResolvingVisitor
 {
 	protected MSBuildDocument Document { get; private set; }
@@ -35,6 +37,8 @@ abstract class MSBuildResolvingVisitor
 		TextSource = textSource;
 		Logger = logger;
 	}
+
+	IEnumerable<IMSBuildSchema> GetSchemas () => Document.GetSchemas ();
 
 	public void Run (XElement element, int offset = 0, int length = 0, CancellationToken token = default) => Run (element, null, offset, length, token);
 
@@ -66,8 +70,11 @@ abstract class MSBuildResolvingVisitor
 
 	void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
 	{
+
 		if (resolved is not null) {
-			var elementSymbol = Document.GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, element.Name.Name, true);
+			// if this was resolved then elementName is not null
+			string elementName = element.Name.Name!;
+			var elementSymbol = GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, elementName, true);
 			VisitResolvedElement (element, resolved, elementSymbol);
 		} else {
 			VisitUnknownElement (element);
@@ -106,24 +113,26 @@ abstract class MSBuildResolvingVisitor
 				return;
 			}
 
-			var resolvedAttribute = resolvedElement.GetAttribute (att.Name.FullName);
+			// if this was resolved then elementName is not null
+			string elementName = element.Name.Name!;
+
+			if (att.Name.Name is not string attributeName) {
+				continue;
+			}
+
+			var resolvedAttribute = resolvedElement.GetAttribute (attributeName);
 
 			if (resolvedAttribute is null) {
 				VisitUnknownAttribute (element, att);
 				continue;
 			}
 
-			// mirror what MSBuildSchemaExtensions.SpecializeAttribute does
-			if (resolvedAttribute.ValueKind == MSBuildValueKind.MatchItem && elementSymbol is ItemInfo itemInfo) {
-				resolvedAttribute = new MSBuildAttributeSyntax (
-					resolvedAttribute.Element, resolvedAttribute.Name, resolvedAttribute.Description,
-					resolvedAttribute.SyntaxKind,
-					itemInfo?.ValueKind ?? MSBuildValueKind.UnknownItem.AsList (),
-					resolvedAttribute.Required
-				);
-			}
+			var attributeSymbol = GetSchemas ().GetAttributeInfo (resolvedAttribute, elementName, attributeName);
 
-			var attributeSymbol = Document.GetSchemas ().GetAttributeInfo (resolvedAttribute, element.Name.Name, att.Name.Name);
+			// GetAttributeInfo may have returned a specialized variant of the MSBuildAttributeSyntax, so update it
+			if (attributeSymbol is MSBuildAttributeSyntax resolvedAttributeSymbol) {
+				resolvedAttribute = resolvedAttributeSymbol;
+			}
 
 			VisitResolvedAttribute (element, att, resolvedElement, resolvedAttribute, attributeSymbol);
 		}
@@ -199,7 +208,7 @@ abstract class MSBuildResolvingVisitor
 		VisitValue (element, attribute, resolvedElement, resolvedAttribute, attributeSymbol, inferredKind, expressionText, expression);
 	}
 
-	protected virtual void VisitValue (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol valueType, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
+	protected virtual void VisitValue (XElement element, XAttribute? attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax? resolvedAttribute, ITypedSymbol? valueSymbol, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
 	{
 	}
 }

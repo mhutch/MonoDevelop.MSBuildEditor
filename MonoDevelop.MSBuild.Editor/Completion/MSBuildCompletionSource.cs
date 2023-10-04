@@ -541,7 +541,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			//TODO: better metadata support
-			IEnumerable<ISymbol> cinfos;
 			if (valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
 				// if it's a list of ints or guids, add an annotation to make it easier to navigate
 				bool addAnnotation = valueSymbol.CustomType.BaseKind switch {
