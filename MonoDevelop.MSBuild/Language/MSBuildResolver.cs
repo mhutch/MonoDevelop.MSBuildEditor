@@ -366,8 +366,9 @@ namespace MonoDevelop.MSBuild.Language
 				var knownVals = (IReadOnlyList <ISymbol>)valueDescriptor.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
+					var valueComparer = (valueDescriptor.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
+						if (string.Equals (kv.Name, value, valueComparer)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 							rr.Reference = kv;
 							return;

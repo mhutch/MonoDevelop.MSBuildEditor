@@ -168,9 +168,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		IEnumerable<ISymbol> GetValue (SpellChecker checker, MSBuildValueKind kind, CustomTypeInfo customType, string name)
 		{
 			var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (true);
+			var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
 			var knownValDict = knownVals.ToDictionary (v => v.Name, StringComparer.OrdinalIgnoreCase);
 			foreach (var match in checker.FindSimilarWords (name)) {
-				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
+				if (string.Equals (match, name, valueComparer)) {
 					continue;
 				}
 				if (knownValDict.TryGetValue (match, out var info)) {

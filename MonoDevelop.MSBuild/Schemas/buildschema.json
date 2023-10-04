@@ -296,6 +296,10 @@
             "guid",
             "int"
           ]
+        },
+        "caseSensitive": {
+          "description": "Whether values should be compared in a case-sensitive way",
+          "type": "boolean"
         }
       },
       "additionalProperties": false

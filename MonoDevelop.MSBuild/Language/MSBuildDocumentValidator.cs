@@ -556,8 +556,9 @@ namespace MonoDevelop.MSBuild.Language
 				var knownVals = (IReadOnlyList<ISymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
 
 				if (knownVals is not null && knownVals.Count != 0) {
+					var valueComparer = (info.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
+						if (string.Equals (kv.Name, value, valueComparer)) {
 							return;
 						}
 					}

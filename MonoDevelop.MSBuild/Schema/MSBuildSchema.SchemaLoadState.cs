@@ -443,6 +443,7 @@ partial class MSBuildSchema
 			string? description = null;
 			bool? allowUnknownValues = null;
 			MSBuildValueKind? baseValueKind = null;
+			bool? caseSensitive = null;
 
 			bool foundAnyNonRef = false;
 
@@ -493,6 +494,9 @@ partial class MSBuildSchema
 				case "allowUnknownValues":
 					GetValueBool(out allowUnknownValues);
 					break;
+				case "caseSensitive":
+					GetValueBool (out caseSensitive);
+					break;
 				case "baseType":
 					if (defPropVal is JValue baseKindVal && baseKindVal.Value is string kindStr && TryParseValueKind (kindStr) is MSBuildValueKind parsedKind && PermittedBaseKinds.Contains (parsedKind)) {
 						baseValueKind = parsedKind;
@@ -512,7 +516,7 @@ partial class MSBuildSchema
 						if (valueDescToken is not null && (valueDescToken is not JValue valVal || (valueDescription = valVal.Value as string) is null)) {
 							AddError (customTypeObj, $"Custom type definition value description must be a string");
 						}
-						values.Add (new CustomTypeValue (valueName,valueDescription));
+						values.Add (new CustomTypeValue (valueName, valueDescription));
 					}
 					break;
 				default:
@@ -527,7 +531,7 @@ partial class MSBuildSchema
 				return (null, null);
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
 		}
 
 		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {
