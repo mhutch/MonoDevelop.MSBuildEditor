@@ -119,8 +119,34 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var att in element.Attributes) {
+				switch (att.SyntaxKind) {
+				case MSBuildSyntaxKind.Item_Metadata:
+					CollectMetadata (element.ElementName, att.Name, ReferenceUsage.Write);
+					goto default;
+				case MSBuildSyntaxKind.Output_ItemName:
+					if (att.AsConstString () is string itemName) {
+						CollectItem (itemName, ReferenceUsage.Write);
+					}
+					break;
+				case MSBuildSyntaxKind.Output_PropertyName:
+					if (att.AsConstString () is string propertyName) {
+						CollectProperty (propertyName, ReferenceUsage.Write);
+					}
+					break;
+				default:
+					if (att.Value is not null) {
+						MSBuildValueKind attKind = GetAttributeKind (element, att);
+						ExtractReferences (attKind, att.Value);
+					}
+					break;
+				}
 				if (att.Value != null ) {
 					MSBuildValueKind attKind = GetAttributeKind (element, att);
+					ReferenceUsage usage = att.SyntaxKind switch {
+						MSBuildSyntaxKind.Output_ItemName => ReferenceUsage.Write,
+						MSBuildSyntaxKind.Output_PropertyName => ReferenceUsage.Write,
+						_ => ReferenceUsage.Read
+					};
 					ExtractReferences (attKind, att.Value);
 				}
 				if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
