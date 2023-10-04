@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Schema
 			AddMetadata ("Extension", "The file extension of the item", MSBuildValueKind.Extension);
 			AddMetadata ("RelativeDir", "The path specified in the Include attribute", MSBuildValueKind.FolderWithSlash);
 			AddMetadata ("Directory", "The directory of the item, excluding the root directory", MSBuildValueKind.FolderWithSlash);
-			AddMetadata ("RecursiveDir", "If the item contained a ** wildstar, the value to which it was expanded", MSBuildValueKind.FolderWithSlash);
+			AddMetadata ("RecursiveDir", "If the item contained a ** wildcard, the value to which it was expanded", MSBuildValueKind.FolderWithSlash);
 			AddMetadata ("Identity", "The value specified in the Include attribute", MSBuildValueKind.MatchItem);
 			AddMetadata ("ModifiedTime", "The time the the item was last modified", MSBuildValueKind.DateTime);
 			AddMetadata ("CreatedTime", "The time the the item was created", MSBuildValueKind.DateTime);
@@ -83,9 +83,10 @@ namespace MonoDevelop.MSBuild.Schema
 			AddProperty (WellKnownProperties.MSBuildExtensionsPath64, "Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
 			AddProperty (WellKnownProperties.MSBuildProgramFiles32, "Absolute path of the 32-bit Program Files folder. Does not include final backslash.", MSBuildValueKind.Folder);
 
-			AddProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors, "Name of the property that indicates that all warnings should be treated as errors", MSBuildValueKind.PropertyName, true);
-			AddProperty (WellKnownProperties.MSBuildWarningsAsErrors, "Name of the property that indicates a list of warnings to treat as errors", MSBuildValueKind.PropertyName, true);
-			AddProperty (WellKnownProperties.MSBuildWarningsAsMessages, "Name of the property that indicates the list of warnings to treat as messages", MSBuildValueKind.PropertyName, true);
+			AddProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors, "Whether to treat all warnings as errors", MSBuildValueKind.Bool, true);
+			AddProperty (WellKnownProperties.MSBuildWarningsAsErrors, "List warning codes to treat as errors", MSBuildValueKind.Unknown.AsList (), true);
+			AddProperty (WellKnownProperties.MSBuildWarningsNotAsErrors, "List warning codes to treat as low-importance meesages", MSBuildValueKind.Unknown.AsList (), true);
+			AddProperty (WellKnownProperties.MSBuildWarningsAsMessages, "List of warning codes to treat as messages", MSBuildValueKind.Unknown.AsList(), true);
 			AddProperty (WellKnownProperties.MSBuildAllProjects,
 				"List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.",
 				MSBuildValueKind.ProjectFile, true);
