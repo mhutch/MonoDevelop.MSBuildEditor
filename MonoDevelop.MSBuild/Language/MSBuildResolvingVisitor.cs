@@ -65,13 +65,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueDescriptor);
 
-			if (!kind.AllowsExpressions ()) {
-				VisitValueExpression (
-					element, attribute, resolvedElement, resolvedAttribute,
-					valueDescriptor, kind, new ExpressionText (offset, value, true));
-				return;
-			}
-
+			// parse even if the kind disallows expressions, as this handles lists, whitespace, offsets, etc
 			var expression =
 				valueDescriptor?.ValueKind == MSBuildValueKind.Condition
 					? ExpressionParser.ParseCondition (value, offset)
