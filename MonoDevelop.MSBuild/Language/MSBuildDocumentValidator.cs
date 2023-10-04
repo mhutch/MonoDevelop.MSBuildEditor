@@ -66,6 +66,10 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			if (symbol is not null && symbol is IDeprecatable deprecatable) {
+				CheckDeprecated (deprecatable, element);
+			}
+
 			TextSpan[] GetNameSpans (XElement el) => (el.ClosingTag is XClosingTag ct)
 				? new[] { element.NameSpan, new TextSpan (ct.Span.Start + 2, ct.Name.Length) }
 				: new[] { element.NameSpan };
@@ -156,6 +160,27 @@ namespace MonoDevelop.MSBuild.Language
 					Document.Diagnostics.Add (
 						CoreDiagnostics.DeprecatedWithMessage,
 						namedObj.NameSpan,
+						DescriptionFormatter.GetKindNoun (info),
+						info.Name,
+						info.DeprecationMessage
+					);
+				}
+			}
+		}
+
+		void CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode)
+		{
+			if (info.IsDeprecated) {
+				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.Deprecated,
+						expressionNode.Span,
+						DescriptionFormatter.GetKindNoun (info),
+					info.Name);
+				} else {
+					Document.Diagnostics.Add (
+						CoreDiagnostics.DeprecatedWithMessage,
+						expressionNode.Span,
 						DescriptionFormatter.GetKindNoun (info),
 						info.Name,
 						info.DeprecationMessage
@@ -427,6 +452,10 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			CheckDeprecated (resolvedAttribute, attribute);
 
+			if (info is not null && info is IDeprecatable deprecatable) {
+				CheckDeprecated (deprecatable, element);
+			}
+
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
 				if (resolvedAttribute.Required) {
 					Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
@@ -453,10 +482,6 @@ namespace MonoDevelop.MSBuild.Language
 						ImmutableDictionary<string,object>.Empty.Add ("Info", valueSymbol),
 						DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
 				}
-			}
-
-			if (valueSymbol is IDeprecatable deprecatable) {
-				CheckDeprecated (deprecatable, (INamedXObject)attribute ?? element);
 			}
 
 			bool allowExpressions = kind.AllowsExpressions ();
@@ -557,6 +582,9 @@ namespace MonoDevelop.MSBuild.Language
 					var valueComparer = (info.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, value, valueComparer)) {
+							if (kv is IDeprecatable deprecatable) {
+								CheckDeprecated (deprecatable, expressionText);
+							}
 							return;
 						}
 					}
