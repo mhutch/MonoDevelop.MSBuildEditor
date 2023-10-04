@@ -508,15 +508,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						}
 						break;
 					}
-				case MSBuildValueKind.Guid:
-					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
-					break;
 				case MSBuildValueKind.Lcid:
 					items.AddRange (GetLcidCompletions ());
 					break;
 				case MSBuildValueKind.Culture:
 					items.AddRange (GetCultureCompletions ());
 					break;
+				}
+
+				if (kind == MSBuildValueKind.Guid || valueSymbol.CustomType is CustomTypeInfo { BaseKind: MSBuildValueKind.Guid, AllowUnknownValues: true }) {
+					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
 				}
 			}
 

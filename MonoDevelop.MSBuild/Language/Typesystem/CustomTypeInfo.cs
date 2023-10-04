@@ -9,12 +9,13 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	public sealed class CustomTypeInfo
 	{
-		public CustomTypeInfo (IReadOnlyList<CustomTypeValue> values, string name = null, DisplayText description = default, bool allowUnknownValues = false)
+		public CustomTypeInfo (IReadOnlyList<CustomTypeValue> values, string name = null, DisplayText description = default, bool allowUnknownValues = false, MSBuildValueKind baseKind = MSBuildValueKind.Unknown)
         {
 			Values = values ?? throw new ArgumentNullException (nameof (values));
 			Name = name;
 			Description = description;
 			AllowUnknownValues = allowUnknownValues;
+			BaseKind = baseKind;
 
 			foreach (var v in values) {
 				v.SetParent (this);
@@ -25,5 +26,6 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public DisplayText Description { get; }
 		public bool AllowUnknownValues { get; }
 		public IReadOnlyList<CustomTypeValue> Values { get; }
+		public MSBuildValueKind BaseKind { get;}
 	}
 }

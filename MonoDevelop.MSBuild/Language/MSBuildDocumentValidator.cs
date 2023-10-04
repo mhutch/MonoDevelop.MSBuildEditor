@@ -552,24 +552,23 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
-			if (info.CustomType != null && info.CustomType.AllowUnknownValues) {
-				return;
-			}
+			if (info.CustomType is null || !info.CustomType.AllowUnknownValues) {
+				var knownVals = (IReadOnlyList<ISymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
 
-			var knownVals = (IReadOnlyList<ISymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
-
-			if (knownVals != null && knownVals.Count != 0) {
-				foreach (var kv in knownVals) {
-					if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
-						return;
+				if (knownVals is not null && knownVals.Count != 0) {
+					foreach (var kv in knownVals) {
+						if (string.Equals (kv.Name, value, StringComparison.OrdinalIgnoreCase)) {
+							return;
+						}
 					}
+					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
+					return;
 				}
-				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
-
-				return;
 			}
 
-			switch (kind) {
+			MSBuildValueKind kindOrBaseKind = info.CustomType?.BaseKind ?? kind;
+
+			switch (kindOrBaseKind) {
 			case MSBuildValueKind.Guid:
 			case MSBuildValueKind.ProjectKindGuid:
 				if (!Guid.TryParseExact (value, "B", out _)) {

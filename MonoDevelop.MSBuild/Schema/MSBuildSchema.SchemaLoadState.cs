@@ -442,6 +442,7 @@ partial class MSBuildSchema
 			string? name = null;
 			string? description = null;
 			bool? allowUnknownValues = null;
+			MSBuildValueKind? baseValueKind = null;
 
 			bool foundAnyNonRef = false;
 
@@ -492,6 +493,15 @@ partial class MSBuildSchema
 				case "allowUnknownValues":
 					GetValueBool(out allowUnknownValues);
 					break;
+				case "baseType":
+					if (defPropVal is JValue baseKindVal && baseKindVal.Value is string kindStr && TryParseValueKind (kindStr) is MSBuildValueKind parsedKind && PermittedBaseKinds.Contains (parsedKind)) {
+						baseValueKind = parsedKind;
+					} else {
+						var kindNames = GetValueKindNames().ToDictionary (k => k.kind, k => k.name);
+						var permittedKindNames = PermittedBaseKinds.Select (name => kindNames[name]);
+						AddWarning (defPropVal ?? customTypeObj, $"Custom type definition property '{defPropName}' must have one of the following values: '{string.Join("', '", permittedKindNames)}'");
+					}
+					break;
 				case "values":
 					if (defPropVal is not JObject valuesObj || valuesObj.Count == 0) {
 						AddError (defPropVal ?? customTypeObj, $"Custom type definition property 'values' must be a non-empty object");
@@ -517,8 +527,13 @@ partial class MSBuildSchema
 				return (null, null);
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown), null);
 		}
+
+		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {
+			MSBuildValueKind.Guid,
+			MSBuildValueKind.Int,
+		};
 
 		public static string? GetErrorIfInvalidCustomTypeDisplayName (string name)
 		{
