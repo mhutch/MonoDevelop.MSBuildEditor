@@ -301,7 +301,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (FileKind.IsProject () && UsesLegacyProjectSystem ()) {
 				yield return BuiltInSchema.ProjectSystemMpsSchema;
 			} else {
-				yield return BuiltInSchema.ProjectSystemMpsSchema;
+				yield return BuiltInSchema.ProjectSystemCpsSchema;
 			}
 
 			foreach (var baseSchema in base.GetSchemas (skipThisDocumentInferredSchema)) {
