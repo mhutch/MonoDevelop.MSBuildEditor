@@ -38,23 +38,25 @@ namespace MonoDevelop.MSBuild.Language
 			base.VisitUnknownAttribute (element, attribute);
 		}
 
-		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
 		{
 			try {
-				ValidateResolvedElement (element, resolved);
-				//don't validate children of incomplete elements
+				ValidateResolvedElement (element, resolved, symbol);
+
 				if (element.IsComplete) {
-					base.VisitResolvedElement (element, resolved);
+					base.VisitResolvedElement (element, resolved, symbol);
 				}
+
 			} catch (Exception ex) when (!(ex is OperationCanceledException && CancellationToken.IsCancellationRequested)) {
 				Document.Diagnostics.Add (CoreDiagnostics.InternalError, element.NameSpan, ex.Message);
 				LogInternalError (Logger, ex);
 			}
 		}
 
-		void ValidateResolvedElement (XElement element, MSBuildElementSyntax resolved)
+		void ValidateResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
 		{
 			CheckDeprecated (resolved, element);
+
 			foreach (var rat in resolved.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (rat.Name, true);
@@ -398,9 +400,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
+		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? symbol)
 		{
 			CheckDeprecated (resolvedAttribute, attribute);
+
 			if (resolvedAttribute.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
 				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read)) {
 					Document.Diagnostics.Add (
@@ -414,11 +417,13 @@ namespace MonoDevelop.MSBuild.Language
 					);
 				}
 			}
-			ValidateAttribute (element, attribute, resolvedElement, resolvedAttribute);
-			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+
+			ValidateAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
+
+			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
 		}
 
-		void ValidateAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
+		void ValidateAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol info)
 		{
 			CheckDeprecated (resolvedAttribute, attribute);
 
@@ -432,54 +437,43 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
+		// the expression with more options enabled so that we can warn if the user is doing something likely invalid
+		protected override ExpressionOptions GetExpressionParseOptions (MSBuildValueKind inferredKind)
+			=> inferredKind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
+
 		protected override void VisitValue (
 			XElement element, XAttribute attribute,
 			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol valueDescriptor, string value, int offset)
+			ITypedSymbol valueSymbol, MSBuildValueKind kind, string expressionText, ExpressionNode expression)
 		{
-			if (Document.FileKind.IsProject () && valueDescriptor is IHasDefaultValue hasDefault) {
-				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, value, StringComparison.OrdinalIgnoreCase)) {
+			if (Document.FileKind.IsProject () && valueSymbol is IHasDefaultValue hasDefault) {
+				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, expressionText, StringComparison.OrdinalIgnoreCase)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
-						ImmutableDictionary<string,object>.Empty.Add ("Info", valueDescriptor),
-						DescriptionFormatter.GetKindNoun (valueDescriptor), valueDescriptor.Name, hasDefault.DefaultValue);
+						ImmutableDictionary<string,object>.Empty.Add ("Info", valueSymbol),
+						DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
 				}
 			}
 
-
-			if (valueDescriptor is IDeprecatable deprecatable) {
+			if (valueSymbol is IDeprecatable deprecatable) {
 				CheckDeprecated (deprecatable, (INamedXObject)attribute ?? element);
 			}
 
-			// we skip calling base, and instead parse the expression with more options enabled
-			// so that we can warn if the user is doing something likely invalid
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (valueDescriptor);
-			var options = kind.GetExpressionOptions () | ExpressionOptions.ItemsMetadataAndLists;
-
-			var node = ExpressionParser.Parse (value, options, offset);
-			VisitValueExpression (element, attribute, resolvedElement, resolvedAttribute, valueDescriptor, kind, node);
-		}
-
-		protected override void VisitValueExpression (
-			XElement element, XAttribute attribute,
-			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol info, MSBuildValueKind kind, ExpressionNode node)
-		{
 			bool allowExpressions = kind.AllowsExpressions ();
 			bool allowLists = kind.AllowsLists (MSBuildValueKind.ListSemicolonOrComma);
 
-			if (node is ListExpression list) {
+			if (expression is ListExpression list) {
 				if (!allowLists) {
 					Document.Diagnostics.Add (
 					CoreDiagnostics.UnexpectedList,
 					new TextSpan (list.Nodes[0].End, list.End - list.Nodes[0].End),
-					ImmutableDictionary<string, object>.Empty.Add ("Name", info.Name),
-					DescriptionFormatter.GetKindNoun (info),
-					info.Name);
+					ImmutableDictionary<string, object>.Empty.Add ("Name", valueSymbol.Name),
+					DescriptionFormatter.GetKindNoun (valueSymbol),
+					valueSymbol.Name);
 				} else {
 					foreach (var listVal in list.Nodes) {
 						if (listVal is ExpressionText listValText) {
-							VisitPureLiteral (info, kind.WithoutModifiers (), listValText);
+							VisitPureLiteral (valueSymbol, kind.WithoutModifiers (), listValText);
 						}
 					}
 				}
@@ -489,18 +483,18 @@ namespace MonoDevelop.MSBuild.Language
 						AddExpressionWarning (expr);
 					}
 				}
-			} else if (node is ExpressionText lit) {
-				VisitPureLiteral (info, kind.WithoutModifiers (), lit);
+			} else if (expression is ExpressionText lit) {
+				VisitPureLiteral (valueSymbol, kind.WithoutModifiers (), lit);
 			} else {
 				if (!allowExpressions) {
-					AddExpressionWarning (node);
+					AddExpressionWarning (expression);
 				}
 			}
 
-			foreach (var n in node.WithAllDescendants ()) {
+			foreach (var n in expression.WithAllDescendants ()) {
 				switch (n) {
 				case ExpressionError err:
-					var (desc, args) = CoreDiagnostics.GetExpressionError (err, info);
+					var (desc, args) = CoreDiagnostics.GetExpressionError (err, valueSymbol);
 					Document.Diagnostics.Add (desc, new TextSpan (err.Offset, Math.Max (1, err.Length)), args);
 					break;
 				case ExpressionMetadata meta:
@@ -534,8 +528,8 @@ namespace MonoDevelop.MSBuild.Language
 			void AddExpressionWarning (ExpressionNode n)
 				=> Document.Diagnostics.Add (CoreDiagnostics.UnexpectedExpression,
 				new TextSpan (n.Offset, n.Length),
-				DescriptionFormatter.GetKindNoun (info),
-				info.Name);
+				DescriptionFormatter.GetKindNoun (valueSymbol),
+				valueSymbol.Name);
 
 			// errors expected to be fixed by ChangeMisspelledNameFixProvider
 			// captures the information needed by the fixer

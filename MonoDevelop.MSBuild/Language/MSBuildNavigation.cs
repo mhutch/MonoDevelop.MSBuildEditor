@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? symbol)
 			{
 				switch (resolvedElement.SyntaxKind) {
 				case MSBuildSyntaxKind.Import:
@@ -148,7 +148,7 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				}
 
-				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
 
 				void CaptureAnnotations ()
 				{
@@ -164,9 +164,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			protected override void VisitValueExpression (
+			protected override void VisitValue (
 				XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ITypedSymbol valueType, MSBuildValueKind kind, ExpressionNode node)
+				ITypedSymbol valueType, MSBuildValueKind kind, string expressionText, ExpressionNode node)
 			{
 				switch (kind.WithoutModifiers ()) {
 				case MSBuildValueKind.TargetName:

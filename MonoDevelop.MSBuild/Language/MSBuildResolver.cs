@@ -116,7 +116,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 
-			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
+			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
 			{
 				var start = element.NameOffset;
 				if (element.Name.IsValid && IsIn (start, element.Name.Name.Length)) {
@@ -154,20 +154,18 @@ namespace MonoDevelop.MSBuild.Language
 						return;
 					}
 				}
-
-				base.VisitResolvedElement (element, resolved);
+				base.VisitResolvedElement (element, resolved, symbol);
 			}
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute)
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? symbol)
 			{
 				if (!attribute.Span.Contains (offset)) {
 					return;
 				}
 
-				rr.AttributeSyntax = resolvedAttribute
-					= Document.GetSchemas ().SpecializeAttribute (resolvedAttribute, element.Name.Name!);
+				rr.AttributeSyntax = resolvedAttribute;
 
 				if (attribute.Name.IsValid && attribute.NameSpan.Contains (offset)) {
 					rr.ReferenceOffset = attribute.Span.Start;
@@ -191,13 +189,13 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute);
+				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
 			}
 
-			protected override void VisitValueExpression (
+			protected override void VisitValue (
 				XElement element, XAttribute attribute,
 				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionNode node)
+				ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
@@ -363,10 +361,10 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList <ISymbol>)valueDescriptor.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
+				var knownVals = (IReadOnlyList <ISymbol>)valueDescriptor?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
-					var valueComparer = (valueDescriptor.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+					var valueComparer = (valueDescriptor?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, value, valueComparer)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
