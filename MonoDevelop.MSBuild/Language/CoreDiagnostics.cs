@@ -21,7 +21,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor InvalidSdkAttribute = new (
 			InvalidSdkAttribute_Id,
 			"Invalid SDK attribute",
-			"The SDK attribute '{0}' has an invalid format",
+			"The SDK attribute `{0}` has an invalid format",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor SdkNotFound = new (
 			SdkNotFound_Id,
 			"SDK not found",
-			"The SDK '{0}' was not found",
+			"The SDK `{0}` was not found",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnresolvedImportConditioned = new (
 			UnresolvedImportConditioned_Id,
 			"Could not resolve conditioned import",
-			"The conditioned import '{0}' could not be resolved",
+			"The conditioned import `{0}` could not be resolved",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnresolvedImport = new (
 			UnresolvedImport_Id,
 			"Could not resolve import",
-			"The import '{0}' could not be resolved",
+			"The import `{0}` could not be resolved",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnresolvedSdkImportConditioned = new (
 			UnresolvedSdkImportConditioned_Id,
 			"Could not resolve conditioned SDK import",
-			"The conditioned import '{0}' could not be resolved from SDK path '{1}'",
+			"The conditioned import `{0}` could not be resolved from SDK path `{1}`",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -69,7 +69,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnresolvedSdkImport = new (
 			UnresolvedSdkImport_Id,
 			"Could not resolve SDK import",
-			"The import '{0}' could not be resolved from SDK path '{1}'",
+			"The import `{0}` could not be resolved from SDK path `{1}`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -77,7 +77,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnresolvedSdk = new (
 			UnresolvedSdk_Id,
 			"Could not resolve SDK",
-			"The SDK '{0}' could not be resolved",
+			"The SDK `{0}` could not be resolved",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -85,7 +85,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownElement = new (
 			UnknownElement_Id,
 			"Unknown element",
-			"The element '{0}' is not valid at this location",
+			"The element `{0}` is not valid at this location",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownAttribute = new (
 			UnknownAttribute_Id,
 			"Unknown attribute",
-			"The attribute '{0}' is not valid at this location",
+			"The attribute `{0}` is not valid at this location",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -101,7 +101,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor MissingRequiredAttribute = new (
 			MissingRequiredAttribute_Id,
 			"Missing required attribute",
-			"The element '{0}' is missing the required attribute '{1}'",
+			"The element `{0}` is missing the required attribute `{1}`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -109,7 +109,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnexpectedText = new (
 			UnexpectedText_Id,
 			"Unexpected text content",
-			"The element '{0}' does not permit text content",
+			"The element `{0}` does not permit text content",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -117,7 +117,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor RequiredAttributeEmpty = new (
 			RequiredAttributeEmpty_Id,
 			"Empty required attribute",
-			"The required attribute '{0}' has an empty value",
+			"The required attribute `{0}` has an empty value",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -125,7 +125,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor AttributeEmpty = new (
 			AttributeEmpty_Id,
 			"Empty attribute",
-			"The attribute '{0}' has an empty value",
+			"The attribute `{0}` has an empty value",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor Deprecated = new (
 			Deprecated_Id,
 			"Deprecated {0}",
-			"The {0} '{1}' is deprecated",
+			"The {0} `{1}` is deprecated",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -141,7 +141,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor DeprecatedWithMessage = new (
 			DeprecatedWithMessage_Id,
 			"Deprecated {0}",
-			"The {0} '{1}' is deprecated: {2}",
+			"The {0} `{1}` is deprecated: {2}",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -149,7 +149,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor TaskNotDefined = new (
 			TaskNotDefined_Id,
 			"Task not defined",
-			"The task '{0}' is not defined",
+			"The task `{0}` is not defined",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -157,7 +157,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownTaskParameter = new (
 			UnknownTaskParameter_Id,
 			"Unknown task parameter",
-			"Unknown parameter '{1}' on task '{1}'",
+			"Unknown parameter `{1}` on task `{1}`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -165,7 +165,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor EmptyRequiredTaskParameter = new (
 			EmptyRequiredTaskParameter_Id,
 			"Empty required task parameter",
-			"Required parameter '{1}' on task '{1}' is empty",
+			"Required parameter `{1}` on task `{0}` is empty",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -173,7 +173,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor MissingRequiredTaskParameter = new (
 			MissingRequiredTaskParameter_Id,
 			"Missing task parameter",
-			"Task '{0}' is missing required parameter '{1}'",
+			"Task `{0}` is missing required parameter `{1}`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -181,7 +181,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor NonOutputTaskParameter = new (
 			NonOutputTaskParameter_Id,
 			"Incorrect parameter usage",
-			"Parameter '{1}' on task '{0}' cannot be used an an output parameter",
+			"Parameter `{1}` on task `{0}` cannot be used an an output parameter",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -198,7 +198,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor OtherwiseMustBeLastInChoose = new (
 			OtherwiseMustBeLastInChoose_Id,
 			"Otherwise must be last choice",
-			"'Otherwise' must be the last choice in a 'Choose'",
+			"`Otherwise` must be the last choice in a `Choose`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -294,7 +294,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownTaskFactory = new (
 			UnknownTaskFactory_Id,
 			"Unknown task factory",
-			"The task factory '{0}' is not known",
+			"The task factory `{0}` is not known",
 			MSBuildDiagnosticSeverity.Warning
 		);
 
@@ -325,14 +325,14 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnexpectedList = new (
 			UnexpectedList_Id,
 			"Unexpected list in value",
-			"The {0} '{1}' does not permit lists",
+			"The {0} `{1}` does not permit lists",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnexpectedExpression_Id = nameof(UnexpectedExpression);
 		public static readonly MSBuildDiagnosticDescriptor UnexpectedExpression = new (
 			UnexpectedExpression_Id,
 			"Unexpected expression in value",
-			"The {0} '{1}' does not permit expressions",
+			"The {0} `{1}` does not permit expressions",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string ImportVersionRequiresSdk_Id = nameof(ImportVersionRequiresSdk);
@@ -353,119 +353,119 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownValue = new (
 			UnknownValue_Id,
 			"{1} has unknown value",
-			"{0} '{1}' has unknown value '{2}'",
+			"{0} `{1}` has unknown value `{2}`",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string HasDefaultValue_Id = nameof(HasDefaultValue);
 		public static readonly MSBuildDiagnosticDescriptor HasDefaultValue = new (
 			HasDefaultValue_Id,
 			"{1} has default value",
-			"{0} '{1}' has default value '{2}'",
+			"{0} `{1}` has default value `{2}`",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string InvalidGuid_Id = nameof(InvalidGuid);
 		public static readonly MSBuildDiagnosticDescriptor InvalidGuid = new (
 			InvalidGuid_Id,
 			"Invalid GUID format",
-			"The value '{0}' is not a valid GUID format",
+			"The value `{0}` is not a valid GUID format",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidInteger_Id = nameof(InvalidInteger);
 		public static readonly MSBuildDiagnosticDescriptor InvalidInteger = new (
 			InvalidInteger_Id,
 			"Invalid integer",
-			"The value '{0}' is not a valid integer",
+			"The value `{0}` is not a valid integer",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidBool_Id = nameof(InvalidBool);
 		public static readonly MSBuildDiagnosticDescriptor InvalidBool = new (
 			InvalidBool_Id,
 			"Invalid bool",
-			"The value '{0}' is not a valid bool",
+			"The value `{0}` is not a valid bool",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidLcid_Id = nameof(InvalidLcid);
 		public static readonly MSBuildDiagnosticDescriptor InvalidLcid = new (
 			InvalidLcid_Id,
 			"Invalid LCID",
-			"The value '{0}' is not a valid LCID integer",
+			"The value `{0}` is not a valid LCID integer",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnknownLcid_Id = nameof(UnknownLcid);
 		public static readonly MSBuildDiagnosticDescriptor UnknownLcid = new (
 			UnknownLcid_Id,
 			"Unknown LCID",
-			"The value '{0}' is not a known LCID",
+			"The value `{0}` is not a known LCID",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string InvalidCulture_Id = nameof(InvalidCulture);
 		public static readonly MSBuildDiagnosticDescriptor InvalidCulture = new (
 			InvalidCulture_Id,
 			"Invalid culture name",
-			"The value '{0}' is not a valid culture name",
+			"The value `{0}` is not a valid culture name",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnknownCulture_Id = nameof(UnknownCulture);
 		public static readonly MSBuildDiagnosticDescriptor UnknownCulture = new (
 			UnknownCulture_Id,
 			"Unknown culture name",
-			"The value '{0}' is not a known culture name",
+			"The value `{0}` is not a known culture name",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string InvalidUrl_Id = nameof(InvalidUrl);
 		public static readonly MSBuildDiagnosticDescriptor InvalidUrl = new (
 			InvalidUrl_Id,
 			"Invalid URL",
-			"The value '{0}' is not a valid URL",
+			"The value `{0}` is not a valid URL",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidVersion_Id = nameof(InvalidVersion);
 		public static readonly MSBuildDiagnosticDescriptor InvalidVersion = new (
 			InvalidVersion_Id,
 			"Invalid version format",
-			"The value '{0}' is not a valid version format",
+			"The value `{0}` is not a valid version format",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnknownTargetFramework_Id = nameof(UnknownTargetFramework);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFramework = new (
 			UnknownTargetFramework_Id,
 			"Unknown target framework",
-			"The value '{0}' is not a known target framework short name",
+			"The value `{0}` is not a known target framework short name",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnknownTargetFrameworkIdentifier_Id = nameof(UnknownTargetFrameworkIdentifier);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFrameworkIdentifier = new (
 			UnknownTargetFrameworkIdentifier_Id,
 			"Unknown target framework identifier",
-			"The value '{0}' is not a known target framework identifier",
+			"The value `{0}` is not a known target framework identifier",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnknownTargetFrameworkVersion_Id = nameof(UnknownTargetFrameworkVersion);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFrameworkVersion = new (
 			UnknownTargetFrameworkVersion_Id,
 			"Unknown target framework version",
-			"The value '{0}' is not a known version for target framework '{1}'",
+			"The value `{0}` is not a known version for target framework `{1}`",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnknownTargetFrameworkProfile_Id = nameof(UnknownTargetFrameworkProfile);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFrameworkProfile = new (
 			UnknownTargetFrameworkProfile_Id,
 			"Unknown target framework profile",
-			"The value '{0}' is not a known profile for target framework '{1},Version={2}'",
+			"The value `{0}` is not a known profile for target framework `{1},Version={2}`",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string ItemAttributeNotValidInTarget_Id = nameof(ItemAttributeNotValidInTarget);
 		public static readonly MSBuildDiagnosticDescriptor ItemAttributeNotValidInTarget = new (
 			ItemAttributeNotValidInTarget_Id,
 			"{0} not valid in targets",
-			"The item attribute '{0}' is not valid in a target",
+			"The item attribute `{0}` is not valid in a target",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string ItemAttributeOnlyValidInTarget_Id = nameof(ItemAttributeOnlyValidInTarget);
 		public static readonly MSBuildDiagnosticDescriptor ItemAttributeOnlyValidInTarget = new (
 			ItemAttributeOnlyValidInTarget_Id,
 			"{0} not valid outside targets",
-			"The item attribute '{0}' is not valid outside targets",
+			"The item attribute `{0}` is not valid outside targets",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string ItemMustHaveInclude_Id = nameof(ItemMustHaveInclude);
@@ -512,14 +512,14 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor MetadataDisallowed = new (
 			MetadataDisallowed_Id,
 			"Metadata not permitted",
-			"{0} '{1}' does not permit metadata",
+			"{0} `{1}` does not permit metadata",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string ItemsDisallowed_Id = nameof(ItemsDisallowed);
 		public static readonly MSBuildDiagnosticDescriptor ItemsDisallowed = new (
 			ItemsDisallowed_Id,
 			"Items not permitted",
-			"{0} '{1}' does not permit items",
+			"{0} `{1}` does not permit items",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string EmptyListValue_Id = nameof(EmptyListValue);
@@ -537,13 +537,13 @@ namespace MonoDevelop.MSBuild.Language
 		public const string ExpectingChar_Id = nameof(ExpectingChar);
 		public static readonly MSBuildDiagnosticDescriptor ExpectingChar = new (
 			ExpectingChar_Id,
-			"Expecting '{0}'",
+			"Expecting `{0}`",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string ExpectingCharOrChar_Id = nameof(ExpectingCharOrChar);
 		public static readonly MSBuildDiagnosticDescriptor ExpectingCharOrChar = new (
 			ExpectingCharOrChar_Id,
-			"Expecting '{0}' or {1}",
+			"Expecting `{0}` or `{1}`",
 			MSBuildDiagnosticSeverity.Error);
 
 		public static readonly MSBuildDiagnosticDescriptor ExpectingPropertyName= new (
@@ -620,63 +620,63 @@ namespace MonoDevelop.MSBuild.Language
 		public const string ExpectingRightParenOrValue_Id = nameof(ExpectingRightParenOrValue);
 		public static readonly MSBuildDiagnosticDescriptor ExpectingRightParenOrValue = new (
 			ExpectingRightParenOrValue_Id,
-			"Expecting ')' or value",
+			"Expecting `)` or value",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnwrittenItem_Id = nameof(UnwrittenItem);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenItem = new (
 			UnwrittenItem_Id,
 			"Possible unused or misspelled item",
-			"The item '{0}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The item `{0}` does not have a value assigned and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnwrittenProperty_Id = nameof(UnwrittenProperty);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenProperty = new (
 			UnwrittenProperty_Id,
 			"Possible unused or misspelled property",
-			"The property '{0}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The property `{0}` does not have a value assigned and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnwrittenMetadata_Id = nameof(UnwrittenMetadata);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenMetadata = new (
 			UnwrittenMetadata_Id,
 			"Possible unused or misspelled metadata",
-			"The metadata '{0}.{1}' does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The metadata `{0}.{1}` does not have a value assigned and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadItem_Id = nameof(UnreadItem);
 		public static readonly MSBuildDiagnosticDescriptor UnreadItem = new (
 			UnreadItem_Id,
 			"Possible unused or misspelled item",
-			"The item '{0}' is not used in this file and is not referenced in any imported targets or schemas",
+			"The item `{0}` is not used in this file and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadProperty_Id = nameof(UnreadProperty);
 		public static readonly MSBuildDiagnosticDescriptor UnreadProperty = new (
 			UnreadProperty_Id,
 			"Possible unused or misspelled property",
-			"The property '{0}' is not used in this file and is not referenced in any imported targets or schemas",
+			"The property `{0}` is not used in this file and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadMetadata_Id = nameof(UnreadMetadata);
 		public static readonly MSBuildDiagnosticDescriptor UnreadMetadata = new (
 			UnreadMetadata_Id,
 			"Possible unused or misspelled metadata",
-			"The metadata '{0}.{1}' is not used in this file and is not referenced in any imported targets or schemas",
+			"The metadata `{0}.{1}` is not used in this file and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string PropertyWriteReserved_Id = nameof (PropertyWriteReserved);
 		public static readonly MSBuildDiagnosticDescriptor PropertyWriteReserved = new (
 			PropertyWriteReserved_Id,
 			"Cannot assign value to reserved property",
-			"The property '{0}' is a reserved property and cannot be assigned a new value",
+			"The property `{0}` is a reserved property and cannot be assigned a new value",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string PropertyWriteReadonly_Id = nameof (PropertyWriteReadonly);
 		public static readonly MSBuildDiagnosticDescriptor PropertyWriteReadonly = new (
 			PropertyWriteReadonly_Id,
 			"Cannot assign value to read-only property",
-			"The property '{0}' is read-only and cannot be assigned a new value",
+			"The property `{0}` is read-only and cannot be assigned a new value",
 			MSBuildDiagnosticSeverity.Error);
 	}
 }
