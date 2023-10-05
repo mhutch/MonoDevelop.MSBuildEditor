@@ -86,6 +86,9 @@ namespace MonoDevelop.MSBuild.Workspace
 			if (string.Equals (extension, MSBuildFileExtension.sfxproj, StringComparison.OrdinalIgnoreCase)) {
 				return MSBuildFileKind.SfxProj;
 			}
+			if (string.Equals (extension, MSBuildFileExtension.pubxml, StringComparison.OrdinalIgnoreCase)) {
+				return MSBuildFileKind.PubXml;
+			}
 			if (extension.EndsWith ("proj")) {
 				return MSBuildFileKind.Project;
 			}
@@ -117,6 +120,7 @@ namespace MonoDevelop.MSBuild.Workspace
 				MSBuildFileKind.OverrideTasks => "Task override file in the MSBuild bin directory that overrides tasks defined in the .tasks file and in project and targets files",
 				MSBuildFileKind.Props => "Props file that contains definitions to be imported at the beginning of the project file, such as properties and items that may be referenced in the project file at evaluation time",
 				MSBuildFileKind.Targets => "Targets file that contains logic to be imported at the end of the project file, such as target definitions, or evaluation-time definitions that depend on values from the project file",
+				MSBuildFileKind.PubXml => "Publish profile that contains a set of properties to be used when publishing a project.",
 				MSBuildFileKind.CSProj => isUserProj ? "User settings for a C# project file" : "C# project file",
 				MSBuildFileKind.VBProj => isUserProj ? "User settings for a Visual Basic project file" : "Visual Basic project file",
 				MSBuildFileKind.FSProj => isUserProj ? "User settings for an F# project file" : "F# project file",

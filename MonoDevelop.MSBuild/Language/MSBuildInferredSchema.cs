@@ -119,8 +119,34 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var att in element.Attributes) {
+				switch (att.SyntaxKind) {
+				case MSBuildSyntaxKind.Item_Metadata:
+					CollectMetadata (element.ElementName, att.Name, ReferenceUsage.Write);
+					goto default;
+				case MSBuildSyntaxKind.Output_ItemName:
+					if (att.AsConstString () is string itemName) {
+						CollectItem (itemName, ReferenceUsage.Write);
+					}
+					break;
+				case MSBuildSyntaxKind.Output_PropertyName:
+					if (att.AsConstString () is string propertyName) {
+						CollectProperty (propertyName, ReferenceUsage.Write);
+					}
+					break;
+				default:
+					if (att.Value is not null) {
+						MSBuildValueKind attKind = GetAttributeKind (element, att);
+						ExtractReferences (attKind, att.Value);
+					}
+					break;
+				}
 				if (att.Value != null ) {
 					MSBuildValueKind attKind = GetAttributeKind (element, att);
+					ReferenceUsage usage = att.SyntaxKind switch {
+						MSBuildSyntaxKind.Output_ItemName => ReferenceUsage.Write,
+						MSBuildSyntaxKind.Output_PropertyName => ReferenceUsage.Write,
+						_ => ReferenceUsage.Read
+					};
 					ExtractReferences (attKind, att.Value);
 				}
 				if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
@@ -231,7 +257,7 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTask (string name)
 		{
 			if (!Tasks.TryGetValue (name, out TaskInfo task)) {
-				Tasks[name] = task = new TaskInfo (name, null, null, null, null, null, 0);
+				Tasks[name] = new TaskInfo (name, null, null, null, null, null, 0, false, null);
 			}
 		}
 
@@ -330,7 +356,11 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (taskFactory == null && (assemblyName != null || assemblyFile != null)) {
 				//FIXME create this lazily and cache it
-				var evalCtx = new MSBuildCollectedValuesEvaluationContext (new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, parseContext.Logger, parseContext.ProjectPath, Filename), parseContext.PropertyCollector);
+				var evalCtx = new MSBuildCollectedValuesEvaluationContext (
+					MSBuildFileEvaluationContext.Create (parseContext.ProjectEvaluationContext, parseContext.Logger, Filename),
+					parseContext.PropertyCollector
+				);
+
 				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
 				if (info != null) {
 					Tasks[info.Name] = info;
@@ -347,7 +377,7 @@ namespace MonoDevelop.MSBuild.Language
 				)) &&
 				(element.GetAttribute (MSBuildSyntaxKind.ParameterGroup) == null));
 
-			Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.XElement.Span.Start) {
+			Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.XElement.Span.Start, false, null) {
 				ForceInferAttributes = forceInferAttributes
 			};
 		}

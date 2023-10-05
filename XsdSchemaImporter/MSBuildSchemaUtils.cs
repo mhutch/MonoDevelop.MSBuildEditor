@@ -78,7 +78,7 @@ static class MSBuildSchemaUtils
 		foreach (var op in otherSchema.Properties.Values) {
 			var otherProp = op;
 			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
-				otherProp = new PropertyInfo(otherProp.Name, otherProp.Description, otherProp.Reserved, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
+				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
 				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {
@@ -159,7 +159,7 @@ static class MSBuildSchemaUtils
 		string thisFilePath = GetThisFilePath();
 		var schemaSourceDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(thisFilePath)!, "..", "MonoDevelop.MSBuild", "Schemas"));
 
-		var schemas = TryLoadSchemasFromDirectory(schemaSourceDir) ?? LoadBuiltInSchemasFromResources();
+		var schemas = TryLoadSchemasFromDirectory(schemaSourceDir) ?? Enum.GetValues<BuiltInSchemaId>().Select (id => BuiltInSchema.Load (id, out _));
 		return CombineSchemas(schemas);
 	}
 
@@ -191,15 +191,6 @@ static class MSBuildSchemaUtils
 		}
 
 		return schemas;
-	}
-
-	static IEnumerable<MSBuildSchema> LoadBuiltInSchemasFromResources ()
-	{
-		var schemaProvider = new MSBuildSchemaProvider();
-		foreach ((var schema, var errors) in schemaProvider.GetAllBuiltInSchemas()) {
-			PrintSchemaErrors(errors);
-			yield return schema;
-		};
 	}
 
 	// this tool will be used when editing the schemas, so check they don't have errors

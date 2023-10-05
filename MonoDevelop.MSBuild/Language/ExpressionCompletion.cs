@@ -427,12 +427,12 @@ namespace MonoDevelop.MSBuild.Language
 				switch (variable) {
 				case ExpressionProperty ep:
 					if (ep.IsSimpleProperty) {
-						info = doc.GetProperty (ep.Name, true) ?? new PropertyInfo (ep.Name, null, false);
+						info = doc.GetProperty (ep.Name, true) ?? new PropertyInfo (ep.Name, null);
 						break;
 					}
 					continue;
 				case ExpressionMetadata em:
-					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null, false);
+					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null);
 					break;
 				default:
 					continue;
@@ -476,7 +476,8 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.MetadataName:
 				return doc.GetMetadata (null, true);
 			case TriggerState.PropertyName:
-				return doc.GetProperties (true);
+				bool includeReadOnly = rr.AttributeSyntax?.SyntaxKind != Syntax.MSBuildSyntaxKind.Output_PropertyName;
+				return doc.GetProperties (includeReadOnly);
 			case TriggerState.MetadataOrItemName:
 				return ((IEnumerable<ISymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:

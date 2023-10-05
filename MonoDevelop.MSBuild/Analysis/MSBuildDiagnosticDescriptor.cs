@@ -27,15 +27,7 @@ namespace MonoDevelop.MSBuild.Analysis
 		public MSBuildDiagnosticDescriptor (string id, string title, MSBuildDiagnosticSeverity severity)
 			: this (id, title, null, severity) { }
 
-		string combinedMsg;
-
-		internal string GetFormattedMessage (object[] args)
-		{
-			combinedMsg = combinedMsg ?? (combinedMsg = Title + Environment.NewLine + Message);
-			if (args != null && args.Length > 0) {
-				return string.Format (combinedMsg, args);
-			}
-			return combinedMsg;
-		}
+		internal string GetFormattedTitle (object[] args) => (args?.Length > 0)? string.Format (Title, args) : Title;
+		internal string GetFormattedMessage (object[] args) => (args?.Length > 0 && Message is string msg) ? string.Format (msg, args) : Message;
 	}
 }

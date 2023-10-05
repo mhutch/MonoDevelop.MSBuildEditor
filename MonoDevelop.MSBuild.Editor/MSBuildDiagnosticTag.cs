@@ -12,10 +12,7 @@ namespace MonoDevelop.MSBuild.Editor
 	class MSBuildDiagnosticTag : ErrorTag
 	{
 		public MSBuildDiagnosticTag (MSBuildDiagnostic diagnostic)
-			: base (
-				  GetErrorTypeName (diagnostic.Descriptor.Severity),
-				  diagnostic.GetFormattedMessage ()
-			)
+			: base (GetErrorTypeName (diagnostic.Descriptor.Severity), null)
 		{
 			Diagnostic = diagnostic;
 		}

@@ -11,6 +11,7 @@ using System.Threading;
 
 using Microsoft.Extensions.Logging;
 
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
@@ -25,6 +26,7 @@ namespace MonoDevelop.MSBuild.Language
 	partial class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
 	{
 		MSBuildToolsVersion? toolsVersion;
+		MSBuildSchema[] fallbackSchemas;
 
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public ITextSource Text { get; private set; }
@@ -89,11 +91,7 @@ namespace MonoDevelop.MSBuild.Language
 				schemaProvider,
 				token);
 
-			if (filePath != null) {
-				doc.FileEvaluationContext = new MSBuildFileEvaluationContext (parseContext.RuntimeEvaluationContext, logger, filePath, filePath);
-			} else {
-				doc.FileEvaluationContext = parseContext.RuntimeEvaluationContext;
-			}
+			doc.FileEvaluationContext = MSBuildFileEvaluationContext.Create (parseContext.ProjectEvaluationContext, logger, filePath);
 
 			string MakeRelativeMSBuildPathAbsolute (string path)
 			{
@@ -160,6 +158,11 @@ namespace MonoDevelop.MSBuild.Language
 
 				doc.Build (xdocument, parseContext);
 
+				// if we didn't find any explicit imports, add some default schemas and imports
+				if (!doc.Imports.Any (imp => !imp.IsImplicitImport)) {
+					AddFallbackImports (doc, parseContext);
+				}
+
 				//if this is a props file, try to import the sibling targets file _at the bottom_
 				var targetsImport = TryImportSibling (MSBuildFileKind.Props, MSBuildFileExtension.targets);
 
@@ -211,6 +214,28 @@ namespace MonoDevelop.MSBuild.Language
 			return doc;
 		}
 
+		static void AddFallbackImports (MSBuildRootDocument doc, MSBuildParserContext parseContext)
+		{
+			var sdkPropsExpr = new ExpressionText (0, "Sdk.props", true);
+			var sdkTargetsExpr = new ExpressionText (0, "Sdk.targets", true);
+			var importResolver = parseContext.CreateImportResolver (doc.Filename);
+
+			void AddSdkImport (ExpressionText importExpr, string importText, string sdkString, SdkResolution.SdkInfo sdk, bool isImplicit = false)
+			{
+				foreach (var sdkImport in importResolver.Resolve (importExpr, importText, sdkString, sdk, isImplicit)) {
+					doc.AddImport (sdkImport);
+				}
+			}
+
+			var defaultSdk = parseContext.ResolveSdk (doc, "Microsoft.NET.Sdk", doc.ProjectElement.XElement.NameSpan);
+			if (defaultSdk is not null) {
+				AddSdkImport (sdkPropsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
+			}
+
+			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas ?? BuiltInSchema.GetAllBuiltInFileSchemas ().ToArray ();
+		}
+
 		//hack for MSBuildParserContext to access
 		internal readonly Dictionary<string, Import> resolvedImportsMap = new Dictionary<string, Import> ();
 
@@ -257,6 +282,36 @@ namespace MonoDevelop.MSBuild.Language
 
 				toolsVersion = MSBuildToolsVersion.Unknown;
 				return toolsVersion.Value;
+			}
+		}
+
+
+		bool UsesLegacyProjectSystem () =>
+			// perform series of progressively more expensive checks to see if this uses the Managed Project System
+			// so that we optimize perf for SDK-format projects
+			ProjectElement.SdkAttribute is null
+			&& ProjectElement.GetAttribute (Syntax.MSBuildSyntaxKind.Project_xmlns) is not null
+			&& ProjectElement.GetAttribute (Syntax.MSBuildSyntaxKind.Project_ToolsVersion) is not null
+			&& ProjectElement.GetElements<MSBuildPropertyGroupElement> ()
+				.Any (pg => pg.GetElements<MSBuildPropertyElement> ()
+					.Any (p => p.IsElementNamed ("ProjectGuid")));
+
+		public override IEnumerable<IMSBuildSchema> GetSchemas (bool skipThisDocumentInferredSchema = false)
+		{
+			if (FileKind.IsProject () && UsesLegacyProjectSystem ()) {
+				yield return BuiltInSchema.ProjectSystemMpsSchema;
+			} else {
+				yield return BuiltInSchema.ProjectSystemCpsSchema;
+			}
+
+			foreach (var baseSchema in base.GetSchemas (skipThisDocumentInferredSchema)) {
+				yield return baseSchema;
+			}
+
+			if (fallbackSchemas is not null) {
+				foreach (var schema in fallbackSchemas) {
+					yield return schema;
+				}
 			}
 		}
 

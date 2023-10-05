@@ -289,6 +289,17 @@
         "allowUnknownValues": {
           "description": "Whether to allow unknown values",
           "type": "boolean"
+        },
+        "baseType": {
+          "description": "If specified, the type's values conform to this underlying type and will inherit validation and commands that apply to that type",
+          "enum": [
+            "guid",
+            "int"
+          ]
+        },
+        "caseSensitive": {
+          "description": "Whether values should be compared in a case-sensitive way",
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -328,8 +339,7 @@
         "file-or-folder",
         "extension",
         "configuration",
-        "platform",
-        "project-kind-guid"
+        "platform"
       ]
     }
   }

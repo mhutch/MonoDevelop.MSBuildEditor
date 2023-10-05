@@ -10,13 +10,12 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 
 using MonoDevelop.MSBuild.Editor.Completion;
-using MonoDevelop.Xml.Editor.Logging;
 using MonoDevelop.Xml.Editor.Parsing;
 using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Editor
 {
-	class MSBuildValidationTagger : ITagger<IErrorTag>, IDisposable
+	class MSBuildValidationTagger : ITagger<MSBuildDiagnosticTag>, IDisposable
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly JoinableTaskContext joinableTaskContext;
@@ -49,10 +48,10 @@ namespace MonoDevelop.MSBuild.Editor
 			parser.ParseCompleted -= ParseCompleted;
 		}
 
-		public IEnumerable<ITagSpan<IErrorTag>> GetTags (NormalizedSnapshotSpanCollection spans)
+		public IEnumerable<ITagSpan<MSBuildDiagnosticTag>> GetTags (NormalizedSnapshotSpanCollection spans)
 			=> logger.InvokeAndLogExceptions (() => GetTagsInternal (spans));
 
-		public IEnumerable<ITagSpan<IErrorTag>> GetTagsInternal (NormalizedSnapshotSpanCollection spans)
+		public IEnumerable<ITagSpan<MSBuildDiagnosticTag>> GetTagsInternal (NormalizedSnapshotSpanCollection spans)
 		{
 			//this may be assigned from another thread so capture a consistent value
 			var args = lastArgs;

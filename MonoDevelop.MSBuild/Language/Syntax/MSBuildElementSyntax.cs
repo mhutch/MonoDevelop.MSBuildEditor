@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			return children != null && children.Any (c => string.Equals (name, c.Name, StringComparison.OrdinalIgnoreCase));
 		}
 
-		public static MSBuildElementSyntax Get (string name, MSBuildElementSyntax parent = null)
+		public static MSBuildElementSyntax Get (string name, MSBuildElementSyntax? parent = null)
 		{
 			if (parent != null) {
 				return parent.GetChild (name);

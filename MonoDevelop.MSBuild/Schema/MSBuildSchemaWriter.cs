@@ -237,7 +237,7 @@ class MSBuildSchemaWriter : IDisposable
 
 	static bool IsOnlyDescription (PropertyInfo property) =>
 		IsOnlyDescription ((VariableInfo)property)
-		&& property.Reserved == false;
+		&& property.IsReserved == false;
 
 	static bool IsOnlyDescription (ItemInfo item) =>
 		IsOnlyDescription ((VariableInfo)item)

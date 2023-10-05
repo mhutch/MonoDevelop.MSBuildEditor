@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using System.Text;
 
 using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Util;
+
+using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
 
 namespace MonoDevelop.MSBuild.Evaluation
 {
@@ -256,10 +257,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 		// FIXME: populate this better?
 		static Microsoft.Build.Shared.BuildEnvironmentHelper GetBuildEnvironmentFromContext (IMSBuildEvaluationContext context)
 		{
-			context.TryGetProperty (ReservedProperties.ToolsPath32, out var toolsPath32);
-			context.TryGetProperty (ReservedProperties.ToolsPath64, out var toolsPath64);
-			context.TryGetProperty (ReservedProperties.ToolsPath, out var toolsPath);
-			context.TryGetProperty (ReservedProperties.SDKsPath, out var sdksPath);
+			context.TryGetProperty (WellKnownProperties.MSBuildToolsPath32, out var toolsPath32);
+			context.TryGetProperty (WellKnownProperties.MSBuildToolsPath64, out var toolsPath64);
+			context.TryGetProperty (ReservedPropertyNames.toolsPath, out var toolsPath);
+			context.TryGetProperty (WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
 
 			return new Microsoft.Build.Shared.BuildEnvironmentHelper {
 				CurrentMSBuildToolsDirectory = toolsPath?.EscapedValue,

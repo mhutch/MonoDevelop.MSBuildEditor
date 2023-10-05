@@ -166,10 +166,35 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return GetBuiltInEntityItems ();
 		}
 
-		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null)
+		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null)
 		{
-			var image = provider.DisplayElementFactory.GetImageElement (info);
-			var item = new CompletionItem (prefix == null ? info.Name : prefix + info.Name, this, image);
+			ImageElement image;
+
+			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
+				image = provider.DisplayElementFactory.GetImageElement (KnownImages.Deprecated);
+			} else {
+				image = provider.DisplayElementFactory.GetImageElement (info);
+			}
+
+			var value = info.Name;
+			if (prefix is not null) {
+				value = prefix + value;
+			}
+
+			string displayText = value;
+			string insertText = value;
+			string filterText = value;
+			string sortText = value;
+			string suffix = null;
+
+			if (annotation is not null) {
+				filterText = $"{value} {annotation}";
+				sortText = annotation;
+				suffix = annotation;
+			}
+
+			var item = new CompletionItem (displayText, this, image, ImmutableArray<CompletionFilter>.Empty, suffix, insertText, sortText, filterText, ImmutableArray<ImageElement>.Empty);
+
 			item.AddDocumentationProvider (this);
 			item.AddKind (xmlCompletionItemKind);
 			item.Properties.AddProperty (typeof (ISymbol), info);
@@ -189,7 +214,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (item.Properties.TryGetProperty<ISymbol> (typeof (ISymbol), out var info) && info != null) {
 				return provider.DisplayElementFactory.GetInfoTooltipElement (
-					session.TextView.TextBuffer, context.document, info, context.resolved, token
+					session.TextView.TextBuffer, context.document, info, context.resolved, true, token
 				);
 			}
 
@@ -419,7 +444,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 
 				//FIXME we should be able to cache these
-				doc.Environment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath);
+				doc.Environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
 				if (sdksPath != null) {
 					AddSdksFromDir (sdksPath);
 				}
@@ -508,9 +533,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						}
 						break;
 					}
-				case MSBuildValueKind.Guid:
-					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
-					break;
 				case MSBuildValueKind.Lcid:
 					items.AddRange (GetLcidCompletions ());
 					break;
@@ -518,21 +540,31 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					items.AddRange (GetCultureCompletions ());
 					break;
 				}
+
+				if (kind == MSBuildValueKind.Guid || valueSymbol.CustomType is CustomTypeInfo { BaseKind: MSBuildValueKind.Guid, AllowUnknownValues: true }) {
+					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
+				}
 			}
 
 			//TODO: better metadata support
-			IEnumerable<ISymbol> cinfos;
 			if (valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
-				cinfos = valueSymbol.CustomType.Values;
+				// if it's a list of ints or guids, add an annotation to make it easier to navigate
+				bool addAnnotation = valueSymbol.CustomType.BaseKind switch {
+					MSBuildValueKind.Guid => true,
+					MSBuildValueKind.Int => true,
+					_ => false
+				};
+				foreach (var value in valueSymbol.CustomType.Values) {
+					items.Add (CreateCompletionItem (value, XmlCompletionItemKind.AttributeValue, annotation: addAnnotation? value.Description.Text : null));
+				}
+
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				cinfos = ExpressionCompletion.GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger);
-			}
-
-			if (cinfos != null) {
-				foreach (var ci in cinfos) {
-					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
+				if (GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger) is IEnumerable<ISymbol> completionInfos) {
+					foreach (var ci in completionInfos) {
+						items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
+					}
 				}
 			}
 

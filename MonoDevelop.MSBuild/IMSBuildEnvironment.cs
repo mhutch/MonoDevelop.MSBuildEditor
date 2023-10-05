@@ -22,9 +22,11 @@ namespace MonoDevelop.MSBuild
 		string ToolsPath { get; }
 
 		/// <summary>
-		/// Properties defined by the environment, such as MSBuildExtensionsPaths
+		/// Properties defined by the MSBuild toolset, such as MSBuildExtensionsPaths
 		/// </summary>
 		IReadOnlyDictionary<string, string> ToolsetProperties { get; }
+
+		IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
 		/// <summary>
 		/// Multivalued fallback properties for use only when evaluating the first property in Import elements. Defined in projectImportSearchPaths in app.config.

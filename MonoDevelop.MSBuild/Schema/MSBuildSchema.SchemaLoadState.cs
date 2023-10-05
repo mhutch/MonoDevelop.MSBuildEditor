@@ -56,7 +56,7 @@ partial class MSBuildSchema
 			CustomTypes = dict;
 		}
 
-		public IEnumerable<(string name, PropertyInfo property)> ReadProperties (JObject propertyCollection)
+		public IEnumerable<PropertyInfo> ReadProperties (JObject propertyCollection)
 		{
 			foreach ((string propertyName, JToken? propertyDef) in propertyCollection) {
 				if (GetErrorIfInvalidMSBuildIdentifier (propertyName) is string error) {
@@ -65,7 +65,7 @@ partial class MSBuildSchema
 				}
 
 				if (propertyDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
-					yield return (propertyName, new PropertyInfo (propertyName, simpleDesc));
+					yield return new PropertyInfo (propertyName, simpleDesc);
 					continue;
 				}
 
@@ -113,11 +113,11 @@ partial class MSBuildSchema
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return (propertyName, new PropertyInfo (propertyName, description, false, kind, customType, defaultValue, isDeprecated, deprecationMessage));
+				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, isDeprecated, deprecationMessage);
 			}
 		}
 
-		public IEnumerable<(string name, ItemInfo item)> ReadItems (JObject itemCollection)
+		public IEnumerable<ItemInfo> ReadItems (JObject itemCollection)
 		{
 			foreach ((string itemName, JToken? itemDef) in itemCollection) {
 				if (GetErrorIfInvalidMSBuildIdentifier (itemName) is string error) {
@@ -132,7 +132,7 @@ partial class MSBuildSchema
 				var typeLoader = new TypeInfoReader (this, itemCollection, true);
 
 				if (itemDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
-					yield return (itemName, new ItemInfo (itemName, simpleDesc));
+					yield return new ItemInfo (itemName, simpleDesc);
 					continue;
 				}
 
@@ -194,7 +194,7 @@ partial class MSBuildSchema
 					AddItemMetadata (item, metadata);
 				}
 
-				yield return (itemName, item);
+				yield return item;
 			}
 		}
 
@@ -357,6 +357,57 @@ partial class MSBuildSchema
 			}
 		}
 
+		public IEnumerable<TargetInfo> ReadTargets (JObject targetCollection)
+		{
+			foreach ((string targetName, JToken? targetDef) in targetCollection) {
+				if (GetErrorIfInvalidMSBuildIdentifier (targetName) is string error) {
+					AddError (targetDef ?? targetCollection, error);
+					continue;
+				}
+
+				string? description = null, deprecationMessage = null;
+				bool isDeprecated = false;
+
+				if (targetDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+					yield return new TargetInfo (targetName, simpleDesc);
+					continue;
+				}
+
+				if (targetDef is not JObject targetDefObj) {
+					AddError (targetDef ?? targetCollection, $"Target '{targetName}' value must be an object or description string");
+					continue;
+				}
+
+				foreach ((string defPropName, JToken? defPropVal) in targetDefObj) {
+
+					bool GetValueString ([NotNullWhen (true)] out string? value)
+					{
+						if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+							return true;
+						}
+						AddError (defPropVal ?? targetDefObj, $"Target '{targetName}' definition property '{defPropName}' must be a string");
+						value = null;
+						return false;
+					}
+
+					switch (defPropName) {
+					case "description":
+						GetValueString (out description);
+						break;
+					case "deprecationMessage":
+						isDeprecated = true;
+						GetValueString (out deprecationMessage);
+						break;
+					default:
+						AddWarning (defPropVal ?? targetDefObj, $"Target '{targetName}' definition has unknown property '{defPropName}'");
+						break;
+					}
+				}
+
+				yield return new TargetInfo (targetName, description, isDeprecated, deprecationMessage);
+			}
+		}
+
 		public (MSBuildValueKind kind, CustomTypeInfo? customType) ReadType (JToken token)
 		{
 			if (token is JValue typeVal && typeVal.Value is string kindStr) {
@@ -442,6 +493,8 @@ partial class MSBuildSchema
 			string? name = null;
 			string? description = null;
 			bool? allowUnknownValues = null;
+			MSBuildValueKind? baseValueKind = null;
+			bool? caseSensitive = null;
 
 			bool foundAnyNonRef = false;
 
@@ -492,6 +545,18 @@ partial class MSBuildSchema
 				case "allowUnknownValues":
 					GetValueBool(out allowUnknownValues);
 					break;
+				case "caseSensitive":
+					GetValueBool (out caseSensitive);
+					break;
+				case "baseType":
+					if (defPropVal is JValue baseKindVal && baseKindVal.Value is string kindStr && TryParseValueKind (kindStr) is MSBuildValueKind parsedKind && PermittedBaseKinds.Contains (parsedKind)) {
+						baseValueKind = parsedKind;
+					} else {
+						var kindNames = GetValueKindNames().ToDictionary (k => k.kind, k => k.name);
+						var permittedKindNames = PermittedBaseKinds.Select (name => kindNames[name]);
+						AddWarning (defPropVal ?? customTypeObj, $"Custom type definition property '{defPropName}' must have one of the following values: '{string.Join("', '", permittedKindNames)}'");
+					}
+					break;
 				case "values":
 					if (defPropVal is not JObject valuesObj || valuesObj.Count == 0) {
 						AddError (defPropVal ?? customTypeObj, $"Custom type definition property 'values' must be a non-empty object");
@@ -502,7 +567,7 @@ partial class MSBuildSchema
 						if (valueDescToken is not null && (valueDescToken is not JValue valVal || (valueDescription = valVal.Value as string) is null)) {
 							AddError (customTypeObj, $"Custom type definition value description must be a string");
 						}
-						values.Add (new CustomTypeValue (valueName,valueDescription));
+						values.Add (new CustomTypeValue (valueName, valueDescription));
 					}
 					break;
 				default:
@@ -517,8 +582,13 @@ partial class MSBuildSchema
 				return (null, null);
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
 		}
+
+		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {
+			MSBuildValueKind.Guid,
+			MSBuildValueKind.Int,
+		};
 
 		public static string? GetErrorIfInvalidCustomTypeDisplayName (string name)
 		{

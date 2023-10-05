@@ -74,8 +74,9 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 				}
 				var info = rr.GetResolvedReference (doc, provider.FunctionTypeProvider);
 				if (info != null) {
+					// don't include the deprecation message, as the validator should have added a warning that will be merged into this tooltip
 					var element = await provider.DisplayElementFactory.GetInfoTooltipElement (
-						session.TextView.TextBuffer, doc, info, rr, cancellationToken
+						session.TextView.TextBuffer, doc, info, rr, false, cancellationToken
 					);
 					return new QuickInfoItem (
 						snapshot.CreateTrackingSpan (rr.ReferenceOffset, rr.ReferenceLength, SpanTrackingMode.EdgeInclusive),

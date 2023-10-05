@@ -142,7 +142,6 @@ partial class MSBuildSchema
 		{ "file-or-folder", MSBuildValueKind.FileOrFolder },
 		{ "extension", MSBuildValueKind.Extension },
 		{ "configuration", MSBuildValueKind.Configuration },
-		{ "platform", MSBuildValueKind.Platform },
-		{ "project-kind-guid", MSBuildValueKind.ProjectKindGuid }
+		{ "platform", MSBuildValueKind.Platform }
 	};
 }

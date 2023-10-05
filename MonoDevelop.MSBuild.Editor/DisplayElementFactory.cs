@@ -36,6 +36,8 @@ using ProjectFileTools.NuGetSearch.Feeds;
 
 using IRoslynSymbol = Microsoft.CodeAnalysis.ISymbol;
 using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
+using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
+using MonoDevelop.MSBuild.Analysis;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -58,7 +60,7 @@ namespace MonoDevelop.MSBuild.Editor
 		public IMSBuildEditorHost Host { get; }
 		public MSBuildNavigationService NavigationService { get; }
 
-		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, CancellationToken token)
+		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, bool includeDeprecationMessage, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -106,9 +108,8 @@ namespace MonoDevelop.MSBuild.Editor
 				elements.Add (seenIn);
 			}
 
-			var deprecationMessage = GetDeprecationMessage (info);
-			if (deprecationMessage != null) {
-				elements.Add (deprecationMessage);
+			if (includeDeprecationMessage && GetDeprecationElement (info) is ContainerElement deprecationElement) {
+				elements.Add (deprecationElement);
 			}
 
 			return elements.Count == 1
@@ -116,11 +117,11 @@ namespace MonoDevelop.MSBuild.Editor
 				: new ContainerElement (ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
 		}
 
-		static ClassifiedTextElement GetDeprecationMessage (ISymbol info)
+		ContainerElement GetDeprecationElement (ISymbol info)
 		{
-			if (info is VariableInfo val && val.IsDeprecated) {
-				var msg = string.IsNullOrEmpty (val.DeprecationMessage) ? "Deprecated" : $"Deprecated: {val.DeprecationMessage}";
-				return new ClassifiedTextElement (new ClassifiedTextRun ("syntax error", msg));
+			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
+				var msg = string.IsNullOrEmpty (deprecatable.DeprecationMessage) ? "Deprecated" : $"Deprecated: {deprecatable.DeprecationMessage}";
+				return GetDiagnosticElement (MSBuildDiagnosticSeverity.Warning, msg);
 			}
 			return null;
 		}
@@ -172,7 +173,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		ContainerElement GetSeenInElement (ITextBuffer buffer, MSBuildResolveResult rr, ISymbol info, MSBuildRootDocument doc)
 		{
-			var seenIn = doc.GetFilesSeenIn (info).ToList ();
+			var seenIn = doc.GetDescendedDocumentsReferencingSymbol (info).ToList ();
 			if (seenIn.Count == 0) {
 				return null;
 			}
@@ -272,11 +273,11 @@ namespace MonoDevelop.MSBuild.Editor
 		static List<(string prefix, string subst)> GetPrefixes (IMSBuildEnvironment environment)
 		{
 			var list = new List<(string prefix, string subst)> {
-				(environment.ToolsPath, $"$({ReservedProperties.BinPath})")
+				(environment.ToolsPath, $"$({ReservedPropertyNames.binPath})")
 			};
 
 			if (environment.ToolsetProperties != null) {
-				var wellKnownPathProperties = new[] { ReservedProperties.SDKsPath, ReservedProperties.ExtensionsPath, ReservedProperties.ExtensionsPath32, ReservedProperties.ExtensionsPath64 };
+				var wellKnownPathProperties = new[] { WellKnownProperties.MSBuildSDKsPath, WellKnownProperties.MSBuildExtensionsPath, WellKnownProperties.MSBuildExtensionsPath32, WellKnownProperties.MSBuildExtensionsPath64 };
 				foreach (var propName in wellKnownPathProperties) {
 					if (environment.ToolsetProperties.TryGetValue (propName, out var propVal)) {
 						list.Add ((propVal, $"$({propName})"));
@@ -539,6 +540,30 @@ namespace MonoDevelop.MSBuild.Editor
 				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
 				stackedElements);
 		}
+
+		public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessage () ?? diagnostic.GetFormattedTitle ());
+
+		ContainerElement GetDiagnosticElement (MSBuildDiagnosticSeverity severity, string message)
+		{
+			var imageId = severity switch {
+				MSBuildDiagnosticSeverity.Error => KnownImages.StatusError,
+				MSBuildDiagnosticSeverity.Warning => KnownImages.StatusWarning,
+				_ => KnownImages.StatusInformation
+			};
+
+			// should we show the title as well as the description? it's not possible to align the image cleanly if we do that
+			//var titleElement = new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, diagnostic.GetFormattedTitle (), ClassifiedTextRunStyle.Bold));
+
+			var messageElements = FormatDescriptionText (message);
+			var imageElement = GetImageElement (imageId);
+
+			return new ContainerElement (
+				ContainerElementStyle.Wrapped | ContainerElementStyle.VerticalPadding,
+				imageElement,
+				new ClassifiedTextElement (messageElements)
+			);
+		}
+
 		// converts text with `` markup into classified runs
 		internal static IEnumerable<ClassifiedTextRun> FormatDescriptionText (string description)
 		{
@@ -622,6 +647,9 @@ namespace MonoDevelop.MSBuild.Editor
 		DotNETFrameworkDependency = KnownImageIds.DotNETFrameworkDependency,
 		Parameter = KnownImageIds.Parameter,
 		StatusInformation = KnownImageIds.StatusInformation,
+		StatusError = KnownImageIds.StatusError,
+		StatusWarning = KnownImageIds.StatusWarning,
+
 
 		// this defines the mapping from the MSBuild usage to the icons we're re-using
 		// FIXME: improve these icons
@@ -639,6 +667,7 @@ namespace MonoDevelop.MSBuild.Editor
 		MSBuildFrameworkId = DotNETFrameworkDependency,
 		GenericFile = BinaryFile,
 		Sdk = FolderClosed,
-		GenericNuGetPackage = NuGet
+		GenericNuGetPackage = NuGet,
+		Deprecated = KnownImageIds.StatusWarning
 	}
 }

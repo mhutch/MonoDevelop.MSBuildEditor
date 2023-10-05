@@ -6,7 +6,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 	/// <summary>
 	/// Describes a constant's name and type (but not its value)
 	/// </summary>
-	public class ConstantSymbol : BaseSymbol
+	public class ConstantSymbol : BaseSymbol, ITypedSymbol
 	{
 		public ConstantSymbol (string name, DisplayText description, MSBuildValueKind kind) : base (name, description)
 		{
@@ -14,5 +14,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		}
 
 		public MSBuildValueKind ValueKind { get; }
+
+		public CustomTypeInfo CustomType => null;
 	}
 }

@@ -37,8 +37,8 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		}
 
 		// helpers for imported code
-		string? SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.SDKsPath, out var sdksPath) ? sdksPath : null;
-		string ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (ReservedProperties.ToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
+		string? SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath) ? sdksPath : null;
+		string ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
 
 		/// <summary>
 		///     Get path on disk to the referenced SDK.
@@ -84,11 +84,15 @@ namespace MonoDevelop.MSBuild.SdkResolution
 				return;
 			}
 			foreach (var message in messages) {
-				if (message is not null) {
+				if (message is not null && !ShouldIgnoreMessage (message)) {
 					logger.Log (logLevel, SdkResolverLogMessageId, message);
 				}
 			}
 		}
+
+		static bool ShouldIgnoreMessage (string message)
+			=> string.Equals (message, "The NuGetSdkResolver did not resolve this SDK because there was no version specified in the project or global.json.", StringComparison.Ordinal)
+			|| message.EndsWith ("Check that a recent enough .NET SDK is installed and/or increase the version specified in global.json.", StringComparison.Ordinal);
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Unhandled error in SDK resolver '{resolverName}'")]
 		static partial void LogUnhandledSdkResolverError (ILogger logger, Exception ex, string resolverName);

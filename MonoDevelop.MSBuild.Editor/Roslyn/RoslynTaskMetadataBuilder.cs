@@ -17,9 +17,10 @@ using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 
 using MonoDevelop.Xml.Logging;
+
+using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
@@ -92,25 +93,45 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return null;
 			}
 
-			var ti = new TaskInfo (
+			var parameters = new Dictionary<string, TaskParameterInfo> ();
+			GetTaskInfoFromTask (type, logger, parameters, out bool isDeprecated, out string deprecationMessage);
+
+			return new TaskInfo (
 				type.Name, RoslynHelpers.GetDescription (type), type.GetFullName (),
-				assemblyName, assemblyFileStr, declaredInFile, declaredAtOffset);
-			PopulateTaskInfoFromType (ti, type, logger);
-			return ti;
+				assemblyName, assemblyFileStr,
+				declaredInFile, declaredAtOffset,
+				isDeprecated, deprecationMessage,
+				parameters);
 		}
 
-		static void PopulateTaskInfoFromType (TaskInfo ti, INamedTypeSymbol type, ILogger logger)
+		static void GetTaskInfoFromTask (INamedTypeSymbol type, ILogger logger, Dictionary<string, TaskParameterInfo> parameters, out bool isDeprecated, out string deprecationMessage)
 		{
+			isDeprecated = false;
+			deprecationMessage = null;
+
 			while (type != null) {
 				foreach (var member in type.GetMembers ()) {
 					//skip overrides as they will have incorrect accessibility. trust the base definition.
 					if (member is not IPropertySymbol prop || member.IsOverride || !member.DeclaredAccessibility.HasFlag (Accessibility.Public)) {
 						continue;
 					}
-					if (!ti.Parameters.ContainsKey (prop.Name) && !IsSpecialName (prop.Name)) {
+					if (!parameters.ContainsKey (prop.Name) && !IsSpecialName (prop.Name)) {
 						var pi = ConvertParameter (prop, type);
 						if (pi != null) {
-							ti.Parameters.Add (prop.Name, pi);
+							parameters.Add (pi.Name, pi);
+						}
+					}
+				}
+
+				if (!isDeprecated) {
+					foreach (var att in type.GetAttributes ()) {
+						switch (att.AttributeClass.Name) {
+						case "ObsoleteAttribute":
+							if (att.AttributeClass.GetFullName () == "System.ObsoleteAttribute") {
+								isDeprecated = true;
+								deprecationMessage = att.ConstructorArguments.FirstOrDefault ().Value as string;
+							}
+							break;
 						}
 					}
 				}
@@ -128,14 +149,26 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
-			bool isOutput = false, isRequired = false;
+			bool isOutput = false, isRequired = false, isDeprecated = false;
+			string deprecationMessage = null;
+
 			foreach (var att in prop.GetAttributes ()) {
-				switch (att.AttributeClass.GetFullName ()) {
-				case "Microsoft.Build.Framework.OutputAttribute":
-					isOutput = true;
+				switch (att.AttributeClass.Name) {
+				case "OutputAttribute":
+					if (att.AttributeClass.GetFullName () == "Microsoft.Build.Framework.OutputAttribute") {
+						isOutput = true;
+					}
 					break;
-				case "Microsoft.Build.Framework.RequiredAttribute":
-					isRequired = true;
+				case "RequiredAttribute":
+					if (att.AttributeClass.GetFullName () == "Microsoft.Build.Framework.RequiredAttribute") {
+						isRequired = true;
+					}
+					break;
+				case "ObsoleteAttribute":
+					if (att.AttributeClass.GetFullName () == "System.ObsoleteAttribute") {
+						isDeprecated = true;
+						deprecationMessage = att.ConstructorArguments.FirstOrDefault ().Value as string;
+					}
 					break;
 				}
 			}
@@ -181,7 +214,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				kind = kind.AsList ();
 			}
 
-			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind);
+			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, isDeprecated, deprecationMessage);
 		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies
@@ -210,7 +243,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
-			if (!evaluationContext.TryGetProperty (ReservedProperties.BinPath, out var binPathProp)) {
+			if (!evaluationContext.TryGetProperty (ReservedPropertyNames.binPath, out var binPathProp)) {
 				LogCouldNotGetBinPath (logger);
 				return null;
 			}
@@ -226,21 +259,25 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return CreateResult (path);
 			}
 
-			if (assemblyFile != null) {
+			if (assemblyFile is not null) {
 				string path = null;
-				if (assemblyFile is ExpressionText t) {
-					path = MSBuildEscaping.FromMSBuildPath (t.Value, Path.GetDirectoryName (declaredInFile));
-					if (!File.Exists (path)) {
-						path = null;
+				string dllName = null;
+
+				var permutations = evaluationContext.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile));
+				foreach (var p in permutations) {
+					if (File.Exists (p)) {
+						path = p;
+						break;
 					}
-				} else {
-					var permutations = evaluationContext.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile));
-					foreach (var p in permutations) {
-						if (path == null && File.Exists (p)) {
-							path = p;
-						}
+					if (dllName is null && p.EndsWith (".dll", StringComparison.OrdinalIgnoreCase)) {
+						dllName = Path.GetFileName (path);
 					}
 				}
+
+				if (path is null && dllName is not null) {
+					path = FindLocalTasksAssembly (dllName, declaredInFile);
+				}
+
 				if (path == null) {
 					LogDidNotFindTasksAssemblyFile (logger, assemblyFileStr, declaredInFile);
 					return null;
@@ -282,6 +319,35 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 				return (path, asm);
 			}
+		}
+
+		// HACK to find tasks assembly when editing targets file in a project that builds the task assembly
+		// this doesn't update when the assembly changes, assumes that the project name matches the assembly, and assumes that the output dir is `bin`
+		static string FindLocalTasksAssembly (string assemblyName, string declaredInFile)
+		{
+			var directory = Path.GetDirectoryName (declaredInFile);
+			if (ExistsInDirectoryAbove (assemblyName + ".csproj", ref directory, 2)) {
+				var binDir = Path.Combine (directory, "bin");
+				if (Directory.Exists (binDir)) {
+					return Directory.EnumerateFiles (binDir, assemblyName + ".dll", SearchOption.AllDirectories).FirstOrDefault ();
+				}
+			}
+			return null;
+		}
+
+		static bool ExistsInDirectoryAbove (string filename, ref string directory, int searchLevelsUp = 0)
+		{
+			do {
+				if (directory is null) {
+					return false;
+				}
+				if (File.Exists (Path.Combine (directory, filename))) {
+					return true;
+				}
+				directory = Path.GetDirectoryName (directory);
+			} while (searchLevelsUp-- > 0);
+
+			return false;
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Error loading tasks assembly name='{assemblyName}' file='{assemblyFile}' in '{declaredInFile}'")]

@@ -21,6 +21,8 @@ namespace MonoDevelop.MSBuild
 
 		public IReadOnlyDictionary<string, string> ToolsetProperties { get; } = new Dictionary<string, string> ();
 
+		public IReadOnlyDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string> ();
+
 		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; } = new Dictionary<string, string[]> ();
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
