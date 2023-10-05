@@ -190,7 +190,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				if (hasError) {
 					return new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op);
 				}
-				if (buffer[offset] != ')' || offset >= endOffset) {
+				if (offset > endOffset || buffer[offset] != ')') {
 					return new IncompleteExpressionError (
 						offset > endOffset,
 						ExpressionErrorKind.ExpectingRightParen,

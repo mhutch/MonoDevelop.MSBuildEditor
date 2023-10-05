@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Linq;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 
 using NUnit.Framework;
@@ -123,6 +125,14 @@ namespace MonoDevelop.MSBuild.Tests
 					)
 				)
 			);
+		}
+
+		[Test]
+		[TestCase ("'$(foo)' == '' and ('$(bar)' == '')")] // paren group at end of expression string
+		public void TestParseNoError (string expressionString)
+		{
+			var expression = ExpressionParser.ParseCondition (expressionString, 0);
+			Assert.IsEmpty (expression.WithAllDescendants ().OfType<ExpressionError> ());
 		}
 
 		[Test]
