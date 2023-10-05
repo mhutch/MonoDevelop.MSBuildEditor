@@ -586,11 +586,12 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
-			if (info.CustomType is null || !info.CustomType.AllowUnknownValues) {
-				var knownVals = (IReadOnlyList<ISymbol>)info.CustomType?.Values ?? kind.GetSimpleValues (false);
+			CustomTypeInfo? customType = info?.CustomType;
+			if (customType is null || !customType.AllowUnknownValues) {
+				var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (false);
 
 				if (knownVals is not null && knownVals.Count != 0) {
-					var valueComparer = (info.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+					var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, value, valueComparer)) {
 							if (kv is IDeprecatable deprecatable) {
@@ -604,7 +605,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			MSBuildValueKind kindOrBaseKind = info.CustomType?.BaseKind ?? kind;
+			MSBuildValueKind kindOrBaseKind = customType?.BaseKind ?? kind;
 
 			switch (kindOrBaseKind) {
 			case MSBuildValueKind.Guid:
