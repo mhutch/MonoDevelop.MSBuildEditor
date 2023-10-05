@@ -35,9 +35,8 @@
     <Resource Include="Options\OptionsResources.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="languages.pkgdef" IncludeInVSIX="true" />
-    <Content Include="..\MonoDevelop.MSBuildEditor\Syntax\msbuild.json" IncludeInVSIX="true" Link="Grammars\msbuild.json" />
-    <None Include="..\MonoDevelop.MSBuildEditor\Syntax\OSSREADME.json" Link="Grammars\OSSREADME.json" />
+    <Content Include="..\msbuild-editor-vscode\syntaxes\msbuild.tmLanguage.json" IncludeInVSIX="true" Link="Grammars\msbuild.json" />
+    <None Include="..\msbuild-editor-vscode\syntaxes\OSSREADME.json" Link="Grammars\OSSREADME.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Community.VisualStudio.Toolkit.17" />

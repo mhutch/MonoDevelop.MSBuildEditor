@@ -1,7 +1,7 @@
 {
   "name": "msbuild-editor",
-  "displayName": "msbuild-editor",
-  "description": "MSBuild Editor",
+  "displayName": "MSBuild Editor",
+  "description": "Editor for MSBuild files that supports IntelliSense, quick info, navigation, analyzers and refactorings.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.83.0"
@@ -26,8 +26,8 @@
     }],
     "grammars": [{
       "language": "msbuild",
-      "scopeName": "source.msbuild",
-      "path": "./syntaxes/msbuild.tmLanguage.json"
+      "scopeName": "text.msbuild",
+      "path": "syntaxes/msbuild.tmLanguage.json"
     }]
   },
   "scripts": {

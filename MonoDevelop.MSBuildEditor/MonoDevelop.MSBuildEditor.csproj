@@ -32,10 +32,10 @@
   <ItemGroup>
     <Compile Remove="Tests/**" />
     <None Remove="Syntax\*" />
-    <AddinFile Include="Syntax\msbuild.json" />
+    <AddinFile Include="..\msbuild-editor-vscode\syntaxes\msbuild.tmLanguage.json" Link="Syntax\msbuild.json" />
     <AddinFile Include="Templates\Project.xft.xml" />
     <AddinFile Include="Templates\Project.xml" />
-    <None Include="Syntax\OSSREADME.json" />
+    <None Include="..\msbuild-editor-vscode\syntaxes\OSSREADME.json" Link="Syntax\OSSREADME.json" />
   </ItemGroup>
 
   <ItemGroup>
