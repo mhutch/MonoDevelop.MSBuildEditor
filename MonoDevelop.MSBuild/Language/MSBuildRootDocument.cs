@@ -159,7 +159,7 @@ namespace MonoDevelop.MSBuild.Language
 				doc.Build (xdocument, parseContext);
 
 				// if we didn't find any explicit imports, add some default schemas and imports
-				if (!doc.Imports.Any (imp => imp.IsImplicitImport)) {
+				if (!doc.Imports.Any (imp => !imp.IsImplicitImport)) {
 					AddFallbackImports (doc, parseContext);
 				}
 
