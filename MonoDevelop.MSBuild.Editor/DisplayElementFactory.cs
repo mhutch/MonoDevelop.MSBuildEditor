@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Editor
 		public IMSBuildEditorHost Host { get; }
 		public MSBuildNavigationService NavigationService { get; }
 
-		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, CancellationToken token)
+		public async Task<object> GetInfoTooltipElement (ITextBuffer buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, bool includeDeprecationMessage, CancellationToken token)
 		{
 			object nameElement = GetNameElement (info);
 			if (nameElement == null) {
@@ -108,9 +108,8 @@ namespace MonoDevelop.MSBuild.Editor
 				elements.Add (seenIn);
 			}
 
-			var deprecationMessage = GetDeprecationMessage (info);
-			if (deprecationMessage != null) {
-				elements.Add (deprecationMessage);
+			if (includeDeprecationMessage && GetDeprecationElement (info) is ContainerElement deprecationElement) {
+				elements.Add (deprecationElement);
 			}
 
 			return elements.Count == 1
@@ -118,11 +117,11 @@ namespace MonoDevelop.MSBuild.Editor
 				: new ContainerElement (ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
 		}
 
-		static ClassifiedTextElement GetDeprecationMessage (ISymbol info)
+		ContainerElement GetDeprecationElement (ISymbol info)
 		{
 			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
 				var msg = string.IsNullOrEmpty (deprecatable.DeprecationMessage) ? "Deprecated" : $"Deprecated: {deprecatable.DeprecationMessage}";
-				return new ClassifiedTextElement (new ClassifiedTextRun ("syntax error", msg));
+				return GetDiagnosticElement (MSBuildDiagnosticSeverity.Warning, msg);
 			}
 			return null;
 		}

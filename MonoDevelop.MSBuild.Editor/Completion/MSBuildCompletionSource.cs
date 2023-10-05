@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (item.Properties.TryGetProperty<ISymbol> (typeof (ISymbol), out var info) && info != null) {
 				return provider.DisplayElementFactory.GetInfoTooltipElement (
-					session.TextView.TextBuffer, context.document, info, context.resolved, token
+					session.TextView.TextBuffer, context.document, info, context.resolved, true, token
 				);
 			}
 
