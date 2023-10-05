@@ -257,7 +257,7 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTask (string name)
 		{
 			if (!Tasks.TryGetValue (name, out TaskInfo task)) {
-				Tasks[name] = task = new TaskInfo (name, null, null, null, null, null, 0);
+				Tasks[name] = new TaskInfo (name, null, null, null, null, null, 0, false, null);
 			}
 		}
 
@@ -377,7 +377,7 @@ namespace MonoDevelop.MSBuild.Language
 				)) &&
 				(element.GetAttribute (MSBuildSyntaxKind.ParameterGroup) == null));
 
-			Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.XElement.Span.Start) {
+			Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.XElement.Span.Start, false, null) {
 				ForceInferAttributes = forceInferAttributes
 			};
 		}
