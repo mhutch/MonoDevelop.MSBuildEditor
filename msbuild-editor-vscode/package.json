@@ -1,0 +1,59 @@
+{
+  "name": "msbuild-editor",
+  "displayName": "msbuild-editor",
+  "description": "MSBuild Editor",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "msbuild-editor.helloWorld",
+        "title": "Hello World"
+      }
+    ],
+    "languages": [{
+      "id": "msbuild",
+      "aliases": ["MSBuild", "msbuild"],
+      "extensions": [".targets",".props",".csproj",".vbproj",".fsproj",".pubxml"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "msbuild",
+      "scopeName": "source.msbuild",
+      "path": "./syntaxes/msbuild.tmLanguage.json"
+    }]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.83.0",
+    "@types/mocha": "^10.0.2",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "eslint": "^8.50.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "typescript": "^5.2.2",
+    "ts-loader": "^9.4.4",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "@vscode/test-electron": "^2.3.4"
+  }
+}
