@@ -91,7 +91,7 @@ namespace MonoDevelop.MSBuild.Language
 				CollectProperty (element.ElementName, ReferenceUsage.Write);
 				break;
 			case MSBuildSyntaxKind.UsingTask:
-				CollectTaskDefinition (element, parseContext);
+				CollectTaskDefinition ((MSBuildUsingTaskElement)element, parseContext);
 				break;
 			case MSBuildSyntaxKind.Task:
 				CollectTask (element.ElementName);
@@ -257,14 +257,14 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTask (string name)
 		{
 			if (!Tasks.TryGetValue (name, out TaskInfo task)) {
-				Tasks[name] = new TaskInfo (name, null, null, null, null, null, 0, false, null);
+				Tasks[name] = new TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, false, null);
 			}
 		}
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
 			var task = Tasks[taskName];
-			if (task.IsInferred && !task.ForceInferAttributes) {
+			if (task.DeclarationKind == TaskDeclarationKind.Inferred || task.DeclarationKind == TaskDeclarationKind.TaskFactoryImplicitParameters) {
 				return;
 			}
 			if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo pi)) {
@@ -322,7 +322,7 @@ namespace MonoDevelop.MSBuild.Language
 			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, isRequired, isOutout, kind));
 		}
 
-		void CollectTaskDefinition (MSBuildElement element, MSBuildParserContext parseContext)
+		void CollectTaskDefinition (MSBuildUsingTaskElement element, MSBuildParserContext parseContext)
 		{
 			string taskName = null, assemblyName = null, assemblyFileStr = null, taskFactory = null;
 			ExpressionNode assemblyFile = null;
@@ -348,9 +348,8 @@ namespace MonoDevelop.MSBuild.Language
 				return;
 			}
 
-			int nameIdx = taskName.LastIndexOf ('.');
-			string name = taskName.Substring (nameIdx + 1);
-			if (string.IsNullOrEmpty (name)) {
+			var fullTaskName = taskName;
+			if (!TaskInfo.ValidateTaskName(fullTaskName, out taskName, out string taskNamespace)) {
 				return;
 			}
 
@@ -361,25 +360,39 @@ namespace MonoDevelop.MSBuild.Language
 					parseContext.PropertyCollector
 				);
 
-				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (taskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
+				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (fullTaskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
+
 				if (info != null) {
 					Tasks[info.Name] = info;
+					return;
+				} else {
+					// created placeholder task marked as unresolved for analyzers etc
+					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span.Start, false, null);
 					return;
 				}
 			}
 
-			//HACK: RoslynCodeTaskFactory determines the parameters automatically from the code, until we
+			// HACK: some factories such as RoslynCodeTaskFactory determine the parameters automatically from the code
+			// but we cannot do that, so we mark the task as TaskDeclarationKind.TaskFactoryNoParameters which force inferences of the parameters from usage
 			//can do this too we need to force inference
-			bool forceInferAttributes = taskFactory != null && (
-				string.Equals (taskFactory, "RoslynCodeTaskFactory", StringComparison.OrdinalIgnoreCase) || (
-					string.Equals (taskFactory, "CodeTaskFactory", StringComparison.OrdinalIgnoreCase) &&
-					string.Equals ((assemblyFile as ExpressionText)?.Value, "$(RoslynCodeTaskFactory)", StringComparison.OrdinalIgnoreCase
-				)) &&
-				(element.GetAttribute (MSBuildSyntaxKind.ParameterGroup) == null));
 
-			Tasks[name] = new TaskInfo (name, null, null, null, null, Filename, element.XElement.Span.Start, false, null) {
-				ForceInferAttributes = forceInferAttributes
-			};
+			var taskParameters = new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
+			TaskDeclarationKind declarationKind = TaskDeclarationKind.TaskFactoryImplicitParameters;
+
+			if (element.ParameterGroup is MSBuildParameterGroupElement parameterGroup) {
+				declarationKind = TaskDeclarationKind.TaskFactoryExplicitParameters;
+				foreach (var parameterElement in parameterGroup.ParameterElements) {
+					var parameter = new TaskParameterInfo (
+						parameterElement.ElementName,
+						null,
+						parameterElement.RequiredAttribute?.AsConstBool () ?? false,
+						parameterElement.OutputAttribute?.AsConstBool () ?? false,
+						ValueKindExtensions.FromFullTypeName (parameterElement.ParameterTypeAttribute.AsConstString () ?? null));
+					taskParameters[parameter.Name] = parameter;
+				}
+			}
+
+			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span.Start, false, null, taskParameters);
 		}
 
 		void ExtractReferences (MSBuildValueKind kind, ExpressionNode expression)

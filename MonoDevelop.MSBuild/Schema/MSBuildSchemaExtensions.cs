@@ -110,7 +110,7 @@ namespace MonoDevelop.MSBuild.Schema
 			//definitions take precedence over inference
 			foreach (var schema in schemas) {
 				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
-					if (!task.IsInferred) {
+					if (task.DeclarationKind != TaskDeclarationKind.Inferred) {
 						yield return task;
 					}
 				}
@@ -118,7 +118,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			foreach (var schema in schemas) {
 				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
-					if (task.IsInferred) {
+					if (task.DeclarationKind == TaskDeclarationKind.Inferred) {
 						yield return task;
 					}
 				}

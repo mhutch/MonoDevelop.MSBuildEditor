@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
@@ -397,6 +398,9 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute TaskFactoryAttribute => GetAttribute (MSBuildSyntaxKind.UsingTask_TaskFactory);
 		public MSBuildAttribute ArchitectureAttribute => GetAttribute (MSBuildSyntaxKind.UsingTask_Architecture);
 		public MSBuildAttribute RuntimeAttribute => GetAttribute (MSBuildSyntaxKind.UsingTask_Runtime);
+
+		public MSBuildTaskBodyElement TaskBody => GetElements<MSBuildTaskBodyElement> ().FirstOrDefault ();
+		public MSBuildParameterGroupElement ParameterGroup => GetElements<MSBuildParameterGroupElement> ().FirstOrDefault ();
 
 	}
 

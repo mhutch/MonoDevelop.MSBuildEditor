@@ -145,7 +145,23 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
-		public const string TaskNotDefined_Id = nameof(TaskNotDefined);
+		public const string TaskDefinitionNotResolvedFromAssembly_Id = nameof (TaskDefinitionNotResolvedFromAssembly);
+		public static readonly MSBuildDiagnosticDescriptor TaskDefinitionNotResolvedFromAssembly = new (
+			TaskDefinitionNotResolvedFromAssembly_Id,
+			"Task definition not resolved from assembly",
+			"The task definition `{0}` could not be resolved. The assembly or type may be missing, or the assembly path expression may have not evaluated to the correct path.",
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string TaskDefinedButUnresolved_Id = nameof (TaskDefinedButUnresolved);
+		public static readonly MSBuildDiagnosticDescriptor TaskDefinedButUnresolved = new (
+			TaskDefinedButUnresolved_Id,
+			"Task definition not resolved",
+			"The task `{0}` is declared but its definition could not be resolved",
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string TaskNotDefined_Id = nameof (TaskNotDefined);
 		public static readonly MSBuildDiagnosticDescriptor TaskNotDefined = new (
 			TaskNotDefined_Id,
 			"Task not defined",
@@ -157,7 +173,7 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor UnknownTaskParameter = new (
 			UnknownTaskParameter_Id,
 			"Unknown task parameter",
-			"Unknown parameter `{1}` on task `{1}`",
+			"Unknown parameter `{1}` on task `{0}`",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -224,6 +240,22 @@ namespace MonoDevelop.MSBuild.Language
 			"UsingTask requires assembly",
 			"UsingTask must have AssemblyName or AssemblyFile attribute",
 			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string InvalidTaskName_Id = nameof (InvalidTaskName);
+		public static readonly MSBuildDiagnosticDescriptor InvalidTaskName = new (
+			InvalidTaskName_Id,
+			"UsingTask has invalid task name",
+			"The value `{0}` is not a valid task name",
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string FullyQualifiedTaskName_Id = nameof (FullyQualifiedTaskName);
+		public static readonly MSBuildDiagnosticDescriptor FullyQualifiedTaskName = new (
+			FullyQualifiedTaskName_Id,
+			"Task definition should have fully qualified type name",
+			"Task name in task definition should be a fully qualified type name to improve performance",
+			MSBuildDiagnosticSeverity.Suggestion
 		);
 
 		public const string TaskFactoryCannotHaveAssemblyName_Id = nameof(TaskFactoryCannotHaveAssemblyName);

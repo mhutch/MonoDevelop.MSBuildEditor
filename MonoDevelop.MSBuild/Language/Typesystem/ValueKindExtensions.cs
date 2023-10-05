@@ -161,5 +161,28 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 			return options;
 		}
+
+		public static MSBuildValueKind FromFullTypeName (string fullTypeName)
+		{
+			switch (fullTypeName) {
+			case "System.String":
+				return MSBuildValueKind.String;
+			case "System.Boolean":
+				return MSBuildValueKind.Bool;
+			case "System.Int32":
+			case "System.UInt32":
+			case "System.Int62":
+			case "System.UInt64":
+				return MSBuildValueKind.Int;
+			case "System.Single":
+			case "System.Double":
+				return MSBuildValueKind.Float;
+			case "Microsoft.Build.Framework.ITaskItem":
+				return MSBuildValueKind.UnknownItem;
+			}
+
+
+			return MSBuildValueKind.Unknown;
+		}
 	}
 }
