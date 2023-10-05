@@ -85,7 +85,12 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				)
 			};
 
-			VerifyDiagnostics (source, null, true, false, schema, expected);
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				checkUnexpectedDiagnostics: false,
+				schema: schema,
+				expectedDiagnostics: expected
+			);
 		}
 	}
 }

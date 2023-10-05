@@ -15,7 +15,21 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		[TestCase ("<Project>\\n<\\n</Project>")]
 		public void MinimalDocument (string source)
 		{
-			VerifyDiagnostics (source, null, includeCoreDiagnostics: true, checkUnexpectedDiagnostics: false);
+			VerifyDiagnostics (
+				source,
+				out var parsedDocument,
+				includeCoreDiagnostics: true,
+				checkUnexpectedDiagnostics: false
+			);
+
+			// reparse to catch any issues in reuse of previous doc
+			VerifyDiagnostics (
+				source,
+				out _,
+				includeCoreDiagnostics: true,
+				checkUnexpectedDiagnostics: false,
+				previousDocument : parsedDocument
+			);
 		}
 	}
 }
