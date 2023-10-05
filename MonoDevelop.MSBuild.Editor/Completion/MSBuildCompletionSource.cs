@@ -168,7 +168,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null)
 		{
-			var image = provider.DisplayElementFactory.GetImageElement (info);
+			ImageElement image;
+
+			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
+				image = provider.DisplayElementFactory.GetImageElement (KnownImages.Deprecated);
+			} else {
+				image = provider.DisplayElementFactory.GetImageElement (info);
+			}
 
 			var value = info.Name;
 			if (prefix is not null) {
