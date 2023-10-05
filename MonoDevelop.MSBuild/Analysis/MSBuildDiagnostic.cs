@@ -28,6 +28,7 @@ namespace MonoDevelop.MSBuild.Analysis
 		{
 		}
 
+		public string GetFormattedTitle () => Descriptor.GetFormattedTitle (messageArgs);
 		public string GetFormattedMessage () => Descriptor.GetFormattedMessage (messageArgs);
 	}
 }

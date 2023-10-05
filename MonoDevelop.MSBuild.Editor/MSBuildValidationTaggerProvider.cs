@@ -16,7 +16,7 @@ namespace MonoDevelop.MSBuild.Editor
 {
 	[Export (typeof (ITaggerProvider))]
 	[ContentType (MSBuildContentType.Name)]
-	[TagType (typeof (IErrorTag))]
+	[TagType (typeof (MSBuildDiagnosticTag))]
 	[TextViewRole (PredefinedTextViewRoles.Analyzable)]
 
 	class MSBuildValidationTaggerProvider : ITaggerProvider

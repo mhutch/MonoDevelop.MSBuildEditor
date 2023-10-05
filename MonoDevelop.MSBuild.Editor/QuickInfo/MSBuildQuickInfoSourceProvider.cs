@@ -14,11 +14,13 @@ using ProjectFileTools.NuGetSearch.Contracts;
 namespace MonoDevelop.MSBuild.Editor.QuickInfo
 {
 	[Export (typeof (IAsyncQuickInfoSourceProvider))]
-	[Name ("MSBuild Quick Info Provider")]
+	[Name (ProviderName)]
 	[ContentType (MSBuildContentType.Name)]
 	[Order]
 	class MSBuildQuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
 	{
+		public const string ProviderName = "MSBuild Quick Info Provider";
+
 		[ImportingConstructor]
 		public MSBuildQuickInfoSourceProvider (
 			IFunctionTypeProvider functionTypeProvider,

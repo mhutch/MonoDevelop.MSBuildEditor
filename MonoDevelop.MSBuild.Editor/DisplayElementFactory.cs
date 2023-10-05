@@ -37,6 +37,7 @@ using ProjectFileTools.NuGetSearch.Feeds;
 using IRoslynSymbol = Microsoft.CodeAnalysis.ISymbol;
 using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
+using MonoDevelop.MSBuild.Analysis;
 
 namespace MonoDevelop.MSBuild.Editor
 {
@@ -540,6 +541,30 @@ namespace MonoDevelop.MSBuild.Editor
 				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
 				stackedElements);
 		}
+
+		public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessage () ?? diagnostic.GetFormattedTitle ());
+
+		ContainerElement GetDiagnosticElement (MSBuildDiagnosticSeverity severity, string message)
+		{
+			var imageId = severity switch {
+				MSBuildDiagnosticSeverity.Error => KnownImages.StatusError,
+				MSBuildDiagnosticSeverity.Warning => KnownImages.StatusWarning,
+				_ => KnownImages.StatusInformation
+			};
+
+			// should we show the title as well as the description? it's not possible to align the image cleanly if we do that
+			//var titleElement = new ClassifiedTextElement (new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, diagnostic.GetFormattedTitle (), ClassifiedTextRunStyle.Bold));
+
+			var messageElements = FormatDescriptionText (message);
+			var imageElement = GetImageElement (imageId);
+
+			return new ContainerElement (
+				ContainerElementStyle.Wrapped | ContainerElementStyle.VerticalPadding,
+				imageElement,
+				new ClassifiedTextElement (messageElements)
+			);
+		}
+
 		// converts text with `` markup into classified runs
 		internal static IEnumerable<ClassifiedTextRun> FormatDescriptionText (string description)
 		{
@@ -623,6 +648,9 @@ namespace MonoDevelop.MSBuild.Editor
 		DotNETFrameworkDependency = KnownImageIds.DotNETFrameworkDependency,
 		Parameter = KnownImageIds.Parameter,
 		StatusInformation = KnownImageIds.StatusInformation,
+		StatusError = KnownImageIds.StatusError,
+		StatusWarning = KnownImageIds.StatusWarning,
+
 
 		// this defines the mapping from the MSBuild usage to the icons we're re-using
 		// FIXME: improve these icons
@@ -640,6 +668,7 @@ namespace MonoDevelop.MSBuild.Editor
 		MSBuildFrameworkId = DotNETFrameworkDependency,
 		GenericFile = BinaryFile,
 		Sdk = FolderClosed,
-		GenericNuGetPackage = NuGet
+		GenericNuGetPackage = NuGet,
+		Deprecated = KnownImageIds.StatusWarning
 	}
 }
