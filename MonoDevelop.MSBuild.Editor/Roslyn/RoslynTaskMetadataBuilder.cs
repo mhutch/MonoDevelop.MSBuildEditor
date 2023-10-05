@@ -93,11 +93,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				return null;
 			}
 
-			var parameters = new Dictionary<string, TaskParameterInfo> ();
+			var parameters = new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
 			GetTaskInfoFromTask (type, logger, parameters, out bool isDeprecated, out string deprecationMessage);
 
 			return new TaskInfo (
-				type.Name, RoslynHelpers.GetDescription (type), type.GetFullName (),
+				type.Name, RoslynHelpers.GetDescription (type),
+				TaskDeclarationKind.Assembly,
+				type.GetFullName (),
 				assemblyName, assemblyFileStr,
 				declaredInFile, declaredAtOffset,
 				isDeprecated, deprecationMessage,
@@ -183,23 +185,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 			string fullTypeName = propType.GetFullName ();
 
-			switch (fullTypeName) {
-			case "System.String":
-				kind = MSBuildValueKind.String;
-				break;
-			case "System.Boolean":
-				kind = MSBuildValueKind.Bool;
-				break;
-			case "System.Int32":
-			case "System.UInt32":
-			case "System.Int62":
-			case "System.UInt64":
-				kind = MSBuildValueKind.Int;
-				break;
-			case "Microsoft.Build.Framework.ITaskItem":
-				kind = MSBuildValueKind.UnknownItem;
-				break;
-			}
+			kind = ValueKindExtensions.FromFullTypeName (fullTypeName);
 
 			if (kind == MSBuildValueKind.Unknown) {
 				//this usually happens because the type has public members with custom types for testing,

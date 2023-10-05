@@ -93,7 +93,7 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateOutputHasPropertyOrItemName (element);
 				break;
 			case MSBuildSyntaxKind.UsingTask:
-				ValidateUsingTaskHasAssembly (element);
+				ValidateUsingTask (element);
 				break;
 			case MSBuildSyntaxKind.Import:
 				ValidateImportOnlyHasVersionIfHasSdk (element);
@@ -235,11 +235,12 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void ValidateUsingTaskHasAssembly (XElement element)
+		void ValidateUsingTask (XElement element)
 		{
 			XAttribute taskFactoryAtt = null;
 			XAttribute asmNameAtt = null;
 			XAttribute asmFileAtt = null;
+			XAttribute taskNameAtt = null;
 
 			foreach (var att in element.Attributes) {
 				switch (att.Name.Name.ToLowerInvariant ()) {
@@ -252,9 +253,13 @@ namespace MonoDevelop.MSBuild.Language
 				case "taskfactory":
 					taskFactoryAtt = att;
 					break;
+				case "taskname":
+					taskNameAtt = att;
+					break;
 				}
 			}
 
+			// ValidateResolvedElement will check for the existence of the TaskName as it's marked as Required
 			if (asmNameAtt == null && asmFileAtt == null) {
 				Document.Diagnostics.Add (CoreDiagnostics.UsingTaskMustHaveAssembly, element.NameSpan);
 			} else if (taskFactoryAtt != null && asmNameAtt != null) {
@@ -271,23 +276,24 @@ namespace MonoDevelop.MSBuild.Language
 					if (parameterGroup != null) {
 						Document.Diagnostics.Add (CoreDiagnostics.OneParameterGroup, child.NameSpan);
 					}
-					parameterGroup = child;
-				}
-				if (child.NameEquals ("Task", true)) {
 					if (taskBody != null) {
 						Document.Diagnostics.Add (CoreDiagnostics.OneTaskBody, child.NameSpan);
 					}
+					parameterGroup = child;
+				} else if (child.NameEquals ("Task", true)) {
 					taskBody = child;
 				}
 			}
 
-			if (taskFactoryAtt == null) {
+			bool isFactoryBased = taskFactoryAtt is not null || parameterGroup is not null || taskBody is not null;
+
+			if (isFactoryBased) {
 				if (taskBody != null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskBodyMustHaveFactory, taskBody.NameSpan);
-				} else if (parameterGroup != null) {
+				}
+				if (parameterGroup != null) {
 					Document.Diagnostics.Add (CoreDiagnostics.ParameterGroupMustHaveFactory, parameterGroup.NameSpan);
 				}
-			} else {
 				if (taskBody == null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskFactoryMustHaveBody, element.NameSpan);
 				}
@@ -310,6 +316,24 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			if (taskNameAtt is null || taskNameAtt.Value is not string fullTaskName) {
+				return;
+			}
+
+			if (!TaskInfo.ValidateTaskName (fullTaskName, out string taskName, out string taskNamespace)) {
+				Document.Diagnostics.Add (CoreDiagnostics.InvalidTaskName, element.NameSpan);
+				return;
+			}
+
+			if (!isFactoryBased) {
+				if (Document.GetSchemas ().GetTask (taskName).DeclarationKind == TaskDeclarationKind.AssemblyUnresolved) {
+					Document.Diagnostics.Add (CoreDiagnostics.TaskDefinitionNotResolvedFromAssembly, element.NameSpan, taskName);
+				}
+
+				if (taskNamespace is null) {
+					Document.Diagnostics.Add (CoreDiagnostics.FullyQualifiedTaskName, element.NameSpan, taskName);
+				}
+			}
 		}
 
 		void ValidateRoslynCodeTaskFactory (XElement usingTask, XElement taskBody, XElement parameterGroup)
@@ -372,8 +396,13 @@ namespace MonoDevelop.MSBuild.Language
 		void ValidateTaskParameters (MSBuildElementSyntax resolvedElement, XElement element)
 		{
 			var info = Document.GetSchemas ().GetTask (element.Name.Name);
-			if (info.IsInferred) {
+			if (info.DeclarationKind == TaskDeclarationKind.Inferred) {
 				Document.Diagnostics.Add (CoreDiagnostics.TaskNotDefined, element.NameSpan, element.Name.Name);
+				return;
+			}
+
+			if (info.DeclarationKind == TaskDeclarationKind.AssemblyUnresolved) {
+				Document.Diagnostics.Add (CoreDiagnostics.TaskDefinedButUnresolved, element.NameSpan, element.Name.Name);
 				return;
 			}
 

@@ -92,7 +92,6 @@ namespace MonoDevelop.MSBuild.Schema
 			AddTask (new TaskInfo (
 				"CallTarget",
 				"Invokes the specified targets in the current file",
-				true,
 				new TaskParameterInfo ("RunEachTargetSeparately", "Whether the MSBuild engine should be called once per target", false, false, MSBuildValueKind.Bool),
 				new TaskParameterInfo ("TargetOutputs", "Items returned from all built targets", false, true, MSBuildValueKind.UnknownItem.AsList ()),
 				new TaskParameterInfo ("Targets", "The targets to be invoked", true, false, MSBuildValueKind.TargetName.AsList ()),
@@ -102,7 +101,6 @@ namespace MonoDevelop.MSBuild.Schema
 			AddTask (new TaskInfo (
 				"MSBuild",
 				"Invokes the specified targets on the specified MSBuild projects",
-				true,
 				new TaskParameterInfo ("BuildInParallel", "Whether to build the projects in parallel", false, false, MSBuildValueKind.Bool),
 				new TaskParameterInfo ("Projects", "The project files on which to invoke the targets", true, false, MSBuildValueKind.ProjectFile.AsList ()),
 				new TaskParameterInfo ("Properties", "Semicolon-separated list of `PropertyName=Value` values to pass to the child projects", false, false, MSBuildValueKind.String.AsList ()),
