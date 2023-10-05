@@ -227,7 +227,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			var defaultSdk = parseContext.ResolveSdk (doc, "Microsoft.NET.Sdk", doc.ProjectElement.XElement.NameSpan);
+			var defaultSdk = parseContext.ResolveSdk (doc, "Microsoft.NET.Sdk", doc.ProjectElement?.XElement?.NameSpan ?? new TextSpan (0, 0));
 			if (defaultSdk is not null) {
 				AddSdkImport (sdkPropsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
 				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
