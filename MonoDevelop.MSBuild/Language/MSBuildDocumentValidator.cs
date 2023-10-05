@@ -17,6 +17,7 @@ using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Workspace;
+using MonoDevelop.Xml.Logging;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -25,6 +26,8 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 		{
 		}
+
+		IEnumerable<IMSBuildSchema> GetSchemasExcludingCurrentDocInferred () => Document.GetSchemas (skipThisDocumentInferredSchema: true);
 
 		protected override void VisitUnknownElement (XElement element)
 		{
@@ -49,7 +52,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			} catch (Exception ex) when (!(ex is OperationCanceledException && CancellationToken.IsCancellationRequested)) {
 				Document.Diagnostics.Add (CoreDiagnostics.InternalError, element.NameSpan, ex.Message);
-				LogInternalError (Logger, ex);
+				Logger.LogInternalException (ex, "MSBuildDocumentValidator");
 			}
 		}
 
@@ -97,7 +100,9 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildSyntaxKind.Item:
 				ValidateItemAttributes (resolved, element);
-				if (!IsItemUsed (element.Name.Name, ReferenceUsage.Read)) {
+
+				// TODO: reuse the existing resolved symbol
+				if (!IsItemUsed (element.Name.Name, ReferenceUsage.Read, out _)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadItem,
 						element.NameSpan,
@@ -108,11 +113,14 @@ namespace MonoDevelop.MSBuild.Language
 					);
 				}
 				break;
+
 			case MSBuildSyntaxKind.Task:
 				ValidateTaskParameters (resolved, element);
 				break;
+
 			case MSBuildSyntaxKind.Property:
-				if (!IsPropertyUsed (element.Name.Name, ReferenceUsage.Read)) {
+				// TODO: reuse the existing resolved symbol
+				if (!IsPropertyUsed (element.Name.Name, ReferenceUsage.Read, out _)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadProperty,
 						element.NameSpan,
@@ -123,10 +131,14 @@ namespace MonoDevelop.MSBuild.Language
 					);
 				}
 				break;
+
 			case MSBuildSyntaxKind.Metadata:
-				if ((element.Parent as XElement)?.Name.Name is string metaItem
-					&& !IsMetadataUsed (metaItem, element.Name.Name, ReferenceUsage.Read))
-				{
+				if ((element.Parent as XElement)?.Name.Name is not string metaItem) {
+					break;
+				}
+
+				// TODO: reuse the existing resolved symbol
+				if (!IsMetadataUsed (metaItem, element.Name.Name, ReferenceUsage.Read, out _)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
 						element.NameSpan,
@@ -147,40 +159,23 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void CheckDeprecated (IDeprecatable info, INamedXObject namedObj)
-		{
-			if (info.IsDeprecated) {
-				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.Deprecated,
-						namedObj.NameSpan,
-						DescriptionFormatter.GetKindNoun (info),
-					info.Name);
-				} else {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.DeprecatedWithMessage,
-						namedObj.NameSpan,
-						DescriptionFormatter.GetKindNoun (info),
-						info.Name,
-						info.DeprecationMessage
-					);
-				}
-			}
-		}
+		void CheckDeprecated (IDeprecatable info, INamedXObject namedObj) => CheckDeprecated (info, namedObj.NameSpan);
 
-		void CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode)
+		void CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode) => CheckDeprecated (info, expressionNode.Span);
+
+		void CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
 		{
 			if (info.IsDeprecated) {
 				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.Deprecated,
-						expressionNode.Span,
+						squiggleSpan,
 						DescriptionFormatter.GetKindNoun (info),
 					info.Name);
 				} else {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.DeprecatedWithMessage,
-						expressionNode.Span,
+						squiggleSpan,
 						DescriptionFormatter.GetKindNoun (info),
 						info.Name,
 						info.DeprecationMessage
@@ -430,7 +425,8 @@ namespace MonoDevelop.MSBuild.Language
 			CheckDeprecated (resolvedAttribute, attribute);
 
 			if (resolvedAttribute.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
-				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read)) {
+				// TODO: reuse the existing resolved symbol
+				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read, out _)) {
 					Document.Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
 						attribute.NameSpan,
@@ -524,7 +520,11 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionMetadata meta:
 					var metaItem = meta.GetItemName ();
-					if (!string.IsNullOrEmpty (metaItem) && !IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write)) {
+					if (string.IsNullOrEmpty (metaItem)) {
+						break;
+					}
+
+					if (!IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write, out var resolvedMetadata)) {
 						Document.Diagnostics.Add (
 							CoreDiagnostics.UnwrittenMetadata,
 							meta.Span,
@@ -535,17 +535,25 @@ namespace MonoDevelop.MSBuild.Language
 							metaItem, meta.MetadataName
 						);
 					}
+					if (resolvedMetadata is not null) {
+						CheckDeprecated (resolvedMetadata, meta.MetadataNameSpan);
+					}
 					break;
 				case ExpressionPropertyName prop:
-					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write)) {
+					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write, out var resolvedProperty)) {
 						AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
+					}
+					if (resolvedProperty is not null) {
+						CheckDeprecated (resolvedProperty, prop);
 					}
 					break;
 				case ExpressionItemName item:
-					if (!IsItemUsed (item.Name, ReferenceUsage.Write)) {
+					if (!IsItemUsed (item.Name, ReferenceUsage.Write, out var resolvedItem)) {
 						AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
 					}
-					//TODO: deprecation squiggles in expressions
+					if (resolvedItem is not null) {
+						CheckDeprecated (resolvedItem, item);
+					}
 					break;
 				}
 			}
@@ -622,23 +630,31 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			/*
-			 * FIXME: these won't work as-is, as inference will add them to the schema
+			 */
 			case MSBuildValueKind.TargetName:
-				if (Document.GetSchemas ().GetTarget (value) == null) {
-					AddErrorWithArgs (CoreDiagnostics.UndefinedTarget, value);
+				if (GetSchemasExcludingCurrentDocInferred ().GetTarget (value) is TargetInfo resolvedTarget) {
+					CheckDeprecated (resolvedTarget, expressionText);
+				} else {
+					// this won't work as-is, as inference will add this instance of the item to the inferred schema
+					// AddErrorWithArgs (CoreDiagnostics.UndefinedTarget, value);
 				}
 				break;
 			case MSBuildValueKind.PropertyName:
-				if (Document.GetSchemas ().GetProperty (value) == null) {
-					AddErrorWithArgs (CoreDiagnostics.UnknownProperty, value);
+				if (GetSchemasExcludingCurrentDocInferred ().GetProperty (value, true) is PropertyInfo resolvedProperty) {
+					CheckDeprecated (resolvedProperty, expressionText);
+				} else {
+					// FIXME: this won't work as-is, as inference will add this instance of the item to the inferred schema
+					//AddErrorWithArgs (CoreDiagnostics.UnknownProperty, value);
 				}
 				break;
 			case MSBuildValueKind.ItemName:
-				if (Document.GetSchemas ().GetItem (value) == null) {
-					AddErrorWithArgs (CoreDiagnostics.UnknownProperty, value);
+				if (GetSchemasExcludingCurrentDocInferred ().GetItem (value) is ItemInfo resolvedItem) {
+					CheckDeprecated (resolvedItem, expressionText);
+				} else {
+					// FIXME: this won't work as-is, as inference will add this instance of the item to the inferred schema
+					// AddErrorWithArgs (CoreDiagnostics.UnknownProperty, value);
 				}
 				break;
-				*/
 			case MSBuildValueKind.Lcid:
 				if (!CultureHelper.IsValidLcid (value, out int lcid)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidLcid, value);
@@ -716,13 +732,11 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		bool IsItemUsed (string itemName, ReferenceUsage usage)
+		bool IsItemUsed (string itemName, ReferenceUsage usage, out ItemInfo resolvedItem)
 		{
 			// if it's been found in an imported file or an explicit schema, it counts as used
-			var item = Document
-				.GetSchemas (skipThisDocumentInferredSchema: true)
-				.GetItem (itemName);
-			if (item != null) {
+			resolvedItem = GetSchemasExcludingCurrentDocInferred ().GetItem (itemName);
+			if (resolvedItem is not null) {
 				return true;
 			}
 
@@ -735,13 +749,11 @@ namespace MonoDevelop.MSBuild.Language
 			return false;
 		}
 
-		bool IsPropertyUsed (string propertyName, ReferenceUsage usage)
+		bool IsPropertyUsed (string propertyName, ReferenceUsage usage, out PropertyInfo resolvedProperty)
 		{
 			// if it's been found in an imported file or an explicit schema, it counts as used
-			var metaInfo = Document
-				.GetSchemas (skipThisDocumentInferredSchema: true)
-				.GetProperty (propertyName, true);
-			if (metaInfo != null) {
+			resolvedProperty = GetSchemasExcludingCurrentDocInferred ().GetProperty (propertyName, true);
+			if (resolvedProperty is not null) {
 				return true;
 			}
 
@@ -754,13 +766,11 @@ namespace MonoDevelop.MSBuild.Language
 			return false;
 		}
 
-		bool IsMetadataUsed (string itemName, string metadataName, ReferenceUsage usage)
+		bool IsMetadataUsed (string itemName, string metadataName, ReferenceUsage usage, out MetadataInfo resolvedMetadata)
 		{
 			// if it's been found in an imported file or an explicit schema, it's valid
-			var metaInfo = Document
-				.GetSchemas (skipThisDocumentInferredSchema: true)
-				.GetMetadata (itemName, metadataName, true);
-			if (metaInfo != null) {
+			resolvedMetadata = GetSchemasExcludingCurrentDocInferred ().GetMetadata (itemName, metadataName, true);
+			if (resolvedMetadata is not null) {
 				return true;
 			}
 
@@ -772,9 +782,5 @@ namespace MonoDevelop.MSBuild.Language
 			}
 			return false;
 		}
-
-
-		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error in MSBuildDocumentValidator")]
-		static partial void LogInternalError (ILogger logger, Exception ex);
 	}
 }
