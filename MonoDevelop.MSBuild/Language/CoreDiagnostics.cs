@@ -664,5 +664,19 @@ namespace MonoDevelop.MSBuild.Language
 			"Possible unused or misspelled metadata",
 			"The metadata '{0}.{1}' is not used in this file and is not referenced in any imported targets or schemas",
 			MSBuildDiagnosticSeverity.Warning);
+
+		public const string PropertyWriteReserved_Id = nameof (PropertyWriteReserved);
+		public static readonly MSBuildDiagnosticDescriptor PropertyWriteReserved = new (
+			PropertyWriteReserved_Id,
+			"Cannot assign value to reserved property",
+			"The property '{0}' is a reserved property and cannot be assigned a new value",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string PropertyWriteReadonly_Id = nameof (PropertyWriteReadonly);
+		public static readonly MSBuildDiagnosticDescriptor PropertyWriteReadonly = new (
+			PropertyWriteReadonly_Id,
+			"Cannot assign value to read-only property",
+			"The property '{0}' is read-only and cannot be assigned a new value",
+			MSBuildDiagnosticSeverity.Error);
 	}
 }

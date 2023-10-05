@@ -476,7 +476,8 @@ namespace MonoDevelop.MSBuild.Language
 			case TriggerState.MetadataName:
 				return doc.GetMetadata (null, true);
 			case TriggerState.PropertyName:
-				return doc.GetProperties (true);
+				bool includeReadOnly = rr.AttributeSyntax?.SyntaxKind != Syntax.MSBuildSyntaxKind.Output_PropertyName;
+				return doc.GetProperties (includeReadOnly);
 			case TriggerState.MetadataOrItemName:
 				return ((IEnumerable<ISymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:

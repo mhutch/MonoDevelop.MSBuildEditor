@@ -8,16 +8,16 @@ using System.Linq;
 
 using Microsoft.Extensions.Logging;
 
-using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Parser;
-
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
-using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Workspace;
+
+using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Logging;
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -129,6 +129,9 @@ namespace MonoDevelop.MSBuild.Language
 							.Add ("Spans", GetNameSpans (element)),
 						element.Name.Name
 					);
+				}
+				if (symbol is PropertyInfo property) {
+					CheckPropertyWrite (property, element.NameSpan);
 				}
 				break;
 
@@ -494,7 +497,7 @@ namespace MonoDevelop.MSBuild.Language
 				} else {
 					foreach (var listVal in list.Nodes) {
 						if (listVal is ExpressionText listValText) {
-							VisitPureLiteral (valueSymbol, kind.WithoutModifiers (), listValText);
+							VisitPureLiteral (resolvedElement, resolvedAttribute, valueSymbol, kind.WithoutModifiers (), listValText);
 						}
 					}
 				}
@@ -505,7 +508,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 			} else if (expression is ExpressionText lit) {
-				VisitPureLiteral (valueSymbol, kind.WithoutModifiers (), lit);
+				VisitPureLiteral (resolvedElement, resolvedAttribute, valueSymbol, kind.WithoutModifiers (), lit);
 			} else {
 				if (!allowExpressions) {
 					AddExpressionWarning (expression);
@@ -579,7 +582,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
-		void VisitPureLiteral (ITypedSymbol info, MSBuildValueKind kind, ExpressionText expressionText)
+		void VisitPureLiteral (MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol info, MSBuildValueKind kind, ExpressionText expressionText)
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
@@ -642,6 +645,9 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildValueKind.PropertyName:
 				if (GetSchemasExcludingCurrentDocInferred ().GetProperty (value, true) is PropertyInfo resolvedProperty) {
 					CheckDeprecated (resolvedProperty, expressionText);
+					if (resolvedAttribute?.SyntaxKind == MSBuildSyntaxKind.Output_PropertyName) {
+						CheckPropertyWrite (resolvedProperty, expressionText.Span);
+					}
 				} else {
 					// FIXME: this won't work as-is, as inference will add this instance of the item to the inferred schema
 					//AddErrorWithArgs (CoreDiagnostics.UnknownProperty, value);
@@ -729,6 +735,15 @@ namespace MonoDevelop.MSBuild.Language
 						.AddIfNotNull ("CustomType", info.CustomType),
 					args
 				);
+			}
+		}
+
+		void CheckPropertyWrite (PropertyInfo resolvedProperty, TextSpan span)
+		{
+			if (resolvedProperty.IsReserved) {
+				Document.Diagnostics.Add (CoreDiagnostics.PropertyWriteReserved, span, resolvedProperty.Name);
+			} else if (resolvedProperty.IsReadOnly) {
+				Document.Diagnostics.Add (CoreDiagnostics.PropertyWriteReadonly, span, resolvedProperty.Name);
 			}
 		}
 
