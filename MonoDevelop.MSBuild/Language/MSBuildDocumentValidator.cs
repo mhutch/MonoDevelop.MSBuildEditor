@@ -194,8 +194,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var child in element.Nodes) {
-				if (child is XElement projectChild && !projectChild.Name.HasPrefix) {
-					switch (projectChild.Name.Name.ToLower ()) {
+				if (child is XElement projectChild && projectChild.IsNamed && !projectChild.Name.HasPrefix) {
+					switch (projectChild.Name.Name.ToLowerInvariant ()) {
 					case "target":
 					case "import":
 						return;
