@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +15,6 @@ using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
@@ -50,7 +48,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			var environment = new NullMSBuildEnvironment ();
 			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
+
+			// internal errors should cause test failure
 			var logger = TestLoggerFactory.CreateTestMethodLogger ();
+			logger = new ExceptionRethrowingLogger (logger);
 
 			var doc = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
@@ -62,7 +63,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				logger,
 				token);
 
-			var analyzerDriver = new MSBuildAnalyzerDriver (TestLoggerFactory.CreateLogger<MSBuildAnalyzerDriver> ());
+			var analyzerDriver = new MSBuildAnalyzerDriver (logger);
 
 			if (analyzers != null && analyzers.Count > 0) {
 				analyzerDriver.AddAnalyzers (analyzers);
