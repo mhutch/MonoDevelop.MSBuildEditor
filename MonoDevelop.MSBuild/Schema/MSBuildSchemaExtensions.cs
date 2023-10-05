@@ -157,11 +157,11 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.GetAllTaskParameterVariants (taskName, parameterName).FirstOrDefault ();
 		}
 
-		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeBuiltins)
+		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeReadOnly)
 		{
-			if (includeBuiltins) {
-				foreach (var b in MSBuildIntrinsics.Properties) {
-					yield return b.Value;
+			foreach (var prop in MSBuildIntrinsics.Properties.Values) {
+				if (includeReadOnly || !prop.IsReadOnly) {
+					yield return prop;
 				}
 			}
 

@@ -134,8 +134,12 @@ namespace MonoDevelop.MSBuild.Schema
 
 			var modifierList = GetTypeDescription (kind, info.CustomType);
 
-			if (info is PropertyInfo pi && pi.Reserved) {
-				modifierList.Add ("reserved");
+			if (info is PropertyInfo pi) {
+				if (pi.IsReserved) {
+					modifierList.Add ("reserved");
+				} else if (pi.IsReadOnly) {
+					modifierList.Add ("readonly");
+				}
 			}
 			if (info is MetadataInfo mi) {
 				if (mi.Reserved) {

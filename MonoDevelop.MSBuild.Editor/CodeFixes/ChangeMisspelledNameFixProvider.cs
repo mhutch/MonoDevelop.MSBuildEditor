@@ -59,8 +59,8 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				case CoreDiagnostics.UnreadProperty_Id:
 				case CoreDiagnostics.UnwrittenProperty_Id:
 					foreach (var prop in await spellChecker.FindSimilarProperties (context.Document, name)) {
-						// don't fix writes with reserved properties
-						if (prop.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadata.Id) {
+						// don't fix writes with readonly properties
+						if (prop.IsReadOnly && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadata.Id) {
 							continue;
 						}
 						context.RegisterCodeFix (new FixNameAction (spans, name, prop.Name), diag);

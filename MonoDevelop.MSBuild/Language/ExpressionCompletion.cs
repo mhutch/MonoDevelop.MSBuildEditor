@@ -427,12 +427,12 @@ namespace MonoDevelop.MSBuild.Language
 				switch (variable) {
 				case ExpressionProperty ep:
 					if (ep.IsSimpleProperty) {
-						info = doc.GetProperty (ep.Name, true) ?? new PropertyInfo (ep.Name, null, false);
+						info = doc.GetProperty (ep.Name, true) ?? new PropertyInfo (ep.Name, null);
 						break;
 					}
 					continue;
 				case ExpressionMetadata em:
-					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null, false);
+					info = doc.GetMetadata (em.ItemName, em.MetadataName, true) ?? new MetadataInfo (em.MetadataName, null);
 					break;
 				default:
 					continue;

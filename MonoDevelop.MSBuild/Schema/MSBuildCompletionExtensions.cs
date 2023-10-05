@@ -176,7 +176,8 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.TargetName:
 				return doc.GetTargets ().ToList ();
 			case MSBuildValueKind.PropertyName:
-				return doc.GetProperties (true).ToList ();
+				bool includeReadOnly = rr.AttributeSyntax?.SyntaxKind != MSBuildSyntaxKind.Output_PropertyName;
+				return doc.GetProperties (includeReadOnly).ToList ();
 			case MSBuildValueKind.ItemName:
 				return doc.GetItems ().ToList ();
 			case MSBuildValueKind.TargetFramework:

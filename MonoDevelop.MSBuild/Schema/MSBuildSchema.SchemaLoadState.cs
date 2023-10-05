@@ -113,7 +113,7 @@ partial class MSBuildSchema
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return new PropertyInfo (propertyName, description, false, kind, customType, defaultValue, isDeprecated, deprecationMessage);
+				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, isDeprecated, deprecationMessage);
 			}
 		}
 

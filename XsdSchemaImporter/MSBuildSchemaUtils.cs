@@ -78,7 +78,7 @@ static class MSBuildSchemaUtils
 		foreach (var op in otherSchema.Properties.Values) {
 			var otherProp = op;
 			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
-				otherProp = new PropertyInfo(otherProp.Name, otherProp.Description, otherProp.Reserved, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
+				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
 				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {

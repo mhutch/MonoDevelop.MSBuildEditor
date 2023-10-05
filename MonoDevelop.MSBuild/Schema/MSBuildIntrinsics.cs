@@ -22,10 +22,9 @@ namespace MonoDevelop.MSBuild.Schema
 			Metadata.Add (name, new MetadataInfo (name, description, !notReserved, false, kind));
 		}
 
-		static void AddProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, bool notReserved = false)
-		{
-			Properties.Add (name, new PropertyInfo (name, description, !notReserved, kind));
-		}
+		static void AddReservedProperty (string name, string description, MSBuildValueKind kind) => Properties.Add (name, new PropertyInfo (name, description, true, true, kind));
+		static void AddReadOnlyProperty (string name, string description, MSBuildValueKind kind) => Properties.Add (name, new PropertyInfo (name, description, false, true, kind));
+		static void AddSettableProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown) => Properties.Add (name, new PropertyInfo (name, description, false, false, kind));
 
 		static void AddTask (TaskInfo task) => Tasks.Add (task.Name, task);
 
@@ -47,49 +46,48 @@ namespace MonoDevelop.MSBuild.Schema
 			AddMetadata ("DefiningProjectName", "The name of the project in which this item was defined", MSBuildValueKind.Filename);
 			AddMetadata ("DefiningProjectExtension", "The extension of the project in which this item was defined", MSBuildValueKind.Extension);
 
-			AddProperty (ReservedPropertyNames.binPath, "Absolute path of the bin directory where MSBuild is located. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.toolsPath, "Path to the current toolset, specfied by the MSBuildToolsVersion. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.toolsVersion, "Version of the current toolset", MSBuildValueKind.ToolsVersion);
-			AddProperty (ReservedPropertyNames.assemblyVersion, "The version of the MSBuild assemblies", MSBuildValueKind.Version);
-			AddProperty (ReservedPropertyNames.startupDirectory, "Absolute path of the directory where MSBuild is invoked. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.buildNodeCount, "The number of concurrent build nodes.", MSBuildValueKind.Int);
-			AddProperty (ReservedPropertyNames.lastTaskResult, "True if the last task completed without errors.", MSBuildValueKind.Bool);
-			AddProperty (ReservedPropertyNames.osName, "The OS on which MSBuild is running", MSBuildValueKind.HostOS);
-			AddProperty (ReservedPropertyNames.msbuildRuntimeType, "The runtime on which MSBuild is running", MSBuildValueKind.HostRuntime);
-			AddProperty (ReservedPropertyNames.overrideTasksPath, "Path to files that override built-in tasks", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.defaultOverrideToolsVersion, "Tools version to override the built-in tools version", MSBuildValueKind.ToolsVersion);
-			AddProperty (ReservedPropertyNames.frameworkToolsRoot, "The root directory of the .NET framework tools", MSBuildValueKind.FolderWithSlash);
-			AddProperty (ReservedPropertyNames.userExtensionsPath, "Directory from which user extensions are imported. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.binPath, "Absolute path of the bin directory where MSBuild is located. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.toolsPath, "Path to the current toolset, specfied by the MSBuildToolsVersion. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.toolsVersion, "Version of the current toolset", MSBuildValueKind.ToolsVersion);
+			AddReservedProperty (ReservedPropertyNames.assemblyVersion, "The version of the MSBuild assemblies", MSBuildValueKind.Version);
+			AddReservedProperty (ReservedPropertyNames.startupDirectory, "Absolute path of the directory where MSBuild is invoked. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.buildNodeCount, "The number of concurrent build nodes.", MSBuildValueKind.Int);
+			AddReservedProperty (ReservedPropertyNames.lastTaskResult, "True if the last task completed without errors.", MSBuildValueKind.Bool);
+			AddReservedProperty (ReservedPropertyNames.osName, "The OS on which MSBuild is running", MSBuildValueKind.HostOS);
+			AddReservedProperty (ReservedPropertyNames.msbuildRuntimeType, "The runtime on which MSBuild is running", MSBuildValueKind.HostRuntime);
+			AddReservedProperty (ReservedPropertyNames.overrideTasksPath, "Path to files that override built-in tasks", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.defaultOverrideToolsVersion, "Tools version to override the built-in tools version", MSBuildValueKind.ToolsVersion);
+			AddReservedProperty (ReservedPropertyNames.frameworkToolsRoot, "The root directory of the .NET framework tools", MSBuildValueKind.FolderWithSlash);
+			AddReservedProperty (ReservedPropertyNames.userExtensionsPath, "Directory from which user extensions are imported. Does not include final backslash.", MSBuildValueKind.Folder);
 
-			AddProperty (ReservedPropertyNames.projectDefaultTargets, "The value of the DefaultTargets attribute in the Project element.", MSBuildValueKind.TargetName.AsList ());
-			AddProperty (ReservedPropertyNames.projectDirectory, "Directory where the project file is located. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.projectDirectoryNoRoot, "Directory where the project file is located, excluding drive root. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (ReservedPropertyNames.projectExtension, "Extension of the project file.", MSBuildValueKind.Extension);
-			AddProperty (ReservedPropertyNames.projectFile, "Name of the project file, including extension.", MSBuildValueKind.File);
-			AddProperty (ReservedPropertyNames.projectFullPath, "Full path of the project file.", MSBuildValueKind.File);
-			AddProperty (ReservedPropertyNames.projectName, "Name of the project file, excluding extension.", MSBuildValueKind.Filename);
+			AddReservedProperty (ReservedPropertyNames.projectDefaultTargets, "The value of the DefaultTargets attribute in the Project element.", MSBuildValueKind.TargetName.AsList ());
+			AddReservedProperty (ReservedPropertyNames.projectDirectory, "Directory where the project file is located. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.projectDirectoryNoRoot, "Directory where the project file is located, excluding drive root. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReservedProperty (ReservedPropertyNames.projectExtension, "Extension of the project file.", MSBuildValueKind.Extension);
+			AddReservedProperty (ReservedPropertyNames.projectFile, "Name of the project file, including extension.", MSBuildValueKind.File);
+			AddReservedProperty (ReservedPropertyNames.projectFullPath, "Full path of the project file.", MSBuildValueKind.File);
+			AddReservedProperty (ReservedPropertyNames.projectName, "Name of the project file, excluding extension.", MSBuildValueKind.Filename);
+
+			AddReservedProperty (ReservedPropertyNames.thisFile, "Name of the current MSBuild file, including extension.", MSBuildValueKind.Filename);
+			AddReservedProperty (ReservedPropertyNames.thisFileDirectory, "Directory where the current MSBuild file is located.", MSBuildValueKind.FolderWithSlash);
+			AddReservedProperty (ReservedPropertyNames.thisFileDirectoryNoRoot, "Directory where the current MSBuild file is located, excluding drive root.", MSBuildValueKind.FolderWithSlash);
+			AddReservedProperty (ReservedPropertyNames.thisFileExtension, "Extension of the current MSBuild file.", MSBuildValueKind.Extension);
+			AddReservedProperty (ReservedPropertyNames.thisFileFullPath, "Absolute path of the current MSBuild file.", MSBuildValueKind.File);
+			AddReservedProperty (ReservedPropertyNames.thisFileName, "Name of the current MSBuild file, excluding extension.", MSBuildValueKind.File);
 
 
-			AddProperty (ReservedPropertyNames.thisFile, "Name of the current MSBuild file, including extension.", MSBuildValueKind.Filename);
-			AddProperty (ReservedPropertyNames.thisFileDirectory, "Directory where the current MSBuild file is located.", MSBuildValueKind.FolderWithSlash);
-			AddProperty (ReservedPropertyNames.thisFileDirectoryNoRoot, "Directory where the current MSBuild file is located, excluding drive root.", MSBuildValueKind.FolderWithSlash);
-			AddProperty (ReservedPropertyNames.thisFileExtension, "Extension of the current MSBuild file.", MSBuildValueKind.Extension);
-			AddProperty (ReservedPropertyNames.thisFileFullPath, "Absolute path of the current MSBuild file.", MSBuildValueKind.File);
-			AddProperty (ReservedPropertyNames.thisFileName, "Name of the current MSBuild file, excluding extension.", MSBuildValueKind.File);
+			AddReadOnlyProperty (WellKnownProperties.MSBuildExtensionsPath, "Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReadOnlyProperty (WellKnownProperties.MSBuildExtensionsPath32, "Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReadOnlyProperty (WellKnownProperties.MSBuildExtensionsPath64, "Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
+			AddReadOnlyProperty (WellKnownProperties.MSBuildProgramFiles32, "Absolute path of the 32-bit Program Files folder. Does not include final backslash.", MSBuildValueKind.Folder);
 
-
-			AddProperty (WellKnownProperties.MSBuildExtensionsPath, "Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (WellKnownProperties.MSBuildExtensionsPath32, "Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (WellKnownProperties.MSBuildExtensionsPath64, "Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
-			AddProperty (WellKnownProperties.MSBuildProgramFiles32, "Absolute path of the 32-bit Program Files folder. Does not include final backslash.", MSBuildValueKind.Folder);
-
-			AddProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors, "Whether to treat all warnings as errors", MSBuildValueKind.Bool, true);
-			AddProperty (WellKnownProperties.MSBuildWarningsAsErrors, "List warning codes to treat as errors", MSBuildValueKind.Unknown.AsList (), true);
-			AddProperty (WellKnownProperties.MSBuildWarningsNotAsErrors, "List warning codes to treat as low-importance meesages", MSBuildValueKind.Unknown.AsList (), true);
-			AddProperty (WellKnownProperties.MSBuildWarningsAsMessages, "List of warning codes to treat as messages", MSBuildValueKind.Unknown.AsList(), true);
-			AddProperty (WellKnownProperties.MSBuildAllProjects,
+			AddSettableProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors, "Whether to treat all warnings as errors", MSBuildValueKind.Bool);
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsErrors, "List warning codes to treat as errors", MSBuildValueKind.Unknown.AsList ());
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsNotAsErrors, "List warning codes to treat as low-importance messages", MSBuildValueKind.Unknown.AsList ());
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsMessages, "List of warning codes to treat as messages", MSBuildValueKind.Unknown.AsList());
+			AddSettableProperty (WellKnownProperties.MSBuildAllProjects,
 				"List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.",
-				MSBuildValueKind.ProjectFile, true);
+				MSBuildValueKind.ProjectFile);
 
 			AddTask (new TaskInfo (
 				"CallTarget",
