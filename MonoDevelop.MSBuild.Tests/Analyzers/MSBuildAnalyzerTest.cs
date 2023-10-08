@@ -61,8 +61,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
 
 			// internal errors should cause test failure
-			var logger = TestLoggerFactory.CreateTestMethodLogger ();
-			logger = new ExceptionRethrowingLogger (logger);
+			var logger = TestLoggerFactory.CreateTestMethodLogger ().RethrowExceptions ();
 
 			parsedDocument = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
