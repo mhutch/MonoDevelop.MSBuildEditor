@@ -13,7 +13,7 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
     public class MSBuildConditionTests
     {
-        [Test]
+		[Test]
         public void TestCondition1()
         {
             var condition = @"@(AssemblyAttribute->WithMetadataValue('A', 'B')->Count()) == 0";
@@ -129,6 +129,8 @@ namespace MonoDevelop.MSBuild.Tests
 
 		[Test]
 		[TestCase ("'$(foo)' == '' and ('$(bar)' == '')")] // paren group at end of expression string
+		[TestCase ("")] // empty expression
+		[TestCase (" ")] // whitespace only
 		public void TestParseNoError (string expressionString)
 		{
 			var expression = ExpressionParser.ParseCondition (expressionString, 0);
