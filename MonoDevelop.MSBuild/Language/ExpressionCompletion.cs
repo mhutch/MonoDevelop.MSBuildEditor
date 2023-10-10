@@ -35,7 +35,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static TriggerState GetTriggerState (
-			string expression, int triggerPos, TriggerReason reason, char typedChar, bool isCondition,
+			string expression, int triggerPos, ExpressionTriggerReason reason, char typedChar, bool isCondition,
 			out int spanStart, out int spanLength, out ExpressionNode triggerExpression,
 			out ListKind listKind, out IReadOnlyList<ExpressionNode> comparandVariables, ILogger logger)
 		{
@@ -51,7 +51,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		static TriggerState GetTriggerState (
-			string expression, int triggerPos, TriggerReason reason, char typedChar, bool isCondition,
+			string expression, int triggerPos, ExpressionTriggerReason reason, char typedChar, bool isCondition,
 			out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out ExpressionNode triggerNode,
 			out ListKind listKind, ILogger logger)
 		{
@@ -60,7 +60,7 @@ namespace MonoDevelop.MSBuild.Language
 			listKind = ListKind.None;
 
 			var isNewline = typedChar == '\n';
-			var isTypedChar = reason == TriggerReason.TypedChar;
+			var isTypedChar = reason == ExpressionTriggerReason.TypedChar;
 
 			if (isTypedChar && !isNewline && expression.Length > 0 && expression[expression.Length - 1] != typedChar) {
 				triggerExpression = null;
@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		static TriggerState GetTriggerState (
-			ExpressionNode triggerExpression, int triggerPos, TriggerReason reason, char typedChar,
+			ExpressionNode triggerExpression, int triggerPos, ExpressionTriggerReason reason, char typedChar,
 			out int spanStart, out int spanLength, out ExpressionNode triggerNode, out ListKind listKind, ILogger logger)
 		{
 			spanStart = triggerPos;
@@ -96,9 +96,9 @@ namespace MonoDevelop.MSBuild.Language
 
 			listKind = ListKind.None;
 
-			var isExplicit = reason == TriggerReason.Invocation;
-			var isBackspace = reason == TriggerReason.Backspace;
-			var isTypedChar = reason == TriggerReason.TypedChar;
+			var isExplicit = reason == ExpressionTriggerReason.Invocation;
+			var isBackspace = reason == ExpressionTriggerReason.Backspace;
+			var isTypedChar = reason == ExpressionTriggerReason.TypedChar;
 
 			if (triggerExpression is ListExpression el) {
 				//the last list entry is the thing that triggered it
@@ -387,11 +387,12 @@ namespace MonoDevelop.MSBuild.Language
 			ConditionFunctionName,
 		}
 
-		public enum TriggerReason
+		public enum ExpressionTriggerReason
 		{
 			Invocation,
 			TypedChar,
-			Backspace
+			Backspace,
+			Unknown
 		}
 
 		public enum ListKind
