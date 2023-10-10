@@ -104,7 +104,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			if (languageElement == null && nodePath.Count > 0) {
+			// if we don't have a language element and we're not at root level, we're in an invalid location
+			if (languageElement == null && nodePath.Count > 2) {
 				return null;
 			}
 

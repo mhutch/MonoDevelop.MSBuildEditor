@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +15,6 @@ using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
@@ -26,22 +24,33 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 
 		protected void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, new[] { analyzer }, false, false, null, expectedDiagnostics);
+			=> VerifyDiagnostics (source, out _, new[] { analyzer }, false, false, null, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, analyzers, false, false, null, expectedDiagnostics);
+			=> VerifyDiagnostics (source, out _, analyzers, false, false, null, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, analyzers, includeCoreDiagnostics, false, null, expectedDiagnostics);
+			=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, false, null, expectedDiagnostics);
 
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, bool checkUnexpectedDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, null, expectedDiagnostics);
+			=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, null, expectedDiagnostics);
 
-		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, bool checkUnexpectedDiagnostics, MSBuildSchema schema, params MSBuildDiagnostic[] expectedDiagnostics)
+		protected void VerifyDiagnostics (
+			string source,
+			out MSBuildRootDocument parsedDocument,
+			ICollection<MSBuildAnalyzer> analyzers = null,
+			bool includeCoreDiagnostics = false,
+			bool checkUnexpectedDiagnostics = false,
+			MSBuildSchema schema = null,
+			MSBuildDiagnostic[] expectedDiagnostics = null,
+			MSBuildRootDocument previousDocument = null
+			)
 		{
 			const string projectFileName = "FakeProject.csproj";
 
 			var token = CancellationToken.None;
+
+			expectedDiagnostics ??= Array.Empty<MSBuildDiagnostic> ();
 
 			var schemas = new TestSchemaProvider ();
 			if (schema is not null) {
@@ -50,19 +59,21 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			var environment = new NullMSBuildEnvironment ();
 			var taskMetadataBuilder = new NoopTaskMetadataBuilder ();
-			var logger = TestLoggerFactory.CreateTestMethodLogger ();
 
-			var doc = MSBuildRootDocument.Parse (
+			// internal errors should cause test failure
+			var logger = TestLoggerFactory.CreateTestMethodLogger ().RethrowExceptions ();
+
+			parsedDocument = MSBuildRootDocument.Parse (
 				new StringTextSource (source),
 				projectFileName,
-				null,
+				previousDocument,
 				schemas,
 				environment,
 				taskMetadataBuilder,
 				logger,
 				token);
 
-			var analyzerDriver = new MSBuildAnalyzerDriver (TestLoggerFactory.CreateLogger<MSBuildAnalyzerDriver> ());
+			var analyzerDriver = new MSBuildAnalyzerDriver (logger);
 
 			if (analyzers != null && analyzers.Count > 0) {
 				analyzerDriver.AddAnalyzers (analyzers);
@@ -70,7 +81,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				throw new ArgumentException ("Analyzers can only be null or empty if core diagnostics are included", nameof (analyzers));
 			}
 
-			var actualDiagnostics = analyzerDriver.Analyze (doc, includeCoreDiagnostics, token);
+			var actualDiagnostics = analyzerDriver.Analyze (parsedDocument, includeCoreDiagnostics, token);
 
 			foreach (var expectedDiag in expectedDiagnostics) {
 				bool found = false;

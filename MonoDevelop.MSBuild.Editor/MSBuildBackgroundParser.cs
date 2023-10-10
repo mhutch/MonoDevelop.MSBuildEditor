@@ -81,9 +81,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						logger,
 						token);
 
-					var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);
-					doc.Diagnostics.Clear ();
-					doc.Diagnostics.AddRange (analyzerDiagnostics);
+					if (doc.ProjectElement is not null) {
+						var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);
+						doc.Diagnostics.Clear ();
+						doc.Diagnostics.AddRange (analyzerDiagnostics);
+					}
 				}
 				catch (Exception ex) when (!(ex is OperationCanceledException && token.IsCancellationRequested)) {
 					LogUnhandledParserError (logger, ex);

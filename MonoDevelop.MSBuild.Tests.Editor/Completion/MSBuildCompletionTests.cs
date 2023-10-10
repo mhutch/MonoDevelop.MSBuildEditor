@@ -14,8 +14,29 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 	[TestFixture]
 	public class MSBuildCompletionTests : MSBuildEditorTest
 	{
+
 		[Test]
-		public async Task TestElementCompletion ()
+		public async Task ProjectElementCompletion ()
+		{
+			var result = await this.GetCompletionContext ("$");
+
+			result.AssertNonEmpty ();
+
+			result.AssertContains ("<Project");
+		}
+
+		[Test]
+		public async Task ProjectElementBracketCompletion ()
+		{
+			var result = await this.GetCompletionContext ("<$>");
+
+			result.AssertNonEmpty ();
+
+			result.AssertContains ("<Project");
+		}
+
+		[Test]
+		public async Task ProjectChildElementCompletion ()
 		{
 			var result = await this.GetCompletionContext ("<Project>$");
 
@@ -28,7 +49,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 
 
 		[Test]
-		public async Task ProjectCompletion ()
+		public async Task ProjectChildElementBracketCompletion ()
 		{
 			var result = await this.GetCompletionContext (@"<Project><$");
 

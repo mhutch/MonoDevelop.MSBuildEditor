@@ -51,16 +51,22 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public void AddAnalyzers (IEnumerable<MSBuildAnalyzer> analyzers)
 		{
-			foreach (var analzyer in analyzers) {
-				context.RegisterAnalyzer (analzyer);
+			foreach (var analyzer in analyzers) {
+				context.RegisterAnalyzer (analyzer);
 			}
 		}
 
 		public List<MSBuildDiagnostic> Analyze (MSBuildRootDocument doc, bool includeFilteredCoreDiagnostics, CancellationToken token)
 		{
+			doc = doc ?? throw new ArgumentNullException (nameof (doc));
+
+			if (doc.ProjectElement is not MSBuildProjectElement projectElement) {
+				return new List<MSBuildDiagnostic> ();
+			}
+
 			var session = new MSBuildAnalysisSession (context, doc, token);
 
-			AnalyzeElement (doc.ProjectElement, session, token);
+			AnalyzeElement (projectElement, session, token);
 
 			if (includeFilteredCoreDiagnostics) {
 				session.AddCoreDiagnostics (doc.Diagnostics);

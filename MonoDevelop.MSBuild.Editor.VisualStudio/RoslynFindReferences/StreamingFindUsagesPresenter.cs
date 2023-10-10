@@ -29,8 +29,6 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 		public readonly IClassificationFormatMap ClassificationFormatMap;
 		public readonly IClassificationTypeRegistryService ClassificationTypeRegistry;
 
-		private readonly IFindAllReferencesService _vsFindAllReferencesService;
-
 		private readonly HashSet<TableDataSourceFindUsagesContext> _currentContexts =
 			new HashSet<TableDataSourceFindUsagesContext> ();
 		private readonly ImmutableArray<AbstractFindUsagesCustomColumnDefinition> _customColumns;
@@ -82,7 +80,6 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap ("tooltip");
 			ClassificationTypeRegistry = classificationTypeRegistry;
 
-			_vsFindAllReferencesService = serviceProvider.GetService<SVsFindAllReferences, IFindAllReferencesService> (true);
 			_customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition> ().ToImmutableArray ();
 		}
 
@@ -113,8 +110,10 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 		{
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
+			var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService (typeof (SVsFindAllReferences));
+
 			// Get the appropriate window for FAR results to go into.
-			var window = _vsFindAllReferencesService.StartSearch (title);
+			var window = vsFindAllReferencesService.StartSearch (title);
 
 			// Keep track of the users preference for grouping by definition if we don't already know it.
 			// We need this because we disable the Definition column when we're not showing references

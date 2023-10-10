@@ -27,6 +27,12 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		{
 			ConsumeSpace (buffer, ref offset, endOffset);
 
+			// empty expression - should we have a custom node for this?
+			if (endOffset < offset) {
+				hasError = false;
+				return new ExpressionText (0, buffer, true);
+			}
+
 			ExpressionNode left = ParseConditionOperand (buffer, ref offset, endOffset, baseOffset, out hasError);
 			if (hasError) {
 				return left;
@@ -190,7 +196,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				if (hasError) {
 					return new ExpressionParenGroup (parenStart + baseOffset, offset - parenStart, op);
 				}
-				if (buffer[offset] != ')' || offset >= endOffset) {
+				if (offset > endOffset || buffer[offset] != ')') {
 					return new IncompleteExpressionError (
 						offset > endOffset,
 						ExpressionErrorKind.ExpectingRightParen,

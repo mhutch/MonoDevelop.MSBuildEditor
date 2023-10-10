@@ -94,7 +94,7 @@ namespace MonoDevelop.MSBuild.Schema
 			MSBuildElementSyntax languageElement, string elementName)
 		{
 			if (languageElement == null) {
-				yield return MSBuildElementSyntax.Get ("Project");
+				yield return MSBuildElementSyntax.Project;
 				yield break;
 			}
 
@@ -120,7 +120,7 @@ namespace MonoDevelop.MSBuild.Schema
 			MSBuildElementSyntax languageElement, string elementName)
 		{
 			if (languageElement == null) {
-				yield return MSBuildElementSyntax.Get ("Project");
+				yield return MSBuildElementSyntax.Project;
 				yield break;
 			}
 
