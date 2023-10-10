@@ -39,14 +39,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	partial class MSBuildCompletionSource : XmlCompletionSource, ICompletionDocumentationProvider
 	{
-		readonly MSBuildBackgroundParser parser;
 		readonly IMSBuildFileSystem fileSystem;
 		readonly MSBuildCompletionSourceProvider provider;
 
 		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, ILogger logger) : base (textView, logger, provider.XmlParserProvider)
 		{
 			this.provider = provider;
-			parser = provider.ParserProvider.GetParser (textView.TextBuffer);
 			fileSystem = provider.FileSystem ?? DefaultMSBuildFileSystem.Instance;
         }
 
@@ -58,6 +56,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		// in GetElementCompletionsAsync or GetAttributeCompletionsAsync
 		async Task<MSBuildCompletionSessionContext> CreateMSBuildSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
 		{
+			var parser = provider.ParserProvider.GetParser(triggerLocation.Snapshot.TextBuffer);
 			MSBuildParseResult parseResult = parser.LastOutput ?? await parser.GetOrProcessAsync (triggerLocation.Snapshot, token);
 			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
 			var spine = GetSpineParser (triggerLocation);
