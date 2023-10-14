@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
-
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -20,9 +19,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
+using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
@@ -32,67 +31,37 @@ using MonoDevelop.Xml.Parser;
 using ProjectFileTools.NuGetSearch.Feeds;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
-using MonoDevelop.Xml.Logging;
+
 
 // todo: switch to IAsyncCompletionUniversalSource to allow per-item span and commit chars
 namespace MonoDevelop.MSBuild.Editor.Completion
 {
-	partial class MSBuildCompletionSource : XmlCompletionSource, ICompletionDocumentationProvider
+	partial class MSBuildCompletionSource : XmlCompletionSource<MSBuildCompletionContext>
 	{
 		readonly IMSBuildFileSystem fileSystem;
 		readonly MSBuildCompletionSourceProvider provider;
 
 		public MSBuildCompletionSource (ITextView textView, MSBuildCompletionSourceProvider provider, ILogger logger) : base (textView, logger, provider.XmlParserProvider)
 		{
-			this.provider = provider;
 			fileSystem = provider.FileSystem ?? DefaultMSBuildFileSystem.Instance;
-        }
-
-		record class MSBuildCompletionSessionContext (MSBuildRootDocument document, MSBuildResolveResult resolved, XmlSpineParser spine);
-
-		// this is primarily used to pass info from GetCompletionContextAsync to GetDocumentationAsync
-		// but also reuses the values calculated for expression completion in GetCompletionContextAsync
-		// if it's determined not be be expression completion but actually ends up
-		// in GetElementCompletionsAsync or GetAttributeCompletionsAsync
-		async Task<MSBuildCompletionSessionContext> CreateMSBuildSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
-		{
-			var parser = provider.ParserProvider.GetParser(triggerLocation.Snapshot.TextBuffer);
-			MSBuildParseResult parseResult = parser.LastOutput ?? await parser.GetOrProcessAsync (triggerLocation.Snapshot, token);
-			var doc = parseResult.MSBuildDocument ?? MSBuildRootDocument.Empty;
-			var spine = GetSpineParser (triggerLocation);
-			// clone the spine because the resolver alters it
-			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), doc, provider.FunctionTypeProvider, Logger, token);
-			return new MSBuildCompletionSessionContext (doc, rr, spine);
+			this.provider = provider;
 		}
 
-		void InitializeMSBuildSessionContext (IAsyncCompletionSession session, SnapshotPoint triggerLocation, CancellationToken token)
+		protected override MSBuildCompletionContext CreateTriggerContext (IAsyncCompletionSession session, CompletionTrigger trigger, XmlSpineParser spineParser, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan)
+			=> new (
+				provider.ParserProvider.GetParser (triggerLocation.Snapshot.TextBuffer),
+				provider, session, triggerLocation, spineParser, trigger, applicableToSpan
+			);
+
+		protected override Task<IList<CompletionItem>> GetElementCompletionsAsync (MSBuildCompletionContext context, bool includeBracket, CancellationToken token)
 		{
-			session.Properties.AddProperty (typeof (MSBuildCompletionSessionContext), CreateMSBuildSessionContext (session, triggerLocation, token));
-		}
-
-
-		// this can only be called after SetMSBuildSessionContext
-		Task<MSBuildCompletionSessionContext> GetMSBuildSessionContext (IAsyncCompletionSession session)
-			=> session.Properties.GetProperty<Task<MSBuildCompletionSessionContext>> (typeof (MSBuildCompletionSessionContext));
-
-		public override Task<object> GetDescriptionAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
-			=> Logger.InvokeAndLogExceptions (
-				() => base.GetDescriptionAsync (session, item, token));
-
-		protected override async Task<IList<CompletionItem>> GetElementCompletionsAsync (
-			IAsyncCompletionSession session,
-			SnapshotPoint triggerLocation,
-			List<XObject> nodePath,
-			bool includeBracket,
-			CancellationToken token)
-		{
-			var context = await GetMSBuildSessionContext (session);
-			var doc = context.document;
+			var doc = context.Document;
 
 			// we can't use the LanguageElement from the resolveresult here.
 			// if completion is triggered in an existing element's name, the resolveresult
 			// will be for that element, so completion will be for the element's children
 			// rather than for the element itself.
+			var nodePath = context.NodePath;
 			MSBuildElementSyntax languageElement = null;
 			string elName = null;
 			for (int i = 1; i < nodePath.Count; i++) {
@@ -101,72 +70,66 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					languageElement = MSBuildElementSyntax.Get (elName, languageElement);
 					continue;
 				}
-				return null;
+				return TaskCompleted (null);
 			}
 
 			// if we don't have a language element and we're not at root level, we're in an invalid location
 			if (languageElement == null && nodePath.Count > 2) {
-				return null;
+				return TaskCompleted (null);
 			}
 
 			var items = new List<CompletionItem> ();
 
 			foreach (var el in doc.GetElementCompletions (languageElement, elName)) {
 				if (el is ItemInfo) {
-					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
+					items.Add (CreateCompletionItem (context.DocumentationProvider, el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
 				} else {
-					items.Add (CreateCompletionItem (el, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
+					items.Add (CreateCompletionItem (context.DocumentationProvider, el, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
 				}
 			}
 
 			bool allowCData = languageElement != null && languageElement.ValueKind != MSBuildValueKind.Nothing;
-			foreach (var c in GetMiscellaneousTags (triggerLocation, nodePath, includeBracket, allowCData)) {
+			foreach (var c in GetMiscellaneousTags (context.TriggerLocation, nodePath, includeBracket, allowCData)) {
 				items.Add (c);
 			}
 
-			return items;
+			return TaskCompleted (items);
 		}
 
-		protected override async Task<IList<CompletionItem>> GetAttributeCompletionsAsync (
-			IAsyncCompletionSession session,
-			SnapshotPoint triggerLocation,
-			List<XObject> nodePath,
-			IAttributedXObject attributedObject,
-			Dictionary<string, string> existingAtts,
-			CancellationToken token)
+		static Task<IList<CompletionItem>> TaskCompleted (IList<CompletionItem> items) => Task.FromResult (items);
+
+		protected override Task<IList<CompletionItem>> GetAttributeCompletionsAsync (MSBuildCompletionContext context, IAttributedXObject attributedObject, Dictionary<string, string> existingAttributes, CancellationToken token)
 		{
-			var context = await GetMSBuildSessionContext (session);
-			var rr = context.resolved;
-			var doc = context.document;
+			var rr = context.ResolveResult;
+			var doc = context.Document;
 
 			if (rr?.ElementSyntax == null) {
-				return null;
+				return TaskCompleted (null);
 			}
 
 			var items = new List<CompletionItem> ();
 
 			foreach (var att in rr.GetAttributeCompletions (doc, doc.ToolsVersion)) {
-				if (!existingAtts.ContainsKey (att.Name)) {
-					items.Add (CreateCompletionItem (att, XmlCompletionItemKind.Attribute));
+				if (!existingAttributes.ContainsKey (att.Name)) {
+					items.Add (CreateCompletionItem (context.DocumentationProvider, att, XmlCompletionItemKind.Attribute));
 				}
 			}
 
-			return items;
+			return TaskCompleted (items);
 		}
 
-		protected override async Task<IList<CompletionItem>> GetEntityCompletionsAsync (IAsyncCompletionSession session, SnapshotPoint triggerLocation, List<XObject> nodePath, CancellationToken token)
+		protected override Task<IList<CompletionItem>> GetEntityCompletionsAsync (MSBuildCompletionContext context, CancellationToken token)
 		{
-			var context = await GetMSBuildSessionContext (session);
 
 			// don't want entity completion in elements we know don't have text content
-			if (context.resolved is not null && context.resolved.AttributeName is null && context.resolved.ElementSyntax is MSBuildElementSyntax element && element.ValueKind == MSBuildValueKind.Nothing) {
-				return null;
+			if (context.ResolveResult is MSBuildResolveResult rr && rr.AttributeName is null && rr.ElementSyntax is MSBuildElementSyntax element && element.ValueKind == MSBuildValueKind.Nothing) {
+				return TaskCompleted (null);
 			}
 
-			return GetBuiltInEntityItems ();
+			return TaskCompleted (GetBuiltInEntityItems ());
 		}
 
-		CompletionItem CreateCompletionItem (ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null)
+		CompletionItem CreateCompletionItem (MSBuildCompletionDocumentationProvider documentationProvider, ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null)
 		{
 			ImageElement image;
 
@@ -194,126 +157,61 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var item = new CompletionItem (displayText, this, image, ImmutableArray<CompletionFilter>.Empty, suffix, insertText, sortText, filterText, ImmutableArray<ImageElement>.Empty);
-
-			item.AddDocumentationProvider (this);
+			documentationProvider.AttachDocumentation (item, info);
 			item.AddKind (xmlCompletionItemKind);
-			item.Properties.AddProperty (typeof (ISymbol), info);
 			return item;
 		}
 
-		Task<object> ICompletionDocumentationProvider.GetDocumentationAsync (IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
+		protected override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, XmlSpineParser spineParser, CancellationToken token)
 		{
-#pragma warning disable VSTHRD103 // we know this is completed here
-			var context = GetMSBuildSessionContext (session).Result;
-#pragma warning restore VSTHRD103
+			var baseCompletion = base.InitializeCompletion (trigger, triggerLocation, spineParser, token);
 
-			// note that the value is a tuple despite the key
-			if (item.Properties.TryGetProperty<Tuple<string, FeedKind>> (typeof (Tuple<string, FeedKind>), out var packageSearchResult)) {
-				return GetPackageDocumentationAsync (context.document, packageSearchResult.Item1, packageSearchResult.Item2, token);
-			}
-
-			if (item.Properties.TryGetProperty<ISymbol> (typeof (ISymbol), out var info) && info != null) {
-				return provider.DisplayElementFactory.GetInfoTooltipElement (
-					session.TextView.TextBuffer, context.document, info, context.resolved, true, token
-				);
-			}
-
-			return Task.FromResult<object> (null);
-		}
-
-		async Task<object> GetPackageDocumentationAsync (MSBuildRootDocument doc, string packageId, FeedKind feedKind, CancellationToken token)
-		{
-			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-			var packageInfos = await provider.PackageSearchManager.SearchPackageInfo (packageId, null, tfm).ToTask (token);
-			var packageInfo = packageInfos.FirstOrDefault (p => p.SourceKind == feedKind) ?? packageInfos.FirstOrDefault ();
-			if (packageInfo != null) {
-				return provider.DisplayElementFactory.GetPackageInfoTooltip (packageId, packageInfo, feedKind);
-			}
-			return null;
-		}
-
-		public override CompletionStartData InitializeCompletion (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
-			=> Logger.InvokeAndLogExceptions (
-				() => InitializeCompletionInternal (trigger, triggerLocation, token));
-
-		CompletionStartData InitializeCompletionInternal (CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
-		{
-			var baseCompletion = base.InitializeCompletion (trigger, triggerLocation, token);
-
-			//we don't care need a real document here we're doing very basic resolution for triggering
+			// we don't care need a real document here we're doing very basic resolution for triggering
+			// FIXME: is it worth trying to reuse this ResolveResult and TriggerStare for the actual completion?
 			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine.Clone (), triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null, Logger, token);
+
 			if (rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && (rr.Attribute is not null || elementSyntax.ValueKind != MSBuildValueKind.Nothing)) {
-				var reason = ConvertReason (trigger.Reason, trigger.Character);
-				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
-					string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
-					int exprStartPos = triggerLocation - expression.Length;
-					var triggerState = GetTriggerState (
-						expression,
-						triggerLocation - exprStartPos,
-						reason.Value,
-						trigger.Character,
-						rr.IsCondition (),
-						out int spanStart,
-						out int spanLength,
-						out ExpressionNode _,
-						out var _,
-						out IReadOnlyList<ExpressionNode> _,
-						Logger
-					);
-					if (triggerState != TriggerState.None) {
-						spanStart = exprStartPos + spanStart;
-						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, spanStart, spanLength));
-					}
+				var reason = MSBuildCompletionContext.ConvertTriggerReason (trigger.Reason, trigger.Character);
+				if (reason == ExpressionTriggerReason.Unknown || !IsPossibleExpressionCompletionContext (spine)) {
+					return baseCompletion;
+				}
+
+				string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
+				int exprStartPos = triggerLocation - expression.Length;
+				var triggerState = GetTriggerState (
+					expression,
+					triggerLocation - exprStartPos,
+					reason,
+					trigger.Character,
+					rr.IsCondition (),
+					out int spanStart,
+					out int spanLength,
+					out ExpressionNode _,
+					out var _,
+					out IReadOnlyList<ExpressionNode> _,
+					Logger
+				);
+
+				if (triggerState != TriggerState.None) {
+					spanStart = exprStartPos + spanStart;
+					return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, spanStart, spanLength));
 				}
 			}
 
 			return baseCompletion;
 		}
 
-		static TriggerReason? ConvertReason (CompletionTriggerReason reason, char typedChar)
+		protected override async Task<IList<CompletionItem>> GetAdditionalCompletionsAsync (MSBuildCompletionContext context, CancellationToken token)
 		{
-			switch (reason) {
-			case CompletionTriggerReason.Insertion:
-				if (typedChar != '\0')
-					return TriggerReason.TypedChar;
-				break;
-			case CompletionTriggerReason.Backspace:
-				return TriggerReason.Backspace;
-			case CompletionTriggerReason.Invoke:
-			case CompletionTriggerReason.InvokeAndCommitIfUnique:
-				return TriggerReason.Invocation;
-			}
-			return null;
-		}
-
-		public override Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
-			=> Logger.InvokeAndLogExceptions (
-				() => GetCompletionContextAsyncInternal (session, trigger, triggerLocation, applicableToSpan, token));
-
-		Task<CompletionContext> GetCompletionContextAsyncInternal (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
-		{
-			InitializeMSBuildSessionContext (session, triggerLocation, token);
-
-			return base.GetCompletionContextAsync (session, trigger, triggerLocation, applicableToSpan, token);
-		}
-
-		protected override async Task<IList<CompletionItem>> GetAdditionalCompletionsAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
-		{
-			var context = await GetMSBuildSessionContext(session).ConfigureAwait (false);
-
-			if (context.resolved?.ElementSyntax is null) {
+			if (context.ResolveResult?.ElementSyntax is null || context.ExpressionTriggerReason == ExpressionTriggerReason.Unknown || !IsPossibleExpressionCompletionContext (context.SpineParser)) {
 				return null;
 			}
 
-			var reason = ConvertReason (trigger.Reason, trigger.Character);
-			if (!reason.HasValue || !IsPossibleExpressionCompletionContext (context.spine)) {
-				return null;
-			}
-
-			string expression = context.spine.GetIncompleteValue (triggerLocation.Snapshot);
+			var triggerLocation = context.TriggerLocation;
+			string expression = context.SpineParser.GetIncompleteValue (triggerLocation.Snapshot);
 			int exprStartPos = triggerLocation.Position - expression.Length;
-			var triggerState = GetTriggerState (expression, triggerLocation - exprStartPos, reason.Value, trigger.Character, context.resolved.IsCondition (),
+			var triggerState = GetTriggerState (expression, triggerLocation - exprStartPos, context.ExpressionTriggerReason, context.Trigger.Character, context.ResolveResult.IsCondition (),
 				out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
 				Logger
 			);
@@ -323,23 +221,21 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			session.Properties.AddProperty (typeof (TriggerState), triggerState);
+			// used by MSBuildCompletionCommitManager
+			context.Session.Properties.AddProperty (typeof (TriggerState), triggerState);
 
-			var info = context.resolved.GetElementOrAttributeValueInfo (context.document);
+			var info = context.ResolveResult.GetElementOrAttributeValueInfo (context.Document);
 			if (info is null || info.ValueKind == MSBuildValueKind.Nothing) {
 				return null;
 			}
 
-			return await GetExpressionCompletionsAsync (
-					session, info, triggerState, listKind, spanLength, triggerExpression, comparandVariables,
-					context.resolved, triggerLocation, context.document, token
-				);
+			return await GetExpressionCompletionsAsync (context, info, triggerState, listKind, spanLength, triggerExpression, comparandVariables, token);
 		}
 
-		async Task<List<CompletionItem>> GetPackageNameCompletions (IAsyncCompletionSession session, MSBuildRootDocument doc, string searchQuery, string packageType, CancellationToken token)
+		async Task<List<CompletionItem>> GetPackageNameCompletions (MSBuildCompletionContext context, string searchQuery, string packageType, CancellationToken token)
 		{
-			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
-			session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, session, tfm, packageType, Logger));
+			var tfm = context.Document.GetTargetFrameworkNuGetSearchParameter ();
+			context.Session.Properties.AddProperty (typeof (NuGetSearchUpdater), new NuGetSearchUpdater (this, context, tfm, packageType, Logger));
 
 			if (string.IsNullOrEmpty (searchQuery)) {
 				return null;
@@ -347,10 +243,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var results = await provider.PackageSearchManager.SearchPackageNames (searchQuery.ToLower (), tfm, packageType).ToTask (token);
 
-			return CreateNuGetItemsFromSearchResults (results);
+			return CreateNuGetItemsFromSearchResults (context.DocumentationProvider, results);
 		}
 
-		List<CompletionItem> CreateNuGetItemsFromSearchResults (IReadOnlyList<Tuple<string, FeedKind>> results)
+		List<CompletionItem> CreateNuGetItemsFromSearchResults (MSBuildCompletionDocumentationProvider documentationProvider, IReadOnlyList<Tuple<string, FeedKind>> results)
 		{
 			var items = new List<CompletionItem> ();
 			var dedup = new HashSet<string> ();
@@ -365,7 +261,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				foreach (var result in results) {
 					if (result.Item2 == kind) {
 						if (dedup.Add (result.Item1)) {
-							items.Add (CreateNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue));
+							items.Add (CreateNuGetCompletionItem (documentationProvider, result, XmlCompletionItemKind.AttributeValue));
 						}
 					}
 				}
@@ -390,14 +286,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				_ => false
 			});
 
-		async Task<List<CompletionItem>> GetPackageVersionCompletions (MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
+		async Task<List<CompletionItem>> GetPackageVersionCompletions (MSBuildCompletionContext context, CancellationToken token)
 		{
-			if (rr == null || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
+			if (context.ResolveResult is not MSBuildResolveResult rr || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
 				return null;
 			}
 
 			// we can only provide version completions if the item's value type is non-list nugetid
-			var itemInfo = doc.GetSchemas ().GetItem (itemEl.Name.Name);
+			var itemInfo = context.Document.GetSchemas ().GetItem (itemEl.Name.Name);
 			if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID)) {
 				return null;
 			}
@@ -415,7 +311,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return null;
 			}
 
-			var tfm = doc.GetTargetFrameworkNuGetSearchParameter ();
+			var tfm = context.Document.GetTargetFrameworkNuGetSearchParameter ();
 
 			var results = await provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm, packageType).ToTask (token);
 
@@ -423,7 +319,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 			var index = 0;
 			foreach (var result in results.Reverse ()) {
-				items.Add (CreateOrderedNuGetCompletionItem (result, XmlCompletionItemKind.AttributeValue, index++));
+				items.Add (CreateOrderedNuGetCompletionItem (context.DocumentationProvider, result, XmlCompletionItemKind.AttributeValue, index++));
 			}
 
 			return items;
@@ -476,13 +372,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		async Task<List<CompletionItem>> GetExpressionCompletionsAsync (
-			IAsyncCompletionSession session,
+			MSBuildCompletionContext context,
 			ITypedSymbol valueSymbol, TriggerState triggerState, ListKind listKind,
 			int triggerLength, ExpressionNode triggerExpression,
 			IReadOnlyList<ExpressionNode> comparandVariables,
-			MSBuildResolveResult rr, SnapshotPoint triggerLocation,
-			MSBuildRootDocument doc, CancellationToken token)
+			CancellationToken token)
 		{
+			var doc = context.Document;
+			var rr = context.ResolveResult;
 			var kind = valueSymbol.InferValueKindIfUnknown ();
 
 			if (!ValidateListPermitted (listKind, kind)) {
@@ -503,7 +400,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (comparandVariables != null && isValue) {
 				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, comparandVariables, Logger)) {
-					items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
+					items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
 
@@ -512,14 +409,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				case MSBuildValueKind.NuGetID:
 					if (triggerExpression is ExpressionText t) {
 						var packageType = valueSymbol.CustomType?.Values[0].Name;
-						var packageNameItems = await GetPackageNameCompletions (session, doc, t.Value, packageType, token);
+						var packageNameItems = await GetPackageNameCompletions (context, t.Value, packageType, token);
 						if (packageNameItems != null) {
 							items.AddRange (packageNameItems);
 						}
 					}
 					break;
 				case MSBuildValueKind.NuGetVersion: {
-						var packageVersionItems = await GetPackageVersionCompletions (doc, rr, token);
+						var packageVersionItems = await GetPackageVersionCompletions (context, token);
 						if (packageVersionItems != null) {
 							items.AddRange (packageVersionItems);
 						}
@@ -534,10 +431,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						break;
 					}
 				case MSBuildValueKind.Lcid:
-					items.AddRange (GetLcidCompletions ());
+					items.AddRange (GetLcidCompletions (context.DocumentationProvider));
 					break;
 				case MSBuildValueKind.Culture:
-					items.AddRange (GetCultureCompletions ());
+					items.AddRange (GetCultureCompletions (context.DocumentationProvider));
 					break;
 				}
 
@@ -555,7 +452,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					_ => false
 				};
 				foreach (var value in valueSymbol.CustomType.Values) {
-					items.Add (CreateCompletionItem (value, XmlCompletionItemKind.AttributeValue, annotation: addAnnotation? value.Description.Text : null));
+					items.Add (CreateCompletionItem (context.DocumentationProvider, value, XmlCompletionItemKind.AttributeValue, annotation: addAnnotation? value.Description.Text : null));
 				}
 
 			} else {
@@ -563,7 +460,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
 				if (GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger) is IEnumerable<ISymbol> completionInfos) {
 					foreach (var ci in completionInfos) {
-						items.Add (CreateCompletionItem (ci, XmlCompletionItemKind.AttributeValue));
+						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
 					}
 				}
 			}
@@ -574,7 +471,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
-				if (IsMetadataAllowed (triggerExpression, rr)) {
+				if (MSBuildCompletionSource.IsMetadataAllowed (triggerExpression, rr)) {
 					items.Add (CreateSpecialItem ("%(", "Metadata reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.MetadataReference));
 				}
 			}
@@ -583,7 +480,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 
 		//FIXME: improve logic for determining where metadata is permitted
-		bool IsMetadataAllowed (ExpressionNode triggerExpression, MSBuildResolveResult rr)
+		static bool IsMetadataAllowed (ExpressionNode triggerExpression, MSBuildResolveResult rr)
 		{
 			//if any a parent node is an item transform or function, metadata is allowed
 			if (triggerExpression != null) {
@@ -630,24 +527,22 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		CompletionItem CreateNuGetCompletionItem (Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind)
+		CompletionItem CreateNuGetCompletionItem (MSBuildCompletionDocumentationProvider documentationProvider, Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind)
 		{
 			var kindImage = provider.DisplayElementFactory.GetImageElement (info.Item2);
 			var item = new CompletionItem (info.Item1, this, kindImage);
 			item.AddKind (xmlCompletionItemKind);
-			item.Properties.AddProperty (typeof (Tuple<string, FeedKind>), info);
-			item.AddDocumentationProvider (this);
+			documentationProvider.AttachDocumentation (item, info);
 			return item;
 		}
 
-		CompletionItem CreateOrderedNuGetCompletionItem (Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind, int index)
+		CompletionItem CreateOrderedNuGetCompletionItem (MSBuildCompletionDocumentationProvider documentationProvider, Tuple<string,FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind, int index)
 		{
 			var kindImage = provider.DisplayElementFactory.GetImageElement (info.Item2);
 			string displayText = info.Item1;
 			var item = new CompletionItem (displayText, this, kindImage, ImmutableArray<CompletionFilter>.Empty, string.Empty, displayText, $"_{index:D5}", displayText, ImmutableArray<ImageElement>.Empty);
 			item.AddKind (xmlCompletionItemKind);
-			item.Properties.AddProperty (typeof (Tuple<string, FeedKind>), info);
-			item.AddDocumentationProvider (this);
+			documentationProvider.AttachDocumentation (item, info);
 			return item;
 		}
 
@@ -664,7 +559,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return item;
 		}
 
-		IEnumerable<CompletionItem> GetLcidCompletions ()
+		IEnumerable<CompletionItem> GetLcidCompletions (MSBuildCompletionDocumentationProvider documentationProvider)
 		{
 			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
 			foreach (var culture in CultureHelper.GetAllCultures ()) {
@@ -673,12 +568,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				// add the culture name to the filter text so ppl can just type the actual language/country instead of looking up the code
 				string filterText = $"{cultureLcid} {displayName}";
 				var item = new CompletionItem (cultureLcid, this, imageEl, ImmutableArray<CompletionFilter>.Empty, displayName, cultureLcid, cultureLcid, filterText, ImmutableArray<ImageElement>.Empty);
-				item.Properties.AddProperty (typeof (ISymbol), CultureHelper.CreateLcidSymbol (culture));
+				documentationProvider.AttachDocumentation (item, CultureHelper.CreateCultureSymbol (culture));
 				yield return item;
 			}
 		}
 
-		IEnumerable<CompletionItem> GetCultureCompletions ()
+		IEnumerable<CompletionItem> GetCultureCompletions (MSBuildCompletionDocumentationProvider documentationProvider)
 		{
 			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
 			foreach (var culture in CultureHelper.GetAllCultures ()) {
@@ -689,7 +584,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				// add the culture name to the filter text so ppl can just type the actual language/country instead of looking up the code
 				string filterText = $"{culture.Name} {culture.DisplayName}";
 				var item = new CompletionItem (culture.Name, this, imageEl, ImmutableArray<CompletionFilter>.Empty, culture.DisplayName, cultureName, cultureName, filterText, ImmutableArray<ImageElement>.Empty);
-				item.Properties.AddProperty (typeof (ISymbol), CultureHelper.CreateCultureSymbol (culture));
+				documentationProvider.AttachDocumentation (item, CultureHelper.CreateCultureSymbol (culture));
 				yield return item;
 			}
 		}

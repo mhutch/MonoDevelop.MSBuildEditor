@@ -21,20 +21,20 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 	{
 		public partial class NuGetSearchUpdater
 		{
-			public NuGetSearchUpdater (MSBuildCompletionSource parent, IAsyncCompletionSession session, string tfm, string packageType, ILogger logger)
+			public NuGetSearchUpdater (MSBuildCompletionSource parent, MSBuildCompletionContext context, string tfm, string packageType, ILogger logger)
 			{
 				this.tfm = tfm;
 				this.packageType = packageType;
 				this.logger = logger;
 				this.parent = parent;
-				this.session = session;
+				this.context = context;
 			}
 
 			readonly string tfm;
 			readonly string packageType;
 			readonly ILogger logger;
-			readonly IAsyncCompletionSession session;
 			readonly MSBuildCompletionSource parent;
+			private readonly MSBuildCompletionContext context;
 			IAsyncCompletionItemManager completionItemManager;
 
 			// these fields are protected by the locker
@@ -82,6 +82,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				var jtf = parent.provider.JoinableTaskContext.Factory;
 				jtf.Run (async delegate {
 					await jtf.SwitchToMainThreadAsync ();
+					var session = context.Session;
 					if (!session.IsDismissed) {
 						var snapshot = session.TextView.TextSnapshot;
 						session.OpenOrUpdate (
@@ -104,7 +105,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					this.parent = parent;
 					this.data = data;
 
-					var filterText = parent.session.ApplicableToSpan.GetText (data.Snapshot);
+					var filterText = parent.context.Session.ApplicableToSpan.GetText (data.Snapshot);
 					search = parent.parent.provider.PackageSearchManager.SearchPackageNames (filterText, parent.tfm);
 					cts.Token.Register (search.Cancel);
 
@@ -134,7 +135,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						return;
 					}
 
-					var items = parent.parent.CreateNuGetItemsFromSearchResults (search.Results);
+					var items = parent.parent.CreateNuGetItemsFromSearchResults (parent.context.DocumentationProvider, search.Results);
 
 					// if remainingFeeds has changed, a new event has fired, bail out and let it do the work
 					if (token.IsCancellationRequested || remainingFeeds > search.RemainingFeeds.Count) {
@@ -143,7 +144,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 					var newList = parent.nonNuGetItems.AddRange (items);
 					parent.completionItemManager.SortCompletionListAsync (
-						parent.session,
+						parent.context.Session,
 						new AsyncCompletionSessionInitialDataSnapshot (newList, data.Snapshot, new CompletionTrigger (CompletionTriggerReason.Invoke, data.Snapshot)),
 						token
 					).LogTaskExceptionsAndForget (parent.logger);
