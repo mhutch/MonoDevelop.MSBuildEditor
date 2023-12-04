@@ -152,7 +152,19 @@
         "6.0",
         "6.0-minimum",
         "6.0-recommended",
-        "6.0-all"
+        "7.0-all",
+        "7.0",
+        "7.0-minimum",
+        "7.0-recommended",
+        "7.0-all",
+        "8.0",
+        "8.0-minimum",
+        "8.0-recommended",
+        "8.0-all",
+        "9.0",
+        "9.0-minimum",
+        "9.0-recommended",
+        "9.0-all"
       ]
     },
     "TieredCompilation": {
@@ -262,7 +274,7 @@
       "includeDescription": "The name of the friend assembly to make internal types and members visible to.",
       "metadata": {
         "Key": "Optional public key associated with the strong name signature of the friend assembly."
-      },
+      }
     },
     "FrameworkReference": {
       "description": "Reference to a shared framework.",
@@ -275,6 +287,21 @@
           "description": "Controls whether the app will target the latest patch of the runtime.  Defaults to true for self-contained apps, false otherwise.",
           "type": "string"
         }
+      }
+    },
+    "SupportedPlatform": {
+      "description": "Platforms supported by the project for analyzer warnings.",
+      "includeDescription": "Name of a platform supported by the project for analyzer warnings.",
+      "type": { "$ref": "#/types/supportedPlatform" }
+    }
+  },
+  "types": {
+    "supportedPlatform": {
+      "allowUnknownValues": true,
+      "values": {
+        "macOS": "macOS",
+        "Windows": "Windows",
+        "Linux": "Linux"
       }
     }
   }
