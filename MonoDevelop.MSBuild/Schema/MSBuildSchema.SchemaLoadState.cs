@@ -188,15 +188,8 @@ partial class MSBuildSchema
 					}
 				}
 
-				(MSBuildValueKind kind, CustomTypeInfo? customType) = typeLoader.TryMaterialize ();
-
-				// FIXME: why this restriction?
 				// NOTE: even when the kind is not custom, the customType object might be a NuGet package type, which is valid
-				if (kind.IsCustomType ()) {
-					AddError (itemDefObj ?? itemCollection, $"Item '{itemName}' has custom type value, which is not permitted for items");
-					kind = MSBuildValueKind.Unknown;
-					customType = null;
-				}
+				(MSBuildValueKind kind, CustomTypeInfo? customType) = typeLoader.TryMaterialize ();
 
 				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, deprecationMessage, helpUrl);
 
