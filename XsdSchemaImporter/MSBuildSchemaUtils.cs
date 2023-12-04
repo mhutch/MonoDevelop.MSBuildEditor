@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
@@ -116,17 +117,24 @@ static class MSBuildSchemaUtils
 		var combined = new MSBuildSchema();
 		foreach (var s in schemas) {
 			AddRangeOfItems(combined.Items, s.Items);
-			AddRange(combined.Properties, s.Properties);
-			AddRange(combined.Tasks, s.Tasks);
-			AddRange(combined.Targets, s.Targets);
+			AddRange("property", combined.Properties, s.Properties);
+			AddRange("task", combined.Tasks, s.Tasks);
+			AddRange("target", combined.Targets, s.Targets);
 		}
 		return combined;
 	}
 
-	static void AddRange<K, V>( Dictionary<K, V> d, IEnumerable<KeyValuePair<K, V>> range) where K : notnull
+	static void AddRange<TValue>(string valueKind, Dictionary<string, TValue> d, IEnumerable<KeyValuePair<string, TValue>> range)
+		where TValue : BaseSymbol, MonoDevelop.MSBuild.Language.IDeprecatable
 	{
 		foreach (var kv in range) {
-			d.Add(kv.Key, kv.Value);
+			if (!d.TryAdd(kv.Key, kv.Value)) {
+				// ignore duplicate items from ProjectSystem* schemas
+				if (valueKind == "property" && kv.Key == "ProjectTypeGuids" && kv.Value.IsDeprecated ()) {
+					continue;
+				}
+				Console.Error.WriteLine($"Duplicate {valueKind} definition '{kv.Key}'");
+			}
 		}
 	}
 
@@ -140,7 +148,7 @@ static class MSBuildSchemaUtils
 					d[item.Key] = item.Value;
 				}
 				foreach (var meta in mergeFrom.Metadata) {
-					if (mergeTo.Metadata.TryGetValue(meta.Key, out var existing)) {
+					if (mergeTo.Metadata.ContainsKey(meta.Key)) {
 						// TODO: merge the metadata?
 						Console.Error.WriteLine($"Duplicate metadata '{item.Key}.{meta.Key}'");
 					} else {
@@ -148,7 +156,9 @@ static class MSBuildSchemaUtils
 					}
 				}
 			} else {
-				d.Add(item.Key, item.Value);
+				if (!d.TryAdd(item.Key, item.Value)) {
+					Console.Error.WriteLine($"Duplicate item definition '{item.Key}'");
+				}
 			}
 		}
 	}
