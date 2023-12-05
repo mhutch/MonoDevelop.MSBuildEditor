@@ -79,13 +79,16 @@ partial class MSBuildSchema
 				var typeLoader = new TypeInfoReader (this, propertyDefObj, false);
 
 				foreach ((string defPropName, JToken? defPropVal) in propertyDefObj) {
-
+					if (defPropVal is null) {
+						AddError (defPropVal ?? propertyDefObj, $"Property '{propertyName}' definition property '{defPropName}' has no value");
+						continue;
+					}
 					bool GetValueString ([NotNullWhen (true)] out string? value)
 					{
 						if (defPropVal is JValue v && (value = v.Value as string) is not null) {
 							return true;
 						}
-						AddError (defPropVal ?? propertyDefObj, $"Item metadata '{propertyName}' definition property '{defPropName}' must be a string");
+						AddError (defPropVal ?? propertyDefObj, $"Property '{propertyName}' definition property '{defPropName}' must be a string");
 						value = null;
 						return false;
 					}
@@ -139,6 +142,10 @@ partial class MSBuildSchema
 				}
 
 				foreach ((string defPropName, JToken? defPropVal) in itemDefObj) {
+					if (defPropVal is null) {
+						AddError (defPropVal ?? itemDefObj, $"Item '{itemName}' definition property '{defPropName}' has no value");
+						continue;
+					}
 
 					bool GetValueString ([NotNullWhen (true)] out string? value)
 					{
@@ -228,6 +235,10 @@ partial class MSBuildSchema
 			var typeLoader = new TypeInfoReader (this, metadataDefObj, false);
 
 			foreach ((string defPropName, JToken? defPropVal) in metadataDefObj) {
+				if (defPropVal is null) {
+					AddError (defPropVal ?? metadataDefObj, $"Item metadata '{FormatName ()}' definition property '{defPropName}' has no value");
+					continue;
+				}
 
 				bool GetValueString ([NotNullWhen (true)] out string? value)
 				{

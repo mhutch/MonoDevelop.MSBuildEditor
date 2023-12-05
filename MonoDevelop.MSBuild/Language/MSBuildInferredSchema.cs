@@ -22,13 +22,16 @@ namespace MonoDevelop.MSBuild.Language
 		//FIXME: this means we can't re-use the inferred schema from other toplevels
 		readonly bool isToplevel;
 
-		MSBuildInferredSchema (string filename, bool isToplevel)
+		MSBuildInferredSchema (string? filename, bool isToplevel)
 		{
 			this.isToplevel = isToplevel;
 			Filename = filename;
 		}
 
-		public string Filename { get; }
+		/// <summary>
+		/// The filename for which this is a schema. May be null if the file has not been saved.
+		/// </summary>
+		public string? Filename { get; }
 
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -70,7 +73,7 @@ namespace MonoDevelop.MSBuild.Language
 				^ StringComparer.OrdinalIgnoreCase.GetHashCode (obj.name);
 		}
 
-		public static MSBuildInferredSchema Build (MSBuildProjectElement project, string filename, bool isToplevel, MSBuildParserContext parseContext)
+		public static MSBuildInferredSchema Build (MSBuildProjectElement project, string? filename, bool isToplevel, MSBuildParserContext parseContext)
 		{
 			var schema = new MSBuildInferredSchema (filename, isToplevel);
 			try {

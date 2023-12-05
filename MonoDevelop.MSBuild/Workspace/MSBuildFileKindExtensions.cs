@@ -21,7 +21,7 @@ namespace MonoDevelop.MSBuild.Workspace
 {
 	public static class MSBuildFileKindExtensions
 	{
-		public static MSBuildFileKind GetFileKind (string filename)
+		public static MSBuildFileKind GetFileKind (string? filename)
 		{
 			if (filename is null) {
 				return MSBuildFileKind.Unknown;

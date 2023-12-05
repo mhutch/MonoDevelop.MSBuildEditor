@@ -89,12 +89,22 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return EvaluatedValue.FromUnescaped (Path.GetExtension (absoluteFilePath));
 			}
 			if (string.Equals (propertyName, ReservedPropertyNames.thisFileDirectory, StringComparison.OrdinalIgnoreCase)) {
-				return EvaluatedValue.FromNativePath (FileUtilities.EnsureTrailingSlash (Path.GetDirectoryName (absoluteFilePath)));
+				if (Path.GetDirectoryName (absoluteFilePath) is not string directory) {
+					// FIXME: should this be an empty evaluated value?
+					return null;
+				}
+				return EvaluatedValue.FromNativePath (FileUtilities.EnsureTrailingSlash (directory));
 			}
 			if (string.Equals (propertyName, ReservedPropertyNames.thisFileDirectoryNoRoot, StringComparison.OrdinalIgnoreCase)) {
-				string directory = Path.GetDirectoryName (absoluteFilePath);
-				int rootLength = Path.GetPathRoot (directory).Length;
-				return EvaluatedValue.FromNativePath (FileUtilities.EnsureTrailingNoLeadingSlash (directory, rootLength));
+				if (Path.GetDirectoryName (absoluteFilePath) is not string directory) {
+					// FIXME: should this be an empty evaluated value?
+					return null;
+				}
+				if (Path.GetPathRoot (directory) is not string pathRoot) {
+					// should not reach this as we do Path.GetFullPath in the ctor
+					throw new InvalidOperationException ("MSBuildFileEvaluationContext path must be absolute");
+				}
+				return EvaluatedValue.FromNativePath (FileUtilities.EnsureTrailingNoLeadingSlash (directory, pathRoot.Length));
 			}
 			return null;
 		}

@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildParserContext (
 			IMSBuildEnvironment env,
 			MSBuildRootDocument doc,
-			MSBuildRootDocument previous,
+			MSBuildRootDocument? previous,
 			HashSet<string> importedFiles,
 			string projectPath,
 			PropertyValueCollector propVals,

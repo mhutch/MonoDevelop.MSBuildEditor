@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), Environment = new NullMSBuildEnvironment () };
 
-		public MSBuildRootDocument (string filename) : base (filename, true)
+		public MSBuildRootDocument (string? filename) : base (filename, true)
 		{
 		}
 
@@ -51,8 +51,12 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		public static MSBuildRootDocument Parse (
-			ITextSource textSource, string filePath, MSBuildRootDocument previous,
-			MSBuildSchemaProvider schemaProvider, IMSBuildEnvironment environment,
+			ITextSource textSource,
+			// this may be an unsaved file
+			string? filePath,
+			MSBuildRootDocument? previous,
+			MSBuildSchemaProvider schemaProvider,
+			IMSBuildEnvironment environment,
 			ITaskMetadataBuilder taskBuilder,
 			ILogger logger,
 			CancellationToken token)
@@ -70,7 +74,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 
-			if (filePath != null) {
+			if (filePath is not null) {
 				try {
 					doc.Schema = previous?.Schema ?? schemaProvider.GetSchema (filePath, null, logger);
 				} catch (Exception ex) {

@@ -83,7 +83,7 @@ namespace MonoDevelop.MSBuild.Workspace
 		/// If this flag is set, the file is a <c>.user</c> file used to store user-specific settings and customizations for a project file.
 		/// </summary>
 		/// <remarks>
-		/// Use <see cref="MSBuildFileKindExtensions.IsUserProj"/> to check if a file is a user project file
+		/// Use <see cref="MSBuildFileKindExtensions.IsUserProj(MSBuildFileKind, out MSBuildFileKind)"/> to check if a file is a user project file
 		/// and get the <see cref="MSBuildFileKind"/> of the project file that is being customized.
 		/// </remarks>
 		UserProj = 2048,

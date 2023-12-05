@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Language;
 abstract class MSBuildResolvingVisitor
 {
 	protected MSBuildDocument Document { get; private set; }
-	protected string Filename => Document.Filename;
+	protected string? Filename => Document.Filename;
 	protected ITextSource TextSource { get; private set; }
 	protected ILogger Logger { get; private set; }
 	protected CancellationToken CancellationToken { get; private set; }
