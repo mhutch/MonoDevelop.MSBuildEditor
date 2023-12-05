@@ -119,6 +119,20 @@ namespace MonoDevelop.MSBuild.Dom
 			return null;
 		}
 
+		// consumers should get elements by kind, not name
+		// but MSBuildItemElement uses this for GetMetadataElement
+		protected T GetElement<T> (string elementName) where T : MSBuildElement
+		{
+			var element = firstChild;
+			while (element != null) {
+				if (string.Equals (element.XElement.Name.FullName, elementName, StringComparison.OrdinalIgnoreCase) && element is T typedElement) {
+					return typedElement;
+				}
+				element = element.nextSibling;
+			}
+			return null;
+		}
+
 		public IEnumerable<MSBuildElement> GetElements (MSBuildSyntaxKind kind)
 		{
 			var el = firstChild;
@@ -146,6 +160,20 @@ namespace MonoDevelop.MSBuild.Dom
 			var att = firstAttribute;
 			while (att != null) {
 				if (att.SyntaxKind == kind) {
+					return att;
+				}
+				att = att.nextSibling;
+			}
+			return null;
+		}
+
+		// consumers should get attributes by kind, not name
+		// but MSBuildItemElement uses this for GetMetadataAttribute
+		protected MSBuildAttribute GetAttribute (string attributeName)
+		{
+			var att = firstAttribute;
+			while (att != null) {
+				if (string.Equals (att.Name, attributeName, StringComparison.OrdinalIgnoreCase)) {
 					return att;
 				}
 				att = att.nextSibling;
@@ -240,9 +268,20 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute RemoveMetadataAttribute => GetAttribute (MSBuildSyntaxKind.Item_RemoveMetadata);
 		public MSBuildAttribute KeepDuplicatesAttribute => GetAttribute (MSBuildSyntaxKind.Parameter_Required);
 
-		public IEnumerable<MSBuildAttribute> MetadataAttributesAttribute => GetAttributes (MSBuildSyntaxKind.Item_Metadata);
+		public IEnumerable<MSBuildAttribute> MetadataAttributes => GetAttributes (MSBuildSyntaxKind.Item_Metadata);
 
 		public IEnumerable<MSBuildMetadataElement> MetadataElements => GetElements<MSBuildMetadataElement> ();
+
+		public MSBuildAttribute GetMetadataAttribute (string metadataName)
+		{
+			var att = GetAttribute (metadataName);
+			if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
+				return att;
+			}
+			return null;
+		}
+
+		public MSBuildMetadataElement GetMetadataElement (string metadataName) =>  GetElement<MSBuildMetadataElement> (metadataName);
 	}
 
 	public class MSBuildItemDefinitionElement : MSBuildElement
