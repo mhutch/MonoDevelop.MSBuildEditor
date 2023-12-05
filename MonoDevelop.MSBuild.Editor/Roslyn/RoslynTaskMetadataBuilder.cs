@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -94,7 +96,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 
 			var parameters = new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
-			GetTaskInfoFromTask (type, logger, parameters, out bool isDeprecated, out string deprecationMessage);
+			GetTaskInfoFromTask (type, logger, parameters, out string? deprecationMessage);
 
 			return new TaskInfo (
 				type.Name, RoslynHelpers.GetDescription (type),
@@ -102,13 +104,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				type.GetFullName (),
 				assemblyName, assemblyFileStr,
 				declaredInFile, declaredAtOffset,
-				isDeprecated, deprecationMessage,
+				deprecationMessage,
 				parameters);
 		}
 
-		static void GetTaskInfoFromTask (INamedTypeSymbol type, ILogger logger, Dictionary<string, TaskParameterInfo> parameters, out bool isDeprecated, out string deprecationMessage)
+		static void GetTaskInfoFromTask (INamedTypeSymbol type, ILogger logger, Dictionary<string, TaskParameterInfo> parameters, out string? deprecationMessage)
 		{
-			isDeprecated = false;
 			deprecationMessage = null;
 
 			while (type != null) {
@@ -125,13 +126,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					}
 				}
 
-				if (!isDeprecated) {
+				if (deprecationMessage is null) {
 					foreach (var att in type.GetAttributes ()) {
 						switch (att.AttributeClass.Name) {
 						case "ObsoleteAttribute":
 							if (att.AttributeClass.GetFullName () == "System.ObsoleteAttribute") {
-								isDeprecated = true;
-								deprecationMessage = att.ConstructorArguments.FirstOrDefault ().Value as string;
+								deprecationMessage = (att.ConstructorArguments.FirstOrDefault ().Value as string) ?? "Deprecated";
 							}
 							break;
 						}
@@ -151,7 +151,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
-			bool isOutput = false, isRequired = false, isDeprecated = false;
+			bool isOutput = false, isRequired = false;
 			string deprecationMessage = null;
 
 			foreach (var att in prop.GetAttributes ()) {
@@ -168,8 +168,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					break;
 				case "ObsoleteAttribute":
 					if (att.AttributeClass.GetFullName () == "System.ObsoleteAttribute") {
-						isDeprecated = true;
-						deprecationMessage = att.ConstructorArguments.FirstOrDefault ().Value as string;
+						deprecationMessage = (att.ConstructorArguments.FirstOrDefault ().Value as string) ?? "Deprecated";
 					}
 					break;
 				}
@@ -200,7 +199,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				kind = kind.AsList ();
 			}
 
-			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, isDeprecated, deprecationMessage);
+			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, deprecationMessage);
 		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies

@@ -75,7 +75,6 @@ partial class MSBuildSchema
 				}
 
 				string? description = null, defaultValue = null, deprecationMessage = null;
-				bool isDeprecated = false;
 
 				var typeLoader = new TypeInfoReader (this, propertyDefObj, false);
 
@@ -99,7 +98,6 @@ partial class MSBuildSchema
 						GetValueString (out defaultValue);
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
 						break;
 					default:
@@ -113,7 +111,7 @@ partial class MSBuildSchema
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, isDeprecated, deprecationMessage);
+				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, deprecationMessage);
 			}
 		}
 
@@ -127,7 +125,6 @@ partial class MSBuildSchema
 
 				string? description = null, includeDescription = null, deprecationMessage = null;
 				JObject? metadata = null;
-				bool isDeprecated = false;
 
 				var typeLoader = new TypeInfoReader (this, itemCollection, true);
 
@@ -166,7 +163,6 @@ partial class MSBuildSchema
 						}
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
 						break;
 					default:
@@ -188,7 +184,7 @@ partial class MSBuildSchema
 					customType = null;
 				}
 
-				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, isDeprecated, deprecationMessage);
+				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, deprecationMessage);
 
 				if (metadata != null) {
 					AddItemMetadata (item, metadata);
@@ -228,7 +224,6 @@ partial class MSBuildSchema
 
 			string? description = null, defaultValue = null, deprecationMessage = null;
 			bool? required = null;
-			bool isDeprecated = false;
 
 			var typeLoader = new TypeInfoReader (this, metadataDefObj, false);
 
@@ -265,7 +260,6 @@ partial class MSBuildSchema
 					GetValueBool (out required);
 					break;
 				case "deprecationMessage":
-					isDeprecated = true;
 					GetValueString (out deprecationMessage);
 					break;
 				default:
@@ -281,7 +275,7 @@ partial class MSBuildSchema
 
 			return new MetadataInfo (
 				metadataName, description, false, required ?? false, kind, null,
-				customType, defaultValue, isDeprecated, deprecationMessage
+				customType, defaultValue, deprecationMessage
 			);
 		}
 
@@ -366,7 +360,6 @@ partial class MSBuildSchema
 				}
 
 				string? description = null, deprecationMessage = null;
-				bool isDeprecated = false;
 
 				if (targetDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
 					yield return new TargetInfo (targetName, simpleDesc);
@@ -395,7 +388,6 @@ partial class MSBuildSchema
 						GetValueString (out description);
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
 						break;
 					default:
@@ -404,7 +396,7 @@ partial class MSBuildSchema
 					}
 				}
 
-				yield return new TargetInfo (targetName, description, isDeprecated, deprecationMessage);
+				yield return new TargetInfo (targetName, description, deprecationMessage);
 			}
 		}
 

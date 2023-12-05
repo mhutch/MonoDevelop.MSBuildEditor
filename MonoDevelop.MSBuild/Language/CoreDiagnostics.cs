@@ -129,14 +129,6 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
-		public const string Deprecated_Id = nameof(Deprecated);
-		public static readonly MSBuildDiagnosticDescriptor Deprecated = new (
-			Deprecated_Id,
-			"Deprecated {0}",
-			"The {0} `{1}` is deprecated",
-			MSBuildDiagnosticSeverity.Warning
-		);
-
 		public const string DeprecatedWithMessage_Id = nameof(DeprecatedWithMessage);
 		public static readonly MSBuildDiagnosticDescriptor DeprecatedWithMessage = new (
 			DeprecatedWithMessage_Id,

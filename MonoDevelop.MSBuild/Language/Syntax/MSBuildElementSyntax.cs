@@ -27,8 +27,8 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		MSBuildElementSyntax (
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
 			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
-			bool isAbstract = false, bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, isDeprecated, deprecationMessage)
+			bool isAbstract = false, string deprecationMessage = null)
+			: base (name, description, valueKind, deprecationMessage)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;
@@ -260,7 +260,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			Project.attributes = new[] {
 				new MSBuildAttributeSyntax (Project, "DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildSyntaxKind.Project_DefaultTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral ()),
 				new MSBuildAttributeSyntax (Project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildSyntaxKind.Project_InitialTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral ()),
-				new MSBuildAttributeSyntax (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), isDeprecated: true),
+				new MSBuildAttributeSyntax (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), deprecationMessage: "Ignored in modern MSBuild projects"),
 				new MSBuildAttributeSyntax (Project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildSyntaxKind.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.AsList ().AsLiteral ()),
 				new MSBuildAttributeSyntax (Project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildSyntaxKind.Project_xmlns, MSBuildValueKind.Xmlns.AsLiteral ()),
 				new MSBuildAttributeSyntax (Project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.AsList().AsLiteral ()),

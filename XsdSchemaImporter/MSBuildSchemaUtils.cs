@@ -28,7 +28,7 @@ static class MSBuildSchemaUtils
 		MSBuildValueKind MapStringKindToUnknown(MSBuildValueKind kind) => treatStringValueKindAsUnknownInOther && kind == MSBuildValueKind.String? MSBuildValueKind.Unknown : kind;
 
 		bool IsBetterDescription(BaseSymbol basis, BaseSymbol other) => IsBetterDocString(basis.Description.Text, other.Description.Text);
-		bool IsBetterDocString(string basis, string other) => !string.IsNullOrEmpty(other) && (string.IsNullOrEmpty(basis) || (!ignoreDifferentDocs && !string.Equals(basis, other)));
+		bool IsBetterDocString(string? basis, string? other) => !string.IsNullOrEmpty(other) && (string.IsNullOrEmpty(basis) || (!ignoreDifferentDocs && !string.Equals(basis, other)));
 		bool IsBetterValueKind(VariableInfo basis, VariableInfo other)
 		{
 			if (basis.ValueKind == MSBuildValueKind.Unknown) {
@@ -69,7 +69,6 @@ static class MSBuildSchemaUtils
 					betterValueKind? otherItem.ValueKind : MSBuildValueKind.Unknown,
 					betterValueKind? otherItem.CustomType : null,
 					newMetadata.Count > 0? newMetadata : null,
-					false,
 					null
 				));
 			}
@@ -78,7 +77,7 @@ static class MSBuildSchemaUtils
 		foreach (var op in otherSchema.Properties.Values) {
 			var otherProp = op;
 			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
-				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
+				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.DeprecationMessage);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
 				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {

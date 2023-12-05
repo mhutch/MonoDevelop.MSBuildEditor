@@ -168,22 +168,14 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
 		{
-			if (info.IsDeprecated) {
-				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.Deprecated,
-						squiggleSpan,
-						DescriptionFormatter.GetKindNoun (info),
-					info.Name);
-				} else {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.DeprecatedWithMessage,
-						squiggleSpan,
-						DescriptionFormatter.GetKindNoun (info),
-						info.Name,
-						info.DeprecationMessage
-					);
-				}
+			if (info.IsDeprecated (out string? deprecationMessage)) {
+				Document.Diagnostics.Add (
+					CoreDiagnostics.DeprecatedWithMessage,
+					squiggleSpan,
+					DescriptionFormatter.GetKindNoun (info),
+					info.Name,
+					deprecationMessage
+				);
 			}
 		}
 

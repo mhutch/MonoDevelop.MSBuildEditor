@@ -253,7 +253,7 @@ class MSBuildSchemaWriter : IDisposable
 		variable.DefaultValue is null
 		&& variable.ValueKind == MSBuildValueKind.Unknown
 		&& variable.CustomType is null
-		&& variable.IsDeprecated == false;
+		&& !variable.IsDeprecated ();
 
 	static bool IsOnlyDescription (TaskInfo task) =>
 		task.Parameters.Count == 0;

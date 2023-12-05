@@ -15,12 +15,16 @@ class MSBuildXsdSchemaReader
 {
 	public const string MSBuildSchemaUri = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-	public MSBuildSchema Schema { get; }  = new();
+	public MSBuildSchema Schema { get; } = [];
 
 	public void Read(XmlSchemaSet schemaSet)
 	{
 		foreach (XmlSchemaElement el in schemaSet.GlobalElements.Values) {
 			if (el.SubstitutionGroup is XmlQualifiedName n && n.Namespace == MSBuildSchemaUri) {
+				if (string.IsNullOrEmpty (el.Name)) {
+					LogUnhandled(el, "Global element has no name");
+					continue;
+				}
 				ISymbol? symbol = n.Name switch {
 					"Item" => ReadItem(el),
 					"Property" => ReadProperty(el),
@@ -38,6 +42,7 @@ class MSBuildXsdSchemaReader
 
 	ItemInfo? ReadItem(XmlSchemaElement el)
 	{
+		string name = el.Name!; // caller checks this
 		var docMarkup = GetDocMarkup(el);
 
 		if (!CheckType(el, el.ElementSchemaType, out XmlSchemaComplexType? complexType)) {
@@ -53,7 +58,7 @@ class MSBuildXsdSchemaReader
 
 		// note: the includeDescription is not entirely correct, it's meant to be a noun, not a whole sentence
 		return new ItemInfo(
-			el.Name,
+			name,
 			docMarkup,
 			includeDescription,
 			metadata: itemMetadata);
@@ -266,11 +271,10 @@ class MSBuildXsdSchemaReader
 
 	PropertyInfo? ReadProperty(XmlSchemaElement el)
 	{
-		if (el.Name is not string name) {
-			return null;
-		}
+		string name = el.Name!; // caller checks this
+
 		var docMarkup = GetDocMarkup(el);
-		var type = ConvertValueType(el, el.Name, el.ElementSchemaType);
+		var type = ConvertValueType(el, name, el.ElementSchemaType);
 
 		//TODO: anything else we can salvage here?
 		return new PropertyInfo(
@@ -282,11 +286,12 @@ class MSBuildXsdSchemaReader
 
 	TaskInfo? ReadTask(XmlSchemaElement el)
 	{
+		var name = el.Name!; // only gets called when el.Name is not null
 		var docMarkup = GetDocMarkup(el);
 
 		//TODO: read parameters
 
-		return new TaskInfo(el.Name, docMarkup, TaskDeclarationKind.Inferred, null, null, null, null, 0, false, null);
+		return new TaskInfo(name, docMarkup, TaskDeclarationKind.Inferred, null, null, null, null, 0, null);
 	}
 
 	IEnumerable<T> CheckCollection<T>(XmlSchemaObject parent, XmlSchemaObjectCollection collection) where T : XmlSchemaObject

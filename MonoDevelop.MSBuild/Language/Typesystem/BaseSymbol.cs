@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 		protected BaseSymbol (string name, DisplayText description)
 		{
-			Name = name;
+			Name = name ?? throw new ArgumentNullException (nameof (name));
 			this.description = description;
 		}
 

@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -119,8 +121,8 @@ namespace MonoDevelop.MSBuild.Editor
 
 		ContainerElement GetDeprecationElement (ISymbol info)
 		{
-			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
-				var msg = string.IsNullOrEmpty (deprecatable.DeprecationMessage) ? "Deprecated" : $"Deprecated: {deprecatable.DeprecationMessage}";
+			if (info.IsDeprecated (out string? deprecationMessage)) {
+				var msg = deprecationMessage == "Deprecated"? deprecationMessage : $"Deprecated: {deprecationMessage}";
 				return GetDiagnosticElement (MSBuildDiagnosticSeverity.Warning, msg);
 			}
 			return null;

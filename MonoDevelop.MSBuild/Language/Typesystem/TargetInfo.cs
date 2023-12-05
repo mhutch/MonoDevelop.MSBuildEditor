@@ -1,19 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace MonoDevelop.MSBuild.Language.Typesystem
+namespace MonoDevelop.MSBuild.Language.Typesystem;
+
+public class TargetInfo (string name, DisplayText description, string? deprecationMessage = null) : BaseSymbol(name, description), IDeprecatable
 {
-	class TargetInfo : BaseSymbol, IDeprecatable
-	{
-		public TargetInfo (string name, DisplayText description, bool isDeprecated = false, string? deprecationMessage = null)
-			: base (name, description)
-		{
-			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
-			DeprecationMessage = deprecationMessage;
-		}
-
-		public bool IsDeprecated { get; }
-
-		public string DeprecationMessage { get; }
-	}
+	public string? DeprecationMessage { get; } = deprecationMessage;
 }
