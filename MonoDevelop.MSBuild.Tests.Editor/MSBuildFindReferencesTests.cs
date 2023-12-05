@@ -37,10 +37,11 @@ namespace MonoDevelop.MSBuild.Tests
 			var results = new List<(int Offset, int Length, ReferenceUsage Usage)> ();
 			var collector = MSBuildReferenceCollector.Create (
 				doc, textDoc,logger,
-				new MSBuildResolveResult {
+				new MSBuildResolver.MSBuildMutableResolveResult {
 					ReferenceKind = kind,
 					Reference = reference,
-				}, functionTypeProvider, results.Add);
+				}.AsImmutable (),
+				functionTypeProvider, results.Add);
 			collector.Run (xdoc.RootElement);
 			return results;
 		}

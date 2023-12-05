@@ -100,7 +100,7 @@ namespace MonoDevelop.MSBuild.Editor.QuickInfo
 		async Task<QuickInfoItem> CreateNuGetQuickInfo (ITextSnapshot snapshot, MSBuildRootDocument doc, MSBuildResolveResult rr, CancellationToken token)
 		{
 			IPackageInfo info = null;
-			var packageId = (string)rr.Reference;
+			var packageId = rr.GetNuGetIDReference ();
 
 			try {
 				var frameworkId = doc.GetTargetFrameworkNuGetSearchParameter ();

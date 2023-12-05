@@ -81,7 +81,7 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildReferenceKind.StaticPropertyFunction:
 			case MSBuildReferenceKind.ClassName:
 			case MSBuildReferenceKind.Enum:
-				return rr.Reference != null;
+				return true;
 			}
 
 			return false;
@@ -91,28 +91,28 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Property:
-				return new MSBuildPropertyReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildPropertyReferenceCollector (document, textSource, logger, rr.GetPropertyReference (), reportResult);
 			case MSBuildReferenceKind.Item:
-				return new MSBuildItemReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildItemReferenceCollector (document, textSource, logger, rr.GetItemReference (), reportResult);
 			case MSBuildReferenceKind.Metadata:
-				var m = rr.ReferenceAsMetadata;
+				var m = rr.GetMetadataReference ();
 				return new MSBuildMetadataReferenceCollector (document, textSource, logger, m.itemName, m.metaName, reportResult);
 			case MSBuildReferenceKind.Task:
-				return new MSBuildTaskReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildTaskReferenceCollector (document, textSource, logger, rr.GetTaskReference (), reportResult);
 			case MSBuildReferenceKind.Target:
-				return new MSBuildTargetReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildTargetReferenceCollector (document, textSource, logger, rr.GetTargetReference (), reportResult);
 			case MSBuildReferenceKind.ItemFunction:
-				return new MSBuildItemFunctionReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildItemFunctionReferenceCollector (document, textSource, logger, rr.GetItemFunctionReference (), reportResult);
 			case MSBuildReferenceKind.StaticPropertyFunction:
-				(string className, string name) = ((string, string))rr.Reference;
+				(string className, string name) = rr.GetStaticPropertyFunctionReference ();
 				return new MSBuildStaticPropertyFunctionReferenceCollector (document, textSource, logger, className, name, reportResult);
 			case MSBuildReferenceKind.PropertyFunction:
-				(MSBuildValueKind valueKind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
+				(MSBuildValueKind valueKind, string funcName) = rr.GetPropertyFunctionReference ();
 				return new MSBuildPropertyFunctionReferenceCollector (document, textSource, logger, valueKind, funcName, functionTypeProvider, reportResult);
 			case MSBuildReferenceKind.ClassName:
-				return new MSBuildClassReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildClassReferenceCollector (document, textSource, logger, rr.GetClassNameReference (), reportResult);
 			case MSBuildReferenceKind.Enum:
-				return new MSBuildEnumReferenceCollector (document, textSource, logger, (string)rr.Reference, reportResult);
+				return new MSBuildEnumReferenceCollector (document, textSource, logger, rr.GetEnumReference (), reportResult);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));

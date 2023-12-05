@@ -79,27 +79,27 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
-				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength);
+				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, rr.GetTargetReference (), rr.ReferenceOffset, rr.ReferenceLength);
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.FileOrFolder) {
 				return new MSBuildNavigationResult (
-					(string[])rr.Reference, rr.ReferenceOffset, rr.ReferenceLength
+					(string[])rr.GetFileOrFolderReference (), rr.ReferenceOffset, rr.ReferenceLength
 				);
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Task) {
-				var task = doc.GetTask ((string)rr.Reference);
+				var task = doc.GetTask (rr.GetTaskReference ());
 				if (task.DeclaredInFile != null) {
 					return new MSBuildNavigationResult (
-						MSBuildReferenceKind.Task, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength,
+						MSBuildReferenceKind.Task, task.Name, rr.ReferenceOffset, rr.ReferenceLength,
 						task.DeclaredInFile, task.DeclaredAtOffset
 					);
 				}
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.NuGetID) {
-				return new MSBuildNavigationResult (MSBuildReferenceKind.NuGetID, (string)rr.Reference, rr.ReferenceOffset, rr.ReferenceLength);
+				return new MSBuildNavigationResult (MSBuildReferenceKind.NuGetID, rr.GetNuGetIDReference (), rr.ReferenceOffset, rr.ReferenceLength);
 			}
 
 			return null;

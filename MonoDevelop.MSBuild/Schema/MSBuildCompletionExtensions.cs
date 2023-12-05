@@ -338,48 +338,48 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
-				return doc.GetItem ((string)rr.Reference);
+				return doc.GetItem (rr.GetItemReference ());
 			case MSBuildReferenceKind.Metadata:
-				var m = rr.ReferenceAsMetadata;
+				var m = rr.GetMetadataReference ();
 				return doc.GetMetadata (m.itemName, m.metaName, true);
 			case MSBuildReferenceKind.Property:
-				return doc.GetProperty ((string)rr.Reference, true);
+				return doc.GetProperty (rr.GetPropertyReference (), true);
 			case MSBuildReferenceKind.Task:
-				return doc.GetTask ((string)rr.Reference);
+				return doc.GetTask (rr.GetTaskReference ());
 			case MSBuildReferenceKind.Target:
-				return doc.GetTarget ((string)rr.Reference);
+				return doc.GetTarget (rr.GetTargetReference());
 			case MSBuildReferenceKind.Keyword:
-				return (ISymbol)rr.Reference;
+				return rr.GetKeywordReference ();
 			case MSBuildReferenceKind.KnownValue:
-				return (ISymbol)rr.Reference;
+				return rr.GetKnownValueReference ();
 			case MSBuildReferenceKind.TargetFramework:
-				return ResolveFramework ((string)rr.Reference);
+				return ResolveFramework (rr.GetTargetFrameworkReference ());
 			case MSBuildReferenceKind.TargetFrameworkIdentifier:
-				return BestGuessResolveFrameworkIdentifier ((string)rr.Reference, doc.Frameworks);
+				return BestGuessResolveFrameworkIdentifier (rr.GetTargetFrameworkIdentifierReference (), doc.Frameworks);
 			case MSBuildReferenceKind.TargetFrameworkVersion:
-				return BestGuessResolveFrameworkVersion ((string)rr.Reference, doc.Frameworks);
+				return BestGuessResolveFrameworkVersion (rr.GetTargetFrameworkVersionReference(), doc.Frameworks);
 			case MSBuildReferenceKind.TargetFrameworkProfile:
-				return BestGuessResolveFrameworkProfile ((string)rr.Reference, doc.Frameworks);
+				return BestGuessResolveFrameworkProfile (rr.GetTargetFrameworkProfileReference(), doc.Frameworks);
 			case MSBuildReferenceKind.TaskParameter:
-				var p = rr.ReferenceAsTaskParameter;
+				var p = rr.GetTaskParameterReference ();
 				return doc.GetTaskParameter (p.taskName, p.paramName);
 			case MSBuildReferenceKind.ItemFunction:
 				//FIXME: attempt overload resolution
-				return functionTypeProvider.GetItemFunctionInfo ((string)rr.Reference);
+				return functionTypeProvider.GetItemFunctionInfo (rr.GetItemFunctionReference ());
 			case MSBuildReferenceKind.StaticPropertyFunction:
 				//FIXME: attempt overload resolution
-				(string className, string name) = ((string, string))rr.Reference;
+				(string className, string name) = rr.GetStaticPropertyFunctionReference ();
 				return functionTypeProvider.GetStaticPropertyFunctionInfo (className, name);
 			case MSBuildReferenceKind.PropertyFunction:
 				//FIXME: attempt overload resolution
-				(MSBuildValueKind kind, string funcName) = ((MSBuildValueKind, string))rr.Reference;
+				(MSBuildValueKind kind, string funcName) = rr.GetPropertyFunctionReference ();
 				return functionTypeProvider.GetPropertyFunctionInfo (kind, funcName);
 			case MSBuildReferenceKind.ClassName:
-				return functionTypeProvider.GetClassInfo ((string)rr.Reference);
+				return functionTypeProvider.GetClassInfo (rr.GetClassNameReference ());
 			case MSBuildReferenceKind.Enum:
-				return functionTypeProvider.GetEnumInfo ((string)rr.Reference);
+				return functionTypeProvider.GetEnumInfo (rr.GetEnumReference ());
 			case MSBuildReferenceKind.ConditionFunction:
-				if (MSBuildIntrinsics.ConditionFunctions.TryGetValue ((string)rr.Reference, out var conditionFunctionName)) {
+				if (MSBuildIntrinsics.ConditionFunctions.TryGetValue (rr.GetConditionFunctionReference (), out var conditionFunctionName)) {
 					return conditionFunctionName;
 				}
 				return null;
