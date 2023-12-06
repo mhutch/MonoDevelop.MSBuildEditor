@@ -75,6 +75,10 @@
             "deprecationMessage": {
               "type": "string",
               "description": "Indicates that the property is deprecated and explains why."
+            },
+            "helpUrl": {
+              "type": "string",
+              "description": "Documentation link to be displayed in UI."
             }
           },
           "additionalProperties": false
@@ -118,6 +122,10 @@
             "deprecationMessage": {
               "type": "string",
               "description": "Indicates that the item is deprecated and explains why."
+            },
+            "helpUrl": {
+              "type": "string",
+              "description": "Documentation link to be displayed in UI."
             }
           },
           "additionalProperties": false
@@ -151,6 +159,10 @@
             "deprecationMessage": {
               "type": "string",
               "description": "Indicates that the metadata is deprecated and explains why."
+            },
+            "helpUrl": {
+              "type": "string",
+              "description": "Documentation link to be displayed in UI."
             }
           },
           "additionalProperties": false
@@ -173,6 +185,10 @@
             "deprecationMessage": {
               "type": "string",
               "description": "Indicates that the target is deprecated and explains why."
+            },
+            "helpUrl": {
+              "type": "string",
+              "description": "Documentation link to be displayed in UI."
             }
           },
           "additionalProperties": false
@@ -282,8 +298,30 @@
           "description": "The values this type can have",
           "type": "object",
           "additionalProperties": {
-            "type": "string",
-            "description": "Description of the value"
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Description of the value"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the value"
+                  },
+                  "deprecationMessage": {
+                    "type": "string",
+                    "description": "Indicates that the property is deprecated and explains why."
+                  },
+                  "helpUrl": {
+                    "type": "string",
+                    "description": "Documentation link to be displayed in UI."
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
           }
         },
         "allowUnknownValues": {
