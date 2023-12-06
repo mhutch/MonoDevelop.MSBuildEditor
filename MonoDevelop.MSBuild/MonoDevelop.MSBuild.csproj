@@ -50,6 +50,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Language\Syntax\HelpUrls.Designer.cs">
+      <DependentUpon>HelpUrls.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Language\Syntax\ElementDescriptions.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -58,6 +63,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Language\Syntax\HelpUrls.resx">
+      <LastGenOutput>HelpUrls.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Language\Syntax\ElementDescriptions.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ElementDescriptions.Designer.cs</LastGenOutput>
