@@ -8,15 +8,17 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax;
 
-public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable
+public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHasHelpUrl
 {
 	protected MSBuildSyntax (
 		string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-		string? deprecationMessage = null)
+		string? deprecationMessage = null,
+		string? helpUrl = null)
 	{
 		Name = name;
 		Description = description;
 		DeprecationMessage = deprecationMessage;
+		HelpUrl = helpUrl;
 
 		ValueKind = valueKind;
 	}
@@ -27,4 +29,5 @@ public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable
 	public virtual MSBuildValueKind ValueKind { get; }
 	CustomTypeInfo? ITypedSymbol.CustomType => null;
 	public string? DeprecationMessage { get; }
+	public string? HelpUrl { get; }
 }

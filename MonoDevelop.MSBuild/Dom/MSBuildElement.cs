@@ -212,6 +212,7 @@ namespace MonoDevelop.MSBuild.Dom
 				MSBuildSyntaxKind.ProjectExtensions => new MSBuildProjectExtensionsElement (parent, xelement, value),
 				MSBuildSyntaxKind.Property => new MSBuildPropertyElement (parent, xelement, value),
 				MSBuildSyntaxKind.PropertyGroup => new MSBuildPropertyGroupElement (parent, xelement, value),
+				MSBuildSyntaxKind.Sdk => new MSBuildSdkElement (parent, xelement, value),
 				MSBuildSyntaxKind.Target => new MSBuildTargetElement (parent, xelement, value),
 				MSBuildSyntaxKind.Task => new MSBuildTaskElement (parent, xelement, value),
 				MSBuildSyntaxKind.TaskBody => new MSBuildTaskBodyElement (parent, xelement, value),
@@ -402,6 +403,15 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute AfterTargetsAttribute => GetAttribute (MSBuildSyntaxKind.Target_AfterTargets);
 
 		public IEnumerable<MSBuildTaskElement> TaskElements => GetElements<MSBuildTaskElement> ();
+	}
+
+	public class MSBuildSdkElement : MSBuildElement
+	{
+		internal MSBuildSdkElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
+		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Sdk;
+
+		public MSBuildAttribute NameAttribute => GetAttribute (MSBuildSyntaxKind.Sdk_Name);
+		public MSBuildAttribute Version => GetAttribute (MSBuildSyntaxKind.Sdk_Version);
 	}
 
 	public class MSBuildTaskElement : MSBuildConditionedElement

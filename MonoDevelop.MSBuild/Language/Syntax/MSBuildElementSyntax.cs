@@ -171,6 +171,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		public static MSBuildElementSyntax ProjectExtensions { get; }
 		public static MSBuildElementSyntax Property { get; }
 		public static MSBuildElementSyntax PropertyGroup { get; }
+		public static MSBuildElementSyntax Sdk { get; }
 		public static MSBuildElementSyntax Target { get; }
 		public static MSBuildElementSyntax Task { get; }
 		public static MSBuildElementSyntax TaskBody { get; }
@@ -202,6 +203,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			TaskBody = AddBuiltin ("Task", ElementDescriptions.TaskBody, MSBuildSyntaxKind.TaskBody, MSBuildValueKind.Data);
 			UsingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildSyntaxKind.UsingTask);
 			When = AddBuiltin ("When", ElementDescriptions.When, MSBuildSyntaxKind.When);
+			Sdk = AddBuiltin ("Sdk", ElementDescriptions.Sdk, MSBuildSyntaxKind.Sdk);
 
 			Choose.children = new[] { Otherwise, When };
 			ImportGroup.children = new[] { Import };
@@ -211,7 +213,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			ItemGroup.children = new[] { Item };
 			Otherwise.children = new[] { Choose, ItemGroup, PropertyGroup };
 			ParameterGroup.children = new[] { Parameter };
-			Project.children = new[] { Choose, Import, ImportGroup, ProjectExtensions, PropertyGroup, ItemGroup, ItemDefinitionGroup, Target, UsingTask };
+			Project.children = new[] { Choose, Import, ImportGroup, ProjectExtensions, PropertyGroup, ItemGroup, ItemDefinitionGroup, Target, UsingTask, Sdk };
 			PropertyGroup.children = new[] { Property };
 			Target.children = new[] { OnError, ItemGroup, PropertyGroup, Task };
 			Task.children = new[] { Output };
@@ -266,6 +268,10 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 				new MSBuildAttributeSyntax (Project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.AsList().AsLiteral ()),
 			};
 
+			Sdk.attributes = new[] {
+				new MSBuildAttributeSyntax (Project, "Name", ElementDescriptions.Sdk_Name, MSBuildSyntaxKind.Sdk_Name, MSBuildValueKind.Sdk, required: true),
+				new MSBuildAttributeSyntax (Project, "Name", ElementDescriptions.Sdk_Version, MSBuildSyntaxKind.Sdk_Version, MSBuildValueKind.SdkVersion)
+			};
 			Target.attributes = new[] {
 				new MSBuildAttributeSyntax (Target, "Name", ElementDescriptions.Target_Name, MSBuildSyntaxKind.Target_Name, MSBuildValueKind.TargetName.AsLiteral (), true),
 				new MSBuildAttributeSyntax (Target, "DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildSyntaxKind.Target_DependsOnTargets, MSBuildValueKind.TargetName.AsList()),

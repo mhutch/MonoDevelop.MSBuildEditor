@@ -1,349 +1,435 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
--->
 <root>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>2.0</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	
-	<data name="Project" xml:space="preserve">
-		<value>An MSBuild project.</value>
-	</data>
-	<data name="Project.DefaultTargets">
-		<value>Optional semi-colon separated list of one or more targets that will be built if no targets are otherwise specified</value>
-	</data>
-	<data name="Project.InitialTargets" xml:space="preserve">
-		<value>Optional semi-colon separated list of targets that should always be built before any other targets</value>
-	</data>
-	<data name="Project.Sdk" xml:space="preserve">
-		<value>Optional string describing the MSBuild SDK(s) this project should be built with</value>
-	</data>
-	<data name="Project.ToolsVersion" xml:space="preserve">
-		<value>Optional string describing the toolset version this project should normally be built with</value>
-	</data>
-	<data name="Project.TreatAsLocalProperty" xml:space="preserve">
-		<value>Command-line properties to ignore in this file and its imports.</value>
-	</data>
-	<data name="Project.xmlns">
-		<value>XML namespace, must be "http://schemas.microsoft.com/developer/msbuild/2003".</value>
-	</data>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
-	<data name="Target">
-		<value>Groups tasks into a section of the build process</value>
-	</data>
-	<data name="Target.Name">
-		<value>Name of the target</value>
-	</data>
-	<data name="Target.DependsOnTargets">
-		<value>Optional semi-colon separated list of targets that should be run before this target</value>
-	</data>
-	<data name="Target.Inputs">
-		<value>Optional semi-colon separated list of files that form inputs into this target. Their timestamps will be compared with the timestamps of files in Outputs to determine whether the Target is up to date</value>
-	</data>
-	<data name="Target.Outputs">
-		<value>Optional semi-colon separated list of files that form outputs into this target. Their timestamps will be compared with the timestamps of files in Inputs to determine whether the Target is up to date</value>
-	</data>
-	<data name="Target.Condition">
-		<value>Optional expression evaluated to determine whether the Target and the targets it depends on should be run</value>
-	</data>
-	<data name="Target.KeepDuplicateOutputs">
-		<value>Optional expression evaluated to determine whether duplicate items in the Target's Returns should be removed before returning them. The default is not to eliminate duplicates.</value>
-	</data>
-	<data name="Target.Returns">
-		<value>Optional expression evaluated to determine which items generated by the target should be returned by the target. If there are no Returns attributes on Targets in the file, the Outputs attributes are used instead for this purpose.</value>
-	</data>
-	<data name="Target.BeforeTargets">
-		<value>Optional semi-colon separated list of targets that this target should run before.</value>
-	</data>
-	<data name="Target.AfterTargets">
-		<value>Optional semi-colon separated list of targets that this target should run before.</value>
-	</data>
-	<data name="Target.Label">
-		<value>Optional expression. Used to identify or order system and user elements.</value>
-	</data>
-	
-	<data name="ProjectExtensions">
-		<value>Optional section used by MSBuild hosts, that may contain arbitrary XML content that is ignored by MSBuild itself.</value>
-	</data>
-	
-	<data name="Item.Include">
-		<value>Semi-colon separated list of files (wildcards are allowed) or other item names to include in this item list</value>
-	</data>
-	<data name="Item.Condition">
-		<value>Optional expression evaluated to determine whether the items should be evaluated</value>
-	</data>
-	<data name="Item.Exclude">
-		<value>Semi-colon separated list of files (wildcards are allowed) or other item names to exclude from the Include list</value>
-	</data>
-	<data name="Item.Remove">
-		<value>Semi-colon separated list of files (wildcards are allowed) or other item names to remove from the existing list contents</value>
-	</data>
-	<data name="Item.Update">
-		<value>Semi-colon separated list of files (wildcards are allowed) or other item names to be updated with the metadata from contained in this xml element</value>
-	</data>
-	<data name="Item.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	<data name="Item.KeepDuplicates">
-		<value>Whether to add items even if they match the identity and metadata of an existing item</value>
-	</data>
-	<data name="Item.KeepMetadata">
-		<value>Metadata from source items to keep on target items</value>
-	</data>
-	<data name="Item.RemoveMetadata">
-		<value>Metadata from source items to omit from target items</value>
-	</data>
-
-	<data name="Item.Include.ParameterizedFiles">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to include in this item list</value>
-	</data>
-	<data name="Item.Exclude.ParameterizedFiles">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to exclude from the Include list</value>
-	</data>
-	<data name="Item.Remove.ParameterizedFiles">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to remove from the existing list contents</value>
-	</data>
-	<data name="Item.Update.ParameterizedFiles">
-		<value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to be updated with the metadata from contained in this xml element</value>
-	</data>
-	<data name="Item.Include.Parameterized">
-		<value>Semi-colon separated list of {0} or other item references to include in this item list</value>
-	</data>
-	<data name="Item.Exclude.Parameterized">
-		<value>Semi-colon separated list of {0} or other item references to exclude from the Include list</value>
-	</data>
-	<data name="Item.Remove.Parameterized">
-		<value>Semi-colon separated list of {0} or other item references to remove from the existing list contents</value>
-	</data>
-	<data name="Item.Update.Parameterized">
-		<value>Semi-colon separated list of {0} or other item references to be updated with the metadata from contained in this xml element</value>
-	</data>
-		<data name="Item.Include.ParameterizedSingle">
-		<value>Single {0} to include in this item list</value>
-	</data>
-	<data name="Item.Exclude.ParameterizedSingle">
-		<value>A {0} to exclude from the Include list</value>
-	</data>
-	<data name="Item.Remove.ParameterizedSingle">
-		<value>A {0} to remove from the existing list contents</value>
-	</data>
-	<data name="Item.Update.ParameterizedSingle">
-		<value>A {0} to be updated with the metadata from contained in this xml element</value>
-	</data>
-
-	<data name="Property.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	<data name="Property.Condition">
-		<value>Optional expression evaluated to determine whether the property should be evaluated</value>
-	</data>
-	
-	<data name="PropertyGroup">
-		<value>Groups property definitions</value>
-	</data>
-	<data name="PropertyGroup.Condition">
-		<value>Optional expression evaluated to determine whether the PropertyGroup should be used</value>
-	</data>
-	<data name="PropertyGroup.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-
-	<data name="ImportGroup">
-		<value>Groups import definitions</value>
-	</data>
-	<data name="ImportGroup.Condition">
-		<value>Optional expression evaluated to determine whether the ImportGroup should be used</value>
-	</data>
-	<data name="ImportGroup.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-
-	<data name="ItemGroup">
-		<value>Groups item definitions</value>
-	</data>
-	<data name="ItemGroup.Condition">
-		<value>Optional expression evaluated to determine whether the ItemGroup should be used</value>
-	</data>
-	<data name="ItemGroup.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-
-	<data name="ItemDefinitionGroup">
-		<value>Groups item metadata definitions</value>
-	</data>
-	<data name="ItemDefinitionGroup.Condition">
-		<value>Optional expression evaluated to determine whether the ItemDefinitionGroup should be used</value>
-	</data>
-	<data name="ItemDefinitionGroup.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	
-	<data name="Choose">
-		<value>Groups When and Otherwise elements</value>
-	</data>
-	<data name="Choose.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	
-	<data name="When">
-		<value>Groups PropertyGroup and/or ItemGroup elements</value>
-	</data>
-	<data name="When.Condition">
-		<value>Optional expression evaluated to determine whether the child PropertyGroups and/or ItemGroups should be used</value>
-	</data>
-
-	<data name="Otherwise">
-		<value>Groups PropertyGroup and/or ItemGroup elements that are used if no Conditions on sibling When elements evaluate to true</value>
-	</data>
-
-	<data name="OnError">
-		<value>Specifies targets to execute in the event of a recoverable error</value>
-	</data>
-	<data name="OnError.Condition">
-		<value>Optional expression evaluated to determine whether the targets should be executed</value>
-	</data>
-	<data name="OnError.ExecuteTargets">
-		<value>Semi-colon separated list of targets to execute</value>
-	</data>
-	<data name="OnError.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	
-	<data name="UsingTask">
-		<value>Defines the assembly containing a task's implementation, or contains the implementation itself.</value>
-	</data>
-	<data name="UsingTask.Condition">
-		<value>Optional expression evaluated to determine whether the declaration should be evaluated</value>
-	</data>
-	<data name="UsingTask.AssemblyName">
-		<value>Optional name of assembly containing the task. Either AssemblyName or AssemblyFile must be used</value>
-	</data>
-	<data name="UsingTask.AssemblyFile">
-		<value>Optional path to assembly containing the task. Either AssemblyName or AssemblyFile must be used</value>
-	</data>
-	<data name="UsingTask.TaskName">
-		<value>Name of task class in the assembly</value>
-	</data>
-	<data name="UsingTask.TaskFactory">
-		<value>Name of the task factory class in the assembly</value>
-	</data>
-	<data name="UsingTask.Architecture">
-		<value>Defines the architecture of the task host that this task should be run in.  Currently supported values:  x86, x64, CurrentArchitecture, and * (any).  If Architecture is not specified, either the task will be run within the MSBuild process, or the task host will be launched using the architecture of the parent MSBuild process</value>
-	</data>
-	<data name="UsingTask.Runtime">
-		<value>Defines the .NET runtime version of the task host that this task should be run in.  Currently supported values:  CLR2, CLR4, CurrentRuntime, and * (any).  If Runtime is not specified, either the task will be run within the MSBuild process, or the task host will be launched using the runtime of the parent MSBuild process</value>
-	</data>
-	
-	<data name="ParameterGroup">
-		<value>Groups parameters that are part of an inline task definition</value>
-	</data>
-	
-	<data name="Parameter">
-		<value>Input or output parameter for the task</value>
-	</data>
-	<data name="Parameter.ParameterType">
-		<value>Optional string. Type of the task parameter. Defaults to string type.</value>
-	</data>
-	<data name="Parameter.Output">
-		<value>Optional bool. Whether this task parameter can be retrieved as an output. Defaults to false.</value>
-	</data>
-	<data name="Parameter.Required">
-		<value>Optional bool. Whether this task parameter is required to be passed a value. Defaults to false.</value>
-	</data>
-	
-	<data name="UsingTaskBody">
-		<value>Contains the inline task implementation. Content is opaque to MSBuild.</value>
-	</data>
-	<data name="UsingTaskBody.Evaluate">
-		<value>Whether the body should have properties expanded before use. Defaults to false.</value>
-	</data>
-	
-	<data name="Import">
-		<value>Declares that the contents of another project file should be inserted at this location</value>
-	</data>
-	<data name="Import.Condition">
-		<value>Optional expression evaluated to determine whether the import should occur</value>
-	</data>
-	<data name="Import.Project">
-		<value>Project file to import</value>
-	</data>
-	<data name="Import.Label">
-		<value>Optional expression. Used to identify or order system and user elements</value>
-	</data>
-	<data name="Import.Sdk">
-		<value>Name of the SDK which contains the project file to import</value>
-	</data>
-	<data name="Import.Version">
-		<value>Optional expression used to specify the version of the SDK referenced by this import</value>
-	</data>
-	<data name="Import.MinimumVersion">
-		<value>Optional expression used to specify the minimum SDK version required by the referring import</value>
-	</data>
-	
-	<data name="Output">
-		<value>Optional element specifying a specific task output to be gathered</value>
-	</data>
-	<data name="Output.TaskParameter">
-		<value>Task parameter to gather. Matches the name of a .NET Property on the task class that has an [Output] attribute</value>
-	</data>
-	<data name="Output.ItemName">
-		<value>Optional name of an item list to put the gathered outputs into. Either ItemName or PropertyName must be specified</value>
-	</data>
-	<data name="Output.PropertyName">
-		<value>Optional name of a property to put the gathered output into. Either PropertyName or ItemName must be specified</value>
-	</data>
-	<data name="Output.Condition">
-		<value>Optional expression evaluated to determine whether the output should be gathered</value>
-	</data>
-	
-	<data name="Task">
-		<value></value>
-	</data>
-	<data name="Task.Condition">
-		<value>Optional expression evaluated to determine whether the task should be executed</value>
-	</data>
-	<data name="Task.ContinueOnError">
-		<value>Optional boolean indicating whether a recoverable task error should be ignored. Default false</value>
-	</data>
-	<data name="Task.Architecture">
-		<value>Defines the bitness of the task if it must be run specifically in a 32bit or 64bit process. If not specified, it will run with the bitness of the build process.  If there are multiple tasks defined in UsingTask with the same name but with different Architecture attribute values, the value of the Architecture attribute specified here will be used to match and select the correct task</value>
-	</data>
-	<data name="Task.Runtime">
-		<value>Defines the .NET runtime of the task. This must be specified if the task must run on a specific version of the .NET runtime. If not specified, the task will run on the runtime being used by the build process. If there are multiple tasks defined in UsingTask with the same name but with different Runtime attribute values, the value of the Runtime attribute specified here will be used to match and select the correct task</value>
-	</data>
-	<data name="Task.Parameter">
-		<value>A paramater to pass to the task</value>
-	</data>
-	
-	<data name="Metadata.Condition">
-		<value>Optional expression evaluated to determine whether the metadata should applied to the item</value>
-	</data>
-	
-	<data name="Metadata">
-		<value>Arbitrary key-value pairs on the item</value>
-	</data>
-	<data name="Item">
-		<value>Creates, updates or removes items and their metadata</value>
-	</data>
-	<data name="TaskBody">
-		<value>Data to be passed to the task factory</value>
-	</data>
-	<data name="Property">
-		<value>Sets a property value</value>
-	</data>
-
-	<data name="ItemDefinition">
-		<value>The item kind to which to apply metadata</value>
-	</data>
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Project" xml:space="preserve">
+    <value>An MSBuild project.</value>
+  </data>
+  <data name="Project.DefaultTargets" xml:space="preserve">
+    <value>Optional semi-colon separated list of one or more targets that will be built if no targets are otherwise specified</value>
+  </data>
+  <data name="Project.InitialTargets" xml:space="preserve">
+    <value>Optional semi-colon separated list of targets that should always be built before any other targets</value>
+  </data>
+  <data name="Project.Sdk" xml:space="preserve">
+    <value>Optional string describing the MSBuild SDK(s) this project should be built with</value>
+  </data>
+  <data name="Project.ToolsVersion" xml:space="preserve">
+    <value>Optional string describing the toolset version this project should normally be built with</value>
+  </data>
+  <data name="Project.TreatAsLocalProperty" xml:space="preserve">
+    <value>Command-line properties to ignore in this file and its imports.</value>
+  </data>
+  <data name="Project.xmlns" xml:space="preserve">
+    <value>XML namespace, must be "http://schemas.microsoft.com/developer/msbuild/2003".</value>
+  </data>
+  <data name="Target" xml:space="preserve">
+    <value>Groups tasks into a section of the build process</value>
+  </data>
+  <data name="Target.Name" xml:space="preserve">
+    <value>Name of the target</value>
+  </data>
+  <data name="Target.DependsOnTargets" xml:space="preserve">
+    <value>Optional semi-colon separated list of targets that should be run before this target</value>
+  </data>
+  <data name="Target.Inputs" xml:space="preserve">
+    <value>Optional semi-colon separated list of files that form inputs into this target. Their timestamps will be compared with the timestamps of files in Outputs to determine whether the Target is up to date</value>
+  </data>
+  <data name="Target.Outputs" xml:space="preserve">
+    <value>Optional semi-colon separated list of files that form outputs into this target. Their timestamps will be compared with the timestamps of files in Inputs to determine whether the Target is up to date</value>
+  </data>
+  <data name="Target.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the Target and the targets it depends on should be run</value>
+  </data>
+  <data name="Target.KeepDuplicateOutputs" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether duplicate items in the Target's Returns should be removed before returning them. The default is not to eliminate duplicates.</value>
+  </data>
+  <data name="Target.Returns" xml:space="preserve">
+    <value>Optional expression evaluated to determine which items generated by the target should be returned by the target. If there are no Returns attributes on Targets in the file, the Outputs attributes are used instead for this purpose.</value>
+  </data>
+  <data name="Target.BeforeTargets" xml:space="preserve">
+    <value>Optional semi-colon separated list of targets that this target should run before.</value>
+  </data>
+  <data name="Target.AfterTargets" xml:space="preserve">
+    <value>Optional semi-colon separated list of targets that this target should run before.</value>
+  </data>
+  <data name="Target.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements.</value>
+  </data>
+  <data name="ProjectExtensions" xml:space="preserve">
+    <value>Optional section used by MSBuild hosts, that may contain arbitrary XML content that is ignored by MSBuild itself.</value>
+  </data>
+  <data name="Item.Include" xml:space="preserve">
+    <value>Semi-colon separated list of files (wildcards are allowed) or other item names to include in this item list</value>
+  </data>
+  <data name="Item.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the items should be evaluated</value>
+  </data>
+  <data name="Item.Exclude" xml:space="preserve">
+    <value>Semi-colon separated list of files (wildcards are allowed) or other item names to exclude from the Include list</value>
+  </data>
+  <data name="Item.Remove" xml:space="preserve">
+    <value>Semi-colon separated list of files (wildcards are allowed) or other item names to remove from the existing list contents</value>
+  </data>
+  <data name="Item.Update" xml:space="preserve">
+    <value>Semi-colon separated list of files (wildcards are allowed) or other item names to be updated with the metadata from contained in this xml element</value>
+  </data>
+  <data name="Item.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="Item.KeepDuplicates" xml:space="preserve">
+    <value>Whether to add items even if they match the identity and metadata of an existing item</value>
+  </data>
+  <data name="Item.KeepMetadata" xml:space="preserve">
+    <value>Metadata from source items to keep on target items</value>
+  </data>
+  <data name="Item.RemoveMetadata" xml:space="preserve">
+    <value>Metadata from source items to omit from target items</value>
+  </data>
+  <data name="Item.Include.ParameterizedFiles" xml:space="preserve">
+    <value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to include in this item list</value>
+  </data>
+  <data name="Item.Exclude.ParameterizedFiles" xml:space="preserve">
+    <value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to exclude from the Include list</value>
+  </data>
+  <data name="Item.Remove.ParameterizedFiles" xml:space="preserve">
+    <value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to remove from the existing list contents</value>
+  </data>
+  <data name="Item.Update.ParameterizedFiles" xml:space="preserve">
+    <value>Semi-colon separated list of {0} (wildcards are allowed) or other item references to be updated with the metadata from contained in this xml element</value>
+  </data>
+  <data name="Item.Include.Parameterized" xml:space="preserve">
+    <value>Semi-colon separated list of {0} or other item references to include in this item list</value>
+  </data>
+  <data name="Item.Exclude.Parameterized" xml:space="preserve">
+    <value>Semi-colon separated list of {0} or other item references to exclude from the Include list</value>
+  </data>
+  <data name="Item.Remove.Parameterized" xml:space="preserve">
+    <value>Semi-colon separated list of {0} or other item references to remove from the existing list contents</value>
+  </data>
+  <data name="Item.Update.Parameterized" xml:space="preserve">
+    <value>Semi-colon separated list of {0} or other item references to be updated with the metadata from contained in this xml element</value>
+  </data>
+  <data name="Item.Include.ParameterizedSingle" xml:space="preserve">
+    <value>Single {0} to include in this item list</value>
+  </data>
+  <data name="Item.Exclude.ParameterizedSingle" xml:space="preserve">
+    <value>A {0} to exclude from the Include list</value>
+  </data>
+  <data name="Item.Remove.ParameterizedSingle" xml:space="preserve">
+    <value>A {0} to remove from the existing list contents</value>
+  </data>
+  <data name="Item.Update.ParameterizedSingle" xml:space="preserve">
+    <value>A {0} to be updated with the metadata from contained in this xml element</value>
+  </data>
+  <data name="Property.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="Property.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the property should be evaluated</value>
+  </data>
+  <data name="PropertyGroup" xml:space="preserve">
+    <value>Groups property definitions</value>
+  </data>
+  <data name="PropertyGroup.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the PropertyGroup should be used</value>
+  </data>
+  <data name="PropertyGroup.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="ImportGroup" xml:space="preserve">
+    <value>Groups import definitions</value>
+  </data>
+  <data name="ImportGroup.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the ImportGroup should be used</value>
+  </data>
+  <data name="ImportGroup.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="ItemGroup" xml:space="preserve">
+    <value>Groups item definitions</value>
+  </data>
+  <data name="ItemGroup.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the ItemGroup should be used</value>
+  </data>
+  <data name="ItemGroup.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="ItemDefinitionGroup" xml:space="preserve">
+    <value>Groups item metadata definitions</value>
+  </data>
+  <data name="ItemDefinitionGroup.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the ItemDefinitionGroup should be used</value>
+  </data>
+  <data name="ItemDefinitionGroup.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>Groups When and Otherwise elements</value>
+  </data>
+  <data name="Choose.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="When" xml:space="preserve">
+    <value>Groups PropertyGroup and/or ItemGroup elements</value>
+  </data>
+  <data name="When.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the child PropertyGroups and/or ItemGroups should be used</value>
+  </data>
+  <data name="Otherwise" xml:space="preserve">
+    <value>Groups PropertyGroup and/or ItemGroup elements that are used if no Conditions on sibling When elements evaluate to true</value>
+  </data>
+  <data name="OnError" xml:space="preserve">
+    <value>Specifies targets to execute in the event of a recoverable error</value>
+  </data>
+  <data name="OnError.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the targets should be executed</value>
+  </data>
+  <data name="OnError.ExecuteTargets" xml:space="preserve">
+    <value>Semi-colon separated list of targets to execute</value>
+  </data>
+  <data name="OnError.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="UsingTask" xml:space="preserve">
+    <value>Defines the assembly containing a task's implementation, or contains the implementation itself.</value>
+  </data>
+  <data name="UsingTask.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the declaration should be evaluated</value>
+  </data>
+  <data name="UsingTask.AssemblyName" xml:space="preserve">
+    <value>Optional name of assembly containing the task. Either AssemblyName or AssemblyFile must be used</value>
+  </data>
+  <data name="UsingTask.AssemblyFile" xml:space="preserve">
+    <value>Optional path to assembly containing the task. Either AssemblyName or AssemblyFile must be used</value>
+  </data>
+  <data name="UsingTask.TaskName" xml:space="preserve">
+    <value>Name of task class in the assembly</value>
+  </data>
+  <data name="UsingTask.TaskFactory" xml:space="preserve">
+    <value>Name of the task factory class in the assembly</value>
+  </data>
+  <data name="UsingTask.Architecture" xml:space="preserve">
+    <value>Defines the architecture of the task host that this task should be run in.  Currently supported values:  x86, x64, CurrentArchitecture, and * (any).  If Architecture is not specified, either the task will be run within the MSBuild process, or the task host will be launched using the architecture of the parent MSBuild process</value>
+  </data>
+  <data name="UsingTask.Runtime" xml:space="preserve">
+    <value>Defines the .NET runtime version of the task host that this task should be run in.  Currently supported values:  CLR2, CLR4, CurrentRuntime, and * (any).  If Runtime is not specified, either the task will be run within the MSBuild process, or the task host will be launched using the runtime of the parent MSBuild process</value>
+  </data>
+  <data name="ParameterGroup" xml:space="preserve">
+    <value>Groups parameters that are part of an inline task definition</value>
+  </data>
+  <data name="Parameter" xml:space="preserve">
+    <value>Input or output parameter for the task</value>
+  </data>
+  <data name="Parameter.ParameterType" xml:space="preserve">
+    <value>Optional string. Type of the task parameter. Defaults to string type.</value>
+  </data>
+  <data name="Parameter.Output" xml:space="preserve">
+    <value>Optional bool. Whether this task parameter can be retrieved as an output. Defaults to false.</value>
+  </data>
+  <data name="Parameter.Required" xml:space="preserve">
+    <value>Optional bool. Whether this task parameter is required to be passed a value. Defaults to false.</value>
+  </data>
+  <data name="UsingTaskBody" xml:space="preserve">
+    <value>Contains the inline task implementation. Content is opaque to MSBuild.</value>
+  </data>
+  <data name="UsingTaskBody.Evaluate" xml:space="preserve">
+    <value>Whether the body should have properties expanded before use. Defaults to false.</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Declares that the contents of another project file should be inserted at this location</value>
+  </data>
+  <data name="Import.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the import should occur</value>
+  </data>
+  <data name="Import.Project" xml:space="preserve">
+    <value>Project file to import</value>
+  </data>
+  <data name="Import.Label" xml:space="preserve">
+    <value>Optional expression. Used to identify or order system and user elements</value>
+  </data>
+  <data name="Import.Sdk" xml:space="preserve">
+    <value>Name of the SDK which contains the project file to import</value>
+  </data>
+  <data name="Import.Version" xml:space="preserve">
+    <value>Optional expression used to specify the version of the SDK referenced by this import</value>
+  </data>
+  <data name="Import.MinimumVersion" xml:space="preserve">
+    <value>Optional expression used to specify the minimum SDK version required by the referring import</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Optional element specifying a specific task output to be gathered</value>
+  </data>
+  <data name="Output.TaskParameter" xml:space="preserve">
+    <value>Task parameter to gather. Matches the name of a .NET Property on the task class that has an [Output] attribute</value>
+  </data>
+  <data name="Output.ItemName" xml:space="preserve">
+    <value>Optional name of an item list to put the gathered outputs into. Either ItemName or PropertyName must be specified</value>
+  </data>
+  <data name="Output.PropertyName" xml:space="preserve">
+    <value>Optional name of a property to put the gathered output into. Either PropertyName or ItemName must be specified</value>
+  </data>
+  <data name="Output.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the output should be gathered</value>
+  </data>
+  <data name="Task" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Task.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the task should be executed</value>
+  </data>
+  <data name="Task.ContinueOnError" xml:space="preserve">
+    <value>Optional boolean indicating whether a recoverable task error should be ignored. Default false</value>
+  </data>
+  <data name="Task.Architecture" xml:space="preserve">
+    <value>Defines the bitness of the task if it must be run specifically in a 32bit or 64bit process. If not specified, it will run with the bitness of the build process.  If there are multiple tasks defined in UsingTask with the same name but with different Architecture attribute values, the value of the Architecture attribute specified here will be used to match and select the correct task</value>
+  </data>
+  <data name="Task.Runtime" xml:space="preserve">
+    <value>Defines the .NET runtime of the task. This must be specified if the task must run on a specific version of the .NET runtime. If not specified, the task will run on the runtime being used by the build process. If there are multiple tasks defined in UsingTask with the same name but with different Runtime attribute values, the value of the Runtime attribute specified here will be used to match and select the correct task</value>
+  </data>
+  <data name="Task.Parameter" xml:space="preserve">
+    <value>A paramater to pass to the task</value>
+  </data>
+  <data name="Metadata.Condition" xml:space="preserve">
+    <value>Optional expression evaluated to determine whether the metadata should applied to the item</value>
+  </data>
+  <data name="Metadata" xml:space="preserve">
+    <value>Arbitrary key-value pairs on the item</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>Creates, updates or removes items and their metadata</value>
+  </data>
+  <data name="TaskBody" xml:space="preserve">
+    <value>Data to be passed to the task factory</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Sets a property value</value>
+  </data>
+  <data name="ItemDefinition" xml:space="preserve">
+    <value>The item kind to which to apply metadata</value>
+  </data>
+  <data name="Sdk" xml:space="preserve">
+    <value>References an MSBuild project SDK, adding an implicit import to the top and bottom of the project</value>
+  </data>
+  <data name="Sdk.Name" xml:space="preserve">
+    <value>The name of the MSBuild project SDK</value>
+  </data>
+  <data name="Sdk.Version" xml:space="preserve">
+    <value>Optional version of the MSBuild project SDK</value>
+  </data>
 </root>
