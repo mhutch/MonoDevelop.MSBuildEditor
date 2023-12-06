@@ -63,7 +63,11 @@
     "VersionSuffix": "When Version is not specified, VersionSuffix represents the second fragment of the version string (e.g. beta). The syntax is VersionPrefix[-VersionSuffix].",
     "PackageType": {
       "description": "The type of the package",
-      "type": [ "DotNetCliTool", "Dependency" ]
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/create-packages/set-package-type",
+      "isList": true,
+      // uses semicolon for multiple package types, comma to separate a packagetype and its optional version
+      "listSeparators": ";",
+      "type": { "$ref": "#/types/packageType" }
     },
     "IncludeBuildOutput": {
       "description": "Whether to include the build output in the package",
@@ -180,6 +184,19 @@
         "BSD-2-Clause": "BSD 2-Clause \"Simplified\" License",
         "BSD-2-Clause-Patent": "BSD-2-Clause Plus Patent License",
         "BSD-3-Clause": "BSD 3-Clause \"New\" or \"Revised\" License"
+      }
+    },
+    "packageType": {
+      // todo: custom validator regex so we don't fail on versioned package types
+      "allowUnknownValues": true,
+      "values": {
+        "DotNetCliTool": {
+          "description": ".NET project tool",
+          "deprecationMessage": "Replaced by local tools in .NET 5+. Use `DotNetTool` instead."
+        },
+        "Dependency": "Default type for NuGet packages",
+        "MSBuildSdk": "MSBuild project SDK",
+        "DotNetTool": ".NET Tool"
       }
     }
   },
