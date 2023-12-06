@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Analysis;
 
@@ -578,11 +579,7 @@ partial class MSBuildSchema
 						return (null, null);
 					}
 					foreach ((string valueName, JToken? valueDescToken) in valuesObj) {
-						string? valueDescription = null;
-						if (valueDescToken is not null && (valueDescToken is not JValue valVal || (valueDescription = valVal.Value as string) is null)) {
-							AddError (customTypeObj, $"Custom type definition value description must be a string");
-						}
-						values.Add (new CustomTypeValue (valueName, valueDescription));
+						values.Add (ReadCustomTypeValue (valuesObj, valueName, valueDescToken));
 					}
 					break;
 				default:
@@ -598,6 +595,50 @@ partial class MSBuildSchema
 			}
 
 			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
+		}
+
+		CustomTypeValue ReadCustomTypeValue (JObject customTypeValueCollection, string customTypeValueName, JToken? customTypeValueToken)
+		{
+			if (customTypeValueToken is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+				return new CustomTypeValue (customTypeValueName, simpleDesc);
+			}
+
+			if (customTypeValueToken is not JObject customTypeValueObj) {
+				AddError (customTypeValueToken ?? customTypeValueCollection, $"Custom type value '{customTypeValueName}' must be an object or description string");
+				return new CustomTypeValue (customTypeValueName, null);
+			}
+
+			string? description = null, deprecationMessage = null, helpUrl = null;
+
+			foreach ((string defPropName, JToken? defPropVal) in customTypeValueObj) {
+
+				bool GetValueString ([NotNullWhen (true)] out string? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+						return true;
+					}
+					AddError (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition property '{defPropName}' must be a string");
+					value = null;
+					return false;
+				}
+
+				switch (defPropName) {
+				case "description":
+					GetValueString (out description);
+					break;
+				case "deprecationMessage":
+					GetValueString (out deprecationMessage);
+					break;
+				case "helpUrl":
+					GetValueString (out helpUrl);
+					break;
+				default:
+					AddWarning (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition has unknown property '{defPropName}'");
+					break;
+				}
+			}
+
+			return new CustomTypeValue (customTypeValueName, description, deprecationMessage, helpUrl);
 		}
 
 		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {
