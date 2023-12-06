@@ -21,7 +21,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	partial class MSBuildDocumentValidator : MSBuildResolvingVisitor
+	partial class MSBuildDocumentValidator : MSBuildDocumentVisitor
 	{
 		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 		{

@@ -21,7 +21,7 @@ using MonoDevelop.Xml.Parser;
 namespace MonoDevelop.MSBuild.Language;
 
 // FIXME: split this into two variants, one that operates on elements from an XDocument or spine parse, and one that operates on a MSBuildRootDocument.ProjectElement DOM
-abstract class MSBuildResolvingVisitor
+abstract class MSBuildDocumentVisitor
 {
 	protected MSBuildDocument Document { get; private set; }
 	protected string? Filename => Document.Filename;
@@ -31,7 +31,7 @@ abstract class MSBuildResolvingVisitor
 	protected void CheckCancellation () => CancellationToken.ThrowIfCancellationRequested ();
 	protected bool IsNotCancellation (Exception ex) => !(ex is OperationCanceledException && CancellationToken.IsCancellationRequested);
 
-	protected MSBuildResolvingVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger)
+	protected MSBuildDocumentVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger)
 	{
 		Document = document;
 		TextSource = textSource;

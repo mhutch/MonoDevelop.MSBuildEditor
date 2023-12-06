@@ -99,11 +99,11 @@ namespace MonoDevelop.MSBuild.Language
 			return rr.AsImmutable ();
 		}
 
-		class MSBuildResolveVisitor : MSBuildResolvingVisitor
 		// ************************
 		// This is deeply coupled with MSBuildResolveResult, as it handles all casting back out from the untyped `Reference` object
 		// ************************
 
+		class MSBuildResolveVisitor : MSBuildDocumentVisitor
 		{
 			readonly int offset;
 			readonly MSBuildMutableResolveResult rr;

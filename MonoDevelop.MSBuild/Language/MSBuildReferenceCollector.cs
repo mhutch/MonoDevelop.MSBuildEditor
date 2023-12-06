@@ -23,7 +23,7 @@ namespace MonoDevelop.MSBuild.Language
 		Write = 1 << 2,
 	}
 
-	abstract class MSBuildReferenceCollector : MSBuildResolvingVisitor
+	abstract class MSBuildReferenceCollector : MSBuildDocumentVisitor
 	{
 		readonly Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult;
 

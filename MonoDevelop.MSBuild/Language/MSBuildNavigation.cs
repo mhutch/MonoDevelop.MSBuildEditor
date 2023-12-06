@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language
 			return visitor.Navigations;
 		}
 
-		class MSBuildNavigationVisitor : MSBuildResolvingVisitor
+		class MSBuildNavigationVisitor : MSBuildDocumentVisitor
 		{
 			public MSBuildNavigationVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 			{
