@@ -13,8 +13,8 @@
     },
     "InformationalVersion": "Product version of the assembly for UI display (e.g. 1.0 Beta)",
     "NeutralLanguage": {
-      "description": "The locale ID for the NuGet package",
-      "type": "lcid"
+      "description": "The culture for the NuGet package",
+      "type": "culture"
     },
     "PackageIconUrl": {
       "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
