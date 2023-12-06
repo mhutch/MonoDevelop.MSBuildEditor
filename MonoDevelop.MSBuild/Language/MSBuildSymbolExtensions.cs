@@ -28,7 +28,7 @@ public static class MSBuildSymbolExtensions
 
 	public static bool IsDeprecated (this ISymbol symbol, [NotNullWhen (true)] out string? deprecationMessage)
 	{
-		if (symbol is IDeprecatable deprecatable) {
+		if (symbol is IDeprecatable deprecatable && deprecatable.IsDeprecated ()) {
 			deprecationMessage = deprecatable.DeprecationMessage;
 			return true;
 		}
@@ -38,7 +38,7 @@ public static class MSBuildSymbolExtensions
 
 	public static bool HasHelpUrl (this ISymbol symbol, [NotNullWhen (true)] out string? helpUrl)
 	{
-		if (symbol is IHasHelpUrl hasHelp) {
+		if (symbol is IHasHelpUrl hasHelp && !string.IsNullOrEmpty (hasHelp.HelpUrl)) {
 			helpUrl = hasHelp.HelpUrl;
 			return true;
 		}
