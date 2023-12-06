@@ -4,7 +4,7 @@
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
-public class MetadataInfo : VariableInfo
+public class MetadataInfo : VariableInfo, IHasHelpUrl
 {
 	public bool Reserved { get; }
 	public bool Required { get; }
@@ -13,13 +13,18 @@ public class MetadataInfo : VariableInfo
 		string name, DisplayText description,
 		bool reserved = false, bool required = false, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 		ItemInfo? item = null, CustomTypeInfo? customType = null,
-		string? defaultValue = null, string? deprecationMessage = null)
+		string? defaultValue = null,
+		string? deprecationMessage = null,
+		string? helpUrl = null)
 		: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
 	{
 		Item = item;
 		Required = required;
 		Reserved = reserved;
+		HelpUrl = helpUrl;
 	}
 
 	public ItemInfo? Item { get; internal set; }
+
+	public string? HelpUrl { get; }
 }

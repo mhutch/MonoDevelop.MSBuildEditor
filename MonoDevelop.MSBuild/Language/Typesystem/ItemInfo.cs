@@ -12,11 +12,14 @@ public class ItemInfo (
 	string name, DisplayText description, string? includeDescription = null,
 	MSBuildValueKind valueKind = MSBuildValueKind.Unknown, CustomTypeInfo? customType = null,
 	Dictionary<string, MetadataInfo>? metadata = null,
-	string? deprecationMessage = null)
-	: VariableInfo(name, description, valueKind, customType, null, deprecationMessage)
+	string? deprecationMessage = null,
+	string? helpUrl = null)
+	: VariableInfo(name, description, valueKind, customType, null, deprecationMessage), IHasHelpUrl
 {
 	public Dictionary<string, MetadataInfo> Metadata { get; } = metadata ?? new (System.StringComparer.OrdinalIgnoreCase);
 
 	//custom description for the kinds of items in the include
 	public string? IncludeDescription { get; } = includeDescription;
+
+	public string? HelpUrl { get; } = helpUrl;
 }

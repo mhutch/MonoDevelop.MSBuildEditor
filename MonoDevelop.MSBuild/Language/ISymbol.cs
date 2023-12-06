@@ -39,3 +39,11 @@ public interface IHasDefaultValue : ITypedSymbol
 {
 	public string? DefaultValue { get; }
 }
+
+/// <summary>
+/// Common interface for symbols that may have a help URL
+/// </summary>
+public interface IHasHelpUrl : ISymbol
+{
+	public string? HelpUrl { get; }
+}

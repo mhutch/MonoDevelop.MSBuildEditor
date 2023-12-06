@@ -35,4 +35,14 @@ public static class MSBuildSymbolExtensions
 		deprecationMessage = null;
 		return false;
 	}
+
+	public static bool HasHelpUrl (this ISymbol symbol, [NotNullWhen (true)] out string? helpUrl)
+	{
+		if (symbol is IHasHelpUrl hasHelp) {
+			helpUrl = hasHelp.HelpUrl;
+			return true;
+		}
+		helpUrl = null;
+		return false;
+	}
 }

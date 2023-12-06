@@ -74,7 +74,7 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, defaultValue = null, deprecationMessage = null;
+				string? description = null, defaultValue = null, deprecationMessage = null, helpUrl = null;
 
 				var typeLoader = new TypeInfoReader (this, propertyDefObj, false);
 
@@ -103,6 +103,9 @@ partial class MSBuildSchema
 					case "deprecationMessage":
 						GetValueString (out deprecationMessage);
 						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
+						break;
 					default:
 						if (typeLoader.TryHandle (defPropName, defPropVal)) {
 							break;
@@ -114,7 +117,7 @@ partial class MSBuildSchema
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, deprecationMessage);
+				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, deprecationMessage, helpUrl);
 			}
 		}
 
@@ -126,7 +129,7 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, includeDescription = null, deprecationMessage = null;
+				string? description = null, includeDescription = null, deprecationMessage = null, helpUrl = null;
 				JObject? metadata = null;
 
 				var typeLoader = new TypeInfoReader (this, itemCollection, true);
@@ -172,6 +175,9 @@ partial class MSBuildSchema
 					case "deprecationMessage":
 						GetValueString (out deprecationMessage);
 						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
+						break;
 					default:
 						if (typeLoader.TryHandle (defPropName, defPropVal)) {
 							break;
@@ -191,7 +197,7 @@ partial class MSBuildSchema
 					customType = null;
 				}
 
-				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, deprecationMessage);
+				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, deprecationMessage, helpUrl);
 
 				if (metadata != null) {
 					AddItemMetadata (item, metadata);
@@ -229,7 +235,7 @@ partial class MSBuildSchema
 				return null;
 			}
 
-			string? description = null, defaultValue = null, deprecationMessage = null;
+			string? description = null, defaultValue = null, deprecationMessage = null, helpUrl = null;
 			bool? required = null;
 
 			var typeLoader = new TypeInfoReader (this, metadataDefObj, false);
@@ -273,6 +279,9 @@ partial class MSBuildSchema
 				case "deprecationMessage":
 					GetValueString (out deprecationMessage);
 					break;
+				case "helpUrl":
+					GetValueString (out helpUrl);
+					break;
 				default:
 					if (typeLoader.TryHandle (defPropName, defPropVal)) {
 						break;
@@ -286,7 +295,7 @@ partial class MSBuildSchema
 
 			return new MetadataInfo (
 				metadataName, description, false, required ?? false, kind, null,
-				customType, defaultValue, deprecationMessage
+				customType, defaultValue, deprecationMessage, helpUrl
 			);
 		}
 
@@ -370,7 +379,7 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, deprecationMessage = null;
+				string? description = null, deprecationMessage = null, helpUrl = null;
 
 				if (targetDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
 					yield return new TargetInfo (targetName, simpleDesc);
@@ -401,13 +410,16 @@ partial class MSBuildSchema
 					case "deprecationMessage":
 						GetValueString (out deprecationMessage);
 						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
+						break;
 					default:
 						AddWarning (defPropVal ?? targetDefObj, $"Target '{targetName}' definition has unknown property '{defPropName}'");
 						break;
 					}
 				}
 
-				yield return new TargetInfo (targetName, description, deprecationMessage);
+				yield return new TargetInfo (targetName, description, deprecationMessage, helpUrl);
 			}
 		}
 
