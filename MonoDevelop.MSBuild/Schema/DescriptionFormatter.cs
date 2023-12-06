@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return "url";
 			case MSBuildValueKind.Version:
 				return "version";
-			case MSBuildValueKind.SuffixedVersion:
+			case MSBuildValueKind.VersionSuffixed:
 				return "version-suffixed";
 			case MSBuildValueKind.Lcid:
 				return "lcid";

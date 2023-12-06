@@ -29,12 +29,16 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		Guid,
 		Url,
 		Version,
-		SuffixedVersion,
 		Lcid,
 		Culture,
 		DateTime,
 		Object,
 		Char,
+
+		/// <summary>
+		/// Version with a suffix, e.g. 1.0.0-beta. May be used to represent SemVer, but is less strict.
+		/// </summary>
+		VersionSuffixed,
 
 		// references to abstract types
 		TargetName,

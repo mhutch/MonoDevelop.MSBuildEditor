@@ -117,7 +117,7 @@ partial class MSBuildSchema
 		{ "guid", MSBuildValueKind.Guid },
 		{ "url", MSBuildValueKind.Url },
 		{ "version", MSBuildValueKind.Version },
-		{ "suffixed-version", MSBuildValueKind.SuffixedVersion },
+		{ "version-suffixed", MSBuildValueKind.VersionSuffixed },
 		{ "lcid", MSBuildValueKind.Lcid },
 		{ "culture", MSBuildValueKind.Culture },
 		{ "target-name", MSBuildValueKind.TargetName },

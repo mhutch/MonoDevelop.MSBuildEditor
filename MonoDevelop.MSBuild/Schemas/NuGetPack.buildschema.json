@@ -52,7 +52,7 @@
     "PackageTags": "A space-delimited list of tags and keywords that describe the NuGet package and aid discoverability of NuGet packages through search and filtering mechanisms",
     "PackageVersion": {
       "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1). Version numbers may include a pre-release suffix (e.g. 1.0.1-beta)",
-      "type": "suffixed-version"
+      "type": "version-suffixed"
     },
     "Product": "Product name information for the assembly manifest",
     "Version": {

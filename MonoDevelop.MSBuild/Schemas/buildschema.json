@@ -314,7 +314,7 @@
         "guid",
         "url",
         "version",
-        "suffixed-version",
+        "version-suffixed",
         "lcid",
         "culture",
         "target-name",
