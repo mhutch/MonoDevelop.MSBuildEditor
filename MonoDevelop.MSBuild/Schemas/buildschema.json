@@ -306,40 +306,139 @@
     },
     "valueTypeIntrinsic": {
       "type": "string",
-      "enum": [
-        "data",
-        "bool",
-        "int",
-        "string",
-        "guid",
-        "url",
-        "version",
-        "version-suffixed",
-        "lcid",
-        "culture",
-        "target-name",
-        "item-name",
-        "property-name",
-        "sdk",
-        "sdk-version",
-        "label",
-        "importance",
-        "runtime-id",
-        "target-framework",
-        "target-framework-version",
-        "target-framework-identifier",
-        "target-framework-profile",
-        "target-framework-moniker",
-        "nuget-id",
-        "nuget-version",
-        "project-file",
-        "file",
-        "folder",
-        "folder-with-slash",
-        "file-or-folder",
-        "extension",
-        "configuration",
-        "platform"
+      "anyOf": [
+        {
+          "const": "data",
+          "description": "A string containing arbitrary data"
+        },
+        {
+          "const": "bool",
+          "description": "A boolean value"
+        },
+        {
+          "const": "int",
+          "description": "An integer value"
+        },
+        {
+          "const": "string",
+          "description": "A string value"
+        },
+        {
+          "const": "guid",
+          "description": "A GUID value"
+        },
+        {
+          "const": "url",
+          "description": "A URL"
+        },
+        {
+          "const": "version",
+          "description": "A version of the form `major.minor[.build[.revision]]."
+        },
+        {
+          "const": "version-suffixed",
+          "description": "A version that may have a prerelease tag e.g. `1.0.2-beta`"
+        },
+        {
+          "const": "lcid",
+          "description": "A Windows language code identifier (LCID)"
+        },
+        {
+          "const": "culture",
+          "description": "A .NET culture name"
+        },
+        {
+          "const": "target-name",
+          "description": "An MSBuild target name"
+        },
+        {
+          "const": "item-name",
+          "description": "An MSBuild item name"
+        },
+        {
+          "const": "property-name",
+          "description": "An MSBuild property name"
+        },
+        {
+          "const": "sdk",
+          "description": "An MSBuild SDK ID without a version"
+        },
+        {
+          "const": "sdk-version",
+          "description": "An MSBuild SDK ID with a version"
+        },
+        {
+          "const": "label",
+          "description": "A GUID value"
+        },
+        {
+          "const": "importance",
+          "description": "AN MSBuild message importance level"
+        },
+        {
+          "const": "runtime-id",
+          "description": "A .NET Runtime ID (RID)"
+        },
+        {
+          "const": "target-framework",
+          "description": "A .NET target framework in short form e.g. `net8.0-windows`"
+        },
+        {
+          "const": "target-framework-version",
+          "description": "A .NET target framework version e.g. `4.8`"
+        },
+        {
+          "const": "target-framework-identifier",
+          "description": "A .NET target framework identifier e.g. `.NETStandard`"
+        },
+        {
+          "const": "target-framework-profile",
+          "description": "A .NET target framework profile name e.g. `Client`"
+        },
+        {
+          "const": "target-framework-moniker",
+          "description": "A .NET target framework in long form e.g. `.NETFramework,Version=3.5,Profile=Client`"
+        },
+        {
+          "const": "nuget-id",
+          "description": "A NuGet package ID"
+        },
+        {
+          "const": "nuget-version",
+          "description": "A NuGet package version"
+        },
+        {
+          "const": "project-file",
+          "description": "The path of an MSBuild file, either absolute or relative to the current MSBuild file"
+        },
+        {
+          "const": "file",
+          "description": "The path of a file, either absolute or relative to the current MSBuild file"
+        },
+        {
+          "const": "folder",
+          "description": "The path of a directory, without a trailing slash, either absolute or relative to the current MSBuild file"
+        },
+        {
+          "const": "folder-with-slash",
+          "description": "The path of a directory, with a trailing slash, either absolute or relative to the current MSBuild file"
+        },
+        {
+          "const": "file-or-folder",
+          "description": "The path of a directory or file, either absolute or relative to the current MSBuild file"
+        },
+        {
+          "const": "extension",
+          "description": "A file value"
+        },
+        {
+          "const": "configuration",
+          "description": "A value of the MSBuild `Configuration` property"
+        },
+        {
+          "const": "platform",
+          "description": "A value of the MSBuild `Platform` property"
+        }
       ]
     }
   }
