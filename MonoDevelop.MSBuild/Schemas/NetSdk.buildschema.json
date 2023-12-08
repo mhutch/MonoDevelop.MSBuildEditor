@@ -52,6 +52,16 @@
       "type": "bool",
       "defaultValue": "true"
     },
+    "AppendRuntimeIdentifierToOutputPath": {
+      "description": "Whether the runtime identifier is added to the output path, which prevents conflicts when building for multiple RIDs",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "AppendPlatformToOutputPath": {
+      "description": "Whether the `PlatformName` is added to the output path",
+      "type": "bool",
+      "defaultValue": "true"
+    },
     "UseWindowsForms": {
       "description": "Whether or not the project references Windows Forms",
       "type": "bool",
@@ -174,6 +184,76 @@
       "type": "culture",
       "isList": true,
       "defaultValue": ""
+    },
+    "UseArtifactsOutput": {
+      "description": "Indicates whether the project should use the `artifacts` output directory for intermediate and output files.",
+      "type": "bool",
+      "defaultValue": "false",
+    },
+    // TODO: path component type
+    "ArtifactsProjectName": {
+      "description": "The name to use for the project in the artifacts directory when `UseArtifactsOutput` is true.",
+      "type": "string",
+      "defaultValue": "$(MSBuildProjectName)"
+    },
+    "ArtifactsBinOutputName": {
+      "description": "The name of the output directory for intermediate and output files when `UseArtifactsOutput` is true.",
+      "type": "string",
+      "defaultValue": "bin"
+    },
+    "ArtifactsPublishOutputName": {
+      "description": "The name of the output directory for publish output files when `UseArtifactsOutput` is true.",
+      "type": "string",
+      "defaultValue": "publish"
+    },
+    "ArtifactsPackageOutputName": {
+      "description": "The name of the output directory for package output files when `UseArtifactsOutput` is true.",
+      "type": "string",
+      "defaultValue": "packages"
+    },
+    "ArtifactsPivots": {
+      "description": "An ID composed of the build pivots (e.g. `Configuration`, `TargetFramework`) to use as a subdirectory for artifacts when `UseArtifactsOutput` is true."
+    },
+    "IncludeProjectNameInArtifactsPaths": {
+      "description": "Indicates whether the project name should be included in the artifacts paths when `UseArtifactsOutput` is true.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "UseArtifactsIntermediateOutput": {
+      "description": "Indicates whether the project should use the `artifacts` output directory for intermediate files when `UseArtifactsOutput` is true.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "JsonSerializerIsReflectionEnabledByDefault": {
+      "description": "Whether to disable reflection-based serialization in System.Text.Json by default.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "EnableConfigurationBindingGenerator": {
+      "description": "Whether to enable the AOT/trim-friendly`Microsoft.Extensions.Configuration` configuration binding generator. On by default for AOT'd web apps.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "StripSymbols": {
+      "description": "Whether to strip debug symbols from AOT'd assemblies.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "PublishRelease": {
+      "description": "Whether to use `Release` assets by default when publishing the project.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "NetStandardImplicitPackageVersion": {
+      "description": "Override the version of the implicit `NETStandard.Library` package reference used when targeting `netstandard1.x`.",
+      "type": "version",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#netstandardimplicitpackageversion"
+    },
+    "CopyLocalLockFileAssemblies": {
+      "description": "Whether to copy assemblies from the lock file to the output directory.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#copylocallockfileassemblies"
     }
   },
   "items": {

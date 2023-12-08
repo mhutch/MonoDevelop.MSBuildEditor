@@ -627,12 +627,14 @@
     "TargetCulture": "",
     "TargetFramework": {
       "description": "Short moniker of the framework that this project targets, e.g. `netstandard2.0`",
-      "type": "target-framework"
+      "type": "target-framework",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#targetframework"
     },
     "TargetFrameworks": {
       "description": "List of short monikers for the frameworks that this project targets, for example `netstandard2.0;net461)`",
       "type": "target-framework",
-      "isList": true
+      "isList": true,
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#targetframeworks"
     },
     "TargetFrameworkIdentifier": {
       "description": "The identity of framework that this project targets, for example `.NETFramework`",
