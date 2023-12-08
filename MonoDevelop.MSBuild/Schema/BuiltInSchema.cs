@@ -44,7 +44,8 @@ static class BuiltInSchema
 		(BuiltInSchemaId.RazorSdk, "Microsoft.NET.Sdk.Razor", sdkTargets),
 		(BuiltInSchemaId.Roslyn, null, "Microsoft.Managed.Core.targets"),
 		(BuiltInSchemaId.VisualBasic, null, "Microsoft.VisualBasic.CurrentVersion.targets"),
-		(BuiltInSchemaId.WindowsDesktop, null, "Microsoft.NET.Sdk.WindowsDesktop.targets")
+		(BuiltInSchemaId.WindowsDesktop, null, "Microsoft.NET.Sdk.WindowsDesktop.targets"),
+		(BuiltInSchemaId.GenerateAssemblyInfo, null, "Microsoft.NET.GenerateAssemblyInfo.targets")
 		}
 		.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
 

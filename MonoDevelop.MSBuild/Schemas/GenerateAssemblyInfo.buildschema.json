@@ -1,0 +1,111 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "GenerateAssemblyInfo": {
+      "description": "Controls whether `AssemblyInfo` attributes are generated for the project.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#generateassemblyinfo"
+    },
+    "GeneratedAssemblyInfoFile": {
+      "description": "The path to the generated file that contains all generated assembly attributes.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#generatedassemblyinfofile"
+    },
+    "GenerateAssemblyCompanyAttribute": {
+      "description": "Controls whether the `AssemblyCompanyAttribute` assembly attribute is generated using the `Company` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyConfigurationAttribute": {
+      "description": "Controls whether the `AssemblyConfigurationAttribute` assembly attribute is generated using the `Configuration` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyCopyrightAttribute": {
+      "description": "Controls whether the `AssemblyCopyrightAttribute` assembly attribute is generated using the `Copyright` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyDescriptionAttribute": {
+      "description": "Controls whether the `AssemblyDescriptionAttribute` assembly attribute is generated using the `Description` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyFileVersionAttribute": {
+      "description": "Controls whether the `AssemblyFileVersionAttribute` assembly attribute is generated using the `FileVersion` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyInformationalVersionAttribute": {
+      "description": "Controls whether the `AssemblyInformationalVersionAttribute` assembly attribute is generated using the `InformationalVersion` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyTrademarkAttribute": {
+      "description": "Controls whether the `AssemblyTrademarkAttribute` assembly attribute is generated using the `Trademark` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyProductAttribute": {
+      "description": "Controls whether the `AssemblyProductAttribute` assembly attribute is generated using the `Product` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyTitleAttribute": {
+      "description": "Controls whether the `AssemblyTitleAttribute` assembly attribute is generated using the `AssemblyTitle` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyVersionAttribute": {
+      "description": "Controls whether the `AssemblyVersionAttribute` assembly attribute is generated using the `AssemblyVersion` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateRepositoryUrlAttribute": {
+      "description": "Controls whether the `RepositoryUrlAttribute` assembly attribute is generated using the `RepositoryUrl` or `PrivateRepositoryUrl` property. This attribute is only generated when targeting .NET 4.5 or higher.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateNeutralResourcesLanguageAttribute": {
+      "description": "Controls whether the `NeutralResourcesLanguageAttribute` assembly attribute is generated using the `NeutralLanguage` property.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateAssemblyMetadataAttributes": {
+      "description": "Controls whether `AssemblyMetadataAttribute` assembly attributes are generated for the project from `AssemblyMetadata` items.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "IncludeSourceRevisionInInformationalVersion": {
+      "description": "Controls whether the `SourceRevisionId` property is included in the generated `AssemblyInformationalVersionAttribute` assembly attribute.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateInternalsVisibleToAttributes": {
+      "description": "Controls whether `InternalsVisibleToAttribute` attributes are generated for the project from `InternalsVisibleTo` items.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateRequiresPreviewFeaturesAttribute": {
+      "description": "Controls whether the `RequiresPreviewFeaturesAttribute` assembly attribute is generated when the project is targeting the latest `TargetFramework` and the `EnablePreviewFeatures` property is `true`.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateTargetPlatformAttribute": {
+      "description": "Controls whether the `TargetPlatformAttribute` assembly attribute is generated using the `TargetPlatformIdentifier` and `TargetPlatformVersion` properties, which are derived from the platform component of the `TargetFramework`. This attribute is only generated when targeting .NET 5.0 or higher.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateSupportedOSPlatformAttribute": {
+      "description": "Controls whether the `SupportedOSPlatformAttribute` assembly attribute is generated using the `SupportOSPlatform` property. This attribute is only generated for projects targeting .NET 5.0 or higher. This attribute is only generated when targeting .NET 5.0 or higher.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "GenerateDisableRuntimeMarshallingAttribute": {
+      "description": "Controls whether the `DisableRuntimeMarshallingAttribute` assembly attribute is generated when the `DisableRuntimeMarshalling` property is set to `true`. This attribute is only generated when targeting .NET 7.0 or higher",
+      "type": "bool",
+      "defaultValue": "true"
+    }
+  }
+}

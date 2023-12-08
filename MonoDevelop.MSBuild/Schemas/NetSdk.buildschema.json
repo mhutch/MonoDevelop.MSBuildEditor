@@ -42,11 +42,6 @@
       "type": "bool",
       "defaultValue": "true"
     },
-    "GenerateAssemblyInfo": {
-      "description": "Whether to automatically generate an AssemblyInfo file at build time and pass it to the compiler",
-      "type": "bool",
-      "defaultValue": "true"
-    },
     "AppendTargetFrameworkToOutputPath": {
       "description": "Whether the framework's short name is added to the output path, which prevents conflicts when multi-targeting",
       "type": "bool",

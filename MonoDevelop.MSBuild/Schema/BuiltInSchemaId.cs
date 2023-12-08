@@ -21,5 +21,6 @@ enum BuiltInSchemaId
 	VisualBasic,
 	WindowsDesktop,
 	ProjectSystemMps,
-	ProjectSystemCps
+	ProjectSystemCps,
+	GenerateAssemblyInfo
 }
