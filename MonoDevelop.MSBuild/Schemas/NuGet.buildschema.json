@@ -1,10 +1,105 @@
 {
-  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  // based on https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md
+  "license": "Copyright (c) .NET Foundation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "properties": {
-    "RestoreSources": "The feeds that NuGet will use for restoring packages for this project."
-  },
-  "items": {
-  },
-  "types": {
+    "RestoreSources": {
+      "description": "List of feeds for NuGet to use for restoring packages for this project.",
+      "isList": true
+    },
+    "RestorePackagesPath": {
+      "description": "Path for NuGet to store restored packages.",
+      "type": "folder"
+    },
+    "RestoreDisableParallel": {
+      "description": "Limit NuGet restore to download one package at a time.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "RestoreConfigFile": {
+      "description": "Path to a `Nuget.Config` file to apply during NuGet restore.",
+      "type": "file"
+    },
+    "RestoreNoHttpCache": {
+      "description": "If true, avoids using HTTP cached packages using NuGet restore.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders"
+    },
+    "RestoreIgnoreFailedSources": {
+      "description": "If true, ignores failing or missing package sources during NuGet restore.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "RestoreFallbackFolders": {
+      "description": "Fallback folders for NuGet restore, used in the same way the user packages folder is used.",
+      "isList": true,
+      "type": "folder"
+    },
+    "RestoreAdditionalProjectSources": {
+      "description": "Additional sources to use during NuGet restore.",
+      "isList": true
+    },
+    "RestoreAdditionalProjectFallbackFolders": {
+      "description": "Additional fallback folders to use during NuGet restore.",
+      "isList": true,
+      "type": "folder"
+    },
+    "RestoreAdditionalProjectFallbackFoldersExcludes": {
+      "description": "Excludes fallback folders specified in `RestoreAdditionalProjectFallbackFolders`.",
+    },
+    "RestoreTaskAssemblyFile": {
+      "description": "Path to the `NuGet.Build.Tasks.dll` assembly."
+    },
+    "RestoreGraphProjectInput": {
+      "description": "Semicolon-delimited list of projects to restore, which should contain absolute paths.",
+      "isList": true,
+      "type": "file"
+    },
+    "RestoreUseSkipNonexistentTargets": {
+      "description": "When projects are collected for NuGet restore via MSBuild, it determines whether they are collected using the `SkipNonexistentTargets` optimization. When not set, defaults to `true`. The consequence is a fail-fast behavior when a project's targets cannot be imported.",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "RestoreForce": {
+      "description": "In `PackageReference` based projects, forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is similar to deleting the `project.assets.json` file. This does not bypass the HTTP cache",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "RestorePackagesWithLockFile": {
+      "description": "Opts into the usage of a NuGet package lock file.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "RestoreLockedMode": {
+      "description": "Run NuGet restore in locked mode. This means that restore will not reevaluate the dependencies.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "NuGetLockFilePath": {
+      "description": "A custom location for the NuGet package lock file when `RestorePackagesWithLockFile` is enabled. The default location is next to the project and is named `packages.lock.json`.",
+      "type": "file"
+    },
+    "RestoreForceEvaluate": {
+      "description": "Forces NuGet restore to recompute the dependencies and update the lock file without any warning.",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "RestorePackagesConfig": {
+      "description": "An opt-in switch that restores projects using `packages.config`. Supported with `MSBuild -t:restore` only.",
+      "type": "bool",
+      "deprecationMessage": "Use `PackageReference` instead of `packages.config`.",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#restoring-packagereference-and-packagesconfig-projects-with-msbuild"
+    },
+    "RestoreRepositoryPath": {
+      "description": "packages.config only. Specifies the packages directory to which the packages should be restored. SolutionDirectory will be used if not specified.",
+      "type": "folder",
+      "deprecationMessage": "Use `PackageReference` instead of `packages.config`."
+    },
+    "RestoreUseStaticGraphEvaluation": {
+      "description": "An opt-in switch to use static graph MSBuild evaluation instead of the standard evaluation. Static graph evaluation is an experimental feature that's significantly faster for large repos and solutions.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#restoring-with-msbuild-static-graph-evaluation"
+    }
   }
 }

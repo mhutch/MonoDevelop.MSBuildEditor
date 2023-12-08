@@ -447,23 +447,23 @@
         },
         {
           "const": "project-file",
-          "description": "The path of an MSBuild file, either absolute or relative to the current MSBuild file"
+          "description": "The path of an MSBuild file, either absolute or relative to the project file"
         },
         {
           "const": "file",
-          "description": "The path of a file, either absolute or relative to the current MSBuild file"
+          "description": "The path of a file, either absolute or relative to the project file"
         },
         {
           "const": "folder",
-          "description": "The path of a directory, without a trailing slash, either absolute or relative to the current MSBuild file"
+          "description": "The path of a directory, without a trailing slash, either absolute or relative to the project file"
         },
         {
           "const": "folder-with-slash",
-          "description": "The path of a directory, with a trailing slash, either absolute or relative to the current MSBuild file"
+          "description": "The path of a directory, with a trailing slash, either absolute or relative to the project file"
         },
         {
           "const": "file-or-folder",
-          "description": "The path of a directory or file, either absolute or relative to the current MSBuild file"
+          "description": "The path of a directory or file, either absolute or relative to the project file"
         },
         {
           "const": "extension",

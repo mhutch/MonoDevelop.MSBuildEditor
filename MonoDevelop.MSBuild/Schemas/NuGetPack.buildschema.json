@@ -1,6 +1,33 @@
 {
-  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  // based on https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md
+  "license": "Copyright (c) .NET Foundation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "items": {
+    "BuildOutputInPackage": {
+      "description": "Files to be included in the `BuildOutputTargetFolder` within the package, which defaults to `lib`. These items should be created in a target included in the `TargetsForTfmSpecificBuildOutput` property",
+      "type": "file",
+      "metadata": {
+        "FinalOutputPath": {
+          "description": "The absolute path of the file to be included. If not specified, the `Identity` will be used.",
+          "type": "file"
+        },
+        "TargetPath": {
+          "description": "Optionally set a subfolder and/or name for the file within the `lib/<TargetFramework>` package folder. Defaults to the name of the file."
+        }
+      }
+    },
+    "TfmSpecificPackageFile": {
+      "description": "Files to be included in package outside the `BuildOutputTargetFolder`. These items should be created in a target included in the `TargetsForTfmSpecificContentInPackage` property",
+      "type": "file",
+      "metadata": {
+        "PackagePath": {
+          "description": "Path of the file within the package. Defaults to the project-relative path of the file."
+        },
+        "BuildAction": {
+          "description": "The build action to assign to the file if it is in the `contentFiles` folder. Defaults to `None`.",
+          "type": "item-name"
+        }
+      }
+    }
   },
   "properties": {
     "Authors": "A comma-separated list of NuGet packages authors",
@@ -19,11 +46,13 @@
     "PackageIconUrl": {
       "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
       "type": "url",
-      "deprecationMessage": "Use PackageIcon instead"
+      "deprecationMessage": "Use `PackageIcon` instead",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packageiconurl"
     },
     "PackageIcon": {
       "description": "A 64x64 PNG or JPG image to use as the icon for the NuGet package. Relative path within the package.",
-      "type": "file"
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packageicon"
     },
     "PackageId": "The case-insensitive NuGet package identifier, which must be unique across nuget.org or whatever gallery the NuGet package will reside in. IDs may not contain spaces or characters that are not valid for a URL, and generally follow .NET namespace rules.",
     "Title": "A human-friendly title of the package, typically used in UI displays as on nuget.org and the Package Manager in Visual Studio. If not specified, the package ID is used instead.",
@@ -38,7 +67,8 @@
     },
     "PackageLicenseExpression": {
       "description": "The package's license in SPDX 2.0 expression format",
-      "type": { "$ref": "#/types/spdx" }
+      "type": { "$ref": "#/types/spdx" },
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-a-license-expression-or-a-license-file"
     },
     "PackageProjectUrl": {
       "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
@@ -75,24 +105,28 @@
     },
     "BuildOutputTargetFolder": {
       "description": "The package folder into which the build output should be placed",
-      "type": "folder"
+      "defaultValue": "lib"
     },
     "IncludeSymbols": {
       "description": "Whether to include symbols in the NuGet package",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#includesymbols"
     },
     "IncludeSource": {
       "description": "Whether to include source files in the NuGet package",
       "type": "bool",
-      "defaultValue": "false"
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#includesource"
     },
     "IsTool": {
       "description": "Whether to place output files in the tools folder instead of the lib folder",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#istool"
     },
     "NuspecFile": {
       "description": "Relative or absolute path to a custom .nuspec package manifest",
-      "type": "file"
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-using-a-nuspec-file"
     },
     "NuspecProperties": {
       "description": "Semicolon-separated list of key=value pairs to be set in a custom .nuspec manifest",
@@ -121,15 +155,47 @@
       "description": "Value indicating whether a NuGet package will be generated when the project is built",
       "type": "bool"
     },
-    "ToolCommandName": "Specifies the command that will invoke the tool after it's installed."
+    "ToolCommandName": "Specifies the command that will invoke the tool after it's installed.",
+    "PackRelease": {
+      "description": "Value indicating whether to generate a release build of the package",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packrelease"
+    },
+    "PackageReadmeFile": {
+      "description": "Path of the README file within the package. This property will not cause the file to be included in the package.",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packagereadmefile"
+    },
+    "TargetsForTfmSpecificBuildOutput": {
+      "description": "List of custom targets to gather additional `BuildOutputInPackage` items to include in the package in the `BuildOutputTargetFolder` in the package (`lib` by default).",
+      "type": "target-name",
+      "isList": true,
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#targetsfortfmspecificbuildoutput"
+    },
+    "TargetsForTfmSpecificContentInPackage": {
+      "description": "List of custom targets to gather additional `TfmSpecificPackageFile` items to include in the package outside the `BuildOutputTargetFolder`.",
+      "type": "target-name",
+      "isList": true,
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#targetsfortfmspecificcontentinpackage"
+    }
   },
   "metadata": [
     {
       // Metadata that controls how an item is packaged
       "$appliesTo": [
-        "Content", "Compile", "EmbeddedResource", "ApplicationDefinition", "Page", "Resource",
-          "SplashScreen", "DesignData", "DesignDataWithDesignTimeCreateableTypes", "CodeAnalysisDictionary",
-          "AndroidAsset", "AndroidResource", "BundleResource", "None"
+        "Content",
+        "Compile",
+        "EmbeddedResource",
+        "ApplicationDefinition",
+        "Page",
+        "Resource",
+        "SplashScreen",
+        "DesignData",
+        "DesignDataWithDesignTimeCreateableTypes",
+        "CodeAnalysisDictionary",
+        "AndroidAsset",
+        "AndroidResource",
+        "BundleResource",
+        "None"
       ],
       "Pack": {
         "description": "Whether to include the item in the NuGet package",
@@ -154,7 +220,7 @@
         "description": "Whether to treat this project reference as a package reference in the output package",
         "type": "bool"
       }
-    },
+    }
   ],
   "types": {
     "asset": {
