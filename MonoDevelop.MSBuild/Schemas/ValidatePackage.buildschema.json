@@ -1,0 +1,103 @@
+{
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/project-sdk/msbuild-props.md#package-validation-properties
+  "license": "Derived from https://github.com/dotnet/docs, licensed Creative Commons Attribution 4.0 International",
+  "properties": {
+    "ApiCompatEnableRuleAttributesMustMatch": {
+      "description": "Enables the validation rule that checks if attributes match.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatenableruleattributesmustmatch"
+    },
+    "ApiCompatEnableRuleCannotChangeParameterName": {
+      "description": "Enables the validation rule that checks whether parameter names have changed in public methods.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatenablerulecannotchangeparametername"
+    },
+    "ApiCompatExcludeAttributesFile": {
+      "description": "Specifies the path to a file that contains attributes to exclude in DocId format.",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatexcludeattributesfile"
+    },
+    "ApiCompatGenerateSuppressionFile": {
+      "description": "Specifies whether to generate a compatibility suppression file.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatgeneratesuppressionfile"
+    },
+    "ApiCompatPermitUnnecessarySuppressions": {
+      "description": "Specifies whether to permit unnecessary suppressions in the suppression file.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatpermitunnecessarysuppressions"
+    },
+    "ApiCompatPreserveUnnecessarySuppressions": {
+      "description": "Specifies whether to preserve unnecessary suppressions when regenerating the suppression file.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatpreserveunnecessarysuppressions"
+    },
+    "ApiCompatRespectInternals": {
+      "description": "Specifies whether `internal` APIs should be checked for compatibility in addition to `public` APIs.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatrespectinternals"
+    },
+    "ApiCompatSuppressionFile": {
+      "description": "Specifies the path to one or more suppression files to read from. If unspecified, the suppression file <project-directory>/CompatibilitySuppressions.xml is read (if it exists).",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatsuppressionfile"
+    },
+    "ApiCompatSuppressionOutputFile": {
+      "description": "Specifies the path to a suppression file to write to when `ApiCompatGenerateSuppressionFile` is true. If unspecified, the first `ApiCompatSuppressionFile` item is used.",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatsuppressionoutputfile"
+    },
+    "EnablePackageValidation": {
+      "description": "Enables a series of validations on the package after the `Pack` task.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#enablepackagevalidation"
+    },
+    "EnableStrictModeForBaselineValidation": {
+      "description": "Enables strict mode for package validation baseline checks.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#enablestrictmodeforbaselinevalidation"
+    },
+    "EnableStrictModeForCompatibleFrameworksInPackage": {
+      "description": "Enables strict mode for assemblies that are compatible based on their target framework.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#enablestrictmodeforcompatibleframeworksinpackage"
+    },
+    "EnableStrictModeForCompatibleTfms": {
+      "description": "Enables strict mode for contract and implementation assemblies for all compatible target frameworks.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#enablestrictmodeforcompatibletfms"
+    },
+    "PackageValidationBaselineFrameworkToIgnore": {
+      "description": "Specifies a target framework to ignore from the baseline package. The framework string must exactly match the folder name in the baseline package.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packagevalidationbaselineframeworktoignore"
+    },
+    "PackageValidationBaselineName": {
+      "description": "Specifies the name of the baseline package to validate the current package against. If unspecified, the `PackageId` value is used.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packagevalidationbaselinename"
+    },
+    "PackageValidationBaselineVersion": {
+      "description": "Specifies the version of the baseline package to validate the current package against.",
+      "type": "version-suffixed",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packagevalidationbaselineversion"
+    },
+    "PackageValidationReferencePath": {
+      "description": "Specifies the directory path where the reference assembly can be found per TFM.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packagevalidationreferencepath"
+    },
+    "RoslynAssembliesPath": {
+      "description": "Specifies the path to the directory that contains the Microsoft.CodeAnalysis assemblies you want to use. You only need to set this property if you want to test with a newer compiler than what's in the SDK.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#roslynassembliespath"
+    }
+  }
+}

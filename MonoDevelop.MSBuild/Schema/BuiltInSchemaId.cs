@@ -22,5 +22,6 @@ enum BuiltInSchemaId
 	WindowsDesktop,
 	ProjectSystemMps,
 	ProjectSystemCps,
-	GenerateAssemblyInfo
+	GenerateAssemblyInfo,
+	ValidatePackage
 }
