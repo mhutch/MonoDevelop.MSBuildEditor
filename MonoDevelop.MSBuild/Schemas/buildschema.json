@@ -411,7 +411,7 @@
         },
         {
           "const": "importance",
-          "description": "AN MSBuild message importance level"
+          "description": "An MSBuild message importance level"
         },
         {
           "const": "runtime-id",

@@ -74,23 +74,28 @@
     },
     "PublishReadyToRun": {
       "description": "Indicates whether the project should produce ReadyToRun images during publish.",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/ready-to-run"
     },
     "PublishAot": {
       "description": "Indicates whether the project should produce native ahead-of-time compiled images during publish.",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot#publish-native-aot-using-the-cli"
     },
     "PublishSingleFile": {
       "description": "Indicates whether the project should bundle all application-dependent files into a single binary during publish.",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview#publish-a-single-file-app"
     },
     "PublishTrimmed": {
       "description": "Indicates whether the project should produce trimmed assembly images during publish.",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained#enable-trimming"
     },
     "IsAotCompatible": {
-      "description": "Indicates whether a class library is compatible with native AOT. Setting to true will enable analyzers for trimming, single file, and AOT.",
-      "type": "bool"
+      "description": "Indicates whether a class library is compatible with native AOT. Setting to true will enable analyzers to help ensure the assembly is compatible with AOT by setting `IsTrimmable`, `EnableTrimAnalyzer`, `EnableSingleFileAnalyzer`, and `EnableAotAnalyzer` to true.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot#aot-compatibility-analyzers"
     },
     "DisableTransitiveProjectReferences": {
       "description": "When true, do not discover ProjectReference items representing projects referenced by this project's ProjectReferences. Applies only to projects using the .NET SDK.",
@@ -195,7 +200,7 @@
     "UseArtifactsOutput": {
       "description": "Indicates whether the project should use the `artifacts` output directory for intermediate and output files.",
       "type": "bool",
-      "defaultValue": "false",
+      "defaultValue": "false"
     },
     // TODO: path component type
     "ArtifactsProjectName": {
@@ -242,9 +247,10 @@
       "defaultValue": "false"
     },
     "StripSymbols": {
-      "description": "Whether to strip debug symbols from AOT'd assemblies.",
+      "description": "When using AOT, whether to put native debug symbols in a separate file instead of including them in the natiuve binary.",
       "type": "bool",
-      "defaultValue": "false"
+      "defaultValue": "true", // false on .net 7, true on 8
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot#native-debug-information"
     },
     "PublishRelease": {
       "description": "Whether to use `Release` assets by default when publishing the project.",
@@ -261,7 +267,28 @@
       "type": "bool",
       "defaultValue": "false",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#copylocallockfileassemblies"
-    }
+    },
+    "ApiCompatStrictMode": {
+      "description": "Whether to enable strict mode for API compatibility checks.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatstrictmode"
+    },
+    "ApiCompatValidateAssemblies": {
+      "description": "Whether to validate assemblies for API compatibility.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#apicompatvalidateassemblies"
+    },
+    "IsTrimmable": {
+      "description": "Mark the assembly as trimmable and enable trim warnings. Defaults to `true` when `IsAotCompatible` is `true`, otherwise `false`.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+    },
+    "EnableTrimAnalyzer": {
+      "description": "Enable the trim analyzer. Defaults to `true` when `IsTrimmable` or `IsAotCompatible` is `true`, otherwise `false`.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+    },
+
   },
   "items": {
     "InternalsVisibleTo": {
