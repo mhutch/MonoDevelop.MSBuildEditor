@@ -64,7 +64,6 @@
               "type": "string",
               "description": "The default value of the property."
             },
-            "values": { "$ref": "#/definitions/valueList" },
             "isList": { "$ref": "#/definitions/valueIsList" },
             "listSeparators": { "$ref": "#/definitions/valueListSeparators" },
             "isLiteral": {
@@ -149,7 +148,6 @@
               "type": "string",
               "description": "The default value of the metadata."
             },
-            "values": { "$ref": "#/definitions/valueList" },
             "isList": { "$ref": "#/definitions/valueIsList" },
             "listSeparators": { "$ref": "#/definitions/valueListSeparators" },
             "isRequired": {
@@ -219,26 +217,6 @@
         "^([A-Za-z_][A-Za-z\\d_-]*)$": { "$ref": "#/definitions/metadata" }
       },
       "additionalProperties": false
-    },
-    "valueList": {
-      "description": "A list of valid values",
-      "oneOf": [
-        {
-          "type": "string",
-          "description": "Reference to another value list"
-        },
-        {
-          "type": "array",
-          "description": "Array of valid values"
-        },
-        {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "description": "Description for the value"
-          }
-        }
-      ]
     },
     "valueIsList": {
       "description": "Whether the value permits lists. The default semicolon separator can be overridden with \"listSeparators\" property.",
