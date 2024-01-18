@@ -607,23 +607,29 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
-			CustomTypeInfo? customType = info?.CustomType;
-			if (customType is null || !customType.AllowUnknownValues) {
-				var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (false);
+			// we must only check CustomType property when kind is MSBuildValueKind.CustomType
+			// as MSBuildValueKind.NuGetID kind hackily stashes unrelated info in CustomType property
+			CustomTypeInfo? customType = info.ValueKind == MSBuildValueKind.CustomType? info.CustomType : null;
 
-				if (knownVals is not null && knownVals.Count != 0) {
-					var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, value, valueComparer)) {
-							if (kv is IDeprecatable deprecatable) {
-								CheckDeprecated (deprecatable, expressionText);
-							}
-							return;
+			IReadOnlyList<ISymbol> knownValues = null;
+			if (info.ValueKind != MSBuildValueKind.CustomType) {
+				knownValues = kind.GetSimpleValues (false);
+			} else if (customType is not null && !customType.AllowUnknownValues) {
+				knownValues = customType.Values;
+			}
+
+			if (knownValues is not null && knownValues.Count != 0) {
+				var valueComparer = (customType?.CaseSensitive ?? false)? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+				foreach (var kv in knownValues) {
+					if (string.Equals (kv.Name, value, valueComparer)) {
+						if (kv is IDeprecatable deprecatable) {
+							CheckDeprecated (deprecatable, expressionText);
 						}
+						return;
 					}
-					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
-					return;
 				}
+				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
+				return;
 			}
 
 			MSBuildValueKind kindOrBaseKind = customType?.BaseKind ?? kind;
