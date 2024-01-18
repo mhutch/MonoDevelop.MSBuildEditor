@@ -87,11 +87,6 @@
       "type": "bool",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview#publish-a-single-file-app"
     },
-    "PublishTrimmed": {
-      "description": "Indicates whether the project should produce trimmed assembly images during publish.",
-      "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained#enable-trimming"
-    },
     "IsAotCompatible": {
       "description": "Indicates whether a class library is compatible with native AOT. Setting to true will enable analyzers to help ensure the assembly is compatible with AOT by setting `IsTrimmable`, `EnableTrimAnalyzer`, `EnableSingleFileAnalyzer`, and `EnableAotAnalyzer` to true.",
       "type": "bool",
@@ -117,8 +112,6 @@
       "description": "Controls whether analyzers analyze code live at design time. Default is true.",
       "type": "bool"
     },
-    "TrimmerRootAssembly": "Assemblies that should not be trimmed (specify the assembly name without extension).",
-    "TrimmerRootDescriptor": "XML files that specify assemblies, types, and their members that should not be trimmed.",
     "EnforceCodeStyleInBuild": {
       "description": "Controls whether code style analysis rules configured as warnings or errors should execute on build and report violations. The default is false.",
       "type": "bool"

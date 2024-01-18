@@ -37,6 +37,7 @@ static class BuiltInSchema
 		(BuiltInSchemaId.CommonTargets, null, "Microsoft.Common.targets"),
 		(BuiltInSchemaId.Cpp, null, "Microsoft.Cpp.targets"),
 		(BuiltInSchemaId.CSharp, null, "Microsoft.CSharp.CurrentVersion.targets"),
+		(BuiltInSchemaId.ILLink, null, "Microsoft.NET.ILLink.targets"),
 		(BuiltInSchemaId.NetSdk, "Microsoft.NET.Sdk", sdkTargets),
 		(BuiltInSchemaId.NuGet, null, "NuGet.targets"),
 		(BuiltInSchemaId.NuGetPack, null, "NuGet.Build.Tasks.Pack.targets"),
