@@ -27,8 +27,9 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		MSBuildElementSyntax (
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
 			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
+			CustomTypeInfo? customType = null,
 			bool isAbstract = false, string deprecationMessage = null, string helpUrl = null)
-			: base (name, description, valueKind, deprecationMessage, helpUrl)
+			: base (name, description, valueKind, customType, deprecationMessage, helpUrl)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;
@@ -149,7 +150,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		static MSBuildElementSyntax AddBuiltin (string name, string description, MSBuildSyntaxKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false, string? helpUrl = null)
 		{
-			var el = new MSBuildElementSyntax (name, description, kind, valueKind, isAbstract, helpUrl: helpUrl);
+			var el = new MSBuildElementSyntax (name, description, kind, valueKind, isAbstract: isAbstract, helpUrl: helpUrl);
 			builtin.Add (el.Name, el);
 			return el;
 		}
@@ -229,7 +230,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			ParameterGroup.AbstractChild = Parameter;
 
 			Import.attributes = new[] {
-				new MSBuildAttributeSyntax (Import, "Project", ElementDescriptions.Import_Project, MSBuildSyntaxKind.Import_Project, MSBuildValueKind.ProjectFile, true),
+				new MSBuildAttributeSyntax (Import, "Project", ElementDescriptions.Import_Project, MSBuildSyntaxKind.Import_Project, MSBuildValueKind.ProjectFile, required: true),
 				new MSBuildAttributeSyntax (Import, "Condition", ElementDescriptions.Import_Condition, MSBuildSyntaxKind.Import_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
 				new MSBuildAttributeSyntax (Import, "Label", ElementDescriptions.Import_Label, MSBuildSyntaxKind.Import_Label, MSBuildValueKind.Label),
 				new MSBuildAttributeSyntax (Import, "Sdk", ElementDescriptions.Import_Sdk, MSBuildSyntaxKind.Import_Sdk, MSBuildValueKind.Sdk),
@@ -274,7 +275,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			};
 
 			Target.attributes = new[] {
-				new MSBuildAttributeSyntax (Target, "Name", ElementDescriptions.Target_Name, MSBuildSyntaxKind.Target_Name, MSBuildValueKind.TargetName.AsLiteral (), true),
+				new MSBuildAttributeSyntax (Target, "Name", ElementDescriptions.Target_Name, MSBuildSyntaxKind.Target_Name, MSBuildValueKind.TargetName.AsLiteral (), required: true),
 				new MSBuildAttributeSyntax (Target, "DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildSyntaxKind.Target_DependsOnTargets, MSBuildValueKind.TargetName.AsList()),
 				new MSBuildAttributeSyntax (Target, "Inputs", ElementDescriptions.Target_Inputs, MSBuildSyntaxKind.Target_Inputs, MSBuildValueKind.Unknown),
 				new MSBuildAttributeSyntax (Target, "Outputs", ElementDescriptions.Target_Outputs, MSBuildSyntaxKind.Target_Outputs, MSBuildValueKind.Unknown),
@@ -312,11 +313,11 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			};
 
 			When.attributes = new[] {
-				new MSBuildAttributeSyntax (When, "Condition", ElementDescriptions.When_Condition, MSBuildSyntaxKind.When_Condition, MSBuildValueKind.Condition, true, helpUrl: HelpUrls.Attribute_Condition),
+				new MSBuildAttributeSyntax (When, "Condition", ElementDescriptions.When_Condition, MSBuildSyntaxKind.When_Condition, MSBuildValueKind.Condition, required : true, helpUrl: HelpUrls.Attribute_Condition),
 			};
 
 			OnError.attributes = new[] {
-				new MSBuildAttributeSyntax (OnError, "ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildSyntaxKind.OnError_ExecuteTargets, MSBuildValueKind.TargetName.AsList (), true),
+				new MSBuildAttributeSyntax (OnError, "ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildSyntaxKind.OnError_ExecuteTargets, MSBuildValueKind.TargetName.AsList (), required : true),
 				new MSBuildAttributeSyntax (OnError, "Condition", ElementDescriptions.OnError_Condition, MSBuildSyntaxKind.OnError_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
 				new MSBuildAttributeSyntax (OnError, "Label", ElementDescriptions.OnError_Label, MSBuildSyntaxKind.OnError_Label, MSBuildValueKind.Label),
 			};
@@ -325,7 +326,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 				new MSBuildAttributeSyntax (UsingTask, "Condition", ElementDescriptions.UsingTask_Condition, MSBuildSyntaxKind.UsingTask_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
 				new MSBuildAttributeSyntax (UsingTask, "AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildSyntaxKind.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
 				new MSBuildAttributeSyntax (UsingTask, "AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildSyntaxKind.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
-				new MSBuildAttributeSyntax (UsingTask, "TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildSyntaxKind.UsingTask_TaskName, MSBuildValueKind.TaskName, true),
+				new MSBuildAttributeSyntax (UsingTask, "TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildSyntaxKind.UsingTask_TaskName, MSBuildValueKind.TaskName, required: true),
 				new MSBuildAttributeSyntax (UsingTask, "TaskFactory", ElementDescriptions.UsingTask_TaskFactory, MSBuildSyntaxKind.UsingTask_TaskFactory, MSBuildValueKind.TaskFactory),
 				new MSBuildAttributeSyntax (UsingTask, "Architecture", ElementDescriptions.UsingTask_Architecture, MSBuildSyntaxKind.UsingTask_Architecture, MSBuildValueKind.TaskArchitecture),
 				new MSBuildAttributeSyntax (UsingTask, "Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildSyntaxKind.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
@@ -336,7 +337,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			};
 
 			Output.attributes = new[] {
-				new MSBuildAttributeSyntax (Output, "TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildSyntaxKind.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.AsLiteral (), true),
+				new MSBuildAttributeSyntax (Output, "TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildSyntaxKind.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.AsLiteral (), required : true),
 				new MSBuildAttributeSyntax (Output, "Condition", ElementDescriptions.Output_Condition, MSBuildSyntaxKind.Output_Condition,  MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
 				new MSBuildAttributeSyntax (Output, "ItemName", ElementDescriptions.Output_ItemName, MSBuildSyntaxKind.Output_ItemName, MSBuildValueKind.ItemName.AsLiteral ()),
 				new MSBuildAttributeSyntax (Output, "PropertyName", ElementDescriptions.Output_PropertyName, MSBuildSyntaxKind.Output_PropertyName, MSBuildValueKind.PropertyName.AsLiteral ()),

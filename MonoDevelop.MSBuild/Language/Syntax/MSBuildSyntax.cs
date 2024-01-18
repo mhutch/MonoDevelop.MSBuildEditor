@@ -12,6 +12,7 @@ public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHas
 {
 	protected MSBuildSyntax (
 		string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+		CustomTypeInfo? customType = null,
 		string? deprecationMessage = null,
 		string? helpUrl = null)
 	{
@@ -21,13 +22,14 @@ public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHas
 		HelpUrl = helpUrl;
 
 		ValueKind = valueKind;
+		CustomType = customType;
 	}
 
 	public string Name { get; }
 	public DisplayText Description { get; }
 
 	public virtual MSBuildValueKind ValueKind { get; }
-	CustomTypeInfo? ITypedSymbol.CustomType => null;
+	public CustomTypeInfo? CustomType { get; }
 	public string? DeprecationMessage { get; }
 	public string? HelpUrl { get; }
 }
