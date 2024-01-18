@@ -582,11 +582,6 @@ partial class MSBuildSchema
 				foundAnyNonRef = true;
 			} while (enumerator.MoveNext ());
 
-			if (values.Count == 0) {
-				AddWarning (customTypeObj, $"Custom type definition has no valid values");
-				return (null, null);
-			}
-
 			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
 		}
 

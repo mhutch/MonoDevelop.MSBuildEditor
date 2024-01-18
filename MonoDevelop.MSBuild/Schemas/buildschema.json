@@ -261,7 +261,6 @@
     },
     "valueTypeCustom": {
       "type": "object",
-      "required": [ "values" ],
       "properties": {
         "name": {
           "description": "Overrides the name displayed in the UI",
