@@ -166,7 +166,7 @@ namespace MonoDevelop.MSBuild.Schema
 			ExpressionNode triggerExpression = null)
 		{
 			var simple = kind.GetSimpleValues (true);
-			if (simple != null) {
+			if (simple != null && simple.Count > 0) {
 				return simple;
 			}
 

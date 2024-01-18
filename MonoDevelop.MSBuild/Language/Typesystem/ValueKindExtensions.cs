@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -61,7 +62,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			switch (kind) {
 			case MSBuildValueKind.Bool:
 				if (!includeParseableTypes) {
-					return null;
+					return Array.Empty<ConstantSymbol> ();
 				}
 				return new ConstantSymbol [] {
 					new ConstantSymbol ("True", null, MSBuildValueKind.Bool),
@@ -141,7 +142,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 					new ConstantSymbol ("Current", "MSBuild 16.0 and later, included in Visual Studio 2019 and later", MSBuildValueKind.ToolsVersion),
 				};
 			}
-			return null;
+			return Array.Empty<ConstantSymbol> ();
 		}
 
 		public static ExpressionOptions GetExpressionOptions (this MSBuildValueKind kind)
