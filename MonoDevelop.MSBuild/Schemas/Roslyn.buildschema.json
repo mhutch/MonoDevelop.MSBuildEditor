@@ -3,7 +3,9 @@
   "properties": {
     "Deterministic": {
       "description": "Enables reproducible builds, such that a given set of inputs will always produce byte-for-byte identical output",
-      "type": "bool"
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/code-generation#deterministic"
+
     },
     "EmitCompilerGeneratedFiles": {
       "description": "Controls whether source generated files will be saved.",
@@ -12,9 +14,85 @@
     "CompilerGeneratedFilesOutputPath": {
       "description": "Controls where source generated files are saved.",
       "type": "folder"
+    },
+    "ProduceReferenceAssembly": {
+      "description": "Determines whether to produce a reference assembly.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#producereferenceassembly"
+    },
+    "ProduceOnlyReferenceAssembly": {
+      "description": "Indicates that the build should produce a reference assembly as the primary output, and not produce an implementation assembly.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/code-generation#produceonlyreferenceassembly"
+    },
+    "OutputAssembly": {
+      "description": "The path and name of the output assembly",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#outputassembly"
+    },
+    "ReportAnalyzer": {
+      "description": "Report additional information about analyzers, such as execution time",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#reportanalyzer"
+    },
+    "PublicSign": {
+      "description": "Causes the compiler to mark the assembly as signed with a public key, without actually signing it",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/security#publicsign"
+    },
+    "ReportIVTs": {
+      "description": "Causes the compiler to report information about `InternalsVisibleTo` attributes",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#reportivts"
+    },
+    "NoCompilerStandardLib": {
+      "description": "Causes the compiler to not reference the `mscorlib` standard library. The build targets default this to `true` to suppress the compiler's implicit reference, and add an explicit reference to `mscorlib`. This explicit reference can be suppressed with the `NoStdLib` property.",
+      "defaultValue": "true",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#nostandardlib"
+    },
+    "NoStdLib": {
+      "description": "Causes the build targets not to add an explicit reference to the `mscorlib` standard library",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#nostandardlib"
+    },
+    "ErrorEndLocation": {
+      "description": "Causes the compiler to report the line and column of the end location of each error",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#errorendlocation"
+    },
+    "PreferredUILang": {
+      "description": "Specifies the language to be used for compiler output such as error messages and warnings",
+      "type": "culture",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#preferreduilang"
+    },
+    "GenerateFullPaths": {
+      "description": "Cause the compiler to use full paths for filenames in output such as error messages",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#generatefullpaths"
+    },
+    "AdditionalLibPaths": {
+      "description": "Specifies additional directories for the compiler to search to find assemblies. This should not normally be used, as MSBuild resolves assemblies before passing them to the compiler.",
+      "type": "folder",
+      "isList": true,
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#additionallibpaths"
+    },
+    "AppConfigForCompiler": {
+      "description": "Specifies the path to an `app.config` application configuration file to pass to the compiler",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#applicationconfiguration"
+    },
+    "PathMap": {
+      "description": "Specifies how to remap physical source paths when embedding source paths in compiler output such as debug symbols. Each item in the list is of the form `mappedPath=sourcePath`.",
+      "isList": true,
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#pathmap"
     }
   },
   "items": {
+    "AddModule": {
+      "description": "Adds a module created with the `module` `OutputType` to the compilation.",
+      "type": "file",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#addmodule"
+    }
   },
   "types": {
   }
