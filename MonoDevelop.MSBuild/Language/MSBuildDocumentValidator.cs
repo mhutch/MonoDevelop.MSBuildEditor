@@ -609,10 +609,11 @@ namespace MonoDevelop.MSBuild.Language
 
 			// we must only check CustomType property when kind is MSBuildValueKind.CustomType
 			// as MSBuildValueKind.NuGetID kind hackily stashes unrelated info in CustomType property
-			CustomTypeInfo? customType = info.ValueKind == MSBuildValueKind.CustomType? info.CustomType : null;
+			bool isCustomType = info.ValueKind.WithoutModifiers () == MSBuildValueKind.CustomType;
+			CustomTypeInfo? customType = isCustomType? info.CustomType : null;
 
 			IReadOnlyList<ISymbol> knownValues = null;
-			if (info.ValueKind != MSBuildValueKind.CustomType) {
+			if (!isCustomType) {
 				knownValues = kind.GetSimpleValues (false);
 			} else if (customType is not null && !customType.AllowUnknownValues) {
 				knownValues = customType.Values;
