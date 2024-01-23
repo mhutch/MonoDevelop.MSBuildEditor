@@ -48,7 +48,7 @@ class JsonSettingsStorage<T> where T: class, IEquatable<T>
 					}
 				}
 			} catch (Exception ex) {
-				logger.LogError (ex, "Error loading {typeof(T)} settings file");
+				logger.LogError (ex, $"Error loading {typeof(T)} settings file");
 			}
 
 			value = createDefault ();
