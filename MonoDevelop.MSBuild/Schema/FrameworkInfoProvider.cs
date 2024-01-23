@@ -185,6 +185,14 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (8, 0, "net8.0-macos", Platform.macOS);
 			AddNetCore (8, 0, "net8.0-tvos", Platform.tvOS);
 
+			AddNetCore (9, 0, "net9.0");
+			AddNetCore (9, 0, "net9.0-windows", Platform.Windows);
+			AddNetCore (9, 0, "net9.0-android", Platform.Android);
+			AddNetCore (9, 0, "net9.0-ios", Platform.iOS);
+			AddNetCore (9, 0, "net9.0-maccatalyst", Platform.MacCatalyst);
+			AddNetCore (9, 0, "net9.0-macos", Platform.macOS);
+			AddNetCore (9, 0, "net9.0-tvos", Platform.tvOS);
+
 			AddLegacy (null, FxID.MonoAndroid, 1, 0);
 			AddLegacy (null, FxID.MonoAndroid, 2, 3);
 			AddLegacy (null, FxID.MonoAndroid, 4, 0, 3);
