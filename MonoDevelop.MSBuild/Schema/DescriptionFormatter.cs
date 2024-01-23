@@ -273,12 +273,18 @@ namespace MonoDevelop.MSBuild.Schema
 					return customTypeInfo.Name;
 				}
 				return "enum";
+			case MSBuildValueKind.ClrNamespace:
+				return "clr-namespace";
+			case MSBuildValueKind.ClrType:
+				return "clr-type";
+			case MSBuildValueKind.ClrTypeName:
+				return "clr-type-name";
 			}
 			return null;
 		}
 
 		/// <summary>
-		/// Gets a lowercase noun decribing the element. Intended to be localized and substituted into localized strings.
+		/// Gets a lowercase noun describing the element. Intended to be localized and substituted into localized strings.
 		/// </summary>
 		public static string GetKindNoun (this ISymbol info)
 			=> info switch {

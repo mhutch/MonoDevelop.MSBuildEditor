@@ -189,7 +189,23 @@
       "includeDescription": "resource files",
       "type": "file",
       "metadata": {
-        "LogicalName": "Overrides the default resource ID"
+        "LogicalName": "Overrides the default resource ID",
+        "StronglyTypedFileName": {
+          "description": "Specifies a filename into which to generate a strongly-typed resource class. Generally it should be written to a file in `$(IntermediateOutputPath)`. All the `StronglyTyped*` metadata must be set to enable this feature.",
+          "type": "file"
+        },
+        "StronglyTypedLanguage": {
+          "description": "Specifies the language use when generating a strongly-typed resource class. All the `StronglyTyped*` metadata must be set to enable this feature.",
+          "type": [ "CSharp", "VisualBasic" ]
+        },
+        "StronglyTypedNamespace": {
+          "description": "Specifies the namespace to use when generating a strongly-typed resource class. All the `StronglyTyped*` metadata must be set to enable this feature.",
+          "type": "clr-namespace"
+        },
+        "StronglyTypedClassName": {
+          "description": "Specifies the class name to use when generating a strongly-typed resource class. All the `StronglyTyped*` metadata must be set to enable this feature.",
+          "type": "clr-type-name"
+        }
       }
     },
     "Content": {
@@ -641,7 +657,10 @@
       "type": "url"
     },
     "ResponseFile": "",
-    "RootNamespace": "The root namespace to use for new files",
+    "RootNamespace": {
+      "description": "The root namespace to use for new files",
+      "type": "clr-namespace"
+    },
     "RuntimeIdentifier": {
       "description": "Runtime identifier supported by the project (e.g. win10-x64)",
       "type": "runtime-id"
@@ -974,7 +993,10 @@
       "$appliesTo": [ "ApplicationDefinition", "None", "EmbeddedResource", "Content", "Page", "Resource" ],
       "Generator": "Name of any file generator that is run on this item",
       "LastGenOutput": "File that was created by any file generator that was run on this item",
-      "CustomToolNamespace": "Namespace into which any file generator that is run on this item should create code"
+      "CustomToolNamespace": {
+        "description": "Namespace into which any file generator that is run on this item should create code",
+        "type": "clr-namespace"
+      }
     },
     {
       // This technically applies to everything declared outside of a target

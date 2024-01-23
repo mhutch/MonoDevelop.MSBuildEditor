@@ -46,7 +46,7 @@
     // TODO: namespace validation
     "InterceptorsPreviewNamespaces": {
       "description": "A list of namespaces in which to allow interceptors.",
-      "type": "string",
+      "type": "clr-namespace",
       "isList": true
     }
   },
@@ -54,6 +54,7 @@
     "Using": {
       "description": "A C# global using to add to the project.",
       "includeDescription": "The namespace or type identifier to add, e.g. Microsoft.AspNetCore",
+      "type": "clr-namespace",
       "metadata": {
         "Alias": {
           "description": "Optional alias for the namespace or type.",

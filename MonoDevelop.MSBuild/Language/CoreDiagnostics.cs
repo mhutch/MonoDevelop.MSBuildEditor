@@ -450,6 +450,28 @@ namespace MonoDevelop.MSBuild.Language
 			"The value `{0}` is not a valid version format",
 			MSBuildDiagnosticSeverity.Error);
 
+
+		public const string InvalidClrNamespace_Id = nameof (InvalidClrNamespace);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrNamespace = new (
+			InvalidClrNamespace_Id,
+			"Invalid .NET namespace",
+			"The value `{0}` is not a valid .NET namespace string",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidClrType_Id = nameof (InvalidClrType);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrType = new (
+			InvalidClrType_Id,
+			"Invalid qualified .NET type name",
+			"The value `{0}` is not a valid qualified .NET type name string",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidClrTypeName_Id = nameof (InvalidClrTypeName);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrTypeName = new (
+			InvalidClrTypeName_Id,
+			"Invalid unqualified .NET type name",
+			"The value `{0}` is not a valid qualified .NET type name string",
+			MSBuildDiagnosticSeverity.Error);
+
 		public const string UnknownTargetFramework_Id = nameof(UnknownTargetFramework);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFramework = new (
 			UnknownTargetFramework_Id,

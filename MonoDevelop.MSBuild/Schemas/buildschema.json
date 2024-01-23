@@ -453,6 +453,18 @@
         {
           "const": "platform",
           "description": "A value of the MSBuild `Platform` property"
+        },
+        {
+          "const": "clr-namespace",
+          "description": "A .NET namespace"
+        },
+        {
+          "const": "clr-type",
+          "description": "A fully qualified .NET type name"
+        },
+        {
+          "const": "clr-type-name",
+          "description": "An unqualified .NET type name"
         }
       ]
     }

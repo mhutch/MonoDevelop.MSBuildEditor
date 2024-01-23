@@ -98,8 +98,14 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		// custom type declared in a schema
 		CustomType,
 
+		// specially handled nuget types
 		NuGetID,
 		NuGetVersion,
+
+		// .NET namespace and type names
+		ClrNamespace,
+		ClrType,
+		ClrTypeName,
 
 		// --------- MODIFIER FLAGS ---------
 

@@ -142,6 +142,9 @@ partial class MSBuildSchema
 		{ "file-or-folder", MSBuildValueKind.FileOrFolder },
 		{ "extension", MSBuildValueKind.Extension },
 		{ "configuration", MSBuildValueKind.Configuration },
-		{ "platform", MSBuildValueKind.Platform }
+		{ "platform", MSBuildValueKind.Platform },
+		{ "clr-namespace", MSBuildValueKind.ClrNamespace },
+		{ "clr-type", MSBuildValueKind.ClrType },
+		{ "clr-type-name", MSBuildValueKind.ClrTypeName }
 	};
 }

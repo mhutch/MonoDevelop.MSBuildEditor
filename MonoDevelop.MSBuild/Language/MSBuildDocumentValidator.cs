@@ -747,6 +747,23 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				}
+			case MSBuildValueKind.ClrNamespace:
+				if (!IsValidTypeOrNamespace (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrNamespace, value);
+				}
+				break;
+
+			case MSBuildValueKind.ClrType:
+				if (!IsValidTypeOrNamespace (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrType, value);
+				}
+				break;
+
+			case MSBuildValueKind.ClrTypeName:
+				if (!(IsValidTypeOrNamespace (value, out int componentCount) && componentCount == 1)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrTypeName, value);
+				}
+				break;
 			}
 
 			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (trimmedOffset, escapedLength), args);
@@ -764,6 +781,18 @@ namespace MonoDevelop.MSBuild.Language
 						.AddIfNotNull ("CustomType", info.CustomType),
 					args
 				);
+			}
+
+			static bool IsValidTypeOrNamespace (string value, out int componentCount)
+			{
+				string[] components = value.Split ('.');
+				componentCount = components.Length;
+				foreach (var component in components) {
+					if (!System.CodeDom.Compiler.CodeGenerator.IsValidLanguageIndependentIdentifier (component)) {
+						return false;
+					}
+				}
+				return true;
 			}
 		}
 
