@@ -272,6 +272,10 @@ namespace MonoDevelop.MSBuild.Schema
 				if (customTypeInfo != null && customTypeInfo.Name != null) {
 					return customTypeInfo.Name;
 				}
+				// derived types inherit the name from the base type
+				if (customTypeInfo.BaseKind != MSBuildValueKind.Unknown) {
+					return FormatKind (customTypeInfo.BaseKind, null);
+				}
 				return "enum";
 			case MSBuildValueKind.ClrNamespace:
 				return "clr-namespace";

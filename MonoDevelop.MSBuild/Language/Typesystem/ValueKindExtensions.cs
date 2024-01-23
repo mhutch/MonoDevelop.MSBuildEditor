@@ -16,6 +16,11 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public static MSBuildValueKind WithoutModifiers (this MSBuildValueKind kind) => kind & ~MSBuildValueKind.AllModifiers;
 
 		/// <summary>
+		/// Determine whether the type has any modifier flags (i.e. list, literal)
+		/// </summary>
+		public static bool HasModifiers (this MSBuildValueKind kind) => (kind | MSBuildValueKind.AllModifiers) != 0;
+
+		/// <summary>
 		/// Checks whether the value kind is a specific value kind or list of that value kind.
 		/// </summary>
 		public static bool IsKindOrListOfKind (this MSBuildValueKind kind, MSBuildValueKind compareTo) => kind.WithoutModifiers () == compareTo.WithoutModifiers ();

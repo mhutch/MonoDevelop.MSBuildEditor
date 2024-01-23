@@ -21,6 +21,11 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			foreach (var v in values) {
 				v.SetParent (this);
 			}
+
+			// note: SchemaLoadState is even more restrictive on base types right now, this is just to make absolutely sure we don't get stack overflows
+			if (baseKind == MSBuildValueKind.CustomType && baseKind.HasModifiers ()) {
+				throw new ArgumentException ("Custom types may only derive from intrinsic types without modifiers", nameof (baseKind));
+			}
 		}
 
 		public string? Name { get; }
