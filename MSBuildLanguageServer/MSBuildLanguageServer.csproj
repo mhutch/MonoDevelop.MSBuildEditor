@@ -1,0 +1,105 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Protocol/**/*.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/**/*.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/RequestContextFactory.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/IInitializeManager.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/InitializeManager.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IOnInitialize.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/AbstractLspServiceProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/ICapabilitiesProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IRequestExecutionQueueProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IClientLanguageServerManager.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ILspService.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ILspServiceFactory.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/LspServiceMetadataView.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/LspServices.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerLifetime/InitializeHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerLifetime/InitializedHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerLifetime/LspServiceLifeCycleManager.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ILspServiceRequestHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ILspServiceNotificationHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerInfoProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/TelemetryService.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RoslynLspServiceProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportCSharpVisualBasicLspServiceFactoryAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportCSharpVisualBasicStatelessLspServiceAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportLspServiceFactoryAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportStatelessLspServiceAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/ProtocolConstants.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/LanguageServerNotificationManager.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefConstruction.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/RequestExecutionQueueProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/RoslynRequestExecutionQueue.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/MethodAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ISolutionRequiredHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/RequestTelemetryLoggerFactory.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/RequestTelemetryLogger.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Telemetry/TelemetryLogging.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Telemetry/ITelemetryLog.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Telemetry/ITelemetryLogProvider.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Telemetry/TelemetryLoggingInterpolatedStringHandler.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/KeyValueLogMessage.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/CountLogAggregator.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/AbstractLogAggregator.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/ObjectPools/*.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Collections/*.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/*.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathUtilities.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathKind.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/TaskExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/IExpeditableDelaySource.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RequestTelemetryScope.cs" />
+  </ItemGroup>
+
+  <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="../external/roslyn/src/Dependencies/Collections/Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <EmbeddedResource Update="../external/roslyn/src/Dependencies/Collections/**/*.resx" GenerateSource="true" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LanguageServerProtocolResources.Designer.cs" />
+    <EmbeddedResource Include="../external/roslyn/src/Features/LanguageServer/Protocol/LanguageServerProtocolResources.resx"
+      LogicalName="Microsoft.CodeAnalysis.LanguageServer.LanguageServerProtocolResources" />
+    <EmbeddedResource Include="../external/roslyn/src/Compilers/Core/Portable/CodeAnalysisResources.resx"
+      GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeAnalysisResources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MonoDevelop.MSBuild.Editor/MonoDevelop.MSBuild.Editor.csproj" />
+    <ProjectReference Include="../MonoDevelop.MSBuild/MonoDevelop.MSBuild.csproj" />
+    <ProjectReference Include="../MonoDevelop.Xml/Core/MonoDevelop.Xml.Core.csproj" />
+    <ProjectReference Include="../MonoDevelop.Xml/Editor/MonoDevelop.Xml.Editor.csproj" />
+    <ProjectReference Include="../MonoDevelop.Xml/external/MiniEditor/Microsoft.VisualStudio.MiniEditor/Microsoft.VisualStudio.MiniEditor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="17.7.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource
+      Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+      StronglyTypedLanguage="CSharp"
+      StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+      StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+      Generator="MSBuild:Compile"
+      Link="sdk\resource\%(ClassName).resx"
+      StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs"
+      LogicalName="%(ClassName).resources" />
+  </ItemGroup>
+
+</Project>

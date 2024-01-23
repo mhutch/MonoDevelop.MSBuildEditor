@@ -45,7 +45,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MiniEditor", "MiniEditor", 
 		MonoDevelop.Xml\external\MiniEditor\Directory.Packages.props = MonoDevelop.Xml\external\MiniEditor\Directory.Packages.props
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildLanguageServer", "MSBuildLanguageServer\MSBuildLanguageServer.csproj", "{6D59750D-6CF5-423D-9788-C5733A5BB662}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		external\roslyn\src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{6d59750d-6cf5-423d-9788-c5733a5bb662}*SharedItemsImports = 5
+		external\roslyn\src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{6d59750d-6cf5-423d-9788-c5733a5bb662}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		DebugMac|Any CPU = DebugMac|Any CPU
@@ -139,6 +145,14 @@ Global
 		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
 		{36BACB3E-74B0-45D8-9C48-178BB9549BF1}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.DebugMac|Any CPU.Build.0 = Debug|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.ReleaseMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D59750D-6CF5-423D-9788-C5733A5BB662}.ReleaseMac|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
