@@ -1,58 +1,47 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
+/*
 using Nerdbank.Streams;
 using StreamJsonRpc;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.LanguageServer.Protocol;
 using System.Composition;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
-static async Task<CompositionConfiguration> CreateMefCatalog ()
-{
-	// support both System.Composition and System.ComponentModel.Composition
-	var discovery = PartDiscovery.Combine(
-		new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true),
-		new AttributedPartDiscoveryV1(Resolver.DefaultInstance));
 
-	var assemblyCatalog = ComposableCatalog.Create(Resolver.DefaultInstance);
+WindowsErrorReporting.SetErrorModeOnWindows();
 
-	var assemblies = new [] {
-		typeof(MonoDevelop.Xml.Editor.XmlContentTypeNames).Assembly, // MonoDevelop.Xml.Editor.dll
-		typeof(MonoDevelop.MSBuild.Editor.MSBuildContentType).Assembly // MonoDevelop.MSBuild.Editor.dll
-	};
+var parser = ProgramHelpers.CreateCommandLineParser();
+return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
-	foreach (var assembly in assemblies) {
-		var parts = await discovery.CreatePartsAsync(assembly);
-		assemblyCatalog = assemblyCatalog.AddParts(parts);
-	}
 
-	return CompositionConfiguration.Create(assemblyCatalog);
-}
+
 
 var logger = new MSBuildLspLogger ();
-
-var mefGraph = await CreateMefCatalog ();
-var exportProvider = mefGraph.CreateExportProviderFactory ().CreateExportProvider ();
-
-// TODO: return compositionConfiguration.CompositionErrors over JsonRpc
 
 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
 var messageFormatter = new JsonMessageFormatter();
 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, messageFormatter));
 
-AbstractLspServiceProvider lspServiceProvider = exportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider> ();
-ICapabilitiesProvider capabilitiesProvider = exportProvider.GetExportedValue<MSBuildCapabilitiesProvider> ();
+// TODO: return compositionConfiguration.CompositionErrors over JsonRpc
+var catalog = await MSBuildLspCatalog.Create ();
 
-var server = new MSBuildLanguageServer(
-	lspServiceProvider,
+ICapabilitiesProvider capabilitiesProvider = catalog.ExportProvider.GetExportedValue<MSBuildCapabilitiesProvider> ();
+ILanguageServerFactory languageServerFactory = catalog.ExportProvider.GetExportedValue<ILanguageServerFactory> ();
+
+var host = new LanguageServerHost (serverStream, serverStream, catalog.ExportProvider, logger);
+
+host.Start();
+
+var server = languageServerFactory.Create (
 	jsonRpc,
 	capabilitiesProvider,
+	WellKnownLspServerKinds.MSBuild,
 	logger,
-    new Microsoft.CodeAnalysis.Host.HostServices (),
-	[ "MSBuild" ],
-	WellKnownLspServerKinds.MSBuild);
+    new Microsoft.CodeAnalysis.Host.HostServices ()
+);
 
 jsonRpc.StartListening();
 server.Initialize();

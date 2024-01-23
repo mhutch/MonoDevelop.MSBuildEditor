@@ -16,8 +16,8 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/IInitializeManager.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/InitializeManager.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IOnInitialize.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/AbstractLspServiceProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/ICapabilitiesProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/ILanguageServerFactory.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IRequestExecutionQueueProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/IClientLanguageServerManager.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ILspService.cs" />
@@ -31,12 +31,17 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ILspServiceNotificationHandler.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerInfoProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/TelemetryService.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/AbstractLspServiceProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RoslynLspServiceProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportCSharpVisualBasicLspServiceFactoryAttribute.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportCSharpVisualBasicStatelessLspServiceAttribute.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportLspServiceFactoryAttribute.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/ExportStatelessLspServiceAttribute.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/ProtocolConstants.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Logging/ServerLoggerFactory.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Logging/LspServiceLogger.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Logging/LspLogMessageLogger.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Logging/LspLogMessageLoggerProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/LanguageServerNotificationManager.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefConstruction.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/RequestExecutionQueueProvider.cs" />
@@ -64,6 +69,13 @@
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/IExpeditableDelaySource.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RequestTelemetryScope.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ResolveCache.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/LanguageServer/LanguageServerHost.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/LanguageServer/ServerCapabilitiesProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/WindowsErrorReporting.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/NamedPipeInformation.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/CustomExportAssemblyLoader.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/AssemblyLoadContextWrapper.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
@@ -87,7 +99,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="17.7.18" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>

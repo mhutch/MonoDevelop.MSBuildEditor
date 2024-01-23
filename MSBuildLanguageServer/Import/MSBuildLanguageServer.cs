@@ -1,8 +1,10 @@
+// modified copy of
+// https://github.com/dotnet/roslyn/blob/ed71f060344d29e4fa70fc6096fa5a069d9903d8/src/Features/LanguageServer/Protocol/RoslynLanguageServer.cs
+// changes annotated inline with // MODIFICATION
+//
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-// based on https://github.com/dotnet/roslyn/blob/ed71f060344d29e4fa70fc6096fa5a069d9903d8/src/Features/LanguageServer/Protocol/RoslynLanguageServer.cs
 
 using System;
 using System.Collections.Generic;
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<IMethodHandler>(new InitializedHandler());
             AddBaseService<IOnInitialized>(this);
 
+			//MODIFICATION 1
 			/*
             // In all VS cases, we already have a misc workspace.  Specifically
             // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
@@ -90,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
                 AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
 			*/
+			// END MODIFICATION 1
 
             return baseServices.ToImmutableDictionary();
 

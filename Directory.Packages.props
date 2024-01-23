@@ -30,7 +30,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.5.22" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.0.51" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.6.17" />
     <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.VisualStudio" Version="17.5.1" />
@@ -42,6 +42,9 @@
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.23407.1" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" PrivateAssets="all" />
