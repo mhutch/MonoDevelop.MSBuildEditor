@@ -241,7 +241,7 @@
     },
     "NetStandardImplicitPackageVersion": {
       "description": "Override the version of the implicit `NETStandard.Library` package reference used when targeting `netstandard1.x`.",
-      "type": "version",
+      "type": "version-suffixed",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#netstandardimplicitpackageversion"
     },
     "CopyLocalLockFileAssemblies": {

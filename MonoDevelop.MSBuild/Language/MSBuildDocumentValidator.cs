@@ -661,8 +661,13 @@ namespace MonoDevelop.MSBuild.Language
 					AddErrorWithArgs (CoreDiagnostics.InvalidVersion, value);
 				}
 				break;
-			/*
-			 */
+			case MSBuildValueKind.NuGetVersion:
+			case MSBuildValueKind.VersionSuffixed:
+				// TODO
+				if (!NuGet.Versioning.NuGetVersion.TryParse (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidVersionSuffixed, value);
+				}
+				break;
 			case MSBuildValueKind.TargetName:
 				if (GetSchemasExcludingCurrentDocInferred ().GetTarget (value) is TargetInfo resolvedTarget) {
 					CheckDeprecated (resolvedTarget, expressionText);

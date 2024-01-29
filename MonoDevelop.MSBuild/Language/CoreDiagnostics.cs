@@ -450,6 +450,12 @@ namespace MonoDevelop.MSBuild.Language
 			"The value `{0}` is not a valid version format",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string InvalidVersionSuffixed_Id = nameof (InvalidVersionSuffixed);
+		public static readonly MSBuildDiagnosticDescriptor InvalidVersionSuffixed = new (
+			InvalidVersionSuffixed_Id,
+			"Invalid suffixed version format",
+			"The value `{0}` is not a valid suffixed version format",
+			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidClrNamespace_Id = nameof (InvalidClrNamespace);
 		public static readonly MSBuildDiagnosticDescriptor InvalidClrNamespace = new (
