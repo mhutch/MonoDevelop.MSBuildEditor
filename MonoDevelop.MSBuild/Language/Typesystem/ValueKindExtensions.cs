@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 						"When the task outputs errors, do not execute further tasks and targets",
 						MSBuildValueKind.ContinueOnError),
 					new ConstantSymbol (
-						"true",
+						"false",
 						"Equivalent to `ErrorAndStop`",
 						MSBuildValueKind.ContinueOnError),
 
