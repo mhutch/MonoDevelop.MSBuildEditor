@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -67,87 +66,87 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			switch (kind) {
 			case MSBuildValueKind.Bool:
 				if (!includeParseableTypes) {
-					return Array.Empty<ConstantSymbol> ();
+					return [];
 				}
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("True", null, MSBuildValueKind.Bool),
-					new ConstantSymbol ("False", null, MSBuildValueKind.Bool),
-				};
+				return [
+					new ("True", null, MSBuildValueKind.Bool),
+					new ("False", null, MSBuildValueKind.Bool),
+				];
 			case MSBuildValueKind.TaskArchitecture:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("*", "Any architecture", MSBuildValueKind.TaskArchitecture),
-					new ConstantSymbol ("CurrentArchitecture", "The architecture on which MSBuild is running", MSBuildValueKind.TaskArchitecture),
-					new ConstantSymbol ("x86", "The 32-bit x86 architecture", MSBuildValueKind.TaskArchitecture),
-					new ConstantSymbol ("x64", "The 64-bit x64 architecture", MSBuildValueKind.TaskArchitecture),
-				};
+				return [
+					new ("*", "Any architecture", MSBuildValueKind.TaskArchitecture),
+					new ("CurrentArchitecture", "The architecture on which MSBuild is running", MSBuildValueKind.TaskArchitecture),
+					new ("x86", "The 32-bit x86 architecture", MSBuildValueKind.TaskArchitecture),
+					new ("x64", "The 64-bit x64 architecture", MSBuildValueKind.TaskArchitecture),
+				];
 			case MSBuildValueKind.TaskRuntime:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("*", "Any runtime", MSBuildValueKind.TaskRuntime),
-					new ConstantSymbol ("CurrentRuntime", "The runtime on which MSBuild is running", MSBuildValueKind.TaskRuntime),
-					new ConstantSymbol ("CLR2", "The .NET 2.0 runtime", MSBuildValueKind.TaskRuntime),
-					new ConstantSymbol ("CLR4", "The .NET 4.0 runtime", MSBuildValueKind.TaskRuntime),
-				};
+				return [
+					new ("*", "Any runtime", MSBuildValueKind.TaskRuntime),
+					new ("CurrentRuntime", "The runtime on which MSBuild is running", MSBuildValueKind.TaskRuntime),
+					new ("CLR2", "The .NET 2.0 runtime", MSBuildValueKind.TaskRuntime),
+					new ("CLR4", "The .NET 4.0 runtime", MSBuildValueKind.TaskRuntime),
+				];
 			case MSBuildValueKind.Importance:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("high", "High importance, only displayed for all log verbosity settings", MSBuildValueKind.Importance),
-					new ConstantSymbol ("normal", "Normal importance", MSBuildValueKind.Importance),
-					new ConstantSymbol ("low", "Low importance, only displayed for highly verbose log settings", MSBuildValueKind.Importance)
-				};
+				return [
+					new ("high", "High importance, only displayed for all log verbosity settings", MSBuildValueKind.Importance),
+					new ("normal", "Normal importance", MSBuildValueKind.Importance),
+					new ("low", "Low importance, only displayed for highly verbose log settings", MSBuildValueKind.Importance)
+				];
 			case MSBuildValueKind.HostOS:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("Windows_NT", "Running on Windows", MSBuildValueKind.HostOS),
-					new ConstantSymbol ("Unix", "Running on Unix", MSBuildValueKind.HostOS)
+				return [
+					new ("Windows_NT", "Running on Windows", MSBuildValueKind.HostOS),
+					new ("Unix", "Running on Unix", MSBuildValueKind.HostOS)
 					// deliberately ignoring Mac as this value doesn't work for legacy compat reasons
-				};
+				];
 			case MSBuildValueKind.HostRuntime:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("Mono", "Running on Mono", MSBuildValueKind.HostRuntime),
-					new ConstantSymbol ("Core", "Running on .NET Core", MSBuildValueKind.HostRuntime),
-					new ConstantSymbol ("Full", "Running on .NET Framework", MSBuildValueKind.HostRuntime)
-				};
+				return [
+					new ("Mono", "Running on Mono", MSBuildValueKind.HostRuntime),
+					new ("Core", "Running on .NET Core", MSBuildValueKind.HostRuntime),
+					new ("Full", "Running on .NET Framework", MSBuildValueKind.HostRuntime)
+				];
 			case MSBuildValueKind.ContinueOnError:
-				return new ConstantSymbol [] {
-					new ConstantSymbol (
+				return [
+					new (
 						"WarnAndContinue",
 						"When the task outputs errors, convert them to warnings, and continue executing other tasks and targets",
 						MSBuildValueKind.ContinueOnError),
-					new ConstantSymbol (
+					new (
 						"true",
 						"Equivalent to `WarnAndContinue`",
 						MSBuildValueKind.ContinueOnError),
-					new ConstantSymbol (
+					new (
 						"ErrorAndContinue",
 						"When the task outputs errors, continue executing other tasks and targets",
 						MSBuildValueKind.ContinueOnError),
-					new ConstantSymbol (
+					new (
 						"ErrorAndStop",
 						"When the task outputs errors, do not execute further tasks and targets",
 						MSBuildValueKind.ContinueOnError),
-					new ConstantSymbol (
+					new (
 						"false",
 						"Equivalent to `ErrorAndStop`",
 						MSBuildValueKind.ContinueOnError),
 
-				};
+				];
 			case MSBuildValueKind.SkipNonexistentProjectsBehavior:
-				return new ConstantSymbol[] {
-					new ConstantSymbol ("True", "Skip the project if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
-					new ConstantSymbol ("False", "Output an error if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
-					new ConstantSymbol ("Build", "Build the project even if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior)
+				return [
+					new ("True", "Skip the project if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
+					new ("False", "Output an error if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior),
+					new ("Build", "Build the project even if the project file does not exist", MSBuildValueKind.SkipNonexistentProjectsBehavior)
 
-				};
+				];
 			case MSBuildValueKind.ToolsVersion:
-				return new ConstantSymbol [] {
-					new ConstantSymbol ("2.0", "MSBuild 2.0, included in .NET Framework 2.0", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("3.5", "MSBuild 3.5, included in .NET Framework 3.5", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("4.0", "MSBuild 4.0, included in .NET Framework 4.0", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("12.0", "MSBuild 12.0, included in Visual Studio 2013", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("14.0", "MSBuild 14.0, included in Visual Studio 2015", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("15.0", "MSBuild 15.0, included in Visual Studio 2017", MSBuildValueKind.ToolsVersion),
-					new ConstantSymbol ("Current", "MSBuild 16.0 and later, included in Visual Studio 2019 and later", MSBuildValueKind.ToolsVersion),
-				};
+				return [
+					new ("2.0", "MSBuild 2.0, included in .NET Framework 2.0", MSBuildValueKind.ToolsVersion),
+					new ("3.5", "MSBuild 3.5, included in .NET Framework 3.5", MSBuildValueKind.ToolsVersion),
+					new ("4.0", "MSBuild 4.0, included in .NET Framework 4.0", MSBuildValueKind.ToolsVersion),
+					new ("12.0", "MSBuild 12.0, included in Visual Studio 2013", MSBuildValueKind.ToolsVersion),
+					new ("14.0", "MSBuild 14.0, included in Visual Studio 2015", MSBuildValueKind.ToolsVersion),
+					new ("15.0", "MSBuild 15.0, included in Visual Studio 2017", MSBuildValueKind.ToolsVersion),
+					new ("Current", "MSBuild 16.0 and later, included in Visual Studio 2019 and later", MSBuildValueKind.ToolsVersion),
+				];
 			}
-			return Array.Empty<ConstantSymbol> ();
+			return [];
 		}
 
 		public static ExpressionOptions GetExpressionOptions (this MSBuildValueKind kind)
