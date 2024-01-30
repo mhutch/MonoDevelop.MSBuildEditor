@@ -117,7 +117,7 @@ partial class MSBuildSchema
 		{ "guid", MSBuildValueKind.Guid },
 		{ "url", MSBuildValueKind.Url },
 		{ "version", MSBuildValueKind.Version },
-		{ "suffixed-version", MSBuildValueKind.SuffixedVersion },
+		{ "version-suffixed", MSBuildValueKind.VersionSuffixed },
 		{ "lcid", MSBuildValueKind.Lcid },
 		{ "culture", MSBuildValueKind.Culture },
 		{ "target-name", MSBuildValueKind.TargetName },
@@ -142,6 +142,9 @@ partial class MSBuildSchema
 		{ "file-or-folder", MSBuildValueKind.FileOrFolder },
 		{ "extension", MSBuildValueKind.Extension },
 		{ "configuration", MSBuildValueKind.Configuration },
-		{ "platform", MSBuildValueKind.Platform }
+		{ "platform", MSBuildValueKind.Platform },
+		{ "clr-namespace", MSBuildValueKind.ClrNamespace },
+		{ "clr-type", MSBuildValueKind.ClrType },
+		{ "clr-type-name", MSBuildValueKind.ClrTypeName }
 	};
 }

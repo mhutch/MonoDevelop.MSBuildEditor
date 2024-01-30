@@ -12,6 +12,7 @@ enum BuiltInSchemaId
 	CommonTargets,
 	Cpp,
 	CSharp,
+	ILLink,
 	NetSdk,
 	NuGet,
 	NuGetPack,
@@ -21,5 +22,7 @@ enum BuiltInSchemaId
 	VisualBasic,
 	WindowsDesktop,
 	ProjectSystemMps,
-	ProjectSystemCps
+	ProjectSystemCps,
+	GenerateAssemblyInfo,
+	ValidatePackage
 }

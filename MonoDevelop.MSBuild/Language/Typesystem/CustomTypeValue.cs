@@ -2,24 +2,21 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace MonoDevelop.MSBuild.Language.Typesystem
+namespace MonoDevelop.MSBuild.Language.Typesystem;
+
+public sealed class CustomTypeValue (string name, DisplayText description, string? deprecationMessage = null, string? helpUrl = null)
+	: ISymbol, ITypedSymbol, IDeprecatable, IHasHelpUrl
 {
-	public sealed class CustomTypeValue : ISymbol, ITypedSymbol
-	{
-		public CustomTypeValue (string name, DisplayText description)
-		{
-			Name = name;
-			Description = description;
-		}
+	public CustomTypeInfo CustomType { get; private set; }
 
-		public CustomTypeInfo CustomType { get; private set; }
+	public MSBuildValueKind ValueKind => MSBuildValueKind.CustomType;
 
-		public MSBuildValueKind ValueKind => MSBuildValueKind.CustomType;
+	public string Name { get; } = name;
 
-		public string Name { get; }
+	public DisplayText Description { get; } = description;
 
-		public DisplayText Description { get; }
+	public string? DeprecationMessage { get; } = deprecationMessage;
+	public string? HelpUrl { get; } = helpUrl;
 
-		internal void SetParent (CustomTypeInfo parent) => CustomType = parent;
-	}
+	internal void SetParent (CustomTypeInfo parent) => CustomType = parent;
 }

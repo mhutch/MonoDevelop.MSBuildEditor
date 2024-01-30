@@ -41,11 +41,15 @@ namespace MonoDevelop.MSBuild.Language
 			FileKind = MSBuildFileKindExtensions.GetFileKind (Filename);
 
 			if (isToplevel) {
-				Diagnostics = new List<MSBuildDiagnostic> ();
+				Diagnostics = new ();
 			}
 		}
 
-		public string Filename { get; }
+		/// <summary>
+		/// The filename. May be null when editing an unsaved file.
+		/// </summary>
+		public string? Filename { get; }
+
 		public MSBuildSchema Schema { get; internal set; }
 		public MSBuildInferredSchema InferredSchema { get; private set; }
 

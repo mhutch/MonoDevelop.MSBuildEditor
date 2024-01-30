@@ -1,9 +1,52 @@
 {
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   "properties": {
-    "AspNetCoreHostingModel": "Indicates whether to run an ASP.NET Core application using IIS in-process or out-of-process.",
-    "AspNetCoreModuleName": "Indicates which AspNetCoreModule version to use. Versions include V1 and V2.",
-    "UserSecretsId": "The ID that will be used to locate the file storing secret configuration values for this project at development time.",
+    "AspNetCoreHostingModel": {
+      "description": "Indicates whether to run an ASP.NET Core application using IIS in-process or out-of-process.",
+      "type": {
+        "allowUnknownValues": false,
+        "values": {
+          "InProcess": "Run the app using IIS in-process",
+          "OutOfProcess": "Run the app using IIS out-of-process"
+        }
+      },
+      "defaultValue": "InProcess",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/in-process-hosting"
+    },
+    "AspNetCoreModuleName": {
+      "description": "Indicates which AspNetCoreModule version to use. Versions include V1 and V2.",
+      "type": [
+        "AspNetCoreModuleV1",
+        "AspNetCoreModuleV2"
+      ]
+    },
+    "UserSecretsId": {
+      "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time.",
+      "type": "guid",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
+    },
+    "BlazorEnableTimeZoneSupport": {
+      "description": "Indicates whether Blazor WebAssembly should include a data file to make timezone information correct. Setting this to `false` will reduce your app size.",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/performance#disable-unused-features"
+    },
+    "RunAOTCompilation": {
+      "description": "Indicates whether to run the Ahead-of-Time (AOT) compiler on the Blazor WebAssembly app. Setting this to `true` will increase runtime performance of your WebAssembly application but will also increase its deployable size.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly#ahead-of-time-aot-compilation"
+    },
+    "WasmStripILAfterAOT": {
+      "description": "Whether to remove .NET IL for compiled methods after WebAssembly AOT compilation",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly#trim-net-il-after-ahead-of-time-aot-compilation"
+    },
+    "IsTransformWebConfigDisabled": {
+      "description": "Whether to prevent the SDK from transforming the `web.config` file",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/transform-webconfig"
+    }
   },
   "items": {
   },

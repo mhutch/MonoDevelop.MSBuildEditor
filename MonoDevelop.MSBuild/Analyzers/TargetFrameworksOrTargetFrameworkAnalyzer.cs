@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 
 using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 
@@ -48,9 +50,7 @@ namespace MonoDevelop.MSBuild.Analyzers
 
 		void AnalyzeTargetFramework (PropertyWriteDiagnosticContext ctx)
 		{
-			// right now the visitor parses the expression with lists disabled because the type system says it doesn't expect lists, so we get a text node
-			// however, once we attach parsed expressions into the AST they will likely have all options enabled and could be lists
-			if (ctx.Node is ListExpression || (ctx.Node is ExpressionText t && t.Value.IndexOf (';') > -1)) {
+			if (ctx.Node is ListExpression) {
 				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworksForMultipleFrameworks, ctx.XElement.Span));
 			}
 		}
@@ -58,9 +58,16 @@ namespace MonoDevelop.MSBuild.Analyzers
 		void AnalyzeTargetFrameworks (PropertyWriteDiagnosticContext ctx)
 		{
 			if (ctx.Node is ExpressionText t && t.Value.IndexOf (';') < 0) {
+				// if there's another TargetFrameworks element in the document that doesn't have a single framework, it's fine, they're probably doing conditional stuff
+				if (ctx.Document.ProjectElement.GetElements<MSBuildPropertyGroupElement> ().Any (HasTargetFrameworksPropertyWithNonSingularValue)) {
+					return;
+				}
 				ctx.ReportDiagnostic (new MSBuildDiagnostic (UseTargetFrameworkForSingleFramework, ctx.XElement.Span));
 			}
 		}
+
+		static bool HasTargetFrameworksPropertyWithNonSingularValue (MSBuildPropertyGroupElement pg) =>
+			pg.PropertyElements.Any (p => p.IsElementNamed ("TargetFrameworks") && p.Value is not ExpressionText t);
 
 		bool CoreDiagnosticFilter (MSBuildDiagnostic arg)
 			=> arg.Properties != null && arg.Properties.TryGetValue ("Name", out var value) && (string)value == "TargetFramework";

@@ -4,30 +4,36 @@
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class PropertyInfo : VariableInfo
+	public class PropertyInfo : VariableInfo, IHasHelpUrl
 	{
 		public bool IsReserved { get; }
 		public bool IsReadOnly { get; }
+		public string? HelpUrl { get; }
+
 
 		public PropertyInfo (
 			string name, DisplayText description,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			CustomTypeInfo customType = null, string defaultValue = null,
-			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, customType, defaultValue, isDeprecated, deprecationMessage)
+			CustomTypeInfo? customType = null, string? defaultValue = null,
+			string? deprecationMessage = null,
+			string? helpUrl = null)
+			: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
 		{
+			HelpUrl = helpUrl;
 		}
 
 		public PropertyInfo (
 			string name, DisplayText description,
 			bool isReserved, bool isReadOnly,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			CustomTypeInfo customType = null, string defaultValue = null,
-			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, customType, defaultValue, isDeprecated, deprecationMessage)
+			CustomTypeInfo? customType = null, string? defaultValue = null,
+			string? deprecationMessage = null,
+			string? helpUrl = null)
+			: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
 		{
 			IsReserved = isReserved;
 			IsReadOnly = isReadOnly;
+			HelpUrl = helpUrl;
 		}
 	}
 }

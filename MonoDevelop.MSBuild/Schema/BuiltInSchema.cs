@@ -37,6 +37,7 @@ static class BuiltInSchema
 		(BuiltInSchemaId.CommonTargets, null, "Microsoft.Common.targets"),
 		(BuiltInSchemaId.Cpp, null, "Microsoft.Cpp.targets"),
 		(BuiltInSchemaId.CSharp, null, "Microsoft.CSharp.CurrentVersion.targets"),
+		(BuiltInSchemaId.ILLink, null, "Microsoft.NET.ILLink.targets"),
 		(BuiltInSchemaId.NetSdk, "Microsoft.NET.Sdk", sdkTargets),
 		(BuiltInSchemaId.NuGet, null, "NuGet.targets"),
 		(BuiltInSchemaId.NuGetPack, null, "NuGet.Build.Tasks.Pack.targets"),
@@ -44,7 +45,9 @@ static class BuiltInSchema
 		(BuiltInSchemaId.RazorSdk, "Microsoft.NET.Sdk.Razor", sdkTargets),
 		(BuiltInSchemaId.Roslyn, null, "Microsoft.Managed.Core.targets"),
 		(BuiltInSchemaId.VisualBasic, null, "Microsoft.VisualBasic.CurrentVersion.targets"),
-		(BuiltInSchemaId.WindowsDesktop, null, "Microsoft.NET.Sdk.WindowsDesktop.targets")
+		(BuiltInSchemaId.WindowsDesktop, null, "Microsoft.NET.Sdk.WindowsDesktop.targets"),
+		(BuiltInSchemaId.GenerateAssemblyInfo, null, "Microsoft.NET.GenerateAssemblyInfo.targets"),
+		(BuiltInSchemaId.ValidatePackage, null, "Microsoft.NET.ApiCompat.ValidatePackage.targets")
 		}
 		.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
 

@@ -129,14 +129,6 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
-		public const string Deprecated_Id = nameof(Deprecated);
-		public static readonly MSBuildDiagnosticDescriptor Deprecated = new (
-			Deprecated_Id,
-			"Deprecated {0}",
-			"The {0} `{1}` is deprecated",
-			MSBuildDiagnosticSeverity.Warning
-		);
-
 		public const string DeprecatedWithMessage_Id = nameof(DeprecatedWithMessage);
 		public static readonly MSBuildDiagnosticDescriptor DeprecatedWithMessage = new (
 			DeprecatedWithMessage_Id,
@@ -456,6 +448,34 @@ namespace MonoDevelop.MSBuild.Language
 			InvalidVersion_Id,
 			"Invalid version format",
 			"The value `{0}` is not a valid version format",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidVersionSuffixed_Id = nameof (InvalidVersionSuffixed);
+		public static readonly MSBuildDiagnosticDescriptor InvalidVersionSuffixed = new (
+			InvalidVersionSuffixed_Id,
+			"Invalid suffixed version format",
+			"The value `{0}` is not a valid suffixed version format",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidClrNamespace_Id = nameof (InvalidClrNamespace);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrNamespace = new (
+			InvalidClrNamespace_Id,
+			"Invalid .NET namespace",
+			"The value `{0}` is not a valid .NET namespace string",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidClrType_Id = nameof (InvalidClrType);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrType = new (
+			InvalidClrType_Id,
+			"Invalid qualified .NET type name",
+			"The value `{0}` is not a valid qualified .NET type name string",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidClrTypeName_Id = nameof (InvalidClrTypeName);
+		public static readonly MSBuildDiagnosticDescriptor InvalidClrTypeName = new (
+			InvalidClrTypeName_Id,
+			"Invalid unqualified .NET type name",
+			"The value `{0}` is not a valid qualified .NET type name string",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnknownTargetFramework_Id = nameof(UnknownTargetFramework);

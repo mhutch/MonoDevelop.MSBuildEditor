@@ -22,9 +22,9 @@ namespace MonoDevelop.MSBuild.Schema
 			Metadata.Add (name, new MetadataInfo (name, description, !notReserved, false, kind));
 		}
 
-		static void AddReservedProperty (string name, string description, MSBuildValueKind kind) => Properties.Add (name, new PropertyInfo (name, description, true, true, kind));
-		static void AddReadOnlyProperty (string name, string description, MSBuildValueKind kind) => Properties.Add (name, new PropertyInfo (name, description, false, true, kind));
-		static void AddSettableProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown) => Properties.Add (name, new PropertyInfo (name, description, false, false, kind));
+		static void AddReservedProperty (string name, string description, MSBuildValueKind kind, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, true, true, kind, helpUrl: helpUrl));
+		static void AddReadOnlyProperty (string name, string description, MSBuildValueKind kind, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, false, true, kind, helpUrl: helpUrl));
+		static void AddSettableProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, false, false, kind, helpUrl: helpUrl));
 
 		static void AddTask (TaskInfo task) => Tasks.Add (task.Name, task);
 
@@ -81,10 +81,22 @@ namespace MonoDevelop.MSBuild.Schema
 			AddReadOnlyProperty (WellKnownProperties.MSBuildExtensionsPath64, "Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.", MSBuildValueKind.Folder);
 			AddReadOnlyProperty (WellKnownProperties.MSBuildProgramFiles32, "Absolute path of the 32-bit Program Files folder. Does not include final backslash.", MSBuildValueKind.Folder);
 
-			AddSettableProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors, "Whether to treat all warnings as errors", MSBuildValueKind.Bool);
-			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsErrors, "List warning codes to treat as errors", MSBuildValueKind.Unknown.AsList ());
-			AddSettableProperty (WellKnownProperties.MSBuildWarningsNotAsErrors, "List warning codes to treat as low-importance messages", MSBuildValueKind.Unknown.AsList ());
-			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsMessages, "List of warning codes to treat as messages", MSBuildValueKind.Unknown.AsList());
+			AddSettableProperty (WellKnownProperties.MSBuildTreatWarningsAsErrors,
+				"Whether to treat all warnings as errors",
+				MSBuildValueKind.Bool
+			);
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsErrors,
+				"List warning codes to treat as errors",
+				MSBuildValueKind.Unknown.AsList ()
+			);
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsNotAsErrors,
+				"List warning codes that should still be treated as warnings when `TreatWarningsAsErrors` is enabled",
+				MSBuildValueKind.Unknown.AsList ()
+			);
+			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsMessages,
+				"List of warning codes to treat as messages",
+				MSBuildValueKind.Unknown.AsList()
+			);
 			AddSettableProperty (WellKnownProperties.MSBuildAllProjects,
 				"List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.",
 				MSBuildValueKind.ProjectFile);

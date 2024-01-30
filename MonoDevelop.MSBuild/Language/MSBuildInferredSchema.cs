@@ -22,13 +22,16 @@ namespace MonoDevelop.MSBuild.Language
 		//FIXME: this means we can't re-use the inferred schema from other toplevels
 		readonly bool isToplevel;
 
-		MSBuildInferredSchema (string filename, bool isToplevel)
+		MSBuildInferredSchema (string? filename, bool isToplevel)
 		{
 			this.isToplevel = isToplevel;
 			Filename = filename;
 		}
 
-		public string Filename { get; }
+		/// <summary>
+		/// The filename for which this is a schema. May be null if the file has not been saved.
+		/// </summary>
+		public string? Filename { get; }
 
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -70,7 +73,7 @@ namespace MonoDevelop.MSBuild.Language
 				^ StringComparer.OrdinalIgnoreCase.GetHashCode (obj.name);
 		}
 
-		public static MSBuildInferredSchema Build (MSBuildProjectElement project, string filename, bool isToplevel, MSBuildParserContext parseContext)
+		public static MSBuildInferredSchema Build (MSBuildProjectElement project, string? filename, bool isToplevel, MSBuildParserContext parseContext)
 		{
 			var schema = new MSBuildInferredSchema (filename, isToplevel);
 			try {
@@ -257,7 +260,7 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTask (string name)
 		{
 			if (!Tasks.TryGetValue (name, out TaskInfo task)) {
-				Tasks[name] = new TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, false, null);
+				Tasks[name] = new TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, null);
 			}
 		}
 
@@ -367,7 +370,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				} else {
 					// created placeholder task marked as unresolved for analyzers etc
-					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span.Start, false, null);
+					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span.Start, null);
 					return;
 				}
 			}
@@ -392,7 +395,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span.Start, false, null, taskParameters);
+			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span.Start, null, taskParameters);
 		}
 
 		void ExtractReferences (MSBuildValueKind kind, ExpressionNode expression)

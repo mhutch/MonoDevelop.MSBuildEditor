@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#nullable enable
+#nullable enable annotations
 
 using System;
 using System.Collections.Generic;
@@ -79,7 +79,7 @@ namespace MonoDevelop.MSBuild.Language
 				return null;
 			}
 
-			var rr = new MSBuildResolveResult {
+			var rr = new MSBuildMutableResolveResult {
 				ElementSyntax = languageElement,
 				AttributeSyntax = languageAttribute,
 				Element = el,
@@ -96,16 +96,20 @@ namespace MonoDevelop.MSBuild.Language
 				return null;
 			}
 
-			return rr;
+			return rr.AsImmutable ();
 		}
 
-		class MSBuildResolveVisitor : MSBuildResolvingVisitor
+		// ************************
+		// This is deeply coupled with MSBuildResolveResult, as it handles all casting back out from the untyped `Reference` object
+		// ************************
+
+		class MSBuildResolveVisitor : MSBuildDocumentVisitor
 		{
-			int offset;
-			readonly MSBuildResolveResult rr;
+			readonly int offset;
+			readonly MSBuildMutableResolveResult rr;
 			readonly IFunctionTypeProvider functionTypeProvider;
 
-			public MSBuildResolveVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger, int offset, MSBuildResolveResult rr, IFunctionTypeProvider functionTypeProvider)
+			public MSBuildResolveVisitor (MSBuildDocument document, ITextSource textSource, ILogger logger, int offset, MSBuildMutableResolveResult rr, IFunctionTypeProvider functionTypeProvider)
 				: base (document, textSource, logger)
 			{
 				this.offset = offset;
@@ -135,7 +139,7 @@ namespace MonoDevelop.MSBuild.Language
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
 						return;
 					case MSBuildSyntaxKind.Parameter:
-						var taskName = element.ParentElement.ParentElement.Attributes.Get ("TaskName", true)?.Value;
+						var taskName = element.ParentElement!.ParentElement!.Attributes.Get ("TaskName", true)?.Value;
 						if (!string.IsNullOrEmpty (taskName)) {
 							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
@@ -192,9 +196,9 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			protected override void VisitValue (
-				XElement element, XAttribute attribute,
-				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
+				XElement element, XAttribute? attribute,
+				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax? resolvedAttribute,
+				ITypedSymbol? valueDescriptor, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
@@ -232,16 +236,16 @@ namespace MonoDevelop.MSBuild.Language
 						rr.Reference = name.Name;
 						break;
 					case ExpressionPropertyFunctionInvocation prop: {
-							if (prop.Target is ExpressionClassReference classRef) {
-								rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
-								rr.Reference = (classRef.Name, name.Name);
-							} else if (prop.Target is ExpressionPropertyNode propNode) {
-								var type = functionTypeProvider?.ResolveType (propNode) ?? MSBuildValueKind.Unknown;
-								rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
-								rr.Reference = (type, name.Name);
-							}
-							break;
+						if (prop.Target is ExpressionClassReference classRef) {
+							rr.ReferenceKind = MSBuildReferenceKind.StaticPropertyFunction;
+							rr.Reference = (classRef.Name, name.Name);
+						} else if (prop.Target is ExpressionPropertyNode propNode) {
+							var type = functionTypeProvider?.ResolveType (propNode) ?? MSBuildValueKind.Unknown;
+							rr.ReferenceKind = MSBuildReferenceKind.PropertyFunction;
+							rr.Reference = (type, name.Name);
 						}
+						break;
+					}
 					case ExpressionConditionFunction _:
 						rr.ReferenceKind = MSBuildReferenceKind.ConditionFunction;
 						rr.Reference = name.Name;
@@ -296,7 +300,7 @@ namespace MonoDevelop.MSBuild.Language
 			void VisitPureLiteral (XElement element, ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue (true, out int trimmedOffset, out int escapedLength);
-				if (string.IsNullOrEmpty(value)) {
+				if (string.IsNullOrEmpty (value)) {
 					return;
 				}
 				rr.ReferenceOffset = trimmedOffset;
@@ -347,20 +351,20 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					return;
 				case MSBuildValueKind.Lcid:
-					if (CultureHelper.TryGetLcidSymbol (value, out ISymbol lcidSymbol)) {
+					if (CultureHelper.TryGetLcidSymbol (value, out ISymbol? lcidSymbol)) {
 						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 						rr.Reference = lcidSymbol;
 					}
 					break;
 				case MSBuildValueKind.Culture:
-					if (CultureHelper.TryGetCultureSymbol (value, out ISymbol cultureSymbol)) {
+					if (CultureHelper.TryGetCultureSymbol (value, out ISymbol? cultureSymbol)) {
 						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 						rr.Reference = cultureSymbol;
 					}
 					return;
 				}
 
-				var knownVals = (IReadOnlyList <ISymbol>)valueDescriptor?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
+				var knownVals = (IReadOnlyList<ISymbol>?)valueDescriptor?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
 					var valueComparer = (valueDescriptor?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -374,68 +378,25 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 		}
-	}
 
-	class MSBuildResolveResult
-	{
-		public XElement Element;
-		public XAttribute Attribute;
-
-		public MSBuildElementSyntax ElementSyntax;
-		public MSBuildAttributeSyntax AttributeSyntax;
-
-		public string AttributeName => Attribute?.Name.Name;
-		public string ElementName => Element?.Name.Name;
-		public string ParentName => (Element?.Parent as XElement)?.Name.Name;
-
-		public MSBuildReferenceKind ReferenceKind;
-		public int ReferenceOffset;
-		public int ReferenceLength;
-		public object Reference;
-
-		public (string itemName, string metaName) ReferenceAsMetadata => (ValueTuple<string, string>)Reference;
-		public (string taskName, string paramName) ReferenceAsTaskParameter => (ValueTuple<string, string>)Reference;
-		public (MSBuildValueKind type, string functionName) ReferenceAsPropertyFunction => (ValueTuple<MSBuildValueKind, string>)Reference;
-		public (string className, string functionName) ReferenceAsStaticPropertyFunction => (ValueTuple<string, string>)Reference;
-
-		public string GetReferenceName ()
+		/// <summary>
+		/// Mutable version of <see cref="MSBuildResolveResult"/> for use during resolution.
+		/// </summary>
+		internal class MSBuildMutableResolveResult
 		{
-			switch (ReferenceKind) {
-			case MSBuildReferenceKind.TaskParameter:
-				return ReferenceAsTaskParameter.paramName;
-			case MSBuildReferenceKind.Metadata:
-				return ReferenceAsMetadata.metaName;
-			case MSBuildReferenceKind.PropertyFunction:
-				return ReferenceAsPropertyFunction.functionName;
-			case MSBuildReferenceKind.StaticPropertyFunction:
-				return ReferenceAsStaticPropertyFunction.functionName;
-			}
-			return Reference is ISymbol info ? info.Name : (string)Reference;
-		}
-	}
+			public MSBuildReferenceKind ReferenceKind;
+			public int ReferenceOffset;
+			public int ReferenceLength;
 
-	enum MSBuildReferenceKind
-	{
-		None,
-		Item,
-		Property,
-		Metadata,
-		Task,
-		TaskParameter,
-		Keyword,
-		Target,
-		KnownValue,
-		NuGetID,
-		TargetFramework,
-		TargetFrameworkIdentifier,
-		TargetFrameworkVersion,
-		TargetFrameworkProfile,
-		FileOrFolder,
-		ItemFunction,
-		PropertyFunction,
-		StaticPropertyFunction,
-		ClassName,
-		Enum,
-		ConditionFunction
+			public object? Reference;
+
+			public XElement? Element;
+			public XAttribute? Attribute;
+
+			public MSBuildElementSyntax? ElementSyntax;
+			public MSBuildAttributeSyntax? AttributeSyntax;
+
+			public MSBuildResolveResult AsImmutable () => new (this);
+		}
 	}
 }

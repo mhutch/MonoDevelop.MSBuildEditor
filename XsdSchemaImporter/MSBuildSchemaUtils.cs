@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
@@ -28,7 +29,7 @@ static class MSBuildSchemaUtils
 		MSBuildValueKind MapStringKindToUnknown(MSBuildValueKind kind) => treatStringValueKindAsUnknownInOther && kind == MSBuildValueKind.String? MSBuildValueKind.Unknown : kind;
 
 		bool IsBetterDescription(BaseSymbol basis, BaseSymbol other) => IsBetterDocString(basis.Description.Text, other.Description.Text);
-		bool IsBetterDocString(string basis, string other) => !string.IsNullOrEmpty(other) && (string.IsNullOrEmpty(basis) || (!ignoreDifferentDocs && !string.Equals(basis, other)));
+		bool IsBetterDocString(string? basis, string? other) => !string.IsNullOrEmpty(other) && (string.IsNullOrEmpty(basis) || (!ignoreDifferentDocs && !string.Equals(basis, other)));
 		bool IsBetterValueKind(VariableInfo basis, VariableInfo other)
 		{
 			if (basis.ValueKind == MSBuildValueKind.Unknown) {
@@ -69,7 +70,6 @@ static class MSBuildSchemaUtils
 					betterValueKind? otherItem.ValueKind : MSBuildValueKind.Unknown,
 					betterValueKind? otherItem.CustomType : null,
 					newMetadata.Count > 0? newMetadata : null,
-					false,
 					null
 				));
 			}
@@ -78,7 +78,7 @@ static class MSBuildSchemaUtils
 		foreach (var op in otherSchema.Properties.Values) {
 			var otherProp = op;
 			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
-				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.IsDeprecated, otherProp.DeprecationMessage);
+				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.DeprecationMessage);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
 				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {
@@ -117,17 +117,24 @@ static class MSBuildSchemaUtils
 		var combined = new MSBuildSchema();
 		foreach (var s in schemas) {
 			AddRangeOfItems(combined.Items, s.Items);
-			AddRange(combined.Properties, s.Properties);
-			AddRange(combined.Tasks, s.Tasks);
-			AddRange(combined.Targets, s.Targets);
+			AddRange("property", combined.Properties, s.Properties);
+			AddRange("task", combined.Tasks, s.Tasks);
+			AddRange("target", combined.Targets, s.Targets);
 		}
 		return combined;
 	}
 
-	static void AddRange<K, V>( Dictionary<K, V> d, IEnumerable<KeyValuePair<K, V>> range) where K : notnull
+	static void AddRange<TValue>(string valueKind, Dictionary<string, TValue> d, IEnumerable<KeyValuePair<string, TValue>> range)
+		where TValue : BaseSymbol, MonoDevelop.MSBuild.Language.IDeprecatable
 	{
 		foreach (var kv in range) {
-			d.Add(kv.Key, kv.Value);
+			if (!d.TryAdd(kv.Key, kv.Value)) {
+				// ignore duplicate items from ProjectSystem* schemas
+				if (valueKind == "property" && kv.Key == "ProjectTypeGuids" && kv.Value.IsDeprecated ()) {
+					continue;
+				}
+				Console.Error.WriteLine($"Duplicate {valueKind} definition '{kv.Key}'");
+			}
 		}
 	}
 
@@ -141,7 +148,7 @@ static class MSBuildSchemaUtils
 					d[item.Key] = item.Value;
 				}
 				foreach (var meta in mergeFrom.Metadata) {
-					if (mergeTo.Metadata.TryGetValue(meta.Key, out var existing)) {
+					if (mergeTo.Metadata.ContainsKey(meta.Key)) {
 						// TODO: merge the metadata?
 						Console.Error.WriteLine($"Duplicate metadata '{item.Key}.{meta.Key}'");
 					} else {
@@ -149,7 +156,9 @@ static class MSBuildSchemaUtils
 					}
 				}
 			} else {
-				d.Add(item.Key, item.Value);
+				if (!d.TryAdd(item.Key, item.Value)) {
+					Console.Error.WriteLine($"Duplicate item definition '{item.Key}'");
+				}
 			}
 		}
 	}

@@ -14,7 +14,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// <summary>
 		/// Intrinsic task
 		/// </summary>
-		internal TaskInfo (string name, DisplayText description, params TaskParameterInfo[] parameters) : this (name, description, TaskDeclarationKind.Intrinsic, null, null, null, null, 0, false, null)
+		internal TaskInfo (string name, DisplayText description, params TaskParameterInfo[] parameters) : this (name, description, TaskDeclarationKind.Intrinsic, null, null, null, null, 0, null)
 		{
 			foreach (var p in parameters) {
 				Parameters.Add (p.Name, p);
@@ -24,7 +24,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// <summary>
 		/// All other kinds of task
 		/// </summary>
-		public TaskInfo (string name, DisplayText description, TaskDeclarationKind declarationKind, string typeName, string assemblyName, string assemblyFile, string declaredInFile, int declaredAtOffset, bool isDeprecated, string deprecationMessage, Dictionary<string, TaskParameterInfo> parameters = null)
+		public TaskInfo (string name, DisplayText description, TaskDeclarationKind declarationKind, string? typeName, string? assemblyName, string? assemblyFile, string? declaredInFile, int declaredAtOffset, string? deprecationMessage, Dictionary<string, TaskParameterInfo>? parameters = null)
 			: base (name, description)
 		{
 			DeclarationKind = declarationKind;
@@ -33,22 +33,19 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			AssemblyFile = assemblyFile;
 			DeclaredInFile = declaredInFile;
 			DeclaredAtOffset = declaredAtOffset;
-			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
 			DeprecationMessage = deprecationMessage;
 			Parameters = parameters ?? new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
 		}
 
 		public TaskDeclarationKind DeclarationKind { get; }
-		public string TypeName { get; }
-		public string AssemblyName { get; }
-		public string AssemblyFile { get; }
+		public string? TypeName { get; }
+		public string? AssemblyName { get; }
+		public string? AssemblyFile { get; }
 
-		public string DeclaredInFile { get; }
+		public string? DeclaredInFile { get; }
 		public int DeclaredAtOffset  { get; }
 
-		public bool IsDeprecated { get; }
-
-		public string DeprecationMessage { get; }
+		public string? DeprecationMessage { get; }
 
 		// TODO: check for invalid chars in name and namespace
 		internal static bool ValidateTaskName (string fullTaskName, out string taskName, out string taskNamespace)
@@ -97,8 +94,8 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 		public TaskParameterInfo (
 			string name, DisplayText description, bool isRequired,
-			bool isOutput, MSBuildValueKind kind, bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, kind, null, null, isDeprecated, deprecationMessage)
+			bool isOutput, MSBuildValueKind kind, string deprecationMessage = null)
+			: base (name, description, kind, null, null, deprecationMessage)
 		{
 			IsOutput = isOutput;
 			IsRequired = isRequired;

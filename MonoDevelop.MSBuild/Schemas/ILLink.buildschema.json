@@ -1,0 +1,116 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/trimming/trimming-options.md
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/trimming/prepare-libraries-for-trimming.md
+  "properties": {
+    "PublishTrimmed": {
+      "description": "Indicates whether the project should produce trimmed assembly images during publish.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained#enable-trimming"
+    },
+    "TrimMode": {
+      "description": "Specifies the trimming granularity.",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
+      "type": {
+        "values": {
+          "full": "Trim all assemblies",
+          "partial": "Trim only assemblies opted-in via assembly metadata or specified via `TrimmableAssembly` MSBuild items."
+        }
+      }
+    },
+    "IsTrimmable": {
+      "description": "Mark the assembly as trimmable and enable trim warnings. Defaults to `true` when `IsAotCompatible` is `true`.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+    },
+    "SuppressTrimAnalysisWarnings": {
+      "description": "ILLink can warn about patterns such as reflection that may cause dynamic dependencies resulting in runtime errors in trimmed apps, but these warnings are suppressed by default. Set to `false` to display these warnings.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#analysis-warnings"
+    },
+    "EnableTrimAnalyzer": {
+      "description": "Enable the trim analyzer. Defaults to `true` when `IsTrimmable` is `true`, which defaults to `true` when `IsAotCompatible` is `true`.",
+      "type": "bool",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+    },
+    "ILLinkTreatWarningsAsErrors": {
+      "description": "Specifically control the ILLink warnings-as-errors behavior, independent of the general `WarningsAsErrors` property.",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#suppress-warnings"
+    },
+    "TrimmerSingleWarn": {
+      "description": "By default trim analysis collapses trimming warnings to a single warning for each assembly from a `PackageReference`. Setting this to `false` will cause it to display all trimming warnings.",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#show-detailed-warnings",
+      "type": "bool",
+      "defaultValue": "true"
+    },
+    "TrimmerRemoveSymbols": {
+      "description": "Causes the trimmer to remove *all* debug symbols from the trimmed app, not just symbols for trimmed code. This includes embedded pdb files and separate pdb files.",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#remove-symbols",
+      "type": "bool",
+      "defaultValue": "false"
+    }
+  },
+  "items": {
+    "TrimmableAssembly": {
+      "description": "Specifies assemblies that should be trimmed. Equivalent to setting the `IsTrimmable` metadata on the assembly when building it.",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
+      "type": { "$ref": "#/types/assemblyNameNoExtension" }
+    },
+    "TrimmerRootAssembly": {
+      "description": "Specifiy assemblies the trimmer should treat as 'rooted', meaning they and their dependencies will not be trimmed.",
+      "type": { "$ref": "#/types/assemblyNameNoExtension" },
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#root-assemblies",
+      "metadata": {
+        "RootMode": {
+          "type": [ "EntryPoint", "AllMembers", "VisibleMembers", "Library" ]
+        }
+      }
+    },
+    "TrimmerRootDescriptor": {
+      "description": "XML files that specify assemblies, types, and their members that should not be trimmed.",
+      "type": "file", // .xml
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#root-descriptors"
+    }
+  },
+  "types": {
+    "assemblyNameNoExtension": {
+      "allowUnknownValues": true,
+      "name": "assembly-name"
+    }
+  }
+
+  // TODO:
+  // https://github.com/dotnet/runtime/blob/45b56e530e6e6675611d205063d50b74359d9484/docs/workflow/trimming/feature-switches.md
+  // https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#trimming-framework-library-features
+  // note that many of these are also implemented in Microsoft.NET.Sdk.targets and described in https://learn.microsoft.com/en-us/dotnet/core/runtime-config
+  /*
+  | DebuggerSupport | System.Diagnostics.Debugger.IsSupported | Any dependency that enables better debugging experience to be trimmed when set to false |
+| EnableUnsafeUTF7Encoding | System.Text.Encoding.EnableUnsafeUTF7Encoding | Insecure UTF-7 encoding is trimmed when set to false |
+| EnableUnsafeBinaryFormatterSerialization | System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization | BinaryFormatter serialization support is trimmed when set to false |
+| EventSourceSupport | System.Diagnostics.Tracing.EventSource.IsSupported | Any EventSource related code or logic is trimmed when set to false |
+| InvariantGlobalization | System.Globalization.Invariant | All globalization specific code and data is trimmed when set to true |
+| MetricsSupport | System.Diagnostics.Metrics.Meter.IsSupported | Any Metrics related code or logic is trimmed when set to false |
+| PredefinedCulturesOnly | System.Globalization.PredefinedCulturesOnly |  Don't allow creating a culture for which the platform does not have data |
+| HybridGlobalization | System.Globalization.Hybrid |  Properties connected with the mixed: platform-specific + icu-based globalization will be trimmed  |
+| UseSystemResourceKeys | System.Resources.UseSystemResourceKeys |  Any localizable resources for system assemblies is trimmed when set to true |
+| HttpActivityPropagationSupport | System.Net.Http.EnableActivityPropagation | Any dependency related to diagnostics support for System.Net.Http is trimmed when set to false |
+| UseNativeHttpHandler | System.Net.Http.UseNativeHttpHandler | HttpClient uses by default platform native implementation of HttpMessageHandler if set to true. |
+| StartupHookSupport | System.StartupHookProvider.IsSupported | Startup hooks are disabled when set to false. Startup hook related functionality can be trimmed. |
+| AutoreleasePoolSupport | System.Threading.Thread.EnableAutoreleasePool | When set to true, creates an NSAutoreleasePool for each thread and thread pool work item on applicable platforms. |
+| CustomResourceTypesSupport | System.Resources.ResourceManager.AllowCustomResourceTypes | Use of custom resource types is disabled when set to false. ResourceManager code paths that use reflection for custom types can be trimmed. |
+| EnableUnsafeBinaryFormatterInDesigntimeLicenseContextSerialization | System.ComponentModel.TypeConverter.EnableUnsafeBinaryFormatterInDesigntimeLicenseContextSerialization | BinaryFormatter serialization support is trimmed when set to false. |
+| BuiltInComInteropSupport | System.Runtime.InteropServices.BuiltInComInterop.IsSupported | Built-in COM support is trimmed when set to false. |
+| EnableCppCLIHostActivation | System.Runtime.InteropServices.EnableCppCLIHostActivation | C++/CLI host activation code is disabled when set to false and related functionality can be trimmed. |
+| MetadataUpdaterSupport | System.Reflection.Metadata.MetadataUpdater.IsSupported | Metadata update related code to be trimmed when set to false |
+| _EnableConsumingManagedCodeFromNativeHosting | System.Runtime.InteropServices.EnableConsumingManagedCodeFromNativeHosting | Getting a managed function from native hosting is disabled when set to false and related functionality can be trimmed. |
+| VerifyDependencyInjectionOpenGenericServiceTrimmability | Microsoft.Extensions.DependencyInjection.VerifyOpenGenericServiceTrimmability | When set to true, DependencyInjection will verify trimming annotations applied to open generic services are correct |
+| DisableDependencyInjectionDynamicEngine | Microsoft.Extensions.DependencyInjection.DisableDynamicEngine | When set to true, DependencyInjection will avoid using System.Reflection.Emit when realizing services |
+| NullabilityInfoContextSupport | System.Reflection.NullabilityInfoContext.IsSupported | Nullable attributes can be trimmed when set to false |
+| DynamicCodeSupport | System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported | Changes RuntimeFeature.IsDynamicCodeSupported to false to allow testing AOT-safe fallback code without publishing for Native AOT. |
+| _AggressiveAttributeTrimming | System.AggressiveAttributeTrimming | When set to true, aggressively trims attributes to allow for the most size savings possible, even if it could result in runtime behavior changes |
+| JsonSerializerIsReflectionEnabledByDefault | System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault | When set to false, disables using reflection as the default contract resolver in System.Text.Json |
+| EnableGeneratedComInterfaceComImportInterop | System.Runtime.InteropServices.Marshalling.EnableGeneratedComInterfaceComImportInterop | When set to true, enables casting source-generated COM object wrappers to built-in COM-based COM interfaces. |
+| _UseManagedNtlm | System.Net.Security.UseManagedNtlm | When set to true, uses built-in managed implementation of NTLM and SPNEGO algorithm for HTTP, SMTP authentication, and NegotiateAuthentication API instead of system provided GSSAPI implementation. |
+*/
+}

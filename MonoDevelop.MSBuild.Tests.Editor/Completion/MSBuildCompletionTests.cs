@@ -53,7 +53,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 		{
 			var result = await this.GetCompletionContext (@"<Project><$");
 
-			result.AssertItemCount (11);
+			result.AssertItemCount (12);
 
 			result.AssertContains ("<PropertyGroup");
 			result.AssertContains ("<Choose");

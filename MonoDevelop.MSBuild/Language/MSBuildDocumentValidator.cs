@@ -21,7 +21,7 @@ using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language
 {
-	partial class MSBuildDocumentValidator : MSBuildResolvingVisitor
+	partial class MSBuildDocumentValidator : MSBuildDocumentVisitor
 	{
 		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 		{
@@ -168,22 +168,14 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
 		{
-			if (info.IsDeprecated) {
-				if (string.IsNullOrEmpty (info.DeprecationMessage)) {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.Deprecated,
-						squiggleSpan,
-						DescriptionFormatter.GetKindNoun (info),
-					info.Name);
-				} else {
-					Document.Diagnostics.Add (
-						CoreDiagnostics.DeprecatedWithMessage,
-						squiggleSpan,
-						DescriptionFormatter.GetKindNoun (info),
-						info.Name,
-						info.DeprecationMessage
-					);
-				}
+			if (info.IsDeprecated (out string? deprecationMessage)) {
+				Document.Diagnostics.Add (
+					CoreDiagnostics.DeprecatedWithMessage,
+					squiggleSpan,
+					DescriptionFormatter.GetKindNoun (info),
+					info.Name,
+					deprecationMessage
+				);
 			}
 		}
 
@@ -615,23 +607,30 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
-			CustomTypeInfo? customType = info?.CustomType;
-			if (customType is null || !customType.AllowUnknownValues) {
-				var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (false);
+			// we must only check CustomType property when kind is MSBuildValueKind.CustomType
+			// as MSBuildValueKind.NuGetID kind hackily stashes unrelated info in CustomType property
+			bool isCustomType = info.ValueKind.WithoutModifiers () == MSBuildValueKind.CustomType;
+			CustomTypeInfo? customType = isCustomType? info.CustomType : null;
 
-				if (knownVals is not null && knownVals.Count != 0) {
-					var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, value, valueComparer)) {
-							if (kv is IDeprecatable deprecatable) {
-								CheckDeprecated (deprecatable, expressionText);
-							}
-							return;
+			IReadOnlyList<ISymbol> knownValues = null;
+			if (!isCustomType) {
+				knownValues = kind.GetSimpleValues (false);
+			} else if (customType is not null && !customType.AllowUnknownValues) {
+				knownValues = customType.Values;
+			}
+
+			if (knownValues is not null && knownValues.Count != 0) {
+				var valueComparer = (customType?.CaseSensitive ?? false)? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+				foreach (var kv in knownValues) {
+					if (string.Equals (kv.Name, value, valueComparer)) {
+						if (kv is IDeprecatable deprecatable) {
+							CheckDeprecated (deprecatable, expressionText);
 						}
+						return;
 					}
-					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
-					return;
 				}
+				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
+				return;
 			}
 
 			MSBuildValueKind kindOrBaseKind = customType?.BaseKind ?? kind;
@@ -662,8 +661,13 @@ namespace MonoDevelop.MSBuild.Language
 					AddErrorWithArgs (CoreDiagnostics.InvalidVersion, value);
 				}
 				break;
-			/*
-			 */
+			case MSBuildValueKind.NuGetVersion:
+			case MSBuildValueKind.VersionSuffixed:
+				// TODO
+				if (!NuGet.Versioning.NuGetVersion.TryParse (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidVersionSuffixed, value);
+				}
+				break;
 			case MSBuildValueKind.TargetName:
 				if (GetSchemasExcludingCurrentDocInferred ().GetTarget (value) is TargetInfo resolvedTarget) {
 					CheckDeprecated (resolvedTarget, expressionText);
@@ -748,6 +752,23 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				}
+			case MSBuildValueKind.ClrNamespace:
+				if (!IsValidTypeOrNamespace (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrNamespace, value);
+				}
+				break;
+
+			case MSBuildValueKind.ClrType:
+				if (!IsValidTypeOrNamespace (value, out _)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrType, value);
+				}
+				break;
+
+			case MSBuildValueKind.ClrTypeName:
+				if (!(IsValidTypeOrNamespace (value, out int componentCount) && componentCount == 1)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidClrTypeName, value);
+				}
+				break;
 			}
 
 			void AddErrorWithArgs (MSBuildDiagnosticDescriptor d, params object[] args) => Document.Diagnostics.Add (d, new TextSpan (trimmedOffset, escapedLength), args);
@@ -765,6 +786,18 @@ namespace MonoDevelop.MSBuild.Language
 						.AddIfNotNull ("CustomType", info.CustomType),
 					args
 				);
+			}
+
+			static bool IsValidTypeOrNamespace (string value, out int componentCount)
+			{
+				string[] components = value.Split ('.');
+				componentCount = components.Length;
+				foreach (var component in components) {
+					if (!System.CodeDom.Compiler.CodeGenerator.IsValidLanguageIndependentIdentifier (component)) {
+						return false;
+					}
+				}
+				return true;
 			}
 		}
 

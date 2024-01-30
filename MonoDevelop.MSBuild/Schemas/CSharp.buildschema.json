@@ -22,14 +22,18 @@
           "7.3": "The compiler accepts syntax from C# 7.3 and below",
           "8.0": "The compiler accepts syntax from C# 8.0 and below",
           "9.0": "The compiler accepts syntax from C# 9.0 and below",
-          "10.0": "The compiler accepts syntax from C# 10.0 and below"
+          "10.0": "The compiler accepts syntax from C# 11.0 and below",
+          "12.0": "The compiler accepts syntax from C# 12.0 and below",
+          "13.0": "The compiler accepts syntax from C# 13.0 and below"
         }
-      }
+      },
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#langversion"
     },
     "Nullable": {
       "description": "The nullable context options for the project",
       "type": { "$ref": "#/types/nullableContextOptions" },
-      "defaultValue": "disable"
+      "defaultValue": "disable",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#nullable"
     },
     "ImplicitUsings": {
       "description": "Enable implicit global usings for the C# project.",
@@ -38,12 +42,19 @@
         "true",
         "disable"
       ]
+    },
+    // TODO: namespace validation
+    "InterceptorsPreviewNamespaces": {
+      "description": "A list of namespaces in which to allow interceptors.",
+      "type": "clr-namespace",
+      "isList": true
     }
   },
   "items": {
     "Using": {
       "description": "A C# global using to add to the project.",
       "includeDescription": "The namespace or type identifier to add, e.g. Microsoft.AspNetCore",
+      "type": "clr-namespace",
       "metadata": {
         "Alias": {
           "description": "Optional alias for the namespace or type.",

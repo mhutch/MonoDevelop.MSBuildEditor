@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -112,6 +114,10 @@ namespace MonoDevelop.MSBuild.Editor
 				elements.Add (deprecationElement);
 			}
 
+			if (GetHelpElement (info) is ContainerElement helpElement) {
+				elements.Add (helpElement);
+			}
+
 			return elements.Count == 1
 				? elements[0]
 				: new ContainerElement (ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
@@ -119,9 +125,20 @@ namespace MonoDevelop.MSBuild.Editor
 
 		ContainerElement GetDeprecationElement (ISymbol info)
 		{
-			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
-				var msg = string.IsNullOrEmpty (deprecatable.DeprecationMessage) ? "Deprecated" : $"Deprecated: {deprecatable.DeprecationMessage}";
+			if (info.IsDeprecated (out string? deprecationMessage)) {
+				var msg = deprecationMessage == "Deprecated"? deprecationMessage : $"Deprecated: {deprecationMessage}";
 				return GetDiagnosticElement (MSBuildDiagnosticSeverity.Warning, msg);
+			}
+			return null;
+		}
+
+		static ContainerElement GetHelpElement (ISymbol info)
+		{
+			if (info.HasHelpUrl (out string? helpUrl)) {
+				return new ContainerElement (
+					ContainerElementStyle.Wrapped,
+					new ClassifiedTextElement (CreateWebLink (helpUrl, "Go to documentation"))
+				);
 			}
 			return null;
 		}
@@ -530,9 +547,7 @@ namespace MonoDevelop.MSBuild.Editor
 				}
 
 				void AddUrlElement (string url, string linkText) => stackedElements.Add (
-					new ClassifiedTextElement (
-						new ClassifiedTextRun ("navigableSymbol", linkText, () => Process.Start (url), url)
-					)
+					new ClassifiedTextElement (CreateWebLink (url, linkText))
 				);
 			}
 
@@ -540,6 +555,8 @@ namespace MonoDevelop.MSBuild.Editor
 				ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
 				stackedElements);
 		}
+
+		static ClassifiedTextRun CreateWebLink (string url, string linkText) => new ClassifiedTextRun ("navigableSymbol", linkText, () => Process.Start (url), url);
 
 		public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessage () ?? diagnostic.GetFormattedTitle ());
 

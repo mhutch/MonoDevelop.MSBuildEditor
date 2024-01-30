@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Analysis;
 
@@ -74,19 +75,21 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, defaultValue = null, deprecationMessage = null;
-				bool isDeprecated = false;
+				string? description = null, defaultValue = null, deprecationMessage = null, helpUrl = null;
 
 				var typeLoader = new TypeInfoReader (this, propertyDefObj, false);
 
 				foreach ((string defPropName, JToken? defPropVal) in propertyDefObj) {
-
+					if (defPropVal is null) {
+						AddError (defPropVal ?? propertyDefObj, $"Property '{propertyName}' definition property '{defPropName}' has no value");
+						continue;
+					}
 					bool GetValueString ([NotNullWhen (true)] out string? value)
 					{
 						if (defPropVal is JValue v && (value = v.Value as string) is not null) {
 							return true;
 						}
-						AddError (defPropVal ?? propertyDefObj, $"Item metadata '{propertyName}' definition property '{defPropName}' must be a string");
+						AddError (defPropVal ?? propertyDefObj, $"Property '{propertyName}' definition property '{defPropName}' must be a string");
 						value = null;
 						return false;
 					}
@@ -99,8 +102,10 @@ partial class MSBuildSchema
 						GetValueString (out defaultValue);
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
+						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
 						break;
 					default:
 						if (typeLoader.TryHandle (defPropName, defPropVal)) {
@@ -113,7 +118,7 @@ partial class MSBuildSchema
 
 				(MSBuildValueKind kind, CustomTypeInfo customType) = typeLoader.TryMaterialize ();
 
-				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, isDeprecated, deprecationMessage);
+				yield return new PropertyInfo (propertyName, description, kind, customType, defaultValue, deprecationMessage, helpUrl);
 			}
 		}
 
@@ -125,9 +130,8 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, includeDescription = null, deprecationMessage = null;
+				string? description = null, includeDescription = null, deprecationMessage = null, helpUrl = null;
 				JObject? metadata = null;
-				bool isDeprecated = false;
 
 				var typeLoader = new TypeInfoReader (this, itemCollection, true);
 
@@ -142,6 +146,10 @@ partial class MSBuildSchema
 				}
 
 				foreach ((string defPropName, JToken? defPropVal) in itemDefObj) {
+					if (defPropVal is null) {
+						AddError (defPropVal ?? itemDefObj, $"Item '{itemName}' definition property '{defPropName}' has no value");
+						continue;
+					}
 
 					bool GetValueString ([NotNullWhen (true)] out string? value)
 					{
@@ -166,8 +174,10 @@ partial class MSBuildSchema
 						}
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
+						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
 						break;
 					default:
 						if (typeLoader.TryHandle (defPropName, defPropVal)) {
@@ -178,17 +188,10 @@ partial class MSBuildSchema
 					}
 				}
 
+				// NOTE: even when the kind is not custom, the customType object might be a NuGet package type, which is valid
 				(MSBuildValueKind kind, CustomTypeInfo? customType) = typeLoader.TryMaterialize ();
 
-				// FIXME: why this restriction?
-				// NOTE: even when the kind is not custom, the customType object might be a NuGet package type, which is valid
-				if (kind.IsCustomType ()) {
-					AddError (itemDefObj ?? itemCollection, $"Item '{itemName}' has custom type value, which is not permitted for items");
-					kind = MSBuildValueKind.Unknown;
-					customType = null;
-				}
-
-				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, isDeprecated, deprecationMessage);
+				var item = new ItemInfo (itemName, description, includeDescription, kind, customType, null, deprecationMessage, helpUrl);
 
 				if (metadata != null) {
 					AddItemMetadata (item, metadata);
@@ -226,13 +229,16 @@ partial class MSBuildSchema
 				return null;
 			}
 
-			string? description = null, defaultValue = null, deprecationMessage = null;
+			string? description = null, defaultValue = null, deprecationMessage = null, helpUrl = null;
 			bool? required = null;
-			bool isDeprecated = false;
 
 			var typeLoader = new TypeInfoReader (this, metadataDefObj, false);
 
 			foreach ((string defPropName, JToken? defPropVal) in metadataDefObj) {
+				if (defPropVal is null) {
+					AddError (defPropVal ?? metadataDefObj, $"Item metadata '{FormatName ()}' definition property '{defPropName}' has no value");
+					continue;
+				}
 
 				bool GetValueString ([NotNullWhen (true)] out string? value)
 				{
@@ -265,8 +271,10 @@ partial class MSBuildSchema
 					GetValueBool (out required);
 					break;
 				case "deprecationMessage":
-					isDeprecated = true;
 					GetValueString (out deprecationMessage);
+					break;
+				case "helpUrl":
+					GetValueString (out helpUrl);
 					break;
 				default:
 					if (typeLoader.TryHandle (defPropName, defPropVal)) {
@@ -281,7 +289,7 @@ partial class MSBuildSchema
 
 			return new MetadataInfo (
 				metadataName, description, false, required ?? false, kind, null,
-				customType, defaultValue, isDeprecated, deprecationMessage
+				customType, defaultValue, deprecationMessage, helpUrl
 			);
 		}
 
@@ -365,8 +373,7 @@ partial class MSBuildSchema
 					continue;
 				}
 
-				string? description = null, deprecationMessage = null;
-				bool isDeprecated = false;
+				string? description = null, deprecationMessage = null, helpUrl = null;
 
 				if (targetDef is JValue simpleVal && simpleVal.Value is string simpleDesc) {
 					yield return new TargetInfo (targetName, simpleDesc);
@@ -395,8 +402,10 @@ partial class MSBuildSchema
 						GetValueString (out description);
 						break;
 					case "deprecationMessage":
-						isDeprecated = true;
 						GetValueString (out deprecationMessage);
+						break;
+					case "helpUrl":
+						GetValueString (out helpUrl);
 						break;
 					default:
 						AddWarning (defPropVal ?? targetDefObj, $"Target '{targetName}' definition has unknown property '{defPropName}'");
@@ -404,7 +413,7 @@ partial class MSBuildSchema
 					}
 				}
 
-				yield return new TargetInfo (targetName, description, isDeprecated, deprecationMessage);
+				yield return new TargetInfo (targetName, description, deprecationMessage, helpUrl);
 			}
 		}
 
@@ -563,11 +572,7 @@ partial class MSBuildSchema
 						return (null, null);
 					}
 					foreach ((string valueName, JToken? valueDescToken) in valuesObj) {
-						string? valueDescription = null;
-						if (valueDescToken is not null && (valueDescToken is not JValue valVal || (valueDescription = valVal.Value as string) is null)) {
-							AddError (customTypeObj, $"Custom type definition value description must be a string");
-						}
-						values.Add (new CustomTypeValue (valueName, valueDescription));
+						values.Add (ReadCustomTypeValue (valuesObj, valueName, valueDescToken));
 					}
 					break;
 				default:
@@ -577,12 +582,51 @@ partial class MSBuildSchema
 				foundAnyNonRef = true;
 			} while (enumerator.MoveNext ());
 
-			if (values.Count == 0) {
-				AddWarning (customTypeObj, $"Custom type definition has no valid values");
-				return (null, null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
+		}
+
+		CustomTypeValue ReadCustomTypeValue (JObject customTypeValueCollection, string customTypeValueName, JToken? customTypeValueToken)
+		{
+			if (customTypeValueToken is JValue simpleVal && simpleVal.Value is string simpleDesc) {
+				return new CustomTypeValue (customTypeValueName, simpleDesc);
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
+			if (customTypeValueToken is not JObject customTypeValueObj) {
+				AddError (customTypeValueToken ?? customTypeValueCollection, $"Custom type value '{customTypeValueName}' must be an object or description string");
+				return new CustomTypeValue (customTypeValueName, null);
+			}
+
+			string? description = null, deprecationMessage = null, helpUrl = null;
+
+			foreach ((string defPropName, JToken? defPropVal) in customTypeValueObj) {
+
+				bool GetValueString ([NotNullWhen (true)] out string? value)
+				{
+					if (defPropVal is JValue v && (value = v.Value as string) is not null) {
+						return true;
+					}
+					AddError (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition property '{defPropName}' must be a string");
+					value = null;
+					return false;
+				}
+
+				switch (defPropName) {
+				case "description":
+					GetValueString (out description);
+					break;
+				case "deprecationMessage":
+					GetValueString (out deprecationMessage);
+					break;
+				case "helpUrl":
+					GetValueString (out helpUrl);
+					break;
+				default:
+					AddWarning (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition has unknown property '{defPropName}'");
+					break;
+				}
+			}
+
+			return new CustomTypeValue (customTypeValueName, description, deprecationMessage, helpUrl);
 		}
 
 		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {

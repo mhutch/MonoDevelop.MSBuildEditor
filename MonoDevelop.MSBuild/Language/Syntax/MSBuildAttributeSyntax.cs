@@ -10,9 +10,11 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		public MSBuildAttributeSyntax (
 			MSBuildElementSyntax element,
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind,
+			CustomTypeInfo? customType = null,
 			bool required = false, MSBuildSyntaxKind? abstractKind = null,
-			bool isDeprecated = false, string deprecationMessage = null)
-			: base (name, description, valueKind, isDeprecated, deprecationMessage)
+			string? deprecationMessage = null,
+			string? helpUrl = null)
+			: base (name, description, valueKind, customType, deprecationMessage, helpUrl)
 		{
 			SyntaxKind = syntaxKind;
 			Element = element;

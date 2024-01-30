@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ElementDescriptions {
@@ -705,6 +705,33 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         internal static string PropertyGroup_Label {
             get {
                 return ResourceManager.GetString("PropertyGroup.Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to References an MSBuild project SDK, adding an implicit import to the top and bottom of the project.
+        /// </summary>
+        internal static string Sdk {
+            get {
+                return ResourceManager.GetString("Sdk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the MSBuild project SDK.
+        /// </summary>
+        internal static string Sdk_Name {
+            get {
+                return ResourceManager.GetString("Sdk.Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optional version of the MSBuild project SDK.
+        /// </summary>
+        internal static string Sdk_Version {
+            get {
+                return ResourceManager.GetString("Sdk.Version", resourceCulture);
             }
         }
         

@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			ImageElement image;
 
-			if (info is IDeprecatable deprecatable && deprecatable.IsDeprecated) {
+			if (info.IsDeprecated ()) {
 				image = provider.DisplayElementFactory.GetImageElement (KnownImages.Deprecated);
 			} else {
 				image = provider.DisplayElementFactory.GetImageElement (info);

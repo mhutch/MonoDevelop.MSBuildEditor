@@ -65,7 +65,7 @@ namespace MonoDevelop.MSBuild.Tests
 			for (int i = 0; i < results.Count; i++) {
 				var a = results [i];
 				var e = expected [i];
-				if (a.result.ReferenceKind != e.kind || !IgnoreCaseEquals (e.kind, a.result.Reference, e.reference)) {
+				if (a.result.ReferenceKind != e.kind || !IgnoreCaseEquals (e.kind, a.result.GetReferenceForTest (), e.reference)) {
 					Dump ();
 					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e.reference)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
 				}
@@ -86,7 +86,7 @@ namespace MonoDevelop.MSBuild.Tests
 				return reference?.ToString () ?? "[null]";
 			}
 
-			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.Reference);
+			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.GetReferenceForTest ());
 			bool IgnoreCaseEquals (MSBuildReferenceKind kind, object a, object e)
 			{
 				if (e is ValueTuple<string,string> et) {

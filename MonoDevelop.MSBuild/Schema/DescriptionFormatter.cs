@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return "url";
 			case MSBuildValueKind.Version:
 				return "version";
-			case MSBuildValueKind.SuffixedVersion:
+			case MSBuildValueKind.VersionSuffixed:
 				return "version-suffixed";
 			case MSBuildValueKind.Lcid:
 				return "lcid";
@@ -272,13 +272,23 @@ namespace MonoDevelop.MSBuild.Schema
 				if (customTypeInfo != null && customTypeInfo.Name != null) {
 					return customTypeInfo.Name;
 				}
+				// derived types inherit the name from the base type
+				if (customTypeInfo.BaseKind != MSBuildValueKind.Unknown) {
+					return FormatKind (customTypeInfo.BaseKind, null);
+				}
 				return "enum";
+			case MSBuildValueKind.ClrNamespace:
+				return "clr-namespace";
+			case MSBuildValueKind.ClrType:
+				return "clr-type";
+			case MSBuildValueKind.ClrTypeName:
+				return "clr-type-name";
 			}
 			return null;
 		}
 
 		/// <summary>
-		/// Gets a lowercase noun decribing the element. Intended to be localized and substituted into localized strings.
+		/// Gets a lowercase noun describing the element. Intended to be localized and substituted into localized strings.
 		/// </summary>
 		public static string GetKindNoun (this ISymbol info)
 			=> info switch {

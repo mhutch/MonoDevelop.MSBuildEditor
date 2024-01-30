@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public virtual bool IsProperty => false;
 
 		MSBuildValueKind ITypedSymbol.ValueKind => ReturnType;
-		CustomTypeInfo ITypedSymbol.CustomType => null;
+		CustomTypeInfo? ITypedSymbol.CustomType => null;
 
 		protected FunctionInfo (string name, DisplayText description) : base (name, description)
 		{

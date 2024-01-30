@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		async Task FindReferencesAsync (ITextBuffer buffer, MSBuildResolveResult reference, ILogger logger)
 		{
-			var referenceName = reference.GetReferenceName ();
+			var referenceName = reference.GetReferenceDisplayName ();
 			var searchCtx = Presenter.StartSearch ($"'{referenceName}' references", referenceName, true);
 
 			try {

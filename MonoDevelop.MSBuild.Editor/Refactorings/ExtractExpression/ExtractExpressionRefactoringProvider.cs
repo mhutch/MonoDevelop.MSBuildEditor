@@ -120,7 +120,10 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 
 		// walk up the scopes in which propertygroups can exist
 		while (beforeElement?.ParentElement is XElement scope) {
-			var syntax = MSBuildElementSyntax.Get (scope.Name.FullName);
+			if (scope.Name.FullName is not string fullName) {
+				yield break;
+			}
+			var syntax = MSBuildElementSyntax.Get (fullName);
 			if (syntax.IsValidPropertyGroupScope ()) {
 				var elementsBeforeOffset = scope.ElementsBefore (beforeElement.Span.Start);
 				if (elementsBeforeOffset.OfSyntax (MSBuildElementSyntax.PropertyGroup).LastOrDefault (n => !n.HasCondition () && !n.IsSelfClosing && n.IsClosed) is XElement existingPg) {

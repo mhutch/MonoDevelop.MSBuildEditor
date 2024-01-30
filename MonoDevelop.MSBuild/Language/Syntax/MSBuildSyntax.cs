@@ -2,34 +2,34 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+#nullable enable
 
 using MonoDevelop.MSBuild.Language.Typesystem;
 
-namespace MonoDevelop.MSBuild.Language.Syntax
+namespace MonoDevelop.MSBuild.Language.Syntax;
+
+public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHasHelpUrl
 {
-	public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable
+	protected MSBuildSyntax (
+		string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
+		CustomTypeInfo? customType = null,
+		string? deprecationMessage = null,
+		string? helpUrl = null)
 	{
-		protected MSBuildSyntax (
-			string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-			bool isDeprecated = false, string deprecationMessage = null)
-		{
-			Name = name;
-			Description = description;
+		Name = name;
+		Description = description;
+		DeprecationMessage = deprecationMessage;
+		HelpUrl = helpUrl;
 
-			IsDeprecated = isDeprecated || !string.IsNullOrEmpty (deprecationMessage);
-			DeprecationMessage = deprecationMessage;
-
-			ValueKind = valueKind;
-		}
-
-		public string Name { get; }
-		public DisplayText Description { get; }
-
-		public virtual MSBuildValueKind ValueKind { get; }
-		public CustomTypeInfo CustomType => null;
-
-		public bool IsDeprecated { get; }
-		public string DeprecationMessage { get; }
+		ValueKind = valueKind;
+		CustomType = customType;
 	}
+
+	public string Name { get; }
+	public DisplayText Description { get; }
+
+	public virtual MSBuildValueKind ValueKind { get; }
+	public CustomTypeInfo? CustomType { get; }
+	public string? DeprecationMessage { get; }
+	public string? HelpUrl { get; }
 }
