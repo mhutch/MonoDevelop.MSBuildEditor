@@ -450,11 +450,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			return new ExpressionClassReference (baseOffset + start, sb.ToString ());
 		}
 
-		static void ConsumeSpace (string buffer, ref int offset, int endOffset)
+		static void ConsumeSpace (string buffer, ref int offset, int endOffset, bool andNewlines = true)
 		{
 			while (offset <= endOffset) {
 				var ch = buffer [offset];
-				if (ch != ' ') {
+				switch (ch) {
+					case ' ':
+					case '\t':
+						break;
+					case '\r':
+					case '\n':
+						if (!andNewlines) {
+							return;
+						}
+						break;
+				default:
 					return;
 				}
 				offset++;

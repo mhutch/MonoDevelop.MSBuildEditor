@@ -213,6 +213,37 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
+		[Test]
+		public void TestMultiLineCondition ()
+		{
+			TestParse (
+				" '$(ImportWindowsDesktopTargets)' == ''\r\n                            and ('$(UseWpf)' == 'true' Or '$(UseWindowsForms)' == 'true') ",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (
+						ExpressionOperatorKind.Equal,
+						new QuotedExpression ('\'', new ExpressionProperty (2, "ImportWindowsDesktopTargets")),
+						new QuotedExpression ('\'', new ExpressionText (38, "", true))
+					),
+					new ExpressionParenGroup (73, 57,
+						new ExpressionConditionOperator (
+							ExpressionOperatorKind.Or,
+							new ExpressionConditionOperator (
+								ExpressionOperatorKind.Equal,
+								new QuotedExpression ('\'', new ExpressionProperty (75, "UseWpf")),
+								new QuotedExpression ('\'', new ExpressionText (90, "true", true))
+							),
+							new ExpressionConditionOperator (
+								ExpressionOperatorKind.Equal,
+								new QuotedExpression ('\'', new ExpressionProperty (100, "UseWindowsForms")),
+								new QuotedExpression ('\'', new ExpressionText (124, "true", true))
+							)
+						)
+					)
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected)
 		{
 			var expr = ExpressionParser.ParseCondition (expression, 0);
