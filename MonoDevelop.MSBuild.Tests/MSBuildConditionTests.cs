@@ -244,6 +244,30 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
+		[Test]
+		public void TestNestedQuotes ()
+		{
+			TestParse (
+				"'@(PackageReference->AnyHaveMetadataValue('Identity', 'Microsoft.Net.Compilers.Toolset.Framework'))' == 'true'",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new QuotedExpression ('\'',
+						new ExpressionItem (1, 98,
+							new ExpressionItemFunctionInvocation (3, 95,
+								new ExpressionItemName (3, "PackageReference"),
+								new ExpressionFunctionName (21, "AnyHaveMetadataValue"),
+								new ExpressionArgumentList (41, 57,
+									new QuotedExpression ('\'', new ExpressionText (43, "Identity", true)),
+									new QuotedExpression ('\'', new ExpressionText (55, "Microsoft.Net.Compilers.Toolset.Framework", true))
+								)
+							)
+						)
+					),
+					new QuotedExpression ('\'', new ExpressionText (105, "true", true))
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected)
 		{
 			var expr = ExpressionParser.ParseCondition (expression, 0);

@@ -20,15 +20,24 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		}
 
 		static ExpressionNode Parse (string buffer, int startOffset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError)
+			=> Parse (buffer, ref startOffset, endOffset, options, baseOffset, out hasError, default);
+
+		static ExpressionNode Parse (string buffer, ref int offset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError, char untilTerminator)
 		{
+			int startOffset = offset;
+
 			List<ExpressionNode> splitList = null;
 			char listSeparator = ';';
 			var nodes = new List<ExpressionNode> ();
 
-			int lastNodeEnd = startOffset;
-			int offset = startOffset;
+			int lastNodeEnd = offset;
 			while (offset <= endOffset) {
 				char c = buffer [offset];
+
+				if (c == untilTerminator) {
+					endOffset = offset - 1;
+					break;
+				}
 
 				//consume entities simply so the semicolon doesn't mess with list parsing
 				//we don't need the value and the base XML editor will handle errors
@@ -62,7 +71,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				ExpressionNode node;
 				switch (c) {
 				case '@':
-					if (!TryConsumeParen ()) {
+					if (!TryConsumeParen (ref offset)) {
 						offset++;
 						continue;
 					}
@@ -73,14 +82,14 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 					break;
 				case '$':
-					if (!TryConsumeParen ()) {
+					if (!TryConsumeParen (ref offset)) {
 						offset++;
 						continue;
 					}
 					node = ParseProperty (buffer, ref offset, endOffset, baseOffset, out hasError);
 					break;
 				case '%':
-					if (!TryConsumeParen ()) {
+					if (!TryConsumeParen (ref offset)) {
 						offset++;
 						continue;
 					}
@@ -104,7 +113,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					return CreateResult (offset, out hasError);
 				}
 
-				bool TryConsumeParen ()
+				bool TryConsumeParen (ref int offset)
 				{
 					if (offset < endOffset && buffer[offset+1] == '(') {
 						offset++;
@@ -824,14 +833,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		{
 			int start = offset;
 			offset++;
-			while (offset <= endOffset) {
-				char ch = buffer [offset];
-				if (ch == terminator) {
-					offset++;
-					var subExpr = Parse (buffer, start + 1, offset - 2, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError);
-					return new QuotedExpression (start + baseOffset, offset - start, terminator, subExpr);
-				}
+
+			var subExpr = Parse (buffer, ref offset, endOffset, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError, terminator);
+			if (offset <= endOffset && buffer[offset] == terminator) {
 				offset++;
+				return new QuotedExpression (start + baseOffset, offset - start, terminator, subExpr);
 			}
 
 			return new IncompleteExpressionError (
