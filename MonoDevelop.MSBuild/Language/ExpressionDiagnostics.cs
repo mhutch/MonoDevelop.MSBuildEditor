@@ -63,7 +63,7 @@ class ExpressionDiagnostics
 	public static readonly MSBuildDiagnosticDescriptor EmptyListValue = new (
 		EmptyListValue_Id,
 		"Empty list value",
-		MSBuildDiagnosticSeverity.Error);
+		MSBuildDiagnosticSeverity.Warning);
 
 	public const string ExpectingItemName_Id = nameof(ExpectingItemName);
 	public static readonly MSBuildDiagnosticDescriptor ExpectingItemName = new (
