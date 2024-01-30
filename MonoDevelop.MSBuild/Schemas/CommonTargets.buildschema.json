@@ -90,6 +90,11 @@
         "Version": {
           "description": "The version of the NuGet package dependency",
           "type": "nuget-version"
+        },
+        "NoWarn": {
+          "description": "List of disabled warning codes",
+          "isList": true,
+          "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#suppressing-nuget-warnings"
         }
       }
     },
@@ -653,8 +658,16 @@
     "RemoveIntegerChecks": "",
     "RepositoryType": "The type of the repository where the project is stored (e.g. git)",
     "RepositoryUrl": {
-      "description": "The URL for the repository where the project is stored",
+      "description": "The URL for the repository where the project is stored. If set, this may be exposed in publishable build artifacts. Instead of defining this explicitly, consider setting `PublishRepositoryUrl` to `true` to use the `PrivateRepositoryUrl` value supplied by the CI server.",
       "type": "url"
+    },
+    "PrivateRepositoryUrl": {
+      "description": "The URL for the repository where the project is stored. This should be treated as private and not exposed in publishable build artifacts unless `PublishRepositoryUrl` is `true`.",
+      "type": "url"
+    },
+    "PublishRepositoryUrl": {
+      "type": "bool",
+      "description": "Whether to expose the `PrivateRepositoryUrl` in publishable build artifacts when the `RepositoryUrl` value is not explicitly defined"
     },
     "ResponseFile": "",
     "RootNamespace": {
