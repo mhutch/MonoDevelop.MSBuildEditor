@@ -268,6 +268,25 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
+		[Test]
+		public void TestUnquotedComparandWithTrailingNewline ()
+		{
+			TestParse (
+				"@(Foo->Count()) == 0\n",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new ExpressionItem (0, 15,
+						new ExpressionItemFunctionInvocation (2, 12,
+							new ExpressionItemName (2, "Foo"),
+							new ExpressionFunctionName (7, "Count"),
+							new ExpressionArgumentList (12, 2)
+						)
+					),
+					new ExpressionArgumentInt (19, 1, 0)
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected)
 		{
 			var expr = ExpressionParser.ParseCondition (expression, 0);

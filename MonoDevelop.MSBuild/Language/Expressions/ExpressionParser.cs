@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		static ExpressionNode Parse (string buffer, int startOffset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError)
 			=> Parse (buffer, ref startOffset, endOffset, options, baseOffset, out hasError, default);
 
-		static ExpressionNode Parse (string buffer, ref int offset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError, char untilTerminator)
+		static ExpressionNode Parse (string buffer, ref int offset, int endOffset, ExpressionOptions options, int baseOffset, out bool hasError, char topLevelTerminator)
 		{
 			int startOffset = offset;
 
@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			while (offset <= endOffset) {
 				char c = buffer [offset];
 
-				if (c == untilTerminator) {
+				if (c == topLevelTerminator) {
 					endOffset = offset - 1;
 					break;
 				}
@@ -495,9 +495,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					}
 					foundPeriod = true;
 					goto case '0';
-				case ',': case ')': case ' ': case ']': {
-						return Result (ref offset, out hasError);
-					}
+				case ',': case ')': case ']': case ' ': case '\r': case '\n':  case '\t':
+					return Result (ref offset, out hasError);
 				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
 					offset++;
 					continue;
@@ -834,6 +833,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			int start = offset;
 			offset++;
 
+			// The subexpression may contain property/item functions with quoted arguments using the same quote character
+			// so we can't just find the next terminator char to determine the subexpression length.
+			// Instead, use this Parse overload that stops when it encounters the terminator char at the top level of the expression.
 			var subExpr = Parse (buffer, ref offset, endOffset, ExpressionOptions.ItemsAndMetadata, baseOffset, out hasError, terminator);
 			if (offset <= endOffset && buffer[offset] == terminator) {
 				offset++;
