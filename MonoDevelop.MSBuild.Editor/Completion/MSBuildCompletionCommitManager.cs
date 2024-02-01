@@ -59,11 +59,15 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return false;
 			}
 
+			// NOTE: Returning false will not actually prevent the item from getting committed as another commit manager might handle it.
+			// Instead, we must cancel the commit in TryCommit.
+			/*
 			if (typedChar == '.') {
 				if (session.Properties.TryGetProperty (typeof (MSBuildCompletionSource.NuGetSearchUpdater), out MSBuildCompletionSource.NuGetSearchUpdater searchInfo)) {
 					return false;
 				}
 			}
+			*/
 
 			//TODO: further refine this based on the trigger
 			return true;
@@ -79,32 +83,45 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 		}
 
+		static readonly CommitResult CommitCancel = new (true, CommitBehavior.CancelCommit);
+
 		CommitResult TryCommitInternal (IAsyncCompletionSession session, ITextBuffer buffer, CompletionItem item, char typedChar, CancellationToken token)
 		{
-			if (!item.Properties.TryGetProperty<MSBuildSpecialCommitKind> (typeof (MSBuildSpecialCommitKind), out var kind)) {
-				return CommitResult.Unhandled;
-			}
-
-			switch (kind) {
-			case MSBuildSpecialCommitKind.NewGuid:
-				InsertGuid (session, buffer);
-				return CommitResult.Handled;
-
-			case MSBuildSpecialCommitKind.ItemReference:
-			case MSBuildSpecialCommitKind.PropertyReference:
-			case MSBuildSpecialCommitKind.MetadataReference:
-				var str = item.InsertText;
-				//avoid the double paren
-				if (typedChar == '(') {
-					str = str.Substring (0, str.Length - 1);
+			if (session.Properties.TryGetProperty (typeof (MSBuildCommitSessionKind), out MSBuildCommitSessionKind sessionKind)) {
+				switch (sessionKind) {
+				case MSBuildCommitSessionKind.Values:
+					if (typedChar == '.') {
+						return CommitCancel;
+					}
+					break;
+				default:
+					throw new InvalidOperationException ($"Unhandled MSBuildCommitSessionKind value {sessionKind}");
 				}
-				Insert (session, buffer, str);
-				RetriggerCompletion (session.TextView);
-				//TODO: insert overtypeable closing paren
-				return CommitResult.Handled;
 			}
 
-			LogUnhandledItemKind (logger, kind);
+			if (item.Properties.TryGetProperty (typeof (MSBuildCommitItemKind), out MSBuildCommitItemKind itemKind)) {
+				switch (itemKind) {
+				case MSBuildCommitItemKind.NewGuid:
+					InsertGuid (session, buffer);
+					return CommitResult.Handled;
+
+				case MSBuildCommitItemKind.ItemReference:
+				case MSBuildCommitItemKind.PropertyReference:
+				case MSBuildCommitItemKind.MetadataReference:
+					var str = item.InsertText;
+					//avoid the double paren
+					if (typedChar == '(') {
+						str = str.Substring (0, str.Length - 1);
+					}
+					Insert (session, buffer, str);
+					RetriggerCompletion (session.TextView);
+					//TODO: insert overtypeable closing paren
+					return CommitResult.Handled;
+				default:
+					throw new InvalidOperationException ($"Unhandled MSBuildCommitItemKind value {itemKind}");
+				}
+			}
+
 			return CommitResult.Unhandled;
 		}
 
@@ -126,8 +143,5 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			bufferEdit.Replace (span, text);
 			bufferEdit.Apply ();
 		}
-
-		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "MSBuild commit manager did not handle unknown special completion kind {kind}")]
-		static partial void LogUnhandledItemKind (ILogger logger, MSBuildSpecialCommitKind kind);
 	}
 }
