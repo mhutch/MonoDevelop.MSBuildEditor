@@ -405,6 +405,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if (isValue) {
+				// if this list contains values completions, suppress committing on period as some values may contain periods
+				context.Session.Properties.AddProperty (typeof (MSBuildCommitSessionKind), MSBuildCommitSessionKind.Values);
+
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					if (triggerExpression is ExpressionText t) {
@@ -439,7 +442,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 
 				if (kind == MSBuildValueKind.Guid || valueSymbol.CustomType is CustomTypeInfo { BaseKind: MSBuildValueKind.Guid, AllowUnknownValues: true }) {
-					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildSpecialCommitKind.NewGuid));
+					items.Add (CreateSpecialItem ("New GUID", "Inserts a new GUID", KnownImages.Add, MSBuildCommitItemKind.NewGuid));
 				}
 			}
 
@@ -466,13 +469,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if ((allowExpressions && isValue) || triggerState == TriggerState.BareFunctionArgumentValue) {
-				items.Add (CreateSpecialItem ("$(", "Property reference", KnownImages.MSBuildProperty, MSBuildSpecialCommitKind.PropertyReference));
+				items.Add (CreateSpecialItem ("$(", "Property reference", KnownImages.MSBuildProperty, MSBuildCommitItemKind.PropertyReference));
 			}
 
 			if (allowExpressions && isValue) {
-				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.ItemReference));
+				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildCommitItemKind.ItemReference));
 				if (MSBuildCompletionSource.IsMetadataAllowed (triggerExpression, rr)) {
-					items.Add (CreateSpecialItem ("%(", "Metadata reference", KnownImages.MSBuildItem, MSBuildSpecialCommitKind.MetadataReference));
+					items.Add (CreateSpecialItem ("%(", "Metadata reference", KnownImages.MSBuildItem, MSBuildCommitItemKind.MetadataReference));
 				}
 			}
 
@@ -519,10 +522,10 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return false;
 		}
 
-		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildSpecialCommitKind kind)
+		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildCommitItemKind kind)
 		{
 			var item = new CompletionItem (text, this, provider.DisplayElementFactory.GetImageElement (image));
-			item.Properties.AddProperty (typeof (MSBuildSpecialCommitKind), kind);
+			item.Properties.AddProperty (typeof (MSBuildCommitItemKind), kind);
 			item.AddDocumentation (description);
 			return item;
 		}
@@ -590,11 +593,25 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		}
 	}
 
-	enum MSBuildSpecialCommitKind
+	/// <summary>
+	/// Annotate an item type for special handling in the commit manager
+	/// </summary>
+	enum MSBuildCommitItemKind
 	{
 		NewGuid,
 		PropertyReference,
 		ItemReference,
 		MetadataReference
+	}
+
+	/// <summary>
+	/// Annotate a session for special handling in the commit manager
+	/// </summary>
+	enum MSBuildCommitSessionKind
+	{
+		/// <summary>
+		/// The session contains values that may contain periods so periods are valid match chars and should not be used as commit chars for any items
+		/// </summary>
+		Values
 	}
 }
