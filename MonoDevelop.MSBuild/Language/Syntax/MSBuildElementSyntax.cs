@@ -146,7 +146,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			return null;
 		}
 
-		static readonly Dictionary<string, MSBuildElementSyntax> builtin = new Dictionary<string, MSBuildElementSyntax> (StringComparer.OrdinalIgnoreCase);
+		static readonly Dictionary<string, MSBuildElementSyntax> builtin = new (StringComparer.OrdinalIgnoreCase);
 
 		static MSBuildElementSyntax AddBuiltin (string name, string description, MSBuildSyntaxKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false, string? helpUrl = null)
 		{
@@ -206,20 +206,20 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			UsingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildSyntaxKind.UsingTask, helpUrl: HelpUrls.Element_UsingTask);
 			When = AddBuiltin ("When", ElementDescriptions.When, MSBuildSyntaxKind.When, helpUrl: HelpUrls.Element_When);
 
-			Choose.children = new[] { Otherwise, When };
-			ImportGroup.children = new[] { Import };
-			Item.children = new[] { Metadata };
-			ItemDefinition.children = new[] { Metadata };
-			ItemDefinitionGroup.children = new[] { ItemDefinition };
-			ItemGroup.children = new[] { Item };
-			Otherwise.children = new[] { Choose, ItemGroup, PropertyGroup };
-			ParameterGroup.children = new[] { Parameter };
-			Project.children = new[] { Choose, Import, ImportGroup, ProjectExtensions, PropertyGroup, ItemGroup, ItemDefinitionGroup, Target, UsingTask, Sdk };
-			PropertyGroup.children = new[] { Property };
-			Target.children = new[] { OnError, ItemGroup, PropertyGroup, Task };
-			Task.children = new[] { Output };
-			UsingTask.children = new[] { ParameterGroup, TaskBody };
-			When.children = new[] { Choose, ItemGroup, PropertyGroup };
+			Choose.children = [Otherwise, When];
+			ImportGroup.children = [Import];
+			Item.children = [Metadata];
+			ItemDefinition.children = [Metadata];
+			ItemDefinitionGroup.children = [ItemDefinition];
+			ItemGroup.children = [Item];
+			Otherwise.children = [Choose, ItemGroup, PropertyGroup];
+			ParameterGroup.children = [Parameter];
+			Project.children = [Choose, Import, ImportGroup, ProjectExtensions, PropertyGroup, ItemGroup, ItemDefinitionGroup, Target, UsingTask, Sdk];
+			PropertyGroup.children = [Property];
+			Target.children = [OnError, ItemGroup, PropertyGroup, Task];
+			Task.children = [Output];
+			UsingTask.children = [ParameterGroup, TaskBody];
+			When.children = [Choose, ItemGroup, PropertyGroup];
 
 			Item.AbstractChild = Metadata;
 			Target.AbstractChild = Task;
@@ -229,134 +229,144 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			ItemGroup.AbstractChild = Item;
 			ParameterGroup.AbstractChild = Parameter;
 
-			Import.attributes = new[] {
-				new MSBuildAttributeSyntax (Import, "Project", ElementDescriptions.Import_Project, MSBuildSyntaxKind.Import_Project, MSBuildValueKind.ProjectFile, required: true),
-				new MSBuildAttributeSyntax (Import, "Condition", ElementDescriptions.Import_Condition, MSBuildSyntaxKind.Import_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (Import, "Label", ElementDescriptions.Import_Label, MSBuildSyntaxKind.Import_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (Import, "Sdk", ElementDescriptions.Import_Sdk, MSBuildSyntaxKind.Import_Sdk, MSBuildValueKind.Sdk),
-				new MSBuildAttributeSyntax (Import, "Version", ElementDescriptions.Import_Version, MSBuildSyntaxKind.Import_Version, MSBuildValueKind.SdkVersion),
-				new MSBuildAttributeSyntax (Import, "MinimumVersion", ElementDescriptions.Import_MinimumVersion, MSBuildSyntaxKind.Import_MinimumVersion, MSBuildValueKind.SdkVersion),
-			};
+			Import.attributes = [
+				new (Import, "Project", ElementDescriptions.Import_Project, MSBuildSyntaxKind.Import_Project, MSBuildValueKind.ProjectFile, required: true),
+				new (Import, "Condition", ElementDescriptions.Import_Condition, MSBuildSyntaxKind.Import_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
+				new (Import, "Label", ElementDescriptions.Import_Label, MSBuildSyntaxKind.Import_Label, MSBuildValueKind.Label),
+				new (Import, "Sdk", ElementDescriptions.Import_Sdk, MSBuildSyntaxKind.Import_Sdk, MSBuildValueKind.Sdk),
+				new (Import, "Version", ElementDescriptions.Import_Version, MSBuildSyntaxKind.Import_Version, MSBuildValueKind.SdkVersion),
+				new (Import, "MinimumVersion", ElementDescriptions.Import_MinimumVersion, MSBuildSyntaxKind.Import_MinimumVersion, MSBuildValueKind.SdkVersion),
+			];
 
 			var itemMetadataAtt = new MSBuildAttributeSyntax (Item, "Metadata", ElementDescriptions.Metadata, MSBuildSyntaxKind.Item_Metadata, MSBuildValueKind.Unknown, abstractKind: MSBuildSyntaxKind.Metadata);
 			Item.AbstractAttribute = itemMetadataAtt;
 
-			Item.attributes = new[] {
-				new MSBuildAttributeSyntax (Item, "Exclude", ElementDescriptions.Item_Exclude, MSBuildSyntaxKind.Item_Exclude, MSBuildValueKind.MatchItem, helpUrl: HelpUrls.Attribute_Item_Include),
-				new MSBuildAttributeSyntax (Item, "Include", ElementDescriptions.Item_Include, MSBuildSyntaxKind.Item_Include, MSBuildValueKind.MatchItem, helpUrl: HelpUrls.Attribute_Item_Exclude),
-				new MSBuildAttributeSyntax (Item, "Remove", ElementDescriptions.Item_Remove, MSBuildSyntaxKind.Item_Remove, MSBuildValueKind.MatchItem),
-				new MSBuildAttributeSyntax (Item, "Update", ElementDescriptions.Item_Update, MSBuildSyntaxKind.Item_Update, MSBuildValueKind.MatchItem),
-				new MSBuildAttributeSyntax (Item, "Condition", ElementDescriptions.Item_Condition, MSBuildSyntaxKind.Item_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (Item, "Label", ElementDescriptions.Item_Label, MSBuildSyntaxKind.Item_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (Item, "KeepMetadata", ElementDescriptions.Item_KeepMetadata, MSBuildSyntaxKind.Item_KeepMetadata, MSBuildValueKind.MetadataName.AsList ()),
-				new MSBuildAttributeSyntax (Item, "RemoveMetadata", ElementDescriptions.Item_RemoveMetadata, MSBuildSyntaxKind.Item_RemoveMetadata, MSBuildValueKind.MetadataName.AsList ()),
-				new MSBuildAttributeSyntax (Item, "KeepDuplicates", ElementDescriptions.Item_KeepDuplicates, MSBuildSyntaxKind.Parameter_Required, MSBuildValueKind.Bool),
+			Item.attributes = [
+				new (Item, "Exclude", ElementDescriptions.Item_Exclude, MSBuildSyntaxKind.Item_Exclude, MSBuildValueKind.MatchItem, helpUrl: HelpUrls.Attribute_Item_Include),
+				new (Item, "Include", ElementDescriptions.Item_Include, MSBuildSyntaxKind.Item_Include, MSBuildValueKind.MatchItem, helpUrl: HelpUrls.Attribute_Item_Exclude),
+				new (Item, "Remove", ElementDescriptions.Item_Remove, MSBuildSyntaxKind.Item_Remove, MSBuildValueKind.MatchItem),
+				new (Item, "Update", ElementDescriptions.Item_Update, MSBuildSyntaxKind.Item_Update, MSBuildValueKind.MatchItem),
+				new (Item, "Condition", ElementDescriptions.Item_Condition, MSBuildSyntaxKind.Item_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
+				new (Item, "Label", ElementDescriptions.Item_Label, MSBuildSyntaxKind.Item_Label, MSBuildValueKind.Label),
+				new (Item, "KeepMetadata", ElementDescriptions.Item_KeepMetadata, MSBuildSyntaxKind.Item_KeepMetadata, MSBuildValueKind.MetadataName.AsList ()),
+				new (Item, "RemoveMetadata", ElementDescriptions.Item_RemoveMetadata, MSBuildSyntaxKind.Item_RemoveMetadata, MSBuildValueKind.MetadataName.AsList ()),
+				new (Item, "KeepDuplicates", ElementDescriptions.Item_KeepDuplicates, MSBuildSyntaxKind.Parameter_Required, MSBuildValueKind.Bool),
 				itemMetadataAtt
-			};
+			];
 
-			Parameter.attributes = new[] {
-				new MSBuildAttributeSyntax (Parameter, "Output", ElementDescriptions.Parameter_Output, MSBuildSyntaxKind.Parameter_Output, MSBuildValueKind.Bool.AsLiteral()),
-				new MSBuildAttributeSyntax (Parameter, "ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildSyntaxKind.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
-				new MSBuildAttributeSyntax (Parameter, "Required", ElementDescriptions.Parameter_Required, MSBuildSyntaxKind.Parameter_Required, MSBuildValueKind.Bool.AsLiteral()),
-			};
+			Parameter.attributes = [
+				new (Parameter, "Output", ElementDescriptions.Parameter_Output, MSBuildSyntaxKind.Parameter_Output, MSBuildValueKind.Bool.AsLiteral()),
+				new (Parameter, "ParameterType", ElementDescriptions.Parameter_ParameterType, MSBuildSyntaxKind.Parameter_ParameterType, MSBuildValueKind.TaskParameterType),
+				new (Parameter, "Required", ElementDescriptions.Parameter_Required, MSBuildSyntaxKind.Parameter_Required, MSBuildValueKind.Bool.AsLiteral()),
+			];
 
-			Project.attributes = new[] {
-				new MSBuildAttributeSyntax (Project, "DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildSyntaxKind.Project_DefaultTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral ()),
-				new MSBuildAttributeSyntax (Project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildSyntaxKind.Project_InitialTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral ()),
-				new MSBuildAttributeSyntax (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), deprecationMessage: "Ignored in modern MSBuild projects"),
-				new MSBuildAttributeSyntax (Project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildSyntaxKind.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.AsList ().AsLiteral ()),
-				new MSBuildAttributeSyntax (Project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildSyntaxKind.Project_xmlns, MSBuildValueKind.Xmlns.AsLiteral ()),
-				new MSBuildAttributeSyntax (Project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.AsList().AsLiteral ()),
-			};
+			Project.attributes = [
+				new (Project, "DefaultTargets", ElementDescriptions.Project_DefaultTargets, MSBuildSyntaxKind.Project_DefaultTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral (),
+					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#default-targets"
+				),
+				new (Project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildSyntaxKind.Project_InitialTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral (),
+					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#initial-targets"
+				),
+				new (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), deprecationMessage: "Ignored in modern MSBuild projects"),
+				new (Project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildSyntaxKind.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.AsList ().AsLiteral ()),
+				new (Project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildSyntaxKind.Project_xmlns, MSBuildValueKind.Xmlns.AsLiteral ()),
+				new (Project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.AsList().AsLiteral ()),
+			];
 
-			Sdk.attributes = new[] {
-				new MSBuildAttributeSyntax (Project, "Name", ElementDescriptions.Sdk_Name, MSBuildSyntaxKind.Sdk_Name, MSBuildValueKind.Sdk, required: true),
-				new MSBuildAttributeSyntax (Project, "Name", ElementDescriptions.Sdk_Version, MSBuildSyntaxKind.Sdk_Version, MSBuildValueKind.SdkVersion)
-			};
+			Sdk.attributes = [
+				new (Project, "Name", ElementDescriptions.Sdk_Name, MSBuildSyntaxKind.Sdk_Name, MSBuildValueKind.Sdk, required: true),
+				new (Project, "Name", ElementDescriptions.Sdk_Version, MSBuildSyntaxKind.Sdk_Version, MSBuildValueKind.SdkVersion)
+			];
 
-			Target.attributes = new[] {
-				new MSBuildAttributeSyntax (Target, "Name", ElementDescriptions.Target_Name, MSBuildSyntaxKind.Target_Name, MSBuildValueKind.TargetName.AsLiteral (), required: true),
-				new MSBuildAttributeSyntax (Target, "DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildSyntaxKind.Target_DependsOnTargets, MSBuildValueKind.TargetName.AsList()),
-				new MSBuildAttributeSyntax (Target, "Inputs", ElementDescriptions.Target_Inputs, MSBuildSyntaxKind.Target_Inputs, MSBuildValueKind.Unknown),
-				new MSBuildAttributeSyntax (Target, "Outputs", ElementDescriptions.Target_Outputs, MSBuildSyntaxKind.Target_Outputs, MSBuildValueKind.Unknown),
-				new MSBuildAttributeSyntax (Target, "Condition", ElementDescriptions.Target_Condition, MSBuildSyntaxKind.Target_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (Target, "KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildSyntaxKind.Target_KeepDuplicateOutputs, MSBuildValueKind.Bool),
-				new MSBuildAttributeSyntax (Target, "Returns", ElementDescriptions.Target_Returns, MSBuildSyntaxKind.Target_Returns, MSBuildValueKind.Unknown),
-				new MSBuildAttributeSyntax (Target, "BeforeTargets", ElementDescriptions.Target_BeforeTargets, MSBuildSyntaxKind.Target_BeforeTargets, MSBuildValueKind.TargetName.AsList ()),
-				new MSBuildAttributeSyntax (Target, "AfterTargets", ElementDescriptions.Target_AfterTargets, MSBuildSyntaxKind.Target_AfterTargets, MSBuildValueKind.TargetName.AsList ()),
-				new MSBuildAttributeSyntax (Target, "Label", ElementDescriptions.Target_Label, MSBuildSyntaxKind.Target_Label, MSBuildValueKind.Label),
-			};
+			Target.attributes = [
+				new (Target, "Name", ElementDescriptions.Target_Name, MSBuildSyntaxKind.Target_Name, MSBuildValueKind.TargetName.AsLiteral (), required: true),
+				new (Target, "DependsOnTargets", ElementDescriptions.Target_DependsOnTargets, MSBuildSyntaxKind.Target_DependsOnTargets, MSBuildValueKind.TargetName.AsList (),
+					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#target-dependencies"
+				),
+				new (Target, "Inputs", ElementDescriptions.Target_Inputs, MSBuildSyntaxKind.Target_Inputs, MSBuildValueKind.Unknown),
+				new (Target, "Outputs", ElementDescriptions.Target_Outputs, MSBuildSyntaxKind.Target_Outputs, MSBuildValueKind.Unknown),
+				new (Target, "Condition", ElementDescriptions.Target_Condition, MSBuildSyntaxKind.Target_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+				new (Target, "KeepDuplicateOutputs", ElementDescriptions.Target_KeepDuplicateOutputs, MSBuildSyntaxKind.Target_KeepDuplicateOutputs, MSBuildValueKind.Bool),
+				new (Target, "Returns", ElementDescriptions.Target_Returns, MSBuildSyntaxKind.Target_Returns, MSBuildValueKind.Unknown),
+				new (Target, "BeforeTargets", ElementDescriptions.Target_BeforeTargets, MSBuildSyntaxKind.Target_BeforeTargets, MSBuildValueKind.TargetName.AsList (),
+					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#beforetargets-and-aftertargets"
+				),
+				new (Target, "AfterTargets", ElementDescriptions.Target_AfterTargets, MSBuildSyntaxKind.Target_AfterTargets, MSBuildValueKind.TargetName.AsList (),
+					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#beforetargets-and-aftertargets"
+				),
+				new (Target, "Label", ElementDescriptions.Target_Label, MSBuildSyntaxKind.Target_Label, MSBuildValueKind.Label),
+			];
 
-			Property.attributes = new[] {
-				new MSBuildAttributeSyntax (Property, "Label", ElementDescriptions.Property_Label, MSBuildSyntaxKind.Property_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (Property, "Condition", ElementDescriptions.Property_Condition, MSBuildSyntaxKind.Property_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-			};
+			Property.attributes = [
+				new (Property, "Label", ElementDescriptions.Property_Label, MSBuildSyntaxKind.Property_Label, MSBuildValueKind.Label),
+				new (Property, "Condition", ElementDescriptions.Property_Condition, MSBuildSyntaxKind.Property_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+			];
 
-			PropertyGroup.attributes = new[] {
-				new MSBuildAttributeSyntax (PropertyGroup, "Label", ElementDescriptions.PropertyGroup_Label, MSBuildSyntaxKind.PropertyGroup_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (PropertyGroup, "Condition", ElementDescriptions.PropertyGroup_Condition, MSBuildSyntaxKind.PropertyGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-			};
+			PropertyGroup.attributes = [
+				new (PropertyGroup, "Label", ElementDescriptions.PropertyGroup_Label, MSBuildSyntaxKind.PropertyGroup_Label, MSBuildValueKind.Label),
+				new (PropertyGroup, "Condition", ElementDescriptions.PropertyGroup_Condition, MSBuildSyntaxKind.PropertyGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+			];
 
-			ImportGroup.attributes = new[] {
-				new MSBuildAttributeSyntax (ImportGroup, "Label", ElementDescriptions.ImportGroup_Label, MSBuildSyntaxKind.ImportGroup_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (ImportGroup, "Condition", ElementDescriptions.ImportGroup_Condition, MSBuildSyntaxKind.ImportGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-			};
+			ImportGroup.attributes = [
+				new (ImportGroup, "Label", ElementDescriptions.ImportGroup_Label, MSBuildSyntaxKind.ImportGroup_Label, MSBuildValueKind.Label),
+				new (ImportGroup, "Condition", ElementDescriptions.ImportGroup_Condition, MSBuildSyntaxKind.ImportGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+			];
 
-			ItemGroup.attributes = new[] {
-				new MSBuildAttributeSyntax (ItemGroup, "Label", ElementDescriptions.ItemGroup_Label, MSBuildSyntaxKind.ItemGroup_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (ItemGroup, "Condition", ElementDescriptions.ItemGroup_Condition, MSBuildSyntaxKind.ItemGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-			};
+			ItemGroup.attributes = [
+				new (ItemGroup, "Label", ElementDescriptions.ItemGroup_Label, MSBuildSyntaxKind.ItemGroup_Label, MSBuildValueKind.Label),
+				new (ItemGroup, "Condition", ElementDescriptions.ItemGroup_Condition, MSBuildSyntaxKind.ItemGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+			];
 
-			ItemDefinitionGroup.attributes = new[] {
-				new MSBuildAttributeSyntax (ItemDefinitionGroup, "Label", ElementDescriptions.ItemDefinitionGroup_Label, MSBuildSyntaxKind.ItemDefinitionGroup_Label, MSBuildValueKind.Label),
-				new MSBuildAttributeSyntax (ItemDefinitionGroup, "Condition", ElementDescriptions.ItemDefinitionGroup_Condition, MSBuildSyntaxKind.ItemDefinitionGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-			};
+			ItemDefinitionGroup.attributes = [
+				new (ItemDefinitionGroup, "Label", ElementDescriptions.ItemDefinitionGroup_Label, MSBuildSyntaxKind.ItemDefinitionGroup_Label, MSBuildValueKind.Label),
+				new (ItemDefinitionGroup, "Condition", ElementDescriptions.ItemDefinitionGroup_Condition, MSBuildSyntaxKind.ItemDefinitionGroup_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+			];
 
-			When.attributes = new[] {
-				new MSBuildAttributeSyntax (When, "Condition", ElementDescriptions.When_Condition, MSBuildSyntaxKind.When_Condition, MSBuildValueKind.Condition, required : true, helpUrl: HelpUrls.Attribute_Condition),
-			};
+			When.attributes = [
+				new (When, "Condition", ElementDescriptions.When_Condition, MSBuildSyntaxKind.When_Condition, MSBuildValueKind.Condition, required : true, helpUrl: HelpUrls.Attribute_Condition),
+			];
 
-			OnError.attributes = new[] {
-				new MSBuildAttributeSyntax (OnError, "ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildSyntaxKind.OnError_ExecuteTargets, MSBuildValueKind.TargetName.AsList (), required : true),
-				new MSBuildAttributeSyntax (OnError, "Condition", ElementDescriptions.OnError_Condition, MSBuildSyntaxKind.OnError_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (OnError, "Label", ElementDescriptions.OnError_Label, MSBuildSyntaxKind.OnError_Label, MSBuildValueKind.Label),
-			};
+			OnError.attributes = [
+				new (OnError, "ExecuteTargets", ElementDescriptions.OnError_ExecuteTargets, MSBuildSyntaxKind.OnError_ExecuteTargets, MSBuildValueKind.TargetName.AsList (), required : true),
+				new (OnError, "Condition", ElementDescriptions.OnError_Condition, MSBuildSyntaxKind.OnError_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+				new (OnError, "Label", ElementDescriptions.OnError_Label, MSBuildSyntaxKind.OnError_Label, MSBuildValueKind.Label),
+			];
 
-			UsingTask.attributes = new[] {
-				new MSBuildAttributeSyntax (UsingTask, "Condition", ElementDescriptions.UsingTask_Condition, MSBuildSyntaxKind.UsingTask_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (UsingTask, "AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildSyntaxKind.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
-				new MSBuildAttributeSyntax (UsingTask, "AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildSyntaxKind.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
-				new MSBuildAttributeSyntax (UsingTask, "TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildSyntaxKind.UsingTask_TaskName, MSBuildValueKind.TaskName, required: true),
-				new MSBuildAttributeSyntax (UsingTask, "TaskFactory", ElementDescriptions.UsingTask_TaskFactory, MSBuildSyntaxKind.UsingTask_TaskFactory, MSBuildValueKind.TaskFactory),
-				new MSBuildAttributeSyntax (UsingTask, "Architecture", ElementDescriptions.UsingTask_Architecture, MSBuildSyntaxKind.UsingTask_Architecture, MSBuildValueKind.TaskArchitecture),
-				new MSBuildAttributeSyntax (UsingTask, "Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildSyntaxKind.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
-			};
+			UsingTask.attributes = [
+				new (UsingTask, "Condition", ElementDescriptions.UsingTask_Condition, MSBuildSyntaxKind.UsingTask_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+				new (UsingTask, "AssemblyName", ElementDescriptions.UsingTask_AssemblyName, MSBuildSyntaxKind.UsingTask_AssemblyName, MSBuildValueKind.TaskAssemblyName),
+				new (UsingTask, "AssemblyFile", ElementDescriptions.UsingTask_AssemblyFile, MSBuildSyntaxKind.UsingTask_AssemblyFile, MSBuildValueKind.TaskAssemblyFile),
+				new (UsingTask, "TaskName", ElementDescriptions.UsingTask_TaskName, MSBuildSyntaxKind.UsingTask_TaskName, MSBuildValueKind.TaskName, required: true),
+				new (UsingTask, "TaskFactory", ElementDescriptions.UsingTask_TaskFactory, MSBuildSyntaxKind.UsingTask_TaskFactory, MSBuildValueKind.TaskFactory),
+				new (UsingTask, "Architecture", ElementDescriptions.UsingTask_Architecture, MSBuildSyntaxKind.UsingTask_Architecture, MSBuildValueKind.TaskArchitecture),
+				new (UsingTask, "Runtime", ElementDescriptions.UsingTask_Runtime, MSBuildSyntaxKind.UsingTask_Runtime, MSBuildValueKind.TaskRuntime),
+			];
 
-			TaskBody.attributes = new[] {
-				new MSBuildAttributeSyntax (TaskBody, "Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildSyntaxKind.UsingTaskBody_Evaluate, MSBuildValueKind.Bool.AsLiteral ()),
-			};
+			TaskBody.attributes = [
+				new (TaskBody, "Evaluate", ElementDescriptions.UsingTaskBody_Evaluate, MSBuildSyntaxKind.UsingTaskBody_Evaluate, MSBuildValueKind.Bool.AsLiteral ()),
+			];
 
-			Output.attributes = new[] {
-				new MSBuildAttributeSyntax (Output, "TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildSyntaxKind.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.AsLiteral (), required : true),
-				new MSBuildAttributeSyntax (Output, "Condition", ElementDescriptions.Output_Condition, MSBuildSyntaxKind.Output_Condition,  MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (Output, "ItemName", ElementDescriptions.Output_ItemName, MSBuildSyntaxKind.Output_ItemName, MSBuildValueKind.ItemName.AsLiteral ()),
-				new MSBuildAttributeSyntax (Output, "PropertyName", ElementDescriptions.Output_PropertyName, MSBuildSyntaxKind.Output_PropertyName, MSBuildValueKind.PropertyName.AsLiteral ()),
-			};
+			Output.attributes = [
+				new (Output, "TaskParameter", ElementDescriptions.Output_TaskParameter, MSBuildSyntaxKind.Output_TaskParameter, MSBuildValueKind.TaskOutputParameterName.AsLiteral (), required : true),
+				new (Output, "Condition", ElementDescriptions.Output_Condition, MSBuildSyntaxKind.Output_Condition,  MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+				new (Output, "ItemName", ElementDescriptions.Output_ItemName, MSBuildSyntaxKind.Output_ItemName, MSBuildValueKind.ItemName.AsLiteral ()),
+				new (Output, "PropertyName", ElementDescriptions.Output_PropertyName, MSBuildSyntaxKind.Output_PropertyName, MSBuildValueKind.PropertyName.AsLiteral ()),
+			];
 
 			var taskParameterAtt = new MSBuildAttributeSyntax (Task, "Parameter", ElementDescriptions.Task_Parameter, MSBuildSyntaxKind.Task_Parameter, MSBuildValueKind.Unknown, abstractKind: MSBuildSyntaxKind.Parameter);
 			Task.AbstractAttribute = taskParameterAtt;
 
-			Task.attributes = new[] {
-				new MSBuildAttributeSyntax (Task, "Condition", ElementDescriptions.Task_Condition, MSBuildSyntaxKind.Task_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
-				new MSBuildAttributeSyntax (Task, "ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildSyntaxKind.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
-				new MSBuildAttributeSyntax (Task, "Architecture", ElementDescriptions.Task_Architecture, MSBuildSyntaxKind.Task_Architecture, MSBuildValueKind.TaskArchitecture),
-				new MSBuildAttributeSyntax (Task, "Runtime", ElementDescriptions.Task_Runtime, MSBuildSyntaxKind.Task_Runtime, MSBuildValueKind.TaskRuntime),
+			Task.attributes = [
+				new (Task, "Condition", ElementDescriptions.Task_Condition, MSBuildSyntaxKind.Task_Condition, MSBuildValueKind.Condition, helpUrl : HelpUrls.Attribute_Condition),
+				new (Task, "ContinueOnError", ElementDescriptions.Task_ContinueOnError, MSBuildSyntaxKind.Task_ContinueOnError, MSBuildValueKind.ContinueOnError),
+				new (Task, "Architecture", ElementDescriptions.Task_Architecture, MSBuildSyntaxKind.Task_Architecture, MSBuildValueKind.TaskArchitecture),
+				new (Task, "Runtime", ElementDescriptions.Task_Runtime, MSBuildSyntaxKind.Task_Runtime, MSBuildValueKind.TaskRuntime),
 				taskParameterAtt
-			};
+			];
 
-			Metadata.attributes = new[] {
-				new MSBuildAttributeSyntax (Metadata, "Condition", ElementDescriptions.Metadata_Condition, MSBuildSyntaxKind.Metadata_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
-			};
+			Metadata.attributes = [
+				new (Metadata, "Condition", ElementDescriptions.Metadata_Condition, MSBuildSyntaxKind.Metadata_Condition, MSBuildValueKind.Condition, helpUrl: HelpUrls.Attribute_Condition),
+			];
 		}
 	}
 }

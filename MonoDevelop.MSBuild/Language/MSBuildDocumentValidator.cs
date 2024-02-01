@@ -539,7 +539,7 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var n in expression.WithAllDescendants ()) {
 				switch (n) {
 				case ExpressionError err:
-					var (desc, args) = CoreDiagnostics.GetExpressionError (err, valueSymbol);
+					var (desc, args) = ExpressionDiagnostics.GetExpressionError (err, valueSymbol);
 					Document.Diagnostics.Add (desc, new TextSpan (err.Offset, Math.Max (1, err.Length)), args);
 					break;
 				case ExpressionMetadata meta:

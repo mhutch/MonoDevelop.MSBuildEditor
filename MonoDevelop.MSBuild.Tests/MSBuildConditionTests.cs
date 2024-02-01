@@ -213,6 +213,80 @@ namespace MonoDevelop.MSBuild.Tests
 			);
 		}
 
+		[Test]
+		public void TestMultiLineCondition ()
+		{
+			TestParse (
+				" '$(ImportWindowsDesktopTargets)' == ''\r\n                            and ('$(UseWpf)' == 'true' Or '$(UseWindowsForms)' == 'true') ",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.And,
+					new ExpressionConditionOperator (
+						ExpressionOperatorKind.Equal,
+						new QuotedExpression ('\'', new ExpressionProperty (2, "ImportWindowsDesktopTargets")),
+						new QuotedExpression ('\'', new ExpressionText (38, "", true))
+					),
+					new ExpressionParenGroup (73, 57,
+						new ExpressionConditionOperator (
+							ExpressionOperatorKind.Or,
+							new ExpressionConditionOperator (
+								ExpressionOperatorKind.Equal,
+								new QuotedExpression ('\'', new ExpressionProperty (75, "UseWpf")),
+								new QuotedExpression ('\'', new ExpressionText (90, "true", true))
+							),
+							new ExpressionConditionOperator (
+								ExpressionOperatorKind.Equal,
+								new QuotedExpression ('\'', new ExpressionProperty (100, "UseWindowsForms")),
+								new QuotedExpression ('\'', new ExpressionText (124, "true", true))
+							)
+						)
+					)
+				)
+			);
+		}
+
+		[Test]
+		public void TestNestedQuotes ()
+		{
+			TestParse (
+				"'@(PackageReference->AnyHaveMetadataValue('Identity', 'Microsoft.Net.Compilers.Toolset.Framework'))' == 'true'",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new QuotedExpression ('\'',
+						new ExpressionItem (1, 98,
+							new ExpressionItemFunctionInvocation (3, 95,
+								new ExpressionItemName (3, "PackageReference"),
+								new ExpressionFunctionName (21, "AnyHaveMetadataValue"),
+								new ExpressionArgumentList (41, 57,
+									new QuotedExpression ('\'', new ExpressionText (43, "Identity", true)),
+									new QuotedExpression ('\'', new ExpressionText (55, "Microsoft.Net.Compilers.Toolset.Framework", true))
+								)
+							)
+						)
+					),
+					new QuotedExpression ('\'', new ExpressionText (105, "true", true))
+				)
+			);
+		}
+
+		[Test]
+		public void TestUnquotedComparandWithTrailingNewline ()
+		{
+			TestParse (
+				"@(Foo->Count()) == 0\n",
+				new ExpressionConditionOperator (
+					ExpressionOperatorKind.Equal,
+					new ExpressionItem (0, 15,
+						new ExpressionItemFunctionInvocation (2, 12,
+							new ExpressionItemName (2, "Foo"),
+							new ExpressionFunctionName (7, "Count"),
+							new ExpressionArgumentList (12, 2)
+						)
+					),
+					new ExpressionArgumentInt (19, 1, 0)
+				)
+			);
+		}
+
 		static void TestParse (string expression, ExpressionNode expected)
 		{
 			var expr = ExpressionParser.ParseCondition (expression, 0);
