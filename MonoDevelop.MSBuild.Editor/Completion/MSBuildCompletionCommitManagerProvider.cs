@@ -37,7 +37,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			textView.Properties.GetOrCreateSingletonProperty (
 				typeof (MSBuildCompletionCommitManager), () => {
 					var logger = LoggerService.CreateLogger<MSBuildCompletionSource> (textView);
-					return new MSBuildCompletionCommitManager (this, logger);
+					return new MSBuildCompletionCommitManager (logger, JoinableTaskContext, CommandServiceFactory);
 				}
 			);
 	}
