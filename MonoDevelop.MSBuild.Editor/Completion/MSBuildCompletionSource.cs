@@ -405,9 +405,6 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			if (isValue) {
-				// if this list contains values completions, suppress committing on period as some values may contain periods
-				context.Session.Properties.AddProperty (typeof (MSBuildCommitSessionKind), MSBuildCommitSessionKind.Values);
-
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
 					if (triggerExpression is ExpressionText t) {
@@ -602,16 +599,5 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		PropertyReference,
 		ItemReference,
 		MetadataReference
-	}
-
-	/// <summary>
-	/// Annotate a session for special handling in the commit manager
-	/// </summary>
-	enum MSBuildCommitSessionKind
-	{
-		/// <summary>
-		/// The session contains values that may contain periods so periods are valid match chars and should not be used as commit chars for any items
-		/// </summary>
-		Values
 	}
 }
