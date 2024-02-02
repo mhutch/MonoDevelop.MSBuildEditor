@@ -6,17 +6,20 @@
 //  * IF YOU UPDATE IT, UPDATE THE HASH IN THE URL AND REAPPLY CHANGES FROM THE NOTES IN THIS HEADER
 //  * IF YOU MODIFY IT, DESCRIBE THE CHANGES IN THE NOTES
 //
-//  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Build/Evaluation/Expander.cs
+//  URL: https://raw.githubusercontent.com/dotnet/msbuild/07fd5d51f25134ea3ab3620c66f6501a74df2921/src/Build/Evaluation/Expander.cs
 //
 //  CHANGES:
 //     * This is a subset of Expander.cs that has been ported to be callable from the MonoDevelop.MSBuild evaluator. The original
 //       file has been kept beside this one for reference.
-//     * All methods have been made static.
+//     * All methods have been made static, and TryExecuteWellKnownFunction has been made public
 //     * Parameters have been added to TryExecuteWellKnownFunction corresponding to the instance fields in the original class,
 //       specifically _receiverType/_methodMethodName/_fileSystem
-//    *  Fixed NREs in ElementsOfType
+//     * The log call from the end of TryExecuteWellKnownFunction has been removed
+//     * Fixed NREs in ElementsOfType
+//     * Stubbed IsIntrinsicFunctionOverloadsEnabled to return true
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -34,7 +37,7 @@ namespace Microsoft.Build.Evaluation
             /// bad for debugging experience and has a performance cost.
             /// A typical binding operation with exception can take ~1.500 ms; this call is ~0.050 ms
             /// (rough numbers just for comparison).
-            /// See https://github.com/Microsoft/msbuild/issues/2217.
+            /// See https://github.com/dotnet/msbuild/issues/2217.
             /// </summary>
             /// <param name="returnVal">The value returned from the function call.</param>
             /// <param name="objectInstance">Object that the function is called on.</param>
@@ -226,9 +229,8 @@ namespace Microsoft.Build.Evaluation
                         }
                     }
                 }
-                else if (objectInstance is string[])
+                else if (objectInstance is string[] stringArray)
                 {
-                    string[] stringArray = (string[])objectInstance;
                     if (string.Equals(_methodMethodName, "GetValue", StringComparison.OrdinalIgnoreCase))
                     {
                         if (TryGetArg(args, out int index))
@@ -308,7 +310,7 @@ namespace Microsoft.Build.Evaluation
                         {
                             if (ElementsOfType(args, typeof(string)))
                             {
-                                returnVal = IntrinsicFunctions.NormalizePath(Array.ConvertAll(args, o => (string) o));
+                                returnVal = IntrinsicFunctions.NormalizePath(Array.ConvertAll(args, o => (string)o));
                                 return true;
                             }
                         }
@@ -345,6 +347,14 @@ namespace Microsoft.Build.Evaluation
                                 return true;
                             }
                         }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Unescape), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArg(args, out string arg0))
+                            {
+                                returnVal = IntrinsicFunctions.Unescape(arg0);
+                                return true;
+                            }
+                        }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.GetPathOfFileAbove), StringComparison.OrdinalIgnoreCase))
                         {
                             if (TryGetArgs(args, out string arg0, out string arg1))
@@ -355,33 +365,36 @@ namespace Microsoft.Build.Evaluation
                         }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Add), StringComparison.OrdinalIgnoreCase))
                         {
-                            if (TryGetArgs(args, out double arg0, out double arg1))
+                            if (TryExecuteArithmeticOverload(args, IntrinsicFunctions.Add, IntrinsicFunctions.Add, out returnVal))
                             {
-                                returnVal = arg0 + arg1;
                                 return true;
                             }
                         }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Subtract), StringComparison.OrdinalIgnoreCase))
                         {
-                            if (TryGetArgs(args, out double arg0, out double arg1))
+                            if (TryExecuteArithmeticOverload(args, IntrinsicFunctions.Subtract, IntrinsicFunctions.Subtract, out returnVal))
                             {
-                                returnVal = arg0 - arg1;
                                 return true;
                             }
                         }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Multiply), StringComparison.OrdinalIgnoreCase))
                         {
-                            if (TryGetArgs(args, out double arg0, out double arg1))
+                            if (TryExecuteArithmeticOverload(args, IntrinsicFunctions.Multiply, IntrinsicFunctions.Multiply, out returnVal))
                             {
-                                returnVal = arg0 * arg1;
                                 return true;
                             }
                         }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Divide), StringComparison.OrdinalIgnoreCase))
                         {
-                            if (TryGetArgs(args, out double arg0, out double arg1))
+                            if (TryExecuteArithmeticOverload(args, IntrinsicFunctions.Divide, IntrinsicFunctions.Divide, out returnVal))
                             {
-                                returnVal = arg0 / arg1;
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.Modulo), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryExecuteArithmeticOverload(args, IntrinsicFunctions.Modulo, IntrinsicFunctions.Modulo, out returnVal))
+                            {
                                 return true;
                             }
                         }
@@ -539,6 +552,22 @@ namespace Microsoft.Build.Evaluation
                                 return true;
                             }
                         }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.ConvertToBase64), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArg(args, out string arg0))
+                            {
+                                returnVal = IntrinsicFunctions.ConvertToBase64(arg0);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.ConvertFromBase64), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArg(args, out string arg0))
+                            {
+                                returnVal = IntrinsicFunctions.ConvertFromBase64(arg0);
+                                return true;
+                            }
+                        }
                         else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.StableStringHash), StringComparison.OrdinalIgnoreCase))
                         {
                             if (TryGetArg(args, out string arg0))
@@ -552,6 +581,62 @@ namespace Microsoft.Build.Evaluation
                             if (TryGetArg(args, out Version arg0))
                             {
                                 returnVal = IntrinsicFunctions.AreFeaturesEnabled(arg0);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.BitwiseOr), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.BitwiseOr(arg0, arg1);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.BitwiseAnd), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.BitwiseAnd(arg0, arg1);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.BitwiseXor), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.BitwiseXor(arg0, arg1);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.BitwiseNot), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0))
+                            {
+                                returnVal = IntrinsicFunctions.BitwiseNot(arg0);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.LeftShift), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.LeftShift(arg0, arg1);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.RightShift), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.RightShift(arg0, arg1);
+                                return true;
+                            }
+                        }
+                        else if (string.Equals(_methodMethodName, nameof(IntrinsicFunctions.RightShiftUnsigned), StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (TryGetArgs(args, out int arg0, out int arg1))
+                            {
+                                returnVal = IntrinsicFunctions.RightShiftUnsigned(arg0, arg1);
                                 return true;
                             }
                         }
@@ -598,7 +683,7 @@ namespace Microsoft.Build.Evaluation
                                 default:
                                     if (ElementsOfType(args, typeof(string)))
                                     {
-                                        returnVal = Path.Combine(Array.ConvertAll(args, o => (string) o));
+                                        returnVal = Path.Combine(Array.ConvertAll(args, o => (string)o));
                                         return true;
                                     }
                                     break;
@@ -728,8 +813,7 @@ namespace Microsoft.Build.Evaluation
 
                 if (args[0] is string value0 &&
                     args[1] is string value1 &&
-                    args[2] is string value2
-                    )
+                    args[2] is string value2)
                 {
                     arg0 = value0;
                     arg1 = value1;
@@ -756,8 +840,7 @@ namespace Microsoft.Build.Evaluation
                 if (args[0] is string value0 &&
                     args[1] is string value1 &&
                     args[2] is string value2 &&
-                    args[3] is string value3
-                    )
+                    args[3] is string value3)
                 {
                     arg0 = value0;
                     arg1 = value1;
@@ -827,38 +910,97 @@ namespace Microsoft.Build.Evaluation
                 return true;
             }
 
-            private static bool TryConvertToInt(object value, out int arg0)
+            /// <summary>
+            /// Try to convert value to int.
+            /// </summary>
+            internal static bool TryConvertToInt(object value, out int arg)
             {
                 switch (value)
                 {
                     case double d:
-                        arg0 = Convert.ToInt32(d);
-                        return arg0 == d;
+                        if (d >= int.MinValue && d <= int.MaxValue)
+                        {
+                            arg = Convert.ToInt32(d);
+                            if (Math.Abs(arg - d) == 0)
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                    case long l:
+                        if (l >= int.MinValue && l <= int.MaxValue)
+                        {
+                            arg = Convert.ToInt32(l);
+                            return true;
+                        }
+
+                        break;
                     case int i:
-                        arg0 = i;
+                        arg = i;
                         return true;
-                    case string s when int.TryParse(s, out arg0):
+                    case string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture.NumberFormat, out arg):
                         return true;
-                }
-
-                arg0 = 0;
-                return false;
-            }
-
-            private static bool TryConvertToDouble(object value, out double arg)
-            {
-                if (value is double unboxed)
-                {
-                    arg = unboxed;
-                    return true;
-                }
-                else if (value is string str && double.TryParse(str, out arg))
-                {
-                    return true;
                 }
 
                 arg = 0;
                 return false;
+            }
+
+            /// <summary>
+            /// Try to convert value to long.
+            /// </summary>
+            internal static bool TryConvertToLong(object value, out long arg)
+            {
+                switch (value)
+                {
+                    case double d:
+                        if (d >= long.MinValue && d <= long.MaxValue)
+                        {
+                            arg = (long)d;
+                            if (Math.Abs(arg - d) == 0)
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                    case long l:
+                        arg = l;
+                        return true;
+                    case int i:
+                        arg = i;
+                        return true;
+                    case string s when long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture.NumberFormat, out arg):
+                        return true;
+                }
+
+                arg = 0;
+                return false;
+            }
+
+            /// <summary>
+            /// Try to convert value to double.
+            /// </summary>
+            internal static bool TryConvertToDouble(object value, out double arg)
+            {
+                switch (value)
+                {
+                    case double unboxed:
+                        arg = unboxed;
+                        return true;
+                    case long l:
+                        arg = l;
+                        return true;
+                    case int i:
+                        arg = i;
+                        return true;
+                    case string str when double.TryParse(str, NumberStyles.Number | NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out arg):
+                        return true;
+                    default:
+                        arg = 0;
+                        return false;
+                }
             }
 
             private static bool TryGetArg(object[] args, out string arg0)
@@ -899,6 +1041,18 @@ namespace Microsoft.Build.Evaluation
                 }
 
                 return Enum.TryParse(comparisonTypeName, out arg1);
+            }
+
+            private static bool TryGetArgs(object[] args, out int arg0)
+            {
+                arg0 = 0;
+
+                if (args.Length != 1)
+                {
+                    return false;
+                }
+
+                return TryConvertToInt(args[0], out arg0);
             }
 
             private static bool TryGetArgs(object[] args, out int arg0, out int arg1)
@@ -975,6 +1129,44 @@ namespace Microsoft.Build.Evaluation
 
                 return false;
             }
+
+            private static bool IsFloatingPointRepresentation(object value)
+            {
+                return value is double || (value is string str && double.TryParse(str, NumberStyles.Number | NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out double _));
+            }
+
+            private static bool TryExecuteArithmeticOverload(object[] args, Func<long, long, long> integerOperation, Func<double, double, double> realOperation, out object resultValue)
+            {
+                resultValue = null;
+
+                if (args.Length != 2)
+                {
+                    return false;
+                }
+
+                if (IntrinsicFunctionOverload.IsIntrinsicFunctionOverloadsEnabled())
+                {
+                    if (TryConvertToLong(args[0], out long argLong0) && TryConvertToLong(args[1], out long argLong1))
+                    {
+                        resultValue = integerOperation(argLong0, argLong1);
+                        return true;
+                    }
+                }
+
+                if (TryConvertToDouble(args[0], out double argDouble0) && TryConvertToDouble(args[1], out double argDouble1))
+                {
+                    resultValue = realOperation(argDouble0, argDouble1);
+                    return true;
+                }
+
+                return false;
+            }
         }
+    }
+
+    internal static class IntrinsicFunctionOverload
+    {
+        // The arithmetic overload feature uses this method to test for the change wave.
+        internal static bool IsIntrinsicFunctionOverloadsEnabled () => true;
     }
 }
