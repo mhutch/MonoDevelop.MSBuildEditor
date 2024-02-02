@@ -331,7 +331,17 @@
       "description": "For projects on Windows, configures whether thread pool thread management is delegated to the Windows thread pool.",
       "type": "bool",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/runtime-config/threading#windows-thread-pool"
-    }
+    },
+    "RollForward": {
+      "description": "For framework-dependent apps, controls whether the app can run on a newer .NET shared runtime than the version for which it was built.",
+      "type": { "$ref": "#/types/rollForwardPolicy" },
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/versions/selection#framework-dependent-apps-roll-forward"
+    },
+    "RuntimeFrameworkVersion": {
+      "description": "For self-contained apps, overrides the minimum runtime version to use when building the app.",
+      "type": "version",
+      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/versions/selection#self-contained-deployments-include-the-selected-runtime"
+    },
   },
 
   "items": {
@@ -592,6 +602,18 @@
         "System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault": { "description": "Equivalent to `JsonSerializerIsReflectionEnabledByDefault` MSBuild property" },
         "System.Threading.Thread.EnableAutoreleasePool": { "description": "Equivalent to `AutoreleasePoolSupport` MSBuild property" },
         "System.Xml.XmlResolver.IsNetworkingEnabledByDefault": { "description": "Equivalent to `XmlResolverIsNetworkingEnabledByDefault` MSBuild property" }
+      }
+    },
+    // based on https://github.com/dotnet/docs/blob/main/includes/roll-forward-table.md
+    "rollForwardPolicy": {
+      "allowUnknownValues": false,
+      "values": {
+        "Minor": "Roll-forward to the lowest higher minor version, if requested minor version is missing. If the requested minor version is present, then the LatestPatch policy is used. This value is the default.",
+        "Major": "Roll-forward to the next available higher major version, and lowest minor version, if requested major version is missing. If the requested major version is present, then the Minor policy is used.",
+        "LatestPatch": "Roll-forward to the highest patch version. This value disables minor version roll-forward.",
+        "LatestMinor": "Roll-forward to highest minor version, even if requested minor version is present.",
+        "LatestMajor": "Roll-forward to highest major and highest minor version, even if requested major is present.",
+        "Disable": "Don't roll-forward, only bind to the specified version. This policy isn't recommended for general use since it disables the ability to roll-forward to the latest patches. This value is only recommended for testing."
       }
     }
   }
