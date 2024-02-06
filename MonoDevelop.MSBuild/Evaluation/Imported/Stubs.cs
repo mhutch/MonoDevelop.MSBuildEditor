@@ -8,9 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Microsoft.Build.FileSystem;
-using NuGet.Frameworks;
-
-using BF = System.Reflection.BindingFlags;
 
 namespace Microsoft.NET.StringTools
 {
@@ -109,37 +106,6 @@ namespace Microsoft.Build.Shared.FileSystem
 	}
 }
 
-namespace Microsoft.Build.Evaluation
-{
-	class NuGetFrameworkWrapper
-	{
-		internal string GetTargetFrameworkIdentifier (string tfm)
-			=> NuGetFramework.Parse (tfm).Framework;
-
-		internal string GetTargetFrameworkVersion (string tfm, int minVersionPartCount)
-			=> GetNonZeroVersionParts (NuGetFramework.Parse (tfm).Version, minVersionPartCount);
-
-		internal bool IsCompatible (string target, string candidate)
-			=> DefaultCompatibilityProvider.Instance.IsCompatible (
-				NuGetFramework.Parse (target),
-				NuGetFramework.Parse (candidate)
-			);
-
-		internal string GetTargetPlatformIdentifier (string tfm)
-			=> NuGetFramework.Parse (tfm).Platform;
-
-		internal string GetTargetPlatformVersion (string tfm, int minVersionPartCount)
-			=> GetNonZeroVersionParts (NuGetFramework.Parse (tfm).PlatformVersion, minVersionPartCount);
-
-		// from https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Build/Utilities/NuGetFrameworkWrapper.cs
-		private string GetNonZeroVersionParts (Version version, int minVersionPartCount)
-		{
-			var nonZeroVersionParts = version.Revision == 0 ? version.Build == 0 ? version.Minor == 0 ? 1 : 2 : 3 : 4;
-			return version.ToString (Math.Max (nonZeroVersionParts, minVersionPartCount));
-		}
-	}
-}
-
 namespace Microsoft.Build.Shared
 {
 	class BuildEnvironmentHelper
@@ -205,6 +171,7 @@ namespace Microsoft.Build.Shared
 	class ChangeWaves
 	{
 		public static readonly Version Wave17_0 = new Version (17, 0);
+		public static readonly Version Wave17_4 = new Version (17, 4);
 
 		internal static bool AreFeaturesEnabled (Version wave)
 		{
@@ -212,3 +179,18 @@ namespace Microsoft.Build.Shared
 		}
 	}
 }
+
+#if !NET5_0_OR_GREATER
+
+namespace System.Runtime.Versioning
+{
+	[AttributeUsage (AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+	public sealed class SupportedOSPlatformAttribute : Attribute
+	{
+		public SupportedOSPlatformAttribute (string platformName)
+		{
+		}
+	}
+}
+
+#endif

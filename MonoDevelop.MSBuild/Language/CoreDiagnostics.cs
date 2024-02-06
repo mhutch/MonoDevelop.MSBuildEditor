@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MonoDevelop.MSBuild.Analysis;
-using MonoDevelop.MSBuild.Language.Expressions;
-using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -478,13 +476,6 @@ namespace MonoDevelop.MSBuild.Language
 			"The value `{0}` is not a valid qualified .NET type name string",
 			MSBuildDiagnosticSeverity.Error);
 
-		public const string UnknownTargetFramework_Id = nameof(UnknownTargetFramework);
-		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFramework = new (
-			UnknownTargetFramework_Id,
-			"Unknown target framework",
-			"The value `{0}` is not a known target framework short name",
-			MSBuildDiagnosticSeverity.Warning);
-
 		public const string UnknownTargetFrameworkIdentifier_Id = nameof(UnknownTargetFrameworkIdentifier);
 		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFrameworkIdentifier = new (
 			UnknownTargetFrameworkIdentifier_Id,
@@ -504,6 +495,41 @@ namespace MonoDevelop.MSBuild.Language
 			UnknownTargetFrameworkProfile_Id,
 			"Unknown target framework profile",
 			"The value `{0}` is not a known profile for target framework `{1},Version={2}`",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string InvalidTargetFramework_Id = nameof (InvalidTargetFramework);
+		public static readonly MSBuildDiagnosticDescriptor InvalidTargetFramework = new (
+			InvalidTargetFramework_Id,
+			"Invalid target framework",
+			"The value `{0}` is not a valid target framework short name",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string UnknownTargetFramework_Id = nameof (UnknownTargetFramework);
+		public static readonly MSBuildDiagnosticDescriptor UnknownTargetFramework = new (
+			UnknownTargetFramework_Id,
+			"Unknown target framework",
+			"The value `{0}` is not a known target framework short name",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string TargetFrameworkHasUnknownVersion_Id = nameof (TargetFrameworkHasUnknownVersion);
+		public static readonly MSBuildDiagnosticDescriptor TargetFrameworkHasUnknownVersion = new (
+			TargetFrameworkHasUnknownVersion_Id,
+			"Unknown target platform",
+			"The target framework `{0}` has an unknown version `{1}`",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string TargetFrameworkHasUnknownTargetPlatform_Id = nameof (TargetFrameworkHasUnknownTargetPlatform);
+		public static readonly MSBuildDiagnosticDescriptor TargetFrameworkHasUnknownTargetPlatform = new (
+			TargetFrameworkHasUnknownTargetPlatform_Id,
+			"Unknown target platform",
+			"The target framework `{0}` has an unknown target platform `{1}`",
+			MSBuildDiagnosticSeverity.Warning);
+
+		public const string TargetFrameworkHasUnknownTargetPlatformVersion_Id = nameof (TargetFrameworkHasUnknownTargetPlatformVersion);
+		public static readonly MSBuildDiagnosticDescriptor TargetFrameworkHasUnknownTargetPlatformVersion = new (
+			TargetFrameworkHasUnknownTargetPlatformVersion_Id,
+			"Unknown target platform version",
+			"The target framework `{0}` has an unknown platform version `{1}` for target platform `{2}`",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string ItemAttributeNotValidInTarget_Id = nameof(ItemAttributeNotValidInTarget);

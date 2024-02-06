@@ -710,8 +710,24 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildValueKind.TargetFramework:
-				if (!FrameworkInfoProvider.Instance.IsFrameworkShortNameValid (value)) {
+				switch (FrameworkInfoProvider.Instance.ValidateFrameworkShortName (value, out var frameworkComponent, out var versionComponent, out var platformComponent, out var platformVersionComponent)) {
+				case FrameworkNameValidationResult.OK:
+					break;
+				case FrameworkNameValidationResult.Malformed:
+					AddErrorWithArgs (CoreDiagnostics.InvalidTargetFramework, value);
+					break;
+				case FrameworkNameValidationResult.UnknownIdentifier:
 					AddErrorWithArgs (CoreDiagnostics.UnknownTargetFramework, value);
+					break;
+				case FrameworkNameValidationResult.UnknownVersion:
+					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownVersion, value, versionComponent);
+					break;
+				case FrameworkNameValidationResult.UnknownPlatform:
+					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatform, value, platformComponent);
+					break;
+				case FrameworkNameValidationResult.UnknownPlatformVersion:
+					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatformVersion, value, platformVersionComponent, platformComponent);
+					break;
 				}
 				break;
 			case MSBuildValueKind.TargetFrameworkIdentifier:

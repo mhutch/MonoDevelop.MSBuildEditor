@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
 
@@ -248,8 +247,60 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		// TODO: better validation. check it's well formed, warn on individual components e.g. unknown version, platform
-		public bool IsFrameworkShortNameValid (string shortName) => frameworkByShortName.ContainsKey (shortName);
+		public FrameworkNameValidationResult ValidateFrameworkShortName (string shortName, out string? frameworkComponent, out Version? versionComponent, out string? platformComponent, out Version? platformVersionComponent)
+		{
+			frameworkComponent = platformComponent = null;
+			versionComponent = platformVersionComponent = null;
+
+			if (frameworkByShortName.ContainsKey (shortName)) {
+				return FrameworkNameValidationResult.OK;
+			}
+
+			NuGetFramework framework;
+			try {
+				framework = NuGetFramework.ParseFolder (shortName);
+			} catch {
+				return FrameworkNameValidationResult.Malformed;
+			}
+			frameworkComponent = framework.Framework;
+			versionComponent = framework.Version;
+			platformComponent = framework.Platform;
+			platformVersionComponent = framework.PlatformVersion;
+
+			if (framework.IsUnsupported) {
+				return FrameworkNameValidationResult.UnknownIdentifier;
+			}
+
+			if (framework.Version.Major == 0 && framework.Version == new Version (0, 0, 0, 0)) {
+				return FrameworkNameValidationResult.Malformed;
+			}
+
+			// TODO: check platform version, but we don't have any defined in known frameworks yet
+			bool foundIdentifier = false;
+			bool foundVersion = false;
+			bool foundPlatform = false;
+			foreach (var fx in GetFrameworksWithMoniker (framework.Framework)) {
+				foundIdentifier = true;
+
+				if (AreVersionsEquivalent (framework.Version, fx.Version)) {
+					foundVersion = true;
+					if (string.Equals (framework.Platform, fx.Platform, StringComparison.OrdinalIgnoreCase)) {
+						foundPlatform = true;
+					}
+				}
+			}
+			if (!foundIdentifier) {
+				return FrameworkNameValidationResult.UnknownIdentifier;
+			}
+			if (!foundVersion) {
+				return FrameworkNameValidationResult.UnknownVersion;
+			}
+			if (!foundPlatform) {
+				return FrameworkNameValidationResult.UnknownPlatform;
+			}
+			// TODO: unknown platform version
+			return FrameworkNameValidationResult.OK;
+		}
 
 		/*
 		static bool TryParseShortName(string shortName)
@@ -503,5 +554,15 @@ namespace MonoDevelop.MSBuild.Schema
 			sb.Append ('.');
 			sb.Append (version.Revision);
 		}
+	}
+
+	internal enum FrameworkNameValidationResult
+	{
+		OK,
+		Malformed,
+		UnknownIdentifier,
+		UnknownVersion,
+		UnknownPlatform,
+		UnknownPlatformVersion
 	}
 }
