@@ -92,5 +92,44 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				expectedDiagnostics: expected
 			);
 		}
+
+		[TestCase("net48", null)]
+		[TestCase("net8.0-android", null)]
+		[TestCase("blah5.1", CoreDiagnostics.UnknownTargetFramework_Id)]
+		[TestCase("net404.0", CoreDiagnostics.TargetFrameworkHasUnknownVersion_Id)]
+		[TestCase("net7.0-potato", CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatform_Id)]
+		// FIXME: NuGetFramework parses all these successfully even though they're malformed
+		[TestCase("---", CoreDiagnostics.UnknownTargetFramework_Id)]
+		[TestCase("net4.8-", CoreDiagnostics.UnknownTargetFramework_Id)]
+		// FIXME: we don't have a set of known versions yet
+		//[TestCase("net7.0-ios404", CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatformVersion_Id)]
+		public void TargetFrameworkError (string tfm, string diagnosticId)
+		{
+			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
+			var source = @"<Project Sdk=""Microsoft.NET.Sdk"">
+<PropertyGroup>
+	<TargetFramework>  {0}  </TargetFramework>
+</PropertyGroup>
+</Project>";
+
+			source = string.Format (source, tfm);
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("TargetFramework", "", MSBuildValueKind.TargetFramework)
+			};
+
+			var diagnostics = GetDiagnostics (source, out _, schema: schema, includeCoreDiagnostics: true);
+
+			if (diagnosticId is null) {
+				Assert.AreEqual (0, diagnostics.Count);
+				return;
+			}
+
+			Assert.AreEqual (1, diagnostics.Count);
+			var diag = diagnostics[0];
+
+			Assert.AreEqual (SpanFromLineColLength (source, 3, 21, tfm.Length), diag.Span);
+			Assert.AreEqual (diagnosticId, diag.Descriptor.Id);
+		}
 	}
 }

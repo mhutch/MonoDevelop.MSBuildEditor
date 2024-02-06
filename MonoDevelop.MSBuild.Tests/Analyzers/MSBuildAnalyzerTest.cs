@@ -46,11 +46,43 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			MSBuildRootDocument previousDocument = null
 			)
 		{
+			var actualDiagnostics = GetDiagnostics (source, out parsedDocument, analyzers, includeCoreDiagnostics, schema, previousDocument);
+
+			foreach (var expectedDiag in expectedDiagnostics ?? []) {
+				bool found = false;
+				for (int i = 0; i < actualDiagnostics.Count; i++) {
+					var actualDiag = actualDiagnostics[i];
+					if (actualDiag.Descriptor == expectedDiag.Descriptor && actualDiag.Span.Equals (expectedDiag.Span)) {
+						Assert.That (actualDiag.Properties ?? Enumerable.Empty<KeyValuePair<string,object>>(),
+							Is.EquivalentTo (expectedDiag.Properties ?? Enumerable.Empty<KeyValuePair<string, object>> ())
+							.UsingDictionaryComparer<string,object> ());
+						found = true;
+						actualDiagnostics.RemoveAt (i);
+						break;
+					}
+				}
+				if (!found) {
+					Assert.Fail ($"Did not find expected diagnostic {expectedDiag.Descriptor.Id}@{expectedDiag.Span.Start}-{expectedDiag.Span.End}");
+				}
+			}
+
+			if (checkUnexpectedDiagnostics && actualDiagnostics.Count > 0) {
+				Assert.Fail ($"Found unexpected diagnostics: {string.Join ("", actualDiagnostics.Select (diag => $"\n\t{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
+			}
+		}
+
+		protected IList<MSBuildDiagnostic> GetDiagnostics (
+			string source,
+			out MSBuildRootDocument parsedDocument,
+			ICollection<MSBuildAnalyzer> analyzers = null,
+			bool includeCoreDiagnostics = false,
+			MSBuildSchema schema = null,
+			MSBuildRootDocument previousDocument = null
+			)
+		{
 			const string projectFileName = "FakeProject.csproj";
 
 			var token = CancellationToken.None;
-
-			expectedDiagnostics ??= Array.Empty<MSBuildDiagnostic> ();
 
 			var schemas = new TestSchemaProvider ();
 			if (schema is not null) {
@@ -83,27 +115,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			var actualDiagnostics = analyzerDriver.Analyze (parsedDocument, includeCoreDiagnostics, token);
 
-			foreach (var expectedDiag in expectedDiagnostics) {
-				bool found = false;
-				for (int i = 0; i < actualDiagnostics.Count; i++) {
-					var actualDiag = actualDiagnostics[i];
-					if (actualDiag.Descriptor == expectedDiag.Descriptor && actualDiag.Span.Equals (expectedDiag.Span)) {
-						Assert.That (actualDiag.Properties ?? Enumerable.Empty<KeyValuePair<string,object>>(),
-							Is.EquivalentTo (expectedDiag.Properties ?? Enumerable.Empty<KeyValuePair<string, object>> ())
-							.UsingDictionaryComparer<string,object> ());
-						found = true;
-						actualDiagnostics.RemoveAt (i);
-						break;
-					}
-				}
-				if (!found) {
-					Assert.Fail ($"Did not find expected diagnostic {expectedDiag.Descriptor.Id}@{expectedDiag.Span.Start}-{expectedDiag.Span.End}");
-				}
-			}
-
-			if (checkUnexpectedDiagnostics && actualDiagnostics.Count > 0) {
-				Assert.Fail ($"Found unexpected diagnostics: {string.Join ("", actualDiagnostics.Select (diag => $"\n\t{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
-			}
+			return actualDiagnostics ?? [];
 		}
 
 		protected TextSpan SpanFromLineColLength (string text, int line, int startCol, int length)
