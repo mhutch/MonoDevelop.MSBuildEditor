@@ -226,9 +226,15 @@ namespace MonoDevelop.MSBuild.Schema
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
 				case MSBuildSyntaxKind.Parameter:
-					return schemas.GetTaskParameter (elementName, attributeName);
+					if (schemas.GetTaskParameter (elementName, attributeName) is TaskParameterInfo taskParameterInfo) {
+						return taskParameterInfo;
+					}
+					break;
 				case MSBuildSyntaxKind.Metadata:
-					return schemas.GetMetadata (elementName, attributeName, false);
+					if (schemas.GetMetadata (elementName, attributeName, false) is MetadataInfo metadataInfo) {
+						return metadataInfo;
+					}
+					break;
 				default:
 					throw new InvalidOperationException ($"Unsupported abstract attribute kind {attribute.AbstractKind}");
 				}
