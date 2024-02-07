@@ -1,7 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#else
 #nullable enable annotations
+#endif
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -45,9 +50,9 @@ namespace MonoDevelop.MSBuild.Language
 
 			// todo: need to wind forward a bit further to get the whole value if cursor is right at the start
 			foreach (var node in nodePath) {
-				if (node is XAttribute xatt && xatt.Name.Prefix == null) {
+				if (node is XAttribute xatt && xatt.Name.Prefix == null && xatt.Name.Name is string attName) {
 					att = xatt;
-					languageAttribute = languageElement?.GetAttribute (att.Name.Name);
+					languageAttribute = languageElement?.GetAttribute (attName);
 					break;
 				}
 
@@ -57,9 +62,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				//code completion is forgiving, all we care about best guess resolve for deepest child
-				if (node is XElement xel && xel.Name.Prefix == null) {
+				if (node is XElement xel && xel.Name.Prefix == null && xel.Name.Name is string elName) {
 					el = xel;
-					languageElement = MSBuildElementSyntax.Get (el.Name.Name, languageElement);
+					languageElement = MSBuildElementSyntax.Get (elName, languageElement);
 					if (languageElement != null)
 						continue;
 				}
@@ -68,14 +73,14 @@ namespace MonoDevelop.MSBuild.Language
 					continue;
 				}
 
-				if (node is XClosingTag ct && ct == el.ClosingTag) {
+				if (node is XClosingTag ct && ct == el?.ClosingTag) {
 					continue;
 				}
 
 				languageElement = null;
 			}
 
-			if (languageElement == null) {
+			if (languageElement == null || el is null) {
 				return null;
 			}
 
@@ -119,21 +124,21 @@ namespace MonoDevelop.MSBuild.Language
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 
-			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
+			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
 			{
 				var start = element.NameOffset;
 				if (element.Name.IsValid && IsIn (start, element.Name.Name.Length)) {
 					rr.ReferenceOffset = start;
 					rr.Reference = element.Name.Name;
 					rr.ReferenceLength = element.Name.Name.Length;
-					switch (resolved.SyntaxKind) {
+					switch (elementSymbol.SyntaxKind) {
 					case MSBuildSyntaxKind.Item:
 					case MSBuildSyntaxKind.ItemDefinition:
 						rr.ReferenceKind = MSBuildReferenceKind.Item;
 						return;
 					case MSBuildSyntaxKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.Reference = (element.ParentElement.Name.Name, element.Name.Name);
+						rr.Reference = (element.ParentElement!.Name.Name, element.Name.Name);
 						return;
 					case MSBuildSyntaxKind.Task:
 						rr.ReferenceKind = MSBuildReferenceKind.Task;
@@ -150,30 +155,30 @@ namespace MonoDevelop.MSBuild.Language
 						rr.ReferenceKind = MSBuildReferenceKind.Property;
 						return;
 					default:
-						if (!resolved.IsAbstract) {
+						if (!elementSymbol.IsAbstract) {
 							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-							rr.Reference = resolved;
+							rr.Reference = elementSymbol;
 						}
 						return;
 					}
 				}
-				base.VisitResolvedElement (element, resolved, symbol);
+				base.VisitResolvedElement (element, elementSymbol, valueSymbol);
 			}
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? symbol)
+				MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol)
 			{
 				if (!attribute.Span.Contains (offset)) {
 					return;
 				}
 
-				rr.AttributeSyntax = resolvedAttribute;
+				rr.AttributeSyntax = attributeSymbol;
 
 				if (attribute.Name.IsValid && attribute.NameSpan.Contains (offset)) {
 					rr.ReferenceOffset = attribute.Span.Start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
-					switch (resolvedAttribute.AbstractKind) {
+					switch (attributeSymbol.AbstractKind) {
 					case MSBuildSyntaxKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
@@ -183,22 +188,22 @@ namespace MonoDevelop.MSBuild.Language
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;
 					default:
-						if (!resolvedAttribute.IsAbstract) {
+						if (!attributeSymbol.IsAbstract) {
 							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-							rr.Reference = resolvedAttribute;
+							rr.Reference = attributeSymbol;
 						}
 						break;
 					}
 					return;
 				}
 
-				base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
+				base.VisitResolvedAttribute (element, attribute, elementSymbol, attributeSymbol, valueSymbol);
 			}
 
 			protected override void VisitValue (
 				XElement element, XAttribute? attribute,
-				MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax? resolvedAttribute,
-				ITypedSymbol? valueDescriptor, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
+				MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax? attributeSymbol,
+				ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
 			{
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
@@ -267,14 +272,14 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				case ExpressionText lit:
-					var kindWithoutModifiers = inferredKind.WithoutModifiers ();
+					var kindWithoutModifiers = valueSymbol.ValueKindWithoutModifiers ();
 					if (lit.IsPure) {
-						VisitPureLiteral (element, valueDescriptor, kindWithoutModifiers, lit);
+						VisitPureLiteral (element, valueSymbol, kindWithoutModifiers, lit);
 						if (kindWithoutModifiers == MSBuildValueKind.TaskOutputParameterName) {
 							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 							rr.ReferenceOffset = lit.Offset;
 							rr.ReferenceLength = lit.Value.Length;
-							rr.Reference = (element.ParentElement.Name.Name, lit.Value);
+							rr.Reference = (element.ParentElement!.Name.Name, lit.Value);
 							break;
 						}
 					}
@@ -297,7 +302,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			void VisitPureLiteral (XElement element, ITypedSymbol valueDescriptor, MSBuildValueKind inferredKind, ExpressionText node)
+			void VisitPureLiteral (XElement element, ITypedSymbol valueSymbol, MSBuildValueKind kindWithoutModifiers, ExpressionText node)
 			{
 				string value = node.GetUnescapedValue (true, out int trimmedOffset, out int escapedLength);
 				if (string.IsNullOrEmpty (value)) {
@@ -307,7 +312,7 @@ namespace MonoDevelop.MSBuild.Language
 				rr.ReferenceLength = escapedLength;
 				rr.Reference = value;
 
-				switch (inferredKind) {
+				switch (kindWithoutModifiers) {
 				case MSBuildValueKind.TaskOutputParameterName:
 					rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
 					return;
@@ -341,7 +346,7 @@ namespace MonoDevelop.MSBuild.Language
 				case MSBuildValueKind.MetadataName:
 					//this is used for KeepMetadata/RemoveMetadata.
 					//reasonable to resolve from first item in include.
-					var itemName = MSBuildMetadataReferenceCollector.GetIncludeExpression (element)
+					var itemName = MSBuildMetadataReferenceCollector.GetIncludeExpression (element)?
 						.WithAllDescendants ()
 						.OfType<ExpressionItemName> ()
 						.FirstOrDefault ();
@@ -364,10 +369,10 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList<ISymbol>?)valueDescriptor?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
+				var knownVals = (IReadOnlyList<ISymbol>?)valueSymbol?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
 
 				if (knownVals != null && knownVals.Count != 0) {
-					var valueComparer = (valueDescriptor?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+					var valueComparer = (valueSymbol?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 					foreach (var kv in knownVals) {
 						if (string.Equals (kv.Name, value, valueComparer)) {
 							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
