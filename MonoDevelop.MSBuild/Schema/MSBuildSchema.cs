@@ -31,15 +31,36 @@ namespace MonoDevelop.MSBuild.Schema
 			return schema;
 		}
 
+		/// <summary>
+		/// Load a schema from a resources in the calling assembly
+		/// </summary>
 		public static MSBuildSchema LoadResourceFromCallingAssembly (string resourceId, out IList<MSBuildSchemaLoadError> loadErrors)
+			=> LoadResourcesFromCallingAssembly ([resourceId], out loadErrors);
+
+		/// <summary>
+		/// Load a schema from multiple resources in the calling assembly
+		/// </summary>
+		public static MSBuildSchema LoadResourcesFromCallingAssembly (IEnumerable<string> resourceIds, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
 			var asm = Assembly.GetCallingAssembly ();
-			using var stream = asm.GetManifestResourceStream (resourceId);
-			if (stream == null) {
-				throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
+
+			var schema = new MSBuildSchema ();
+			loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
+
+			foreach (var resourceId in resourceIds) {
+				using var stream = asm.GetManifestResourceStream (resourceId);
+				if (stream == null) {
+					throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
+				}
+				using var sr = new StreamReader (stream);
+				schema.LoadInternal (sr, out var errors, $"{asm.Location}/{resourceId}");
+				if (loadErrors == null || loadErrors.Count == 0) {
+					loadErrors = errors;
+				} else if (errors.Count > 0) {
+					((List<MSBuildSchemaLoadError>)loadErrors).AddRange (errors);
+				}
 			}
-			using var sr = new StreamReader (stream);
-			return Load (sr, out loadErrors, $"{asm.Location}/{resourceId}");
+			return schema;
 		}
 
 		void LoadInternal (TextReader reader, out IList<MSBuildSchemaLoadError> loadErrors, string origin)
