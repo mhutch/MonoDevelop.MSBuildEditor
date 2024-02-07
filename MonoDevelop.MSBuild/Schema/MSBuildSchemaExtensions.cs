@@ -338,6 +338,24 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
+		public static IEnumerable<CustomTypeValue> GetWarningCodeValues (this IEnumerable<IMSBuildSchema> schemas)
+		{
+			var set = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
+
+			foreach (var schema in schemas) {
+				foreach (var typeKV in schema.Types) {
+					var type = typeKV.Value;
+					if (type.BaseKind == MSBuildValueKind.WarningCode) {
+						foreach (var value in type.Values) {
+							if (set.Add (value.Name)) {
+								yield return value;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		public static IEnumerable<CustomTypeInfo> GetTypeByName (this IEnumerable<IMSBuildSchema> schemas, string typeName)
 		{
 			foreach (var schema in schemas) {
@@ -371,6 +389,11 @@ namespace MonoDevelop.MSBuild.Schema
 					values = customTypeValues;
 					return true;
 				}
+			}
+			else if (kind == MSBuildValueKind.WarningCode) {
+				// this should almost never be null, so don't bother checking whether it's empty
+				values = schema.GetWarningCodeValues ();
+				return true;
 			}
 			else {
 				var simpleValues = kind.GetSimpleValues ();
