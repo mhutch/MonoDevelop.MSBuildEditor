@@ -87,15 +87,15 @@ namespace MonoDevelop.MSBuild.Schema
 			);
 			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsErrors,
 				"List warning codes to treat as errors",
-				MSBuildValueKind.Unknown.AsList ()
+				MSBuildValueKind.WarningCode.AsList ()
 			);
 			AddSettableProperty (WellKnownProperties.MSBuildWarningsNotAsErrors,
 				"List warning codes that should still be treated as warnings when `TreatWarningsAsErrors` is enabled",
-				MSBuildValueKind.Unknown.AsList ()
+				MSBuildValueKind.WarningCode.AsList ()
 			);
 			AddSettableProperty (WellKnownProperties.MSBuildWarningsAsMessages,
 				"List of warning codes to treat as messages",
-				MSBuildValueKind.Unknown.AsList()
+				MSBuildValueKind.WarningCode.AsList()
 			);
 			AddSettableProperty (WellKnownProperties.MSBuildAllProjects,
 				"List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.",

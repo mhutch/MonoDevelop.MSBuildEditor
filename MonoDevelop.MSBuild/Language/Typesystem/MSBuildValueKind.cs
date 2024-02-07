@@ -107,6 +107,12 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		ClrType,
 		ClrTypeName,
 
+		/// <summary>
+		/// Base type for warning codes. Tools should use a derived custom type to define their warning codes.
+		/// Anything of this type will receive completion and validation for all derived warning code types.
+		/// </summary>
+		WarningCode,
+
 		// --------- MODIFIER FLAGS ---------
 
 		/// <summary>

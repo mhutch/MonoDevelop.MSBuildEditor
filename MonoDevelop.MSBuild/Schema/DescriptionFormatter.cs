@@ -283,6 +283,8 @@ namespace MonoDevelop.MSBuild.Schema
 				return "clr-type";
 			case MSBuildValueKind.ClrTypeName:
 				return "clr-type-name";
+			case MSBuildValueKind.WarningCode:
+				return "warning-code";
 			}
 			return null;
 		}

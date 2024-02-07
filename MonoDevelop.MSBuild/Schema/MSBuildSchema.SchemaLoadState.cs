@@ -635,6 +635,7 @@ partial class MSBuildSchema
 		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {
 			MSBuildValueKind.Guid,
 			MSBuildValueKind.Int,
+			MSBuildValueKind.WarningCode
 		};
 
 		public static string? GetErrorIfInvalidCustomTypeDisplayName (string name)

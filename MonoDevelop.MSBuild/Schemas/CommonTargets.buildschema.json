@@ -92,8 +92,9 @@
           "type": "nuget-version"
         },
         "NoWarn": {
-          "description": "List of disabled warning codes",
+          "description": "List of disabled NuGet warning codes",
           "isList": true,
+          "type": { "$ref": "#/types/nuGetWarningCode" },
           "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#suppressing-nuget-warnings"
         }
       }
@@ -577,6 +578,7 @@
     "NoWarn": {
       "description": "List of disabled warning codes",
       "isList": true,
+      "type": "warning-code",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#nowarn"
     },
     "OldToolsVersion": "",
@@ -801,11 +803,13 @@
     "WarningsAsErrors": {
       "description": "List of warning codes to treat as errors",
       "isList": true,
+      "type": "warning-code",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
     },
     "WarningsNotAsErrors": {
       "description": "List of warnings codes that should still be treated as warnings when `TreatWarningsAsErrors` is enabled",
       "isList": true,
+      "type": "warning-code",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
     },
     "WebPage": "",
@@ -1092,6 +1096,14 @@
         "{RawFileName}" : "Treat the reference include as a raw assembly path"
       },
       "allowUnknownValues": true
+    },
+    "nuGetWarningCode": {
+      "description": "Warning codes for NuGet",
+      "name": "nuget-warning-code",
+      "baseType": "warning-code",
+      "values": {
+
+      }
     }
   },
   "targets": {
