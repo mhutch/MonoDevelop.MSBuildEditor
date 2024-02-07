@@ -12,6 +12,7 @@ enum BuiltInSchemaId
 	CommonTargets,
 	Cpp,
 	CSharp,
+	CSharpWarningCodes,
 	ILLink,
 	NetSdk,
 	NuGet,
