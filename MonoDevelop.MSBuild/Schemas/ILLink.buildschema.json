@@ -35,7 +35,8 @@
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
     },
     "ILLinkTreatWarningsAsErrors": {
-      "description": "Specifically control the ILLink warnings-as-errors behavior, independent of the general `WarningsAsErrors` property.",
+      "description": "Specifically control the ILLink warnings-as-errors behavior, independent of the general `TreatWarningsAsErrors` property.",
+      "type": "bool",
       "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#suppress-warnings"
     },
     "TrimmerSingleWarn": {
