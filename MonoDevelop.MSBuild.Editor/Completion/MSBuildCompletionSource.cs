@@ -380,7 +380,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var doc = context.Document;
 			var rr = context.ResolveResult;
-			var kind = valueSymbol.InferValueKindIfUnknown ();
+			var kind = valueSymbol.ValueKind;
 
 			if (!ValidateListPermitted (listKind, kind)) {
 				return null;
@@ -392,6 +392,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing) {
 				return null;
+			}
+
+			// FIXME: This is a temporary hack so we have completion for imported XSD schemas with missing type info.
+			// It is not needed for inferred schemas, as they have already performed the inference.
+			if (kind == MSBuildValueKind.Unknown) {
+				kind = MSBuildInferredSchema.InferValueKindFromName (valueSymbol);
 			}
 
 			bool isValue = triggerState == TriggerState.Value;
@@ -458,7 +464,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				if (GetCompletionInfos (rr, triggerState, kind, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger) is IEnumerable<ISymbol> completionInfos) {
+				if (GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
 					foreach (var ci in completionInfos) {
 						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
 					}

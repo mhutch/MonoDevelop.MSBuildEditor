@@ -130,7 +130,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static List<string> GetTypeDescription (this ITypedSymbol info)
 		{
-			var kind = MSBuildCompletionExtensions.InferValueKindIfUnknown (info);
+			var kind = info.ValueKind;
 
 			var modifierList = GetTypeDescription (kind, info.CustomType);
 

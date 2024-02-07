@@ -157,14 +157,29 @@ namespace MonoDevelop.MSBuild.Schema
 			return null;
 		}
 
+		/// <summary>
+		/// Gets completions for the value of the given symbol, based on its value kind and complex type (if any).
+		/// </summary>
+		/// <param name="kindIfUnknown">
+		/// Optionally provide an alternate <see cref="MSBuildValueKind"/> to be used if the the <see cref="ITypedSymbol"/>'s value kind is <see cref="MSBuildValueKind.Unknown"/>.
+		/// </param>
 		public static IEnumerable<ISymbol> GetValueCompletions (
-			MSBuildValueKind kind,
+			ITypedSymbol symbol,
 			MSBuildRootDocument doc,
 			IMSBuildFileSystem fileSystem,
 			ILogger logger,
 			MSBuildResolveResult rr = null,
-			ExpressionNode triggerExpression = null)
+			ExpressionNode triggerExpression = null,
+			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown)
 		{
+			var kind = symbol.ValueKindWithoutModifiers ();
+
+			// FIXME: This is a temporary hack so we have completion for imported XSD schemas with missing type info.
+			// It is not needed for inferred schemas, as they have already performed the inference.
+			if (kind == MSBuildValueKind.Unknown) {
+				kind = kindIfUnknown;
+			}
+
 			var simple = kind.GetSimpleValues (true);
 			if (simple != null && simple.Count > 0) {
 				return simple;
@@ -456,86 +471,6 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			return schemas.GetElementInfo (rr.ElementSyntax, rr.ParentName, rr.ElementName);
-		}
-
-		public static MSBuildValueKind InferValueKindIfUnknown (this ITypedSymbol variable)
-		{
-			if (variable.ValueKind != MSBuildValueKind.Unknown) {
-				return variable.ValueKind;
-			}
-
-			//assume known items are files
-			if (variable.ValueKind == MSBuildValueKind.UnknownItem) {
-				return MSBuildValueKind.File;
-			}
-
-			if (variable.ValueKind == MSBuildValueKind.UnknownItem.AsList ()) {
-				return MSBuildValueKind.File.AsList ();
-			}
-
-			if (variable is PropertyInfo || variable is MetadataInfo) {
-				if (StartsWith ("Enable")
-					|| StartsWith ("Disable")
-					|| StartsWith ("Require")
-					|| StartsWith ("Use")
-					|| StartsWith ("Allow")
-					|| EndsWith ("Enabled")
-					|| EndsWith ("Disabled")
-					|| EndsWith ("Required")) {
-					return MSBuildValueKind.Bool;
-				}
-				if (EndsWith ("DependsOn")) {
-					return MSBuildValueKind.TargetName.AsList ();
-				}
-				if (EndsWith ("Path")) {
-					return MSBuildValueKind.FileOrFolder;
-				}
-				if (EndsWith ("Paths")) {
-					return MSBuildValueKind.FileOrFolder.AsList ();
-				}
-				if (EndsWith ("Directory")
-					|| EndsWith ("Dir")) {
-					return MSBuildValueKind.Folder;
-				}
-				if (EndsWith ("File")) {
-					return MSBuildValueKind.File;
-				}
-				if (EndsWith ("FileName")) {
-					return MSBuildValueKind.Filename;
-				}
-				if (EndsWith ("Url")) {
-					return MSBuildValueKind.Url;
-				}
-				if (EndsWith ("Ext")) {
-					return MSBuildValueKind.Extension;
-				}
-				if (EndsWith ("Guid")) {
-					return MSBuildValueKind.Guid;
-				}
-				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
-					return MSBuildValueKind.Folder.AsList ();
-				}
-				if (EndsWith ("Files")) {
-					return MSBuildValueKind.File.AsList ();
-				}
-			}
-
-			//make sure these work even if the common targets schema isn't loaded
-			if (variable is PropertyInfo prop) {
-				switch (prop.Name.ToLowerInvariant ()) {
-				case "configuration":
-					return MSBuildValueKind.Configuration;
-				case "platform":
-					return MSBuildValueKind.Platform;
-				}
-			}
-
-			return MSBuildValueKind.Unknown;
-
-			bool StartsWith (string prefix) => variable.Name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
-													   && variable.Name.Length > prefix.Length
-													   && char.IsUpper (variable.Name[prefix.Length]);
-			bool EndsWith (string suffix) => variable.Name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Failed to enumerate children for file path {filePath}")]

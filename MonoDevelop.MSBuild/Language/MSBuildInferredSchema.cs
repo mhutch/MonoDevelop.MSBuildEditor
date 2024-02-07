@@ -211,9 +211,14 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				usage |= existingUsage;
 			} else {
-				Items.Add (itemName, new ItemInfo (itemName, null));
+				var kind = InferValueKindFromName (itemName, MSBuildSyntaxKind.Item);
+				Items.Add (itemName, new InferredItemInfo (itemName, kind));
 			}
 			ItemUsage[itemName] = usage;
+		}
+
+		class InferredItemInfo (string name, MSBuildValueKind inferredKind) : ItemInfo (name, null, valueKind: inferredKind), IInferredSymbol
+		{
 		}
 
 		void CollectProperty (string propertyName, ReferenceUsage usage)
@@ -224,16 +229,25 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				usage |= existingUsage;
 			} else if (!MSBuildIntrinsics.Properties.ContainsKey (propertyName)) {
-				Properties.Add (propertyName, new PropertyInfo (propertyName, null));
+				var kind = InferValueKindFromName (propertyName, MSBuildSyntaxKind.Property);
+				Properties.Add (propertyName, new InferredPropertyInfo (propertyName, kind));
 			}
 			PropertyUsage[propertyName] = usage;
+		}
+
+		class InferredPropertyInfo (string name, MSBuildValueKind inferredKind) : PropertyInfo(name, null, inferredKind), IInferredSymbol
+		{
 		}
 
 		void CollectTarget (string name)
 		{
 			if (name != null && !Targets.ContainsKey (name)) {
-				Targets[name] = new TargetInfo (name, null);
+				Targets[name] = new InferredTargetInfo (name);
 			}
+		}
+
+		class InferredTargetInfo (string name) : TargetInfo (name, null), IInferredSymbol
+		{
 		}
 
 		void CollectMetadata (string itemName, string metadataName, ReferenceUsage usage)
@@ -252,17 +266,24 @@ namespace MonoDevelop.MSBuild.Language
 				usage |= existingUsage;
 			} else if (!MSBuildIntrinsics.Metadata.ContainsKey (metadataName)) {
 				var item = Items[itemName];
-				item.Metadata.Add (metadataName, new MetadataInfo (metadataName, null, item: item));
+				var kind = InferValueKindFromName (metadataName, MSBuildSyntaxKind.Metadata);
+				item.Metadata.Add (metadataName, new InferredMetadataInfo (metadataName, kind, item: item));
 			}
 			MetadataUsage[(itemName, metadataName)] = usage;
+		}
+
+		class InferredMetadataInfo (string name, MSBuildValueKind inferredKind, ItemInfo item) : MetadataInfo (name, null, valueKind: inferredKind, item: item)
+		{
 		}
 
 		void CollectTask (string name)
 		{
 			if (!Tasks.TryGetValue (name, out TaskInfo task)) {
-				Tasks[name] = new TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, null);
+				Tasks[name] = new InferredTaskInfo (name);
 			}
 		}
+
+		class InferredTaskInfo (string name) : TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, null) { }
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
@@ -275,7 +296,12 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 			}
-			task.Parameters[parameterName] = new TaskParameterInfo (parameterName, null, false, isOutput, MSBuildValueKind.Unknown);
+			task.Parameters[parameterName] = new InferredTaskParameter (parameterName, false, isOutput, MSBuildValueKind.Unknown);
+		}
+
+		class InferredTaskParameter (string parameterName, bool isRequired, bool isOutput, MSBuildValueKind kind)
+			: TaskParameterInfo (parameterName, null, isRequired, isOutput, kind)
+		{
 		}
 
 		void CollectTaskParameterDefinition (string taskName, MSBuildParameterElement def)
@@ -287,7 +313,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			bool isRequired = def.RequiredAttribute?.AsConstBool () ?? false;
-			bool isOutout = def.OutputAttribute?.AsConstBool () ?? false;
+			bool isOutput = def.OutputAttribute?.AsConstBool () ?? false;
 
 			var kind = MSBuildValueKind.Unknown;
 			bool isList = false;
@@ -322,7 +348,7 @@ namespace MonoDevelop.MSBuild.Language
 				kind = kind.AsList ();
 			}
 
-			task.Parameters.Add (parameterName, new TaskParameterInfo (parameterName, null, isRequired, isOutout, kind));
+			task.Parameters.Add (parameterName, new InferredTaskParameter (parameterName, isRequired, isOutput, kind));
 		}
 
 		void CollectTaskDefinition (MSBuildUsingTaskElement element, MSBuildParserContext parseContext)
@@ -490,6 +516,82 @@ namespace MonoDevelop.MSBuild.Language
 				Platforms.Add (value);
 			}
 		}
+
+		public static MSBuildValueKind InferValueKindFromName (ISymbol symbol)
+			=> symbol switch {
+				ItemInfo item => MSBuildValueKind.FileOrFolder.AsList (),
+				MetadataInfo metadata => InferValueKindFromName (metadata.Name, MSBuildSyntaxKind.Metadata),
+				PropertyInfo property => InferValueKindFromName (property.Name, MSBuildSyntaxKind.Property),
+				_ => MSBuildValueKind.Unknown
+			};
+
+		public static MSBuildValueKind InferValueKindFromName (string name, MSBuildSyntaxKind kind)
+		{
+			if (kind == MSBuildSyntaxKind.Property || kind == MSBuildSyntaxKind.Metadata) {
+				if (StartsWith ("Enable")
+					|| StartsWith ("Disable")
+					|| StartsWith ("Require")
+					|| StartsWith ("Use")
+					|| StartsWith ("Allow")
+					|| EndsWith ("Enabled")
+					|| EndsWith ("Disabled")
+					|| EndsWith ("Required")) {
+					return MSBuildValueKind.Bool;
+				}
+				if (EndsWith ("DependsOn")) {
+					return MSBuildValueKind.TargetName.AsList ();
+				}
+				if (EndsWith ("Path")) {
+					return MSBuildValueKind.FileOrFolder;
+				}
+				if (EndsWith ("Paths")) {
+					return MSBuildValueKind.FileOrFolder.AsList ();
+				}
+				if (EndsWith ("Directory")
+					|| EndsWith ("Dir")) {
+					return MSBuildValueKind.Folder;
+				}
+				if (EndsWith ("File")) {
+					return MSBuildValueKind.File;
+				}
+				if (EndsWith ("FileName")) {
+					return MSBuildValueKind.Filename;
+				}
+				if (EndsWith ("Url")) {
+					return MSBuildValueKind.Url;
+				}
+				if (EndsWith ("Ext")) {
+					return MSBuildValueKind.Extension;
+				}
+				if (EndsWith ("Guid")) {
+					return MSBuildValueKind.Guid;
+				}
+				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
+					return MSBuildValueKind.Folder.AsList ();
+				}
+				if (EndsWith ("Files")) {
+					return MSBuildValueKind.File.AsList ();
+				}
+			}
+
+			//make sure these work even if the common targets schema isn't loaded
+			if (kind == MSBuildSyntaxKind.Property) {
+				switch (name) {
+				case "configuration":
+					return MSBuildValueKind.Configuration;
+				case "platform":
+					return MSBuildValueKind.Platform;
+				}
+			}
+
+			return MSBuildValueKind.Unknown;
+
+			bool StartsWith (string prefix) => name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
+				&& name.Length > prefix.Length
+				&& char.IsUpper (name[prefix.Length]);
+			bool EndsWith (string suffix) => name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
+		}
+
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error in schema inference for {filename}")]
 		static partial void LogInternalError (ILogger logger, UserIdentifiableFileName filename, Exception ex);

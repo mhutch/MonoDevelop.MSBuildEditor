@@ -443,16 +443,17 @@ namespace MonoDevelop.MSBuild.Language
 					continue;
 				}
 
-				IEnumerable<ISymbol> cinfos;
-				if (info.CustomType != null && info.CustomType.Values.Count > 0) {
-					cinfos = info.CustomType.Values;
-				} else {
-					var kind = info.InferValueKindIfUnknown ();
-					cinfos = MSBuildCompletionExtensions.GetValueCompletions (kind, doc, fileSystem, logger);
+				// FIXME: This is a temporary hack so we have completion for imported XSD schemas with missing type info.
+				// It is not needed for inferred schemas, as they have already performed the inference.
+				var kind = info.ValueKindWithoutModifiers ();
+				if (kind == MSBuildValueKind.Unknown) {
+					kind = MSBuildInferredSchema.InferValueKindFromName (info);
 				}
 
-				if (cinfos != null) {
-					foreach (var ci in cinfos) {
+				var completionInfos = MSBuildCompletionExtensions.GetValueCompletions (info, doc, fileSystem, logger, kindIfUnknown: kind);
+
+				if (completionInfos != null) {
+					foreach (var ci in completionInfos) {
 						if (names.Add (ci.Name)) {
 							yield return ci;
 						}
@@ -461,17 +462,33 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
+		/// <summary>
+		/// Gets completions for the given <see cref="TriggerState"/> at the given <see cref="MSBuildResolveResult"/>, based on the <see cref="ITypedSymbol"/>'s value kind and complex type (if any).
+		/// </summary>
+		/// <param name="kindIfUnknown">
+		/// Optionally provide an alternate <see cref="MSBuildValueKind"/> to be used if the the <see cref="ITypedSymbol"/>'s value kind is <see cref="MSBuildValueKind.Unknown"/>.
+		/// </param>
 		public static IEnumerable<ISymbol> GetCompletionInfos (
 			MSBuildResolveResult rr,
-			TriggerState trigger, MSBuildValueKind kind,
+			TriggerState trigger, ITypedSymbol valueSymbol,
 			ExpressionNode triggerExpression, int triggerLength,
 			MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider,
 			IMSBuildFileSystem fileSystem,
-			ILogger logger)
+			ILogger logger,
+			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown
+			)
 		{
+			var kind = valueSymbol.ValueKindWithoutModifiers ();
+
+			// FIXME: This is a temporary hack so we have completion for imported XSD schemas with missing type info.
+			// It is not needed for inferred schemas, as they have already performed the inference.
+			if (kind == MSBuildValueKind.Unknown) {
+				kind = kindIfUnknown;
+			}
+
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, fileSystem, logger, rr, triggerExpression);
+				return MSBuildCompletionExtensions.GetValueCompletions (valueSymbol, doc, fileSystem, logger, rr, triggerExpression, kindIfUnknown: kind);
 			case TriggerState.ItemName:
 				return doc.GetItems ();
 			case TriggerState.MetadataName:

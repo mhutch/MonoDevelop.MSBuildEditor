@@ -4,6 +4,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 
+using MonoDevelop.MSBuild.Language.Typesystem;
+
 namespace MonoDevelop.MSBuild.Language;
 
 public static class MSBuildSymbolExtensions
@@ -44,5 +46,39 @@ public static class MSBuildSymbolExtensions
 		}
 		helpUrl = null;
 		return false;
+	}
+
+	/// <summary>
+	/// Checks whether the symbol's value kind is a specific value kind or list of that value kind.
+	/// </summary>
+	public static bool IsKindOrListOfKind (this ITypedSymbol typedSymbol, MSBuildValueKind compareTo) => typedSymbol.ValueKind.IsKindOrListOfKind (compareTo);
+
+	/// <summary>
+	/// Check whether the value allows expressions, i.e. the absence of the Literal modifier
+	/// </summary>
+	public static bool AllowsExpressions (this ITypedSymbol typedSymbol) => typedSymbol.ValueKind.AllowsExpressions ();
+
+	/// <summary>
+	/// Whether the type permits lists, i.e. whether it has a list modifier flag or is an unknown type. By default
+	/// it only respects <see cref="MSBuildValueKind.ListSemicolon"/> but this can be overridden with <paramref name="listKind"/>.
+	/// </summary>
+	/// <param name="listKind">
+	/// Which list modifiers to respect. Ignores bits other than <see cref="MSBuildValueKind.ListSemicolon"/>,
+	/// <see cref="MSBuildValueKind.ListComma"/> or <see cref="MSBuildValueKind.ListSemicolonOrComma"/>.
+	/// </param>
+	public static bool AllowsLists (this ITypedSymbol typedSymbol, MSBuildValueKind listKind = MSBuildValueKind.ListSemicolon) => typedSymbol.ValueKind.AllowsLists (listKind);
+
+	/// <summary>
+	/// Returns the type without any modifier flags (i.e. list, literal)
+	/// </summary>
+	public static MSBuildValueKind ValueKindWithoutModifiers (this ITypedSymbol typedSymbol) => typedSymbol.ValueKind.WithoutModifiers ();
+
+	/// <summary>
+	/// Check whether the symbol is of the specified type or derived from it.
+	/// </summary>
+	public static bool IsKindOrDerived (this ITypedSymbol valueSymbol, MSBuildValueKind kind)
+	{
+		var actualKind = valueSymbol.ValueKindWithoutModifiers ();
+		return actualKind == kind || (actualKind == MSBuildValueKind.CustomType && valueSymbol.CustomType?.BaseKind == kind);
 	}
 }
