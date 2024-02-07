@@ -8,10 +8,12 @@
 //
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/d1132b6ecdef7e54167f24de9ecec93e998ad96e/src/Build/Evaluation/IntrinsicFunctions.cs
 //
-//  CHANGES: 
+//  CHANGES:
 //    * added 'using IFileSystem = ...' to use the public derived type instead of the internal interface
 //    * Made DoesTaskHostExist partial and commented out the body, and made class partial
+//    * Define RUNTIME_TYPE_NETCORE to use the .NET Core behavior for GetRegistryValue etc
 
+#define RUNTIME_TYPE_NETCORE
 
 // shim: IFileSystem is internal to MSBuild, but it's always implemented via MSBuildFileSystemBase, which is public
 using IFileSystem = Microsoft.Build.FileSystem.MSBuildFileSystemBase;
