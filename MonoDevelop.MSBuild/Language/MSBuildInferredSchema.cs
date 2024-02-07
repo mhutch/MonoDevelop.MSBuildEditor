@@ -577,10 +577,10 @@ namespace MonoDevelop.MSBuild.Language
 
 			//make sure these work even if the common targets schema isn't loaded
 			if (kind == MSBuildSyntaxKind.Property) {
-				switch (name) {
-				case "configuration":
+				if (Equals ("Configuration")) {
 					return MSBuildValueKind.Configuration;
-				case "platform":
+				}
+				if (Equals ("Platform")) {
 					return MSBuildValueKind.Platform;
 				}
 			}
@@ -591,6 +591,7 @@ namespace MonoDevelop.MSBuild.Language
 				&& name.Length > prefix.Length
 				&& char.IsUpper (name[prefix.Length]);
 			bool EndsWith (string suffix) => name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
+			bool Equals (string value) => name.Equals (value, StringComparison.OrdinalIgnoreCase);
 		}
 
 
