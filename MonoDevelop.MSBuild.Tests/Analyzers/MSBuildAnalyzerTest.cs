@@ -151,26 +151,5 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			}
 			throw new ArgumentOutOfRangeException ($"Reached line {currentLine}");
 		}
-
-	}
-
-	class TestSchemaProvider : MSBuildSchemaProvider
-	{
-		readonly Dictionary<(string filename, string sdk), MSBuildSchema> schemas = new ();
-
-		public void AddTestSchema (string filename, string sdk, MSBuildSchema schema)
-		{
-			schemas.Add ((filename, sdk), schema);
-		}
-
-		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
-		{
-			if (schemas.TryGetValue ((Path.GetFileName (path), sdk), out MSBuildSchema schema)) {
-				loadErrors = null;
-				return schema;
-			}
-
-			return base.GetSchema (path, sdk, out loadErrors);
-		}
 	}
 }

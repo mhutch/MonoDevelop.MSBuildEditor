@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Extensions.Logging;
 
@@ -40,6 +41,11 @@ namespace MonoDevelop.MSBuild.Schema
 
 			return BuiltInSchema.TryLoadForFile (path, sdk, out loadErrors);
 		}
+
+		/// <summary>
+		/// Get schemas to use when no schemas are loaded from the project file
+		/// </summary>
+		public virtual ICollection<MSBuildSchema> GetFallbackSchemas () => BuiltInSchema.GetAllBuiltInFileSchemas ().ToArray ();
 
 		static readonly EventId schemaLoadErrorId = new (0, "SchemaLoadError");
 	}

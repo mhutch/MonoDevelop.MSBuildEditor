@@ -26,7 +26,7 @@ namespace MonoDevelop.MSBuild.Language
 	partial class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
 	{
 		MSBuildToolsVersion? toolsVersion;
-		MSBuildSchema[] fallbackSchemas;
+		ICollection<MSBuildSchema> fallbackSchemas;
 
 		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
 		public ITextSource Text { get; private set; }
@@ -237,7 +237,7 @@ namespace MonoDevelop.MSBuild.Language
 				AddSdkImport (sdkTargetsExpr, "(implicit)", defaultSdk.Name, defaultSdk, false);
 			}
 
-			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas ?? BuiltInSchema.GetAllBuiltInFileSchemas ().ToArray ();
+			doc.fallbackSchemas = parseContext.PreviousRootDocument?.fallbackSchemas ?? parseContext.SchemaProvider.GetFallbackSchemas ();
 		}
 
 		//hack for MSBuildParserContext to access

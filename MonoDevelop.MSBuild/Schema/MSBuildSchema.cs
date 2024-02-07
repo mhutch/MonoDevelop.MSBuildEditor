@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	partial class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>
+	partial class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>, IEnumerable<CustomTypeInfo>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
@@ -210,6 +210,13 @@ namespace MonoDevelop.MSBuild.Schema
 			default:
 				throw new ArgumentException ($"Only items, properties, tasks and targets are allowed");
 			}
+		}
+
+		IEnumerator<CustomTypeInfo> IEnumerable<CustomTypeInfo>.GetEnumerator () => Types.Values.GetEnumerator ();
+
+		public void Add (CustomTypeInfo customType)
+		{
+			Types.Add (customType.Name, customType);
 		}
 	}
 }
