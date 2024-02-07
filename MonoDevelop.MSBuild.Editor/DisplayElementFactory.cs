@@ -81,6 +81,13 @@ namespace MonoDevelop.MSBuild.Editor
 
 			var elements = new List<object> { nameElement };
 
+			if (info is IInferredSymbol) {
+				elements.Add (
+					new ClassifiedTextElement (
+						new ClassifiedTextRun (PredefinedClassificationTypeNames.NaturalLanguage, "(inferred)", ClassifiedTextRunStyle.Italic)
+					));
+			}
+
 			switch (info.Description.DisplayElement) {
 			case IRoslynSymbol symbol:
 				await AddSymbolDescriptionElements (symbol, elements.Add, logger, token);
