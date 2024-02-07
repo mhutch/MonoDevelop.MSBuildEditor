@@ -8,8 +8,8 @@
 //
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Shared/NativeMethodsShared.cs
 //
-//  CHANGES: None
-
+//  CHANGES:
+//       * Added SupportedOSPlatformGuard to IsWindows property
 
 
 using System;
@@ -684,6 +684,7 @@ namespace Microsoft.Build.Shared
 		/// <summary>
 		/// Gets a flag indicating if we are running under some version of Windows
 		/// </summary>
+		[System.Runtime.Versioning.SupportedOSPlatformGuard("windows")]
 		internal static bool IsWindows {
 #if CLR2COMPATIBILITY
             get { return true; }

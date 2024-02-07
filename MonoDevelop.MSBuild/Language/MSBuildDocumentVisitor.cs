@@ -68,29 +68,28 @@ abstract class MSBuildDocumentVisitor
 		VisitResolvedElement (element, resolved);
 	}
 
-	void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved)
+	void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSymbol)
 	{
-
-		if (resolved is not null) {
+		if (elementSymbol is not null) {
 			// if this was resolved then elementName is not null
 			string elementName = element.Name.Name!;
-			var elementSymbol = GetSchemas ().GetElementInfo (resolved, (element.Parent as XElement)?.Name.Name, elementName, true);
-			VisitResolvedElement (element, resolved, elementSymbol);
+			var valueSymbol = GetSchemas ().GetElementInfo (elementSymbol, (element.Parent as XElement)?.Name.Name, elementName, true);
+			VisitResolvedElement (element, elementSymbol, valueSymbol ?? elementSymbol);
 		} else {
 			VisitUnknownElement (element);
 		}
 	}
 
-	protected virtual void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? elementSymbol)
+	protected virtual void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
 	{
-		VisitResolvedElementChildren (element, resolved, elementSymbol);
+		VisitResolvedElementChildren (element, elementSymbol, valueSymbol);
 	}
 
-	void VisitResolvedElementChildren (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? elementSymbol)
+	void VisitResolvedElementChildren (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
 	{
-		ResolveAttributesAndValue (element, resolved, elementSymbol);
+		ResolveAttributesAndValue (element, elementSymbol, valueSymbol);
 
-		if (resolved.ValueKind == MSBuildValueKind.Nothing) {
+		if (elementSymbol.ValueKind == MSBuildValueKind.Nothing) {
 			foreach (var child in element.Elements) {
 				if ((child.ClosingTag ?? child).Span.End < range.Start) {
 					continue;
@@ -98,12 +97,12 @@ abstract class MSBuildDocumentVisitor
 				if (child.Span.Start > range.End) {
 					return;
 				}
-				ResolveAndVisit (child, resolved);
+				ResolveAndVisit (child, elementSymbol);
 			}
 		}
 	}
 
-	void ResolveAttributesAndValue (XElement element, MSBuildElementSyntax resolvedElement, ITypedSymbol? elementSymbol)
+	void ResolveAttributesAndValue (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol elementValueSymbol)
 	{
 		foreach (var att in element.Attributes) {
 			if (att.Span.End < range.Start) {
@@ -120,43 +119,43 @@ abstract class MSBuildDocumentVisitor
 				continue;
 			}
 
-			var resolvedAttribute = resolvedElement.GetAttribute (attributeName);
+			var attributeSymbol = elementSymbol.GetAttribute (attributeName);
 
-			if (resolvedAttribute is null) {
+			if (attributeSymbol is null) {
 				VisitUnknownAttribute (element, att);
 				continue;
 			}
 
-			var attributeSymbol = GetSchemas ().GetAttributeInfo (resolvedAttribute, elementName, attributeName);
+			var attributeValueSymbol = GetSchemas ().GetAttributeInfo (attributeSymbol, elementName, attributeName);
 
 			// GetAttributeInfo may have returned a specialized variant of the MSBuildAttributeSyntax, so update it
-			if (attributeSymbol is MSBuildAttributeSyntax resolvedAttributeSymbol) {
-				resolvedAttribute = resolvedAttributeSymbol;
+			if (attributeValueSymbol is MSBuildAttributeSyntax resolvedAttributeSymbol) {
+				attributeSymbol = resolvedAttributeSymbol;
 			}
 
-			VisitResolvedAttribute (element, att, resolvedElement, resolvedAttribute, attributeSymbol);
+			VisitResolvedAttribute (element, att, elementSymbol, attributeSymbol, attributeValueSymbol ?? attributeSymbol);
 		}
 
-		if (resolvedElement.ValueKind != MSBuildValueKind.Nothing && resolvedElement.ValueKind != MSBuildValueKind.Data) {
-			VisitElementValue (element, resolvedElement, elementSymbol);
+		if (elementSymbol.ValueKind != MSBuildValueKind.Nothing && elementSymbol.ValueKind != MSBuildValueKind.Data) {
+			VisitElementValue (element, elementSymbol, elementValueSymbol);
 			return;
 		}
 	}
 
 	protected virtual void VisitResolvedAttribute (
 		XElement element, XAttribute attribute,
-		MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? attributeSymbol)
+		MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol)
 	{
-		VisitResolvedAttributeChildren (element, attribute, resolvedElement, resolvedAttribute, attributeSymbol);
+		VisitResolvedAttributeChildren (element, attribute, elementSymbol, attributeSymbol, valueSymbol);
 	}
 
 	void VisitResolvedAttributeChildren (
 		XElement element, XAttribute attribute,
-		MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? attributeSymbol)
+		MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol)
 	{
 		if (attribute.Value is string expressionText) {
-			var expression = ParseValue (expressionText, attribute.ValueOffset, attributeSymbol, out var inferredKind);
-			VisitAttributeValue (element, attribute, resolvedElement, resolvedAttribute, attributeSymbol, inferredKind, expressionText, expression);
+			var expression = ParseValue (expressionText, attribute.ValueOffset, valueSymbol);
+			VisitAttributeValue (element, attribute, elementSymbol, attributeSymbol, valueSymbol, expressionText, expression);
 		}
 	}
 
@@ -168,7 +167,7 @@ abstract class MSBuildDocumentVisitor
 	{
 	}
 
-	void VisitElementValue (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? elementSymbol)
+	void VisitElementValue (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
 	{
 		if (element.IsSelfClosing || !element.IsEnded) {
 			return;
@@ -181,34 +180,32 @@ abstract class MSBuildDocumentVisitor
 		if (textNode != null) {
 			begin = textNode.Span.Start;
 			value = TextSource.GetTextBetween (begin, textNode.Span.End);
-			var expression = ParseValue (value, begin, elementSymbol, out var inferredKind);
-			VisitElementValue (element, resolved, elementSymbol, inferredKind, value, expression);
+			var expression = ParseValue (value, begin, valueSymbol);
+			VisitElementValue (element, elementSymbol, valueSymbol, value, expression);
 		}
 	}
 
 	protected virtual ExpressionOptions GetExpressionParseOptions (MSBuildValueKind inferredKind) => inferredKind.GetExpressionOptions ();
 
-	ExpressionNode ParseValue (string value, int offset, ITypedSymbol? valueSymbol, out MSBuildValueKind inferredKind)
+	ExpressionNode ParseValue (string value, int offset, ITypedSymbol valueSymbol)
 	{
-		inferredKind = valueSymbol is not null ? MSBuildCompletionExtensions.InferValueKindIfUnknown (valueSymbol) : MSBuildValueKind.Unknown;
-
 		// parse even if the kind disallows expressions, as this handles lists, whitespace, offsets, etc
-		return valueSymbol?.ValueKind == MSBuildValueKind.Condition
+		return valueSymbol.ValueKind == MSBuildValueKind.Condition
 			? ExpressionParser.ParseCondition (value, offset)
-			: ExpressionParser.Parse (value, GetExpressionParseOptions (inferredKind), offset);
+			: ExpressionParser.Parse (value, GetExpressionParseOptions (valueSymbol.ValueKind), offset);
 	}
 
-	protected virtual void VisitElementValue (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? elementSymbol, MSBuildValueKind inferredKind, string expressionText, ExpressionNode expression)
+	protected virtual void VisitElementValue (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol, string expressionText, ExpressionNode expression)
 	{
-		VisitValue (element, null, resolved, null, elementSymbol, inferredKind, expressionText, expression);
+		VisitValue (element, null, elementSymbol, null, valueSymbol, expressionText, expression);
 	}
 
-	protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? attributeSymbol, MSBuildValueKind inferredKind, string expressionText, ExpressionNode expression)
+	protected virtual void VisitAttributeValue (XElement element, XAttribute attribute, MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol, string expressionText, ExpressionNode expression)
 	{
-		VisitValue (element, attribute, resolvedElement, resolvedAttribute, attributeSymbol, inferredKind, expressionText, expression);
+		VisitValue (element, attribute, elementSymbol, attributeSymbol, valueSymbol, expressionText, expression);
 	}
 
-	protected virtual void VisitValue (XElement element, XAttribute? attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax? resolvedAttribute, ITypedSymbol? valueSymbol, MSBuildValueKind inferredKind, string expressionText, ExpressionNode node)
+	protected virtual void VisitValue (XElement element, XAttribute? attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax? resolvedAttribute, ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
 	{
 	}
 }

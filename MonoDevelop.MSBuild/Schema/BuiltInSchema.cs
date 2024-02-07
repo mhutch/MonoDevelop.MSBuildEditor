@@ -16,10 +16,14 @@ static class BuiltInSchema
 	public static MSBuildSchema Load (BuiltInSchemaId schemaId, out IList<MSBuildSchemaLoadError> loadErrors)
 		=> MSBuildSchema.LoadResourceFromCallingAssembly ($"MonoDevelop.MSBuild.Schemas.{schemaId}.buildschema.json", out loadErrors);
 
+	[MethodImpl (MethodImplOptions.NoInlining)]
+	static MSBuildSchema Load (BuiltInSchemaId[] schemaIds, out IList<MSBuildSchemaLoadError> loadErrors)
+		=> MSBuildSchema.LoadResourcesFromCallingAssembly (schemaIds.Select (schemaId => $"MonoDevelop.MSBuild.Schemas.{schemaId}.buildschema.json"), out loadErrors);
+
 	public static MSBuildSchema? TryLoadForFile (string filePath, string sdkId, out IList<MSBuildSchemaLoadError>? loadErrors)
 	{
-		if (filenameToIdMap.TryGetValue (new (sdkId, Path.GetFileName (filePath)), out BuiltInSchemaId schemaId)) {
-			return Load (schemaId, out loadErrors);
+		if (filenameToIdMap.TryGetValue (new (sdkId, Path.GetFileName (filePath)), out BuiltInSchemaId[] schemaIds)) {
+			return Load (schemaIds, out loadErrors);
 		}
 		loadErrors = null;
 		return null;
@@ -29,25 +33,26 @@ static class BuiltInSchema
 
 	const string sdkTargets = "sdk.targets";
 
-	static readonly Dictionary<(string? sdkId, string filename), BuiltInSchemaId> filenameToIdMap = new (BuiltInSchemaId resourceId, string? sdkId, string filename)[] {
-		(BuiltInSchemaId.Android, null, "Xamarin.Android.Common.targets"),
-		(BuiltInSchemaId.Appx, null, "Microsoft.DesktopBridge.targets"),
-		(BuiltInSchemaId.AspNetCore, "Microsoft.NET.Sdk.Web", sdkTargets),
-		(BuiltInSchemaId.CodeAnalysis, null, "Microsoft.CodeAnalysis.targets"),
-		(BuiltInSchemaId.CommonTargets, null, "Microsoft.Common.targets"),
-		(BuiltInSchemaId.Cpp, null, "Microsoft.Cpp.targets"),
-		(BuiltInSchemaId.CSharp, null, "Microsoft.CSharp.CurrentVersion.targets"),
-		(BuiltInSchemaId.ILLink, null, "Microsoft.NET.ILLink.targets"),
-		(BuiltInSchemaId.NetSdk, "Microsoft.NET.Sdk", sdkTargets),
-		(BuiltInSchemaId.NuGet, null, "NuGet.targets"),
-		(BuiltInSchemaId.NuGetPack, null, "NuGet.Build.Tasks.Pack.targets"),
-		(BuiltInSchemaId.GrpcProtobuf, null, "Google.Protobuf.Tools.targets"),
-		(BuiltInSchemaId.RazorSdk, "Microsoft.NET.Sdk.Razor", sdkTargets),
-		(BuiltInSchemaId.Roslyn, null, "Microsoft.Managed.Core.targets"),
-		(BuiltInSchemaId.VisualBasic, null, "Microsoft.VisualBasic.CurrentVersion.targets"),
-		(BuiltInSchemaId.WindowsDesktop, null, "Microsoft.NET.Sdk.WindowsDesktop.targets"),
-		(BuiltInSchemaId.GenerateAssemblyInfo, null, "Microsoft.NET.GenerateAssemblyInfo.targets"),
-		(BuiltInSchemaId.ValidatePackage, null, "Microsoft.NET.ApiCompat.ValidatePackage.targets")
+	static readonly Dictionary<(string? sdkId, string filename), BuiltInSchemaId[]> filenameToIdMap = new (BuiltInSchemaId[] resourceId, string? sdkId, string filename)[] {
+		([ BuiltInSchemaId.Android ], null, "Xamarin.Android.Common.targets"),
+		([ BuiltInSchemaId.Appx ], null, "Microsoft.DesktopBridge.targets"),
+		([ BuiltInSchemaId.AspNetCore ], "Microsoft.NET.Sdk.Web", sdkTargets),
+		([ BuiltInSchemaId.CodeAnalysis ], null, "Microsoft.CodeAnalysis.targets"),
+		([ BuiltInSchemaId.CommonTargets ], null, "Microsoft.Common.targets"),
+		([ BuiltInSchemaId.Cpp ], null, "Microsoft.Cpp.targets"),
+		([ BuiltInSchemaId.CSharp,
+		   BuiltInSchemaId.CSharpWarningCodes ], null, "Microsoft.CSharp.CurrentVersion.targets"),
+		([ BuiltInSchemaId.ILLink ], null, "Microsoft.NET.ILLink.targets"),
+		([ BuiltInSchemaId.NetSdk ], "Microsoft.NET.Sdk", sdkTargets),
+		([ BuiltInSchemaId.NuGet ], null, "NuGet.targets"),
+		([ BuiltInSchemaId.NuGetPack ], null, "NuGet.Build.Tasks.Pack.targets"),
+		([ BuiltInSchemaId.GrpcProtobuf ], null, "Google.Protobuf.Tools.targets"),
+		([ BuiltInSchemaId.RazorSdk ], "Microsoft.NET.Sdk.Razor", sdkTargets),
+		([ BuiltInSchemaId.Roslyn ], null, "Microsoft.Managed.Core.targets"),
+		([ BuiltInSchemaId.VisualBasic ], null, "Microsoft.VisualBasic.CurrentVersion.targets"),
+		([ BuiltInSchemaId.WindowsDesktop ], null, "Microsoft.NET.Sdk.WindowsDesktop.targets"),
+		([ BuiltInSchemaId.GenerateAssemblyInfo ], null, "Microsoft.NET.GenerateAssemblyInfo.targets"),
+		([ BuiltInSchemaId.ValidatePackage ], null, "Microsoft.NET.ApiCompat.ValidatePackage.targets")
 		}
 		.ToDictionary (s => (s.sdkId, s.filename), s => s.resourceId, new OrdinalIgnoreCaseTupleComparer ());
 

@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
+
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax
@@ -28,6 +30,8 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		public MSBuildSyntaxKind? AbstractKind { get; }
 		public bool Required { get; }
+
+		[MemberNotNullWhen(true, nameof (AbstractKind))]
 		public bool IsAbstract => AbstractKind.HasValue;
     }
 }

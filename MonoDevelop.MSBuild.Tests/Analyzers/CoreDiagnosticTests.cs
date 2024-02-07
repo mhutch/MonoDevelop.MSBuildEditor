@@ -39,6 +39,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 </PropertyGroup>
 </Project>";
 
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("EnableFoo", "", MSBuildValueKind.Bool)
+			};
+
 			var expected = new MSBuildDiagnostic (
 				CoreDiagnostics.InvalidBool,
 				SpanFromLineColLength (source, 3, 15, 9),
@@ -47,7 +51,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					.Add ("ValueKind", MSBuildValueKind.Bool)
 			);
 
-			VerifyDiagnostics (source, null, true, expected);
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				schema: schema);
 		}
 
 

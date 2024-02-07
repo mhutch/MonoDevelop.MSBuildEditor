@@ -309,7 +309,8 @@
           "description": "If specified, the type's values conform to this underlying type and will inherit validation and commands that apply to that type",
           "enum": [
             "guid",
-            "int"
+            "int",
+            "warning-code"
           ]
         },
         "caseSensitive": {

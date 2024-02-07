@@ -61,13 +61,10 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public static MSBuildValueKind AsLiteral (this MSBuildValueKind value) => value | MSBuildValueKind.Literal;
 
 		//FIXME: cache these somewhere?
-		public static IReadOnlyList<ConstantSymbol> GetSimpleValues (this MSBuildValueKind kind, bool includeParseableTypes)
+		public static IReadOnlyList<ConstantSymbol> GetSimpleValues (this MSBuildValueKind kind)
 		{
 			switch (kind) {
 			case MSBuildValueKind.Bool:
-				if (!includeParseableTypes) {
-					return [];
-				}
 				return [
 					new ("True", null, MSBuildValueKind.Bool),
 					new ("False", null, MSBuildValueKind.Bool),

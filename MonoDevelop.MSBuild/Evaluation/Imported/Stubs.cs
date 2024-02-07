@@ -185,9 +185,17 @@ namespace Microsoft.Build.Shared
 namespace System.Runtime.Versioning
 {
 	[AttributeUsage (AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-	public sealed class SupportedOSPlatformAttribute : Attribute
+	sealed class SupportedOSPlatformAttribute : Attribute
 	{
 		public SupportedOSPlatformAttribute (string platformName)
+		{
+		}
+	}
+
+	[AttributeUsage (AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
+	sealed class SupportedOSPlatformGuardAttribute : Attribute
+	{
+		public SupportedOSPlatformGuardAttribute (string platformName)
 		{
 		}
 	}

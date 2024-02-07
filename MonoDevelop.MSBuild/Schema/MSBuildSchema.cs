@@ -15,12 +15,13 @@ using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.MSBuild.Schema
 {
-	partial class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>
+	partial class MSBuildSchema : IMSBuildSchema, IEnumerable<ISymbol>, IEnumerable<CustomTypeInfo>
 	{
 		public Dictionary<string, PropertyInfo> Properties { get; } = new Dictionary<string, PropertyInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, CustomTypeInfo> Types { get; } = new Dictionary<string, CustomTypeInfo> (StringComparer.OrdinalIgnoreCase);
 		public List<string> IntelliSenseImports { get; } = new List<string> ();
 
 		public static MSBuildSchema Load (TextReader reader, out IList<MSBuildSchemaLoadError> errors, string origin)
@@ -30,15 +31,36 @@ namespace MonoDevelop.MSBuild.Schema
 			return schema;
 		}
 
+		/// <summary>
+		/// Load a schema from a resources in the calling assembly
+		/// </summary>
 		public static MSBuildSchema LoadResourceFromCallingAssembly (string resourceId, out IList<MSBuildSchemaLoadError> loadErrors)
+			=> LoadResourcesFromCallingAssembly ([resourceId], out loadErrors);
+
+		/// <summary>
+		/// Load a schema from multiple resources in the calling assembly
+		/// </summary>
+		public static MSBuildSchema LoadResourcesFromCallingAssembly (IEnumerable<string> resourceIds, out IList<MSBuildSchemaLoadError> loadErrors)
 		{
 			var asm = Assembly.GetCallingAssembly ();
-			using var stream = asm.GetManifestResourceStream (resourceId);
-			if (stream == null) {
-				throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
+
+			var schema = new MSBuildSchema ();
+			loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
+
+			foreach (var resourceId in resourceIds) {
+				using var stream = asm.GetManifestResourceStream (resourceId);
+				if (stream == null) {
+					throw new ArgumentException ($"Did not find resource stream '{resourceId}'");
+				}
+				using var sr = new StreamReader (stream);
+				schema.LoadInternal (sr, out var errors, $"{asm.Location}/{resourceId}");
+				if (loadErrors == null || loadErrors.Count == 0) {
+					loadErrors = errors;
+				} else if (errors.Count > 0) {
+					((List<MSBuildSchemaLoadError>)loadErrors).AddRange (errors);
+				}
 			}
-			using var sr = new StreamReader (stream);
-			return Load (sr, out loadErrors, $"{asm.Location}/{resourceId}");
+			return schema;
 		}
 
 		void LoadInternal (TextReader reader, out IList<MSBuildSchemaLoadError> loadErrors, string origin)
@@ -90,10 +112,19 @@ namespace MonoDevelop.MSBuild.Schema
 			if (intellisenseImports != null) {
 				LoadIntelliSenseImports (intellisenseImports);
 			}
+
 			// customTypes must come before properties, items and metadataGroups
 			// as they may use the declared custom types
 			if (customTypes != null) {
+				// all custom types are resolvable
 				state.LoadCustomTypes (customTypes);
+
+				// only named custom types are surfaced directly on the schema
+				foreach (var ct in state.CustomTypes.Values) {
+					if (!string.IsNullOrEmpty (ct.Name)) {
+						Types.Add (ct.Name, ct);
+					}
+				}
 			}
 			if (properties != null) {
 				foreach (var prop in state.ReadProperties(properties)) {
@@ -179,6 +210,13 @@ namespace MonoDevelop.MSBuild.Schema
 			default:
 				throw new ArgumentException ($"Only items, properties, tasks and targets are allowed");
 			}
+		}
+
+		IEnumerator<CustomTypeInfo> IEnumerable<CustomTypeInfo>.GetEnumerator () => Types.Values.GetEnumerator ();
+
+		public void Add (CustomTypeInfo customType)
+		{
+			Types.Add (customType.Name, customType);
 		}
 	}
 }

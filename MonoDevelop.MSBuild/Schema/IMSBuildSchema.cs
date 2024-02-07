@@ -13,6 +13,7 @@ namespace MonoDevelop.MSBuild.Schema
 		Dictionary<string, ItemInfo> Items { get; }
 		Dictionary<string, TaskInfo> Tasks { get; }
 		Dictionary<string, TargetInfo> Targets { get; }
+		Dictionary<string, CustomTypeInfo> Types { get; }
 
 		bool IsPrivate (string name);
 	}

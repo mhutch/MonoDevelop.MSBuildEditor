@@ -165,10 +165,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			protected override void VisitValue (
-				XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-				ITypedSymbol valueType, MSBuildValueKind kind, string expressionText, ExpressionNode node)
+				XElement element, XAttribute attribute, MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol,
+				ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
 			{
-				switch (kind.WithoutModifiers ()) {
+				switch (valueSymbol.ValueKindWithoutModifiers ()) {
 				case MSBuildValueKind.TargetName:
 					foreach (var n in node.WithAllDescendants ()) {
 						if (n is ExpressionText lit && lit.IsPure) {

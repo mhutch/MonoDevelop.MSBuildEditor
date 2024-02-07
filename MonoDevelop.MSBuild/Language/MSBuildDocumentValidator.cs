@@ -492,8 +492,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValue (
 			XElement element, XAttribute attribute,
-			MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute,
-			ITypedSymbol valueSymbol, MSBuildValueKind kind, string expressionText, ExpressionNode expression)
+			MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol,
+			ITypedSymbol valueSymbol, string expressionText, ExpressionNode expression)
 		{
 			if (Document.FileKind.IsProject () && valueSymbol is IHasDefaultValue hasDefault) {
 				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, expressionText, StringComparison.OrdinalIgnoreCase)) {
@@ -504,8 +504,9 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			bool allowExpressions = kind.AllowsExpressions ();
-			bool allowLists = kind.AllowsLists (MSBuildValueKind.ListSemicolonOrComma);
+			bool allowExpressions = valueSymbol.AllowsExpressions ();
+			bool allowLists = valueSymbol.AllowsLists (MSBuildValueKind.ListSemicolonOrComma);
+			MSBuildValueKind kindWithoutModifiers = valueSymbol.ValueKindWithoutModifiers ();
 
 			if (expression is ListExpression list) {
 				if (!allowLists) {
@@ -518,7 +519,7 @@ namespace MonoDevelop.MSBuild.Language
 				} else {
 					foreach (var listVal in list.Nodes) {
 						if (listVal is ExpressionText listValText) {
-							VisitPureLiteral (resolvedElement, resolvedAttribute, valueSymbol, kind.WithoutModifiers (), listValText);
+							VisitPureLiteral (elementSymbol, attributeSymbol, valueSymbol, listValText);
 						}
 					}
 				}
@@ -529,7 +530,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 			} else if (expression is ExpressionText lit) {
-				VisitPureLiteral (resolvedElement, resolvedAttribute, valueSymbol, kind.WithoutModifiers (), lit);
+				VisitPureLiteral (elementSymbol, attributeSymbol, valueSymbol, lit);
 			} else {
 				if (!allowExpressions) {
 					AddExpressionWarning (expression);
@@ -603,34 +604,29 @@ namespace MonoDevelop.MSBuild.Language
 		}
 
 		//note: the value is unescaped, so offsets within it are not valid
-		void VisitPureLiteral (MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol info, MSBuildValueKind kind, ExpressionText expressionText)
+		void VisitPureLiteral (MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol, ExpressionText expressionText)
 		{
 			string value = expressionText.GetUnescapedValue (true, out var trimmedOffset, out var escapedLength);
 
+			MSBuildValueKind kind = valueSymbol.ValueKindWithoutModifiers ();
+
 			// we must only check CustomType property when kind is MSBuildValueKind.CustomType
 			// as MSBuildValueKind.NuGetID kind hackily stashes unrelated info in CustomType property
-			bool isCustomType = info.ValueKind.WithoutModifiers () == MSBuildValueKind.CustomType;
-			CustomTypeInfo? customType = isCustomType? info.CustomType : null;
+			bool isCustomType = kind == MSBuildValueKind.CustomType;
+			CustomTypeInfo? customType = isCustomType? valueSymbol.CustomType : null;
 
-			IReadOnlyList<ISymbol> knownValues = null;
-			if (!isCustomType) {
-				knownValues = kind.GetSimpleValues (false);
-			} else if (customType is not null && !customType.AllowUnknownValues) {
-				knownValues = customType.Values;
+			if (kind == MSBuildValueKind.Bool) {
+				// bool has special validation later
 			}
-
-			if (knownValues is not null && knownValues.Count != 0) {
-				var valueComparer = (customType?.CaseSensitive ?? false)? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-				foreach (var kv in knownValues) {
-					if (string.Equals (kv.Name, value, valueComparer)) {
-						if (kv is IDeprecatable deprecatable) {
-							CheckDeprecated (deprecatable, expressionText);
-						}
-						return;
-					}
+			else if (!isCustomType || (customType is not null && !customType.AllowUnknownValues)) {
+				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out bool isError);
+				if (isError) {
+					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, value);
+					return;
 				}
-				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (info), info.Name, value);
-				return;
+				if (isKnownValue && knownValue is IDeprecatable deprecatable) {
+					CheckDeprecated (deprecatable, expressionText);
+				}
 			}
 
 			MSBuildValueKind kindOrBaseKind = customType?.BaseKind ?? kind;
@@ -679,7 +675,7 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildValueKind.PropertyName:
 				if (GetSchemasExcludingCurrentDocInferred ().GetProperty (value, true) is PropertyInfo resolvedProperty) {
 					CheckDeprecated (resolvedProperty, expressionText);
-					if (resolvedAttribute?.SyntaxKind == MSBuildSyntaxKind.Output_PropertyName) {
+					if (attributeSymbol?.SyntaxKind == MSBuildSyntaxKind.Output_PropertyName) {
 						CheckPropertyWrite (resolvedProperty, expressionText.Span);
 					}
 				} else {
@@ -799,7 +795,7 @@ namespace MonoDevelop.MSBuild.Language
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", value)
 						.Add ("ValueKind", kind)
-						.AddIfNotNull ("CustomType", info.CustomType),
+						.AddIfNotNull ("CustomType", valueSymbol.CustomType),
 					args
 				);
 			}

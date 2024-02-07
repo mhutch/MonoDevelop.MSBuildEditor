@@ -26,14 +26,19 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		protected void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
 			=> VerifyDiagnostics (source, out _, new[] { analyzer }, false, false, null, expectedDiagnostics);
 
-		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, out _, analyzers, false, false, null, expectedDiagnostics);
-
 		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
 			=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, false, null, expectedDiagnostics);
 
-		protected void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, bool checkUnexpectedDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
-			=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, null, expectedDiagnostics);
+		protected void VerifyDiagnostics (
+			string source,
+			ICollection<MSBuildAnalyzer> analyzers = null,
+			bool includeCoreDiagnostics = false,
+			bool checkUnexpectedDiagnostics = false,
+			MSBuildSchema schema = null,
+			MSBuildDiagnostic[] expectedDiagnostics = null,
+			MSBuildRootDocument previousDocument = null
+			)
+			=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, schema, expectedDiagnostics, previousDocument);
 
 		protected void VerifyDiagnostics (
 			string source,
@@ -145,27 +150,6 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				}
 			}
 			throw new ArgumentOutOfRangeException ($"Reached line {currentLine}");
-		}
-
-	}
-
-	class TestSchemaProvider : MSBuildSchemaProvider
-	{
-		readonly Dictionary<(string filename, string sdk), MSBuildSchema> schemas = new ();
-
-		public void AddTestSchema (string filename, string sdk, MSBuildSchema schema)
-		{
-			schemas.Add ((filename, sdk), schema);
-		}
-
-		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
-		{
-			if (schemas.TryGetValue ((Path.GetFileName (path), sdk), out MSBuildSchema schema)) {
-				loadErrors = null;
-				return schema;
-			}
-
-			return base.GetSchema (path, sdk, out loadErrors);
 		}
 	}
 }

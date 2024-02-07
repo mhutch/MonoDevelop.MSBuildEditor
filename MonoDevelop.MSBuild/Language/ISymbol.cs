@@ -47,3 +47,10 @@ public interface IHasHelpUrl : ISymbol
 {
 	public string? HelpUrl { get; }
 }
+
+/// <summary>
+/// Common interface for symbols that have been inferred from the project
+/// </summary>
+public interface IInferredSymbol : ISymbol
+{
+}
