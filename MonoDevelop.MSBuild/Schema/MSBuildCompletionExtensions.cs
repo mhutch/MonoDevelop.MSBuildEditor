@@ -180,11 +180,6 @@ namespace MonoDevelop.MSBuild.Schema
 				kind = kindIfUnknown;
 			}
 
-			var simple = kind.GetSimpleValues (true);
-			if (simple != null && simple.Count > 0) {
-				return simple;
-			}
-
 			switch (kind) {
 			case MSBuildValueKind.TaskOutputParameterName:
 				return doc.GetTaskParameters (rr.ParentName).Where (p => p.IsOutput).ToList ();
@@ -217,6 +212,10 @@ namespace MonoDevelop.MSBuild.Schema
 					return MSBuildIntrinsics.ConditionFunctions.Values;
 				}
 				break;
+			}
+
+			if (doc.GetSchemas (false).TryGetKnownValues (symbol, out var knownValues, kindIfUnknown: kind)) {
+				return knownValues;
 			}
 
 			var fileCompletions = fileSystem.GetFilenameCompletions (kind, doc, triggerExpression, 0, logger, rr);

@@ -612,28 +612,21 @@ namespace MonoDevelop.MSBuild.Language
 
 			// we must only check CustomType property when kind is MSBuildValueKind.CustomType
 			// as MSBuildValueKind.NuGetID kind hackily stashes unrelated info in CustomType property
-			bool isCustomType = valueSymbol.ValueKindWithoutModifiers () == MSBuildValueKind.CustomType;
+			bool isCustomType = kind == MSBuildValueKind.CustomType;
 			CustomTypeInfo? customType = isCustomType? valueSymbol.CustomType : null;
 
-			IReadOnlyList<ISymbol> knownValues = null;
-			if (!isCustomType) {
-				knownValues = kind.GetSimpleValues (false);
-			} else if (customType is not null && !customType.AllowUnknownValues) {
-				knownValues = customType.Values;
+			if (kind == MSBuildValueKind.Bool) {
+				// bool has special validation later
 			}
-
-			if (knownValues is not null && knownValues.Count != 0) {
-				var valueComparer = (customType?.CaseSensitive ?? false)? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-				foreach (var kv in knownValues) {
-					if (string.Equals (kv.Name, value, valueComparer)) {
-						if (kv is IDeprecatable deprecatable) {
-							CheckDeprecated (deprecatable, expressionText);
-						}
-						return;
-					}
+			else if (!isCustomType || (customType is not null && !customType.AllowUnknownValues)) {
+				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out bool isError);
+				if (isError) {
+					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, value);
+					return;
 				}
-				AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, value);
-				return;
+				if (isKnownValue && knownValue is IDeprecatable deprecatable) {
+					CheckDeprecated (deprecatable, expressionText);
+				}
 			}
 
 			MSBuildValueKind kindOrBaseKind = customType?.BaseKind ?? kind;

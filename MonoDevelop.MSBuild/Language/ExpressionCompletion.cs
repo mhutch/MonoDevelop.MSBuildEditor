@@ -510,7 +510,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case TriggerState.BareFunctionArgumentValue:
 				//FIXME: enum completion etc
-				return MSBuildValueKind.Bool.GetSimpleValues (true);
+				return MSBuildValueKind.Bool.GetSimpleValues ();
 			case TriggerState.ConditionFunctionName:
 				return MSBuildIntrinsics.ConditionFunctions.Values;
 			}

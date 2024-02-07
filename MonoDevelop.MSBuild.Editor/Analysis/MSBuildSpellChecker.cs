@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			lock (locker) {
 				if (customType is null) {
 					if (!valueKindCheckerTasks.TryGetValue (kind, out checker)) {
-						var knownVals = kind.GetSimpleValues (true);
+						var knownVals = kind.GetSimpleValues ();
 
 						valueKindCheckerTasks[kind] = checker = Task.Run (() =>
 							new SpellChecker (
@@ -167,7 +167,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<ISymbol> GetValue (SpellChecker checker, MSBuildValueKind kind, CustomTypeInfo customType, string name)
 		{
-			var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues (true);
+			var knownVals = (IReadOnlyList<ISymbol>)customType?.Values ?? kind.GetSimpleValues ();
 			var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
 			var knownValDict = knownVals.ToDictionary (v => v.Name, StringComparer.OrdinalIgnoreCase);

@@ -369,17 +369,10 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 
-				var knownVals = (IReadOnlyList<ISymbol>?)valueSymbol?.CustomType?.Values ?? inferredKind.GetSimpleValues (true);
-
-				if (knownVals != null && knownVals.Count != 0) {
-					var valueComparer = (valueSymbol?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-					foreach (var kv in knownVals) {
-						if (string.Equals (kv.Name, value, valueComparer)) {
-							rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
-							rr.Reference = kv;
-							return;
-						}
-					}
+				if (Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out _)) {
+					rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
+					rr.Reference = knownValue;
+					return;
 				}
 			}
 		}

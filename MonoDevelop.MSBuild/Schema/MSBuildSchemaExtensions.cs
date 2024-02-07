@@ -1,9 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#else
+#nullable enable annotations
+#endif
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -26,8 +34,8 @@ namespace MonoDevelop.MSBuild.Schema
 					if (hidePrivateSymbols && schema.IsPrivate (item.Key)) {
 						continue;
 					}
-					if (!found.TryGetValue (item.Key, out ItemInfo existing) || (existing.Description.IsEmpty && !item.Value.Description.IsEmpty)) {
-						found [item.Key] = item.Value;
+					if (!found.TryGetValue (item.Key, out ItemInfo? existing) || (existing.Description.IsEmpty && !item.Value.Description.IsEmpty)) {
+						found[item.Key] = item.Value;
 					}
 				}
 			}
@@ -35,7 +43,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return found.Values;
 		}
 
-		public static ItemInfo GetItem (this IEnumerable<IMSBuildSchema> schemas, string name)
+		public static ItemInfo? GetItem (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
 			// prefer items with descriptions, in case items that just add metadata are found first
 			return schemas.GetAllItemDefinitions (name).GetFirstWithDescriptionOrDefault ();
@@ -45,7 +53,7 @@ namespace MonoDevelop.MSBuild.Schema
 		static IEnumerable<ItemInfo> GetAllItemDefinitions (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
 			foreach (var schema in schemas) {
-				if (schema.Items.TryGetValue (name, out ItemInfo item)) {
+				if (schema.Items.TryGetValue (name, out ItemInfo? item)) {
 					yield return item;
 				}
 			}
@@ -77,18 +85,18 @@ namespace MonoDevelop.MSBuild.Schema
 		//collect all known definitions for this metadata
 		static IEnumerable<MetadataInfo> GetAllMetadataDefinitions (this IEnumerable<IMSBuildSchema> schemas, string itemName, string metadataName, bool includeBuiltins)
 		{
-			if (includeBuiltins && MSBuildIntrinsics.Metadata.TryGetValue (metadataName, out MetadataInfo builtinMetaInfo)) {
+			if (includeBuiltins && MSBuildIntrinsics.Metadata.TryGetValue (metadataName, out MetadataInfo? builtinMetaInfo)) {
 				yield return builtinMetaInfo;
 			}
 
 			foreach (var item in schemas.GetAllItemDefinitions (itemName)) {
-				if (item.Metadata.TryGetValue (metadataName, out MetadataInfo metaInfo)) {
+				if (item.Metadata.TryGetValue (metadataName, out MetadataInfo? metaInfo)) {
 					yield return metaInfo;
 				}
 			}
 		}
 
-		public static MetadataInfo GetMetadata (this IEnumerable<IMSBuildSchema> schemas, string itemName, string metadataName, bool includeBuiltins)
+		public static MetadataInfo? GetMetadata (this IEnumerable<IMSBuildSchema> schemas, string itemName, string metadataName, bool includeBuiltins)
 		{
 			return schemas.GetAllMetadataDefinitions (itemName, metadataName, includeBuiltins).FirstOrDefault ();
 		}
@@ -109,7 +117,7 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			//definitions take precedence over inference
 			foreach (var schema in schemas) {
-				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
+				if (schema.Tasks.TryGetValue (taskName, out TaskInfo? task)) {
 					if (task.DeclarationKind != TaskDeclarationKind.Inferred) {
 						yield return task;
 					}
@@ -117,7 +125,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			foreach (var schema in schemas) {
-				if (schema.Tasks.TryGetValue (taskName, out TaskInfo task)) {
+				if (schema.Tasks.TryGetValue (taskName, out TaskInfo? task)) {
 					if (task.DeclarationKind == TaskDeclarationKind.Inferred) {
 						yield return task;
 					}
@@ -125,7 +133,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public static TaskInfo GetTask (this IEnumerable<IMSBuildSchema> schemas, string name)
+		public static TaskInfo? GetTask (this IEnumerable<IMSBuildSchema> schemas, string name)
 		{
 			return schemas.GetAllTaskVariants (name).FirstOrDefault ();
 		}
@@ -146,13 +154,13 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			foreach (var task in schemas.GetAllTaskVariants (taskName)) {
-				if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo parameter)) {
+				if (task.Parameters.TryGetValue (parameterName, out TaskParameterInfo? parameter)) {
 					yield return parameter;
 				}
 			}
 		}
 
-		public static TaskParameterInfo GetTaskParameter (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
+		public static TaskParameterInfo? GetTaskParameter (this IEnumerable<IMSBuildSchema> schemas, string taskName, string parameterName)
 		{
 			return schemas.GetAllTaskParameterVariants (taskName, parameterName).FirstOrDefault ();
 		}
@@ -183,13 +191,13 @@ namespace MonoDevelop.MSBuild.Schema
 				yield return b;
 			}
 			foreach (var schema in schemas) {
-				if (schema.Properties.TryGetValue (propertyName, out PropertyInfo property)) {
+				if (schema.Properties.TryGetValue (propertyName, out PropertyInfo? property)) {
 					yield return property;
 				}
 			}
 		}
 
-		public static PropertyInfo GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name, bool includeBuiltins)
+		public static PropertyInfo? GetProperty (this IEnumerable<IMSBuildSchema> schemas, string name, bool includeBuiltins)
 		{
 			return schemas.GetAllPropertyVariants (name, includeBuiltins).FirstOrDefault ();
 		}
@@ -210,18 +218,18 @@ namespace MonoDevelop.MSBuild.Schema
 		public static IEnumerable<TargetInfo> GetAllTargetVariants (this IEnumerable<IMSBuildSchema> schemas, string targetName)
 		{
 			foreach (var schema in schemas) {
-				if (schema.Targets.TryGetValue (targetName, out TargetInfo target)) {
+				if (schema.Targets.TryGetValue (targetName, out TargetInfo? target)) {
 					yield return target;
 				}
 			}
 		}
 
-		public static TargetInfo GetTarget (this IEnumerable<IMSBuildSchema> schemas, string targetName)
+		public static TargetInfo? GetTarget (this IEnumerable<IMSBuildSchema> schemas, string targetName)
 		{
 			return schemas.GetAllTargetVariants (targetName).FirstOrDefault ();
 		}
 
-		public static ITypedSymbol GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas,  MSBuildAttributeSyntax attribute, string elementName, string attributeName)
+		public static ITypedSymbol GetAttributeInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildAttributeSyntax attribute, string elementName, string attributeName)
 		{
 			if (attribute.IsAbstract) {
 				switch (attribute.AbstractKind.Value) {
@@ -259,7 +267,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return attribute;
 		}
 
-		public static ITypedSymbol GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string? parentName, string elementName, bool omitEmpty = false)
+		public static ITypedSymbol? GetElementInfo (this IEnumerable<IMSBuildSchema> schemas, MSBuildElementSyntax element, string? parentName, string elementName, bool omitEmpty = false)
 		{
 			if (element.IsAbstract) {
 				switch (element.SyntaxKind) {
@@ -304,9 +312,9 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.OfType<MSBuildInferredSchema> ().SelectMany (d => d.Platforms).Distinct ();
 		}
 
-		static T GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : class, ISymbol
+		static T? GetFirstWithDescriptionOrDefault<T> (this IEnumerable<T> seq) where T : class, ISymbol
 		{
-			T first = null;
+			T? first = null;
 
 			//prefer infos with descriptions, in case non-schema infos (or item infos that
 			//just add metadata) are found first
@@ -317,6 +325,90 @@ namespace MonoDevelop.MSBuild.Schema
 				return first ?? info;
 			}
 			return null;
+		}
+
+		public static IEnumerable<CustomTypeInfo> GetDerivedTypes (this IEnumerable<IMSBuildSchema> schemas, MSBuildValueKind baseKind)
+		{
+			foreach (var schema in schemas) {
+				foreach (var type in schema.Types) {
+					if (type.Value.BaseKind == baseKind) {
+						yield return type.Value;
+					}
+				}
+			}
+		}
+
+		public static IEnumerable<CustomTypeInfo> GetTypeByName (this IEnumerable<IMSBuildSchema> schemas, string typeName)
+		{
+			foreach (var schema in schemas) {
+				if (schema.Types.TryGetValue (typeName, out CustomTypeInfo? customType)) {
+					yield return customType;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Try to get known values for the values described by `valueDescriptor`.
+		/// If the descriptor is unresolved, then `inferredKind` will be used, and is assumed to be a kind that has been inferred from the name.
+		/// </summary>
+		/// <param name="kindIfUnknown">
+		/// Optionally provide an alternate <see cref="MSBuildValueKind"/> to be used if the the <see cref="ITypedSymbol"/>'s value kind is <see cref="MSBuildValueKind.Unknown"/>.
+		/// </param>
+		public static bool TryGetKnownValues (
+			this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, [NotNullWhen (true)] out IEnumerable<ISymbol>? values,
+			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown)
+		{
+			var kind = valueDescriptor.ValueKindWithoutModifiers ();
+
+			// FIXME: This is a temporary hack so we have completion for imported XSD schemas with missing type info.
+			// It is not needed for inferred schemas, as they have already performed the inference.
+			if (kind == MSBuildValueKind.Unknown) {
+				kind = kindIfUnknown;
+			}
+
+			if (kind == MSBuildValueKind.CustomType) {
+				if (valueDescriptor?.CustomType?.Values is IReadOnlyList<ISymbol> customTypeValues) {
+					values = customTypeValues;
+					return true;
+				}
+			}
+			else {
+				var simpleValues = kind.GetSimpleValues ();
+				if (simpleValues.Count > 0) {
+					values = simpleValues;
+					return true;
+				}
+			}
+
+			values = null;
+			return false;
+		}
+
+		/// <summary>
+		/// Try to get resolve a known value with the given name. The value will be resolved from the type of the `valueDescriptor`.
+		/// If the descriptor is unresolved, then `inferredKind` will be used, and is assumed to be a kind that has been inferred from the name.
+		/// </summary>
+		/// <param name="isError">True if the type supports value resolution but the value was not resolved</param>
+		public static bool TryGetKnownValue (this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, string value, [NotNullWhen (true)] out ISymbol? resolvedValue, out bool isError)
+		{
+			if (!schema.TryGetKnownValues (valueDescriptor, out IEnumerable<ISymbol>? knownValues)) {
+				resolvedValue = null;
+				isError = false;
+				return false;
+			}
+
+			var valueComparer = (valueDescriptor?.CustomType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+			foreach (var kv in knownValues) {
+				if (string.Equals (kv.Name, value, valueComparer)) {
+					resolvedValue = kv;
+					isError = false;
+					return true;
+				}
+			}
+
+			resolvedValue = null;
+			isError = true;
+			return false;
 		}
 	}
 }
