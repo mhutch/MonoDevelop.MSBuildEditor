@@ -37,6 +37,7 @@ namespace MonoDevelop.MSBuild.Language
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, CustomTypeInfo> Types { get; } = new Dictionary<string, CustomTypeInfo> (StringComparer.OrdinalIgnoreCase);
 
 		public HashSet<string> Configurations { get; } = new HashSet<string> ();
 		public HashSet<string> Platforms { get; } = new HashSet<string> ();

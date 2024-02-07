@@ -21,6 +21,7 @@ namespace MonoDevelop.MSBuild.Schema
 		public Dictionary<string, ItemInfo> Items { get; } = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TaskInfo> Tasks { get; } = new Dictionary<string, TaskInfo> (StringComparer.OrdinalIgnoreCase);
 		public Dictionary<string, TargetInfo> Targets { get; } = new Dictionary<string, TargetInfo> (StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, CustomTypeInfo> Types { get; } = new Dictionary<string, CustomTypeInfo> (StringComparer.OrdinalIgnoreCase);
 		public List<string> IntelliSenseImports { get; } = new List<string> ();
 
 		public static MSBuildSchema Load (TextReader reader, out IList<MSBuildSchemaLoadError> errors, string origin)
@@ -90,10 +91,19 @@ namespace MonoDevelop.MSBuild.Schema
 			if (intellisenseImports != null) {
 				LoadIntelliSenseImports (intellisenseImports);
 			}
+
 			// customTypes must come before properties, items and metadataGroups
 			// as they may use the declared custom types
 			if (customTypes != null) {
+				// all custom types are resolvable
 				state.LoadCustomTypes (customTypes);
+
+				// only named custom types are surfaced directly on the schema
+				foreach (var ct in state.CustomTypes.Values) {
+					if (!string.IsNullOrEmpty (ct.Name)) {
+						Types.Add (ct.Name, ct);
+					}
+				}
 			}
 			if (properties != null) {
 				foreach (var prop in state.ReadProperties(properties)) {
