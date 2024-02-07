@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.Xml.Analysis;
 
@@ -567,7 +566,7 @@ partial class MSBuildSchema
 					}
 					break;
 				case "values":
-					if (defPropVal is not JObject valuesObj || valuesObj.Count == 0) {
+					if (defPropVal is not JObject valuesObj) {
 						AddError (defPropVal ?? customTypeObj, $"Custom type definition property 'values' must be a non-empty object");
 						return (null, null);
 					}
@@ -581,6 +580,10 @@ partial class MSBuildSchema
 				}
 				foundAnyNonRef = true;
 			} while (enumerator.MoveNext ());
+
+			if (values.Count == 0) {
+				allowUnknownValues = true;
+			}
 
 			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
 		}
