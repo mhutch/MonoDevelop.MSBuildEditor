@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax
 {
+	[DebuggerDisplay("MSBuildAttributeSyntax ({SyntaxKind,nq})")]
 	public class MSBuildAttributeSyntax : MSBuildSyntax
 	{
 		public MSBuildAttributeSyntax (

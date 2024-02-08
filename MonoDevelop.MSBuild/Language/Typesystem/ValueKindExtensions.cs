@@ -85,9 +85,9 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 				];
 			case MSBuildValueKind.Importance:
 				return [
-					new ("high", "High importance, only displayed for all log verbosity settings", MSBuildValueKind.Importance),
-					new ("normal", "Normal importance", MSBuildValueKind.Importance),
-					new ("low", "Low importance, only displayed for highly verbose log settings", MSBuildValueKind.Importance)
+					new ("High", "High importance, only displayed for all log verbosity settings", MSBuildValueKind.Importance),
+					new ("Normal", "Normal importance", MSBuildValueKind.Importance),
+					new ("Low", "Low importance, only displayed for highly verbose log settings", MSBuildValueKind.Importance)
 				];
 			case MSBuildValueKind.HostOS:
 				return [
@@ -181,8 +181,9 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 				return MSBuildValueKind.Float;
 			case "Microsoft.Build.Framework.ITaskItem":
 				return MSBuildValueKind.UnknownItem;
+			case "Microsoft.Build.Framework.MessageImportance":
+				return MSBuildValueKind.Importance;
 			}
-
 
 			return MSBuildValueKind.Unknown;
 		}

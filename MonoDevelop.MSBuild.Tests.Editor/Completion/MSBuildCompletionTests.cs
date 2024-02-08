@@ -62,6 +62,46 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 		}
 
 		[Test]
+		public async Task TaskCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"<Project><Target><$");
+
+			result.AssertContains ("<Message");
+			result.AssertContains ("<Exec");
+			result.AssertContains ("<Csc");
+		}
+
+		[Test]
+		public async Task TaskParameterCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"<Project><Target><Message $");
+
+			result.AssertContains ("Importance");
+			result.AssertContains ("Text");
+			result.AssertContains ("HelpKeyword");
+			result.AssertContains ("Condition");
+		}
+
+		[Test]
+		public async Task MessageImportanceCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"<Project><Target><Message Importance=""$");
+
+			result.AssertContains ("High");
+			result.AssertContains ("Normal");
+			result.AssertContains ("Low");
+		}
+
+		[Test]
+		public async Task TaskOutputCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"<Project><Target><Csc><Output TaskParameter=""$");
+
+			result.AssertContains ("OutputAssembly");
+			result.AssertContains ("OutputRefAssembly");
+		}
+
+		[Test]
 		public async Task InferredItems ()
 		{
 			var result = await this.GetCompletionContext (@"

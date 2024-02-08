@@ -184,7 +184,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 			string fullTypeName = propType.GetFullName ();
 
-			kind = ValueKindExtensions.FromFullTypeName (fullTypeName);
+			// strongly type Message.Importance - although public type is string, it errors if it can't cast to MessageImportance
+			if (prop.Name == "Importance" && type.GetFullName () == "Microsoft.Build.Tasks.Message") {
+				kind = MSBuildValueKind.Importance;
+			}
+			else {
+				kind = ValueKindExtensions.FromFullTypeName (fullTypeName);
+			}
 
 			if (kind == MSBuildValueKind.Unknown) {
 				//this usually happens because the type has public members with custom types for testing,

@@ -443,7 +443,10 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionText literal:
 					if (literal.IsPure) {
-						var value = literal.GetUnescapedValue (true, out _, out _);
+						var value = literal.GetUnescapedValue (true, out _, out _).Trim ();
+						if (value.Length == 0) {
+							continue;
+						}
 						switch (kind.WithoutModifiers ()) {
 						case MSBuildValueKind.ItemName:
 							CollectItem (value, ReferenceUsage.Unknown);
@@ -489,7 +492,8 @@ namespace MonoDevelop.MSBuild.Language
 
 			// '$(Configuration)'=='Debug')
 			if (left is ExpressionProperty prop && prop.IsSimpleProperty) {
-				CollectComparisonProperty (prop, txt.Value);
+				var value = txt.GetUnescapedValue (true, out _, out _);
+				CollectComparisonProperty (prop, value);
 				return;
 			}
 
@@ -501,16 +505,21 @@ namespace MonoDevelop.MSBuild.Language
 				&& concat.Nodes[0] is ExpressionProperty p1 && p1.IsSimpleProperty
 				&& concat.Nodes[2] is ExpressionProperty p2 && p2.IsSimpleProperty
 			) {
-				var s = txt.Value.Split ('|');
-				if (s.Length == 2) {
-					CollectComparisonProperty (p1, s[0]);
-					CollectComparisonProperty (p2, s[1]);
+				var value = txt.GetUnescapedValue (true, out _, out _);
+				var split = value.Split ('|');
+				if (split.Length == 2) {
+					CollectComparisonProperty (p1, split[0]);
+					CollectComparisonProperty (p2, split[1]);
 				}
 			}
 		}
 
 		void CollectComparisonProperty (ExpressionProperty prop, string value)
 		{
+			value = value.Trim ();
+			if (value.Length == 0) {
+				return;
+			}
 			if (string.Equals (prop.Name, "Configuration", StringComparison.OrdinalIgnoreCase)) {
 				Configurations.Add (value);
 			} else if (string.Equals (prop.Name, "Platform", StringComparison.OrdinalIgnoreCase)) {
