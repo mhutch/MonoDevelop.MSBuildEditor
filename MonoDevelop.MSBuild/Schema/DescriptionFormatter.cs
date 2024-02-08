@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
@@ -302,5 +303,106 @@ namespace MonoDevelop.MSBuild.Schema
 				TaskParameterInfo _ => "task parameter",
 				_ => "value"
 			};
+
+		/// <summary>
+		/// Gets a shortened version of the description suitable for displaying as a hint suffix in completion lists.
+		/// </summary>
+		public static string GetCompletionHint (ISymbol symbol)
+		{
+			var description = symbol.Description.Text;
+			if (description == null || description.Length == 0) {
+				return description;
+			}
+			return CreateShortenedDescription (description, maxLength: 60);
+		}
+
+		/// <summary>
+		/// Creates a shortened version of the description by hard breaking on sentence boundary, or
+		/// soft breaking on word boundary and adding ellipsis.
+		/// </summary>
+		static string CreateShortenedDescription (string description, int maxLength)
+		{
+			char prevChar = '\0';
+
+			// avoid allocating this unless we actually need it
+			StringBuilder? descriptionNoBackticks = null;
+
+			int softBreakPos = description.Length;
+			bool shouldSoftBreak = false;
+
+			for (int i = 0; i < description.Length; i++) {
+				char ch = description[i];
+				switch (ch) {
+				case ' ':
+					// hard break on sentence i.e. ". ", removing the period
+					if (prevChar == '.') {
+						if (descriptionNoBackticks is not null) {
+							descriptionNoBackticks.Length--;
+							return descriptionNoBackticks.ToString ();
+						} else {
+							return description.Substring (0, i - 1);
+						}
+					}
+					// Soft beak on space between words.
+					if (prevChar != ' ') {
+						// Only record the last soft break 3 or more chars before the short description length,
+						// so we have space for the ... ellipsis
+						int potentialSoftBreak = (descriptionNoBackticks is not null) ? descriptionNoBackticks.Length : i;
+						if ((potentialSoftBreak + 3) < maxLength || softBreakPos == description.Length) {
+							softBreakPos = (descriptionNoBackticks is not null) ? descriptionNoBackticks.Length : i;
+						}
+					}
+					break;
+				// hard break on newline
+				case '\n':
+					return descriptionNoBackticks?.ToString () ?? description.Substring (0, i);
+				// When we find a backtick, skip the char.
+				// On the first backtick, initialize the stringbuilder with the string up to this point.
+				// When the stringbuilder is non-null, this indicates we are stripping backticks.
+				case '`':
+					if (descriptionNoBackticks == null) {
+						descriptionNoBackticks = new (description);
+						descriptionNoBackticks.Length = i;
+					}
+					continue;
+				}
+				prevChar = ch;
+
+				// if withoutBackticks is non-null, we are stripping backticks, so append the char to the backtick-stripped stringbuilder
+				if (descriptionNoBackticks is not null) {
+					descriptionNoBackticks.Append (ch);
+					// if without backticks is too long, break the loop, we're gonna soft break
+					if (descriptionNoBackticks.Length > maxLength) {
+						shouldSoftBreak = true;
+						break;
+					}
+				}
+				// if we're not stripping backticks, and is too long, break the loop, we're gonna soft break
+				else if (i >= maxLength) {
+					shouldSoftBreak = true;
+					break;
+				}
+			}
+
+			// Soft break if we found a space to break on, and add ellipsis
+			if (shouldSoftBreak) {
+				if (descriptionNoBackticks is not null) {
+					descriptionNoBackticks.Length = Math.Min (softBreakPos, descriptionNoBackticks.Length);
+					descriptionNoBackticks.Append ("...");
+					return descriptionNoBackticks.ToString ();
+				}
+				return description.Substring (0, softBreakPos) + "...";
+			}
+
+			if (prevChar == '.') {
+				if (descriptionNoBackticks is not null) {
+					descriptionNoBackticks.Length--;
+					return descriptionNoBackticks.ToString ();
+				}
+				return description.Substring (0, description.Length - 1);
+			}
+
+			return descriptionNoBackticks?.ToString () ?? description;
+		}
 	}
 }

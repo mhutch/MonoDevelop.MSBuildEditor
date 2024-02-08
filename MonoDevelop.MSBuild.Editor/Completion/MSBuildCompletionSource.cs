@@ -129,17 +129,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return TaskCompleted (GetBuiltInEntityItems ());
 		}
 
-		CompletionItem CreateCompletionItem (MSBuildCompletionDocumentationProvider documentationProvider, ISymbol info, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null)
+		CompletionItem CreateCompletionItem (MSBuildCompletionDocumentationProvider documentationProvider, ISymbol symbol, XmlCompletionItemKind xmlCompletionItemKind, string prefix = null, string annotation = null, bool addDescriptionHint = false)
 		{
 			ImageElement image;
 
-			if (info.IsDeprecated ()) {
+			if (symbol.IsDeprecated ()) {
 				image = provider.DisplayElementFactory.GetImageElement (KnownImages.Deprecated);
 			} else {
-				image = provider.DisplayElementFactory.GetImageElement (info);
+				image = provider.DisplayElementFactory.GetImageElement (symbol);
 			}
 
-			var value = info.Name;
+			var value = symbol.Name;
 			if (prefix is not null) {
 				value = prefix + value;
 			}
@@ -155,9 +155,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				sortText = annotation;
 				suffix = annotation;
 			}
+			else if (addDescriptionHint) {
+				var descriptionHint = DescriptionFormatter.GetCompletionHint (symbol);
+				suffix = descriptionHint;
+			}
 
 			var item = new CompletionItem (displayText, this, image, ImmutableArray<CompletionFilter>.Empty, suffix, insertText, sortText, filterText, ImmutableArray<ImageElement>.Empty);
-			documentationProvider.AttachDocumentation (item, info);
+			documentationProvider.AttachDocumentation (item, symbol);
 			item.AddKind (xmlCompletionItemKind);
 			return item;
 		}
@@ -465,8 +469,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
 				if (GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
+					bool addDescriptionHint = valueSymbol.IsKindOrDerived (MSBuildValueKind.WarningCode);
 					foreach (var ci in completionInfos) {
-						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
+						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue, addDescriptionHint: addDescriptionHint));
 					}
 				}
 			}
