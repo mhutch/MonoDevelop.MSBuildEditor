@@ -83,6 +83,16 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 		}
 
 		[Test]
+		public async Task MessageImportanceCompletion ()
+		{
+			var result = await this.GetCompletionContext (@"<Project><Target><Message Importance=""$");
+
+			result.AssertContains ("High");
+			result.AssertContains ("Normal");
+			result.AssertContains ("Low");
+		}
+
+		[Test]
 		public async Task TaskOutputCompletion ()
 		{
 			var result = await this.GetCompletionContext (@"<Project><Target><Csc><Output TaskParameter=""$");
