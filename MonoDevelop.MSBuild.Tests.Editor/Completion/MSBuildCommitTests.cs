@@ -36,5 +36,23 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 				"<Fo>Tr\n",
 				"<Project><PropertyGroup><Foo>True$</Foo>"
 			);
+
+		[Test]
+		public Task CommitClosingTagAtEof ()
+			=> TestTypeCommands (
+				"ClosingTag.csproj",
+				"<Project>\n  <PropertyGroup>\n    <foo>hello</foo>\n  $",
+				"</Prop\n",
+				"<Project>\n  <PropertyGroup>\n    <foo>hello</foo>\n  </PropertyGroup>$"
+			);
+
+		[Test]
+		public Task CommitClosingTag ()
+			=> TestTypeCommands (
+				"ClosingTag.csproj",
+				"<Project>\n  <PropertyGroup>\n    <foo>hello</foo>\n  $\n</Project>\n",
+				"</Prop\n",
+				"<Project>\n  <PropertyGroup>\n    <foo>hello</foo>\n  </PropertyGroup>$\n</Project>\n"
+			);
 	}
 }
