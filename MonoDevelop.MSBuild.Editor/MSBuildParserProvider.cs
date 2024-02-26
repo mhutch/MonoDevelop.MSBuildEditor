@@ -74,7 +74,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ITextBuffer GetSubjectBuffer (ITextBuffer textBuffer, string expectedContentType = XmlContentTypeNames.XmlCore)
 		{
 			if (textBuffer is IProjectionBuffer projectionBuffer) {
-				textBuffer = projectionBuffer.SourceBuffers.FirstOrDefault (b => b.ContentType.IsOfType (expectedContentType));
+				// Consider the buffer itself as a candidate if it's of the right content type.
+				// This can happen in diff scenarios for the right buffer.
+				textBuffer = projectionBuffer.SourceBuffers.Prepend(textBuffer).FirstOrDefault (b => b.ContentType.IsOfType (expectedContentType));
 				if (textBuffer == null) {
 					throw new InvalidOperationException (
 						$"Couldn't find a source buffer with content type {expectedContentType} in buffer {projectionBuffer}");
