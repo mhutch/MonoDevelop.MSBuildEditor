@@ -89,6 +89,10 @@ namespace MonoDevelop.MSBuild.Schema
 				yield return builtinMetaInfo;
 			}
 
+			if (itemName == null) {
+				yield break;
+			}
+
 			foreach (var item in schemas.GetAllItemDefinitions (itemName)) {
 				if (item.Metadata.TryGetValue (metadataName, out MetadataInfo? metaInfo)) {
 					yield return metaInfo;

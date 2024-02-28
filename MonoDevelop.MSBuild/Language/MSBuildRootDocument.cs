@@ -293,6 +293,7 @@ namespace MonoDevelop.MSBuild.Language
 		bool UsesLegacyProjectSystem () =>
 			// perform series of progressively more expensive checks to see if this uses the Managed Project System
 			// so that we optimize perf for SDK-format projects
+			ProjectElement is not null &&
 			ProjectElement.SdkAttribute is null
 			&& ProjectElement.GetAttribute (Syntax.MSBuildSyntaxKind.Project_xmlns) is not null
 			&& ProjectElement.GetAttribute (Syntax.MSBuildSyntaxKind.Project_ToolsVersion) is not null
