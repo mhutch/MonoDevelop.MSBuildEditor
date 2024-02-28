@@ -38,7 +38,7 @@
       "description": "Numeric value of the version for the assembly manifest in the format major.minor.build.revision (e.g. 2.4.0.1)",
       "type": "version"
     },
-    "InformationalVersion": "Product version of the assembly for UI display (e.g. 1.0 Beta)",
+    "InformationalVersion": "Product version of the assembly for UI display (e.g. 1.0 Beta). If not set explicitly, this will be determined from the `Version` property.",
     "NeutralLanguage": {
       "description": "The culture for the NuGet package",
       "type": "culture"
@@ -81,16 +81,19 @@
     },
     "PackageTags": "A space-delimited list of tags and keywords that describe the NuGet package and aid discoverability of NuGet packages through search and filtering mechanisms",
     "PackageVersion": {
-      "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1). Version numbers may include a pre-release suffix (e.g. 1.0.1-beta)",
+      "description": "Numeric value of the NuGet package version in the format major.minor.patch pattern (e.g. 1.0.1), with optional pre-release suffix (e.g. 1.0.1-beta). If not set explicitly, this will be determined from the `Version` property.",
       "type": "version-suffixed"
     },
     "Product": "Product name information for the assembly manifest",
     "Version": {
-      "description": "Numeric value of the version in the format major.minor.patch (e.g. 2.4.0)",
+      "description": "Numeric value of the version in the format major.minor.patch (e.g. 2.4.0), with optional pre-release suffix (e.g. 1.0.1-beta). This will be used to determine the values of the `PackageVersion`, `AssemblyVersion` and `InformationalVersion` properties if they are not set explicitly.",
+      "type": "version-suffixed"
+    },
+    "VersionPrefix": {
+      "description": "When `Version` is not specified, `VersionPrefix` represents the first fragment of the version string (e.g. 1.0.0). The syntax is `VersionPrefix[-VersionSuffix]`.",
       "type": "version"
     },
-    "VersionPrefix": "When Version is not specified, VersionPrefix represents the first fragment of the version string (e.g. 1.0.0). The syntax is VersionPrefix[-VersionSuffix].",
-    "VersionSuffix": "When Version is not specified, VersionSuffix represents the second fragment of the version string (e.g. beta). The syntax is VersionPrefix[-VersionSuffix].",
+    "VersionSuffix": "When `Version` is not specified, `VersionSuffix` represents the second fragment of the version string (e.g. beta). The syntax is `VersionPrefix[-VersionSuffix]`.",
     "PackageType": {
       "description": "The type of the package",
       "helpUrl": "https://learn.microsoft.com/en-us/nuget/create-packages/set-package-type",

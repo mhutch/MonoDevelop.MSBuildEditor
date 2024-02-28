@@ -15,7 +15,7 @@ class MSBuildXsdSchemaReader
 {
 	public const string MSBuildSchemaUri = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-	public MSBuildSchema Schema { get; } = [];
+	public MSBuildSchema Schema { get; } = new ();
 
 	public void Read(XmlSchemaSet schemaSet)
 	{
