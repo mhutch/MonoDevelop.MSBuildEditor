@@ -3,13 +3,12 @@
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Analyzers;
-
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
 	[TestFixture]
-	class DoNotAssignMSBuildAllProjectsAnalyzerTest : MSBuildAnalyzerTest
+	class DoNotAssignMSBuildAllProjectsAnalyzerTest : MSBuildDocumentTest
 	{
 		[Test]
 		public void SingleAssign ()

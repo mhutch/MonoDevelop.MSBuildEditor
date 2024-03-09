@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
 	[TestFixture]
-	class AppendNoWarnAnalyzerTest : MSBuildAnalyzerTest
+	class AppendNoWarnAnalyzerTest : MSBuildDocumentTest
 	{
 		[TestCase("CS123;CS346;CS567", true)]
 		[TestCase("CS123", true)]
@@ -29,10 +29,10 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			var analyzer = new AppendNoWarnAnalyzer ();
 
 			MSBuildDiagnostic[] expected = isError
-				? [new MSBuildDiagnostic (analyzer.SupportedDiagnostics[0], SpanFromLineColLength (source, 3, 6, 6))]
+				? [new MSBuildDiagnostic (analyzer.SupportedDiagnostics[0], MSBuildDocumentTest.SpanFromLineColLength (source, 3, 6, 6))]
 				: [];
 
-			VerifyDiagnostics (source, [ analyzer ], checkUnexpectedDiagnostics: true, expectedDiagnostics: expected);
+			MSBuildDocumentTest.VerifyDiagnostics (source, [ analyzer ], checkUnexpectedDiagnostics: true, expectedDiagnostics: expected);
 		}
 	}
 }

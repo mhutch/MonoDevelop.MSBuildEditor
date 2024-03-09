@@ -70,14 +70,19 @@ namespace MonoDevelop.MSBuild.Util
 			var id = GetMarkerId (markerChar);
 			var positions = markedPositionsById[id];
 
-			if (positions.Count != 2) {
-				throw new ArgumentException ($"Found {positions.Count} markers for char '{markerChars[id]}', must have exactly 2 to treat as a span", nameof (markerChar));
+			// treat single marker as zero width span
+			if (positions.Count == 1) {
+				int pos = positions[0];
+				return TextSpan.FromBounds (pos, pos);
 			}
 
-			int start = positions[0];
-			int end = positions[1];
+			if (positions.Count == 2) {
+				int start = positions[0];
+				int end = positions[1];
+				return TextSpan.FromBounds (start, end);
+			}
 
-			return TextSpan.FromBounds (start, end);
+			throw new ArgumentException ($"Found {positions.Count} markers for char '{markerChars[id]}', must have exactly 1 or 2 markers to treat as a span", nameof (markerChar));
 		}
 
 		public TextSpan[] GetMarkedSpans (char? markerChar = null)

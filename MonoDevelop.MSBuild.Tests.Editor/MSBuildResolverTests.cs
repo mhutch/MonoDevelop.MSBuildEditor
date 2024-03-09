@@ -34,7 +34,6 @@ using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
-
 using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
@@ -42,13 +41,12 @@ using NUnit.Framework;
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	public class MSBuildResolverTests
+	class MSBuildResolverTests : MSBuildDocumentTest
 	{
 		List<(int offset, MSBuildResolveResult result)> Resolve (string doc, ILogger logger)
 		{
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null, logger);
-			return MSBuildTestHelpers
-				.SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider, logger))
+			return SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider, logger))
 				.ToList ();
 		}
 

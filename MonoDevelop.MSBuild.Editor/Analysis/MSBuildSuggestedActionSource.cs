@@ -74,7 +74,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			var severities = CategoriesToSeverity (requestedActionCategories);
 			if (severities != 0) {
-				actions = await provider.CodeFixService.GetFixes (textBuffer, result, range, severities, cancellationToken);
+				actions = await provider.CodeFixService.GetFixes (textBuffer, result.MSBuildDocument, result.Diagnostics, range, severities, cancellationToken);
 				for (int i = 0; i < actions.Count; i++) {
 					if (!requestedActionCategories.Contains (actions[i].Category)) {
 						actions.RemoveAt (i);

@@ -5,17 +5,13 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
-using MonoDevelop.Xml.Editor.Tests.Extensions;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests.Parser;
 
@@ -87,36 +83,8 @@ class ExtractExpressionTests : MSBuildEditorTest
 
 	async Task TestExtractExpression (string textWithMarkers, int expectedFixCount, string invokeFixWithTitle, string expectedTextAfterInvoke, string typeText, string expectedTextAfterTyping)
 	{
-		var ctx = await this.GetRefactorings<ExtractExpressionRefactoringProvider> (textWithMarkers);
-
-		Assert.That (ctx.CodeFixes, Has.Count.EqualTo (expectedFixCount));
-		Assert.That (ctx.CodeFixes.Select (c => c.Action.Title), Has.One.EqualTo (invokeFixWithTitle));
-
-		var fix = ctx.CodeFixes.Single (c => c.Action.Title == invokeFixWithTitle);
-
-		var operations = await fix.Action.ComputeOperationsAsync (CancellationToken.None);
-
-		var options = ctx.TextView.Options;
-		options.SetOptionValue (DefaultOptions.ConvertTabsToSpacesOptionId, true);
-		options.SetOptionValue (DefaultOptions.IndentSizeOptionId, 2);
-		options.SetOptionValue (DefaultOptions.TabSizeOptionId, 2);
-
-		foreach (var op in operations) {
-			op.Apply (options, ctx.TextBuffer, CancellationToken.None, ctx.TextView);
-		}
-
-		Assert.That (
-			ctx.TextBuffer.CurrentSnapshot.GetText (),
-			Is.EqualTo (expectedTextAfterInvoke));
-
-		// type a new name for the extracted property
-		await Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync (default);
-		var commandService = Catalog.CommandServiceFactory.GetService (ctx.TextView);
-		commandService.Type (typeText);
-
-		Assert.That (
-			ctx.TextBuffer.CurrentSnapshot.GetText (),
-			Is.EqualTo (expectedTextAfterTyping));
+		var context = await this.GetRefactorings<ExtractExpressionRefactoringProvider> (textWithMarkers);
+		await this.TestCodeFixContext (context, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping);
 	}
 
 	[Test]
@@ -174,7 +142,7 @@ class ExtractExpressionTests : MSBuildEditorTest
 			("Target", true), ("Project", true));
 	}
 
-	void CheckExtractionPoints (string textWithMarkers, MSBuildSyntaxKind originKind, params (string scopeName, bool createGroup)[] expectedSpanProps)
+	static void CheckExtractionPoints (string textWithMarkers, MSBuildSyntaxKind originKind, params (string scopeName, bool createGroup)[] expectedSpanProps)
 	{
 		var doc = TextWithMarkers.Parse (textWithMarkers, '^', '$');
 

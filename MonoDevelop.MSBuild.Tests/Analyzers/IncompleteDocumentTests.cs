@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MonoDevelop.MSBuild.Language;
-
 using NUnit.Framework;
 
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
 	[TestFixture]
-	class IncompleteDocumentTests : MSBuildAnalyzerTest
+	class IncompleteDocumentTests : MSBuildDocumentTest
 	{
 		[Test]
 		[TestCase ("")]
