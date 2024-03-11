@@ -37,34 +37,43 @@ class MSBuildSchemaWriter : IDisposable
 	{
 		json.WriteStartObject ();
 
-		json.WritePropertyName ("properties");
-		json.WriteStartObject ();
-		foreach (var property in SortedByName (schema.Properties)) {
-			json.WritePropertyName (property.Name);
-			WriteProperty (property);
+		if (schema.Properties.Count > 0) {
+			json.WritePropertyName ("properties");
+			json.WriteStartObject ();
+			foreach (var property in SortedByName (schema.Properties)) {
+				json.WritePropertyName (property.Name);
+				WriteProperty (property);
+			}
+			json.WriteEndObject ();
 		}
-		json.WriteEndObject ();
 
-		json.WritePropertyName ("items");
-		json.WriteStartObject ();
-		WriteItems (SortedByName (schema.Items));
-		json.WriteEndObject ();
-
-		json.WritePropertyName ("tasks");
-		json.WriteStartObject ();
-		foreach (var task in SortedByName (schema.Tasks)) {
-			json.WritePropertyName (task.Name);
-			WriteTask (task);
+		if (schema.Tasks.Count > 0) {
+			json.WritePropertyName ("items");
+			json.WriteStartObject ();
+			WriteItems (SortedByName (schema.Items));
+			json.WriteEndObject ();
 		}
-		json.WriteEndObject ();
 
-		json.WritePropertyName ("targets");
-		json.WriteStartObject ();
-		foreach (var target in SortedByName (schema.Targets)) {
-			json.WritePropertyName (target.Name);
-			WriteTarget (target);
+		// this isn't currently readable but write it anyway
+		if (schema.Tasks.Count > 0) {
+			json.WritePropertyName ("tasks");
+			json.WriteStartObject ();
+			foreach (var task in SortedByName (schema.Tasks)) {
+				json.WritePropertyName (task.Name);
+				WriteTask (task);
+			}
+			json.WriteEndObject ();
 		}
-		json.WriteEndObject ();
+
+		if (schema.Targets.Count > 0) {
+			json.WritePropertyName ("targets");
+			json.WriteStartObject ();
+			foreach (var target in SortedByName (schema.Targets)) {
+				json.WritePropertyName (target.Name);
+				WriteTarget (target);
+			}
+			json.WriteEndObject ();
+		}
 
 		json.WriteEndObject ();
 	}
