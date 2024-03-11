@@ -112,15 +112,42 @@ static class MSBuildSchemaUtils
 		return diff;
 	}
 
-	public static MSBuildSchema CombineSchemas(IEnumerable<MSBuildSchema> schemas)
+	/// <summary>
+	/// Create a new schema that includes the symbols from the specified schemas,
+	/// but not the symbols from the excluded schemas.
+	/// </summary>
+	public static MSBuildSchema CreateCombinedSchema(
+		IEnumerable<IMSBuildSchema> includeSymbolsFrom,
+		IEnumerable<IMSBuildSchema>? excludeSymbolsFrom = null)
 	{
 		var combined = new MSBuildSchema();
-		foreach (var s in schemas) {
+		foreach (var s in includeSymbolsFrom) {
 			AddRangeOfItems(combined.Items, s.Items);
 			AddRange("property", combined.Properties, s.Properties);
 			AddRange("task", combined.Tasks, s.Tasks);
 			AddRange("target", combined.Targets, s.Targets);
 		}
+
+		if (excludeSymbolsFrom is null) {
+			return combined;
+		}
+
+		foreach(var excludeProp in excludeSymbolsFrom.GetProperties(true)) {
+			combined.Properties.Remove (excludeProp.Name);
+		}
+
+		foreach(var excludeItem in excludeSymbolsFrom.GetItems()) {
+			combined.Items.Remove (excludeItem.Name);
+		}
+
+		foreach(var excludeTarget in excludeSymbolsFrom.GetTargets()) {
+			combined.Targets.Remove (excludeTarget.Name);
+		}
+
+		foreach(var excludeTask in excludeSymbolsFrom.GetTasks()) {
+			combined.Tasks.Remove (excludeTask.Name);
+		}
+
 		return combined;
 	}
 
@@ -169,7 +196,7 @@ static class MSBuildSchemaUtils
 		var schemaSourceDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(thisFilePath)!, "..", "MonoDevelop.MSBuild", "Schemas"));
 
 		var schemas = TryLoadSchemasFromDirectory(schemaSourceDir) ?? Enum.GetValues<BuiltInSchemaId>().Select (id => BuiltInSchema.Load (id, out _));
-		return CombineSchemas(schemas);
+		return CreateCombinedSchema(schemas);
 	}
 
 	static string GetThisFilePath([CallerFilePath] string? thisFilePath = null) => thisFilePath!;
@@ -203,12 +230,12 @@ static class MSBuildSchemaUtils
 	}
 
 	// this tool will be used when editing the schemas, so check they don't have errors
-	static void PrintSchemaErrors (IEnumerable<MSBuildSchemaLoadError> errors)
+	public static void PrintSchemaErrors (IEnumerable<MSBuildSchemaLoadError> errors)
 	{
 		foreach (var error in errors) {
 			if (error is not null) {
 				if (error.Origin is not null) {
-					Console.Error.Write(Path.GetFileName(error.Origin));
+					Console.Error.Write(error.Origin);
 					if (error.FilePosition is (int line, int col)) {
 						Console.Error.Write($"({line}, {col}): ");
 					}

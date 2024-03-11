@@ -9,6 +9,7 @@ using MonoDevelop.MSBuild;
 
 [assembly: InternalsVisibleTo ($"MonoDevelop.MSBuild.Editor, {IVT.PublicKeyAtt}")]
 [assembly: InternalsVisibleTo ($"XsdSchemaImporter, {IVT.PublicKeyAtt}")]
+[assembly: InternalsVisibleTo ($"msbuildtool, {IVT.PublicKeyAtt}")]
 
 [assembly: InternalsVisibleTo ($"MonoDevelop.MSBuildEditor, {IVT.PublicKeyAtt}")]
 [assembly: InternalsVisibleTo ($"MonoDevelop.MSBuild.Editor.VisualStudio, {IVT.PublicKeyAtt}")]

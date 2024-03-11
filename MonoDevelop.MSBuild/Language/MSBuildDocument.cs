@@ -50,7 +50,7 @@ namespace MonoDevelop.MSBuild.Language
 		/// </summary>
 		public string? Filename { get; }
 
-		public MSBuildSchema Schema { get; internal set; }
+		public MSBuildSchema? Schema { get; internal set; }
 		public MSBuildInferredSchema InferredSchema { get; private set; }
 
 		public void Build (XDocument doc, MSBuildParserContext context)
