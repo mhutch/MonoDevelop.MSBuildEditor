@@ -10,6 +10,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
@@ -36,7 +37,7 @@ class MSBuildExpressionCompletionTest
 
 		var token = CancellationToken.None;
 
-		var schemas = new Analyzers.TestSchemaProvider ();
+		var schemas = new TestSchemaProvider ();
 		if (schema is not null) {
 			schemas.AddTestSchema (projectFileName, null, schema);
 		}

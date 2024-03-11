@@ -14,7 +14,7 @@ using NUnit.Framework;
 namespace MonoDevelop.MSBuild.Tests.Analyzers
 {
 	[TestFixture]
-	class CoreDiagnosticTests : MSBuildAnalyzerTest
+	class CoreDiagnosticTests : MSBuildDocumentTest
 	{
 		[Test]
 		public void NoImports ()
@@ -27,7 +27,6 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			VerifyDiagnostics (source, null, true, expected);
 		}
-
 
 		[Test]
 		public void InvalidBool ()

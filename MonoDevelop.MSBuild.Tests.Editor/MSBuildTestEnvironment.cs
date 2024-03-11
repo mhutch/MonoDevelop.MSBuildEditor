@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.Xml.Editor.Tests;
 
 namespace MonoDevelop.MSBuild.Tests

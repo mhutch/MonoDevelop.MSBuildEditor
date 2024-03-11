@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,7 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
-
+using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 

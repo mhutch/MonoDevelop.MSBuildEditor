@@ -1,12 +1,11 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
 using System.IO;
-
 using MonoDevelop.MSBuild.Schema;
 
-namespace MonoDevelop.MSBuild.Tests.Analyzers
+namespace MonoDevelop.MSBuild.Tests.Helpers
 {
 	class TestSchemaProvider : MSBuildSchemaProvider
 	{

@@ -10,8 +10,11 @@ namespace MonoDevelop.MSBuild.Analysis
 	public enum MSBuildDiagnosticSeverity
 	{
 		None = 0,
+
 		Suggestion = 1 << 0,
 		Warning = 1 << 1,
-		Error = 1 << 2
+		Error = 1 << 2,
+
+		All = Suggestion | Warning | Error
 	}
 }

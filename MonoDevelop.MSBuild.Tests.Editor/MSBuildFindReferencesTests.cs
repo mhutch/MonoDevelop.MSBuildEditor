@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Tests.Editor.Mocks;
 using MonoDevelop.Xml.Tests;
 using MonoDevelop.Xml.Parser;
 
@@ -17,7 +16,7 @@ using NUnit.Framework;
 namespace MonoDevelop.MSBuild.Tests
 {
 	[TestFixture]
-	public class MSBuildFindReferencesTests
+	class MSBuildFindReferencesTests : MSBuildDocumentTest
 	{
 		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference, [CallerMemberName] string testMethodName = null)
 		{
@@ -27,7 +26,7 @@ namespace MonoDevelop.MSBuild.Tests
 			var (xdoc, _) = xmlParser.Parse (new StringReader (docString));
 
 			var logger = TestLoggerFactory.CreateLogger (testMethodName);
-			var doc = MSBuildTestHelpers.CreateEmptyDocument ();
+			var doc = CreateEmptyDocument ();
 			var parseContext = new MSBuildParserContext (
 				new NullMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, logger, null, default);
 			doc.Build (xdoc, parseContext);

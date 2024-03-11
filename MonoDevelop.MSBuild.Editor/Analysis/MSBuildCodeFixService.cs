@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text;
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Language;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -121,11 +122,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		/// there is a better concept of a durable context/scope to which information can be bound.
 		/// </remarks>
 		public async Task<List<MSBuildCodeFix>> GetFixes (
-			ITextBuffer buffer, MSBuildParseResult result, SnapshotSpan range,
+			ITextBuffer buffer, MSBuildRootDocument parsedDocument, IList<MSBuildDiagnostic> diagnostics, SnapshotSpan range,
 			MSBuildDiagnosticSeverity requestedSeverities, CancellationToken cancellationToken)
 		{
 			var filteredDiags = ImmutableArray.CreateRange (
-				result.Diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length))));
+				diagnostics.Where (d => range.IntersectsWith (new SnapshotSpan (range.Snapshot, d.Span.Start, d.Span.Length))));
 
 			var fixes = new List<MSBuildCodeFix> ();
 			void ReportFix (MSBuildCodeAction a, ImmutableArray<MSBuildDiagnostic> d)
@@ -147,8 +148,8 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 					if (diagnosticIdToFixProviderMap.TryGetValue (diagnostic.Descriptor.Id, out var fixProvider)) {
 						var ctx = new MSBuildFixContext (
 							buffer,
-							result.MSBuildDocument,
-							result.MSBuildDocument.XDocument,
+							parsedDocument,
+							parsedDocument.XDocument,
 							new Xml.Dom.TextSpan (range.Start, range.Length),
 							ImmutableArray.Create (diagnostic),
 							ReportFix, cancellationToken);
