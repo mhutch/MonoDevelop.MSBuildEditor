@@ -173,6 +173,16 @@ namespace MonoDevelop.MSBuild.Evaluation
 				yield break;
 			}
 
+			// since we are permuting values it shouldn't generally matter if we return the list nodes separately
+			case ListExpression list: {
+				foreach (var listNode in list.Nodes) {
+					foreach (var v in EvaluateWithPermutation (context, prefix, listNode, depth + 1)) {
+						yield return v;
+					}
+				}
+				yield break;
+			}
+
 			default:
 				LogOnlySupportSimplePropertiesAndExpressions (context.Logger);
 				yield break;
@@ -220,7 +230,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 					return true;
 				}
 			} catch (Exception ex) {
-				LogErrorInPropertyFunctionEvaluation (context.Logger, ex);
+				if (ex is ArgumentException ||  ex is ArgumentNullException) {
+					LogErrorInPropertyFunction (context.Logger, receiver, inv.Function.Name, ex.Message);
+				} else{
+					LogErrorInPropertyFunction (context.Logger, receiver, inv.Function.Name, ex);
+				}
 				result = null;
 				return false;
 			}
@@ -249,7 +263,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			var results = new object[arguments.Count];
 			for (int i = 0; i < results.Length; i++) {
-				results[i] = EvaluateNode (context, arguments[i]);
+				results[i] = EvaluateNode (context, arguments[i]) ?? "";
 			}
 			return results;
 		}
@@ -309,8 +323,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 		static partial void LogCannotInvokeFunctionOnNull (ILogger logger);
 
 
-		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error in property function evaluation")]
-		static partial void LogErrorInPropertyFunctionEvaluation (ILogger logger, Exception ex);
+		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error in property function '[{receiver}]::{functionName}':")]
+		static partial void LogErrorInPropertyFunction (ILogger logger, Type receiver, string functionName, Exception ex);
 
 
 		[LoggerMessage (EventId = 5, Level = LogLevel.Warning, Message = "Unsupported property function '[{receiver}]::{functionName}'")]
@@ -319,5 +333,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		[LoggerMessage (EventId = 6, Level = LogLevel.Warning, Message = "Property functions not currently supported on type [{className}]")]
 		static partial void LogPropertyFunctionsNotSupportedOnType (ILogger logger, string className);
+
+
+		[LoggerMessage (EventId = 7, Level = LogLevel.Warning, Message = "Error in property function '[{receiver}]::{functionName}': {message}")]
+		static partial void LogErrorInPropertyFunction (ILogger logger, Type receiver, string functionName, string message);
 	}
 }
