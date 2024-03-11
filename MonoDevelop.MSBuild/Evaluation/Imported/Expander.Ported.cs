@@ -17,6 +17,7 @@
 //     * The log call from the end of TryExecuteWellKnownFunction has been removed
 //     * Fixed NREs in ElementsOfType
 //     * Stubbed IsIntrinsicFunctionOverloadsEnabled to return true
+//     * Fixed TryGetArgs ([],string,int) overload to use TryConvertToInt, allowing for boxed values
 
 using System;
 using System.Globalization;
@@ -1118,11 +1119,8 @@ namespace Microsoft.Build.Evaluation
                     return false;
                 }
 
-                var value1 = args[1] as string;
                 arg0 = args[0] as string;
-                if (value1 != null &&
-                    arg0 != null &&
-                    int.TryParse(value1, out arg1))
+                if(arg0 is not null && TryConvertToInt(args[1], out arg1))
                 {
                     return true;
                 }
