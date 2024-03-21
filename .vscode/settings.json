@@ -8,6 +8,12 @@
         "/*.buildschema.json"
       ],
       "url": "./MonoDevelop.MSBuild/Schemas/buildschema.json"
+    },
+    {
+      "fileMatch": [
+        "/*.tmLanguage.json"
+      ],
+      "url": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json"
     }
   ],
   "cSpell.words": [
@@ -19,16 +25,28 @@
     "fxcop",
     "Hotpatchable",
     "LCID",
+    "msbuild",
     "mscorlib",
     "Multitargeting",
     "netstandard",
     "overridable",
     "Precompiled",
+    "refactorings",
     "resx",
     "ruleset",
     "Struct",
     "Toolset",
     "unescaping",
     "VSINSTALLDIR"
-  ]
+  ],
+  "files.exclude": {
+      "msbuild-editor-vscode/out": false,
+      "msbuild-editor-vscode/dist": false
+  },
+  "search.exclude": {
+      "msbuild-editor-vscode/out": true,
+      "msbuild-editor-vscode/dist": true
+  },
+  // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+  "typescript.tsc.autoDetect": "off"
 }

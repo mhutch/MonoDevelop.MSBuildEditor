@@ -1,0 +1,10 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# Typescript files
+[*.ts]
+indent_style = tab
+indent_size = 4
+
+# Preserve formatting of files from extension template for now
+[tsconfig.json, webpack.config.json]
+indent_style = tab
