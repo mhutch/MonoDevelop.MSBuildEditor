@@ -92,7 +92,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		static char? TryReadEntity (string buffer, ref int offset, int endOffset)
 		{
 			offset++;
-			var id = TryReadAlphaName (buffer, ref offset, endOffset);
+			var id = TryReadNameAsciiLettersOnly (buffer, ref offset, endOffset);
 			if (id != null && offset < endOffset && buffer[offset] == ';') {
 				offset++;
 				return id switch
@@ -164,7 +164,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case 'a':
 			case 'O':
 			case 'o':
-				switch (TryReadAlphaName (buffer, ref offset, Math.Min (offset + 4, endOffset))?.ToUpper ()) {
+				switch (TryReadNameAsciiLettersOnly (buffer, ref offset, Math.Min (offset + 4, endOffset))?.ToUpper ()) {
 				case "AND": return ExpressionOperatorKind.And;
 				case "OR": return ExpressionOperatorKind.Or;
 				}
@@ -230,7 +230,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return ExpressionConditionOperator.Not (baseOffset + start, operand);
 			}
 			else if (char.IsLetter (ch)) {
-				var name = TryReadAlphaName (buffer, ref offset, endOffset);
+				var name = TryReadNameAsciiLettersOnly (buffer, ref offset, endOffset);
 				if (bool.TryParse (name, out bool boolVal)) {
 					hasError = false;
 					return new ExpressionArgumentBool (baseOffset + start, boolVal);
