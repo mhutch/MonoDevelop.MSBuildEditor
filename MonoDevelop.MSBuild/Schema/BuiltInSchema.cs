@@ -42,7 +42,7 @@ static class BuiltInSchema
 		([ BuiltInSchemaId.Cpp ], null, "Microsoft.Cpp.targets"),
 		([ BuiltInSchemaId.CSharp,
 		   BuiltInSchemaId.CSharpWarningCodes,
-		   BuiltInSchemaId.CSharpCodeQualityCodes], null, "Microsoft.CSharp.CurrentVersion.targets"),
+		   BuiltInSchemaId.AnalyzerWarningCodes], null, "Microsoft.CSharp.CurrentVersion.targets"),
 		([ BuiltInSchemaId.ILLink ], null, "Microsoft.NET.ILLink.targets"),
 		([ BuiltInSchemaId.NetSdk ], "Microsoft.NET.Sdk", sdkTargets),
 		([ BuiltInSchemaId.NuGet ], null, "NuGet.targets"),
