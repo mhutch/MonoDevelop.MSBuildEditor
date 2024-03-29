@@ -89,26 +89,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			return left;
 		}
 
-		static char? TryReadEntity (string buffer, ref int offset, int endOffset)
-		{
-			offset++;
-			var id = TryReadAlphaName (buffer, ref offset, endOffset);
-			if (id != null && offset < endOffset && buffer[offset] == ';') {
-				offset++;
-				return id switch
-				{
-					"gt" => '>',
-					"lt" => '>',
-					"quot" => '"',
-					"apos" => '\'',
-					"amp" => '&',
-					// FIXME: this cast should be redundant, remove it once CI environment has a sufficiently modern compiler (16.5?)
-					_ => (char?)null
-				};
-			}
-			return null;
-		}
-
 		static ExpressionOperatorKind ReadOperator (string buffer, int baseOffset, ref int offset, int endOffset, out ExpressionError error, out bool hasError)
 		{
 			error = null;
@@ -117,8 +97,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			char ch = buffer[offset];
 
 			if (ch == '&') {
-				if (TryReadEntity (buffer, ref offset, endOffset) is char ec) {
-					ch = ec;
+				if (TryReadEntity (buffer, ref offset, endOffset, out char c)) {
+					ch = c;
 				} else {
 					error = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOrUnsupportedEntity, out hasError);
 					return default;
@@ -164,7 +144,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			case 'a':
 			case 'O':
 			case 'o':
-				switch (TryReadAlphaName (buffer, ref offset, Math.Min (offset + 4, endOffset))?.ToUpper ()) {
+				switch (TryReadNameAsciiLettersOnly (buffer, ref offset, Math.Min (offset + 4, endOffset))?.ToUpper ()) {
 				case "AND": return ExpressionOperatorKind.And;
 				case "OR": return ExpressionOperatorKind.Or;
 				}
@@ -230,7 +210,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return ExpressionConditionOperator.Not (baseOffset + start, operand);
 			}
 			else if (char.IsLetter (ch)) {
-				var name = TryReadAlphaName (buffer, ref offset, endOffset);
+				var name = TryReadNameAsciiLettersOnly (buffer, ref offset, endOffset);
 				if (bool.TryParse (name, out bool boolVal)) {
 					hasError = false;
 					return new ExpressionArgumentBool (baseOffset + start, boolVal);

@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+
+using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Language.Expressions
 {
@@ -39,22 +42,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					break;
 				}
 
-				//consume entities simply so the semicolon doesn't mess with list parsing
-				//we don't need the value and the base XML editor will handle errors
-				if (c == '&') {
-					offset++;
-					//FIXME: use proper entity name logic. this will do for now.
-					ReadName (buffer, ref offset, endOffset);
-					if (offset > endOffset) {
-						break;
-					}
-					if (buffer[offset] == ';') {
-						offset++;
-						continue;
-					}
-					c = buffer [offset];
-				}
-
 				if ((options.HasFlag (ExpressionOptions.Lists) && c == ';') || (c == ',' && options.HasFlag (ExpressionOptions.CommaLists))) {
 					CaptureLiteral (offset, nodes.Count == 0);
 					if (splitList == null) {
@@ -67,9 +54,21 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				}
 
 				int possibleLiteralEndOffset = offset;
-
 				ExpressionNode node;
+
 				switch (c) {
+				case '&':
+					// Consume entities simply so the semicolon doesn't mess with list parsing.
+					// NOTE: we could probably read the entity and handle the resulting char,
+					// but let's not go down that rabbit hole just yet, as we'd need to propagate
+					// XML entity and MSBuild escape code support throughout the expression parser.
+					// Right now condition operators support entities and text nodes support entities and escape codes.
+					offset++;
+					if (ConsumeEntity (buffer, ref offset, endOffset)) {
+						continue;
+					}
+					node = new ExpressionError (baseOffset + offset, ExpressionErrorKind.IncompleteOrUnsupportedEntity, out hasError);
+					break;
 				case '@':
 					if (!TryConsumeParen (ref offset)) {
 						offset++;
@@ -177,7 +176,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeWhitespace (ref offset);
 
-			string name = ReadName (buffer, ref offset, endOffset);
+			string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingItemName, out hasError);
 			}
@@ -296,7 +295,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		static ExpressionNode ParseItemFunction (string buffer, ref int offset, int endOffset, int baseOffset, ExpressionNode target, out bool hasError)
 		{
 			int nameOffset = offset;
-			var funcNameStr = ReadName (buffer, ref offset, endOffset);
+			var funcNameStr = ReadClrIdentifier (buffer, ref offset, endOffset);
 			if (funcNameStr == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
@@ -325,7 +324,8 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			return new ExpressionItemFunctionInvocation (target.Offset, (offset + baseOffset) - target.Offset, target, funcName, args);
 		}
 
-		static string TryReadAlphaName (string buffer, ref int offset, int endOffset)
+		// used to read tokens like "true", "and", etc.
+		static string TryReadNameAsciiLettersOnly (string buffer, ref int offset, int endOffset)
 		{
 			if (offset > endOffset) {
 				return null;
@@ -333,21 +333,23 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			int start = offset;
 			char ch = buffer[offset];
-			if (!char.IsLetter (ch)) {
+			if (!IsAsciiLetter (ch)) {
 				return null;
 			}
 			offset++;
 			while (offset <= endOffset) {
 				ch = buffer[offset];
-				if (!char.IsLetter (ch)) {
+				if (!IsAsciiLetter (ch)) {
 					break;
 				}
 				offset++;
 			}
 			return buffer.Substring (start, offset - start);
+
+			static bool IsAsciiLetter (char ch) => (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 		}
 
-		static string ReadName (string buffer, ref int offset, int endOffset)
+		static string ReadMSBuildIdentifier (string buffer, ref int offset, int endOffset)
 		{
 			if (offset > endOffset) {
 				return null;
@@ -359,14 +361,190 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				return null;
 			}
 			offset++;
+
+			char lastChar = ch;
 			while (offset <= endOffset) {
 				ch = buffer [offset];
+				if (!char.IsLetterOrDigit (ch) && ch != '_' && ch != '-') {
+					break;
+				}
+				offset++;
+				lastChar = ch;
+			}
+
+			// Although a dash is a valid char for MSBuild identifiers, we will disallow the last char being a dash
+			// as this will conflict with item transform handling.
+			// We could probably allow this if we special cased it but I really can't see a good reason to do so.
+			if (lastChar == '-') {
+				offset--;
+			}
+
+			return buffer.Substring (start, offset - start);
+		}
+
+		// TODO: improve and unify with the CLR identifier validation in the validator
+		static string ReadClrIdentifier (string buffer, ref int offset, int endOffset)
+		{
+			if (offset > endOffset) {
+				return null;
+			}
+
+			int start = offset;
+			char ch = buffer[offset];
+			if (!char.IsLetter (ch) && ch != '_') {
+				return null;
+			}
+			offset++;
+			while (offset <= endOffset) {
+				ch = buffer[offset];
 				if (!char.IsLetterOrDigit (ch) && ch != '_') {
 					break;
 				}
 				offset++;
 			}
 			return buffer.Substring (start, offset - start);
+		}
+
+		//FIXME: this should probably be a helper in MonoDevelop.Xml.
+		static bool ConsumeEntity (string buffer, ref int offset, int endOffset)
+		{
+			if (offset > endOffset) {
+				return false;
+			}
+
+			char ch = buffer[offset];
+
+			if (ch == '#') {
+				offset++;
+				if (!TryReadCharacterRef(buffer, ref offset, endOffset, out int charCode)) {
+					return false;
+				}
+			}
+			else {
+				if (!ConsumeXmlName (buffer, ref offset, endOffset)) {
+					return false;
+				}
+			}
+
+			// consume the ending semicolon
+			if (offset <= endOffset && buffer[offset] == ';') {
+				offset++;
+				return true;
+			}
+			return false;
+		}
+
+		// NOTE: offset must not be beyond the endOffset when calling this method
+		static bool ConsumeXmlName (string buffer, ref int offset, int endOffset)
+		{
+			Debug.Assert (offset < endOffset);
+
+			char ch = buffer[offset];
+			if (!XmlChar.IsFirstNameChar (ch)) {
+				return false;
+			}
+			offset++;
+			while (offset < endOffset) {
+				ch = buffer[offset];
+				if (!XmlChar.IsNameChar (ch)) {
+					break;
+				}
+				offset++;
+
+			}
+			return true;
+		}
+
+		static bool TryReadCharacterRef(string buffer, ref int offset, int endOffset, out int charCode)
+		{
+			// consume hexadecimal specifier
+			bool isHex = false;
+			if (offset <= endOffset && buffer[offset] == 'x') {
+				isHex = true;
+				offset++;
+			}
+
+			int startOffset = offset;
+			charCode = 0;
+
+			try {
+				checked {
+					if (isHex) {
+						while (offset <= endOffset) {
+							int ch = buffer[offset];
+							if (ch >= '0' && ch <= '9') {
+								charCode = (charCode << 4) + (ch - '0');
+							} else if (ch >= 'A' && ch <= 'F') {
+								charCode = (charCode << 4) + (ch - 'A' + 10);
+							} else if (ch >= 'a' && ch <= 'f') {
+								charCode = (charCode << 4) + (ch - 'a' + 10);
+							} else {
+								break;
+							}
+							offset++;
+						}
+					} else {
+						while (offset <= endOffset) {
+							int ch = buffer[offset];
+							if (ch >= '0' && ch <= '9') {
+								charCode = (charCode * 10) + (ch - '0');
+							} else {
+								break;
+							}
+							offset++;
+						}
+					}
+				}
+			} catch (OverflowException) {
+				return false;
+			}
+
+			// did we actually find any decimal/hex digits?
+			return offset > startOffset;
+		}
+
+		// NOTE: this handles the well-known entities and 16-bit numeric character references
+		// FIXME: this should really be a helper in MonoDevelop.Xml.
+		static bool TryReadEntity (string buffer, ref int offset, int endOffset, out char character)
+		{
+			character = default;
+
+			if (offset > endOffset) {
+				return false;
+			}
+
+			char ch = buffer[offset];
+
+			if (ch == '#') {
+				offset++;
+				if (!TryReadCharacterRef (buffer, ref offset, endOffset, out int charCode)) {
+					return false;
+				}
+				// todo: astral planes
+				if (charCode > char.MaxValue) {
+					return false;
+				}
+				character = (char)charCode;
+			} else {
+				int start = offset;
+				if (!ConsumeXmlName (buffer, ref offset, endOffset)) {
+					return false;
+				}
+				var id = buffer.Substring (start, offset - start);
+				var entity = XmlChar.GetPredefinedEntity (id);
+				if (entity < 0) {
+					return false;
+				}
+				character = (char)entity;
+			}
+
+			// consume the ending semicolon
+			if (offset <= endOffset && buffer[offset] == ';') {
+				offset++;
+				return true;
+			}
+
+			return false;
 		}
 
 		enum ClassRefParseState
@@ -542,7 +720,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					return new ExpressionProperty (baseOffset + start, offset - start, propRef);
 				}
 			} else {
-				string name = ReadName (buffer, ref offset, endOffset);
+				string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
 				if (name == null) {
 					return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingPropertyName, out hasError);
 				}
@@ -644,7 +822,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			ConsumeSpace (buffer, ref offset, endOffset);
 
 			int nameOffset = offset;
-			var funcNameStr = ReadName (buffer, ref offset, endOffset);
+			var funcNameStr = ReadClrIdentifier (buffer, ref offset, endOffset);
 			if (funcNameStr == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
@@ -684,7 +862,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			ConsumeSpace (buffer, ref offset, endOffset);
 
 			int nameOffset = offset;
-			var funcNameStr = ReadName (buffer, ref offset, endOffset);
+			var funcNameStr = ReadClrIdentifier (buffer, ref offset, endOffset);
 			if (funcNameStr == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset,
@@ -859,7 +1037,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			string name = ReadName (buffer, ref offset, endOffset);
+			string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataOrItemName, out hasError);
 			}
@@ -898,7 +1076,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			string metadataName = ReadName (buffer, ref offset, endOffset);
+			string metadataName = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
 			if (metadataName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMetadataName,

@@ -39,6 +39,7 @@ class ExpressionDiagnostics
 			ExpressionErrorKind.IncompleteProperty => Return (IncompleteProperty),
 			ExpressionErrorKind.IncompleteOperator => Return (IncompleteOperator),
 			ExpressionErrorKind.ExpectingEquals => Return (ExpectingChar, '='),
+			// NOTE: if the base XML editor ever adds support for validating entities, this will be a duplicate error and should be ignored
 			ExpressionErrorKind.IncompleteOrUnsupportedEntity => Return (IncompleteOrUnsupportedEntity),
 			ExpressionErrorKind.UnexpectedCharacter => throw new System.NotImplementedException (),
 			_ => throw new System.Exception ($"Unhandled ExpressionErrorKind '{error.Kind}'")
@@ -157,13 +158,13 @@ class ExpressionDiagnostics
 	public const string IncompleteOrUnsupportedEntity_Id = nameof (IncompleteOrUnsupportedEntity);
 	public static readonly MSBuildDiagnosticDescriptor IncompleteOrUnsupportedEntity = new (
 		IncompleteOrUnsupportedEntity_Id,
-		"Incomplete or unsupported property",
+		"Incomplete or unsupported entity",
 		MSBuildDiagnosticSeverity.Error);
 
 	public const string UnexpectedCharacter_Id = nameof (UnexpectedCharacter);
 	public static readonly MSBuildDiagnosticDescriptor UnexpectedCharacter = new (
 		UnexpectedCharacter_Id,
-		"Incomplete or unsupported property",
+		"Unexpected character",
 		MSBuildDiagnosticSeverity.Error);
 
 	public const string CouldNotParseNumber_Id = nameof(CouldNotParseNumber);

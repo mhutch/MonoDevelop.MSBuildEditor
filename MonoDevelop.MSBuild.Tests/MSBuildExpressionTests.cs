@@ -135,6 +135,40 @@ namespace MonoDevelop.MSBuild.Tests
 			AssertSingleErrorKind (expr, kind);
 		}
 
+		[TestCase ("$(prop)", "prop")]
+		[TestCase ("%(meta)", "meta")]
+		[TestCase ("@(item)", "item")]
+		[TestCase ("$(prop123)", "prop123")]
+		[TestCase ("%(meta123)", "meta123")]
+		[TestCase ("@(item123)", "item123")]
+		[TestCase ("$(p)", "p")]
+		[TestCase ("%(m)", "m")]
+		[TestCase ("@(i)", "i")]
+		[TestCase ("$(  prop  )", "prop")]
+		[TestCase ("%(  meta  )", "meta")]
+		[TestCase ("@(  item  )", "item")]
+		[TestCase ("$(_prop)", "_prop")]
+		[TestCase ("%(_meta)", "_meta")]
+		[TestCase ("@(_item)", "_item")]
+		[TestCase ("$(prop-name)", "prop-name")]
+		[TestCase ("%(meta-name)", "meta-name")]
+		[TestCase ("@(item-name)", "item-name")]
+		[TestCase ("$(prop_Name)", "prop_Name")]
+		[TestCase ("%(meta_Name)", "meta_Name")]
+		[TestCase ("@(item_Name)", "item_Name")]
+		public void TestSimpleName (string expression, string name)
+		{
+			//the huge baseOffset can expose parser bugs
+			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata, 1000);
+			var actualName = expr switch {
+				ExpressionItem item => item.Name,
+				ExpressionProperty prop => prop.Name,
+				ExpressionMetadata meta => meta.MetadataName,
+				_ => null
+			};
+			Assert.AreEqual (name, actualName);
+		}
+
 		[TestCase ("$")]
 		[TestCase ("@")]
 		[TestCase ("%")]
@@ -258,6 +292,31 @@ namespace MonoDevelop.MSBuild.Tests
 					new ExpressionProperty (4, "Foo")
 				)
 			);
+		}
+
+		[Test]
+		public void TestListWithEntities ()
+		{
+			TestParse (
+				"a&apos;bc;$(Foo)c&#xA;de",
+				 new ListExpression (
+					0, 24, ';',
+					new ExpressionText (0, "a&apos;bc", true),
+					new ConcatExpression (
+						10, 14,
+						new ExpressionProperty (10, "Foo"),
+						new ExpressionText (16, "c&#xA;de", false)
+					)
+				),
+				ExpressionOptions.ItemsAndLists
+			);
+		}
+
+		[Test]
+		public void TestListWithBadEntity ()
+		{
+			var expr = ExpressionParser.Parse ("a&!pos;bc;$(Foo)c&#xA;de", ExpressionOptions.ItemsAndLists, 500);
+			AssertSingleErrorKind (expr, ExpressionErrorKind.IncompleteOrUnsupportedEntity);
 		}
 
 		[Test]
