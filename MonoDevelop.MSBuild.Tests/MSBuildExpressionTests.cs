@@ -295,6 +295,31 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
+		public void TestListWithEntities ()
+		{
+			TestParse (
+				"a&apos;bc;$(Foo)c&#xA;de",
+				 new ListExpression (
+					0, 24, ';',
+					new ExpressionText (0, "a&apos;bc", true),
+					new ConcatExpression (
+						10, 14,
+						new ExpressionProperty (10, "Foo"),
+						new ExpressionText (16, "c&#xA;de", false)
+					)
+				),
+				ExpressionOptions.ItemsAndLists
+			);
+		}
+
+		[Test]
+		public void TestListWithBadEntity ()
+		{
+			var expr = ExpressionParser.Parse ("a&!pos;bc;$(Foo)c&#xA;de", ExpressionOptions.ItemsAndLists, 500);
+			AssertSingleErrorKind (expr, ExpressionErrorKind.IncompleteOrUnsupportedEntity);
+		}
+
+		[Test]
 		public void TestItemTransform ()
 		{
 			TestParse (
