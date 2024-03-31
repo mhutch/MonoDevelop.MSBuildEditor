@@ -26,6 +26,23 @@ static class CultureHelper
 			}
 		}
 
+		// GetCultures doesn't return Windows pseudo-localization cultures on all OS versions, so add them manually
+		// https://github.com/dotnet/msbuild/pull/3654
+		if (!knownCultures.ContainsKey ("qps-ploc")) {
+			knownCultures.Add ("qps-ploc", new KnownCulture ("qps-ploc", "Pseudo Language (Pseudo)", 1281));
+		}
+
+		if (!knownCultures.ContainsKey ("qps-ploca")) {
+			knownCultures.Add ("qps-ploca", new KnownCulture ("qps-ploca", "Pseudo Language (Pseudo Asia)", 1534));
+		}
+
+		if (!knownCultures.ContainsKey ("qps-plocm")) {
+			knownCultures.Add ("qps-plocm", new KnownCulture ("qps-plocm", "Pseudo Language (Pseudo Mirrored)", 2559));
+		}
+
+		if (!knownCultures.ContainsKey ("qps-Latn-x-sh")) {
+			knownCultures.Add ("qps-Latn-x-sh", new KnownCulture ("qps-Latn-x-sh", "Pseudo (Pseudo Selfhost)", 2305));
+		}
 
 	}
 	static bool TryCreateKnownCulture (CultureInfo culture, out KnownCulture? knownCulture)

@@ -145,5 +145,40 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			Assert.AreEqual (SpanFromLineColLength (source, 3, 21, tfm.Length), diag.Span);
 			Assert.AreEqual (diagnosticId, diag.Descriptor.Id);
 		}
+
+
+		[Test]
+		public void UnknownCultureName ()
+		{
+			var source = @"<Project>
+<PropertyGroup>
+	<Cultures>en-US;qps-ploc;nope-no;pt-BR;fr;xx-yy</Cultures>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema ();
+
+			var culturesProp = new PropertyInfo ("Cultures", "", valueKind: MSBuildValueKind.Culture.AsList ());
+			schema.Properties.Add (culturesProp.Name, culturesProp);
+
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.InvalidCulture,
+					SpanFromLineColLength (source, 3, 27, 7),
+					messageArgs: [ "nope-no" ]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnknownCulture,
+					SpanFromLineColLength (source, 3, 44, 5),
+					messageArgs: [ "xx-yy" ]
+				)
+			};
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				schema: schema,
+				expectedDiagnostics: expected
+			);
+		}
 	}
 }

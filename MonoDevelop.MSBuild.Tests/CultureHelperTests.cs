@@ -15,6 +15,7 @@ namespace MonoDevelop.MSBuild.Tests.Language
 		[TestCase ("en-US")]
 		[TestCase ("EN-gb")]
 		[TestCase ("pt-PT")]
+		[TestCase ("qps-ploc")]
 		public void ValidCultures (string cultureName)
 		{
 			var jp = CultureInfo.GetCultureInfo ("jp");
