@@ -14,6 +14,7 @@ enum BuiltInSchemaId
 	CSharp,
 	CSharpWarningCodes,
 	AnalyzerWarningCodes,
+	StyleRuleCodes,
 	ILLink,
 	NetSdk,
 	NuGet,
