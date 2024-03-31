@@ -90,86 +90,195 @@ class CultureHelper
 		bool isValid;
 
 		// primary language subtag: two letters, three letters, for 5-8 letters
-		int primaryTagLength = TryConsumeBasicLatinLetters ();
-		if (!(primaryTagLength == 2 || primaryTagLength == 3 || (primaryTagLength >= 5 && primaryTagLength <= 8))) {
-			return false;
-		}
-		if (IsEndOrNonDash ()) {
-			return isValid;
-		}
-
-		// skip: 0-3 extended language subtags, each 3 letters
-		// skip: optional script subtag, 4 letters
-
-		// optional region subtag, 2 letters, or 3 digits
-		int regionSubtagLetters = TryConsumeBasicLatinLetters ();
-		if (regionSubtagLetters == 2) {
-			if (IsEndOrNonDash ()) {
-				return isValid;
-			}
-		} else if (regionSubtagLetters != 0) {
+		if (!ReadSegment (out int segmentLength, out Bcp47SegmentChars segmentType)) {
 			return false;
 		}
 
-		int regionSubtagNumbers = TryConsumeNumbers ();
-		if (regionSubtagNumbers == 3) {
-			if (IsEndOrNonDash ()) {
-				return isValid;
-			}
-		} else if (regionSubtagLetters != 0) {
+		if (segmentLength == 1 && (FirstCharIs ('i') || FirstCharIs ('x'))) {
+			// private or grandfathered, so we can't do much validation
+			return true;
+		}
+
+		if (!(IsAlpha () && (IsLength (2) || IsLength (3) || IsLengthBetween (5, 8)))) {
 			return false;
 		}
 
-		return index >= name.Length;
+		Bcp47Segment currentType = Bcp47Segment.PrimaryLanguage;
 
-		// skip: optional variant subtags, each 5-8 letters, or 4 characters starting with a digit
-		// skip: optional extension subtags, each 1 letter (except x) followed by 1 or more subtags of 2-8 characters
-		// skip: optional private-use subtag, x followed by 1 or more subtags of 1-8 characters
-
-		static bool IsBasicLatinLetterChar (char c) => (c >= 'A' && c <= 'X') || (c >= 'a' && c <= 'z');
-		static bool IsNumberChar (char c) => c >= '0' && c <= '9';
-
-		int TryConsumeBasicLatinLetters ()
-		{
-			int consumed = 0;
-			while (index < name.Length && IsBasicLatinLetterChar (name[index])) {
-				consumed++;
-				index++;
+		while (ReadSegment (out segmentLength, out segmentType)) {
+			switch (currentType) {
+			case Bcp47Segment.PrimaryLanguage:
+				if (IsExtendedLanguageSubtag ()) {
+					currentType = Bcp47Segment.ExtendedLanguage1;
+					continue;
+				}
+				goto case Bcp47Segment.ExtendedLanguage3;
+			case Bcp47Segment.ExtendedLanguage1:
+				if (IsExtendedLanguageSubtag ()) {
+					currentType = Bcp47Segment.ExtendedLanguage2;
+					continue;
+				}
+				goto case Bcp47Segment.ExtendedLanguage3;
+			case Bcp47Segment.ExtendedLanguage2:
+				if (IsExtendedLanguageSubtag ()) {
+					currentType = Bcp47Segment.ExtendedLanguage3;
+					continue;
+				}
+				goto case Bcp47Segment.ExtendedLanguage3;
+			case Bcp47Segment.ExtendedLanguage3:
+				if (IsLength (4) && IsAlpha ()) {
+					currentType = Bcp47Segment.Script;
+					continue;
+				}
+				goto case Bcp47Segment.Script;
+			case Bcp47Segment.Script:
+				if ((IsLength (2) && IsAlpha ()) || (IsLength (3) && IsNumeric ())) {
+					currentType = Bcp47Segment.Region;
+					continue;
+				}
+				goto case Bcp47Segment.Region;
+			case Bcp47Segment.Region:
+				goto case Bcp47Segment.Variant;
+			case Bcp47Segment.Variant:
+				if (IsVariant ()) {
+					currentType = Bcp47Segment.Variant;
+					continue;
+				}
+				goto case Bcp47Segment.ExtensionPrefix;
+			case Bcp47Segment.ExtensionPrefix:
+				if (IsLength (1)) {
+					char first = FirstChar ();
+					if (IsBasicLatinLetterChar (first) && first != 'x') {
+						currentType = Bcp47Segment.Extension1;
+						continue;
+					}
+					goto case Bcp47Segment.PrivateUsePrefix;
+				}
+				goto default;
+			case Bcp47Segment.Extension1:
+				if (IsLengthBetween (2, 8)) {
+					currentType = Bcp47Segment.Extension2Plus;
+					continue;
+				}
+				goto case default;
+			case Bcp47Segment.Extension2Plus:
+				if (IsLengthBetween (2, 8)) {
+					currentType = Bcp47Segment.Extension2Plus;
+					continue;
+				}
+				goto case Bcp47Segment.PrivateUsePrefix;
+			case Bcp47Segment.PrivateUsePrefix:
+				if (IsLength (1) && FirstCharIs ('x')) {
+					currentType = Bcp47Segment.PrivateUse1;
+					continue;
+				}
+				goto case default;
+			case Bcp47Segment.PrivateUse1:
+				if (IsLengthBetween (1, 8)) {
+					currentType = Bcp47Segment.PrivateUse2Plus;
+					continue;
+				}
+				goto case default;
+			case Bcp47Segment.PrivateUse2Plus:
+				if (IsLengthBetween (1, 8)) {
+					currentType = Bcp47Segment.PrivateUse2Plus;
+					continue;
+				}
+				goto case default;
+			default:
+				isValid = false;
+				return false;
 			}
-			return consumed;
 		}
 
-		int TryConsumeNumbers ()
-		{
-			int consumed = 0;
-			while (index < name.Length && IsNumberChar (name[index])) {
-				consumed++;
-				index++;
-			}
-			return consumed;
+		if (currentType == Bcp47Segment.ExtensionPrefix || currentType == Bcp47Segment.PrivateUsePrefix) {
+			isValid = false;
 		}
 
-		bool ConsumeDash ()
-		{
-			if (index < name.Length && name[index] == '-') {
-				index++;
-				return true;
-			}
-			return false;
-		}
+		return isValid;
 
-		bool IsEndOrNonDash ()
+		bool IsAlpha () => segmentType == Bcp47SegmentChars.Letters;
+		bool IsNumeric () => segmentType == Bcp47SegmentChars.Numbers;
+		bool IsAlphaNumeric () => (segmentType & Bcp47SegmentChars.LettersAndNumbers) == segmentType;
+		bool IsLength(int i) => segmentLength == i;
+		bool IsLengthBetween (int i, int j) => segmentLength >=i && segmentLength <= j;
+		bool IsExtendedLanguageSubtag () => IsLength (3) && IsAlpha ();
+		bool IsVariant () => (IsLengthBetween (5, 8) && IsAlpha ()) || (IsLength (4) && IsAlphaNumeric () && IsNumberChar (FirstChar ()));
+		char FirstChar () => name[index - segmentLength];
+		bool FirstCharIs (char c) => name[index - segmentLength] == c;
+
+		bool ReadSegment(out int segmentLength, out Bcp47SegmentChars type)
 		{
-			if (index == name.Length) {
-				isValid = true;
-				return true;
-			}
-			if (ConsumeDash ()) {
+			type = Bcp47SegmentChars.None;
+			segmentLength = 0;
+
+			if (index >= name.Length) {
 				isValid = true;
 				return false;
 			}
-			isValid = false;
-			return true;
+
+			char ch = name[index];
+
+			if (index == 0) {
+				if (ch == '-') {
+					isValid = false;
+					return false;
+				}
+			} else if (ch == '-') {
+				index++;
+			} else {
+				isValid = false;
+				return false;
+			}
+
+			while (index < name.Length) {
+				ch = name[index];
+				if (IsBasicLatinLetterChar (ch)) {
+					segmentLength++;
+					index++;
+					type |= Bcp47SegmentChars.Letters;
+				} else if (IsNumberChar (ch)) {
+					segmentLength++;
+					index++;
+					type |= Bcp47SegmentChars.Numbers;
+				} else if (ch == '-') {
+					break;
+				} else {
+					isValid = false;
+					return true;
+				}
+			}
+
+			isValid = segmentLength > 0;
+			return isValid;
 		}
+
+		static bool IsBasicLatinLetterChar (char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+		static bool IsNumberChar (char c) => c >= '0' && c <= '9';
+	}
+
+	enum Bcp47Segment
+	{
+		PrimaryLanguage,
+		ExtendedLanguage1,
+		ExtendedLanguage2,
+		ExtendedLanguage3,
+		Script,
+		Region,
+		Variant,
+		ExtensionPrefix,
+		Extension1,
+		Extension2Plus,
+		PrivateUsePrefix,
+		PrivateUse1,
+		PrivateUse2Plus
+	}
+
+	enum Bcp47SegmentChars
+	{
+		None = 0,
+		Letters = 1,
+		Numbers = 2,
+		LettersAndNumbers = 3
 	}
 }
