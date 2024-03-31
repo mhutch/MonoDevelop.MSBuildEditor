@@ -573,13 +573,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		IEnumerable<CompletionItem> GetLcidCompletions (MSBuildCompletionDocumentationProvider documentationProvider)
 		{
 			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
-			foreach (var culture in CultureHelper.GetAllCultures ()) {
-				string cultureLcid = culture.LCID.ToString ();
+			foreach (var culture in CultureHelper.GetKnownCultures ()) {
+				string cultureLcid = culture.Lcid.ToString ();
 				string displayName = culture.DisplayName;
 				// add the culture name to the filter text so ppl can just type the actual language/country instead of looking up the code
 				string filterText = $"{cultureLcid} {displayName}";
 				var item = new CompletionItem (cultureLcid, this, imageEl, ImmutableArray<CompletionFilter>.Empty, displayName, cultureLcid, cultureLcid, filterText, ImmutableArray<ImageElement>.Empty);
-				documentationProvider.AttachDocumentation (item, CultureHelper.CreateCultureSymbol (culture));
+				documentationProvider.AttachDocumentation (item, culture.CreateLcidSymbol ());
 				yield return item;
 			}
 		}
@@ -587,7 +587,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		IEnumerable<CompletionItem> GetCultureCompletions (MSBuildCompletionDocumentationProvider documentationProvider)
 		{
 			var imageEl = provider.DisplayElementFactory.GetImageElement (KnownImages.Constant);
-			foreach (var culture in CultureHelper.GetAllCultures ()) {
+			foreach (var culture in CultureHelper.GetKnownCultures ()) {
 				string cultureName = culture.Name;
 				if (string.IsNullOrEmpty (cultureName)) {
 					continue;
@@ -595,7 +595,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				// add the culture name to the filter text so ppl can just type the actual language/country instead of looking up the code
 				string filterText = $"{culture.Name} {culture.DisplayName}";
 				var item = new CompletionItem (culture.Name, this, imageEl, ImmutableArray<CompletionFilter>.Empty, culture.DisplayName, cultureName, cultureName, filterText, ImmutableArray<ImageElement>.Empty);
-				documentationProvider.AttachDocumentation (item, CultureHelper.CreateCultureSymbol (culture));
+				documentationProvider.AttachDocumentation (item, culture.CreateCultureSymbol ());
 				yield return item;
 			}
 		}

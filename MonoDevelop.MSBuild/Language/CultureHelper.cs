@@ -1,41 +1,71 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-
-using MonoDevelop.MSBuild.Language.Typesystem;
+using System.Linq;
 
 namespace MonoDevelop.MSBuild.Language;
 
+
 // centralizing culture stuff here will allow eventually supporting intellisense
 // for cultures that aren't available on the current system
-class CultureHelper
+static class CultureHelper
 {
-	public static bool IsValidCultureName (string cultureName) => IsValidBcp47Name (cultureName);
+	static readonly Dictionary<string, KnownCulture> knownCultures;
+	static readonly Lazy<Dictionary<int, KnownCulture>> knownCulturesByLcid = new(() => knownCultures.Values.Where (kc => kc.HasKnownLcid).ToDictionary (kc => kc.Lcid));
 
-	public static bool IsKnownCulture (string cultureName)
+	static CultureHelper ()
 	{
-		try {
-			var culture = CultureInfo.GetCultureInfo (cultureName);
-			return IsKnownCulture (culture);
-		} catch (CultureNotFoundException) {
+		knownCultures = new Dictionary<string, KnownCulture> (StringComparer.OrdinalIgnoreCase);
+		foreach (var culture in CultureInfo.GetCultures (CultureTypes.AllCultures)) {
+			if (TryCreateKnownCulture (culture, out var knownCulture)) {
+				knownCultures.Add (knownCulture.Name, knownCulture);
+			}
 		}
+
+
+	}
+	static bool TryCreateKnownCulture (CultureInfo culture, out KnownCulture? knownCulture)
+	{
+		if (!string.IsNullOrEmpty (culture.Name) && !culture.EnglishName.StartsWith ("Unknown", StringComparison.Ordinal)) {
+			knownCulture = new (culture.Name, culture.DisplayName, culture.LCID);
+			return true;
+		}
+		knownCulture = null;
 		return false;
 	}
+
+	static bool TryGetKnownCulture (string name, out KnownCulture knownCulture)
+	{
+		if (knownCultures.TryGetValue (name, out knownCulture)) {
+			return true;
+		}
+
+		// Add this fallback just in case .NET or the OS returns a culture that isn't in the list of known cultures
+		// as a result of aliasing or something.
+		// Filter out cultures that are marked UserCustomCulture as they are created on demand for any valid BCP47 name.
+		try {
+			return (IsValidBcp47Name (name)
+				&& CultureInfo.GetCultureInfo (name) is CultureInfo info
+				&& !info.CultureTypes.HasFlag (CultureTypes.UserCustomCulture)
+				&& TryCreateKnownCulture (info, out knownCulture));
+		} catch (CultureNotFoundException) {
+			return false;
+		}
+	}
+
+	public static ICollection<KnownCulture> GetKnownCultures () => knownCultures.Values;
+
+	public static bool IsValidCultureName (string cultureName) => IsValidBcp47Name (cultureName);
+
+	public static bool IsKnownCulture (string cultureName) => TryGetKnownCulture (cultureName, out _);
 
 	public static bool IsValidLcid (string value, out int lcid) => int.TryParse (value, out lcid) && lcid > 0;
 
-	public static bool IsKnownLcid (int lcid)
-	{
-		try {
-			var culture = CultureInfo.GetCultureInfo (lcid);
-			return HasKnownLcid (culture);
-		} catch (CultureNotFoundException) {
-		}
-		return false;
-	}
+	public static bool IsKnownLcid (int lcid) => knownCulturesByLcid.Value.ContainsKey (lcid);
 
 	public static bool TryGetLcidSymbol (string lcidString, [NotNullWhen (true)] out ISymbol? lcidSymbol)
 	{
@@ -43,20 +73,11 @@ class CultureHelper
 		return int.TryParse (lcidString, out int lcid) && TryGetLcidSymbol (lcid, out lcidSymbol);
 	}
 
-	// 4096 is the "not found" lcid
-	static bool HasKnownLcid (CultureInfo culture) => culture.LCID != 4096;
-
-	static bool IsKnownCulture (CultureInfo culture) => !culture.EnglishName.StartsWith ("Unknown", System.StringComparison.Ordinal);
-
 	public static bool TryGetLcidSymbol (int lcid, [NotNullWhen (true)] out ISymbol? lcidSymbol)
 	{
-		try {
-			var culture = CultureInfo.GetCultureInfo (lcid);
-			if (HasKnownLcid (culture)) {
-				lcidSymbol = CreateLcidSymbol (culture);
-				return true;
-			}
-		} catch (CultureNotFoundException) {
+		if (knownCulturesByLcid.Value.TryGetValue (lcid, out KnownCulture culture)) {
+			lcidSymbol = culture.CreateLcidSymbol ();
+			return true;
 		}
 		lcidSymbol = null;
 		return false;
@@ -64,23 +85,13 @@ class CultureHelper
 
 	public static bool TryGetCultureSymbol (string cultureName, [NotNullWhen (true)] out ISymbol? cultureSymbol)
 	{
-		try {
-			var culture = CultureInfo.GetCultureInfo (cultureName);
-			if (IsKnownCulture (culture)) {
-				cultureSymbol = CreateCultureSymbol (culture);
-				return true;
-			}
-		} catch (CultureNotFoundException) {
+		if (TryGetKnownCulture (cultureName, out KnownCulture culture)) {
+			cultureSymbol = culture.CreateCultureSymbol ();
+			return true;
 		}
 		cultureSymbol = null;
 		return false;
 	}
-
-	public static ISymbol CreateLcidSymbol (CultureInfo culture) => new ConstantSymbol (culture.LCID.ToString (), $"The LCID of the {culture.DisplayName} culture", MSBuildValueKind.Lcid);
-
-	public static ISymbol CreateCultureSymbol (CultureInfo culture) => new ConstantSymbol (culture.Name, $"The name of the {culture.DisplayName} culture", MSBuildValueKind.Culture);
-
-	internal static IEnumerable<CultureInfo> GetAllCultures () => CultureInfo.GetCultures (CultureTypes.AllCultures);
 
 	// validate form of IETF BCP 47 language tag
 	// TODO: this currently only validates the primary subtag and region subtag. anything else will cause an error.
