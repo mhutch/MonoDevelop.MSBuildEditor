@@ -25,7 +25,12 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				CoreDiagnostics.NoTargets, SpanFromLineColLength (source, 1, 2, 7)
 			);
 
-			VerifyDiagnostics (source, null, true, expected);
+			VerifyDiagnostics (
+				source,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [ expected ],
+				includeNoTargetsWarning: true
+			);
 		}
 
 		[Test]
@@ -93,7 +98,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			VerifyDiagnostics (source, out _,
 				includeCoreDiagnostics: true,
-				checkUnexpectedDiagnostics: false,
+				ignoreUnexpectedDiagnostics: false,
 				schema: schema,
 				expectedDiagnostics: expected
 			);

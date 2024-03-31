@@ -52,36 +52,40 @@ partial class MSBuildDocumentTest
 	}
 
 	public static void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
-		=> VerifyDiagnostics (source, out _, new[] { analyzer }, false, false, null, expectedDiagnostics);
+		=> VerifyDiagnostics (source, out _, [analyzer], expectedDiagnostics: expectedDiagnostics);
 
 	public static void VerifyDiagnostics (string source, ICollection<MSBuildAnalyzer> analyzers, bool includeCoreDiagnostics, params MSBuildDiagnostic[] expectedDiagnostics)
-		=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, false, null, expectedDiagnostics);
+		=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, expectedDiagnostics: expectedDiagnostics);
 
 	public static void VerifyDiagnostics (
 		string source,
 		ICollection<MSBuildAnalyzer>? analyzers = null,
 		bool includeCoreDiagnostics = false,
-		bool checkUnexpectedDiagnostics = false,
+		bool ignoreUnexpectedDiagnostics = false,
 		MSBuildSchema? schema = null,
 		MSBuildDiagnostic[]? expectedDiagnostics = null,
 		ILogger? logger = null,
-		MSBuildRootDocument? previousDocument = null
+		MSBuildRootDocument? previousDocument = null,
+		bool includeNoTargetsWarning = false
 		)
-		=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, checkUnexpectedDiagnostics, schema, expectedDiagnostics, logger, previousDocument);
+		=> VerifyDiagnostics (source, out _, analyzers, includeCoreDiagnostics, ignoreUnexpectedDiagnostics, schema, expectedDiagnostics, logger, previousDocument, includeNoTargetsWarning);
 
 	public static void VerifyDiagnostics (
 		string source,
 		out MSBuildRootDocument parsedDocument,
 		ICollection<MSBuildAnalyzer>? analyzers = null,
 		bool includeCoreDiagnostics = false,
-		bool checkUnexpectedDiagnostics = false,
+		bool ignoreUnexpectedDiagnostics = false,
 		MSBuildSchema? schema = null,
 		MSBuildDiagnostic[]? expectedDiagnostics = null,
 		ILogger? logger = null,
-		MSBuildRootDocument? previousDocument = null
+		MSBuildRootDocument? previousDocument = null,
+		bool includeNoTargetsWarning = false
 		)
 	{
 		var actualDiagnostics = GetDiagnostics (source, out parsedDocument, analyzers, includeCoreDiagnostics, logger, schema, previousDocument);
+
+		var missingDiags = new List<MSBuildDiagnostic> ();
 
 		foreach (var expectedDiag in expectedDiagnostics ?? []) {
 			bool found = false;
@@ -97,12 +101,25 @@ partial class MSBuildDocumentTest
 				}
 			}
 			if (!found) {
-				Assert.Fail ($"Did not find expected diagnostic {expectedDiag.Descriptor.Id}@{expectedDiag.Span.Start}-{expectedDiag.Span.End}");
+				missingDiags.Add (expectedDiag);
 			}
 		}
 
-		if (checkUnexpectedDiagnostics && actualDiagnostics.Count > 0) {
-			Assert.Fail ($"Found unexpected diagnostics: {string.Join ("", actualDiagnostics.Select (diag => $"\n\t{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
+		if (!includeNoTargetsWarning) {
+			for (int i = 0; i < actualDiagnostics.Count; i++) {
+				if (actualDiagnostics[i].Descriptor.Id == CoreDiagnostics.NoTargets_Id) {
+					actualDiagnostics.RemoveAt (i);
+					i--;
+				}
+			}
+		}
+
+		if (!ignoreUnexpectedDiagnostics && actualDiagnostics.Count > 0) {
+			Assert.Fail ($"Found unexpected diagnostics: {string.Join (", ", actualDiagnostics.Select (diag => $"\n\t{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
+		}
+
+		if (missingDiags.Count > 0) {
+			Assert.Fail ($"Did not find expected diagnostics: {string.Join (", ", missingDiags.Select (diag => $"{diag.Descriptor.Id}@{diag.Span.Start}-{diag.Span.End}"))}");
 		}
 	}
 }
