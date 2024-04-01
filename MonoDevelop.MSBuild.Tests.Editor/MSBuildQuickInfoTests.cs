@@ -17,6 +17,15 @@ namespace MonoDevelop.MSBuild.Tests
 		public async Task TestItemGroupQuickInfo ()
 		{
 			var result = await this.GetQuickInfoItems ("<Project><Item$Group>");
+			Assert.NotNull (result);
+			Assert.IsTrue (result.Items.Any ());
+		}
+
+		[Test]
+		public async Task TestClosingTag ()
+		{
+			var result = await this.GetQuickInfoItems ("<Project><PropertyGroup><Foo></Fo$o>");
+			Assert.NotNull (result);
 			Assert.IsTrue (result.Items.Any ());
 		}
 	}
