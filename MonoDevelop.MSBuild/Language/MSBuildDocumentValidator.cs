@@ -25,6 +25,9 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 		{
+			if (Document.ProjectElement is null) {
+				Document.Diagnostics.Add (CoreDiagnostics.MissingProjectElement, new TextSpan (0, 0));
+			}
 		}
 
 		IEnumerable<IMSBuildSchema> GetSchemasExcludingCurrentDocInferred () => Document.GetSchemas (skipThisDocumentInferredSchema: true);

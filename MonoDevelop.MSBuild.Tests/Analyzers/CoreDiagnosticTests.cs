@@ -16,6 +16,24 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 	[TestFixture]
 	class CoreDiagnosticTests : MSBuildDocumentTest
 	{
+
+		[Test]
+		public void NoProjectElement ()
+		{
+			var source = @"";
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.MissingProjectElement, new Xml.Dom.TextSpan (0, 0)
+			);
+
+			VerifyDiagnostics (
+				source,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				includeNoTargetsWarning: true
+			);
+		}
+
 		[Test]
 		public void NoImports ()
 		{

@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Analysis
 			doc = doc ?? throw new ArgumentNullException (nameof (doc));
 
 			if (doc.ProjectElement is not MSBuildProjectElement projectElement) {
-				return new List<MSBuildDiagnostic> ();
+				return new List<MSBuildDiagnostic> (doc.Diagnostics);
 			}
 
 			var session = new MSBuildAnalysisSession (context, doc, token);
