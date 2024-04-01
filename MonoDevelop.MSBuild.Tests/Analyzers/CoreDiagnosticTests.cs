@@ -52,7 +52,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				SpanFromLineColLength (source, 3, 15, 9),
 				ImmutableDictionary<string, object>.Empty
 					.Add ("Name", "bl&ah")
-					.Add ("ValueKind", MSBuildValueKind.Bool)
+					.Add ("ValueKind", MSBuildValueKind.Bool),
+				messageArgs: ["bl&ah"]
 			);
 
 			VerifyDiagnostics (source, out _,
@@ -84,7 +85,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", "Bye")
 						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType)
+						.Add ("CustomType", customType),
+					messageArgs: [ "Property", "Greetings", "Bye" ]
 				),
 				new MSBuildDiagnostic (
 					CoreDiagnostics.UnknownValue,
@@ -92,7 +94,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", "See Ya")
 						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType)
+						.Add ("CustomType", customType),
+					messageArgs: ["Property", "Greetings", "See Ya" ]
 				)
 			};
 
