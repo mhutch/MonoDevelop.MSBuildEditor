@@ -213,6 +213,33 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		[Test]
+		public void ClosingTagResolution ()
+		{
+			var doc = @"
+<project>
+  <propertygroup>
+    <foo condition=""'x$(ooo)'==''"">bar$(x)</f|oo>
+  </propertygroup>
+  <target name='Foo'>
+    <itemgroup>
+      <noooo include=""@(bar->'%(baz.foo)$(foo)')"">
+        <somemeta>1234</someme|ta>
+      </noo|oo>
+    </itemgr|oup>
+  </targ|et>
+</project>".TrimStart ();
+
+			AssertReferences (
+				doc,
+				(MSBuildReferenceKind.Property, "foo"),
+				(MSBuildReferenceKind.Metadata, ("noooo", "somemeta")),
+				(MSBuildReferenceKind.Item, "noooo"),
+				(MSBuildReferenceKind.Keyword, "ItemGroup"),
+				(MSBuildReferenceKind.Keyword, "Target")
+			);
+		}
+
+		[Test]
 		public void PropertyFunctionResolution ()
 		{
 			var doc = @"

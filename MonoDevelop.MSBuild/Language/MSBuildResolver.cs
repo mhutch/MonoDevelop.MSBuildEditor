@@ -123,46 +123,60 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
+			bool IsIn (TextSpan span) => span.ContainsOuter (offset);
 
 			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
 			{
 				var start = element.NameOffset;
-				if (element.Name.IsValid && IsIn (start, element.Name.Name.Length)) {
-					rr.ReferenceOffset = start;
-					rr.Reference = element.Name.Name;
-					rr.ReferenceLength = element.Name.Name.Length;
-					switch (elementSymbol.SyntaxKind) {
-					case MSBuildSyntaxKind.Item:
-					case MSBuildSyntaxKind.ItemDefinition:
-						rr.ReferenceKind = MSBuildReferenceKind.Item;
-						return;
-					case MSBuildSyntaxKind.Metadata:
-						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
-						rr.Reference = (element.ParentElement!.Name.Name, element.Name.Name);
-						return;
-					case MSBuildSyntaxKind.Task:
-						rr.ReferenceKind = MSBuildReferenceKind.Task;
-						return;
-					case MSBuildSyntaxKind.Parameter:
-						var taskName = element.ParentElement!.ParentElement!.Attributes.Get ("TaskName", true)?.Value;
-						if (!string.IsNullOrEmpty (taskName)) {
-							taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
-							rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
-							rr.Reference = (taskName, element.Name.Name);
-						}
-						return;
-					case MSBuildSyntaxKind.Property:
-						rr.ReferenceKind = MSBuildReferenceKind.Property;
-						return;
-					default:
-						if (!elementSymbol.IsAbstract) {
-							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-							rr.Reference = elementSymbol;
-						}
+
+				if (!element.Name.IsValid) {
+					base.VisitResolvedElement (element, elementSymbol, valueSymbol);
+					return;
+				}
+
+				if (!IsIn (element.NameSpan)) {
+					if (element.ClosingTag is XClosingTag ct && IsIn (ct.NameSpan)) {
+						start = ct.NameSpan.Start;
+					} else {
+						base.VisitResolvedElement (element, elementSymbol, valueSymbol);
 						return;
 					}
 				}
-				base.VisitResolvedElement (element, elementSymbol, valueSymbol);
+
+				string elementName = element.Name.Name;
+				rr.ReferenceOffset = start;
+				rr.Reference = elementName;
+				rr.ReferenceLength = elementName.Length;
+				switch (elementSymbol.SyntaxKind) {
+				case MSBuildSyntaxKind.Item:
+				case MSBuildSyntaxKind.ItemDefinition:
+					rr.ReferenceKind = MSBuildReferenceKind.Item;
+					return;
+				case MSBuildSyntaxKind.Metadata:
+					rr.ReferenceKind = MSBuildReferenceKind.Metadata;
+					rr.Reference = (element.ParentElement!.Name.Name, elementName);
+					return;
+				case MSBuildSyntaxKind.Task:
+					rr.ReferenceKind = MSBuildReferenceKind.Task;
+					return;
+				case MSBuildSyntaxKind.Parameter:
+					var taskName = element.ParentElement!.ParentElement!.Attributes.Get ("TaskName", true)?.Value;
+					if (!string.IsNullOrEmpty (taskName)) {
+						taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
+						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;
+						rr.Reference = (taskName, elementName);
+					}
+					return;
+				case MSBuildSyntaxKind.Property:
+					rr.ReferenceKind = MSBuildReferenceKind.Property;
+					return;
+				default:
+					if (!elementSymbol.IsAbstract) {
+						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
+						rr.Reference = elementSymbol;
+					}
+					return;
+				}
 			}
 
 			protected override void VisitResolvedAttribute (
