@@ -16,6 +16,24 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 	[TestFixture]
 	class CoreDiagnosticTests : MSBuildDocumentTest
 	{
+
+		[Test]
+		public void NoProjectElement ()
+		{
+			var source = @"";
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.MissingProjectElement, new Xml.Dom.TextSpan (0, 0)
+			);
+
+			VerifyDiagnostics (
+				source,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				includeNoTargetsWarning: true
+			);
+		}
+
 		[Test]
 		public void NoImports ()
 		{
@@ -25,7 +43,12 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				CoreDiagnostics.NoTargets, SpanFromLineColLength (source, 1, 2, 7)
 			);
 
-			VerifyDiagnostics (source, null, true, expected);
+			VerifyDiagnostics (
+				source,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [ expected ],
+				includeNoTargetsWarning: true
+			);
 		}
 
 		[Test]
@@ -47,7 +70,62 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				SpanFromLineColLength (source, 3, 15, 9),
 				ImmutableDictionary<string, object>.Empty
 					.Add ("Name", "bl&ah")
-					.Add ("ValueKind", MSBuildValueKind.Bool)
+					.Add ("ValueKind", MSBuildValueKind.Bool),
+				messageArgs: ["bl&ah"]
+			);
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				schema: schema);
+		}
+
+		[Test]
+		public void InvalidGuid()
+		{
+			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
+			var source = @"<Project>
+<PropertyGroup>
+	<SomeGuid>3F8BD947-1D88-4C1D-B50F-BF2EE</SomeGuid>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("SomeGuid", "", MSBuildValueKind.Guid)
+			};
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.InvalidGuid,
+				SpanFromLineColLength (source, 3, 12, 29),
+				messageArgs: [ "3F8BD947-1D88-4C1D-B50F-BF2EE" ]
+			);
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				schema: schema);
+		}
+
+		[Test]
+		public void InvalidGuidFormat ()
+		{
+			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
+			var source = @"<Project>
+<PropertyGroup>
+	<SomeGuid>3F8BD947-1D88-4C1D-B50F-BF2EE5E921E9</SomeGuid>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("SomeGuid", "", MSBuildValueKind.CustomType, customType: new CustomTypeInfo(
+					[], allowUnknownValues: true, baseKind: MSBuildValueKind.Guid, analyzerHints: ImmutableDictionary<string,object>.Empty.Add("GuidFormat", "B")
+				))
+			};
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.GuidIncorrectFormat,
+				SpanFromLineColLength (source, 3, 12, 36),
+				messageArgs: [ "3F8BD947-1D88-4C1D-B50F-BF2EE5E921E9", "B" ]
 			);
 
 			VerifyDiagnostics (source, out _,
@@ -79,7 +157,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", "Bye")
 						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType)
+						.Add ("CustomType", customType),
+					messageArgs: [ "Property", "Greetings", "Bye" ]
 				),
 				new MSBuildDiagnostic (
 					CoreDiagnostics.UnknownValue,
@@ -87,13 +166,14 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					ImmutableDictionary<string, object>.Empty
 						.Add ("Name", "See Ya")
 						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType)
+						.Add ("CustomType", customType),
+					messageArgs: ["Property", "Greetings", "See Ya" ]
 				)
 			};
 
 			VerifyDiagnostics (source, out _,
 				includeCoreDiagnostics: true,
-				checkUnexpectedDiagnostics: false,
+				ignoreUnexpectedDiagnostics: false,
 				schema: schema,
 				expectedDiagnostics: expected
 			);
@@ -136,6 +216,41 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 
 			Assert.AreEqual (SpanFromLineColLength (source, 3, 21, tfm.Length), diag.Span);
 			Assert.AreEqual (diagnosticId, diag.Descriptor.Id);
+		}
+
+
+		[Test]
+		public void UnknownCultureName ()
+		{
+			var source = @"<Project>
+<PropertyGroup>
+	<Cultures>en-US;qps-ploc;nope-no;pt-BR;fr;xx-yy</Cultures>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema ();
+
+			var culturesProp = new PropertyInfo ("Cultures", "", valueKind: MSBuildValueKind.Culture.AsList ());
+			schema.Properties.Add (culturesProp.Name, culturesProp);
+
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.InvalidCulture,
+					SpanFromLineColLength (source, 3, 27, 7),
+					messageArgs: [ "nope-no" ]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnknownCulture,
+					SpanFromLineColLength (source, 3, 44, 5),
+					messageArgs: [ "xx-yy" ]
+				)
+			};
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				schema: schema,
+				expectedDiagnostics: expected
+			);
 		}
 	}
 }

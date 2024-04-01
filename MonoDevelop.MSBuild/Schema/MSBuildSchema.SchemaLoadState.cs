@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -506,6 +507,8 @@ partial class MSBuildSchema
 
 			bool foundAnyNonRef = false;
 
+			ImmutableDictionary<string, object> analyzerHints = ImmutableDictionary<string, object>.Empty;
+
 			do {
 				(string defPropName, JToken? defPropVal) = enumerator.Current;
 
@@ -574,6 +577,23 @@ partial class MSBuildSchema
 						values.Add (ReadCustomTypeValue (valuesObj, valueName, valueDescToken));
 					}
 					break;
+				case "analyzerHints": {
+					if (defPropVal is not JObject analyzerHintsObj) {
+						AddError (defPropVal ?? customTypeObj, $"Custom type definition property 'analyzerHints' must be a non-empty object");
+						return (null, null);
+					}
+					foreach ((string hintName, JToken? hintValueToken) in analyzerHintsObj) {
+						if (string.IsNullOrEmpty (hintName)) {
+							AddError (hintValueToken ?? analyzerHintsObj, $"Analyzer hint must have non-empty name");
+						}
+						if (hintValueToken is JValue hintValue && hintValue.Value is not null) {
+							analyzerHints = analyzerHints.Add (hintName, hintValue.Value);
+						} else {
+							AddError (hintValueToken ?? analyzerHintsObj, $"Analyzer hint '{hintName}' must have a simple non-null value");
+						}
+					}
+					break;
+				}
 				default:
 					AddWarning (defPropVal ?? customTypeObj, $"Custom type definition has unknown property '{defPropName}'");
 					break;
@@ -585,7 +605,7 @@ partial class MSBuildSchema
 				allowUnknownValues = true;
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false, analyzerHints), null);
 		}
 
 		CustomTypeValue ReadCustomTypeValue (JObject customTypeValueCollection, string customTypeValueName, JToken? customTypeValueToken)

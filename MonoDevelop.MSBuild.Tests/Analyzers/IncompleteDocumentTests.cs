@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				source,
 				out var parsedDocument,
 				includeCoreDiagnostics: true,
-				checkUnexpectedDiagnostics: false
+				ignoreUnexpectedDiagnostics: true
 			);
 
 			// reparse to catch any issues in reuse of previous doc
@@ -28,7 +28,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				source,
 				out _,
 				includeCoreDiagnostics: true,
-				checkUnexpectedDiagnostics: false,
+				ignoreUnexpectedDiagnostics: true,
 				previousDocument : parsedDocument
 			);
 		}
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					source,
 					out var parsedDocument,
 					includeCoreDiagnostics: true,
-					checkUnexpectedDiagnostics: false,
+					ignoreUnexpectedDiagnostics: true,
 					previousDocument: previousParsedDocument
 				);
 				previousParsedDocument = parsedDocument;

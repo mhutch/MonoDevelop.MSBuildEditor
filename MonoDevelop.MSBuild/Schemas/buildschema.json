@@ -316,6 +316,22 @@
         "caseSensitive": {
           "description": "Whether values should be compared in a case-sensitive way",
           "type": "boolean"
+        },
+        "analyzerHints": {
+          "type": "object",
+          "properties": {
+            "GuidFormat": {
+              "type": "string",
+              "enum": [
+                "N",
+                "D",
+                "B",
+                "P"
+              ],
+              "description": "Constrains a `guid`-derived type to a specific `Guid.TryParseExact` format"
+            }
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": false

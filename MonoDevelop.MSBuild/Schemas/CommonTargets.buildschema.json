@@ -49,7 +49,7 @@
         "Name": "Friendly display name (optional)",
         "Guid": {
           "description": "GUID in the form {00000000-0000-0000-0000-000000000000}",
-          "type": "guid"
+          "type": { "$ref": "#/types/com-guid" }
         },
         "VersionMajor": {
           "description": "Major part of the version number",
@@ -143,7 +143,7 @@
         "Name": "Friendly display name",
         "Project": {
           "description": "Project GUID, in the form {00000000-0000-0000-0000-000000000000}",
-          "type": "guid"
+          "type": { "$ref": "#/types/project-guid" }
         },
         "ReferenceOutputAssembly": {
           "description": "Whether the outputs of the project referenced should be passed to the compiler",
@@ -1103,6 +1103,20 @@
       "baseType": "warning-code",
       "values": {
 
+      }
+    },
+    "project-guid": {
+      "allowUnknownValues": true,
+      "baseType": "guid",
+      "analyzerHints": {
+        "GuidFormat": "B"
+      }
+    },
+    "com-guid": {
+      "allowUnknownValues": true,
+      "baseType": "guid",
+      "analyzerHints": {
+        "GuidFormat": "B"
       }
     }
   },

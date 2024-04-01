@@ -9,16 +9,26 @@
     },
     "ProjectGuid": {
       "description": "A GUID that uniquely identifies the project within the solution",
-      "type": "guid",
+      "type": { "$ref": "#/types/project-guid" },
       "isLiteral": true
     }
   },
   "types": {
+    "project-guid": {
+      "allowUnknownValues": true,
+      "baseType": "guid",
+      "analyzerHints": {
+        "GuidFormat": "B"
+      }
+    },
     "project-type-guid": {
       "name": "project-type-guid",
       "description": "A GUID that activates Visual Studio design-time capabilities in projects that use the non-SDK format.",
       "allowUnknownValues": true,
       "baseType": "guid",
+      "analyzerHints": {
+        "GuidFormat": "B"
+      },
       "values": {
         "{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}": "ASP.NET 5 Project",
         "{603C0E0B-DB56-11DC-BE95-000D561079B0}": "ASP.NET MVC 1 Project",

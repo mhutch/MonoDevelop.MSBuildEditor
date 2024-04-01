@@ -25,6 +25,9 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		public MSBuildDocumentValidator (MSBuildDocument document, ITextSource textSource, ILogger logger) : base (document, textSource, logger)
 		{
+			if (Document.ProjectElement is null) {
+				Document.Diagnostics.Add (CoreDiagnostics.MissingProjectElement, new TextSpan (0, 0));
+			}
 		}
 
 		IEnumerable<IMSBuildSchema> GetSchemasExcludingCurrentDocInferred () => Document.GetSchemas (skipThisDocumentInferredSchema: true);
@@ -46,7 +49,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				ValidateResolvedElement (element, resolved, symbol);
 
-				if (element.IsComplete) {
+				if (element.IsComplete && resolved.SyntaxKind != MSBuildSyntaxKind.TaskBody) {
 					base.VisitResolvedElement (element, resolved, symbol);
 				}
 
@@ -280,29 +283,30 @@ namespace MonoDevelop.MSBuild.Language
 			bool isFactoryBased = taskFactoryAtt is not null || parameterGroup is not null || taskBody is not null;
 
 			if (isFactoryBased) {
-				if (taskBody != null) {
+				if (taskBody is not null && taskFactoryAtt is null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskBodyMustHaveFactory, taskBody.NameSpan);
 				}
-				if (parameterGroup != null) {
+				if (parameterGroup is not null && taskFactoryAtt is null) {
 					Document.Diagnostics.Add (CoreDiagnostics.ParameterGroupMustHaveFactory, parameterGroup.NameSpan);
 				}
-				if (taskBody == null) {
+				if (taskBody is null && taskFactoryAtt is not null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskFactoryMustHaveBody, element.NameSpan);
 				}
 
-				if (taskBody != null) {
-					var taskFactoryName = taskFactoryAtt.Value?.ToLowerInvariant ();
-					switch (taskFactoryName) {
+				if (taskFactoryAtt is not null && taskFactoryAtt.Value is string taskFactoryName && taskFactoryName.Length > 0) {
+					switch (taskFactoryName.ToLowerInvariant ()) {
 					case "codetaskfactory":
 						if (string.Equals (asmFileAtt?.Value, "$(RoslynCodeTaskFactory)")) {
 							goto case "roslyncodetaskfactory";
 						}
 						break;
 					case "roslyncodetaskfactory":
-						ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						if (taskBody is not null) {
+							ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						}
 						break;
 					default:
-						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, element.NameSpan, taskFactoryName);
+						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, taskFactoryAtt.ValueSpan, taskFactoryName);
 						break;
 					}
 				}
@@ -500,7 +504,7 @@ namespace MonoDevelop.MSBuild.Language
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
 						ImmutableDictionary<string,object>.Empty.Add ("Info", valueSymbol),
-						DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
+						DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
 				}
 			}
 
@@ -550,15 +554,17 @@ namespace MonoDevelop.MSBuild.Language
 					}
 
 					if (!IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write, out var resolvedMetadata)) {
-						Document.Diagnostics.Add (
-							CoreDiagnostics.UnwrittenMetadata,
-							meta.Span,
-							ImmutableDictionary<string, object>.Empty
-								.Add ("ItemName", metaItem)
-								.Add ("Name", meta.MetadataName)
-								.Add ("Spans", new [] { new TextSpan (meta.MetadataNameOffset, meta.MetadataName.Length) }),
-							metaItem, meta.MetadataName
-						);
+						if (Document.FileKind.IsProject ()) {
+							Document.Diagnostics.Add (
+								CoreDiagnostics.UnwrittenMetadata,
+								meta.Span,
+								ImmutableDictionary<string, object>.Empty
+									.Add ("ItemName", metaItem)
+									.Add ("Name", meta.MetadataName)
+									.Add ("Spans", new[] { new TextSpan (meta.MetadataNameOffset, meta.MetadataName.Length) }),
+								metaItem, meta.MetadataName
+							);
+						}
 					}
 					if (resolvedMetadata is not null) {
 						CheckDeprecated (resolvedMetadata, meta.MetadataNameSpan);
@@ -566,7 +572,9 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionPropertyName prop:
 					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write, out var resolvedProperty)) {
-						AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
+						if (Document.FileKind.IsProject ()) {
+							AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
+						}
 					}
 					if (resolvedProperty is not null) {
 						CheckDeprecated (resolvedProperty, prop);
@@ -574,7 +582,9 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionItemName item:
 					if (!IsItemUsed (item.Name, ReferenceUsage.Write, out var resolvedItem)) {
-						AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
+						if (Document.FileKind.IsProject ()) {
+							AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
+						}
 					}
 					if (resolvedItem is not null) {
 						CheckDeprecated (resolvedItem, item);
@@ -621,7 +631,7 @@ namespace MonoDevelop.MSBuild.Language
 			else if (!isCustomType || (customType is not null && !customType.AllowUnknownValues)) {
 				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out bool isError);
 				if (isError) {
-					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, value);
+					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, value);
 					return;
 				}
 				if (isKnownValue && knownValue is IDeprecatable deprecatable) {
@@ -633,8 +643,17 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (kindOrBaseKind) {
 			case MSBuildValueKind.Guid:
-				if (!Guid.TryParseExact (value, "B", out _)) {
+				if (!Guid.TryParse (value, out _)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidGuid, value);
+				}
+				if (isCustomType && customType.AnalyzerHints.TryGetValue ("GuidFormat", out object guidFormat)) {
+					try {
+						if (!Guid.TryParseExact (value, (string)guidFormat, out _)) {
+							AddErrorWithArgs (CoreDiagnostics.GuidIncorrectFormat, value, guidFormat);
+						}
+					} catch (FormatException ex) {
+						Logger.LogError (ex, "`GuidFormat` analyzer hint has invalid value '{0}'", guidFormat);
+					}
 				}
 				break;
 			case MSBuildValueKind.Int:

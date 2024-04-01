@@ -10,7 +10,7 @@
     "ProjectGuid": {
       "description": "A GUID that uniquely identifies the project within the solution",
       "isLiteral": true,
-      "type": "guid",
+      "type": { "$ref": "#/types/project-guid" },
       "deprecationMessage": "This property is not used in SDK-format projects"
     }
   },
@@ -37,6 +37,15 @@
           },
           "isList": true
         }
+      }
+    }
+  },
+  "types": {
+    "project-guid": {
+      "allowUnknownValues": true,
+      "baseType": "guid",
+      "analyzerHints": {
+        "GuidFormat": "B"
       }
     }
   }

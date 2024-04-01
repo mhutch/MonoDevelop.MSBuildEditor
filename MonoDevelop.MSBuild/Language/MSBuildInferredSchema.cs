@@ -417,7 +417,7 @@ namespace MonoDevelop.MSBuild.Language
 						null,
 						parameterElement.RequiredAttribute?.AsConstBool () ?? false,
 						parameterElement.OutputAttribute?.AsConstBool () ?? false,
-						ValueKindExtensions.FromFullTypeName (parameterElement.ParameterTypeAttribute.AsConstString () ?? null));
+						ValueKindExtensions.FromFullTypeName (parameterElement.ParameterTypeAttribute?.AsConstString ()));
 					taskParameters[parameter.Name] = parameter;
 				}
 			}

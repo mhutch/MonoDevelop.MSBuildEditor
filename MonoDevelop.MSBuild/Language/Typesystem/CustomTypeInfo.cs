@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	public sealed class CustomTypeInfo
 	{
-		public CustomTypeInfo (IReadOnlyList<CustomTypeValue> values, string? name = null, DisplayText description = default, bool allowUnknownValues = false, MSBuildValueKind baseKind = MSBuildValueKind.Unknown, bool caseSensitive = false)
+		public CustomTypeInfo (IReadOnlyList<CustomTypeValue> values, string? name = null, DisplayText description = default, bool allowUnknownValues = false, MSBuildValueKind baseKind = MSBuildValueKind.Unknown, bool caseSensitive = false, ImmutableDictionary<string, object>? analyzerHints = null)
         {
 			Values = values ?? throw new ArgumentNullException (nameof (values));
 			Name = name;
@@ -17,6 +18,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			AllowUnknownValues = allowUnknownValues;
 			BaseKind = baseKind;
 			CaseSensitive = caseSensitive;
+			AnalyzerHints = analyzerHints ?? ImmutableDictionary<string, object>.Empty;
 
 			foreach (var v in values) {
 				v.SetParent (this);
@@ -34,5 +36,10 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public IReadOnlyList<CustomTypeValue> Values { get; }
 		public MSBuildValueKind BaseKind { get;}
 		public bool CaseSensitive { get; }
+
+		/// <summary>
+		/// Custom annotations that may affect analyzers etc. e.g. GuidFormat="B"
+		/// </summary>
+		public ImmutableDictionary<string,object> AnalyzerHints { get; }
 	}
 }

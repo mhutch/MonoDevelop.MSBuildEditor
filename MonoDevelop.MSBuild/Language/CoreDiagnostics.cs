@@ -200,6 +200,14 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Error
 		);
 
+		public const string MissingProjectElement_Id = nameof (MissingProjectElement);
+		public static readonly MSBuildDiagnosticDescriptor MissingProjectElement = new (
+			MissingProjectElement_Id,
+			"Missing project element",
+			"The root `<Project>` element is missing",
+			MSBuildDiagnosticSeverity.Error
+		);
+
 		public const string OtherwiseMustBeLastInChoose_Id = nameof(OtherwiseMustBeLastInChoose);
 		public static readonly MSBuildDiagnosticDescriptor OtherwiseMustBeLastInChoose = new (
 			OtherwiseMustBeLastInChoose_Id,
@@ -390,6 +398,13 @@ namespace MonoDevelop.MSBuild.Language
 			InvalidGuid_Id,
 			"Invalid GUID format",
 			"The value `{0}` is not a valid GUID format",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string GuidIncorrectFormat_Id = nameof (GuidIncorrectFormat);
+		public static readonly MSBuildDiagnosticDescriptor GuidIncorrectFormat = new (
+			GuidIncorrectFormat_Id,
+			"GUID has incorrect format",
+			"The value `{0}` is not in the required GUID format `{1}`",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidInteger_Id = nameof(InvalidInteger);

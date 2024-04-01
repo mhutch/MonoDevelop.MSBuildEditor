@@ -21,8 +21,8 @@
       ]
     },
     "UserSecretsId": {
-      "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time.",
-      "type": "guid",
+      "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time. Although by default this is a GUID value, arbitrary strings may be used.",
+      "type": "string",
       "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
     },
     "BlazorEnableTimeZoneSupport": {

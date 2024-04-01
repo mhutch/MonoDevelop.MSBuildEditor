@@ -32,7 +32,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				? [new MSBuildDiagnostic (analyzer.SupportedDiagnostics[0], MSBuildDocumentTest.SpanFromLineColLength (source, 3, 6, 6))]
 				: [];
 
-			MSBuildDocumentTest.VerifyDiagnostics (source, [ analyzer ], checkUnexpectedDiagnostics: true, expectedDiagnostics: expected);
+			MSBuildDocumentTest.VerifyDiagnostics (source, [ analyzer ], ignoreUnexpectedDiagnostics: true, expectedDiagnostics: expected);
 		}
 	}
 }

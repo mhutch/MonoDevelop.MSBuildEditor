@@ -180,6 +180,7 @@
       "description": "Semi-colon separated list of culture names to preserve satellite resource assemblies during build and publish. If left empty, all satellite resource assemblies will be preserved.",
       "type": "culture",
       "isList": true,
+      "listSeparators": ";,",
       "defaultValue": ""
     },
     "UseArtifactsOutput": {
