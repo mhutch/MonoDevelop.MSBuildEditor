@@ -500,7 +500,7 @@ namespace MonoDevelop.MSBuild.Language
 					Document.Diagnostics.Add (
 						CoreDiagnostics.HasDefaultValue, attribute?.Span ?? element.OuterSpan,
 						ImmutableDictionary<string,object>.Empty.Add ("Info", valueSymbol),
-						DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
+						DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, hasDefault.DefaultValue);
 				}
 			}
 
@@ -621,7 +621,7 @@ namespace MonoDevelop.MSBuild.Language
 			else if (!isCustomType || (customType is not null && !customType.AllowUnknownValues)) {
 				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out bool isError);
 				if (isError) {
-					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetKindNoun (valueSymbol), valueSymbol.Name, value);
+					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, value);
 					return;
 				}
 				if (isKnownValue && knownValue is IDeprecatable deprecatable) {

@@ -305,6 +305,20 @@ namespace MonoDevelop.MSBuild.Schema
 			};
 
 		/// <summary>
+		/// Gets a title case noun describing the element. Intended to be localized and substituted into localized strings.
+		/// </summary>
+		public static string GetTitleCaseKindNoun (this ISymbol info)
+			=> info switch {
+				MSBuildElementSyntax _ => "Element",
+				MSBuildAttributeSyntax _ => "Attribute",
+				ItemInfo _ => "Item",
+				PropertyInfo _ => "Property",
+				MetadataInfo _ => "Metadata",
+				TaskParameterInfo _ => "Task parameter",
+				_ => "Value"
+			};
+
+		/// <summary>
 		/// Gets a shortened version of the description suitable for displaying as a hint suffix in completion lists.
 		/// </summary>
 		public static string GetCompletionHint (ISymbol symbol)
