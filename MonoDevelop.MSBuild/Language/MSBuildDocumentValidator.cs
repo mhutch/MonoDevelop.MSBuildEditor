@@ -639,8 +639,17 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (kindOrBaseKind) {
 			case MSBuildValueKind.Guid:
-				if (!Guid.TryParseExact (value, "B", out _)) {
+				if (!Guid.TryParse (value, out _)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidGuid, value);
+				}
+				if (isCustomType && customType.AnalyzerHints.TryGetValue ("GuidFormat", out object guidFormat)) {
+					try {
+						if (!Guid.TryParseExact (value, (string)guidFormat, out _)) {
+							AddErrorWithArgs (CoreDiagnostics.GuidIncorrectFormat, value, guidFormat);
+						}
+					} catch (FormatException ex) {
+						Logger.LogError (ex, "`GuidFormat` analyzer hint has invalid value '{0}'", guidFormat);
+					}
 				}
 				break;
 			case MSBuildValueKind.Int:

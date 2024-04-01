@@ -392,6 +392,13 @@ namespace MonoDevelop.MSBuild.Language
 			"The value `{0}` is not a valid GUID format",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string GuidIncorrectFormat_Id = nameof (GuidIncorrectFormat);
+		public static readonly MSBuildDiagnosticDescriptor GuidIncorrectFormat = new (
+			GuidIncorrectFormat_Id,
+			"GUID has incorrect format",
+			"The value `{0}` is not in the required GUID format `{1}`",
+			MSBuildDiagnosticSeverity.Error);
+
 		public const string InvalidInteger_Id = nameof(InvalidInteger);
 		public static readonly MSBuildDiagnosticDescriptor InvalidInteger = new (
 			InvalidInteger_Id,

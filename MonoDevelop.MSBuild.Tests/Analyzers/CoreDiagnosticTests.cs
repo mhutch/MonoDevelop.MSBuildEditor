@@ -62,6 +62,60 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				schema: schema);
 		}
 
+		[Test]
+		public void InvalidGuid()
+		{
+			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
+			var source = @"<Project>
+<PropertyGroup>
+	<SomeGuid>3F8BD947-1D88-4C1D-B50F-BF2EE</SomeGuid>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("SomeGuid", "", MSBuildValueKind.Guid)
+			};
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.InvalidGuid,
+				SpanFromLineColLength (source, 3, 12, 29),
+				messageArgs: [ "3F8BD947-1D88-4C1D-B50F-BF2EE" ]
+			);
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				schema: schema);
+		}
+
+		[Test]
+		public void InvalidGuidFormat ()
+		{
+			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
+			var source = @"<Project>
+<PropertyGroup>
+	<SomeGuid>3F8BD947-1D88-4C1D-B50F-BF2EE5E921E9</SomeGuid>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("SomeGuid", "", MSBuildValueKind.CustomType, customType: new CustomTypeInfo(
+					[], allowUnknownValues: true, baseKind: MSBuildValueKind.Guid, analyzerHints: ImmutableDictionary<string,object>.Empty.Add("GuidFormat", "B")
+				))
+			};
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.GuidIncorrectFormat,
+				SpanFromLineColLength (source, 3, 12, 36),
+				messageArgs: [ "3F8BD947-1D88-4C1D-B50F-BF2EE5E921E9", "B" ]
+			);
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [expected],
+				schema: schema);
+		}
+
 
 		[Test]
 		public void InvalidCustomTypeListValue ()
