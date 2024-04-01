@@ -550,15 +550,17 @@ namespace MonoDevelop.MSBuild.Language
 					}
 
 					if (!IsMetadataUsed (metaItem, meta.MetadataName, ReferenceUsage.Write, out var resolvedMetadata)) {
-						Document.Diagnostics.Add (
-							CoreDiagnostics.UnwrittenMetadata,
-							meta.Span,
-							ImmutableDictionary<string, object>.Empty
-								.Add ("ItemName", metaItem)
-								.Add ("Name", meta.MetadataName)
-								.Add ("Spans", new [] { new TextSpan (meta.MetadataNameOffset, meta.MetadataName.Length) }),
-							metaItem, meta.MetadataName
-						);
+						if (Document.FileKind.IsProject ()) {
+							Document.Diagnostics.Add (
+								CoreDiagnostics.UnwrittenMetadata,
+								meta.Span,
+								ImmutableDictionary<string, object>.Empty
+									.Add ("ItemName", metaItem)
+									.Add ("Name", meta.MetadataName)
+									.Add ("Spans", new[] { new TextSpan (meta.MetadataNameOffset, meta.MetadataName.Length) }),
+								metaItem, meta.MetadataName
+							);
+						}
 					}
 					if (resolvedMetadata is not null) {
 						CheckDeprecated (resolvedMetadata, meta.MetadataNameSpan);
@@ -566,7 +568,9 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionPropertyName prop:
 					if (!IsPropertyUsed (prop.Name, ReferenceUsage.Write, out var resolvedProperty)) {
-						AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
+						if (Document.FileKind.IsProject ()) {
+							AddFixableError (CoreDiagnostics.UnwrittenProperty, prop.Name, prop.Span, prop.Name);
+						}
 					}
 					if (resolvedProperty is not null) {
 						CheckDeprecated (resolvedProperty, prop);
@@ -574,7 +578,9 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case ExpressionItemName item:
 					if (!IsItemUsed (item.Name, ReferenceUsage.Write, out var resolvedItem)) {
-						AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
+						if (Document.FileKind.IsProject ()) {
+							AddFixableError (CoreDiagnostics.UnwrittenItem, item.Name, item.Span, item.Name);
+						}
 					}
 					if (resolvedItem is not null) {
 						CheckDeprecated (resolvedItem, item);
