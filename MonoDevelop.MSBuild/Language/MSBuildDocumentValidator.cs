@@ -46,7 +46,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				ValidateResolvedElement (element, resolved, symbol);
 
-				if (element.IsComplete) {
+				if (element.IsComplete && resolved.SyntaxKind != MSBuildSyntaxKind.TaskBody) {
 					base.VisitResolvedElement (element, resolved, symbol);
 				}
 
@@ -280,29 +280,30 @@ namespace MonoDevelop.MSBuild.Language
 			bool isFactoryBased = taskFactoryAtt is not null || parameterGroup is not null || taskBody is not null;
 
 			if (isFactoryBased) {
-				if (taskBody != null) {
+				if (taskBody is not null && taskFactoryAtt is null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskBodyMustHaveFactory, taskBody.NameSpan);
 				}
-				if (parameterGroup != null) {
+				if (parameterGroup is not null && taskFactoryAtt is null) {
 					Document.Diagnostics.Add (CoreDiagnostics.ParameterGroupMustHaveFactory, parameterGroup.NameSpan);
 				}
-				if (taskBody == null) {
+				if (taskBody is null && taskFactoryAtt is not null) {
 					Document.Diagnostics.Add (CoreDiagnostics.TaskFactoryMustHaveBody, element.NameSpan);
 				}
 
-				if (taskBody != null) {
-					var taskFactoryName = taskFactoryAtt.Value?.ToLowerInvariant ();
-					switch (taskFactoryName) {
+				if (taskFactoryAtt is not null && taskFactoryAtt.Value is string taskFactoryName && taskFactoryName.Length > 0) {
+					switch (taskFactoryName.ToLowerInvariant ()) {
 					case "codetaskfactory":
 						if (string.Equals (asmFileAtt?.Value, "$(RoslynCodeTaskFactory)")) {
 							goto case "roslyncodetaskfactory";
 						}
 						break;
 					case "roslyncodetaskfactory":
-						ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						if (taskBody is not null) {
+							ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
+						}
 						break;
 					default:
-						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, element.NameSpan, taskFactoryName);
+						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, taskFactoryAtt.ValueSpan, taskFactoryName);
 						break;
 					}
 				}
