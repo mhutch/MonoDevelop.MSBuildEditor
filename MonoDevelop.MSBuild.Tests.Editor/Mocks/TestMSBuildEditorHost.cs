@@ -15,64 +15,63 @@ using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Editor.Host;
 
-namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
+namespace MonoDevelop.MSBuild.Tests.Editor.Mocks;
+
+// this just needs to compose, it doesn't need to work
+[Export (typeof (IMSBuildEditorHost))]
+class TestMSBuildEditorHost : IMSBuildEditorHost
 {
-	// this just needs to compose, it doesn't need to work
-	[Export (typeof (IMSBuildEditorHost))]
-	class TestMSBuildEditorHost : IMSBuildEditorHost
+	public Dictionary<string, ITextBuffer> GetOpenDocuments ()
 	{
-		public Dictionary<string, ITextBuffer> GetOpenDocuments ()
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public bool OpenFile (string destFile, int destOffset, bool isPreview = false)
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public void ShowGoToDefinitionResults (string[] paths)
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public void ShowStatusBarMessage (string v)
-		{
-			throw new System.NotImplementedException ();
-		}
+		throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IStreamingFindReferencesPresenter))]
-	class TestStreamingFindReferencesPresenter : IStreamingFindReferencesPresenter
+	public bool OpenFile (string destFile, int destOffset, bool isPreview = false)
 	{
-		public void ClearAll () => throw new System.NotImplementedException ();
-
-		public FindReferencesContext StartSearch (string title, string referenceName, bool showUsage)
-			=> throw new System.NotImplementedException ();
+		throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IDifferenceBufferFactoryService))]
-	class MockDifferenceBufferFactoryService : IDifferenceBufferFactoryService
+	public void ShowGoToDefinitionResults (string[] paths)
 	{
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer)
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer, StringDifferenceOptions options, bool disableEditing = false, bool wrapLeftBuffer = true, bool wrapRightBuffer = true) => throw new System.NotImplementedException ();
-
-		public IDifferenceBuffer TryGetDifferenceBuffer (IProjectionBufferBase projectionBuffer) => throw new System.NotImplementedException ();
+		throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IDifferenceViewElementFactory))]
-	class MockDifferenceViewElementFactoryService : IDifferenceViewElementFactory
+	public void ShowStatusBarMessage (string v)
 	{
-		public Task<object> CreateDiffViewElementAsync (IDifferenceBuffer diffBuffer) => throw new System.NotImplementedException ();
+		throw new System.NotImplementedException ();
+	}
+}
+
+[Export (typeof (IStreamingFindReferencesPresenter))]
+class TestStreamingFindReferencesPresenter : IStreamingFindReferencesPresenter
+{
+	public void ClearAll () => throw new System.NotImplementedException ();
+
+	public FindReferencesContext StartSearch (string title, string referenceName, bool showUsage)
+		=> throw new System.NotImplementedException ();
+}
+
+[Export (typeof (IDifferenceBufferFactoryService))]
+class MockDifferenceBufferFactoryService : IDifferenceBufferFactoryService
+{
+	public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer)
+	{
+		throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IMSBuildSuggestedActionFactory))]
-	class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
-	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
-	}
+	public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer, StringDifferenceOptions options, bool disableEditing = false, bool wrapLeftBuffer = true, bool wrapRightBuffer = true) => throw new System.NotImplementedException ();
+
+	public IDifferenceBuffer TryGetDifferenceBuffer (IProjectionBufferBase projectionBuffer) => throw new System.NotImplementedException ();
+}
+
+[Export (typeof (IDifferenceViewElementFactory))]
+class MockDifferenceViewElementFactoryService : IDifferenceViewElementFactory
+{
+	public Task<object> CreateDiffViewElementAsync (IDifferenceBuffer diffBuffer) => throw new System.NotImplementedException ();
+}
+
+[Export (typeof (IMSBuildSuggestedActionFactory))]
+class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
+{
+	public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
 }

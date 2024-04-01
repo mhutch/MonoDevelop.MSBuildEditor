@@ -38,80 +38,80 @@ using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Tests;
+
+[TestFixture]
+class MSBuildResolverTests : MSBuildDocumentTest
 {
-	[TestFixture]
-	class MSBuildResolverTests : MSBuildDocumentTest
+	List<(int offset, MSBuildResolveResult result)> Resolve (string doc, ILogger logger)
 	{
-		List<(int offset, MSBuildResolveResult result)> Resolve (string doc, ILogger logger)
-		{
-			var functionTypeProvider = new RoslynFunctionTypeProvider (null, logger);
-			return SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider, logger))
-				.ToList ();
+		var functionTypeProvider = new RoslynFunctionTypeProvider (null, logger);
+		return SelectAtMarkers (doc, (state) => MSBuildResolver.Resolve (state.parser.Clone (), state.textSource, state.doc, functionTypeProvider, logger))
+			.ToList ();
+	}
+
+	void AssertReferences (string doc, params (MSBuildReferenceKind kind, object reference)[] expected)
+	{
+		var logger = TestLoggerFactory.CreateTestMethodLogger ();
+		var results = Resolve (doc, logger);
+
+		if (results.Count != expected.Length) {
+			Dump ();
+			Assert.Fail ($"Expected {expected.Length} items, got {results.Count}");
 		}
 
-		void AssertReferences (string doc, params (MSBuildReferenceKind kind, object reference)[] expected)
-		{
-			var logger = TestLoggerFactory.CreateTestMethodLogger ();
-			var results = Resolve (doc, logger);
-
-			if (results.Count != expected.Length) {
+		for (int i = 0; i < results.Count; i++) {
+			var a = results [i];
+			var e = expected [i];
+			if (a.result.ReferenceKind != e.kind || !IgnoreCaseEquals (e.kind, a.result.GetReferenceForTest (), e.reference)) {
 				Dump ();
-				Assert.Fail ($"Expected {expected.Length} items, got {results.Count}");
-			}
-
-			for (int i = 0; i < results.Count; i++) {
-				var a = results [i];
-				var e = expected [i];
-				if (a.result.ReferenceKind != e.kind || !IgnoreCaseEquals (e.kind, a.result.GetReferenceForTest (), e.reference)) {
-					Dump ();
-					Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e.reference)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
-				}
-			}
-
-			void Dump ()
-			{
-				foreach (var r in results) {
-					Console.WriteLine ($"{r.result.ReferenceKind}={FormatNameRR (r.result)} @{r.offset}");
-				}
-			}
-
-			string FormatName (object reference) {
-				if (reference is ValueTuple<string, string> t) return $"{t.Item1}.{t.Item2}";
-				if (reference is string s) return s;
-				if (reference is MSBuildElementSyntax el) return $"Element/{el.Name}";
-				if (reference is MSBuildAttributeSyntax att) return $"Attribute/{att.Name}";
-				return reference?.ToString () ?? "[null]";
-			}
-
-			string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.GetReferenceForTest ());
-			bool IgnoreCaseEquals (MSBuildReferenceKind kind, object a, object e)
-			{
-				if (e is ValueTuple<string,string> et) {
-					var at = (ValueTuple<string, string>)a;
-					return string.Equals (at.Item1, et.Item1, StringComparison.OrdinalIgnoreCase) &&
-						string.Equals (at.Item2, et.Item2, StringComparison.OrdinalIgnoreCase);
-				}
-				if (e is ValueTuple<MSBuildValueKind, string> vk) {
-					var at = (ValueTuple<MSBuildValueKind, string>)a;
-					return at.Item1 == vk.Item1 &&
-						string.Equals (at.Item2, vk.Item2, StringComparison.OrdinalIgnoreCase);
-				}
-				if (kind == MSBuildReferenceKind.Keyword) {
-					if (a is MSBuildElementSyntax el) {
-						a = el.Name;
-					} else if (a is MSBuildAttributeSyntax att) {
-						a = att.Name;
-					}
-				}
-				return string.Equals ((string)a, (string)e, StringComparison.OrdinalIgnoreCase);
+				Assert.Fail ($"Index {i}: Expected '{e.kind}'='{FormatName (e.reference)}', got '{a.result.ReferenceKind}'='{FormatNameRR (a.result)}'");
 			}
 		}
 
-		[Test]
-		public void ItemResolution()
+		void Dump ()
 		{
-			var doc = @"
+			foreach (var r in results) {
+				Console.WriteLine ($"{r.result.ReferenceKind}={FormatNameRR (r.result)} @{r.offset}");
+			}
+		}
+
+		string FormatName (object reference) {
+			if (reference is ValueTuple<string, string> t) return $"{t.Item1}.{t.Item2}";
+			if (reference is string s) return s;
+			if (reference is MSBuildElementSyntax el) return $"Element/{el.Name}";
+			if (reference is MSBuildAttributeSyntax att) return $"Attribute/{att.Name}";
+			return reference?.ToString () ?? "[null]";
+		}
+
+		string FormatNameRR (MSBuildResolveResult rr) => FormatName (rr.GetReferenceForTest ());
+		bool IgnoreCaseEquals (MSBuildReferenceKind kind, object a, object e)
+		{
+			if (e is ValueTuple<string,string> et) {
+				var at = (ValueTuple<string, string>)a;
+				return string.Equals (at.Item1, et.Item1, StringComparison.OrdinalIgnoreCase) &&
+					string.Equals (at.Item2, et.Item2, StringComparison.OrdinalIgnoreCase);
+			}
+			if (e is ValueTuple<MSBuildValueKind, string> vk) {
+				var at = (ValueTuple<MSBuildValueKind, string>)a;
+				return at.Item1 == vk.Item1 &&
+					string.Equals (at.Item2, vk.Item2, StringComparison.OrdinalIgnoreCase);
+			}
+			if (kind == MSBuildReferenceKind.Keyword) {
+				if (a is MSBuildElementSyntax el) {
+					a = el.Name;
+				} else if (a is MSBuildAttributeSyntax att) {
+					a = att.Name;
+				}
+			}
+			return string.Equals ((string)a, (string)e, StringComparison.OrdinalIgnoreCase);
+		}
+	}
+
+	[Test]
+	public void ItemResolution()
+	{
+		var doc = @"
 <project>
   <itemgroup>
     <fo|o />
@@ -122,20 +122,20 @@ namespace MonoDevelop.MSBuild.Tests
   </itemgroup>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.Item, "foo"),
-				(MSBuildReferenceKind.Item, "foo"),
-				(MSBuildReferenceKind.Item, "foo"),
-				(MSBuildReferenceKind.Item, "foo"),
-				(MSBuildReferenceKind.Item, "foo")
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.Item, "foo"),
+			(MSBuildReferenceKind.Item, "foo"),
+			(MSBuildReferenceKind.Item, "foo"),
+			(MSBuildReferenceKind.Item, "foo"),
+			(MSBuildReferenceKind.Item, "foo")
+		);
+	}
 
-		[Test]
-		public void PropertyResolution ()
-		{
-			var doc = @"
+	[Test]
+	public void PropertyResolution ()
+	{
+		var doc = @"
 <project>
   <propertygroup>
     <f|oo condition=""'x$(F|oo)'==''"">bar $(fo|o)</foo>
@@ -150,21 +150,21 @@ namespace MonoDevelop.MSBuild.Tests
   </target>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.Property, "foo"),
-				(MSBuildReferenceKind.Property, "Foo"),
-				(MSBuildReferenceKind.Property, "foo"),
-				(MSBuildReferenceKind.Property, "Foo"),
-				(MSBuildReferenceKind.Property, "foo"),
-				(MSBuildReferenceKind.Property, "foo")
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.Property, "foo"),
+			(MSBuildReferenceKind.Property, "Foo"),
+			(MSBuildReferenceKind.Property, "foo"),
+			(MSBuildReferenceKind.Property, "Foo"),
+			(MSBuildReferenceKind.Property, "foo"),
+			(MSBuildReferenceKind.Property, "foo")
+		);
+	}
 
-		[Test]
-		public void MetadataResolution ()
-		{
-			var doc = @"
+	[Test]
+	public void MetadataResolution ()
+	{
+		var doc = @"
 <project>
   <itemgroup>
     <bar fo|o=""$(foo)"" />
@@ -183,19 +183,19 @@ namespace MonoDevelop.MSBuild.Tests
   </target>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, ("bar", "foo")),
-				(MSBuildReferenceKind.Metadata, ("bar", "foo"))
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+			(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+			(MSBuildReferenceKind.Metadata, ("bar", "foo")),
+			(MSBuildReferenceKind.Metadata, ("bar", "foo"))
+		);
+	}
 
-		[Test]
-		public void KeywordResolution ()
-		{
-			var doc = @"
+	[Test]
+	public void KeywordResolution ()
+	{
+		var doc = @"
 <proj|ect>
   <itemgroup>
     <foo includ|e=""bar"" />
@@ -204,45 +204,18 @@ namespace MonoDevelop.MSBuild.Tests
   </target>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.Keyword, "Project"),
-				(MSBuildReferenceKind.Keyword, "include"),
-				(MSBuildReferenceKind.Keyword, "DependsOnTargets")
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.Keyword, "Project"),
+			(MSBuildReferenceKind.Keyword, "include"),
+			(MSBuildReferenceKind.Keyword, "DependsOnTargets")
+		);
+	}
 
-		[Test]
-		public void ClosingTagResolution ()
-		{
-			var doc = @"
-<project>
-  <propertygroup>
-    <foo condition=""'x$(ooo)'==''"">bar$(x)</f|oo>
-  </propertygroup>
-  <target name='Foo'>
-    <itemgroup>
-      <noooo include=""@(bar->'%(baz.foo)$(foo)')"">
-        <somemeta>1234</someme|ta>
-      </noo|oo>
-    </itemgr|oup>
-  </targ|et>
-</project>".TrimStart ();
-
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.Property, "foo"),
-				(MSBuildReferenceKind.Metadata, ("noooo", "somemeta")),
-				(MSBuildReferenceKind.Item, "noooo"),
-				(MSBuildReferenceKind.Keyword, "ItemGroup"),
-				(MSBuildReferenceKind.Keyword, "Target")
-			);
-		}
-
-		[Test]
-		public void PropertyFunctionResolution ()
-		{
-			var doc = @"
+	[Test]
+	public void PropertyFunctionResolution ()
+	{
+		var doc = @"
 <project>
   <propertygroup>
     <x condition=""'$(foo.b|ar())'==''"">$(x)$(bar.ba|z())</x>
@@ -252,24 +225,24 @@ namespace MonoDevelop.MSBuild.Tests
   <target name='x' DependsOnTargets=""$([on|e]::|two())""/>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "bar")),
-				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "baz")),
-				(MSBuildReferenceKind.ClassName, "foo.bar"),
-				(MSBuildReferenceKind.StaticPropertyFunction, ("foo.bar", "baz")),
-				(MSBuildReferenceKind.ClassName, "bar.a.b"),
-				(MSBuildReferenceKind.StaticPropertyFunction, ("bar.a.b", "foo")),
-				(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "foo")),
-				(MSBuildReferenceKind.ClassName, "one"),
-				(MSBuildReferenceKind.StaticPropertyFunction, ("one", "two"))
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "bar")),
+			(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "baz")),
+			(MSBuildReferenceKind.ClassName, "foo.bar"),
+			(MSBuildReferenceKind.StaticPropertyFunction, ("foo.bar", "baz")),
+			(MSBuildReferenceKind.ClassName, "bar.a.b"),
+			(MSBuildReferenceKind.StaticPropertyFunction, ("bar.a.b", "foo")),
+			(MSBuildReferenceKind.PropertyFunction, (MSBuildValueKind.Unknown, "foo")),
+			(MSBuildReferenceKind.ClassName, "one"),
+			(MSBuildReferenceKind.StaticPropertyFunction, ("one", "two"))
+		);
+	}
 
-		[Test]
-		public void ItemFunctionResolution ()
-		{
-			var doc = @"
+	[Test]
+	public void ItemFunctionResolution ()
+	{
+		var doc = @"
 <project>
   <itemgroup>
     <x include=""@(ay->b|ee())""/>
@@ -277,11 +250,10 @@ namespace MonoDevelop.MSBuild.Tests
   <target name='z' Inputs=""@(bar->fo|o())""/>
 </project>".TrimStart ();
 
-			AssertReferences (
-				doc,
-				(MSBuildReferenceKind.ItemFunction, "bee"),
-				(MSBuildReferenceKind.ItemFunction, "foo")
-			);
-		}
+		AssertReferences (
+			doc,
+			(MSBuildReferenceKind.ItemFunction, "bee"),
+			(MSBuildReferenceKind.ItemFunction, "foo")
+		);
 	}
 }

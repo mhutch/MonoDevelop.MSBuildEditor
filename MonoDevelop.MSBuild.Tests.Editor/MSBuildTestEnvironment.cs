@@ -9,28 +9,27 @@ using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.Xml.Editor.Tests;
 
-namespace MonoDevelop.MSBuild.Tests
+namespace MonoDevelop.MSBuild.Tests;
+
+class MSBuildTestEnvironment : XmlTestEnvironment
 {
-	class MSBuildTestEnvironment : XmlTestEnvironment
+	public static new MSBuildEditorCatalog CreateEditorCatalog () => new (GetInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
+
+	protected override Task OnInitialize ()
 	{
-		public static new MSBuildEditorCatalog CreateEditorCatalog () => new (GetInitialized<MSBuildTestEnvironment> ().GetEditorHost ());
-
-		protected override Task OnInitialize ()
-		{
-			MSBuildTestHelpers.RegisterMSBuildAssemblies ();
-			return base.OnInitialize ();
-		}
-
-		protected override IEnumerable<string> GetAssembliesToCompose ()
-			=> base.GetAssembliesToCompose ().Concat (new[] {
-				typeof (MSBuildCompletionSource).Assembly.Location,
-				typeof (MSBuildTestEnvironment).Assembly.Location
-			});
-
-		protected override bool ShouldIgnoreCompositionError (string error)
-			=> error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
-				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
-				|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
-			;
+		MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+		return base.OnInitialize ();
 	}
+
+	protected override IEnumerable<string> GetAssembliesToCompose ()
+		=> base.GetAssembliesToCompose ().Concat (new[] {
+			typeof (MSBuildCompletionSource).Assembly.Location,
+			typeof (MSBuildTestEnvironment).Assembly.Location
+		});
+
+	protected override bool ShouldIgnoreCompositionError (string error)
+		=> error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
+			|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
+			|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
+		;
 }

@@ -9,460 +9,459 @@ using MonoDevelop.Xml.Editor.Tests.Extensions;
 
 using NUnit.Framework;
 
-namespace MonoDevelop.MSBuild.Tests.Editor.Completion
+namespace MonoDevelop.MSBuild.Tests.Editor.Completion;
+
+[TestFixture]
+public class MSBuildCompletionTests : MSBuildEditorTest
 {
-	[TestFixture]
-	public class MSBuildCompletionTests : MSBuildEditorTest
+
+	[Test]
+	public async Task ProjectElementCompletion ()
 	{
+		var result = await this.GetCompletionContext ("$");
 
-		[Test]
-		public async Task ProjectElementCompletion ()
-		{
-			var result = await this.GetCompletionContext ("$");
+		result.AssertNonEmpty ();
 
-			result.AssertNonEmpty ();
+		result.AssertContains ("<Project");
+	}
 
-			result.AssertContains ("<Project");
-		}
+	[Test]
+	public async Task ProjectElementBracketCompletion ()
+	{
+		var result = await this.GetCompletionContext ("<$>");
 
-		[Test]
-		public async Task ProjectElementBracketCompletion ()
-		{
-			var result = await this.GetCompletionContext ("<$>");
+		result.AssertNonEmpty ();
 
-			result.AssertNonEmpty ();
+		result.AssertContains ("<Project");
+	}
 
-			result.AssertContains ("<Project");
-		}
+	[Test]
+	public async Task ProjectChildElementCompletion ()
+	{
+		var result = await this.GetCompletionContext ("<Project>$");
 
-		[Test]
-		public async Task ProjectChildElementCompletion ()
-		{
-			var result = await this.GetCompletionContext ("<Project>$");
+		result.AssertNonEmpty ();
 
-			result.AssertNonEmpty ();
-
-			result.AssertContains ("<ItemGroup");
-			result.AssertContains ("<Choose");
-			result.AssertContains ("<Import");
-		}
+		result.AssertContains ("<ItemGroup");
+		result.AssertContains ("<Choose");
+		result.AssertContains ("<Import");
+	}
 
 
-		[Test]
-		public async Task ProjectChildElementBracketCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><$");
+	[Test]
+	public async Task ProjectChildElementBracketCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><$");
 
-			result.AssertItemCount (12);
+		result.AssertItemCount (12);
 
-			result.AssertContains ("<PropertyGroup");
-			result.AssertContains ("<Choose");
-			result.AssertContains ("</Project");
-			result.AssertContains ("<!--");
-		}
+		result.AssertContains ("<PropertyGroup");
+		result.AssertContains ("<Choose");
+		result.AssertContains ("</Project");
+		result.AssertContains ("<!--");
+	}
 
-		[Test]
-		public async Task TaskCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><Target><$");
+	[Test]
+	public async Task TaskCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><Target><$");
 
-			result.AssertContains ("<Message");
-			result.AssertContains ("<Exec");
-			result.AssertContains ("<Csc");
-		}
+		result.AssertContains ("<Message");
+		result.AssertContains ("<Exec");
+		result.AssertContains ("<Csc");
+	}
 
-		[Test]
-		public async Task TaskParameterCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><Target><Message $");
+	[Test]
+	public async Task TaskParameterCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><Target><Message $");
 
-			result.AssertContains ("Importance");
-			result.AssertContains ("Text");
-			result.AssertContains ("HelpKeyword");
-			result.AssertContains ("Condition");
-		}
+		result.AssertContains ("Importance");
+		result.AssertContains ("Text");
+		result.AssertContains ("HelpKeyword");
+		result.AssertContains ("Condition");
+	}
 
-		[Test]
-		public async Task MessageImportanceCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><Target><Message Importance=""$");
+	[Test]
+	public async Task MessageImportanceCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><Target><Message Importance=""$");
 
-			result.AssertContains ("High");
-			result.AssertContains ("Normal");
-			result.AssertContains ("Low");
-		}
+		result.AssertContains ("High");
+		result.AssertContains ("Normal");
+		result.AssertContains ("Low");
+	}
 
-		[Test]
-		public async Task TaskOutputCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><Target><Csc><Output TaskParameter=""$");
+	[Test]
+	public async Task TaskOutputCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><Target><Csc><Output TaskParameter=""$");
 
-			result.AssertContains ("OutputAssembly");
-			result.AssertContains ("OutputRefAssembly");
-		}
+		result.AssertContains ("OutputAssembly");
+		result.AssertContains ("OutputRefAssembly");
+	}
 
-		[Test]
-		public async Task InferredItems ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task InferredItems ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo /><Bar /><$");
 
-			result.AssertContains ("<Foo");
-			result.AssertContains ("<Bar");
-			result.AssertContains ("</ItemGroup");
-			result.AssertContains ("</Project");
-			result.AssertContains ("<!--");
-		}
+		result.AssertContains ("<Foo");
+		result.AssertContains ("<Bar");
+		result.AssertContains ("</ItemGroup");
+		result.AssertContains ("</Project");
+		result.AssertContains ("<!--");
+	}
 
-		[Test]
-		public async Task InferredMetadata ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task InferredMetadata ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo><Bar>a</Bar></Foo><Foo><$");
 
-			result.AssertItemCount (5);
+		result.AssertItemCount (5);
 
-			result.AssertContains ("<Bar");
-		}
+		result.AssertContains ("<Bar");
+	}
 
-		[Test]
-		public async Task InferredMetadataAttribute ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task InferredMetadataAttribute ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project><ItemGroup><Foo Bar=""a"" /><Foo $");
 
-			result.AssertItemCount (7);
+		result.AssertItemCount (7);
 
-			result.AssertContains ("Bar");
-			result.AssertContains ("Include");
-		}
+		result.AssertContains ("Bar");
+		result.AssertContains ("Include");
+	}
 
-		[Test]
-		public async Task ProjectConfigurationConfigInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ProjectConfigurationConfigInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project><ItemGroup>
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+		result.AssertItemCount (3);
 
-			result.AssertContains ("Foo");
-			result.AssertContains ("$(");
-			result.AssertContains ("@(");
-		}
+		result.AssertContains ("Foo");
+		result.AssertContains ("$(");
+		result.AssertContains ("@(");
+	}
 
-		[Test]
-		public async Task ProjectConfigurationPlatformInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ProjectConfigurationPlatformInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project><ItemGroup>
 <ProjectConfiguration Configuration='Foo' Platform='Bar' Include='Foo|Bar' />
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+		result.AssertItemCount (3);
 
-			result.AssertContains ("Bar");
-			result.AssertContains ("$(");
-			result.AssertContains ("@(");
-		}
+		result.AssertContains ("Bar");
+		result.AssertContains ("$(");
+		result.AssertContains ("@(");
+	}
 
-		[Test]
-		public async Task ConfigurationsInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ConfigurationsInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup><Configurations>Foo;Bar</Configurations></PropertyGroup>
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+		result.AssertItemCount (4);
 
-			result.AssertContains ("Foo");
-			result.AssertContains ("Bar");
-			result.AssertContains ("$(");
-			result.AssertContains ("@(");
-		}
+		result.AssertContains ("Foo");
+		result.AssertContains ("Bar");
+		result.AssertContains ("$(");
+		result.AssertContains ("@(");
+	}
 
-		[Test]
-		public async Task PlatformsInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PlatformsInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup><Platforms>Foo;Bar</Platforms></PropertyGroup>
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+		result.AssertItemCount (4);
 
-			result.AssertContains ("Foo");
-			result.AssertContains ("Bar");
-			result.AssertDoesNotContain ("Exists");
-			result.AssertDoesNotContain ("HasTrailingSlash");
-		}
+		result.AssertContains ("Foo");
+		result.AssertContains ("Bar");
+		result.AssertDoesNotContain ("Exists");
+		result.AssertDoesNotContain ("HasTrailingSlash");
+	}
 
-		[Test]
-		public async Task ConditionConfigurationInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ConditionConfigurationInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""$(Configuration)=='Foo'"" />
 <ItemGroup>
 <Baz Condition=""$(Configuration)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+		result.AssertItemCount (3);
 
-			result.AssertContains ("Foo");
-			result.AssertDoesNotContain ("Exists");
-			result.AssertDoesNotContain ("HasTrailingSlash");
-		}
+		result.AssertContains ("Foo");
+		result.AssertDoesNotContain ("Exists");
+		result.AssertDoesNotContain ("HasTrailingSlash");
+	}
 
-		[Test]
-		public async Task PlatformConfigurationInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PlatformConfigurationInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""$(Platform)=='Foo'"" />
 <ItemGroup>
 <Baz Condition=""$(Platform)=='^", caretMarker: '^');
 
-			result.AssertItemCount (3);
+		result.AssertItemCount (3);
 
-			result.AssertContains ("Foo");
-			result.AssertDoesNotContain ("Exists");
-			result.AssertDoesNotContain ("HasTrailingSlash");
-		}
+		result.AssertContains ("Foo");
+		result.AssertDoesNotContain ("Exists");
+		result.AssertDoesNotContain ("HasTrailingSlash");
+	}
 
-		[Test]
-		public async Task ConfigurationAndPlatformInference ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ConfigurationAndPlatformInference ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup Condition=""'$(Platform)|$(Configuration)'=='Foo|Bar'"" />
 <ItemGroup>
 <Baz Condition=""'$(Platform)|$(Configuration)'=='^", caretMarker: '^');
 
-			result.AssertItemCount (4);
+		result.AssertItemCount (4);
 
-			result.AssertContains ("Foo");
-			result.AssertContains ("Bar");
-			result.AssertContains ("$(");
-			result.AssertContains ("@(");
-			result.AssertDoesNotContain ("Exists");
-			result.AssertDoesNotContain ("HasTrailingSlash");
-		}
+		result.AssertContains ("Foo");
+		result.AssertContains ("Bar");
+		result.AssertContains ("$(");
+		result.AssertContains ("@(");
+		result.AssertDoesNotContain ("Exists");
+		result.AssertDoesNotContain ("HasTrailingSlash");
+	}
 
-		[Test]
-		public async Task IntrinsicStaticPropertyFunctionCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task IntrinsicStaticPropertyFunctionCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([MSBuild]::^", caretMarker: '^');
 
-			// check a few different expected values are in the list
-			result.AssertContains ("GetDirectoryNameOfFileAbove");
-			result.AssertContains ("Add");
-			result.AssertContains ("GetTargetPlatformVersion");
-		}
+		// check a few different expected values are in the list
+		result.AssertContains ("GetDirectoryNameOfFileAbove");
+		result.AssertContains ("Add");
+		result.AssertContains ("GetTargetPlatformVersion");
+	}
 
-		[Test]
-		public async Task StaticPropertyFunctionCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task StaticPropertyFunctionCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.String]::^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
+		result.AssertNonEmpty ();
 
-			result.AssertContains ("new");
-			result.AssertContains ("Join");
-			result.AssertDoesNotContain ("ToLower");
-		}
+		result.AssertContains ("new");
+		result.AssertContains ("Join");
+		result.AssertDoesNotContain ("ToLower");
+	}
 
-		[Test]
-		public async Task PropertyStringFunctionCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PropertyStringFunctionCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$(Foo.^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
+		result.AssertNonEmpty ();
 
-			//string functions
-			result.AssertContains ("ToLower");
-			//properties can be accessed with the getter method
-			result.AssertContains ("get_Length");
-			//.net properties are allowed for properties
-			result.AssertContains ("Length");
-			//indexers should be filtered out
-			result.AssertDoesNotContain ("this[]");
-			// ctors should be filtered out, cannot call on existing instance
-			result.AssertDoesNotContain ("new");
-		}
+		//string functions
+		result.AssertContains ("ToLower");
+		//properties can be accessed with the getter method
+		result.AssertContains ("get_Length");
+		//.net properties are allowed for properties
+		result.AssertContains ("Length");
+		//indexers should be filtered out
+		result.AssertDoesNotContain ("this[]");
+		// ctors should be filtered out, cannot call on existing instance
+		result.AssertDoesNotContain ("new");
+	}
 
-		[Test]
-		public async Task PropertyFunctionArrayPropertyCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PropertyFunctionArrayPropertyCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.IO.Directory]::GetDirectories('.').^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("Length");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("Length");
+	}
 
-		[Test]
-		public async Task PropertyFunctionArrayIndexerCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PropertyFunctionArrayIndexerCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.IO.Directory]::GetDirectories('.')[0].^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("get_Chars");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("get_Chars");
+	}
 
-		[Test]
-		public async Task ItemFunctionCompletion ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task ItemFunctionCompletion ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>@(Foo->^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
+		result.AssertNonEmpty ();
 
-			//intrinsic functions
-			result.AssertContains ("DistinctWithCase");
-			result.AssertContains ("Metadata");
-			//string functions
-			result.AssertContains ("ToLower");
-			//properties can be accessed with the getter method
-			result.AssertContains ("get_Length");
-			//.net properties are not allowed for items
-			result.AssertDoesNotContain ("Length");
-			//indexers should be filtered out
-			result.AssertDoesNotContain ("this[]");
-		}
+		//intrinsic functions
+		result.AssertContains ("DistinctWithCase");
+		result.AssertContains ("Metadata");
+		//string functions
+		result.AssertContains ("ToLower");
+		//properties can be accessed with the getter method
+		result.AssertContains ("get_Length");
+		//.net properties are not allowed for items
+		result.AssertDoesNotContain ("Length");
+		//indexers should be filtered out
+		result.AssertDoesNotContain ("this[]");
+	}
 
-		[Test]
-		public async Task PropertyFunctionClassNames ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PropertyFunctionClassNames ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("MSBuild");
-			result.AssertContains ("System.String");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("MSBuild");
+		result.AssertContains ("System.String");
+	}
 
-		[Test]
-		public async Task PropertyFunctionChaining ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task PropertyFunctionChaining ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$([System.DateTime]::Now.^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("AddDays");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("AddDays");
+	}
 
-		[Test]
-		public async Task IndexerChaining ()
-		{
-			var result = await this.GetCompletionContext (@"
+	[Test]
+	public async Task IndexerChaining ()
+	{
+		var result = await this.GetCompletionContext (@"
 <Project>
 <PropertyGroup>
 <Foo>$(Foo[0].^", caretMarker: '^');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("CompareTo");
-			result.AssertDoesNotContain ("Substring");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("CompareTo");
+		result.AssertDoesNotContain ("Substring");
+	}
 
-		[Test]
-		public async Task EagerAttributeTrigger ()
-		{
-			var result = await this.GetCompletionContext (@"<Project ToolsVersion=$", triggerChar: '"');
+	[Test]
+	public async Task EagerAttributeTrigger ()
+	{
+		var result = await this.GetCompletionContext (@"<Project ToolsVersion=$", triggerChar: '"');
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("4.0");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("4.0");
+	}
 
-		[Test]
-		public async Task EagerElementTrigger ()
-		{
-			var result = await this.GetCompletionContext (@"<Project><PropertyGroup><Foo$", triggerChar: '>', filename: "EagerElementTrigger.csproj");
+	[Test]
+	public async Task EagerElementTrigger ()
+	{
+		var result = await this.GetCompletionContext (@"<Project><PropertyGroup><Foo$", triggerChar: '>', filename: "EagerElementTrigger.csproj");
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("True");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("True");
+	}
 
-		[Test]
-		public async Task TriggerOnBackspace ()
-		{
-			var result = await this.GetCompletionContext (
-				@"<Project><PropertyGroup><Foo>$",
-				CompletionTriggerReason.Backspace,
-				filename: "EagerElementTrigger.csproj");
+	[Test]
+	public async Task TriggerOnBackspace ()
+	{
+		var result = await this.GetCompletionContext (
+			@"<Project><PropertyGroup><Foo>$",
+			CompletionTriggerReason.Backspace,
+			filename: "EagerElementTrigger.csproj");
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("True");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("True");
+	}
 
-		[Test]
-		public async Task NoTriggerOnBackspaceMidExpression ()
-		{
-			var result = await this.GetCompletionContext (
-				@"<Project><PropertyGroup><Foo>true$",
-				CompletionTriggerReason.Backspace,
-				filename: "EagerElementTrigger.csproj");
+	[Test]
+	public async Task NoTriggerOnBackspaceMidExpression ()
+	{
+		var result = await this.GetCompletionContext (
+			@"<Project><PropertyGroup><Foo>true$",
+			CompletionTriggerReason.Backspace,
+			filename: "EagerElementTrigger.csproj");
 
-			Assert.Zero (result.Items.Length);
-		}
+		Assert.Zero (result.Items.Length);
+	}
 
-		[Test]
-		public async Task TriggerOnFirstNameChar ()
-		{
-			var result = await this.GetCompletionContext (
-				@"<Project><PropertyGroup><$",
-				CompletionTriggerReason.Insertion, 'F',
-				filename: "EagerElementTrigger.csproj");
+	[Test]
+	public async Task TriggerOnFirstNameChar ()
+	{
+		var result = await this.GetCompletionContext (
+			@"<Project><PropertyGroup><$",
+			CompletionTriggerReason.Insertion, 'F',
+			filename: "EagerElementTrigger.csproj");
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("Foo");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("Foo");
+	}
 
-		[Test]
-		public async Task PathCompletion ()
-		{
-			var testDirectory = TestMSBuildFileSystem.Instance.AddTestDirectory ();
-			testDirectory.AddFiles ("foo.txt", "bar.cs", "baz.cs");
-			testDirectory.AddDirectory ("foo").AddFiles ("hello.cs", "bye.cs");
+	[Test]
+	public async Task PathCompletion ()
+	{
+		var testDirectory = TestMSBuildFileSystem.Instance.AddTestDirectory ();
+		testDirectory.AddFiles ("foo.txt", "bar.cs", "baz.cs");
+		testDirectory.AddDirectory ("foo").AddFiles ("hello.cs", "bye.cs");
 
-			var result = await this.GetCompletionContext (
-				@"<Project><PropertyGroup><FooPath>$</FooPath>",
-				CompletionTriggerReason.Insertion, 'f',
-				filename: testDirectory.Combine ("PathCompletion.csproj"));
+		var result = await this.GetCompletionContext (
+			@"<Project><PropertyGroup><FooPath>$</FooPath>",
+			CompletionTriggerReason.Insertion, 'f',
+			filename: testDirectory.Combine ("PathCompletion.csproj"));
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("foo.txt");
+		result.AssertNonEmpty ();
+		result.AssertContains ("foo.txt");
 
-			result = await this.GetCompletionContext (
-				@"<Project><PropertyGroup><FooPath>foo$</FooPath>",
-				CompletionTriggerReason.Insertion, '\\',
-				filename: testDirectory.Combine ("PathCompletion.csproj"));
+		result = await this.GetCompletionContext (
+			@"<Project><PropertyGroup><FooPath>foo$</FooPath>",
+			CompletionTriggerReason.Insertion, '\\',
+			filename: testDirectory.Combine ("PathCompletion.csproj"));
 
-			result.AssertNonEmpty ();
-			result.AssertContains ("hello.cs");
-		}
+		result.AssertNonEmpty ();
+		result.AssertContains ("hello.cs");
 	}
 }

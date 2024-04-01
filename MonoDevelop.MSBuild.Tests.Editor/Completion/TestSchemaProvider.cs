@@ -8,23 +8,22 @@ using Microsoft.VisualStudio.Composition;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
 
-namespace MonoDevelop.MSBuild.Tests.Editor.Completion
+namespace MonoDevelop.MSBuild.Tests.Editor.Completion;
+
+[Export (typeof (MSBuildSchemaProvider))]
+class TestSchemaProvider : MSBuildSchemaProvider
 {
-	[Export (typeof (MSBuildSchemaProvider))]
-	class TestSchemaProvider : MSBuildSchemaProvider
+	public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
 	{
-		public override MSBuildSchema GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError> loadErrors)
-		{
-			loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
+		loadErrors = Array.Empty<MSBuildSchemaLoadError> ();
 
-			switch (path) {
-			case "EagerElementTrigger.csproj":
-				return new MSBuildSchema {
-					new PropertyInfo ("Foo", null, valueKind: MSBuildValueKind.Bool)
-				};
-			}
-
-			return base.GetSchema (path, sdk, out loadErrors);
+		switch (path) {
+		case "EagerElementTrigger.csproj":
+			return new MSBuildSchema {
+				new PropertyInfo ("Foo", null, valueKind: MSBuildValueKind.Bool)
+			};
 		}
+
+		return base.GetSchema (path, sdk, out loadErrors);
 	}
 }

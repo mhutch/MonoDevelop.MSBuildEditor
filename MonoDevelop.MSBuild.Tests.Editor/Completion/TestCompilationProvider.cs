@@ -8,12 +8,11 @@ using Microsoft.VisualStudio.Composition;
 
 using MonoDevelop.MSBuild.Editor.Roslyn;
 
-namespace MonoDevelop.MSBuild.Tests.Editor.Completion
+namespace MonoDevelop.MSBuild.Tests.Editor.Completion;
+
+[Export (typeof (IRoslynCompilationProvider))]
+class TestCompilationProvider : IRoslynCompilationProvider
 {
-	[Export (typeof (IRoslynCompilationProvider))]
-	class TestCompilationProvider : IRoslynCompilationProvider
-	{
-		public MetadataReference CreateReference (string assemblyPath)
-			=> MetadataReference.CreateFromFile (assemblyPath);
-	}
+	public MetadataReference CreateReference (string assemblyPath)
+		=> MetadataReference.CreateFromFile (assemblyPath);
 }
