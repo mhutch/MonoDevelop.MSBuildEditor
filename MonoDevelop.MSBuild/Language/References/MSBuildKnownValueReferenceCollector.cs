@@ -24,6 +24,7 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 	readonly MSBuildValueKind kind;
 	readonly HashSet<string> knownValues;
 	readonly CustomTypeInfo? customType;
+	readonly bool isWarningCode;
 
 	public MSBuildKnownValueReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, ITypedSymbol knownValue, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
 		: base (document, textSource, logger, knownValue.Name, reportResult)
@@ -34,8 +35,10 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 		// Check kind in advance so we don't have to check that elsewhere in this class.
 		customType = kind.WithoutModifiers () == MSBuildValueKind.CustomType ? knownValue.CustomType : null;
 
-		bool isCaseSensitive = customType?.CaseSensitive ?? false;
+		// warning codes are special, derived warning code values are valid in symbols of the base warning code type
+		isWarningCode = customType is not null && customType.BaseKind == MSBuildValueKind.WarningCode;
 
+		bool isCaseSensitive = customType?.CaseSensitive ?? false;
 		knownValues = new HashSet<string> (isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase) {
 			knownValue.Name
 		};
@@ -54,18 +57,8 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 		MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax? attributeSymbol,
 		ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
 	{
-		if (!valueSymbol.IsKindOrListOfKind (kind)) {
+		if (!IsTypeMatch ()) {
 			return;
-		}
-
-		if (customType is not null) {
-			if (valueSymbol.ValueKindWithoutModifiers () != MSBuildValueKind.CustomType || valueSymbol.CustomType is null) {
-				return;
-			}
-			// in case types are defined in multiple schemas, consider named types with the same name to be the same type
-			if (!(valueSymbol.CustomType == customType || customType.Name is not null && valueSymbol.CustomType.Name == customType.Name)) {
-				return;
-			}
 		}
 
 		switch (node) {
@@ -75,16 +68,37 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 			}
 			foreach (var c in list.Nodes) {
 				if (c is ExpressionText l) {
-					CheckMatch (l);
+					CheckValueMatch (l);
 				}
 			}
 			break;
 		case ExpressionText lit:
-			CheckMatch (lit);
+			CheckValueMatch (lit);
 			break;
 		}
 
-		void CheckMatch (ExpressionText node)
+		bool IsTypeMatch()
+		{
+			var valueKind = valueSymbol.ValueKindWithoutModifiers ();
+			if (customType is not null) {
+				// if the value is a warning code, it's valid for symbols of the base warning code type
+				if (isWarningCode && valueKind == MSBuildValueKind.WarningCode) {
+					return true;
+				}
+				// exact custom type match
+				if (valueSymbol.CustomType == customType) {
+					return true;
+				}
+				// in case types are defined in multiple schemas, consider named types with the same name to be the same type
+				if (customType.Name is not null && valueSymbol.CustomType?.Name == customType.Name) {
+					return true;
+				}
+				return false;
+			}
+			return valueKind == kind;
+		}
+
+		void CheckValueMatch (ExpressionText node)
 		{
 			// TODO: valueSymbol should support specifying whether to ignore whitespace or not
 			if (IsPureMatch (node, out int offset, out int length, ignoreWhitespace: true)) {
