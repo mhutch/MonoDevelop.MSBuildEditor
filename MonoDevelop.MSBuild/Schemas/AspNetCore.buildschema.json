@@ -11,7 +11,7 @@
         }
       },
       "defaultValue": "InProcess",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/in-process-hosting"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/host-and-deploy/iis/in-process-hosting"
     },
     "AspNetCoreModuleName": {
       "description": "Indicates which AspNetCoreModule version to use. Versions include V1 and V2.",
@@ -23,29 +23,29 @@
     "UserSecretsId": {
       "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time. Although by default this is a GUID value, arbitrary strings may be used.",
       "type": "string",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
     },
     "BlazorEnableTimeZoneSupport": {
       "description": "Indicates whether Blazor WebAssembly should include a data file to make timezone information correct. Setting this to `false` will reduce your app size.",
       "defaultValue": "true",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/performance#disable-unused-features"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/blazor/performance#disable-unused-features"
     },
     "RunAOTCompilation": {
       "description": "Indicates whether to run the Ahead-of-Time (AOT) compiler on the Blazor WebAssembly app. Setting this to `true` will increase runtime performance of your WebAssembly application but will also increase its deployable size.",
       "type": "bool",
       "defaultValue": "false",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly#ahead-of-time-aot-compilation"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy/webassembly#ahead-of-time-aot-compilation"
     },
     "WasmStripILAfterAOT": {
       "description": "Whether to remove .NET IL for compiled methods after WebAssembly AOT compilation",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly#trim-net-il-after-ahead-of-time-aot-compilation"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy/webassembly#trim-net-il-after-ahead-of-time-aot-compilation"
     },
     "IsTransformWebConfigDisabled": {
       "description": "Whether to prevent the SDK from transforming the `web.config` file",
       "type": "bool",
       "defaultValue": "false",
-      "helpUrl": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/transform-webconfig"
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/host-and-deploy/iis/transform-webconfig"
     }
   },
   "items": {

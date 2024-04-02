@@ -142,7 +142,7 @@
     "CodeAnalysisRuleSet": {
       "description": "A .ruleset file which contains a list of rules to run during analysis. The string can be a full path, a path relative to the project file, or a file name. If a file name is specified, the CodeAnalysisRuleSetDirectories property will be searched to find the file.",
       "defaultValue": "",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#codeanalysisruleset"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#codeanalysisruleset"
     },
     "CodeAnalysisRuleSetDirectories": "Semicolon-separated list of directories in which to search for rule sets. The default is `$(VSINSTALLDIR)\\Team Tools\\Static Analysis Tools\\Rule Sets` unless the CodeAnalysisIgnoreBuiltInRuleSets property is set to true.",
     "CodeAnalysisSaveMessagesToReport": {

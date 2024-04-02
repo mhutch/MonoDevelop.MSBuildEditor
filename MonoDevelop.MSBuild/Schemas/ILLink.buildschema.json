@@ -6,11 +6,11 @@
     "PublishTrimmed": {
       "description": "Indicates whether the project should produce trimmed assembly images during publish.",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained#enable-trimming"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trim-self-contained#enable-trimming"
     },
     "TrimMode": {
       "description": "Specifies the trimming granularity.",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
       "type": {
         "values": {
           "full": "Trim all assemblies",
@@ -21,33 +21,33 @@
     "IsTrimmable": {
       "description": "Mark the assembly as trimmable and enable trim warnings. Defaults to `true` when `IsAotCompatible` is `true`.",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
     },
     "SuppressTrimAnalysisWarnings": {
       "description": "ILLink can warn about patterns such as reflection that may cause dynamic dependencies resulting in runtime errors in trimmed apps, but these warnings are suppressed by default. Set to `false` to display these warnings.",
       "type": "bool",
       "defaultValue": "true",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#analysis-warnings"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#analysis-warnings"
     },
     "EnableTrimAnalyzer": {
       "description": "Enable the trim analyzer. Defaults to `true` when `IsTrimmable` is `true`, which defaults to `true` when `IsAotCompatible` is `true`.",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming#enable-library-trim-warnings"
     },
     "ILLinkTreatWarningsAsErrors": {
       "description": "Specifically control the ILLink warnings-as-errors behavior, independent of the general `TreatWarningsAsErrors` property.",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#suppress-warnings"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#suppress-warnings"
     },
     "TrimmerSingleWarn": {
       "description": "By default trim analysis collapses trimming warnings to a single warning for each assembly from a `PackageReference`. Setting this to `false` will cause it to display all trimming warnings.",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#show-detailed-warnings",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#show-detailed-warnings",
       "type": "bool",
       "defaultValue": "true"
     },
     "TrimmerRemoveSymbols": {
       "description": "Causes the trimmer to remove *all* debug symbols from the trimmed app, not just symbols for trimmed code. This includes embedded pdb files and separate pdb files.",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#remove-symbols",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#remove-symbols",
       "type": "bool",
       "defaultValue": "false"
     }
@@ -55,13 +55,13 @@
   "items": {
     "TrimmableAssembly": {
       "description": "Specifies assemblies that should be trimmed. Equivalent to setting the `IsTrimmable` metadata on the assembly when building it.",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#trimming-granularity",
       "type": { "$ref": "#/types/assemblyNameNoExtension" }
     },
     "TrimmerRootAssembly": {
       "description": "Specifiy assemblies the trimmer should treat as 'rooted', meaning they and their dependencies will not be trimmed.",
       "type": { "$ref": "#/types/assemblyNameNoExtension" },
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#root-assemblies",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#root-assemblies",
       "metadata": {
         "RootMode": {
           "type": [ "EntryPoint", "AllMembers", "VisibleMembers", "Library" ]
@@ -71,7 +71,7 @@
     "TrimmerRootDescriptor": {
       "description": "XML files that specify assemblies, types, and their members that should not be trimmed.",
       "type": "file", // .xml
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options#root-descriptors"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#root-descriptors"
     }
   },
   "types": {
@@ -83,8 +83,8 @@
 
   // TODO:
   // https://github.com/dotnet/runtime/blob/45b56e530e6e6675611d205063d50b74359d9484/docs/workflow/trimming/feature-switches.md
-  // https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#trimming-framework-library-features
-  // note that many of these are also implemented in Microsoft.NET.Sdk.targets and described in https://learn.microsoft.com/en-us/dotnet/core/runtime-config
+  // https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#trimming-framework-library-features
+  // note that many of these are also implemented in Microsoft.NET.Sdk.targets and described in https://learn.microsoft.com/dotnet/core/runtime-config
   /*
   | DebuggerSupport | System.Diagnostics.Debugger.IsSupported | Any dependency that enables better debugging experience to be trimmed when set to false |
 | EnableUnsafeUTF7Encoding | System.Text.Encoding.EnableUnsafeUTF7Encoding | Insecure UTF-7 encoding is trimmed when set to false |

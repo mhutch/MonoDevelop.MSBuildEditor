@@ -5,12 +5,12 @@
       "description": "Controls whether `AssemblyInfo` attributes are generated for the project.",
       "type": "bool",
       "defaultValue": "true",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#generateassemblyinfo"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#generateassemblyinfo"
     },
     "GeneratedAssemblyInfoFile": {
       "description": "The path to the generated file that contains all generated assembly attributes.",
       "type": "string",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#generatedassemblyinfofile"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#generatedassemblyinfofile"
     },
     "GenerateAssemblyCompanyAttribute": {
       "description": "Controls whether the `AssemblyCompanyAttribute` assembly attribute is generated using the `Company` property.",

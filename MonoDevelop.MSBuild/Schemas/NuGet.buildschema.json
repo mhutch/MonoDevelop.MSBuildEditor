@@ -1,6 +1,36 @@
 {
   // based on https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md
   "license": "Copyright (c) .NET Foundation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "items": {
+    "PackageVersion": {
+      "description": "Centrally define the version of a NuGet package in the `Directory.Packages.props`, when `ManagePackageVersionsCentrally` is enabled.",
+      "includeDescription": "NuGet package IDs",
+      "type": "nuget-id",
+      "packageType": "Dependency",
+      "metadata": {
+        "Version": {
+          "description": "The version of the NuGet package dependency",
+          "type": "nuget-version",
+          "isRequired": true
+        }
+      },
+      "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/central-package-management#enabling-central-package-management"
+    },
+    "GlobalPackageReference": {
+      "description": "Globally add a NuGet package reference to all projects that use a `Directory.Packages.props`, when `ManagePackageVersionsCentrally` is enabled",
+      "includeDescription": "NuGet package IDs",
+      "type": "nuget-id",
+      "packageType": "Dependency",
+      "metadata": {
+        "Version": {
+          "description": "The version of the NuGet package dependency",
+          "type": "nuget-version",
+          "isRequired": true
+        }
+      },
+      "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/central-package-management#global-package-references"
+    }
+  },
   "properties": {
     "RestoreSources": {
       "description": "List of feeds for NuGet to use for restoring packages for this project.",
@@ -23,7 +53,7 @@
       "description": "If true, avoids using HTTP cached packages using NuGet restore.",
       "type": "bool",
       "defaultValue": "false",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders"
+      "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/managing-the-global-packages-and-cache-folders"
     },
     "RestoreIgnoreFailedSources": {
       "description": "If true, ignores failing or missing package sources during NuGet restore.",
@@ -45,7 +75,7 @@
       "type": "folder"
     },
     "RestoreAdditionalProjectFallbackFoldersExcludes": {
-      "description": "Excludes fallback folders specified in `RestoreAdditionalProjectFallbackFolders`.",
+      "description": "Excludes fallback folders specified in `RestoreAdditionalProjectFallbackFolders`."
     },
     "RestoreTaskAssemblyFile": {
       "description": "Path to the `NuGet.Build.Tasks.dll` assembly."
@@ -88,7 +118,7 @@
       "description": "An opt-in switch that restores projects using `packages.config`. Supported with `MSBuild -t:restore` only.",
       "type": "bool",
       "deprecationMessage": "Use `PackageReference` instead of `packages.config`.",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#restoring-packagereference-and-packagesconfig-projects-with-msbuild"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#restoring-packagereference-and-packagesconfig-projects-with-msbuild"
     },
     "RestoreRepositoryPath": {
       "description": "packages.config only. Specifies the packages directory to which the packages should be restored. SolutionDirectory will be used if not specified.",
@@ -99,7 +129,7 @@
       "description": "An opt-in switch to use static graph MSBuild evaluation instead of the standard evaluation. Static graph evaluation is an experimental feature that's significantly faster for large repos and solutions.",
       "type": "bool",
       "defaultValue": "false",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#restoring-with-msbuild-static-graph-evaluation"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#restoring-with-msbuild-static-graph-evaluation"
     }
   }
 }

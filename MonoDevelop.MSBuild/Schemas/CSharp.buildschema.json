@@ -27,13 +27,13 @@
           "13.0": "The compiler accepts syntax from C# 13.0 and below"
         }
       },
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#langversion"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#langversion"
     },
     "Nullable": {
       "description": "The nullable context options for the project",
       "type": { "$ref": "#/types/nullableContextOptions" },
       "defaultValue": "disable",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#nullable"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#nullable"
     },
     "ImplicitUsings": {
       "description": "Enable implicit global usings for the C# project.",
