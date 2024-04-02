@@ -431,6 +431,15 @@ namespace MonoDevelop.MSBuild.Schema
 					isError = false;
 					return true;
 				}
+				if (kv is CustomTypeValue cv && cv.Aliases is not null) {
+					foreach (var alias in cv.Aliases) {
+						if (string.Equals (alias, value, valueComparer)) {
+							resolvedValue = kv;
+							isError = false;
+							return true;
+						}
+					}
+				}
 			}
 
 			resolvedValue = null;
