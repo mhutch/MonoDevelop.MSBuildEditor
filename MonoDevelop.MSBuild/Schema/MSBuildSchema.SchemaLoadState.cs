@@ -620,6 +620,7 @@ partial class MSBuildSchema
 			}
 
 			string? description = null, deprecationMessage = null, helpUrl = null;
+			string[]? aliases = null;
 
 			foreach ((string defPropName, JToken? defPropVal) in customTypeValueObj) {
 
@@ -629,6 +630,26 @@ partial class MSBuildSchema
 						return true;
 					}
 					AddError (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition property '{defPropName}' must be a string");
+					value = null;
+					return false;
+				}
+
+				bool GetValueStringArray ([NotNullWhen (true)] out string[]? value)
+				{
+					if (defPropVal is JArray arr && arr.Count > 0) {
+						value = new string [arr.Count];
+						for (int i = 0; i < arr.Count; i++) {
+							if (arr[i] is JValue v && v.Value is string s && !string.IsNullOrEmpty (s)) {
+								value[i] = s;
+							} else {
+								AddError (arr[i] ?? arr, $"Custom type value '{customTypeValueName}' definition property '{defPropName}' must be an array of non-empty strings");
+								value = null;
+								return false;
+							}
+						}
+						return true;
+					}
+					AddError (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition property '{defPropName}' must be an array of non-empty strings");
 					value = null;
 					return false;
 				}
@@ -643,13 +664,16 @@ partial class MSBuildSchema
 				case "helpUrl":
 					GetValueString (out helpUrl);
 					break;
+				case "aliases":
+					GetValueStringArray (out aliases);
+					break;
 				default:
 					AddWarning (defPropVal ?? customTypeValueObj, $"Custom type value '{customTypeValueName}' definition has unknown property '{defPropName}'");
 					break;
 				}
 			}
 
-			return new CustomTypeValue (customTypeValueName, description, deprecationMessage, helpUrl);
+			return new CustomTypeValue (customTypeValueName, description, deprecationMessage, helpUrl, aliases);
 		}
 
 		static readonly MSBuildValueKind[] PermittedBaseKinds = new[] {

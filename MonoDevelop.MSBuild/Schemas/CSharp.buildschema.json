@@ -16,15 +16,39 @@
           "4": "The compiler accepts syntax from C# 4.0 and below",
           "5": "The compiler accepts syntax from C# 5.0 and below",
           "6": "The compiler accepts syntax from C# 6.0 and below",
-          "7": "The compiler accepts syntax from C# 7.0 and below",
+          // per csc -langversion:?, from 7.0 onwards the .0 suffix is the canonical value
+          // but in practice it's still valid to omit the suffix so add aliases for the non-suffixed versions
+          "7.0": {
+            "description": "The compiler accepts syntax from C# 7.0 and below",
+            "aliases": [ "7" ]
+          },
           "7.1": "The compiler accepts syntax from C# 7.1 and below",
           "7.2": "The compiler accepts syntax from C# 7.2 and below",
           "7.3": "The compiler accepts syntax from C# 7.3 and below",
-          "8.0": "The compiler accepts syntax from C# 8.0 and below",
-          "9.0": "The compiler accepts syntax from C# 9.0 and below",
-          "10.0": "The compiler accepts syntax from C# 11.0 and below",
-          "12.0": "The compiler accepts syntax from C# 12.0 and below",
-          "13.0": "The compiler accepts syntax from C# 13.0 and below"
+          "8.0": {
+            "description": "The compiler accepts syntax from C# 8.0 and below",
+            "aliases": [ "8" ]
+          },
+          "9.0": {
+            "description": "The compiler accepts syntax from C# 9.0 and below",
+            "aliases": [ "9" ]
+          },
+          "10.0": {
+            "description": "The compiler accepts syntax from C# 10.0 and below",
+            "aliases": [ "10" ]
+          },
+          "11.0": {
+            "description": "The compiler accepts syntax from C# 11.0 and below",
+            "aliases": [ "11" ]
+          },
+          "12.0": {
+            "description": "The compiler accepts syntax from C# 12.0 and below",
+            "aliases": [ "12" ]
+          },
+          "13.0": {
+            "description": "The compiler accepts syntax from C# 13.0 and below",
+            "aliases": [ "13" ]
+          }
         }
       },
       "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#langversion"
@@ -65,7 +89,7 @@
           "type": "bool"
         }
       }
-    },
+    }
   },
   "types": {
     "nullableContextOptions": {

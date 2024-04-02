@@ -629,7 +629,7 @@ namespace MonoDevelop.MSBuild.Language
 				// bool has special validation later
 			}
 			else if (!isCustomType || (customType is not null && !customType.AllowUnknownValues)) {
-				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out bool isError);
+				bool isKnownValue = Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ITypedSymbol? knownValue, out bool isError);
 				if (isError) {
 					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, value);
 					return;

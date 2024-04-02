@@ -134,7 +134,6 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				schema: schema);
 		}
 
-
 		[Test]
 		public void InvalidCustomTypeListValue ()
 		{
@@ -174,6 +173,44 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 			VerifyDiagnostics (source, out _,
 				includeCoreDiagnostics: true,
 				ignoreUnexpectedDiagnostics: false,
+				schema: schema,
+				expectedDiagnostics: expected
+			);
+		}
+
+		[Test]
+		public void AliasedCustomTypeValue ()
+		{
+			var source = @"<Project>
+<PropertyGroup>
+  <Greetings>  Hello ; Bye;Hi  ;Hi;Hello;Welcome</Greetings>
+</PropertyGroup>
+</Project>";
+
+			var schema = new MSBuildSchema ();
+
+			var customType = new CustomTypeInfo ([
+				new CustomTypeValue("Hello", null, aliases: [ "Hi" ]),
+				new CustomTypeValue("Welcome", null)
+			]);
+			var greetingsProp = new PropertyInfo ("Greetings", "", valueKind: MSBuildValueKind.CustomType.AsList (), customType: customType);
+			schema.Properties.Add (greetingsProp.Name, greetingsProp);
+
+			// we have a bad value just to make absolutely sure validation is working
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnknownValue,
+					SpanFromLineColLength (source, 3, 24, 3),
+					ImmutableDictionary<string, object>.Empty
+						.Add ("Name", "Bye")
+						.Add ("ValueKind", MSBuildValueKind.CustomType)
+						.Add ("CustomType", customType),
+					messageArgs: [ "Property", "Greetings", "Bye" ]
+				),
+			};
+
+			VerifyDiagnostics (source, out _,
+				includeCoreDiagnostics: true,
 				schema: schema,
 				expectedDiagnostics: expected
 			);

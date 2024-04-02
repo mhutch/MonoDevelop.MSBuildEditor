@@ -72,7 +72,7 @@ class MSBuildResolveResult
 	public string GetTargetReference () => AssertKind<string> (MSBuildReferenceKind.Target);
 
 	public ISymbol GetKeywordReference () => AssertKind<ISymbol> (MSBuildReferenceKind.Keyword);
-	public ISymbol GetKnownValueReference () => AssertKind<ISymbol> (MSBuildReferenceKind.KnownValue);
+	public ITypedSymbol GetKnownValueReference () => AssertKind<ITypedSymbol> (MSBuildReferenceKind.KnownValue);
 
 	public string GetTargetFrameworkReference () => AssertKind<string> (MSBuildReferenceKind.TargetFramework);
 	public string GetTargetFrameworkVersionReference () => AssertKind<string> (MSBuildReferenceKind.TargetFrameworkVersion);

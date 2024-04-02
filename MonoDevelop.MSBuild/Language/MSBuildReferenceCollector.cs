@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Language.References;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 
@@ -45,10 +46,10 @@ namespace MonoDevelop.MSBuild.Language
 
 		public string Name { get; }
 
-		protected bool IsMatch (string? name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
+		protected virtual bool IsMatch (string? name) => string.Equals (name, Name, StringComparison.OrdinalIgnoreCase);
 		protected bool IsMatch (INamedXObject obj) => IsMatch (obj.Name.Name);
 
-		protected bool IsPureMatchIgnoringWhitespace (ExpressionText t, out int offset, out int length)
+		protected bool IsPureMatch (ExpressionText t, out int offset, out int length, bool ignoreWhitespace)
 		{
 			offset = 0;
 			length = 0;
@@ -56,11 +57,11 @@ namespace MonoDevelop.MSBuild.Language
 				return false;
 			}
 
-			//FIXME do this more efficiently than trimming
-			var trimmed = t.Value.Trim ();
-			if (IsMatch (trimmed)) {
-				offset = t.Offset + (t.Value.Length - t.Value.TrimStart ().Length);
-				length = trimmed.Length;
+			var possibleMatch = t.GetUnescapedValue (ignoreWhitespace, out int trimmedOffset, out int escapedLength);
+
+			if (IsMatch (possibleMatch)) {
+				offset = trimmedOffset;
+				length = escapedLength;
 				return true;
 			}
 
@@ -87,6 +88,7 @@ namespace MonoDevelop.MSBuild.Language
 			case MSBuildReferenceKind.StaticPropertyFunction:
 			case MSBuildReferenceKind.ClassName:
 			case MSBuildReferenceKind.Enum:
+			case MSBuildReferenceKind.KnownValue:
 				return true;
 			}
 
@@ -119,6 +121,8 @@ namespace MonoDevelop.MSBuild.Language
 				return new MSBuildClassReferenceCollector (document, textSource, logger, rr.GetClassNameReference (), reportResult);
 			case MSBuildReferenceKind.Enum:
 				return new MSBuildEnumReferenceCollector (document, textSource, logger, rr.GetEnumReference (), reportResult);
+			case MSBuildReferenceKind.KnownValue:
+				return new MSBuildKnownValueReferenceCollector (document, textSource, logger, rr.GetKnownValueReference (), reportResult);
 			}
 
 			throw new ArgumentException ($"Cannot create collector for resolve result", nameof (rr));
@@ -309,7 +313,7 @@ namespace MonoDevelop.MSBuild.Language
 
 				void CheckMatch (ExpressionText t)
 				{
-					if (IsPureMatchIgnoringWhitespace (t, out int offset, out int length)) {
+					if (IsPureMatch (t, out int offset, out int length, ignoreWhitespace: true)) {
 						AddResult (offset, length, ReferenceUsage.Read);
 					}
 				}
@@ -362,7 +366,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		void CheckMatch (ExpressionText node, bool isDeclaration)
 		{
-			if (IsPureMatchIgnoringWhitespace (node, out int offset, out int length)) {
+			if (IsPureMatch (node, out int offset, out int length, ignoreWhitespace: true)) {
 				AddResult (offset, length, isDeclaration ? ReferenceUsage.Declaration : ReferenceUsage.Read);
 			}
 		}

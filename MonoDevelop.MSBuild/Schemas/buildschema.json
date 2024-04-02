@@ -294,6 +294,11 @@
                   "helpUrl": {
                     "type": "string",
                     "description": "Documentation link to be displayed in UI."
+                  },
+                  "aliases": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Aliases for this value. They will not be shown in completion, but validation and Find References will consider them to be equivalent."
                   }
                 },
                 "additionalProperties": false
