@@ -25,14 +25,14 @@
         "EmbedInteropTypes": {
           "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only",
           "type": "bool",
-          "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
+          "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
         },
         "RequiredTargetFramework": {
           "description": "The minimum required target framework version in order to use this assembly as a reference",
           "type": "target-framework-version"
         }
       },
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/inputs#references"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/inputs#references"
     },
     "SDKReference": {
       "description": "Reference to a Windows 8.1 extension SDK",
@@ -71,7 +71,7 @@
         "EmbedInteropTypes": {
           "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only (optional)",
           "type": "bool",
-          "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
+          "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
         }
       }
     },
@@ -95,7 +95,7 @@
           "description": "List of disabled NuGet warning codes",
           "isList": true,
           "type": { "$ref": "#/types/nuGetWarningCode" },
-          "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#suppressing-nuget-warnings"
+          "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/package-references-in-project-files#suppressing-nuget-warnings"
         }
       }
     },
@@ -168,7 +168,7 @@
         "EmbedInteropTypes": {
           "description": "Whether the types in this reference need to embedded into the target assembly - interop assemblies only",
           "type": "bool",
-          "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
+          "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/inputs#embedinteroptypes"
         },
         "ProduceReferenceAssembly": {
           "description": "Whether to produce a separate reference assembly in addition to the runtime assembly",
@@ -246,7 +246,7 @@
       "description": "Embed a resource file in the compiled assembly",
       "includeDescription": "resource files",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#resources",
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#resources",
       "metadata": {
         "LogicalName": "Overrides the default resource ID"
       }
@@ -255,7 +255,7 @@
       "description": "Create a link to a resource file in the compiled assembly",
       "includeDescription": "resource files",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#linkresources",
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#linkresources",
       "metadata": {
         "LogicalName": "Overrides the default resource ID"
       }
@@ -361,7 +361,7 @@
     "AllowUnsafeBlocks": {
       "description": "Whether to allow unsafe code",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#allowunsafeblocks"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#allowunsafeblocks"
     },
     "AppConfigForCompiler": "",
     "ApplicationIcon": "",
@@ -381,7 +381,7 @@
     "AssemblyOriginatorKeyFile": {
       "description": "The `.snk` or `.pfx` file that contains the key used to sign the assembly",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/security#keyfile"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/security#keyfile"
     },
     "ManifestCertificateThumbprint": "Thumbprint used to locate the deployment manifest signing certificate in the user's certificate store",
     "ManifestKeyFile": {
@@ -405,7 +405,7 @@
     },
     "BaseAddress": {
       "description": "Explicitly set a preferred base address for loading the dll in decimal, hexadecimal or octal form",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#baseaddress"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/advanced#baseaddress"
     },
     "BootstrapperComponentsLocation": {
       "type": [ "HomeSite", "Relative", "Absolute" ]
@@ -418,11 +418,11 @@
       "description": "Whether the compiler should check for integer overflow and underflow",
       "defaultValue": "false",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#checkforoverflowunderflow"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#checkforoverflowunderflow"
     },
     "CodePage": {
       "description": "The codepage the compiler should use when reading source files",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#codepage"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/advanced#codepage"
     },
     "ConsolePause": {
       "description": "Whether the IDE should keep the console open after executing a console application",
@@ -458,7 +458,7 @@
           "embedded": "Embed portable debug symbols in the assembly"
         }
       },
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/code-generation#debugtype"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/code-generation#debugtype"
     },
     "DefaultClientScript": "",
     "DefaultHTMLPageLayout": "",
@@ -467,12 +467,12 @@
       "description": "Conditional compiler defines",
       "type": "string",
       "isList": true,
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/language#defineconstants"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/language#defineconstants"
     },
     "DelaySign": {
       "description": "Reserve space for a signature so the assembly can be signed later",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/security#delaysign"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/security#delaysign"
     },
     "DisallowUrlActivation": {
       "type": "bool"
@@ -486,7 +486,7 @@
     "DocumentationFile": {
       "description": "Filename for the xml documentation file",
       "type": "string",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#documentationfile"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/output#documentationfile"
     },
     "EnableASPDebugging": "",
     "EnableASPXDebugging": "",
@@ -496,7 +496,7 @@
     "ErrorLog": {
       "description": "Specifiy a file to which the compiler should log all errors and warnings",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#errorlog"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#errorlog"
     },
     "ErrorReport": {
       "description": "Reporting behavior for internal compiler errors",
@@ -521,7 +521,7 @@
       "description": "Override the boundary on which the compiler aligns sections of the output assembly",
       "defaultValue": "512",
       "type": [ "512", "1024", "2048", "4096", "8192" ],
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#filealignment"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/advanced#filealignment"
     },
     "FileUpgradeFlags": "",
     "FormFactorID": "",
@@ -563,7 +563,7 @@
     "HighEntropyVA": {
       "description": "Mark the executable as able to run with Address Space Layout Randomization (ASLR) enabled",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/security#highentropyva"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/security#highentropyva"
     },
     "MapFileExtensions": "",
     "MinimumRequiredVersion": {
@@ -579,7 +579,7 @@
       "description": "List of disabled warning codes",
       "isList": true,
       "type": "warning-code",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#nowarn"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#nowarn"
     },
     "OldToolsVersion": "",
     "OutDir": {
@@ -592,7 +592,7 @@
     "Optimize": {
       "description": "Whether the compiler should optimize the output",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/code-generation#optimize"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/code-generation#optimize"
     },
     "OSVersion": "",
     "OutputPath": {
@@ -611,7 +611,7 @@
           "appcontainerexe": "An executable for Windows Store 8.x apps"
         }
       },
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#targettype"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/output#targettype"
     },
     "PackageTargetFallback": "Allows packages using alternative monikers to be referenced in this project, which include older (e.g. dnxcore50, dotnet5.x) and Portable Class Library names",
     "Platform": {
@@ -634,7 +634,7 @@
         }
       },
       "defaultValue": "anycpu",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/output#platformtarget"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/output#platformtarget"
     },
     "PlatformToolset": "",
     "PostBuildEvent": "Command line to be run at the end of build",
@@ -709,7 +709,7 @@
     "StartWorkingDirectory": "",
     "StartupObject": {
       "description": "Type that contains the main entry point method",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#mainentrypoint-or-startupobject"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/advanced#mainentrypoint-or-startupobject"
     },
     "SuiteName": "",
     "SupportUrl": "",
@@ -717,13 +717,13 @@
     "TargetFramework": {
       "description": "Short moniker of the framework that this project targets, e.g. `netstandard2.0`",
       "type": "target-framework",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#targetframework"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#targetframework"
     },
     "TargetFrameworks": {
       "description": "List of short monikers for the frameworks that this project targets, for example `netstandard2.0;net461)`",
       "type": "target-framework",
       "isList": true,
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#targetframeworks"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#targetframeworks"
     },
     "TargetFrameworkIdentifier": {
       "description": "The identity of framework that this project targets, for example `.NETFramework`",
@@ -747,7 +747,7 @@
     "TreatWarningsAsErrors": {
       "description": "Whether to treat warnings as errors",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors"
     },
     "TrustUrlParameters": "",
     "TypeComplianceDiagnostics": "",
@@ -791,47 +791,47 @@
     "UTF8Output": {
       "description": "Whether the compile should use UTF8 encoding for its console output",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/advanced#utf8output"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/advanced#utf8output"
     },
     "VSTO_TrustAssembliesLocation": "",
     "WarningLevel": {
       "description": "What level of warnings the compiler should emit, between 0 and 4 inclusive",
       "type": "int",
       "defaultValue": "4",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#warninglevel"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#warninglevel"
     },
     "WarningsAsErrors": {
       "description": "List of warning codes to treat as errors",
       "isList": true,
       "type": "warning-code",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
     },
     "WarningsNotAsErrors": {
       "description": "List of warnings codes that should still be treated as warnings when `TreatWarningsAsErrors` is enabled",
       "isList": true,
       "type": "warning-code",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/errors-warnings#warningsaserrors-and-warningsnotaserrors"
     },
     "WebPage": "",
     "Win32Resource": {
       "description": "A Win32 resource file to embed into the compiler output",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#win32resource"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#win32resource"
     },
     "Win32Manifest": {
       "description": "A custom Win32 application manifest for the compiled assembly",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#win32manifest"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#win32manifest"
     },
     "NoWin32Manifest": {
       "description": "Configure the compiler not to embed a default Win32 manifest in the compiled assembly",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#nowin32manifest"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#nowin32manifest"
     },
     "Win32Icon": {
       "description": "A `.ico` icon file to be inserted into the compiled assembly to customize its appeance in File Explorer",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources#win32icon"
+      "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#win32icon"
     },
     "TargetPath": {
       "description": "Absolute path of the project's primary output",

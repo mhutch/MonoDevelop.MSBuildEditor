@@ -17,239 +17,239 @@
       "values": {
         "CS0028": {
           "description": "Method has wrong signature to be an entry point",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0028"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0028"
         },
         "CS0067": {
           "description": "Event is never used",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0067"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0067"
         },
         "CS0078": {
           "description": "The `l` suffix is easily confused with the digit `1`. Use `L` for clarity.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0078"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0078"
         },
         "CS0105": {
           "description": "Using directive appeared previously in this namespace",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/using-directive-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/using-directive-errors"
         },
         "CS0108": {
           "description": "Member hides inherited member. Use the new keyword if hiding was intended.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0108"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs0108"
         },
         "CS0109": {
           "description": "Member does not hide an accessible member. The new keyword is not required.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0109"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0109"
         },
         "CS0114": {
           "description": "Member hides inherited member. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0114"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0114"
         },
         "CS0162": {
           "description": "Unreachable code detected",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0162"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0162"
         },
         "CS0164": {
           "description": "Label has not been referenced",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0164"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0164"
         },
         "CS0168": {
           "description": "Variable is declared but never used",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0168"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0168"
         },
         "CS0169": {
           "description": "Field is never used",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0169"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0169"
         },
         "CS0183": {
           "description": "Expression is always of the provided type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0183"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0183"
         },
         "CS0184": {
           "description": "Expression is never of the provided type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0184"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0184"
         },
         "CS0197": {
           "description": "Using field of marshal-by-reference class as ref or out value or taking its address may cause a runtime exception",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0197"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0197"
         },
         "CS0219": {
           "description": "Variable is assigned but its value is never used",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0219"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0219"
         },
         "CS0251": {
           "description": "Indexing an array with a negative index. Array indices always start at zero.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
         },
         "CS0252": {
           "description": "Possible unintended reference comparison. To get a value comparison, cast the left hand side.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0252"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0252"
         },
         "CS0253": {
           "description": "Possible unintended reference comparison. To get a value comparison, cast the right hand side.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0253"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0253"
         },
         "CS0278": {
           "description": "Type does not implement specified pattern. Method is ambiguous.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0278"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0278"
         },
         "CS0279": {
           "description": "Type does not implement specified pattern. Method is not a public instance or extension method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0279"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0279"
         },
         "CS0280": {
           "description": "Type does not implement specified pattern. Member has the wrong signature.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0280"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0280"
         },
         "CS0282": {
           "description": "Fields in multiple declarations of partial struct have undefined ordering. To specify an ordering, all instance fields must be in the same declaration.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0282"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0282"
         },
         "CS0402": {
           "description": "Entry point cannot be generic or in a generic type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0402"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0402"
         },
         "CS0414": {
           "description": "Field is assigned but its value is never used",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0414"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0414"
         },
         "CS0419": {
           "description": "Ambiguous reference in cref attribute. Assuming match but could have also matched other overloads.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0419"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0419"
         },
         "CS0420": {
           "description": "Reference to volatile field will not be treated as volatile",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0420"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs0420"
         },
         "CS0435": {
           "description": "Namespace conflicts with imported type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0435"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0435"
         },
         "CS0436": {
           "description": "Type conflicts with imported type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0436"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0436"
         },
         "CS0437": {
           "description": "Type conflicts with imported namespace",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0437"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0437"
         },
         "CS0440": {
           "description": "Defining an alias named `global` is ill-advised. `global::` always references the global namespace and not an alias",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/using-directive-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/using-directive-errors"
         },
         "CS0458": {
           "description": "The result of the expression is always `null`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0458"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0458"
         },
         "CS0464": {
           "description": "Comparing null of nullable value type always produces `false`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0464"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0464"
         },
         "CS0465": {
           "description": "`Finalize` method can interfere with destructor invocation. Did you intend to declare a destructor?",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0465"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs0465"
         },
         "CS0469": {
           "description": "The `goto case` value is not implicitly convertible to type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0469"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0469"
         },
         "CS0472": {
           "description": "Result of expression is constant since value type is never equal to `null`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0472"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0472"
         },
         "CS0473": {
           "description": "Explicit interface implementation matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0473"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0473"
         },
         "CS0612": {
           "description": "Member or type is obsolete",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0612"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0612"
         },
         "CS0618": {
           "description": "Member or type is obsolete", // ObsoleteAttribute has message
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0618"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs0618"
         },
         "CS0626": {
           "description": "Method, operator, or accessor is marked external and has no attributes. Consider adding a DllImport attribute to specify the external implementation.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0626"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0626"
         },
         "CS0628": {
           "description": "New protected member declared in sealed type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0628"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0628"
         },
         "CS0642": {
           "description": "Possible mistaken empty statement",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0642"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0642"
         },
         "CS0649": {
           "description": "Field is never assigned to, and will always have default value",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0649"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0649"
         },
         "CS0652": {
           "description": "Useless comparison to integral constant. The constant is outside the range of the type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0652"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0652"
         },
         "CS0657": {
           "description": "Invalid attribute location for this declaration. All attributes in this block will be ignored.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0657"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0657"
         },
         "CS0658": {
           "description": "Unrecognized attribute location. All attributes in this block will be ignored.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0658"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0658"
         },
         "CS0659": {
           "description": "Type overrides `Equals` but does not override `GetHashCode`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0659"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0659"
         },
         "CS0660": {
           "description": "Type defines equality operator but does not override `Object.Equals(object o)`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0660"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0660"
         },
         "CS0661": {
           "description": "Type defines equality operator but does not override `GetHashCode`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0661"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0661"
         },
         "CS0665": {
           "description": "Assignment in conditional expression is always constant. Did you mean to use == instead of = ?",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0665"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0665"
         },
         "CS0672": {
           "description": "Member overrides obsolete member. Add the Obsolete attribute.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0672"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0672"
         },
         "CS0675": {
           "description": "Bitwise-or operator used on a sign-extended operand. Consider casting to a smaller unsigned type first.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0675"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs0675"
         },
         "CS0684": {
           "description": "Interface marked with `CoClassAttribute` not marked with `ComImportAttribute`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0684"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0684"
         },
         "CS0693": {
           "description": "Type parameter has same name as the type parameter from outer type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0693"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0693"
         },
         "CS0728": {
           "description": "Possibly incorrect assignment to local argument of using or lock statement. The Dispose call or unlocking will happen on the original value of the local.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0728"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0728"
         },
         "CS0809": {
           "description": "Obsolete member overrides non-obsolete member",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0809"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0809"
         },
         "CS0811": {
           "description": "Fully qualified name is too long for debug information. Compile without `/debug` option.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0811"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs0811"
         },
         "CS0824": {
           "description": "Constructor is marked external",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
         },
         "CS1030": {
           "description": "`#warning` directive",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1030"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1030"
         },
         "CS1058": {
           "description": "Previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1058"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1058"
         },
         "CS1062": {
           "description": "Best overloaded `Add` method for collection initializer element is obsolete" // with message
@@ -265,159 +265,159 @@
         },
         "CS1522": {
           "description": "Empty switch block",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1522"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1522"
         },
         "CS1570": {
           "description": "XML comment has badly formed XML",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1570"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1570"
         },
         "CS1571": {
           "description": "XML comment has duplicate `param` tag",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1571"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1571"
         },
         "CS1572": {
           "description": "XML comment has `param` tag but there is no parameter by that name",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1572"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1572"
         },
         "CS1573": {
           "description": "Parameter has no matching param tag in the XML comment",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1573"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1573"
         },
         "CS1574": {
           "description": "XML comment has `cref` attribute that could not be resolved",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1574"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1574"
         },
         "CS1580": {
           "description": "Invalid type for parameter in XML comment `cref` attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1580"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1580"
         },
         "CS1581": {
           "description": "Invalid return type in XML comment `cref` attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1581"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1581"
         },
         "CS1584": {
           "description": "XML comment has syntactically incorrect `cref` attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1584"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1584"
         },
         "CS1587": {
           "description": "XML comment is not placed on a valid language element",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1587"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1587"
         },
         "CS1589": {
           "description": "Unable to include XML fragment",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1589"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1589"
         },
         "CS1590": {
           "description": "Invalid XML `include` element",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1590"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1590"
         },
         "CS1591": {
           "description": "Missing XML comment for publicly visible type or member",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1591"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1591"
         },
         "CS1592": {
           "description": "Badly formed XML in included comments file",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1592"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1592"
         },
         "CS1607": {
           "description": "Warning from assembly generation phase",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1607"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1607"
         },
         "CS1616": {
           "description": "Option overrides attribute given in source file or module",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1616"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1616"
         },
         "CS1633": {
           "description": "Unrecognized `#pragma` directive",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1633"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1633"
         },
         "CS1634": {
           "description": "Expected `disable` or `restore`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1634"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1634"
         },
         "CS1635": {
           "description": "Cannot restore warning because it was disabled globally",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1635"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1635"
         },
         "CS1645": {
           "description": "Feature is not part of standardized ISO C# language specification. It may not be accepted by other compilers.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1645"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1645"
         },
         "CS1658": {
           "description": "Error overidden by warning",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1658"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1658"
         },
         "CS1668": {
           "description": "Invalid search path",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1668"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1668"
         },
         "CS1685": {
           "description": "Predefined type is defined in multiple assemblies",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1685"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1685"
         },
         "CS1687": {
           "description": "Source file has exceeded limit of 16,707,565 lines representable in PDB. Debug information will be incorrect.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1687"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1687"
         },
         "CS1690": {
           "description": "Accessing field of a marshal-by-reference class may cause runtime exception",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1690"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1690"
         },
         "CS1692": {
           "description": "Invalid number",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1692"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1692"
         },
         "CS1695": {
           "description": "Invalid #pragma checksum syntax",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1695"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1695"
         },
         "CS1696": {
           "description": "Single-line comment or end-of-line expected",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1696"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1696"
         },
         "CS1697": {
           "description": "Different checksum values given for file",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1697"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1697"
         },
         "CS1700": {
           "description": "Assembly reference is invalid and cannot be resolved",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1700"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1700"
         },
         "CS1701": {
           "description": "Assuming assembly reference matches identity of assembly. You may need to supply runtime policy.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1701"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1701"
         },
         "CS1702": {
           "description": "Assuming assembly reference matches identity of assembly. You may need to supply runtime policy.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1702"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1702"
         },
         "CS1710": {
           "description": "XML comment has a duplicate `typeparam` tag",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1710"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1710"
         },
         "CS1711": {
           "description": "XML comment has a `typeparam` tag for unknown type parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1711"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1711"
         },
         "CS1712": {
           "description": "Type parameter has no matching `typeparam` tag in XML comment",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1712"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1712"
         },
         "CS1717": {
           "description": "Assignment made to same variable. Did you mean to assign something else?",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1717"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1717"
         },
         "CS1718": {
           "description": "Comparison made to same variable. Did you mean to compare something else?",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1718"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1718"
         },
         "CS1720": {
           "description": "Expression will always cause a `NullReferenceException`. This is because the default value of the type is null.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1720"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1720"
         },
         "CS1723": {
           "description": "XML comment has `cref` attribute that refers to a type parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1723"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1723"
         },
         "CS1734": {
           "description": "XML comment has `paramref` tag for unknown parameter"
@@ -427,19 +427,19 @@
         },
         "CS1762": {
           "description": "Reference created to embedded interop assembly. This was because of an indirect reference to that assembly created by another assembly. Consider changing the 'Embed Interop Types' property on either assembly.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1762"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1762"
         },
         "CS1927": {
           "description": "Ignoring `/win32manifest` for module because it only applies to assemblies",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1927"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1927"
         },
         "CS1956": {
           "description": "Interface member implementation will cause multiple matches at run-time. It is implementation dependent which method will be called.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1956"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs1956"
         },
         "CS1957": {
           "description": "Member override will have multiple candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs1957"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs1957"
         },
         "CS1974": {
           "description": "Dynamically dispatched call to method may fail at runtime. This is because one or more applicable overloads are conditional methods."
@@ -452,126 +452,126 @@
         },
         "CS2002": {
           "description": "Source file specified multiple times",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs2002"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs2002"
         },
         "CS2008": {
           "description": "No source files specified.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs2008"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs2008"
         },
         "CS2023": {
           "description": "Ignoring `/noconfig` option because it was specified in a response file",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs2023"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs2023"
         },
         "CS2029": {
           "description": "Invalid name for a preprocessing symbol",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs2029"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs2029"
         },
         "CS2038": {
           "description": "Language name is invalid."
         },
         "CS3000": {
           "description": "Methods with variable arguments are not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3000"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3000"
         },
         "CS3001": {
           "description": "Argument type is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3001"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3001"
         },
         "CS3002": {
           "description": "Return type is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3002"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3002"
         },
         "CS3003": {
           "description": "Type is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs3003"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs3003"
         },
         "CS3005": {
           "description": "Identifier differing only in case is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3005"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3005"
         },
         "CS3006": {
           "description": "Overloaded method differing only in ref or out, or in array rank, is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3006"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3006"
         },
         "CS3007": {
           "description": "Overloaded method differing only by unnamed array types is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
         },
         "CS3008": {
           "description": "Identifier is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3008"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3008"
         },
         "CS3009": {
           "description": "Base type is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs3009"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs3009"
         },
         "CS3010": {
           "description": "CLS-compliant interfaces must have only CLS-compliant members",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3010"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3010"
         },
         "CS3011": {
           "description": "Only CLS-compliant members can be abstract",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3011"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3011"
         },
         "CS3012": {
           "description": "You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3012"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3012"
         },
         "CS3013": {
           "description": "Added modules must be marked with the CLSCompliant attribute to match the assembly",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3013"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3013"
         },
         "CS3014": {
           "description": "Member or type cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3014"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3014"
         },
         "CS3015": {
           "description": "Type has no accessible constructors which use only CLS-compliant types",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3015"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3015"
         },
         "CS3016": {
           "description": "Arrays as attribute arguments is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
         },
         "CS3017": {
           "description": "You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3017"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3017"
         },
         "CS3018": {
           "description": "Member cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3018"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3018"
         },
         "CS3019": {
           "description": "CLS compliance checking will not be performed on member ot type because it is not visible from outside this assembly",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3019"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3019"
         },
         "CS3021": {
           "description": "Member or type does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3021"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3021"
         },
         "CS3022": {
           "description": "CLSCompliant attribute has no meaning when applied to parameters. Try putting it on the method instead.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3022"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3022"
         },
         "CS3023": {
           "description": "CLSCompliant attribute has no meaning when applied to return types. Try putting it on the method instead.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3023"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3023"
         },
         "CS3024": {
           "description": "Constraint type is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3024"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3024"
         },
         "CS3026": {
           "description": "CLS-compliant field cannot be volatile",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3026"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3026"
         },
         "CS3027": {
           "description": "Type is not CLS-compliant because base interface is not CLS-compliant",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs3027"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/misc/cs3027"
         },
         "CS4014": {
           "description": "Call is not awaited, so execution of current method continues before call is completed. Consider applying the `await` operator to the result of the call.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs4014"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/cs4014"
         },
         "CS4024": {
           "description": "`CallerLineNumber` attribute applied to parameter will have no effect. The member is used in contexts that do not allow optional arguments."
@@ -587,7 +587,7 @@
         },
         "CS7023": {
           "description": "Second operand of `is` or `as` operator may not be static type",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS7033": {
           "description": "Delay signing was specified and requires a public key, but no public key was specified"
@@ -642,7 +642,7 @@
         },
         "CS8073": {
           "description": "Result of expression is constant because struct type is never equal to `null`",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8094": {
           "description": "Alignment value may result in a large formatted string."
@@ -655,7 +655,7 @@
         },
         "CS8305": {
           "description": "Feature is for evaluation purposes only. It is subject to change or removal in future updates.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
         },
         "CS8321": {
           "description": "Local function declared but never used"
@@ -668,7 +668,7 @@
         },
         "CS8371": {
           "description": "Field-targeted attributes on auto-properties not supported in language version. Please use language version that supports them.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
         },
         "CS8383": {
           "description": "Tuple element name ignored because other side of tuple equality operator specifies a different name or no name"
@@ -687,7 +687,7 @@
         },
         "CS8509": {
           "description": "Switch expression does not handle all possible values of its input type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/pattern-matching-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/pattern-matching-warnings"
         },
         "CS8512": {
           "description": "Name `_` refers to constant, not discard pattern. Use `var _` to discard the value, or `@_` to refer to a constant by that name."
@@ -706,207 +706,207 @@
         },
         "CS8597": {
           "description": "Thrown value may be null.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8600": {
           "description": "Converting null literal or possible null value to non-nullable type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8601": {
           "description": "Possible null reference assignment.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8602": {
           "description": "Dereference of a possibly null reference.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8603": {
           "description": "Possible null reference return."
         },
         "CS8604": {
           "description": "Possible null reference argument for parameter.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8605": {
           "description": "Unboxing a possibly null value.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8607": {
           "description": "Possible null value may not be used for type marked with `NotNull` or `DisallowNull` attribute",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8608": {
           "description": "Nullability doesn't match overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8609": {
           "description": "Nullability of return type doesn't match overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8610": {
           "description": "Nullability of parameter doesn't match overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8611": {
           "description": "Nullability of parameter doesn't match partial method declaration.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8612": {
           "description": "Nullability doesn't match implicitly implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8613": {
           "description": "Nullability of return type doesn't match implicitly implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8614": {
           "description": "Nullability of parameter doesn't match implicitly implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8615": {
           "description": "Nullability doesn't match implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8616": {
           "description": "Nullability of return type doesn't match implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8617": {
           "description": "Nullability of parameter doesn't match implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8618": {
           "description": "Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8619": {
           "description": "Nullability of value doesn't match target type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8620": {
           "description": "Argument cannot be used for parameter due to differences in nullability.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8621": {
           "description": "Nullability of return type doesn't match target delegate",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8622": {
           "description": "Nullability of parameter doesn't match target delegate",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8624": {
           "description": "Argument cannot be used as output for parameter due to differences in nullability.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8625": {
           "description": "Cannot convert null literal to non-nullable reference type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8629": {
           "description": "Nullable value type may be null.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8631": {
           "description": "Nullability of type argument doesn't match constraint type. Type cannot be used as type parameter in the generic type or method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8632": {
           "description": "Annotation for nullable reference types should only be used within `#nullable` annotations context."
         },
         "CS8633": {
           "description": "Nullability in constraints for type parameter of method doesn't match constraints for type parameter of interface method. Consider using an explicit interface implementation instead.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8634": {
           "description": "Nullability of type argument doesn't match `class` constraint. Type cannot be used as type parameter in generic type or method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8643": {
           "description": "Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8644": {
           "description": "Nullability of reference types in interface implemented by the base type doesn't match.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8645": {
           "description": "Member is already listed in the interface list on type with different nullability.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8655": {
           "description": "Switch expression does not handle some null inputs.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8656": {
           "description": "Call to non-readonly member from `readonly` member results in implicit copy."
         },
         "CS8667": {
           "description": "Inconsistent nullability in type parameter constraints for partial method declarations",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8669": {
           "description": "Annotation for nullable reference types should only be used within a `#nullable` annotations context. Auto-generated code requires an explicit `#nullable` directive in source."
         },
         "CS8670": {
           "description": "Object or collection initializer implicitly dereferences possibly null member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8714": {
           "description": "Nullability of type argument doesn't match `notnull` constraint. Type cannot be used as type parameter in generic type or method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8762": {
           "description": "Parameter must have non-null value when exiting.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8763": {
           "description": "Method marked `[DoesNotReturn]` should not return.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8764": {
           "description": "Nullability of return type doesn't match overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8765": {
           "description": "Nullability of parameter doesn't match overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8766": {
           "description": "Nullability of return type doesn't match implicitly implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8767": {
           "description": "Nullability of parameter doesn't match implicitly implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8768": {
           "description": "Nullability of return type doesn't match implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8769": {
           "description": "Nullability of parameter doesn't match implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8770": {
           "description": "Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8774": {
           "description": "Member must have non-null value when exiting.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8775": {
           "description": "Member must have non-null value when exiting.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8776": {
           "description": "Member cannot be used in this attribute.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8777": {
           "description": "Parameter must have a non-null value when exiting.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8778": {
           "description": "Constant value may overflow at runtime. Use `unchecked` syntax to override."
@@ -925,30 +925,30 @@
         },
         "CS8819": {
           "description": "Nullability of return type doesn't match partial method declaration.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8824": {
           "description": "Parameter must have non-null value when exiting because parameter is non-null.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8825": {
           "description": "Return value must be non-null because parameter is non-null.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8826": {
           "description": "Partial method declarations have signature differences.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8846": {
           "description": "Switch expression does not handle all possible values of its input type. However, a pattern with a `when` clause might successfully match this value."
         },
         "CS8847": {
           "description": "The switch expression does not handle some null inputs. However, a pattern with a `when` clause might successfully match this value.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/nullable-warnings"
         },
         "CS8848": {
           "description": "Operator cannot be used here due to precedence. Use parentheses to disambiguate.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8850": {
           "description": "Assembly containing type references .NET Framework, which is not supported."
@@ -961,47 +961,47 @@
         },
         "CS8880": {
           "description": "Auto-property must be assigned before returning to caller. Consider updating to newer language version to auto-default the property.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8881": {
           "description": "Field must be assigned before returning to caller. Consider updating to newer language version to auto-default the field.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8882": {
           "description": "Out parameter must be assigned before control leaves current method",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8883": {
           "description": "Use of possibly unassigned auto-property",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8884": {
           "description": "Use of possibly unassigned field",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8885": {
           "description": "The `this` object cannot be used before all of its fields have been assigned. Consider updating to newer language version to auto-default the unassigned fields.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8886": {
           "description": "Use of unassigned out parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8887": {
           "description": "Use of unassigned local variable",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8892": {
           "description": "Method will not be used as entry point because synchronous entry point was found.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8897": {
           "description": "Static types cannot be used as parameters",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8898": {
           "description": "Static types cannot be used as return types",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS8907": {
           "description": "Parameter is unread. Did you forget to use it to initialize the property with that name?"
@@ -1026,15 +1026,15 @@
         },
         "CS8965": {
           "description": "`CallerArgumentExpression` attribute will have no effect. It is self-referential.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/parameter-argument-mismatch"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/parameter-argument-mismatch"
         },
         "CS8966": {
           "description": "`CallerArgumentExpression` attribute will have no effect. It applies to a member that is used in contexts that do not allow optional arguments.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/parameter-argument-mismatch"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/parameter-argument-mismatch"
         },
         "CS8971": {
           "description": "InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
         },
         "CS8973": {
           "description": "The operation may overflow at runtime. Use `unchecked` syntax to override."
@@ -1044,15 +1044,15 @@
         },
         "CS8981": {
           "description": "Type name only contains lower-cased ascii characters. Such names may become reserved for the language.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/warning-waves"
         },
         "CS9016": {
           "description": "Use of possibly unassigned auto-property. Consider updating to newer language version to auto-default the property.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
         },
         "CS9017": {
           "description": "Use of possibly unassigned field. Consider updating to newer language version to auto-default the field.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
         },
         "CS9018": {
           "description": "Auto-property is read before being explicitly assigned. This causes a preceding implicit assignment of `default`."
@@ -1101,155 +1101,155 @@
         },
         "CS9085": {
           "description": "This `ref`-assigns variable but destination has narrower escape scope than source",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9086": {
           "description": "Branches of `ref` conditional operator refer to variables with incompatible declaration scopes",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9087": {
           "description": "Parameter returned by reference is not a `ref` parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9088": {
           "description": "Parameter returned by reference is scoped to current method"
         },
         "CS9089": {
           "description": "Parameter member returned by reference but parameter is not `ref` or `out` parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9090": {
           "description": "Parameter member returned by reference is scoped to current method"
         },
         "CS9091": {
           "description": "Local returned by reference is not a `ref` local",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9092": {
           "description": "Local member returned by reference is not `ref` local",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9093": {
           "description": "This ref-assigns but source can only escape current method through return statement.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9094": {
           "description": "Parameter returned by reference through `ref` parameter. It can only safely be returned in a return statement",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9095": {
           "description": "Parameter member returned by reference through `ref` parameter. It can only safely be returned in a return statement",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9097": {
           "description": "This ref-assigns but source has wider value escape scope than destination. This allows assignment through destination of values with narrower escapes scopes than source.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9099": {
           "description": "Parameter has different default value in lambda than in target delegate type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
         },
         "CS9100": {
           "description": "Parameter has `params` modifier in lambda but not in target delegate type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/lambda-expression-errors"
         },
         "CS9107": {
           "description": "Parameter is captured into state of enclosing type and is also passed to base constructor. The value might be captured by the base class as well.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
         },
         "CS9113": {
           "description": "Parameter is unread.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
         },
         "CS9123": {
           "description": "`&` operator should not be used on parameters or local variables in async methods."
         },
         "CS9124": {
           "description": "Parameter is captured into state of enclosing type and its value is also used to initialize a field, property, or event.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
         },
         "CS9125": {
           "description": "Attribute parameter `SizeConst` must be specified."
         },
         "CS9154": {
           "description": "Intercepting call with interceptor, but the signatures do not match.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
         },
         "CS9158": {
           "description": "Nullability of return type doesn't match interceptable method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
         },
         "CS9159": {
           "description": "Nullability of parameter doesn't match interceptable method.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/source-generator-errors"
         },
         "CS9179": {
           "description": "Primary constructor parameter shadowed by member from base.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/constructor-errors"
         },
         "CS9181": {
           "description": "Inline array indexer will not be used for element access expression.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
         },
         "CS9182": {
           "description": "Inline array `Slice` method will not be used for element access expression.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
         },
         "CS9183": {
           "description": "Inline array conversion operator will not be used for conversion from expression of the declaring type.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
         },
         "CS9184": {
           "description": "`Inline arrays` language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/inline-array-errors"
         },
         "CS9191": {
           "description": "`ref` modifier for argument corresponding to `in` parameter is equivalent to `in`. Consider using `in` instead.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9192": {
           "description": "Argument should be passed with `ref` or `in` keyword",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9193": {
           "description": "Argument should be variable because it is passed to `ref readonly` parameter",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9195": {
           "description": "Argument should be passed with the `in` keyword",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9196": {
           "description": "Reference kind modifier of parameter doesn't match corresponding parameter in overridden or implemented member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9197": {
           "description": "Reference kind modifier of parameter doesn't match corresponding parameter in hidden member.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9198": {
           "description": "Reference kind modifier of parameter doesn't match corresponding parameter in target.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9200": {
           "description": "Default value is specified for `ref readonly` parameter but `ref readonly` should be used only for references. Consider declaring the parameter as `in`.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9201": {
           "description": "Ref field should be ref-assigned before use.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/ref-modifiers-errors"
         },
         "CS9204": {
           "description": "Feature is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/feature-version-errors"
         },
         "CS9208": {
           "description": "Collection expression of type may incur unexpected heap allocations. Consider explicitly creating an array, then converting to make the allocation explicit.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
         },
         "CS9209": {
           "description": "Collection expression of type may incur unexpected heap allocations due to the use of `..` spreads. Consider explicitly creating an array, then converting to make the allocation explicit.",
-          "helpUrl": "https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
+          "helpUrl": "https://docs.microsoft.com/dotnet/csharp/language-reference/compiler-messages/array-declaration-errors"
         }
       }
     }

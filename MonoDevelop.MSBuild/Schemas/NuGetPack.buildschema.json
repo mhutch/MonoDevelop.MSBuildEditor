@@ -47,12 +47,12 @@
       "description": "The URL for a 64x64 image with transparent background to use as the icon for the NuGet package in UI display",
       "type": "url",
       "deprecationMessage": "Use `PackageIcon` instead",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packageiconurl"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#packageiconurl"
     },
     "PackageIcon": {
       "description": "A 64x64 PNG or JPG image to use as the icon for the NuGet package. Relative path within the package.",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packageicon"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#packageicon"
     },
     "PackageId": "The case-insensitive NuGet package identifier, which must be unique across nuget.org or whatever gallery the NuGet package will reside in. IDs may not contain spaces or characters that are not valid for a URL, and generally follow .NET namespace rules.",
     "Title": "A human-friendly title of the package, typically used in UI displays as on nuget.org and the Package Manager in Visual Studio. If not specified, the package ID is used instead.",
@@ -68,7 +68,7 @@
     "PackageLicenseExpression": {
       "description": "The package's license in SPDX 2.0 expression format",
       "type": { "$ref": "#/types/spdx" },
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-a-license-expression-or-a-license-file"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#packing-a-license-expression-or-a-license-file"
     },
     "PackageProjectUrl": {
       "description": "The URL for the NuGet package's home page, often shown in UI displays as well as nuget.org",
@@ -96,7 +96,7 @@
     "VersionSuffix": "When `Version` is not specified, `VersionSuffix` represents the second fragment of the version string (e.g. beta). The syntax is `VersionPrefix[-VersionSuffix]`.",
     "PackageType": {
       "description": "The type of the package",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/create-packages/set-package-type",
+      "helpUrl": "https://learn.microsoft.com/nuget/create-packages/set-package-type",
       "isList": true,
       // uses semicolon for multiple package types, comma to separate a packagetype and its optional version
       "listSeparators": ";",
@@ -113,23 +113,23 @@
     "IncludeSymbols": {
       "description": "Whether to include symbols in the NuGet package",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#includesymbols"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#includesymbols"
     },
     "IncludeSource": {
       "description": "Whether to include source files in the NuGet package",
       "type": "bool",
       "defaultValue": "false",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#includesource"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#includesource"
     },
     "IsTool": {
       "description": "Whether to place output files in the tools folder instead of the lib folder",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#istool"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#istool"
     },
     "NuspecFile": {
       "description": "Relative or absolute path to a custom .nuspec package manifest",
       "type": "file",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-using-a-nuspec-file"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#packing-using-a-nuspec-file"
     },
     "NuspecProperties": {
       "description": "Semicolon-separated list of key=value pairs to be set in a custom .nuspec manifest",
@@ -162,23 +162,23 @@
     "PackRelease": {
       "description": "Value indicating whether to generate a release build of the package",
       "type": "bool",
-      "helpUrl": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#packrelease"
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/project-sdk/msbuild-props#packrelease"
     },
     "PackageReadmeFile": {
       "description": "Path of the README file within the package. This property will not cause the file to be included in the package.",
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#packagereadmefile"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#packagereadmefile"
     },
     "TargetsForTfmSpecificBuildOutput": {
       "description": "List of custom targets to gather additional `BuildOutputInPackage` items to include in the package in the `BuildOutputTargetFolder` in the package (`lib` by default).",
       "type": "target-name",
       "isList": true,
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#targetsfortfmspecificbuildoutput"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#targetsfortfmspecificbuildoutput"
     },
     "TargetsForTfmSpecificContentInPackage": {
       "description": "List of custom targets to gather additional `TfmSpecificPackageFile` items to include in the package outside the `BuildOutputTargetFolder`.",
       "type": "target-name",
       "isList": true,
-      "helpUrl": "https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#targetsfortfmspecificcontentinpackage"
+      "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#targetsfortfmspecificcontentinpackage"
     }
   },
   "metadata": [
