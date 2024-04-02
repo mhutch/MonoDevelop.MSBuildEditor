@@ -84,13 +84,13 @@ static class CultureHelper
 
 	public static bool IsKnownLcid (int lcid) => knownCulturesByLcid.Value.ContainsKey (lcid);
 
-	public static bool TryGetLcidSymbol (string lcidString, [NotNullWhen (true)] out ISymbol? lcidSymbol)
+	public static bool TryGetLcidSymbol (string lcidString, [NotNullWhen (true)] out ITypedSymbol? lcidSymbol)
 	{
 		lcidSymbol = null;
 		return int.TryParse (lcidString, out int lcid) && TryGetLcidSymbol (lcid, out lcidSymbol);
 	}
 
-	public static bool TryGetLcidSymbol (int lcid, [NotNullWhen (true)] out ISymbol? lcidSymbol)
+	public static bool TryGetLcidSymbol (int lcid, [NotNullWhen (true)] out ITypedSymbol? lcidSymbol)
 	{
 		if (knownCulturesByLcid.Value.TryGetValue (lcid, out KnownCulture culture)) {
 			lcidSymbol = culture.CreateLcidSymbol ();
@@ -100,7 +100,7 @@ static class CultureHelper
 		return false;
 	}
 
-	public static bool TryGetCultureSymbol (string cultureName, [NotNullWhen (true)] out ISymbol? cultureSymbol)
+	public static bool TryGetCultureSymbol (string cultureName, [NotNullWhen (true)] out ITypedSymbol? cultureSymbol)
 	{
 		if (TryGetKnownCulture (cultureName, out KnownCulture culture)) {
 			cultureSymbol = culture.CreateCultureSymbol ();

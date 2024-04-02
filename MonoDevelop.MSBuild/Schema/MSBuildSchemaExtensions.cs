@@ -377,7 +377,7 @@ namespace MonoDevelop.MSBuild.Schema
 		/// Optionally provide an alternate <see cref="MSBuildValueKind"/> to be used if the the <see cref="ITypedSymbol"/>'s value kind is <see cref="MSBuildValueKind.Unknown"/>.
 		/// </param>
 		public static bool TryGetKnownValues (
-			this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, [NotNullWhen (true)] out IEnumerable<ISymbol>? values,
+			this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, [NotNullWhen (true)] out IEnumerable<ITypedSymbol>? values,
 			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown)
 		{
 			var kind = valueDescriptor.ValueKindWithoutModifiers ();
@@ -389,7 +389,7 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 
 			if (kind == MSBuildValueKind.CustomType) {
-				if (valueDescriptor?.CustomType?.Values is IReadOnlyList<ISymbol> customTypeValues) {
+				if (valueDescriptor?.CustomType?.Values is IReadOnlyList<ITypedSymbol> customTypeValues) {
 					values = customTypeValues;
 					return true;
 				}
@@ -416,9 +416,9 @@ namespace MonoDevelop.MSBuild.Schema
 		/// If the descriptor is unresolved, then `inferredKind` will be used, and is assumed to be a kind that has been inferred from the name.
 		/// </summary>
 		/// <param name="isError">True if the type supports value resolution but the value was not resolved</param>
-		public static bool TryGetKnownValue (this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, string value, [NotNullWhen (true)] out ISymbol? resolvedValue, out bool isError)
+		public static bool TryGetKnownValue (this IEnumerable<IMSBuildSchema> schema, ITypedSymbol valueDescriptor, string value, [NotNullWhen (true)] out ITypedSymbol? resolvedValue, out bool isError)
 		{
-			if (!schema.TryGetKnownValues (valueDescriptor, out IEnumerable<ISymbol>? knownValues)) {
+			if (!schema.TryGetKnownValues (valueDescriptor, out IEnumerable<ITypedSymbol>? knownValues)) {
 				resolvedValue = null;
 				isError = false;
 				return false;

@@ -4,12 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.Xml.Tests;
+using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
+using MonoDevelop.Xml.Tests;
 
 using NUnit.Framework;
 
@@ -18,17 +22,20 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	class MSBuildFindReferencesTests : MSBuildDocumentTest
 	{
-		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference, [CallerMemberName] string testMethodName = null)
+		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference, MSBuildSchema schema = null, [CallerMemberName] string testMethodName = null)
 		{
 			var textDoc = new StringTextSource (docString);
 
 			var xmlParser = new XmlTreeParser (new XmlRootState ());
 			var (xdoc, _) = xmlParser.Parse (new StringReader (docString));
 
-			var logger = TestLoggerFactory.CreateLogger (testMethodName);
-			var doc = CreateEmptyDocument ();
+			var logger = TestLoggerFactory.CreateLogger (testMethodName).RethrowExceptions ();
+
+			var doc = new MSBuildDocument ("SomeImportedProps.props", false) {
+				Schema = schema,
+			};
 			var parseContext = new MSBuildParserContext (
-				new NullMSBuildEnvironment (), null, null, null, "test.csproj", new PropertyValueCollector (false), null, logger, null, default);
+				new NullMSBuildEnvironment (), null, null, null, "SomeRootProject.csproj", new PropertyValueCollector (false), null, logger, null, default);
 			doc.Build (xdoc, parseContext);
 
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null, parseContext.Logger);
@@ -46,9 +53,16 @@ namespace MonoDevelop.MSBuild.Tests
 		}
 
 		void AssertLocations (
-			string doc, string expectedName,
+			string doc, string expectedValue,
 			List<(int Offset, int Length, ReferenceUsage Usage)> actual,
-			params (int Offset, int Length, ReferenceUsage Usage)[] expected)
+			params (int Offset, int Length, ReferenceUsage Usage)[] expected
+			)
+			=> AssertLocations (doc, actual, expected.Select (e => (expectedValue, e.Offset, e.Length, e.Usage)).ToArray ());
+
+		void AssertLocations (
+			string doc,
+			List<(int Offset, int Length, ReferenceUsage Usage)> actual,
+			params (string expectedValue, int Offset, int Length, ReferenceUsage Usage)[] expected)
 		{
 			if (actual.Count != expected.Length) {
 				DumpLocations ();
@@ -57,7 +71,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 			for (int i = 0; i < actual.Count; i++) {
 				var (offset, length, usage) = actual[i];
-				var (expectedOffset, expectedLength, expectedUsage) = expected[i];
+				var (expectedName, expectedOffset, expectedLength, expectedUsage) = expected[i];
 				if (offset != expectedOffset || length != expectedLength || usage != expectedUsage || !string.Equals (expectedName, doc.Substring (offset, length), StringComparison.OrdinalIgnoreCase)) {
 					DumpLocations ();
 					Assert.Fail ($"Position {i}: expected ({expectedOffset}, {expectedLength})='{expectedName}' ({expectedUsage}), got ({offset}, {length})='{doc.Substring (offset, length)}' ({usage})");
@@ -167,6 +181,50 @@ namespace MonoDevelop.MSBuild.Tests
 				(216, 3, ReferenceUsage.Read),
 				(280, 3, ReferenceUsage.Write),
 				(367, 3, ReferenceUsage.Read)
+			);
+		}
+
+		[Test]
+		public void FindKnownValueReferences()
+		{
+			var doc = @"<Project>
+  <PropertyGroup>
+    <Greetings>  |Hello| ; Bye;|Hi|  ; See Ya</Greetings>
+    <Greetings>|Hi|</Greetings>
+    <Goodbyes>Hi</Goodbyes>
+    <OtherGreetings>|Hi|</OtherGreetings>
+  </PropertyGroup>
+  <ItemGroup>
+    <GreetingItem Include=""|Hi|"" Foo=""Hi"" Blah=""|Hello|"" />
+  </ItemGroup>
+</Project>";
+
+			var textWithMarkers = TextWithMarkers.Parse (doc, '|');
+
+
+			var schema = new MSBuildSchema ();
+
+			var customType = new CustomTypeInfo ([
+				new CustomTypeValue("Hello", null, aliases: [ "Hi" ]),
+				new CustomTypeValue("Welcome", null)
+			]);
+			var greetingsProp = new PropertyInfo ("Greetings", "", valueKind: MSBuildValueKind.CustomType.AsList (), customType: customType);
+			schema.Properties.Add (greetingsProp.Name, greetingsProp);
+			var otherProp = new PropertyInfo ("OtherGreetings", "", valueKind: MSBuildValueKind.CustomType, customType: customType);
+			schema.Properties.Add (otherProp.Name, otherProp);
+			var greetingItem= new ItemInfo ("GreetingItem", "", valueKind: MSBuildValueKind.CustomType, customType: customType, metadata: new Dictionary<string, MetadataInfo> {
+				{ "Blah", new MetadataInfo("Blah", null, valueKind: MSBuildValueKind.CustomType, customType: customType) },
+				{ "Foo", new MetadataInfo("Foo", null, valueKind: MSBuildValueKind.String) }
+			});
+			schema.Items.Add (greetingItem.Name, greetingItem);
+
+			var refs = FindReferences (textWithMarkers.Text, MSBuildReferenceKind.KnownValue, customType.Values[0], schema);
+
+			AssertLocations (
+				textWithMarkers.Text, refs,
+				textWithMarkers.GetMarkedSpans('|')
+					.Select (span => (textWithMarkers.Text.Substring(span.Start, span.Length), span.Start, span.Length, ReferenceUsage.Read))
+					.ToArray ()
 			);
 		}
 	}

@@ -370,20 +370,20 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					return;
 				case MSBuildValueKind.Lcid:
-					if (CultureHelper.TryGetLcidSymbol (value, out ISymbol? lcidSymbol)) {
+					if (CultureHelper.TryGetLcidSymbol (value, out ITypedSymbol? lcidSymbol)) {
 						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 						rr.Reference = lcidSymbol;
 					}
 					break;
 				case MSBuildValueKind.Culture:
-					if (CultureHelper.TryGetCultureSymbol (value, out ISymbol? cultureSymbol)) {
+					if (CultureHelper.TryGetCultureSymbol (value, out ITypedSymbol? cultureSymbol)) {
 						rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 						rr.Reference = cultureSymbol;
 					}
 					return;
 				}
 
-				if (Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ISymbol? knownValue, out _)) {
+				if (Document.GetSchemas (true).TryGetKnownValue (valueSymbol, value, out ITypedSymbol? knownValue, out _)) {
 					rr.ReferenceKind = MSBuildReferenceKind.KnownValue;
 					rr.Reference = knownValue;
 					return;
