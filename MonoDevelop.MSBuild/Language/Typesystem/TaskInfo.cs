@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public class TaskInfo : BaseSymbol, IDeprecatable
+	public class TaskInfo : BaseSymbol, IDeprecatable, ITypedSymbol
 	{
 		public Dictionary<string, TaskParameterInfo> Parameters { get; }
 
@@ -46,6 +46,10 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public int DeclaredAtOffset  { get; }
 
 		public string? DeprecationMessage { get; }
+
+		public MSBuildValueKind ValueKind => MSBuildValueKind.Nothing;
+
+		public CustomTypeInfo? CustomType => null;
 
 		// TODO: check for invalid chars in name and namespace
 		internal static bool ValidateTaskName (string fullTaskName, out string taskName, out string taskNamespace)

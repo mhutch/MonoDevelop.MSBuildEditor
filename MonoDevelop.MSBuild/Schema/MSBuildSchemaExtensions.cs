@@ -289,7 +289,7 @@ namespace MonoDevelop.MSBuild.Schema
 				case MSBuildSyntaxKind.Property:
 					return schemas.GetProperty (elementName, false);
 				case MSBuildSyntaxKind.Task:
-					return null;
+					return schemas.GetTask (elementName);
 				case MSBuildSyntaxKind.Parameter:
 					if (omitEmpty) {
 						return null;
