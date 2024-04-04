@@ -125,12 +125,12 @@ namespace MonoDevelop.MSBuild.Language
 			bool IsIn (int start, int length) => offset >= start && offset <= (start + length);
 			bool IsIn (TextSpan span) => span.ContainsOuter (offset);
 
-			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSymbol, ITypedSymbol valueSymbol)
+			protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSyntax, ITypedSymbol elementSymbol)
 			{
 				var start = element.NameOffset;
 
 				if (!element.Name.IsValid) {
-					base.VisitResolvedElement (element, elementSymbol, valueSymbol);
+					base.VisitResolvedElement (element, elementSyntax, elementSymbol);
 					return;
 				}
 
@@ -138,7 +138,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (element.ClosingTag is XClosingTag ct && IsIn (ct.NameSpan)) {
 						start = ct.NameSpan.Start;
 					} else {
-						base.VisitResolvedElement (element, elementSymbol, valueSymbol);
+						base.VisitResolvedElement (element, elementSyntax, elementSymbol);
 						return;
 					}
 				}
@@ -147,7 +147,11 @@ namespace MonoDevelop.MSBuild.Language
 				rr.ReferenceOffset = start;
 				rr.Reference = elementName;
 				rr.ReferenceLength = elementName.Length;
-				switch (elementSymbol.SyntaxKind) {
+
+				rr.ElementSyntax = elementSyntax;
+				rr.ElementSymbol = elementSymbol;
+
+				switch (elementSyntax.SyntaxKind) {
 				case MSBuildSyntaxKind.Item:
 				case MSBuildSyntaxKind.ItemDefinition:
 					rr.ReferenceKind = MSBuildReferenceKind.Item;
@@ -171,9 +175,9 @@ namespace MonoDevelop.MSBuild.Language
 					rr.ReferenceKind = MSBuildReferenceKind.Property;
 					return;
 				default:
-					if (!elementSymbol.IsAbstract) {
+					if (!elementSyntax.IsAbstract) {
 						rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-						rr.Reference = elementSymbol;
+						rr.Reference = elementSyntax;
 					}
 					return;
 				}
@@ -181,18 +185,21 @@ namespace MonoDevelop.MSBuild.Language
 
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
-				MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol, ITypedSymbol valueSymbol)
+				MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 			{
 				if (!attribute.Span.Contains (offset)) {
 					return;
 				}
 
-				rr.AttributeSyntax = attributeSymbol;
+				rr.ElementSyntax = elementSyntax;
+				rr.AttributeSyntax = attributeSyntax;
+				rr.ElementSymbol = elementSymbol;
+				rr.AttributeSymbol = attributeSymbol;
 
 				if (attribute.Name.IsValid && attribute.NameSpan.Contains (offset)) {
 					rr.ReferenceOffset = attribute.Span.Start;
 					rr.ReferenceLength = attribute.Name.Name.Length;
-					switch (attributeSymbol.AbstractKind) {
+					switch (attributeSyntax.AbstractKind) {
 					case MSBuildSyntaxKind.Metadata:
 						rr.ReferenceKind = MSBuildReferenceKind.Metadata;
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
@@ -202,23 +209,26 @@ namespace MonoDevelop.MSBuild.Language
 						rr.Reference = (element.Name.Name, attribute.Name.Name);
 						break;
 					default:
-						if (!attributeSymbol.IsAbstract) {
+						if (!attributeSyntax.IsAbstract) {
 							rr.ReferenceKind = MSBuildReferenceKind.Keyword;
-							rr.Reference = attributeSymbol;
+							rr.Reference = attributeSyntax;
 						}
 						break;
 					}
 					return;
 				}
 
-				base.VisitResolvedAttribute (element, attribute, elementSymbol, attributeSymbol, valueSymbol);
+				base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
 			}
 
 			protected override void VisitValue (
 				XElement element, XAttribute? attribute,
-				MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax? attributeSymbol,
-				ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
+				MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax? attributeSyntax,
+				ITypedSymbol elementSymbol, ITypedSymbol? attributeSymbol,
+				string expressionText, ExpressionNode node)
 			{
+				var valueSymbol = attributeSymbol ?? elementSymbol;
+
 				var nodeAtOffset = node.Find (offset);
 				switch (nodeAtOffset) {
 				case ExpressionItemName ei:
@@ -314,6 +324,13 @@ namespace MonoDevelop.MSBuild.Language
 					}
 					break;
 				}
+
+				if (rr.ReferenceKind != MSBuildReferenceKind.None) {
+					rr.ElementSyntax = elementSyntax;
+					rr.AttributeSyntax = attributeSyntax;
+					rr.ElementSymbol = elementSymbol;
+					rr.AttributeSymbol = attributeSymbol;
+				}
 			}
 
 			void VisitPureLiteral (XElement element, ITypedSymbol valueSymbol, MSBuildValueKind kindWithoutModifiers, ExpressionText node)
@@ -407,6 +424,9 @@ namespace MonoDevelop.MSBuild.Language
 
 			public MSBuildElementSyntax? ElementSyntax;
 			public MSBuildAttributeSyntax? AttributeSyntax;
+
+			public ITypedSymbol? ElementSymbol;
+			public ITypedSymbol? AttributeSymbol;
 
 			public MSBuildResolveResult AsImmutable () => new (this);
 		}
