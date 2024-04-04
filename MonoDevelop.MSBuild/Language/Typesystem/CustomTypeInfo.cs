@@ -10,7 +10,10 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 {
 	public sealed class CustomTypeInfo
 	{
-		public CustomTypeInfo (IReadOnlyList<CustomTypeValue> values, string? name = null, DisplayText description = default, bool allowUnknownValues = false, MSBuildValueKind baseKind = MSBuildValueKind.Unknown, bool caseSensitive = false, ImmutableDictionary<string, object>? analyzerHints = null)
+		public CustomTypeInfo (
+			IReadOnlyList<CustomTypeValue> values, string? name = null, DisplayText description = default, bool allowUnknownValues = false,
+			MSBuildValueKind baseKind = MSBuildValueKind.Unknown, bool caseSensitive = false,
+			ImmutableDictionary<string, object>? analyzerHints = null, string? helpUrl = null)
         {
 			Values = values ?? throw new ArgumentNullException (nameof (values));
 			Name = name;
@@ -19,6 +22,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			BaseKind = baseKind;
 			CaseSensitive = caseSensitive;
 			AnalyzerHints = analyzerHints ?? ImmutableDictionary<string, object>.Empty;
+			HelpUrl = helpUrl;
 
 			foreach (var v in values) {
 				v.SetParent (this);
@@ -41,5 +45,10 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// Custom annotations that may affect analyzers etc. e.g. GuidFormat="B"
 		/// </summary>
 		public ImmutableDictionary<string,object> AnalyzerHints { get; }
+
+		/// <summary>
+		/// Help URL to be used for all values of this type.
+		/// </summary>
+		public string? HelpUrl { get; }
 	}
 }
