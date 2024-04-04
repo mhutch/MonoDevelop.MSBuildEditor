@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-conditions.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/msbuild-conditions.
         /// </summary>
         internal static string Attribute_Condition {
             get {
@@ -70,7 +70,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/how-to-exclude-files-from-the-build.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/how-to-exclude-files-from-the-build.
         /// </summary>
         internal static string Attribute_Item_Exclude {
             get {
@@ -79,7 +79,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/how-to-select-the-files-to-build.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/how-to-select-the-files-to-build.
         /// </summary>
         internal static string Attribute_Item_Include {
             get {
@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/choose-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/choose-element-msbuild.
         /// </summary>
         internal static string Element_Choose {
             get {
@@ -97,7 +97,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/import-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/import-element-msbuild.
         /// </summary>
         internal static string Element_Import {
             get {
@@ -106,7 +106,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/importgroup-element.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/importgroup-element.
         /// </summary>
         internal static string Element_ImportGroup {
             get {
@@ -115,7 +115,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/item-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/item-element-msbuild.
         /// </summary>
         internal static string Element_Item {
             get {
@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/itemdefinitiongroup-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/itemdefinitiongroup-element-msbuild.
         /// </summary>
         internal static string Element_ItemDefinitionGroup {
             get {
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/itemgroup-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/itemgroup-element-msbuild.
         /// </summary>
         internal static string Element_ItemGroup {
             get {
@@ -142,7 +142,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/itemmetadata-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/itemmetadata-element-msbuild.
         /// </summary>
         internal static string Element_Metadata {
             get {
@@ -151,7 +151,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/onerror-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/onerror-element-msbuild.
         /// </summary>
         internal static string Element_OnError {
             get {
@@ -160,7 +160,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/otherwise-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/otherwise-element-msbuild.
         /// </summary>
         internal static string Element_Otherwise {
             get {
@@ -169,7 +169,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/output-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/output-element-msbuild.
         /// </summary>
         internal static string Element_Output {
             get {
@@ -178,7 +178,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/parameter-element.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/parameter-element.
         /// </summary>
         internal static string Element_Parameter {
             get {
@@ -187,7 +187,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/parametergroup-element.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/parametergroup-element.
         /// </summary>
         internal static string Element_ParameterGroup {
             get {
@@ -196,7 +196,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/project-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/project-element-msbuild.
         /// </summary>
         internal static string Element_Project {
             get {
@@ -205,7 +205,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/projectextensions-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/projectextensions-element-msbuild.
         /// </summary>
         internal static string Element_ProjectExtensions {
             get {
@@ -214,7 +214,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/property-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/property-element-msbuild.
         /// </summary>
         internal static string Element_Property {
             get {
@@ -223,7 +223,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/propertygroup-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/propertygroup-element-msbuild.
         /// </summary>
         internal static string Element_PropertyGroup {
             get {
@@ -232,7 +232,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/sdk-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/sdk-element-msbuild.
         /// </summary>
         internal static string Element_Sdk {
             get {
@@ -241,7 +241,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/target-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/target-element-msbuild.
         /// </summary>
         internal static string Element_Target {
             get {
@@ -250,7 +250,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/task-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/task-element-msbuild.
         /// </summary>
         internal static string Element_Task {
             get {
@@ -259,7 +259,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/taskbody-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/taskbody-element-msbuild.
         /// </summary>
         internal static string Element_TaskBody {
             get {
@@ -268,7 +268,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/usingtask-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/usingtask-element-msbuild.
         /// </summary>
         internal static string Element_UsingTask {
             get {
@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://learn.microsoft.com/en-us/visualstudio/msbuild/when-element-msbuild.
+        ///   Looks up a localized string similar to https://learn.microsoft.com/visualstudio/msbuild/when-element-msbuild.
         /// </summary>
         internal static string Element_When {
             get {
