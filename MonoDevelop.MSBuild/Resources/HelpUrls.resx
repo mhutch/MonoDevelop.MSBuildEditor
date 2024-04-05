@@ -136,6 +136,9 @@
     <value>https://learn.microsoft.com/visualstudio/msbuild/importgroup-element</value>
     <comment>no "-msbuild" suffix</comment>
   </data>
+  <data name="Element_Import_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/import-element-msbuild#attributes</value>
+  </data>
   <data name="Element_Item" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/item-element-msbuild</value>
   </data>
@@ -145,6 +148,12 @@
   <data name="Element_ItemGroup" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/itemgroup-element-msbuild</value>
   </data>
+  <data name="Element_ItemGroup_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/itemgroup-element-msbuild#attributes</value>
+  </data>
+  <data name="Element_Item_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/item-element-msbuild#attributes</value>
+  </data>
   <data name="Element_Metadata" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/itemmetadata-element-msbuild</value>
     <comment>itemmetadata" not "metadata"</comment>
@@ -152,11 +161,17 @@
   <data name="Element_OnError" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/onerror-element-msbuild</value>
   </data>
+  <data name="Element_OnError_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/onerror-element-msbuild#attributes</value>
+  </data>
   <data name="Element_Otherwise" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/otherwise-element-msbuild</value>
   </data>
   <data name="Element_Output" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/output-element-msbuild</value>
+  </data>
+  <data name="Element_Output_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/output-element-msbuild#attributes</value>
   </data>
   <data name="Element_Parameter" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/parameter-element</value>
@@ -166,11 +181,17 @@
     <value>https://learn.microsoft.com/visualstudio/msbuild/parametergroup-element</value>
     <comment>no "-msbuild" suffix</comment>
   </data>
+  <data name="Element_Parameter_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/parameter-element#attributes</value>
+  </data>
   <data name="Element_Project" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/project-element-msbuild</value>
   </data>
   <data name="Element_ProjectExtensions" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/projectextensions-element-msbuild</value>
+  </data>
+  <data name="Element_Project_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/project-element-msbuild#attributes</value>
   </data>
   <data name="Element_Property" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/property-element-msbuild</value>
@@ -181,8 +202,14 @@
   <data name="Element_Sdk" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/sdk-element-msbuild</value>
   </data>
+  <data name="Element_Sdk_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/sdk-element-msbuild#attributes</value>
+  </data>
   <data name="Element_Target" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/target-element-msbuild</value>
+  </data>
+  <data name="Element_Target_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/target-element-msbuild#attributes</value>
   </data>
   <data name="Element_Task" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/task-element-msbuild</value>
@@ -190,8 +217,17 @@
   <data name="Element_TaskBody" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/taskbody-element-msbuild</value>
   </data>
+  <data name="Element_TaskBody_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/taskbody-element-msbuild#attributes</value>
+  </data>
+  <data name="Element_Task_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/task-element-msbuild#attributes</value>
+  </data>
   <data name="Element_UsingTask" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/usingtask-element-msbuild</value>
+  </data>
+  <data name="Element_UsingTask_Attributes" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/usingtask-element-msbuild#attributes</value>
   </data>
   <data name="Element_When" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/when-element-msbuild</value>

@@ -25,15 +25,21 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		public MSBuildElementSyntax AbstractChild { get; private set; }
 		public MSBuildAttributeSyntax AbstractAttribute { get; private set; }
 
+		/// <summary>
+		/// Help URL for attributes of this element that do not define their own help URL
+		/// </summary>
+		public string? AttributesHelpUrl { get; }
+
 		MSBuildElementSyntax (
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
 			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
 			CustomTypeInfo? customType = null,
-			bool isAbstract = false, string deprecationMessage = null, string helpUrl = null)
+			bool isAbstract = false, string deprecationMessage = null, string helpUrl = null, string attributesHelpUrl = null)
 			: base (name, description, valueKind, customType, deprecationMessage, helpUrl)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;
+			AttributesHelpUrl = attributesHelpUrl;
 		}
 
 		public bool HasChild (string name)
@@ -149,9 +155,10 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		static readonly Dictionary<string, MSBuildElementSyntax> builtin = new (StringComparer.OrdinalIgnoreCase);
 
-		static MSBuildElementSyntax AddBuiltin (string name, string description, MSBuildSyntaxKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false, string? helpUrl = null)
+		static MSBuildElementSyntax AddBuiltin (string name, string description, MSBuildSyntaxKind kind, MSBuildValueKind valueKind = MSBuildValueKind.Nothing, bool isAbstract = false,
+			string? helpUrl = null, string? attributesHelpUrl = null)
 		{
-			var el = new MSBuildElementSyntax (name, description, kind, valueKind, isAbstract: isAbstract, helpUrl: helpUrl);
+			var el = new MSBuildElementSyntax (name, description, kind, valueKind, isAbstract: isAbstract, helpUrl: helpUrl, attributesHelpUrl: attributesHelpUrl);
 			builtin.Add (el.Name, el);
 			return el;
 		}
@@ -184,27 +191,27 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		static MSBuildElementSyntax ()
 		{
 			Choose = AddBuiltin ("Choose", ElementDescriptions.Choose, MSBuildSyntaxKind.Choose, helpUrl: HelpUrls.Element_Choose);
-			Import = AddBuiltin ("Import", ElementDescriptions.Import, MSBuildSyntaxKind.Import, helpUrl: HelpUrls.Element_Import);
+			Import = AddBuiltin ("Import", ElementDescriptions.Import, MSBuildSyntaxKind.Import, helpUrl: HelpUrls.Element_Import, attributesHelpUrl: HelpUrls.Element_Import_Attributes);
 			ImportGroup = AddBuiltin ("ImportGroup", ElementDescriptions.ImportGroup, MSBuildSyntaxKind.ImportGroup, helpUrl: HelpUrls.Element_ImportGroup);
-			Item = AddBuiltin ("Item", ElementDescriptions.Item, MSBuildSyntaxKind.Item, isAbstract: true, helpUrl: HelpUrls.Element_Item);
+			Item = AddBuiltin ("Item", ElementDescriptions.Item, MSBuildSyntaxKind.Item, isAbstract: true, helpUrl: HelpUrls.Element_Item, attributesHelpUrl: HelpUrls.Element_Item_Attributes);
 			ItemDefinition = AddBuiltin ("ItemDefinition", ElementDescriptions.ItemDefinition, MSBuildSyntaxKind.ItemDefinition, isAbstract: true); // docs don't treat this as distinct from Item in ItemGroup
 			ItemDefinitionGroup = AddBuiltin ("ItemDefinitionGroup", ElementDescriptions.ItemDefinitionGroup, MSBuildSyntaxKind.ItemDefinitionGroup, helpUrl: HelpUrls.Element_ItemDefinitionGroup);
-			ItemGroup = AddBuiltin ("ItemGroup", ElementDescriptions.ItemGroup, MSBuildSyntaxKind.ItemGroup, helpUrl: HelpUrls.Element_ItemGroup);
+			ItemGroup = AddBuiltin ("ItemGroup", ElementDescriptions.ItemGroup, MSBuildSyntaxKind.ItemGroup, helpUrl: HelpUrls.Element_ItemGroup, attributesHelpUrl: HelpUrls.Element_ItemGroup_Attributes);
 			Metadata = AddBuiltin ("Metadata", ElementDescriptions.Metadata, MSBuildSyntaxKind.Metadata, MSBuildValueKind.Unknown, isAbstract: true, helpUrl: HelpUrls.Element_Metadata);
-			OnError = AddBuiltin ("OnError", ElementDescriptions.OnError, MSBuildSyntaxKind.OnError, helpUrl: HelpUrls.Element_OnError);
+			OnError = AddBuiltin ("OnError", ElementDescriptions.OnError, MSBuildSyntaxKind.OnError, helpUrl: HelpUrls.Element_OnError, attributesHelpUrl: HelpUrls.Element_OnError_Attributes);
 			Otherwise = AddBuiltin ("Otherwise", ElementDescriptions.Otherwise, MSBuildSyntaxKind.Otherwise, helpUrl: HelpUrls.Element_Otherwise);
-			Output = AddBuiltin ("Output", ElementDescriptions.Output, MSBuildSyntaxKind.Output, helpUrl: HelpUrls.Element_Output);
-			Parameter = AddBuiltin ("Parameter", ElementDescriptions.Parameter, MSBuildSyntaxKind.Parameter, isAbstract: true, helpUrl: HelpUrls.Element_Parameter);
+			Output = AddBuiltin ("Output", ElementDescriptions.Output, MSBuildSyntaxKind.Output, helpUrl: HelpUrls.Element_Output, attributesHelpUrl: HelpUrls.Element_Output_Attributes);
+			Parameter = AddBuiltin ("Parameter", ElementDescriptions.Parameter, MSBuildSyntaxKind.Parameter, isAbstract: true, helpUrl: HelpUrls.Element_Parameter, attributesHelpUrl: HelpUrls.Element_Parameter_Attributes);
 			ParameterGroup = AddBuiltin ("ParameterGroup", ElementDescriptions.ParameterGroup, MSBuildSyntaxKind.ParameterGroup, helpUrl: HelpUrls.Element_ParameterGroup);
-			Project = AddBuiltin ("Project", ElementDescriptions.Project, MSBuildSyntaxKind.Project, helpUrl: HelpUrls.Element_Project);
+			Project = AddBuiltin ("Project", ElementDescriptions.Project, MSBuildSyntaxKind.Project, helpUrl: HelpUrls.Element_Project, attributesHelpUrl: HelpUrls.Element_Project_Attributes);
 			ProjectExtensions = AddBuiltin ("ProjectExtensions", ElementDescriptions.ProjectExtensions, MSBuildSyntaxKind.ProjectExtensions, MSBuildValueKind.Data, helpUrl: HelpUrls.Element_ProjectExtensions);
 			Property = AddBuiltin ("Property", ElementDescriptions.Property, MSBuildSyntaxKind.Property, MSBuildValueKind.Unknown, isAbstract: true, helpUrl: HelpUrls.Element_Property);
 			PropertyGroup = AddBuiltin ("PropertyGroup", ElementDescriptions.PropertyGroup, MSBuildSyntaxKind.PropertyGroup, helpUrl: HelpUrls.Element_PropertyGroup);
-			Sdk = AddBuiltin ("Sdk", ElementDescriptions.Sdk, MSBuildSyntaxKind.Sdk, helpUrl: HelpUrls.Element_Sdk);
-			Target = AddBuiltin ("Target", ElementDescriptions.Target, MSBuildSyntaxKind.Target, helpUrl: HelpUrls.Element_Target);
-			Task = AddBuiltin ("AbstractTask", ElementDescriptions.Task, MSBuildSyntaxKind.Task, isAbstract:true, helpUrl: HelpUrls.Element_Task);
-			TaskBody = AddBuiltin ("Task", ElementDescriptions.TaskBody, MSBuildSyntaxKind.TaskBody, helpUrl: HelpUrls.Element_TaskBody);
-			UsingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildSyntaxKind.UsingTask, helpUrl: HelpUrls.Element_UsingTask);
+			Sdk = AddBuiltin ("Sdk", ElementDescriptions.Sdk, MSBuildSyntaxKind.Sdk, helpUrl: HelpUrls.Element_Sdk, attributesHelpUrl: HelpUrls.Element_Sdk_Attributes);
+			Target = AddBuiltin ("Target", ElementDescriptions.Target, MSBuildSyntaxKind.Target, helpUrl: HelpUrls.Element_Target, attributesHelpUrl: HelpUrls.Element_Target_Attributes);
+			Task = AddBuiltin ("AbstractTask", ElementDescriptions.Task, MSBuildSyntaxKind.Task, isAbstract:true, helpUrl: HelpUrls.Element_Task, attributesHelpUrl: HelpUrls.Element_Task_Attributes);
+			TaskBody = AddBuiltin ("Task", ElementDescriptions.TaskBody, MSBuildSyntaxKind.TaskBody, helpUrl: HelpUrls.Element_TaskBody, attributesHelpUrl: HelpUrls.Element_TaskBody_Attributes);
+			UsingTask = AddBuiltin ("UsingTask", ElementDescriptions.UsingTask, MSBuildSyntaxKind.UsingTask, helpUrl: HelpUrls.Element_UsingTask, attributesHelpUrl: HelpUrls.Element_UsingTask_Attributes);
 			When = AddBuiltin ("When", ElementDescriptions.When, MSBuildSyntaxKind.When, helpUrl: HelpUrls.Element_When);
 
 			Choose.children = [Otherwise, When];
