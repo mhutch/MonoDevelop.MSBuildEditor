@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	public class TaskInfo : BaseSymbol, IDeprecatable, ITypedSymbol, IHasHelpUrl
+	public class TaskInfo : BaseSymbol, IVersionableSymbol, ITypedSymbol, IHasHelpUrl
 	{
 		Dictionary<string, TaskParameterInfo> parameters;
 
@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// All other kinds of task
 		/// </summary>
 		public TaskInfo (string name, DisplayText description, TaskDeclarationKind declarationKind, string? typeName, string? assemblyName, string? assemblyFile, string? declaredInFile, int declaredAtOffset,
-			string? deprecationMessage, Dictionary<string, TaskParameterInfo>? parameters = null, string? helpUrl = null, string? parametersHelpUrl = null
+			SymbolVersionInfo? versionInfo, Dictionary<string, TaskParameterInfo>? parameters = null, string? helpUrl = null, string? parametersHelpUrl = null
 			)
 			: base (name, description)
 		{
@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			AssemblyFile = assemblyFile;
 			DeclaredInFile = declaredInFile;
 			DeclaredAtOffset = declaredAtOffset;
-			DeprecationMessage = deprecationMessage;
+			VersionInfo = versionInfo;
 			this.parameters = parameters ?? new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
 			HelpUrl = helpUrl;
 			ParametersHelpUrl = parametersHelpUrl;
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public string? DeclaredInFile { get; }
 		public int DeclaredAtOffset { get; }
 
-		public string? DeprecationMessage { get; }
+		public SymbolVersionInfo? VersionInfo { get; }
 
 		public MSBuildValueKind ValueKind => MSBuildValueKind.Nothing;
 
@@ -133,8 +133,8 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 
 		public TaskParameterInfo (
 			string name, DisplayText description, bool isRequired,
-			bool isOutput, MSBuildValueKind kind, string deprecationMessage = null, string? helpUrl = null)
-			: base (name, description, kind, null, null, deprecationMessage)
+			bool isOutput, MSBuildValueKind kind, SymbolVersionInfo? versionInfo = null, string? helpUrl = null)
+			: base (name, description, kind, null, null, versionInfo)
 		{
 			IsOutput = isOutput;
 			IsRequired = isRequired;

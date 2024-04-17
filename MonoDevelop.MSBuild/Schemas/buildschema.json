@@ -73,6 +73,7 @@
               "default": false
             },
             "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "versionInfo": { "$ref": "#/definitions/versionInfo" },
             "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
@@ -114,6 +115,7 @@
               "default": false
             },
             "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "versionInfo": { "$ref": "#/definitions/versionInfo" },
             "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
@@ -144,6 +146,7 @@
               "type": "boolean"
             },
             "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "versionInfo": { "$ref": "#/definitions/versionInfo" },
             "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
@@ -164,6 +167,7 @@
               "description": "Description of the target"
             },
             "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "versionInfo": { "$ref": "#/definitions/versionInfo" },
             "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
@@ -265,6 +269,7 @@
                     "description": "Description of the value"
                   },
                   "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+                  "versionInfo": { "$ref": "#/definitions/versionInfo" },
                   "helpUrl": { "$ref": "#/definitions/helpUrl" },
                   "aliases": {
                     "type": "array",
@@ -474,11 +479,48 @@
       "description": "Indicates that the symbol is deprecated and explains why.",
       "minLength": 1
     },
+    "versionInfo": {
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/definitions/versionKind" },
+        "introduced": {
+          "type": "string",
+          "description": "The version in which this symbol was introduced. Depending on the value of `versionKind`, this version may refer to MSBuild, the .NET SDK, or a NuGet package."
+        },
+        "deprecated": {
+          "type": "string",
+          "description": "The version in which this symbol was deprecated. Only valid when `deprecationMessage` is set. Depending on the value of `versionKind`, this version may refer to MSBuild, the .NET SDK, or a NuGet package."
+        },
+        "ignored": {
+          "type": "boolean",
+          "description": "If the symbol is deprecated, indicates that it is ignored and assignments may be removed safely."
+        }
+      },
+      "additionalProperties": false
+    },
     "helpUrl": {
       "type": "string",
       "description": "Documentation link to be displayed in UI.",
       "minLength": 1,
       "format": "uri"
+    },
+    "versionKind": {
+      "description": "Explicitly specify what the `since` and `deprecated` versions refer to. A default value is inferred e.g. schemas in the .NET SDK directory default to `DotNetSdk`, and schemas in the MSBuild `bin` directory or bundled with editor default to `MSBuild`.",
+      "type": "string",
+      "anyOf": [
+        {
+          "const": "MSBuild",
+          "description": "The symbol was deprecated or introduced in a specific version of MSBuild"
+        },
+        {
+          "const": "DotNetSdk",
+          "description": "The symbol was deprecated or introduced in a specific version of the .NET SDK"
+        },
+        {
+          "const": "NuGetPackage",
+          "description": "The symbol was deprecated or introduced in a specific version of a NuGet package"
+        }
+      ]
     }
   }
 }

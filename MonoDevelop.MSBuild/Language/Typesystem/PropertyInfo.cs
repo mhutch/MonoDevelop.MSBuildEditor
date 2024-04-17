@@ -15,9 +15,9 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			string name, DisplayText description,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			CustomTypeInfo? customType = null, string? defaultValue = null,
-			string? deprecationMessage = null,
+			SymbolVersionInfo? versionInfo = null,
 			string? helpUrl = null)
-			: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
+			: base (name, description, valueKind, customType, defaultValue, versionInfo)
 		{
 			HelpUrl = helpUrl;
 		}
@@ -27,9 +27,9 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			bool isReserved, bool isReadOnly,
 			MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 			CustomTypeInfo? customType = null, string? defaultValue = null,
-			string? deprecationMessage = null,
+			SymbolVersionInfo? versionInfo = null,
 			string? helpUrl = null)
-			: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
+			: base (name, description, valueKind, customType, defaultValue, versionInfo)
 		{
 			IsReserved = isReserved;
 			IsReadOnly = isReadOnly;

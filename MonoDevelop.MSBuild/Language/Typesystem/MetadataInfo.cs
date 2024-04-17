@@ -14,9 +14,9 @@ public class MetadataInfo : VariableInfo, IHasHelpUrl
 		bool reserved = false, bool required = false, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 		ItemInfo? item = null, CustomTypeInfo? customType = null,
 		string? defaultValue = null,
-		string? deprecationMessage = null,
+		SymbolVersionInfo? versionInfo = null,
 		string? helpUrl = null)
-		: base (name, description, valueKind, customType, defaultValue, deprecationMessage)
+		: base (name, description, valueKind, customType, defaultValue, versionInfo)
 	{
 		Item = item;
 		Required = required;

@@ -14,25 +14,24 @@ public static class MSBuildSymbolExtensions
 
 	public static bool HasDescription (this ISymbol symbol) => !symbol.Description.IsEmpty;
 
-	public static bool IsDeprecated (this IDeprecatable symbol) => !string.IsNullOrEmpty (symbol.DeprecationMessage);
+	public static bool IsDeprecated (this IVersionableSymbol symbol) => symbol.VersionInfo?.IsDeprecated ?? false;
 
-	public static bool IsDeprecated (this IDeprecatable symbol, [NotNullWhen (true)] out string? deprecationMessage)
+	public static bool IsDeprecated (this IVersionableSymbol symbol, [NotNullWhen (true)] out string? deprecationMessage)
 	{
-		if (IsDeprecated (symbol)) {
-			deprecationMessage = symbol.DeprecationMessage;
+		if (symbol.VersionInfo is SymbolVersionInfo versionInfo && versionInfo.IsDeprecated) {
+			deprecationMessage = versionInfo.DeprecationMessage;
 			return true;
 		}
 		deprecationMessage = null;
 		return false;
 	}
 
-	public static bool IsDeprecated (this ISymbol symbol) => symbol is IDeprecatable deprecatable && deprecatable.IsDeprecated ();
+	public static bool IsDeprecated (this ISymbol symbol) => symbol is IVersionableSymbol versionableSymbol && versionableSymbol.IsDeprecated ();
 
 	public static bool IsDeprecated (this ISymbol symbol, [NotNullWhen (true)] out string? deprecationMessage)
 	{
-		if (symbol is IDeprecatable deprecatable && deprecatable.IsDeprecated ()) {
-			deprecationMessage = deprecatable.DeprecationMessage;
-			return true;
+		if (symbol is IVersionableSymbol versionableSymbol) {
+			return versionableSymbol.IsDeprecated (out deprecationMessage);
 		}
 		deprecationMessage = null;
 		return false;

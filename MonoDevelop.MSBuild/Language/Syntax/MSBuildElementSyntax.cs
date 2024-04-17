@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Language.Syntax
@@ -34,8 +35,8 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind,
 			MSBuildValueKind valueKind = MSBuildValueKind.Nothing,
 			CustomTypeInfo? customType = null,
-			bool isAbstract = false, string deprecationMessage = null, string helpUrl = null, string attributesHelpUrl = null)
-			: base (name, description, valueKind, customType, deprecationMessage, helpUrl)
+			bool isAbstract = false, SymbolVersionInfo? versionInfo = null, string helpUrl = null, string? attributesHelpUrl = null)
+			: base (name, description, valueKind, customType, versionInfo, helpUrl)
 		{
 			SyntaxKind = syntaxKind;
 			IsAbstract = isAbstract;
@@ -275,7 +276,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 				new (Project, "InitialTargets", ElementDescriptions.Project_InitialTargets, MSBuildSyntaxKind.Project_InitialTargets, MSBuildValueKind.TargetName.AsList ().AsLiteral (),
 					helpUrl: "https://learn.microsoft.com/en-us/visualstudio/msbuild/target-build-order#initial-targets"
 				),
-				new (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), deprecationMessage: "Ignored in modern MSBuild projects"),
+				new (Project, "ToolsVersion", ElementDescriptions.Project_ToolsVersion, MSBuildSyntaxKind.Project_ToolsVersion, MSBuildValueKind.ToolsVersion.AsLiteral (), versionInfo: MSBuildIntrinsics.ToolsVersionDeprecatedInfo, helpUrl: HelpUrls.Element_Project_ToolsVersion),
 				new (Project, "TreatAsLocalProperty", ElementDescriptions.Project_TreatAsLocalProperty, MSBuildSyntaxKind.Project_TreatAsLocalProperty, MSBuildValueKind.PropertyName.AsList ().AsLiteral ()),
 				new (Project, "xmlns", ElementDescriptions.Project_xmlns, MSBuildSyntaxKind.Project_xmlns, MSBuildValueKind.Xmlns.AsLiteral ()),
 				new (Project, "Sdk", ElementDescriptions.Project_Sdk, MSBuildSyntaxKind.Project_Sdk, MSBuildValueKind.SdkWithVersion.AsList().AsLiteral ()),

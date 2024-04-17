@@ -3,9 +3,11 @@
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
-public class TargetInfo (string name, DisplayText description, string? deprecationMessage = null, string? helpUrl = null)
-	: BaseSymbol(name, description), IDeprecatable, IHasHelpUrl
+public class TargetInfo (
+	string name, DisplayText description, SymbolVersionInfo? versionInfo = null, string? helpUrl = null
+	)
+	: BaseSymbol(name, description), IVersionableSymbol, IHasHelpUrl
 {
-	public string? DeprecationMessage { get; } = deprecationMessage;
+	public SymbolVersionInfo? VersionInfo { get; } = versionInfo;
 	public string? HelpUrl { get; } = helpUrl;
 }

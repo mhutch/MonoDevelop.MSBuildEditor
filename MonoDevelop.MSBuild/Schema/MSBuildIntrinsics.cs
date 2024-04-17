@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 using ReservedPropertyNames = Microsoft.Build.Internal.ReservedPropertyNames;
@@ -22,11 +23,17 @@ namespace MonoDevelop.MSBuild.Schema
 			Metadata.Add (name, new MetadataInfo (name, description, !notReserved, false, kind, helpUrl: HelpUrls.WellKnownMetadata));
 		}
 
-		static void AddReservedProperty (string name, string description, MSBuildValueKind kind, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, true, true, kind, helpUrl: helpUrl));
-		static void AddReadOnlyProperty (string name, string description, MSBuildValueKind kind, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, false, true, kind, helpUrl: helpUrl));
-		static void AddSettableProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, string helpUrl = null) => Properties.Add (name, new PropertyInfo (name, description, false, false, kind, helpUrl: helpUrl));
+		static void AddReservedProperty (string name, string description, MSBuildValueKind kind, SymbolVersionInfo? versionInfo = null, string? helpUrl = null)
+			=> Properties.Add (name, new PropertyInfo (name, description, true, true, kind, versionInfo: versionInfo, helpUrl: helpUrl));
+
+		static void AddReadOnlyProperty (string name, string description, MSBuildValueKind kind, SymbolVersionInfo? versionInfo = null, string? helpUrl = null)
+				=> Properties.Add (name, new PropertyInfo (name, description, false, true, kind, versionInfo: versionInfo, helpUrl: helpUrl));
+		static void AddSettableProperty (string name, string description, MSBuildValueKind kind = MSBuildValueKind.Unknown, SymbolVersionInfo? versionInfo = null, string? helpUrl = null)
+			=> Properties.Add (name, new PropertyInfo (name, description, false, false, kind, versionInfo: versionInfo, helpUrl: helpUrl));
 
 		static void AddTask (TaskInfo task) => Tasks.Add (task.Name, task);
+
+		static internal SymbolVersionInfo ToolsVersionDeprecatedInfo => SymbolVersionInfo.Deprecated (16, 0, HelpDescriptions.ToolsVersion_Deprecated);
 
 		static MSBuildIntrinsics ()
 		{
@@ -46,16 +53,18 @@ namespace MonoDevelop.MSBuild.Schema
 			AddMetadata ("DefiningProjectName", HelpDescriptions.WellKnownMetadata_DefiningProjectName, MSBuildValueKind.Filename);
 			AddMetadata ("DefiningProjectExtension", HelpDescriptions.WellKnownMetadata_DefiningProjectExtension, MSBuildValueKind.Extension);
 
+			var introducedIn17_0 = SymbolVersionInfo.Introduced (17, 0);
+
 			// TODO: should we move these to a special-cased schema file?
 			// NOTE: the HelpUrl has only been added to properties that as on 4/5/2024 are known to be
 			// in https://learn.microsoft.com/visualstudio/msbuild/msbuild-reserved-and-well-known-properties
 			// or https://learn.microsoft.com/visualstudio/msbuild/common-msbuild-project-properties
 			AddReservedProperty (ReservedPropertyNames.binPath, HelpDescriptions.ReservedProperty_BinPath, MSBuildValueKind.Folder, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
 			AddReservedProperty (ReservedPropertyNames.toolsPath, HelpDescriptions.ReservedProperty_ToolsPath, MSBuildValueKind.Folder, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
-			AddReservedProperty (ReservedPropertyNames.toolsVersion, HelpDescriptions.ReservedProperty_ToolsVersion, MSBuildValueKind.ToolsVersion, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
+			AddReservedProperty (ReservedPropertyNames.toolsVersion, HelpDescriptions.ReservedProperty_ToolsVersion, MSBuildValueKind.ToolsVersion, ToolsVersionDeprecatedInfo, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
 			AddReservedProperty (ReservedPropertyNames.assemblyVersion, HelpDescriptions.ReservedProperty_AssemblyVersion, MSBuildValueKind.Version, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
-			AddReservedProperty (ReservedPropertyNames.fileVersion, HelpDescriptions.ReservedProperty_MSBuildFileVersion, MSBuildValueKind.Version, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
-			AddReservedProperty (ReservedPropertyNames.semanticVersion, HelpDescriptions.ReservedProperty_MSBuildSemanticVersion, MSBuildValueKind.VersionSuffixed, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
+			AddReservedProperty (ReservedPropertyNames.fileVersion, HelpDescriptions.ReservedProperty_MSBuildFileVersion, MSBuildValueKind.Version, introducedIn17_0, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
+			AddReservedProperty (ReservedPropertyNames.semanticVersion, HelpDescriptions.ReservedProperty_MSBuildSemanticVersion, MSBuildValueKind.VersionSuffixed, introducedIn17_0, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
 			AddReservedProperty (ReservedPropertyNames.startupDirectory, HelpDescriptions.ReservedProperty_StartupDirectory, MSBuildValueKind.Folder, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
 			AddReservedProperty (ReservedPropertyNames.buildNodeCount, HelpDescriptions.ReservedProperty_BuildNodeCount, MSBuildValueKind.Int, helpUrl: HelpUrls.ReservedAndWellKnownProperties);
 			AddReservedProperty (ReservedPropertyNames.lastTaskResult, HelpDescriptions.ReservedProperty_LastTaskResult, MSBuildValueKind.Bool, helpUrl: HelpUrls.ReservedAndWellKnownProperties);

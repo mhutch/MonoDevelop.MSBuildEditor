@@ -16,9 +16,9 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			string name, DisplayText description, MSBuildSyntaxKind syntaxKind, MSBuildValueKind valueKind,
 			CustomTypeInfo? customType = null,
 			bool required = false, MSBuildSyntaxKind? abstractKind = null,
-			string? deprecationMessage = null,
+			SymbolVersionInfo? versionInfo = null,
 			string? helpUrl = null)
-			: base (name, description, valueKind, customType, deprecationMessage, helpUrl)
+			: base (name, description, valueKind, customType, versionInfo, helpUrl)
 		{
 			SyntaxKind = syntaxKind;
 			Element = element;
