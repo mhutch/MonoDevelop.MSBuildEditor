@@ -339,4 +339,10 @@
   <data name="ConditionFunction_HasTrailingSlash_value" xml:space="preserve">
     <value>The string to check</value>
   </data>
+  <data name="ReservedProperty_MSBuildFileVersion" xml:space="preserve">
+    <value>The version of the MSBuild assemblies in use in the form `major.minor.revision.build`.</value>
+  </data>
+  <data name="ReservedProperty_MSBuildSemanticVersion" xml:space="preserve">
+    <value>The full version of the MSBuild assemblies in use in SemVer format.</value>
+  </data>
 </root>

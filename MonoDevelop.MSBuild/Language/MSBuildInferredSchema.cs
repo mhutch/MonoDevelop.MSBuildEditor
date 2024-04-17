@@ -297,7 +297,7 @@ namespace MonoDevelop.MSBuild.Language
 					return;
 				}
 			}
-			task.Parameters[parameterName] = new InferredTaskParameter (parameterName, false, isOutput, MSBuildValueKind.Unknown);
+			task.SetParameter(new InferredTaskParameter (parameterName, false, isOutput, MSBuildValueKind.Unknown));
 		}
 
 		class InferredTaskParameter (string parameterName, bool isRequired, bool isOutput, MSBuildValueKind kind)
@@ -349,7 +349,7 @@ namespace MonoDevelop.MSBuild.Language
 				kind = kind.AsList ();
 			}
 
-			task.Parameters.Add (parameterName, new InferredTaskParameter (parameterName, isRequired, isOutput, kind));
+			task.SetParameter (new InferredTaskParameter (parameterName, isRequired, isOutput, kind));
 		}
 
 		void CollectTaskDefinition (MSBuildUsingTaskElement element, MSBuildParserContext parseContext)

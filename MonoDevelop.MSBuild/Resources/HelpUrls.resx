@@ -126,6 +126,12 @@
   <data name="Attribute_Item_Include" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/how-to-select-the-files-to-build</value>
   </data>
+  <data name="CommonProjectProperties" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/common-msbuild-project-properties</value>
+  </data>
+  <data name="ConditionFunctions" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-conditions</value>
+  </data>
   <data name="Element_Choose" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/choose-element-msbuild</value>
   </data>
@@ -231,5 +237,26 @@
   </data>
   <data name="Element_When" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/when-element-msbuild</value>
+  </data>
+  <data name="Property_DefaultOverrideToolsVersion" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/overriding-toolsversion-settings#order-of-precedence</value>
+  </data>
+  <data name="ReservedAndWellKnownProperties" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-reserved-and-well-known-properties</value>
+  </data>
+  <data name="Task_CallTarget" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/calltarget-task</value>
+  </data>
+  <data name="Task_CallTarget_Parameters" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/calltarget-task#task-parameters</value>
+  </data>
+  <data name="Task_MSBuild" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-task</value>
+  </data>
+  <data name="Task_MSBuild_Parameters" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-task#parameters</value>
+  </data>
+  <data name="WellKnownMetadata" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-well-known-item-metadata</value>
   </data>
 </root>
