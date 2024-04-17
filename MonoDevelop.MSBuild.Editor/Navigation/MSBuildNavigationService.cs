@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -106,6 +108,16 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			var logger = GetLogger (buffer);
 			if (result.Kind == MSBuildReferenceKind.Target) {
 				FindTargetDefinitions (result.Name, buffer).LogTaskExceptionsAndForget (logger);
+				return true;
+			}
+
+			if (result.Kind == MSBuildReferenceKind.Item) {
+				FindItemWrites (result.Name, buffer).LogTaskExceptionsAndForget (logger);
+				return true;
+			}
+
+			if (result.Kind == MSBuildReferenceKind.Property) {
+				FindPropertyWrites (result.Name, buffer).LogTaskExceptionsAndForget (logger);
 				return true;
 			}
 
@@ -215,6 +227,31 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		async Task FindReferencesAsync (ITextBuffer buffer, MSBuildResolveResult reference, ILogger logger)
 		{
 			var referenceName = reference.GetReferenceDisplayName ();
+
+			string searchTitle = reference.ReferenceKind switch {
+				MSBuildReferenceKind.Item => $"Item '{referenceName}' references",
+				MSBuildReferenceKind.Property => $"Property '{referenceName}' references",
+				MSBuildReferenceKind.Metadata => $"Metadata '{referenceName}' references",
+				MSBuildReferenceKind.Task => $"Task '{referenceName}' references",
+				MSBuildReferenceKind.TaskParameter => $"Task parameter '{referenceName}' references",
+				MSBuildReferenceKind.Keyword => $"Keyword '{referenceName}' references",
+				MSBuildReferenceKind.Target => $"Target '{referenceName}' references",
+				MSBuildReferenceKind.KnownValue => $"Value '{referenceName}' references",
+				MSBuildReferenceKind.NuGetID => $"NuGet package '{referenceName}' references",
+				MSBuildReferenceKind.TargetFramework => $"Target framework '{referenceName}' references",
+				MSBuildReferenceKind.ItemFunction => $"Item function '{referenceName}' references",
+				MSBuildReferenceKind.PropertyFunction => $"Property function '{referenceName}' references",
+				MSBuildReferenceKind.StaticPropertyFunction => $"Static '{referenceName}' references",
+				MSBuildReferenceKind.ClassName => $"Class '{referenceName}' references",
+				MSBuildReferenceKind.Enum => $"Enum '{referenceName}' references",
+				MSBuildReferenceKind.ConditionFunction => $"Condition function '{referenceName}' references",
+				MSBuildReferenceKind.FileOrFolder => $"Path '{referenceName}' references",
+				MSBuildReferenceKind.TargetFrameworkIdentifier => $"TargetFrameworkIdentifier '{referenceName}' references",
+				MSBuildReferenceKind.TargetFrameworkVersion => $"TargetFrameworkVersion '{referenceName}' references",
+				MSBuildReferenceKind.TargetFrameworkProfile => $"TargetFrameworkProfile '{referenceName}' references",
+				_ => logger.LogUnhandledCaseAndReturnDefaultValue ($"'{referenceName}' references", reference.ReferenceKind)
+			};
+
 			var searchCtx = Presenter.StartSearch ($"'{referenceName}' references", referenceName, true);
 
 			try {
@@ -227,7 +264,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 
 		async Task FindTargetDefinitions (string targetName, ITextBuffer buffer)
 		{
-			var searchCtx = Presenter.StartSearch ($"'{targetName}' definitions", targetName, true);
+			var searchCtx = Presenter.StartSearch ($"Target '{targetName}' definitions", targetName, true);
 
 			try {
 				await FindReferences (searchCtx, (doc, text, logger, reporter) => new MSBuildTargetDefinitionCollector (doc, text, logger, targetName, reporter), buffer);
@@ -238,7 +275,47 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			await searchCtx.OnCompletedAsync ();
 		}
 
-		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
+		async Task FindPropertyWrites (string propertyName, ITextBuffer buffer)
+		{
+			var searchCtx = Presenter.StartSearch ($"Property '{propertyName}' writes", propertyName, true);
+
+			try {
+				await FindReferences (
+					searchCtx,
+					(doc, text, logger, reporter) => new MSBuildPropertyReferenceCollector (doc, text, logger, propertyName, reporter),
+					buffer,
+					result => result.Usage switch {
+						ReferenceUsage.Declaration or ReferenceUsage.Write => true,
+						_ => false
+					});
+			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
+				var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
+				LogErrorFindReferences (logger, ex);
+			}
+			await searchCtx.OnCompletedAsync ();
+		}
+
+		async Task FindItemWrites (string itemName, ITextBuffer buffer)
+		{
+			var searchCtx = Presenter.StartSearch ($"Item '{itemName}' item", itemName, true);
+
+			try {
+				await FindReferences (
+					searchCtx,
+					(doc, text, logger, reporter) => new MSBuildItemReferenceCollector (doc, text, logger, itemName, reporter),
+					buffer,
+					result => result.Usage switch {
+						ReferenceUsage.Declaration or ReferenceUsage.Write => true,
+						_ => false
+					});
+			} catch (Exception ex) when (!(ex is OperationCanceledException && searchCtx.CancellationToken.IsCancellationRequested)) {
+				var logger = LoggerService.GetLogger<MSBuildReferenceCollector> (buffer);
+				LogErrorFindReferences (logger, ex);
+			}
+			await searchCtx.OnCompletedAsync ();
+		}
+
+		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, FindReferencesReporter reportResult);
 
 		/// <remarks>
 		/// this does not need a cancellation token because it creates UI that handles cancellation
@@ -246,7 +323,8 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 		async Task FindReferences (
 			FindReferencesContext searchCtx,
 			ReferenceCollectorFactory collectorFactory,
-			ITextBuffer buffer)
+			ITextBuffer buffer,
+			Func<FindReferencesResult, bool>? resultFilter = null)
 		{
 			var openDocuments = EditorHost.GetOpenDocuments ();
 
@@ -287,8 +365,12 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					var progress = Interlocked.Increment (ref jobsCompleted);
 					await searchCtx.ReportProgressAsync (progress, jobs.Count);
 
-					void ReportResult ((int Offset, int Length, ReferenceUsage Usage) result)
+					void ReportResult (FindReferencesResult result)
 					{
+						if (resultFilter is not null && resultFilter (result) == false) {
+							return;
+						}
+
 						var line = job.TextSource.Snapshot.GetLineFromPosition (result.Offset);
 						var col = result.Offset - line.Start.Position;
 						var lineText = line.GetText ();

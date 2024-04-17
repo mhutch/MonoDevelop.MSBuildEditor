@@ -684,7 +684,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildValueKind.NuGetVersion:
 				if (!NuGet.Versioning.VersionRange.TryParse (value, out _)) {
-					AddErrorWithArgs (CoreDiagnostics.InvalidVersionSuffixed, value);
+					AddErrorWithArgs (CoreDiagnostics.InvalidNuGetVersionExpression, value);
 				}
 				break;
 			case MSBuildValueKind.VersionSuffixed:

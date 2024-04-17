@@ -88,6 +88,14 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			if (rr.ReferenceKind == MSBuildReferenceKind.Item) {
+				return new MSBuildNavigationResult (MSBuildReferenceKind.Item, rr.GetItemReference (), rr.ReferenceOffset, rr.ReferenceLength);
+			}
+
+			if (rr.ReferenceKind == MSBuildReferenceKind.Property) {
+				return new MSBuildNavigationResult (MSBuildReferenceKind.Property, rr.GetPropertyReference (), rr.ReferenceOffset, rr.ReferenceLength);
+			}
+
 			if (rr.ReferenceKind == MSBuildReferenceKind.Target) {
 				return new MSBuildNavigationResult (MSBuildReferenceKind.Target, rr.GetTargetReference (), rr.ReferenceOffset, rr.ReferenceLength);
 			}

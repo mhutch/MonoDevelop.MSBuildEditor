@@ -470,6 +470,13 @@ namespace MonoDevelop.MSBuild.Language
 			"The value `{0}` is not a valid suffixed version format",
 			MSBuildDiagnosticSeverity.Error);
 
+		public const string InvalidNuGetVersionExpression_Id = nameof (InvalidNuGetVersionExpression);
+		public static readonly MSBuildDiagnosticDescriptor InvalidNuGetVersionExpression = new (
+			InvalidNuGetVersionExpression_Id,
+			"Invalid NuGet version expression",
+			"The value `{0}` is not a valid NuGet version or version expression.",
+			MSBuildDiagnosticSeverity.Error);
+
 		public const string InvalidClrNamespace_Id = nameof (InvalidClrNamespace);
 		public static readonly MSBuildDiagnosticDescriptor InvalidClrNamespace = new (
 			InvalidClrNamespace_Id,

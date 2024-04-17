@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	class MSBuildFindReferencesTests : MSBuildDocumentTest
 	{
-		List<(int Offset, int Length, ReferenceUsage Usage)> FindReferences (string docString, MSBuildReferenceKind kind, object reference, MSBuildSchema schema = null, [CallerMemberName] string testMethodName = null)
+		List<FindReferencesResult> FindReferences (string docString, MSBuildReferenceKind kind, object reference, MSBuildSchema schema = null, [CallerMemberName] string testMethodName = null)
 		{
 			var textDoc = new StringTextSource (docString);
 
@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuild.Tests
 
 			var functionTypeProvider = new RoslynFunctionTypeProvider (null, parseContext.Logger);
 
-			var results = new List<(int Offset, int Length, ReferenceUsage Usage)> ();
+			var results = new List<FindReferencesResult> ();
 			var collector = MSBuildReferenceCollector.Create (
 				doc, textDoc,logger,
 				new MSBuildResolver.MSBuildMutableResolveResult {
@@ -54,14 +54,14 @@ namespace MonoDevelop.MSBuild.Tests
 
 		void AssertLocations (
 			string doc, string expectedValue,
-			List<(int Offset, int Length, ReferenceUsage Usage)> actual,
+			List<FindReferencesResult> actual,
 			params (int Offset, int Length, ReferenceUsage Usage)[] expected
 			)
 			=> AssertLocations (doc, actual, expected.Select (e => (expectedValue, e.Offset, e.Length, e.Usage)).ToArray ());
 
 		void AssertLocations (
 			string doc,
-			List<(int Offset, int Length, ReferenceUsage Usage)> actual,
+			List<FindReferencesResult> actual,
 			params (string expectedValue, int Offset, int Length, ReferenceUsage Usage)[] expected)
 		{
 			if (actual.Count != expected.Length) {
