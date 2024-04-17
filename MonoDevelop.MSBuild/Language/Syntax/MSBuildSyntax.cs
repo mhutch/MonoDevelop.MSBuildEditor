@@ -31,5 +31,5 @@ public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHas
 	public virtual MSBuildValueKind ValueKind { get; }
 	public CustomTypeInfo? CustomType { get; }
 	public string? DeprecationMessage { get; }
-	public string? HelpUrl { get; }
+	public virtual string? HelpUrl { get; }
 }

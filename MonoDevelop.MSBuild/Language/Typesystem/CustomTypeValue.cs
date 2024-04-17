@@ -18,7 +18,8 @@ public sealed class CustomTypeValue (string name, DisplayText description, strin
 	public DisplayText Description { get; } = description;
 
 	public string? DeprecationMessage { get; } = deprecationMessage;
-	public string? HelpUrl { get; } = helpUrl;
+
+	public string? HelpUrl => helpUrl ?? CustomType?.HelpUrl;
 
 	public IReadOnlyList<string>? Aliases { get; } = aliases;
 

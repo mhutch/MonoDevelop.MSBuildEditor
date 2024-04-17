@@ -7,27 +7,30 @@ using MonoDevelop.MSBuild.Schema;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
-	class FunctionInfo : BaseSymbol, ITypedSymbol
+	class FunctionInfo : BaseSymbol, ITypedSymbol, IHasHelpUrl
 	{
-		readonly FunctionParameterInfo [] arguments;
+		readonly FunctionParameterInfo [] parameters;
 
 		public virtual MSBuildValueKind ReturnType { get; }
 		public string ReturnTypeString => string.Join (" ", ReturnType.GetTypeDescription ());
-		public virtual FunctionParameterInfo [] Parameters => arguments;
+		public virtual FunctionParameterInfo [] Parameters => parameters;
 		public List<FunctionInfo> Overloads { get; } = new List<FunctionInfo> ();
 		public virtual bool IsProperty => false;
 
 		MSBuildValueKind ITypedSymbol.ValueKind => ReturnType;
 		CustomTypeInfo? ITypedSymbol.CustomType => null;
 
-		protected FunctionInfo (string name, DisplayText description) : base (name, description)
+		public virtual string? HelpUrl { get; }
+
+		protected FunctionInfo (string name, DisplayText description, string helpUrl = null) : base (name, description)
 		{
+			HelpUrl = helpUrl;
 		}
 
-		public FunctionInfo (string name, DisplayText description, MSBuildValueKind returnType, params FunctionParameterInfo [] arguments) : base (name, description)
+		public FunctionInfo (string name, DisplayText description, MSBuildValueKind returnType, FunctionParameterInfo [] parameters, string helpUrl = null) : this (name, description, helpUrl)
 		{
-			this.arguments = arguments;
-			this.ReturnType = returnType;
+			this.parameters = parameters;
+			ReturnType = returnType;
 		}
 	}
 

@@ -40,6 +40,9 @@ class MSBuildResolveResult
 	public MSBuildElementSyntax? ElementSyntax => inner.ElementSyntax;
 	public MSBuildAttributeSyntax? AttributeSyntax => inner.AttributeSyntax;
 
+	public ITypedSymbol? ElementSymbol => inner.ElementSymbol;
+	public ITypedSymbol? AttributeSymbol=> inner.AttributeSymbol;
+
 	public string? AttributeName => Attribute?.Name.Name;
 	public string? ElementName => Element?.Name.Name;
 	public string? ParentName => (Element?.Parent as XElement)?.Name.Name;

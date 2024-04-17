@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WellKnownMetadata_AccessedTime" xml:space="preserve">
+    <value>The time the the item was last accessed</value>
+  </data>
+  <data name="WellKnownMetadata_CreatedTime" xml:space="preserve">
+    <value>The time the the item was created</value>
+  </data>
+  <data name="WellKnownMetadata_DefiningProjectDirectory" xml:space="preserve">
+    <value>The directory of the project in which this item was defined</value>
+  </data>
+  <data name="WellKnownMetadata_DefiningProjectExtension" xml:space="preserve">
+    <value>The extension of the project in which this item was defined</value>
+  </data>
+  <data name="WellKnownMetadata_DefiningProjectFullPath" xml:space="preserve">
+    <value>The full path of the project in which this item was defined</value>
+  </data>
+  <data name="WellKnownMetadata_DefiningProjectName" xml:space="preserve">
+    <value>The name of the project in which this item was defined</value>
+  </data>
+  <data name="WellKnownMetadata_Directory" xml:space="preserve">
+    <value>The directory of the item, excluding the root directory</value>
+  </data>
+  <data name="WellKnownMetadata_Extension" xml:space="preserve">
+    <value>The file extension of the item</value>
+  </data>
+  <data name="WellKnownMetadata_Filename" xml:space="preserve">
+    <value>The filename of the item</value>
+  </data>
+  <data name="WellKnownMetadata_FullPath" xml:space="preserve">
+    <value>The full path of the item</value>
+  </data>
+  <data name="WellKnownMetadata_Identity" xml:space="preserve">
+    <value>The value specified in the `Include` attribute</value>
+  </data>
+  <data name="WellKnownMetadata_ModifiedTime" xml:space="preserve">
+    <value>The time the the item was last modified</value>
+  </data>
+  <data name="WellKnownMetadata_RecursiveDir" xml:space="preserve">
+    <value>If the item contained a `**` wildcard, the value to which it was expanded</value>
+  </data>
+  <data name="WellKnownMetadata_RelativeDir" xml:space="preserve">
+    <value>The path specified in the Include attribute</value>
+  </data>
+  <data name="WellKnownMetadata_RootDir" xml:space="preserve">
+    <value>The root directory of the item</value>
+  </data>
+  <data name="ReservedProperty_BinPath" xml:space="preserve">
+    <value>Absolute path of the bin directory where MSBuild is located. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_ToolsPath" xml:space="preserve">
+    <value>Path to the current toolset, specified by the MSBuildToolsVersion. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_ToolsVersion" xml:space="preserve">
+    <value>Version of the current toolset</value>
+  </data>
+  <data name="ReservedProperty_AssemblyVersion" xml:space="preserve">
+    <value>The version of the MSBuild assemblies</value>
+  </data>
+  <data name="ReservedProperty_StartupDirectory" xml:space="preserve">
+    <value>Absolute path of the directory where MSBuild is invoked. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_BuildNodeCount" xml:space="preserve">
+    <value>The number of concurrent build nodes.</value>
+  </data>
+  <data name="ReservedProperty_LastTaskResult" xml:space="preserve">
+    <value>True if the last task completed without errors.</value>
+  </data>
+  <data name="ReservedProperty_OSName" xml:space="preserve">
+    <value>The OS on which MSBuild is running</value>
+  </data>
+  <data name="ReservedProperty_MSBuildRuntimeType" xml:space="preserve">
+    <value>The runtime on which MSBuild is running</value>
+  </data>
+  <data name="ReservedProperty_OverrideTasksPath" xml:space="preserve">
+    <value>Path to files that override built-in tasks</value>
+  </data>
+  <data name="ReservedProperty_DefaultOverrideToolsVersion" xml:space="preserve">
+    <value>Tools version to override the built-in tools version</value>
+  </data>
+  <data name="ReservedProperty_FrameworkToolsRoot" xml:space="preserve">
+    <value>The root directory of the .NET framework tools</value>
+  </data>
+  <data name="ReservedProperty_UserExtensionsPath" xml:space="preserve">
+    <value>Directory from which user extensions are imported. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_ProjectDefaultTargets" xml:space="preserve">
+    <value>The value of the DefaultTargets attribute in the Project element.</value>
+  </data>
+  <data name="ReservedProperty_ProjectDirectory" xml:space="preserve">
+    <value>Directory where the project file is located. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_ProjectDirectoryNoRoot" xml:space="preserve">
+    <value>Directory where the project file is located, excluding drive root. Does not include final backslash.</value>
+  </data>
+  <data name="ReservedProperty_ProjectExtension" xml:space="preserve">
+    <value>Extension of the project file.</value>
+  </data>
+  <data name="ReservedProperty_ProjectFile" xml:space="preserve">
+    <value>Name of the project file, including extension.</value>
+  </data>
+  <data name="ReservedProperty_ProjectFullPath" xml:space="preserve">
+    <value>Full path of the project file.</value>
+  </data>
+  <data name="ReservedProperty_ProjectName" xml:space="preserve">
+    <value>Name of the project file, excluding extension.</value>
+  </data>
+  <data name="ReservedProperty_ThisFile" xml:space="preserve">
+    <value>Name of the current MSBuild file, including extension.</value>
+  </data>
+  <data name="ReservedProperty_ThisFileDirectory" xml:space="preserve">
+    <value>Directory where the current MSBuild file is located.</value>
+  </data>
+  <data name="ReservedProperty_ThisFileDirectoryNoRoot" xml:space="preserve">
+    <value>Directory where the current MSBuild file is located, excluding drive root.</value>
+  </data>
+  <data name="ReservedProperty_ThisFileExtension" xml:space="preserve">
+    <value>Extension of the current MSBuild file.</value>
+  </data>
+  <data name="ReservedProperty_ThisFileFullPath" xml:space="preserve">
+    <value>Absolute path of the current MSBuild file.</value>
+  </data>
+  <data name="ReservedProperty_ThisFileName" xml:space="preserve">
+    <value>Name of the current MSBuild file, excluding extension.</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildExtensionsPath" xml:space="preserve">
+    <value>Absolute path of the MSBuild extensions directory for the current architecture. Does not include final backslash.</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildExtensionsPath32" xml:space="preserve">
+    <value>Absolute path of the 32-bit MSBuild extensions directory. Does not include final backslash.</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildExtensionsPath64" xml:space="preserve">
+    <value>Absolute path of the 64-bit MSBuild extensions directory. Does not include final backslash.</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildProgramFiles32" xml:space="preserve">
+    <value>Absolute path of the 32-bit Program Files folder. Does not include final backslash.</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildTreatWarningsAsErrors" xml:space="preserve">
+    <value>Whether to treat all warnings as errors</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildWarningsAsErrors" xml:space="preserve">
+    <value>List warning codes to treat as errors</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildWarningsNotAsErrors" xml:space="preserve">
+    <value>List warning codes that should still be treated as warnings when `TreatWarningsAsErrors` is enabled</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildWarningsAsMessages" xml:space="preserve">
+    <value>List of warning codes to treat as messages</value>
+  </data>
+  <data name="WellKnownProperty_MSBuildAllProjects" xml:space="preserve">
+    <value>List of all project files. Targets can use this as an input to trigger rebuilds when these files change. Prior to MSBuild 16, targets and props files must add themselves to the property to be included in this behavior.</value>
+  </data>
+  <data name="Task_CallTarget" xml:space="preserve">
+    <value>Invokes the specified targets in the current file</value>
+  </data>
+  <data name="Task_CallTarget_RunEachTargetSeparately" xml:space="preserve">
+    <value>Whether the MSBuild engine should be called once per target</value>
+  </data>
+  <data name="Task_CallTarget_TargetOutputs" xml:space="preserve">
+    <value>Items returned from all built targets</value>
+  </data>
+  <data name="Task_CallTarget_Targets" xml:space="preserve">
+    <value>The targets to be invoked</value>
+  </data>
+  <data name="Task_CallTarget_UseResultCache" xml:space="preserve">
+    <value>Whether to use existing cached target outputs</value>
+  </data>
+  <data name="Task_MSBuild" xml:space="preserve">
+    <value>Invokes the specified targets on the specified MSBuild projects</value>
+  </data>
+  <data name="Task_MSBuild_BuildInParallel" xml:space="preserve">
+    <value>Whether to build the projects in parallel</value>
+  </data>
+  <data name="Task_MSBuild_Projects" xml:space="preserve">
+    <value>The project files on which to invoke the targets</value>
+  </data>
+  <data name="Task_MSBuild_Properties" xml:space="preserve">
+    <value>Semicolon-separated list of `PropertyName=Value` values to pass to the child projects</value>
+  </data>
+  <data name="Task_MSBuild_RebaseOutputs" xml:space="preserve">
+    <value>Rebases returned items with relative paths to be relative to the current project</value>
+  </data>
+  <data name="Task_MSBuild_RemoveProperties" xml:space="preserve">
+    <value>Semicolon-separated list of global properties to remove when invoking the child projects</value>
+  </data>
+  <data name="Task_MSBuild_RunEachTargetSeparately" xml:space="preserve">
+    <value>Whether the MSBuild engine should be called once per target</value>
+  </data>
+  <data name="Task_MSBuild_SkipNonexistentProjects" xml:space="preserve">
+    <value>Skip nonexistent projects instead of erroring out</value>
+  </data>
+  <data name="Task_MSBuild_StopOnFirstFailure" xml:space="preserve">
+    <value>If target invocation fails on one project, do not continue with any other projects. Does not work with parallel builds.</value>
+  </data>
+  <data name="Task_MSBuild_TargetAndPropertyListSeparators" xml:space="preserve">
+    <value>Additional custom separators to use for splitting `Properties` and `Targets` parameters into lists.</value>
+  </data>
+  <data name="Task_MSBuild_TargetOutputs" xml:space="preserve">
+    <value>Items returned from all built targets</value>
+  </data>
+  <data name="Task_MSBuild_Targets" xml:space="preserve">
+    <value>The targets to be invoked</value>
+  </data>
+  <data name="Task_MSBuild_ToolsVersion" xml:space="preserve">
+    <value>Override the ToolsVersion used to build the projects</value>
+  </data>
+  <data name="Task_MSBuild_UnloadProjectsOnCompletion" xml:space="preserve">
+    <value>Unload the projects after invoking targets on them</value>
+  </data>
+  <data name="Task_MSBuild_UseResultsCache" xml:space="preserve">
+    <value>Whether to use existing cached target outputs</value>
+  </data>
+  <data name="ConditionFunction_Exists" xml:space="preserve">
+    <value>Checks whether the specified file or folder exists</value>
+  </data>
+  <data name="ConditionFunction_Exists_path" xml:space="preserve">
+    <value>File or folder path to check</value>
+  </data>
+  <data name="ConditionFunction_HasTrailingSlash" xml:space="preserve">
+    <value>Checks whether a string has a trailing forward or backward slash character</value>
+  </data>
+  <data name="ConditionFunction_HasTrailingSlash_value" xml:space="preserve">
+    <value>The string to check</value>
+  </data>
+  <data name="ReservedProperty_MSBuildFileVersion" xml:space="preserve">
+    <value>The version of the MSBuild assemblies in use in the form `major.minor.revision.build`.</value>
+  </data>
+  <data name="ReservedProperty_MSBuildSemanticVersion" xml:space="preserve">
+    <value>The full version of the MSBuild assemblies in use in SemVer format.</value>
+  </data>
+</root>

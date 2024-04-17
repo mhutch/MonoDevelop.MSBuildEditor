@@ -44,13 +44,13 @@ namespace MonoDevelop.MSBuild.Language
 			base.VisitUnknownAttribute (element, attribute);
 		}
 
-		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
+		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSyntax, ITypedSymbol elementSymbol)
 		{
 			try {
-				ValidateResolvedElement (element, resolved, symbol);
+				ValidateResolvedElement (element, elementSyntax, elementSymbol);
 
-				if (element.IsComplete && resolved.SyntaxKind != MSBuildSyntaxKind.TaskBody) {
-					base.VisitResolvedElement (element, resolved, symbol);
+				if (element.IsComplete && elementSyntax.SyntaxKind != MSBuildSyntaxKind.TaskBody) {
+					base.VisitResolvedElement (element, elementSyntax, elementSymbol);
 				}
 
 			} catch (Exception ex) when (!(ex is OperationCanceledException && CancellationToken.IsCancellationRequested)) {
@@ -59,11 +59,15 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void ValidateResolvedElement (XElement element, MSBuildElementSyntax resolved, ITypedSymbol? symbol)
+		void ValidateResolvedElement (XElement element, MSBuildElementSyntax elementSyntax, ITypedSymbol elementSymbol)
 		{
-			CheckDeprecated (resolved, element);
+			CheckDeprecated (elementSyntax, element);
 
-			foreach (var rat in resolved.Attributes) {
+			if (elementSymbol != elementSyntax && elementSymbol is IDeprecatable deprecatable) {
+				CheckDeprecated (deprecatable, element);
+			}
+
+			foreach (var rat in elementSyntax.Attributes) {
 				if (rat.Required && !rat.IsAbstract) {
 					var xat = element.Attributes.Get (rat.Name, true);
 					if (xat == null) {
@@ -72,15 +76,11 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (symbol is not null && symbol is IDeprecatable deprecatable) {
-				CheckDeprecated (deprecatable, element);
-			}
-
 			TextSpan[] GetNameSpans (XElement el) => (el.ClosingTag is XClosingTag ct)
 				? new[] { element.NameSpan, new TextSpan (ct.Span.Start + 2, ct.Name.Length) }
 				: new[] { element.NameSpan };
 
-			switch (resolved.SyntaxKind) {
+			switch (elementSyntax.SyntaxKind) {
 			case MSBuildSyntaxKind.Project:
 				if (Document.FileKind.IsProject ()) {
 					ValidateProjectHasTarget (element);
@@ -102,7 +102,7 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateImportOnlyHasVersionIfHasSdk (element);
 				break;
 			case MSBuildSyntaxKind.Item:
-				ValidateItemAttributes (resolved, element);
+				ValidateItemAttributes (elementSyntax, element);
 
 				// TODO: reuse the existing resolved symbol
 				if (!IsItemUsed (element.Name.Name, ReferenceUsage.Read, out _)) {
@@ -118,7 +118,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 
 			case MSBuildSyntaxKind.Task:
-				ValidateTaskParameters (resolved, element);
+				ValidateTaskParameters (elementSyntax, element);
 				break;
 
 			case MSBuildSyntaxKind.Property:
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Language
 						element.Name.Name
 					);
 				}
-				if (symbol is PropertyInfo property) {
+				if (elementSymbol is PropertyInfo property) {
 					CheckPropertyWrite (property, element.NameSpan);
 				}
 				break;
@@ -158,18 +158,18 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			}
 
-			if (resolved.ValueKind == MSBuildValueKind.Nothing) {
+			if (elementSyntax.ValueKind == MSBuildValueKind.Nothing) {
 				foreach (var txt in element.Nodes.OfType<XText> ()) {
 					Document.Diagnostics.Add (CoreDiagnostics.UnexpectedText, txt.Span, element.Name.Name);
 				}
 			}
 		}
 
-		void CheckDeprecated (IDeprecatable info, INamedXObject namedObj) => CheckDeprecated (info, namedObj.NameSpan);
+		bool CheckDeprecated (IDeprecatable info, INamedXObject namedObj) => CheckDeprecated (info, namedObj.NameSpan);
 
-		void CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode) => CheckDeprecated (info, expressionNode.Span);
+		bool CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode) => CheckDeprecated (info, expressionNode.Span);
 
-		void CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
+		bool CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
 		{
 			if (info.IsDeprecated (out string? deprecationMessage)) {
 				Document.Diagnostics.Add (
@@ -179,7 +179,9 @@ namespace MonoDevelop.MSBuild.Language
 					info.Name,
 					deprecationMessage
 				);
+				return true;
 			}
+			return false;
 		}
 
 		void ValidateProjectHasTarget (XElement element)
@@ -448,11 +450,12 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol? symbol)
+		protected override void VisitResolvedAttribute (
+			XElement element, XAttribute attribute,
+			MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax,
+			ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 		{
-			CheckDeprecated (resolvedAttribute, attribute);
-
-			if (resolvedAttribute.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
+			if (attributeSyntax.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
 				// TODO: reuse the existing resolved symbol
 				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read, out _)) {
 					Document.Diagnostics.Add (
@@ -467,21 +470,21 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			ValidateAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
+			ValidateAttribute (element, attribute, attributeSyntax, attributeSymbol);
 
-			base.VisitResolvedAttribute (element, attribute, resolvedElement, resolvedAttribute, symbol);
+			base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
 		}
 
-		void ValidateAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax resolvedElement, MSBuildAttributeSyntax resolvedAttribute, ITypedSymbol info)
+		void ValidateAttribute (XElement element, XAttribute attribute, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol attributeSymbol)
 		{
-			CheckDeprecated (resolvedAttribute, attribute);
+			CheckDeprecated (attributeSyntax, attribute);
 
-			if (info is not null && info is IDeprecatable deprecatable) {
-				CheckDeprecated (deprecatable, element);
+			if (attributeSymbol != attributeSyntax && attributeSymbol is IDeprecatable deprecatable) {
+				CheckDeprecated (deprecatable, attribute);
 			}
 
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
-				if (resolvedAttribute.Required) {
+				if (attributeSyntax.Required) {
 					Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
 				} else {
 					Document.Diagnostics.Add (CoreDiagnostics.AttributeEmpty, attribute.NameSpan, attribute.Name);
@@ -496,9 +499,12 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitValue (
 			XElement element, XAttribute attribute,
-			MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax attributeSymbol,
-			ITypedSymbol valueSymbol, string expressionText, ExpressionNode expression)
+			MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax? attributeSyntax,
+			ITypedSymbol elementSymbol, ITypedSymbol? attributeSymbol,
+			string expressionText, ExpressionNode expression)
 		{
+			ITypedSymbol valueSymbol = attributeSymbol ?? elementSymbol;
+
 			if (Document.FileKind.IsProject () && valueSymbol is IHasDefaultValue hasDefault) {
 				if (hasDefault.DefaultValue != null && string.Equals (hasDefault.DefaultValue, expressionText, StringComparison.OrdinalIgnoreCase)) {
 					Document.Diagnostics.Add (
@@ -523,7 +529,7 @@ namespace MonoDevelop.MSBuild.Language
 				} else {
 					foreach (var listVal in list.Nodes) {
 						if (listVal is ExpressionText listValText) {
-							VisitPureLiteral (elementSymbol, attributeSymbol, valueSymbol, listValText);
+							VisitPureLiteral (elementSyntax, attributeSyntax, valueSymbol, listValText);
 						}
 					}
 				}
@@ -534,7 +540,7 @@ namespace MonoDevelop.MSBuild.Language
 					}
 				}
 			} else if (expression is ExpressionText lit) {
-				VisitPureLiteral (elementSymbol, attributeSymbol, valueSymbol, lit);
+				VisitPureLiteral (elementSyntax, attributeSyntax, valueSymbol, lit);
 			} else {
 				if (!allowExpressions) {
 					AddExpressionWarning (expression);

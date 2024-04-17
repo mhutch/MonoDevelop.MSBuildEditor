@@ -350,18 +350,45 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static ISymbol GetResolvedReference (this MSBuildResolveResult rr, MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider)
 		{
+			static bool AreEqual (string? a, string? b) => string.Equals (a, b, StringComparison.OrdinalIgnoreCase);
+
 			switch (rr.ReferenceKind) {
 			case MSBuildReferenceKind.Item:
-				return doc.GetItem (rr.GetItemReference ());
+				// it's it's an item element, it's already captured on the resolver
+				string itemName = rr.GetItemReference ();
+				if (rr.ElementSymbol is ItemInfo item && AreEqual (item.Name, itemName)) {
+					return rr.ElementSymbol;
+				}
+				// if it's an item reference within an expression, we need to resolve it
+				return  doc.GetItem (rr.GetItemReference ());
 			case MSBuildReferenceKind.Metadata:
 				var m = rr.GetMetadataReference ();
+				bool IsMetadataMatch (MetadataInfo possibleMetadata) => AreEqual (possibleMetadata.Name, m.metaName) && AreEqual (possibleMetadata.Item?.Name, m.itemName);
+				if (rr.AttributeSymbol is MetadataInfo metadataAttribute && IsMetadataMatch (metadataAttribute)) {
+					return metadataAttribute;
+				}
+				if (rr.AttributeSymbol is MetadataInfo metadataElement && IsMetadataMatch (metadataElement)) {
+					return metadataElement;
+				}
 				return doc.GetMetadata (m.itemName, m.metaName, true);
 			case MSBuildReferenceKind.Property:
-				return doc.GetProperty (rr.GetPropertyReference (), true);
+				string propertyName = rr.GetPropertyReference ();
+				if (rr.ElementSymbol is PropertyInfo propertySymbol && AreEqual (propertySymbol.Name, propertyName)) {
+					return propertySymbol;
+				}
+				return doc.GetProperty (propertyName, true);
 			case MSBuildReferenceKind.Task:
-				return doc.GetTask (rr.GetTaskReference ());
+				string taskName = rr.GetTaskReference ();
+				if (rr.ElementSymbol is TaskInfo taskSymbol && AreEqual (taskSymbol.Name, taskName)) {
+					return taskSymbol;
+				}
+				return doc.GetTask (taskName);
 			case MSBuildReferenceKind.Target:
-				return doc.GetTarget (rr.GetTargetReference());
+				string targetName = rr.GetTargetReference ();
+				if (rr.ElementSymbol is TargetInfo targetSymbol && AreEqual (targetSymbol.Name, targetName)) {
+					return targetSymbol;
+				}
+				return doc.GetTarget (targetName);
 			case MSBuildReferenceKind.Keyword:
 				return rr.GetKeywordReference ();
 			case MSBuildReferenceKind.KnownValue:
@@ -376,6 +403,9 @@ namespace MonoDevelop.MSBuild.Schema
 				return BestGuessResolveFrameworkProfile (rr.GetTargetFrameworkProfileReference(), doc.Frameworks);
 			case MSBuildReferenceKind.TaskParameter:
 				var p = rr.GetTaskParameterReference ();
+				if (rr.AttributeSymbol is TaskParameterInfo parameterSymbol && AreEqual (parameterSymbol.Name, p.paramName)) {
+					return parameterSymbol;
+				}
 				return doc.GetTaskParameter (p.taskName, p.paramName);
 			case MSBuildReferenceKind.ItemFunction:
 				//FIXME: attempt overload resolution

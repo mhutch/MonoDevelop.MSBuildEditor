@@ -54,9 +54,12 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 
 	protected override void VisitValue (
 		XElement element, XAttribute? attribute,
-		MSBuildElementSyntax elementSymbol, MSBuildAttributeSyntax? attributeSymbol,
-		ITypedSymbol valueSymbol, string expressionText, ExpressionNode node)
+		MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax? attributeSyntax,
+		ITypedSymbol elementSymbol, ITypedSymbol? attributeSymbol,
+		string expressionText, ExpressionNode node)
 	{
+		var valueSymbol = attributeSymbol ?? elementSymbol;
+
 		if (!IsTypeMatch ()) {
 			return;
 		}

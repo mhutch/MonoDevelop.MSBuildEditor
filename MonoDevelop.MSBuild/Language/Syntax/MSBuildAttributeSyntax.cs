@@ -35,5 +35,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		[MemberNotNullWhen(true, nameof (AbstractKind))]
 		public bool IsAbstract => AbstractKind.HasValue;
-    }
+
+		public override string? HelpUrl => base.HelpUrl ?? Element.AttributesHelpUrl;
+	}
 }

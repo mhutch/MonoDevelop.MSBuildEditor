@@ -504,6 +504,7 @@ partial class MSBuildSchema
 			bool? allowUnknownValues = null;
 			MSBuildValueKind? baseValueKind = null;
 			bool? caseSensitive = null;
+			string? helpUrl = null;
 
 			bool foundAnyNonRef = false;
 
@@ -594,6 +595,9 @@ partial class MSBuildSchema
 					}
 					break;
 				}
+				case "helpUrl":
+					GetValueString (out helpUrl);
+					break;
 				default:
 					AddWarning (defPropVal ?? customTypeObj, $"Custom type definition has unknown property '{defPropName}'");
 					break;
@@ -605,7 +609,7 @@ partial class MSBuildSchema
 				allowUnknownValues = true;
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false, analyzerHints), null);
+			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false, analyzerHints, helpUrl), null);
 		}
 
 		CustomTypeValue ReadCustomTypeValue (JObject customTypeValueCollection, string customTypeValueName, JToken? customTypeValueToken)
