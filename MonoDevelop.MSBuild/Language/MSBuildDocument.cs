@@ -233,7 +233,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		IEnumerable<(string id, TextSpan span)> SplitSdkValue (int offset, string value)
+		static IEnumerable<(string id, TextSpan span)> SplitSdkValue (int offset, string value)
 		{
 			int start = 0, end;
 			while ((end = value.IndexOf (';', start)) > -1) {
@@ -243,7 +243,7 @@ namespace MonoDevelop.MSBuild.Language
 			end = value.Length;
 			yield return MakeResult ();
 
-			TextSpan CreateSpan (int s, int e) => new TextSpan (offset + s, offset + e);
+			TextSpan CreateSpan (int s, int e) => TextSpan.FromBounds (offset + s, offset + e);
 
 			(string id, TextSpan loc) MakeResult ()
 			{
