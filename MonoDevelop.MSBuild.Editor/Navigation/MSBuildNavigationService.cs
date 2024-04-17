@@ -263,7 +263,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			await searchCtx.OnCompletedAsync ();
 		}
 
-		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult);
+		delegate MSBuildReferenceCollector ReferenceCollectorFactory (MSBuildDocument doc, ITextSource textSource, ILogger logger, FindReferencesReporter reportResult);
 
 		/// <remarks>
 		/// this does not need a cancellation token because it creates UI that handles cancellation
@@ -312,7 +312,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 					var progress = Interlocked.Increment (ref jobsCompleted);
 					await searchCtx.ReportProgressAsync (progress, jobs.Count);
 
-					void ReportResult ((int Offset, int Length, ReferenceUsage Usage) result)
+					void ReportResult (FindReferencesResult result)
 					{
 						var line = job.TextSource.Snapshot.GetLineFromPosition (result.Offset);
 						var col = result.Offset - line.Start.Position;

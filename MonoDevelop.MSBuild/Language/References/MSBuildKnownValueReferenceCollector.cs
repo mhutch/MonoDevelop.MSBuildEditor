@@ -26,7 +26,7 @@ class MSBuildKnownValueReferenceCollector : MSBuildReferenceCollector
 	readonly CustomTypeInfo? customType;
 	readonly bool isWarningCode;
 
-	public MSBuildKnownValueReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, ITypedSymbol knownValue, Action<(int Offset, int Length, ReferenceUsage Usage)> reportResult)
+	public MSBuildKnownValueReferenceCollector (MSBuildDocument document, ITextSource textSource, ILogger logger, ITypedSymbol knownValue, FindReferencesReporter reportResult)
 		: base (document, textSource, logger, knownValue.Name, reportResult)
 	{
 		kind = knownValue.ValueKind;
