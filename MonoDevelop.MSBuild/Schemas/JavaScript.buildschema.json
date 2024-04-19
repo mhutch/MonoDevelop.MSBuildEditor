@@ -1,0 +1,42 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "ShouldRunNpmInstall": {
+      "description": "Whether to run `npm install` on *Build* and *Restore* commands.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#shouldrunnpminstall"
+    },
+    "ShouldRunBuildScript": {
+      "description": "Whether to run `npm run build` on *Build* commands.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#shouldrunbuildscript"
+    },
+    "BuildCommand": {
+      "description": "Set or override the CLI command to run for `dotnet build` and the Visual Studio *Build* command. Defaults to running the `build` or `compile` script in the NPM `package.json`.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#buildcommand"
+    },
+    "StartupCommand": {
+      "description": "Set or override the CLI command to run for `dotnet run` and the Visual Studio *Run* command. Defaults to running the `start`, `server` or `dev` script in the NPM `package.json`.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#startupcommand"
+    },
+    "TestCommand": {
+      "description": "Set or override the CLI command to run for `dotnet test` and the Visual Studio *Run Tests* command. Defaults to running the `test` script in the NPM `package.json`.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#testcommand"
+    },
+    "CleanCommand": {
+      "description": "Set or override the CLI command to run for `dotnet clean` and the Visual Studio *Clean* command. Defaults to running the `clean` script in the NPM `package.json`.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#cleancommand"
+    },
+    "PublisjCommand": {
+      "description": "Set or override the CLI command to run for `dotnet publish` and the Visual Studio *Publish* command. Defaults to running the `publish` script in the NPM `package.json`.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference#publishcommand"
+    }
+  }
+}

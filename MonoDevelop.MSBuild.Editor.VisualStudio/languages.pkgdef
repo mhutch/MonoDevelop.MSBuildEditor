@@ -46,6 +46,12 @@
 [$RootKey$\XmlChooserFactory\MSBuild\vcxproj]
 "Extension"="vcxproj"
 
+[$RootKey$\XmlChooserFactory\MSBuild\sfxproj]
+"Extension"="sfxproj"
+
+[$RootKey$\XmlChooserFactory\MSBuild\esproj]
+"Extension"="esproj"
+
 [$RootKey$\XmlChooserFactory\MSBuild\proj]
 "Extension"="proj"
 
