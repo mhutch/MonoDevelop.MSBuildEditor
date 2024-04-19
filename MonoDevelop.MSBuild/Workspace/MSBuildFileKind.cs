@@ -80,6 +80,11 @@ namespace MonoDevelop.MSBuild.Workspace
 		SfxProj = Project + 6,
 
 		/// <summary>
+		/// The project is a JavaScript Project System project
+		/// </summary>
+		ESProj = Project + 7,
+
+		/// <summary>
 		/// If this flag is set, the file is a <c>.user</c> file used to store user-specific settings and customizations for a project file.
 		/// </summary>
 		/// <remarks>

@@ -86,6 +86,9 @@ namespace MonoDevelop.MSBuild.Workspace
 			if (string.Equals (extension, MSBuildFileExtension.sfxproj, StringComparison.OrdinalIgnoreCase)) {
 				return MSBuildFileKind.SfxProj;
 			}
+			if (string.Equals (extension, MSBuildFileExtension.esproj, StringComparison.OrdinalIgnoreCase)) {
+				return MSBuildFileKind.ESProj;
+			}
 			if (string.Equals (extension, MSBuildFileExtension.pubxml, StringComparison.OrdinalIgnoreCase)) {
 				return MSBuildFileKind.PubXml;
 			}
@@ -127,6 +130,7 @@ namespace MonoDevelop.MSBuild.Workspace
 				MSBuildFileKind.XProj => isUserProj ? "User settings for a generic MonoDevelop project file" : "Generic MonoDevelop project file",
 				MSBuildFileKind.VcxProj => isUserProj ? "User settings for a C++ project file" : "C++ project file",
 				MSBuildFileKind.SfxProj => isUserProj ? "User settings for a Shared Framework project file" : "Shared Framework project file",
+				MSBuildFileKind.ESProj => isUserProj ? "User settings for a JavaScript Project System project file" : "JavaScript Project System project file",
 				MSBuildFileKind.Project => isUserProj ? "User settings for a project file" : "Project file",
 				_ => null
 			};

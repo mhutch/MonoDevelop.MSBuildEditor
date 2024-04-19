@@ -16,6 +16,7 @@ enum BuiltInSchemaId
 	AnalyzerWarningCodes,
 	StyleRuleCodes,
 	ILLink,
+	JavaScript,
 	NetSdk,
 	NuGet,
 	NuGetPack,

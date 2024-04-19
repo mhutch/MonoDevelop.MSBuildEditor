@@ -24,11 +24,12 @@ namespace MonoDevelop.MSBuild.Workspace
 		public const string fsproj = ".fsproj";
 		public const string xproj = ".xproj";
 		public const string vcxproj = ".vcxproj";
+		public const string sfxproj = ".sfxproj";
+		public const string esproj = ".esproj";
 		public const string proj = ".proj";
 		public const string user = ".user";
-		public const string sfxproj = ".sfxproj";
 		public const string pubxml = ".pubxml";
 
-		public static readonly string[] All = new[] { targets, props, tasks, overridetasks, csproj, vbproj, fsproj, xproj, vcxproj, proj, user, sfxproj, pubxml };
+		public static readonly string[] All = [ targets, props, tasks, overridetasks, csproj, vbproj, fsproj, xproj, vcxproj, sfxproj, esproj, proj, user, pubxml ];
 	}
 }
