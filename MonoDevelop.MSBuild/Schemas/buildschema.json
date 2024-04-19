@@ -1,5 +1,6 @@
 {
   "$id": "https://github.com/mhutch/MonoDevelop.MSBuildEditor",
+  "$comment": "This should be draft-07, but anything newer than draft-04 (or https) causes VS to error out when using the schema to validate other JSON files",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Describes the MSBuild schema format",
   "type": "object",
@@ -30,7 +31,7 @@
     "intellisenseImports": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Additional files to be imported at development time for IntelliSense"
+      "description": "Additional schemas to be imported only when directly editing the file for which this schema is a sidecar."
     },
     "types": {
       "type": "object",
@@ -71,14 +72,8 @@
               "type": "boolean",
               "default": false
             },
-            "deprecationMessage": {
-              "type": "string",
-              "description": "Indicates that the property is deprecated and explains why."
-            },
-            "helpUrl": {
-              "type": "string",
-              "description": "Documentation link to be displayed in UI."
-            }
+            "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
         }
@@ -118,14 +113,8 @@
               "type": "boolean",
               "default": false
             },
-            "deprecationMessage": {
-              "type": "string",
-              "description": "Indicates that the item is deprecated and explains why."
-            },
-            "helpUrl": {
-              "type": "string",
-              "description": "Documentation link to be displayed in UI."
-            }
+            "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
         }
@@ -154,14 +143,8 @@
               "description": "Whether this metadata is required on items of this type",
               "type": "boolean"
             },
-            "deprecationMessage": {
-              "type": "string",
-              "description": "Indicates that the metadata is deprecated and explains why."
-            },
-            "helpUrl": {
-              "type": "string",
-              "description": "Documentation link to be displayed in UI."
-            }
+            "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
         }
@@ -180,14 +163,8 @@
               "type": "string",
               "description": "Description of the target"
             },
-            "deprecationMessage": {
-              "type": "string",
-              "description": "Indicates that the target is deprecated and explains why."
-            },
-            "helpUrl": {
-              "type": "string",
-              "description": "Documentation link to be displayed in UI."
-            }
+            "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+            "helpUrl": { "$ref": "#/definitions/helpUrl" }
           },
           "additionalProperties": false
         }
@@ -229,7 +206,7 @@
       "enum": [ ";", ",", ";," ],
       "default": ";"
     },
-    "valueType" : {
+    "valueType": {
       "description": "The type of the value",
       "oneOf": [
         { "$ref": "#/definitions/valueTypeRef" },
@@ -238,7 +215,7 @@
         { "$ref": "#/definitions/valueTypeCustom" }
       ]
     },
-    "valueTypeDefinition" : {
+    "valueTypeDefinition": {
       "oneOf": [
         { "$ref": "#/definitions/valueTypeCustomMinimal" },
         { "$ref": "#/definitions/valueTypeCustom" }
@@ -263,7 +240,7 @@
       "type": "object",
       "properties": {
         "name": {
-          "description": "Overrides the name displayed in the UI",
+          "description": "Overrides the name displayed for this type in the UI. If not provided, falls back to the name of the `baseType`, otherwise the type is displayed as an anonymous type.",
           "type": "string",
           "pattern": "^([a-z][a-z\\d-]*)$"
         },
@@ -287,14 +264,8 @@
                     "type": "string",
                     "description": "Description of the value"
                   },
-                  "deprecationMessage": {
-                    "type": "string",
-                    "description": "Indicates that the property is deprecated and explains why."
-                  },
-                  "helpUrl": {
-                    "type": "string",
-                    "description": "Documentation link to be displayed in UI for all values of this type."
-                  },
+                  "deprecationMessage": { "$ref": "#/definitions/deprecationMessage" },
+                  "helpUrl": { "$ref": "#/definitions/helpUrl" },
                   "aliases": {
                     "type": "array",
                     "items": { "type": "string" },
@@ -491,8 +462,23 @@
         {
           "const": "clr-type-name",
           "description": "An unqualified .NET type name"
+        },
+        {
+          "const": "warning-code",
+          "description": "A warning code from the compiler, analyzers, MSBuild, etc."
         }
       ]
+    },
+    "deprecationMessage": {
+      "type": "string",
+      "description": "Indicates that the symbol is deprecated and explains why.",
+      "minLength": 1
+    },
+    "helpUrl": {
+      "type": "string",
+      "description": "Documentation link to be displayed in UI.",
+      "minLength": 1,
+      "format": "uri"
     }
   }
 }
