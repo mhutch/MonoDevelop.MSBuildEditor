@@ -213,7 +213,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				usage |= existingUsage;
 			} else {
-				var kind = InferValueKindFromName (itemName, MSBuildSyntaxKind.Item);
+				var kind = MSBuildIdentifier.InferValueKind (itemName, MSBuildSyntaxKind.Item);
 				Items.Add (itemName, new InferredItemInfo (itemName, kind));
 			}
 			ItemUsage[itemName] = usage;
@@ -231,7 +231,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				usage |= existingUsage;
 			} else if (!MSBuildIntrinsics.Properties.ContainsKey (propertyName)) {
-				var kind = InferValueKindFromName (propertyName, MSBuildSyntaxKind.Property);
+				var kind = MSBuildIdentifier.InferValueKind (propertyName, MSBuildSyntaxKind.Property);
 				Properties.Add (propertyName, new InferredPropertyInfo (propertyName, kind));
 			}
 			PropertyUsage[propertyName] = usage;
@@ -268,7 +268,7 @@ namespace MonoDevelop.MSBuild.Language
 				usage |= existingUsage;
 			} else if (!MSBuildIntrinsics.Metadata.ContainsKey (metadataName)) {
 				var item = Items[itemName];
-				var kind = InferValueKindFromName (metadataName, MSBuildSyntaxKind.Metadata);
+				var kind = MSBuildIdentifier.InferValueKind (metadataName, MSBuildSyntaxKind.Metadata);
 				item.Metadata.Add (metadataName, new InferredMetadataInfo (metadataName, kind, item: item));
 			}
 			MetadataUsage[(itemName, metadataName)] = usage;
@@ -531,78 +531,10 @@ namespace MonoDevelop.MSBuild.Language
 		public static MSBuildValueKind InferValueKindFromName (ISymbol symbol)
 			=> symbol switch {
 				ItemInfo item => MSBuildValueKind.FileOrFolder.AsList (),
-				MetadataInfo metadata => InferValueKindFromName (metadata.Name, MSBuildSyntaxKind.Metadata),
-				PropertyInfo property => InferValueKindFromName (property.Name, MSBuildSyntaxKind.Property),
+				MetadataInfo metadata => MSBuildIdentifier.InferValueKind (metadata.Name, MSBuildSyntaxKind.Metadata),
+				PropertyInfo property => MSBuildIdentifier.InferValueKind (property.Name, MSBuildSyntaxKind.Property),
 				_ => MSBuildValueKind.Unknown
 			};
-
-		public static MSBuildValueKind InferValueKindFromName (string name, MSBuildSyntaxKind kind)
-		{
-			if (kind == MSBuildSyntaxKind.Property || kind == MSBuildSyntaxKind.Metadata) {
-				if (StartsWith ("Enable")
-					|| StartsWith ("Disable")
-					|| StartsWith ("Require")
-					|| StartsWith ("Use")
-					|| StartsWith ("Allow")
-					|| EndsWith ("Enabled")
-					|| EndsWith ("Disabled")
-					|| EndsWith ("Required")) {
-					return MSBuildValueKind.Bool;
-				}
-				if (EndsWith ("DependsOn")) {
-					return MSBuildValueKind.TargetName.AsList ();
-				}
-				if (EndsWith ("Path")) {
-					return MSBuildValueKind.FileOrFolder;
-				}
-				if (EndsWith ("Paths")) {
-					return MSBuildValueKind.FileOrFolder.AsList ();
-				}
-				if (EndsWith ("Directory")
-					|| EndsWith ("Dir")) {
-					return MSBuildValueKind.Folder;
-				}
-				if (EndsWith ("File")) {
-					return MSBuildValueKind.File;
-				}
-				if (EndsWith ("FileName")) {
-					return MSBuildValueKind.Filename;
-				}
-				if (EndsWith ("Url")) {
-					return MSBuildValueKind.Url;
-				}
-				if (EndsWith ("Ext")) {
-					return MSBuildValueKind.Extension;
-				}
-				if (EndsWith ("Guid")) {
-					return MSBuildValueKind.Guid;
-				}
-				if (EndsWith ("Directories") || EndsWith ("Dirs")) {
-					return MSBuildValueKind.Folder.AsList ();
-				}
-				if (EndsWith ("Files")) {
-					return MSBuildValueKind.File.AsList ();
-				}
-			}
-
-			//make sure these work even if the common targets schema isn't loaded
-			if (kind == MSBuildSyntaxKind.Property) {
-				if (Equals ("Configuration")) {
-					return MSBuildValueKind.Configuration;
-				}
-				if (Equals ("Platform")) {
-					return MSBuildValueKind.Platform;
-				}
-			}
-
-			return MSBuildValueKind.Unknown;
-
-			bool StartsWith (string prefix) => name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
-				&& name.Length > prefix.Length
-				&& char.IsUpper (name[prefix.Length]);
-			bool EndsWith (string suffix) => name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
-			bool Equals (string value) => name.Equals (value, StringComparison.OrdinalIgnoreCase);
-		}
 
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Error, Message = "Internal error in schema inference for {filename}")]
