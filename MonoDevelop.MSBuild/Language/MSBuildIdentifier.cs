@@ -73,8 +73,100 @@ static class MSBuildIdentifier
 
 	static bool IsIdentifierChar (char ch) => char.IsLetterOrDigit (ch) || ch == '_' || ch == '-';
 	static bool IsIdentifierFirstChar (char ch) => char.IsLetter (ch) || ch == '_';
+	static bool IsPascalComponentStart (char ch) => char.IsUpper (ch);
+	static bool IsPascalComponentChar (char ch) => char.IsLetterOrDigit (ch);
 
 	public static bool IsValid (string identifier) => TryGetLength (identifier, 0, identifier.Length - 1, out int length) && length == identifier.Length;
+
+	/// <summary>
+	/// Gets a PascalCase prefix from the identifier
+	/// </summary>
+	public static bool TryGetPrefix (string identifier, [NotNullWhen(true)] out string? prefix)
+	{
+		prefix = null;
+
+		int idx = 0;
+
+		if (identifier.Length < 4) {
+			// a prefix requires two components so at minimum "AaBa"
+			return false;
+		}
+
+		// ignore the _ visibility convention prefix
+		if (identifier[idx] == '_') {
+			idx++;
+		}
+
+		// prefix must start with a PascalCase component start char
+		if (!IsPascalComponentStart (identifier[idx])) {
+			return false;
+		}
+		int prefixStart = idx;
+
+		idx++;
+
+		while (idx < identifier.Length) {
+			char ch = identifier [idx];
+			if (!IsPascalComponentChar (ch)) {
+				return false;
+			}
+			// only return the prefix when we found the start of a
+			// preceding PascalCase component, else it's not prefixing anything
+			if (IsPascalComponentStart (ch)) {
+				int prefixLength = idx - prefixStart;
+				if (prefixLength == 0) {
+					return false;
+				}
+				prefix = identifier.Substring (prefixStart, prefixLength);
+				return true;
+			}
+			idx++;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Gets a PascalCase suffix from the identifier
+	/// </summary>
+	public static bool TryGetSuffix (string identifier, [NotNullWhen (true)] out string? suffix)
+	{
+		suffix = null;
+
+		int endIdx = identifier.Length - 1;
+		int idx = endIdx;
+		if (idx < 0) {
+			return false;
+		}
+
+		string? possibleSuffix = null;
+
+		while (idx >= 0) {
+			char ch = identifier[idx];
+			if (!IsPascalComponentChar (ch)) {
+				return false;
+			}
+			if (IsPascalComponentStart (ch)) {
+				if (idx == endIdx) {
+					// a suffix is more than just one uppercase char
+					suffix = null;
+					return false;
+				}
+				if (possibleSuffix == null) {
+					possibleSuffix = identifier.Substring (idx, endIdx - idx + 1);
+				} else {
+					// only return the suffix when we found the start of a
+					// preceding PascalCase component, else it's not suffixing anything
+					suffix = possibleSuffix;
+					return true;
+				}
+			}
+			idx--;
+		}
+
+		suffix = null;
+		return false;
+	}
 
 	/// <summary>
 	/// Try to infer the value kind from an identifier.
@@ -82,49 +174,22 @@ static class MSBuildIdentifier
 	public static MSBuildValueKind InferValueKind (string name, MSBuildSyntaxKind syntaxKind)
 	{
 		if (syntaxKind == MSBuildSyntaxKind.Property || syntaxKind == MSBuildSyntaxKind.Metadata) {
-			if (StartsWith ("Enable")
-				|| StartsWith ("Disable")
-				|| StartsWith ("Require")
-				|| StartsWith ("Use")
-				|| StartsWith ("Allow")
-				|| EndsWith ("Enabled")
-				|| EndsWith ("Disabled")
-				|| EndsWith ("Required")) {
-				return MSBuildValueKind.Bool;
+			if (TryGetPrefix (name, out var prefix)) {
+				if (knownPrefixes.TryGetValue (prefix, out var valuekind)) {
+					return valuekind;
+				}
 			}
-			if (EndsWith ("DependsOn")) {
-				return MSBuildValueKind.TargetName.AsList ();
-			}
-			if (EndsWith ("Path")) {
-				return MSBuildValueKind.FileOrFolder;
-			}
-			if (EndsWith ("Paths")) {
-				return MSBuildValueKind.FileOrFolder.AsList ();
-			}
-			if (EndsWith ("Directory")
-				|| EndsWith ("Dir")) {
-				return MSBuildValueKind.Folder;
-			}
-			if (EndsWith ("File")) {
-				return MSBuildValueKind.File;
-			}
-			if (EndsWith ("FileName")) {
-				return MSBuildValueKind.Filename;
-			}
-			if (EndsWith ("Url")) {
-				return MSBuildValueKind.Url;
-			}
-			if (EndsWith ("Ext")) {
-				return MSBuildValueKind.Extension;
-			}
-			if (EndsWith ("Guid")) {
-				return MSBuildValueKind.Guid;
-			}
-			if (EndsWith ("Directories") || EndsWith ("Dirs")) {
-				return MSBuildValueKind.Folder.AsList ();
-			}
-			if (EndsWith ("Files")) {
-				return MSBuildValueKind.File.AsList ();
+			if (TryGetSuffix (name, out var suffix)) {
+				if (knownSuffixes.TryGetValue (suffix, out var valueKind)) {
+					return valueKind;
+				}
+				// these suffixes have multiple PascalCase components so must be handled differently
+				if (EndsWith ("DependsOn")) {
+					return MSBuildValueKind.TargetName.AsList ();
+				}
+				if (EndsWith ("FileName")) {
+					return MSBuildValueKind.Filename;
+				}
 			}
 		}
 
@@ -138,12 +203,40 @@ static class MSBuildIdentifier
 			}
 		}
 
+		if (syntaxKind == MSBuildSyntaxKind.Item) {
+			return MSBuildValueKind.Unknown.AsList ();
+		}
+
 		return MSBuildValueKind.Unknown;
 
-		bool StartsWith (string prefix) => name.StartsWith (prefix, StringComparison.OrdinalIgnoreCase)
-			&& name.Length > prefix.Length
-			&& char.IsUpper (name[prefix.Length]);
 		bool EndsWith (string suffix) => name.EndsWith (suffix, StringComparison.OrdinalIgnoreCase);
 		bool Equals (string value) => name.Equals (value, StringComparison.OrdinalIgnoreCase);
 	}
+
+	static readonly Dictionary<string, MSBuildValueKind> knownPrefixes = new () {
+		{ "Enable", MSBuildValueKind.Bool },
+		{ "Disable", MSBuildValueKind.Bool },
+		{ "Require", MSBuildValueKind.Bool },
+		{ "Use", MSBuildValueKind.Bool },
+		{ "Allow", MSBuildValueKind.Bool }
+	};
+
+	static readonly Dictionary<string, MSBuildValueKind> knownSuffixes = new () {
+		{ "Enabled", MSBuildValueKind.Bool },
+		{ "Disabled", MSBuildValueKind.Bool },
+		{ "Required", MSBuildValueKind.Bool },
+		{ "Path", MSBuildValueKind.FileOrFolder },
+		{ "Paths", MSBuildValueKind.FileOrFolder.AsList () },
+		{ "Directory", MSBuildValueKind.Folder },
+		{ "Dir", MSBuildValueKind.Folder },
+		{ "File", MSBuildValueKind.File },
+		{ "Filename", MSBuildValueKind.Filename },
+		{ "Uri", MSBuildValueKind.Url },
+		{ "Url", MSBuildValueKind.Url },
+		{ "Ext", MSBuildValueKind.Extension },
+		{ "Guid", MSBuildValueKind.Guid },
+		{ "Directories", MSBuildValueKind.Folder.AsList () },
+		{ "Dirs", MSBuildValueKind.Folder.AsList () },
+		{ "Files", MSBuildValueKind.File.AsList () }
+	};
 }

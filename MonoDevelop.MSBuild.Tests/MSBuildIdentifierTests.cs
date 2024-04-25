@@ -30,6 +30,35 @@ class MSBuildIdentifierTests
 		Assert.AreEqual (isValid, actual);
 	}
 
+	[TestCase ("IsFoo", "Is")]
+	[TestCase ("_IsFoo", "Is")]
+	[TestCase ("_HasFoo", "Has")]
+	[TestCase ("Foo", null)]
+	[TestCase ("_Foo", null)]
+	[TestCase ("__Foo", null)]
+	[TestCase (" Foo", null)]
+	public void TestGetPrefix (string identifier, string prefix)
+	{
+		bool success = MSBuildIdentifier.TryGetPrefix (identifier, out var actual);
+		Assert.AreEqual (prefix is not null, success);
+		Assert.AreEqual (prefix, actual);
+	}
+
+	[TestCase ("FooPath", "Path")]
+	[TestCase ("_FooEnabled", "Enabled")]
+	[TestCase ("_PineappleOn", "On")]
+	[TestCase ("Foo", null)]
+	[TestCase ("Foo_", null)]
+	[TestCase ("_Cat", null)]
+	[TestCase ("__Mouse_", null)]
+	[TestCase ("Walrus ", null)]
+	public void TestGetSuffix (string identifier, string suffix)
+	{
+		bool success = MSBuildIdentifier.TryGetSuffix (identifier, out var actual);
+		Assert.AreEqual (suffix is not null, success);
+		Assert.AreEqual (suffix, actual);
+	}
+
 	[TestCase ("Enable", MSBuildValueKind.Unknown)]
 	[TestCase ("EnableFoo", MSBuildValueKind.Bool)]
 	[TestCase ("_EnableFoo", MSBuildValueKind.Bool)]
