@@ -53,6 +53,7 @@ namespace MonoDevelop.MSBuild.Language
 			ItemInfo _ => Items.ContainsKey (info.Name),
 			TaskInfo _ => Tasks.ContainsKey (info.Name),
 			TargetInfo _ => Targets.ContainsKey (info.Name),
+			MetadataInfo m => MetadataUsage.ContainsKey((m.Item?.Name, m.Name)),
 			_ => false
 		};
 
