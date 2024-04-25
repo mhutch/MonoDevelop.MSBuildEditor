@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuild.Language
 			MetadataUsage[(itemName, metadataName)] = usage;
 		}
 
-		class InferredMetadataInfo (string name, MSBuildValueKind inferredKind, ItemInfo item) : MetadataInfo (name, null, valueKind: inferredKind, item: item)
+		class InferredMetadataInfo (string name, MSBuildValueKind inferredKind, ItemInfo item) : MetadataInfo (name, null, valueKind: inferredKind, item: item), IInferredSymbol
 		{
 		}
 
