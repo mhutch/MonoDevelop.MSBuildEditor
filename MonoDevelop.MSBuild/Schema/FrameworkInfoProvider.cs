@@ -33,7 +33,7 @@ namespace MonoDevelop.MSBuild.Schema
 		readonly Dictionary<string, KnownFramework> frameworkByShortName = new();
 
 		// shortName is a value that can be used for the TargetFramework property. not all frameworks have this.
-		readonly record struct KnownFramework(string? ShortName, string Moniker, Version Version, string? Profile = null, string? Platform = null, Version? PlatformVersion = null, string? deprecationMessage = null);
+		readonly record struct KnownFramework(string? ShortName, string Identifier, Version Version, string? Profile = null, string? Platform = null, Version? PlatformVersion = null, string? deprecationMessage = null);
 
 		static class Platform
 		{
@@ -64,8 +64,8 @@ namespace MonoDevelop.MSBuild.Schema
 		public FrameworkInfoProvider ()
 		{
 			Version CreateVersion (int versionMajor, int versionMinor, int versionBuild) => versionBuild > -1 ? new Version (versionMajor, versionMinor, versionBuild) : new Version (versionMajor, versionMinor);
-			void AddLegacy (string? shortName, string moniker, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null, string? deprecationMessage = null)
-				=> frameworks.Add (new KnownFramework (shortName, moniker, CreateVersion (versionMajor, versionMinor, versionBuild), profile, deprecationMessage));
+			void AddLegacy (string? shortName, string identifier, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null, string? deprecationMessage = null)
+				=> frameworks.Add (new KnownFramework (shortName, identifier, CreateVersion (versionMajor, versionMinor, versionBuild), profile, deprecationMessage));
 
 			void AddNetFx (string shortName, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null) => AddLegacy (shortName, FxID.NETFramework, versionMajor, versionMinor, versionBuild, profile);
 
@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			// sort to make other operations more efficient
 			frameworks.Sort ((x, y) => {
-				int cmp = string.Compare (x.Moniker, y.Moniker, StringComparison.Ordinal);
+				int cmp = string.Compare (x.Identifier, y.Identifier, StringComparison.Ordinal);
 				if (cmp != 0) {
 					return cmp;
 				}
@@ -364,7 +364,7 @@ namespace MonoDevelop.MSBuild.Schema
 			bool foundPlatform = false;
 			bool foundProfile = false;
 
-			foreach (var fx in GetFrameworksWithMoniker (framework.Framework)) {
+			foreach (var fx in GetFrameworksWithIdentifier (framework.Framework)) {
 				foundIdentifier = true;
 
 				if (AreVersionsEquivalent (framework.Version, fx.Version)) {
@@ -421,49 +421,49 @@ namespace MonoDevelop.MSBuild.Schema
 		static bool IsValidProfileChar (char c) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == 46 || c == 43 || c == 45;
 		*/
 
-		public bool IsFrameworkIdentifierValid (string moniker) => GetFrameworksWithMoniker (moniker).Any ();
+		public bool IsKnownFrameworkIdentifier (string identifier) => GetFrameworksWithIdentifier (identifier).Any ();
 
-		public bool IsFrameworkVersionValid (string moniker, Version version) => GetFrameworksWithMonikerAndVersion (moniker, version).Any ();
+		public bool IsKnownFrameworkVersion (string identifier, Version version) => GetFrameworksWithIdentifierAndVersion (identifier, version).Any ();
 
-		IEnumerable<KnownFramework> GetFrameworksWithMoniker (string moniker)
+		IEnumerable<KnownFramework> GetFrameworksWithIdentifier (string identifier)
 		{
 			// take advantage of the sorting to limit the enumeration
-			bool foundMoniker = false;
+			bool foundIdentifier = false;
 			foreach (var fx in frameworks) {
-				if (string.Equals (fx.Moniker, moniker, StringComparison.OrdinalIgnoreCase)) {
-					foundMoniker = true;
+				if (string.Equals (fx.Identifier, identifier, StringComparison.OrdinalIgnoreCase)) {
+					foundIdentifier = true;
 					yield return fx;
 				}
-				else if (foundMoniker) {
+				else if (foundIdentifier) {
 					yield break;
 				}
 			}
 		}
-		IEnumerable<KnownFramework> GetFrameworksWithMonikerAndVersion (string moniker, Version version)
+		IEnumerable<KnownFramework> GetFrameworksWithIdentifierAndVersion (string identifier, Version version)
 		{
 			// take advantage of the sorting to limit the enumeration
-			bool foundMoniker = false;
+			bool foundIdentifier = false;
 			bool foundVersion = false;
 			foreach (var fx in frameworks) {
-				if (string.Equals (fx.Moniker, moniker, StringComparison.OrdinalIgnoreCase)) {
-					foundMoniker = true;
+				if (string.Equals (fx.Identifier, identifier, StringComparison.OrdinalIgnoreCase)) {
+					foundIdentifier = true;
 					if (AreVersionsEquivalent (version, fx.Version)) {
 						foundVersion = true;
 						yield return fx;
 					} else if (foundVersion) {
 						yield break;
 					}
-				} else if (foundMoniker) {
+				} else if (foundIdentifier) {
 					yield break;
 				}
 			}
 		}
 
-		static NuGetFramework ToNugetFramework (KnownFramework fx) => new (fx.Moniker, fx.Version, fx.Profile ?? "", fx.Platform ?? "", fx.PlatformVersion ?? FrameworkConstants.EmptyVersion);
+		static NuGetFramework ToNugetFramework (KnownFramework fx) => new (fx.Identifier, fx.Version, fx.Profile ?? "", fx.Platform ?? "", fx.PlatformVersion ?? FrameworkConstants.EmptyVersion);
 
-		public bool IsFrameworkProfileValid (string moniker, Version version, string profile)
+		public bool IsFrameworkProfileValid (string identifier, Version version, string profile)
 		{
-			foreach (var fx in GetFrameworksWithMonikerAndVersion (moniker, version)) {
+			foreach (var fx in GetFrameworksWithIdentifierAndVersion (identifier, version)) {
 				if (string.Equals (fx.Profile, profile, StringComparison.OrdinalIgnoreCase)) {
 					return true;
 				}
@@ -485,37 +485,37 @@ namespace MonoDevelop.MSBuild.Schema
 			// as they are sorted we can deduplicate by skipping values that are the same as the last returned value
 			string? lastId = null;
 			foreach (var fx in frameworks) {
-				if (string.Equals (fx.Moniker, lastId, StringComparison.Ordinal)) {
+				if (string.Equals (fx.Identifier, lastId, StringComparison.Ordinal)) {
 					continue;
 				}
-				lastId = fx.Moniker;
-				yield return new FrameworkInfo (fx.Moniker, new NuGetFramework (lastId), fx.deprecationMessage);
+				lastId = fx.Identifier;
+				yield return new FrameworkInfo (fx.Identifier, new NuGetFramework (lastId), fx.deprecationMessage);
 			}
 		}
 
 		public IEnumerable<FrameworkInfo> GetFrameworkVersions (string identifier)
 		{
 			Version? lastReturned = null;
-			foreach (var fx in GetFrameworksWithMoniker (identifier)) {
+			foreach (var fx in GetFrameworksWithIdentifier (identifier)) {
 				if (lastReturned is not null && AreVersionsEquivalent (fx.Version, lastReturned)) {
 					continue;
 				}
 				lastReturned = fx.Version;
-				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), new NuGetFramework (fx.Moniker, fx.Version), fx.deprecationMessage);
+				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), new NuGetFramework (fx.Identifier, fx.Version), fx.deprecationMessage);
 			}
 		}
 
-		public IEnumerable<FrameworkInfo> GetFrameworkProfiles (string moniker, Version version)
+		public IEnumerable<FrameworkInfo> GetFrameworkProfiles (string identifier, Version version)
 		{
 			foreach (var fx in frameworks) {
-				if (!string.Equals (fx.Moniker, moniker, StringComparison.OrdinalIgnoreCase)) {
+				if (!string.Equals (fx.Identifier, identifier, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
 				if (!AreVersionsEquivalent (version, fx.Version)) {
 					continue;
 				}
 				if (fx.Profile is string profile) {
-					yield return new FrameworkInfo (profile, new NuGetFramework (fx.Moniker, fx.Version, fx.Profile), fx.deprecationMessage);
+					yield return new FrameworkInfo (profile, new NuGetFramework (fx.Identifier, fx.Version, fx.Profile), fx.deprecationMessage);
 				}
 			}
 		}

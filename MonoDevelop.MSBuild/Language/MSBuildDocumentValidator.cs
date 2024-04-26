@@ -759,7 +759,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildValueKind.TargetFrameworkIdentifier:
-				if (!FrameworkInfoProvider.Instance.IsFrameworkIdentifierValid (value)) {
+				if (!FrameworkInfoProvider.Instance.IsKnownFrameworkIdentifier (value)) {
 					AddErrorWithArgs (CoreDiagnostics.UnknownTargetFrameworkIdentifier, value);
 				}
 				break;
@@ -772,7 +772,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (Document is MSBuildRootDocument d && d.Frameworks.Count > 0) {
 						bool foundMatch = false;
 						foreach (var fx in d.Frameworks) {
-							if (FrameworkInfoProvider.AreVersionsEquivalent (fx.Version, fxv) && FrameworkInfoProvider.Instance.IsFrameworkVersionValid (fx.Framework, fxv)) {
+							if (FrameworkInfoProvider.AreVersionsEquivalent (fx.Version, fxv) && FrameworkInfoProvider.Instance.IsKnownFrameworkVersion (fx.Framework, fxv)) {
 								foundMatch = true;
 							}
 						}
