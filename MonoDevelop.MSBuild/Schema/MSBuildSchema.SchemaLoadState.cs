@@ -428,7 +428,7 @@ partial class MSBuildSchema
 			}
 
 			if (token is JArray conciseDef) {
-				return (MSBuildValueKind.CustomType, ReadConciseCustomTypeDefinition (conciseDef));
+				return (MSBuildValueKind.CustomType, ReadConciseCustomTypeDefinition (conciseDef, null));
 			}
 
 			if (token is not JObject typeDefObj) {
@@ -436,7 +436,7 @@ partial class MSBuildSchema
 				return (MSBuildValueKind.Unknown, null);
 			}
 
-			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (typeDefObj);
+			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (typeDefObj, null);
 
 			if (reference != null) {
 				if (CustomTypes is not null && CustomTypes.TryGetValue (reference, out var resolved)) {
@@ -456,7 +456,7 @@ partial class MSBuildSchema
 		CustomTypeInfo? ReadCustomTypeDefinition (JObject customTypeContainer, string? customTypeId, JToken? customTypeDef)
 		{
 			if (customTypeDef is JArray conciseDef) {
-				return ReadConciseCustomTypeDefinition (conciseDef);
+				return ReadConciseCustomTypeDefinition (conciseDef, customTypeId);
 			}
 			if (customTypeDef is not JObject customTypeDefObj) {
 				AddError (customTypeDef ?? customTypeContainer, customTypeId is not null
@@ -465,7 +465,7 @@ partial class MSBuildSchema
 				return null;
 			}
 
-			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (customTypeDefObj);
+			(var definition, var reference) = ReadCustomTypeDefinitionOrReference (customTypeDefObj, customTypeId);
 			if (reference != null) {
 				AddWarning (customTypeDefObj, customTypeId is not null
 					? $"Custom type definition '{customTypeId}' cannot be a type reference"
@@ -476,7 +476,9 @@ partial class MSBuildSchema
 			return definition;
 		}
 
-		CustomTypeInfo ReadConciseCustomTypeDefinition (JArray conciseCustomTypeDef)
+		static string? MakeAnonymousTypeName (string? customTypeId) => customTypeId is null? null : $"#{customTypeId}";
+
+		CustomTypeInfo ReadConciseCustomTypeDefinition (JArray conciseCustomTypeDef, string? customTypeId)
 		{
 			var values = new List<CustomTypeValue> (conciseCustomTypeDef.Count);
 			foreach (var defVal in conciseCustomTypeDef) {
@@ -486,10 +488,10 @@ partial class MSBuildSchema
 				}
 				values.Add (new CustomTypeValue (customTypeValue, null));
 			}
-			return new (values);
+			return new (values, MakeAnonymousTypeName (customTypeId));
 		}
 
-		(CustomTypeInfo? definition, string? reference) ReadCustomTypeDefinitionOrReference (JObject customTypeObj)
+		(CustomTypeInfo? definition, string? reference) ReadCustomTypeDefinitionOrReference (JObject customTypeObj, string? customTypeId)
 		{
 			var enumerator = customTypeObj.GetEnumerator ();
 			if (!enumerator.MoveNext ()) {
@@ -609,7 +611,7 @@ partial class MSBuildSchema
 				allowUnknownValues = true;
 			}
 
-			return (new CustomTypeInfo (values, name, description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false, analyzerHints, helpUrl), null);
+			return (new CustomTypeInfo (values, name ?? MakeAnonymousTypeName (customTypeId), description, allowUnknownValues ?? false, baseValueKind ?? MSBuildValueKind.Unknown, caseSensitive ?? false, analyzerHints, helpUrl), null);
 		}
 
 		CustomTypeValue ReadCustomTypeValue (JObject customTypeValueCollection, string customTypeValueName, JToken? customTypeValueToken)
