@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Util;
 
 using NuGet.Frameworks;
 
@@ -25,7 +26,7 @@ namespace MonoDevelop.MSBuild.Schema
 	// for reference, see https://learn.microsoft.com/en-us/dotnet/standard/frameworks
 	//
 	// FIXME: this should really be something that schemas can extend
-	class FrameworkInfoProvider
+	partial class FrameworkInfoProvider
 	{
 		public static FrameworkInfoProvider Instance { get; } = new FrameworkInfoProvider ();
 
@@ -35,17 +36,6 @@ namespace MonoDevelop.MSBuild.Schema
 		// shortName is a value that can be used for the TargetFramework property. not all frameworks have this.
 		readonly record struct KnownFramework(string? ShortName, string Identifier, Version Version, string? Profile = null, string? Platform = null, Version? PlatformVersion = null, string? deprecationMessage = null);
 
-		static class Platform
-		{
-			public const string Windows = "Windows";
-			public const string Android = "Android";
-			public const string iOS = "iOS";
-			public const string macOS = "macOS";
-			public const string tvOS = "tvOS";
-			public const string MacCatalyst = "MacCatalyst";
-			public const string Tizen = "Tizen";
-			public const string Browser = "Browser";
-		}
 
 		static class FxID
 		{
@@ -170,41 +160,41 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (5, 0, "net5.0-windows");
 
 			AddNetCore (6, 0, "net6.0");
-			AddNetCore (6, 0, "net6.0-windows", Platform.Windows);
-			AddNetCore (6, 0, "net6.0-android", Platform.Android);
-			AddNetCore (6, 0, "net6.0-ios", Platform.iOS);
-			AddNetCore (6, 0, "net6.0-maccatalyst", Platform.MacCatalyst);
-			AddNetCore (6, 0, "net6.0-macos", Platform.macOS);
-			AddNetCore (6, 0, "net6.0-tvos", Platform.tvOS);
+			AddNetCore (6, 0, "net6.0-windows", KnownPlatform.Windows);
+			AddNetCore (6, 0, "net6.0-android", KnownPlatform.Android);
+			AddNetCore (6, 0, "net6.0-ios", KnownPlatform.iOS);
+			AddNetCore (6, 0, "net6.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCore (6, 0, "net6.0-macos", KnownPlatform.macOS);
+			AddNetCore (6, 0, "net6.0-tvos", KnownPlatform.tvOS);
 
 			AddNetCore (7, 0, "net7.0");
-			AddNetCore (7, 0, "net7.0-windows", Platform.Windows);
-			AddNetCore (7, 0, "net7.0-android", Platform.Android);
-			AddNetCore (7, 0, "net7.0-ios", Platform.iOS);
-			AddNetCore (7, 0, "net7.0-maccatalyst", Platform.MacCatalyst);
-			AddNetCore (7, 0, "net7.0-macos", Platform.macOS);
-			AddNetCore (7, 0, "net7.0-tvos", Platform.tvOS);
-			AddNetCore (7, 0, "net7.0-tizen", Platform.Tizen);
+			AddNetCore (7, 0, "net7.0-windows", KnownPlatform.Windows);
+			AddNetCore (7, 0, "net7.0-android", KnownPlatform.Android);
+			AddNetCore (7, 0, "net7.0-ios", KnownPlatform.iOS);
+			AddNetCore (7, 0, "net7.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCore (7, 0, "net7.0-macos", KnownPlatform.macOS);
+			AddNetCore (7, 0, "net7.0-tvos", KnownPlatform.tvOS);
+			AddNetCore (7, 0, "net7.0-tizen", KnownPlatform.Tizen);
 
 			AddNetCore (8, 0, "net8.0");
-			AddNetCore (8, 0, "net8.0-windows", Platform.Windows);
-			AddNetCore (8, 0, "net8.0-android", Platform.Android);
-			AddNetCore (8, 0, "net8.0-ios", Platform.iOS);
-			AddNetCore (8, 0, "net8.0-maccatalyst", Platform.MacCatalyst);
-			AddNetCore (8, 0, "net8.0-macos", Platform.macOS);
-			AddNetCore (8, 0, "net8.0-tvos", Platform.tvOS);
-			AddNetCore (7, 0, "net8.0-tizen", Platform.Tizen);
-			AddNetCore (7, 0, "net8.0-browser", Platform.Browser);
+			AddNetCore (8, 0, "net8.0-windows", KnownPlatform.Windows);
+			AddNetCore (8, 0, "net8.0-android", KnownPlatform.Android);
+			AddNetCore (8, 0, "net8.0-ios", KnownPlatform.iOS);
+			AddNetCore (8, 0, "net8.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCore (8, 0, "net8.0-macos", KnownPlatform.macOS);
+			AddNetCore (8, 0, "net8.0-tvos", KnownPlatform.tvOS);
+			AddNetCore (7, 0, "net8.0-tizen", KnownPlatform.Tizen);
+			AddNetCore (7, 0, "net8.0-browser", KnownPlatform.Browser);
 
 			AddNetCore (9, 0, "net9.0");
-			AddNetCore (9, 0, "net9.0-windows", Platform.Windows);
-			AddNetCore (9, 0, "net9.0-android", Platform.Android);
-			AddNetCore (9, 0, "net9.0-ios", Platform.iOS);
-			AddNetCore (9, 0, "net9.0-maccatalyst", Platform.MacCatalyst);
-			AddNetCore (9, 0, "net9.0-macos", Platform.macOS);
-			AddNetCore (9, 0, "net9.0-tvos", Platform.tvOS);
-			AddNetCore (7, 0, "net9.0-tizen", Platform.Tizen);
-			AddNetCore (7, 0, "net9.0-browser", Platform.Browser);
+			AddNetCore (9, 0, "net9.0-windows", KnownPlatform.Windows);
+			AddNetCore (9, 0, "net9.0-android", KnownPlatform.Android);
+			AddNetCore (9, 0, "net9.0-ios", KnownPlatform.iOS);
+			AddNetCore (9, 0, "net9.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCore (9, 0, "net9.0-macos", KnownPlatform.macOS);
+			AddNetCore (9, 0, "net9.0-tvos", KnownPlatform.tvOS);
+			AddNetCore (7, 0, "net9.0-tizen", KnownPlatform.Tizen);
+			AddNetCore (7, 0, "net9.0-browser", KnownPlatform.Browser);
 
 			AddLegacy (null, FxID.MonoAndroid, 1, 0);
 			AddLegacy (null, FxID.MonoAndroid, 2, 3);
@@ -305,29 +295,6 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 		}
-
-		static readonly Dictionary<(int, string), Version> defaultPlatformVersions = new () {
-			{ (6, Platform.Android), new Version (31, 0) },
-			{ (7, Platform.Android), new Version (33, 0) },
-			{ (8, Platform.Android), new Version (34, 0) },
-			{ (6, Platform.iOS), new Version (15, 0) },
-			{ (7, Platform.iOS), new Version (16, 1) },
-			{ (8, Platform.iOS), new Version (17, 2) },
-			{ (5, Platform.MacCatalyst), new Version (15, 0) },
-			{ (7, Platform.MacCatalyst), new Version (16, 1) },
-			{ (8, Platform.MacCatalyst), new Version (17, 2) },
-			{ (6, Platform.macOS), new Version (12, 0) },
-			{ (7, Platform.macOS), new Version (13, 0) },
-			{ (8, Platform.macOS), new Version (14, 2) },
-			{ (6, Platform.tvOS), new Version (15, 1) },
-			{ (7, Platform.tvOS), new Version (16, 1) },
-			{ (8, Platform.tvOS), new Version (17, 1) },
-			{ (7, Platform.Tizen), new Version (7, 0) },
-			{ (8, Platform.Tizen), new Version (8, 0) },
-			{ (6, Platform.Windows), new Version (7, 0) },
-			{ (7, Platform.Windows), new Version (7, 0) },
-			{ (8, Platform.Windows), new Version (7, 0) },
-		};
 
 		public FrameworkNameValidationResult ValidateFrameworkShortName (string shortName, out string? frameworkComponent, out Version? versionComponent, out string? platformComponent, out string? profileComponent, out Version? platformVersionComponent)
 		{
@@ -655,27 +622,18 @@ namespace MonoDevelop.MSBuild.Schema
 			return sb.ToString ();
 		}
 
-		static string FormatPlatformNameForTitle (NuGetFramework reference) => reference.Platform.ToLowerInvariant () switch {
-			"windows" => Platform.Windows,
-			"android" => Platform.Android,
-			"ios" => Platform.iOS,
-			"macos" => Platform.macOS,
-			"tvos" => Platform.tvOS,
-			"maccatalyst" => Platform.MacCatalyst,
-			"tizen" => Platform.Tizen,
-			"browser" => Platform.Browser,
-			_ => reference.Platform
-		};
+		static string FormatPlatformNameForTitle (NuGetFramework reference) => KnownPlatform.ToCanonicalCase (reference.Platform);
 
 		static bool TryGetPlatformVersionForDisplay (NuGetFramework fx, [NotNullWhen (true)] out string? displayVersion)
 		{
-			var version = fx.PlatformVersion;
-			if (version?.Major > 0
-				|| (fx.Framework == FrameworkIdentifiers.NetCoreApp && fx.Version.Major > 5 && fx.Platform is not null && defaultPlatformVersions.TryGetValue ((fx.Version.Major, fx.Platform), out version)))
-			{
-				displayVersion = FormatDisplayVersion (version);
-				return true;
+			if (fx.IsNet5Era && !string.IsNullOrEmpty (fx.Platform)) {
+				var platformVersion = fx.PlatformVersion;
+				if (platformVersion?.Major > 0 || KnownPlatform.TryGetDefaultPlatformVersion (fx.Version.Major, fx.Platform, out platformVersion)) {
+					displayVersion = FormatDisplayVersion (platformVersion);
+					return true;
+				}
 			}
+
 			displayVersion = null;
 			return false;
 		}

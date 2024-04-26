@@ -59,7 +59,9 @@ class FrameworkInfoTests
 	[TestCase ("net4.8.1", ".NET Framework 4.8.1")]
 	[TestCase ("wpa81", "Windows Phone (UWP) 8.1")]
 	[TestCase ("net6.0-android9000.0", ".NET 6.0 with platform-specific APIs for Android 9000.0")]
+	[TestCase ("net6.0-android", ".NET 6.0 with platform-specific APIs for Android 31.0")]
 	[TestCase ("net6.0-android32.0", ".NET 6.0 with platform-specific APIs for Android 32.0")]
+	[TestCase ("net7.0-android", ".NET 7.0 with platform-specific APIs for Android 33.0")]
 	[TestCase ("net6.0", ".NET 6.0")]
 	public void FrameworkDescription (string tfm, string description)
 	{
@@ -74,7 +76,9 @@ class FrameworkInfoTests
 	[TestCase ("net4.8.1", ".NETFramework,Version=v4.8.1")]
 	[TestCase ("wpa81", "WindowsPhoneApp,Version=v8.1")]
 	[TestCase ("net6.0-android9000.0", ".NETCoreApp,Version=v6.0 | Android 9000.0")]
+	[TestCase ("net6.0-android", ".NETCoreApp,Version=v6.0 | Android 31.0")]
 	[TestCase ("net6.0-android32.0", ".NETCoreApp,Version=v6.0 | Android 32.0")]
+	[TestCase ("net7.0-android", ".NETCoreApp,Version=v7.0 | Android 33.0")]
 	[TestCase ("net6.0", ".NETCoreApp,Version=v6.0")]
 	public void FrameworkTitle (string tfm, string description)
 	{
