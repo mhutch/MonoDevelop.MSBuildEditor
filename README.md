@@ -5,13 +5,21 @@
 
 MSBuild Editor is an open-source language service that provides enhanced support for editing MSBuild files in Visual Studio. It includes IntelliSense, Quick Info, navigation, validation, code fixes, and refactorings, all driven by a powerful and customizable schema-based type system.
 
-You can install the extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mhutch.msbuildeditor), download a [CI build](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions), or build from source.
+You can install the extension from the Visual Studio Extension Manager or from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mhutch.msbuildeditor), download a [CI build](https://github.com/mhutch/MonoDevelop.MSBuildEditor/actions), or build from source.
 <br><br>
 
 **⚠️ The editor is currently in preview.<br>
 📝 Please report bugs and feature requests in the GitHub repo.<br>
 🎉 Pull requests are also much appreciated!**
+<br>
+
+**Please let us know about your experience by filling out [this survey](https://www.surveymonkey.com/r/G3F9SC3)**.
 <br><br>
+
+We appreciate your feedback, and it will help guide how the experiment develops and whether the MSBuild Editor becomes an officially supported part of the .NET development experience.
+
+*For an explanation of why the repo and assembly names contains "MonoDevelop", see [this discussion post](https://github.com/mhutch/MonoDevelop.MSBuildEditor/discussions/197#discussioncomment-9098580).*
+
 
 ## Development
 
@@ -67,6 +75,8 @@ The editor supports code fixes for several diagnostics, and has refactorings suc
 In addition to the schema inferred from the items, metadata, properties and tasks used in a project's imports, the extension also defines a json-based MSBuild-specific schema format that can be used to provide documentation, type annotations, allowed values, and other information that is used to provide a richer editing and validation experience.
 
 Any targets file can provide a schema 'sidecar', which has the same name as the targets file except with the suffix `.buildschema.json`. The editor will load the sidecar schemas for any targets that it imports. This allows MSBuild targets to provide their own documentation.
+
+The wiki contains [guidance on creating custom schemas](https://github.com/mhutch/MonoDevelop.MSBuildEditor/wiki/Creating-a-custom-schema) and documents the [schema format](https://github.com/mhutch/MonoDevelop.MSBuildEditor/wiki/Schema-structure).
 
 ![](images/vs-schema.png)
 
