@@ -381,6 +381,10 @@ namespace MonoDevelop.MSBuild.Schema
 				return FrameworkNameValidationResult.UnknownIdentifier;
 			}
 			if (!foundVersion) {
+				// for UAP we can't validate the revisions as we don't have the data, so just ignore it
+				if (framework.Framework == "UAP" && framework.Version.Major == 10 && framework.Version.Minor == 0) {
+					return FrameworkNameValidationResult.OK;
+				}
 				return FrameworkNameValidationResult.UnknownVersion;
 			}
 			if (framework.HasPlatform && !foundPlatform) {
