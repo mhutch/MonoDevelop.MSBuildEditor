@@ -20,11 +20,6 @@
         "AspNetCoreModuleV2"
       ]
     },
-    "UserSecretsId": {
-      "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time. Although by default this is a GUID value, arbitrary strings may be used.",
-      "type": "string",
-      "helpUrl": "https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
-    },
     "BlazorEnableTimeZoneSupport": {
       "description": "Indicates whether Blazor WebAssembly should include a data file to make timezone information correct. Setting this to `false` will reduce your app size.",
       "defaultValue": "true",

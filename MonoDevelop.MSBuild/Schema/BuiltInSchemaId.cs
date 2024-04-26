@@ -28,5 +28,9 @@ enum BuiltInSchemaId
 	ProjectSystemMps,
 	ProjectSystemCps,
 	GenerateAssemblyInfo,
-	ValidatePackage
+	ValidatePackage,
+	AspireAppHost,
+	AspireHostingOrchestration,
+	AspireHostingSdk,
+	AspireDashboardSdk
 }
