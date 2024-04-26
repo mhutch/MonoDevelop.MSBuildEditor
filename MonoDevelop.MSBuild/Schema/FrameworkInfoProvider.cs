@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -305,6 +306,29 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
+		static readonly Dictionary<(int, string), Version> defaultPlatformVersions = new () {
+			{ (6, Platform.Android), new Version (31, 0) },
+			{ (7, Platform.Android), new Version (33, 0) },
+			{ (8, Platform.Android), new Version (34, 0) },
+			{ (6, Platform.iOS), new Version (15, 0) },
+			{ (7, Platform.iOS), new Version (16, 1) },
+			{ (8, Platform.iOS), new Version (17, 2) },
+			{ (5, Platform.MacCatalyst), new Version (15, 0) },
+			{ (7, Platform.MacCatalyst), new Version (16, 1) },
+			{ (8, Platform.MacCatalyst), new Version (17, 2) },
+			{ (6, Platform.macOS), new Version (12, 0) },
+			{ (7, Platform.macOS), new Version (13, 0) },
+			{ (8, Platform.macOS), new Version (14, 2) },
+			{ (6, Platform.tvOS), new Version (15, 1) },
+			{ (7, Platform.tvOS), new Version (16, 1) },
+			{ (8, Platform.tvOS), new Version (17, 1) },
+			{ (7, Platform.Tizen), new Version (7, 0) },
+			{ (8, Platform.Tizen), new Version (8, 0) },
+			{ (6, Platform.Windows), new Version (7, 0) },
+			{ (7, Platform.Windows), new Version (7, 0) },
+			{ (8, Platform.Windows), new Version (7, 0) },
+		};
+
 		public FrameworkNameValidationResult ValidateFrameworkShortName (string shortName, out string? frameworkComponent, out Version? versionComponent, out string? platformComponent, out string? profileComponent, out Version? platformVersionComponent)
 		{
 			frameworkComponent = platformComponent = profileComponent = null;
@@ -598,10 +622,10 @@ namespace MonoDevelop.MSBuild.Schema
 				if (string.IsNullOrEmpty (fx.Platform)) {
 					return $"{description} {FormatDisplayVersion (fx.Version)}";
 				}
-				if (fx.PlatformVersion.Major == 0) {
-					return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)}";
+				if (TryGetPlatformVersionForDisplay (fx, out var platformDisplayVersion)) {
+					return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)} {platformDisplayVersion}";
 				}
-				return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)} {FormatDisplayVersion (fx.PlatformVersion)}";
+				return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)}";
 			}
 		}
 
@@ -617,9 +641,11 @@ namespace MonoDevelop.MSBuild.Schema
 
 			sb.Append (" | ");
 			sb.Append (platformName);
-			sb.Append (" ");
 
-			AppendDisplayVersion (sb, reference.PlatformVersion);
+			if (TryGetPlatformVersionForDisplay (reference, out var platformDisplayVersion)) {
+				sb.Append (" ");
+				sb.Append (platformDisplayVersion);
+			}
 
 			return sb.ToString ();
 		}
@@ -635,6 +661,19 @@ namespace MonoDevelop.MSBuild.Schema
 			"browser" => Platform.Browser,
 			_ => reference.Platform
 		};
+
+		static bool TryGetPlatformVersionForDisplay (NuGetFramework fx, [NotNullWhen (true)] out string? displayVersion)
+		{
+			var version = fx.PlatformVersion;
+			if (version?.Major > 0
+				|| (fx.Framework == FrameworkIdentifiers.NetCoreApp && fx.Version.Major > 5 && fx.Platform is not null && defaultPlatformVersions.TryGetValue ((fx.Version.Major, fx.Platform), out version)))
+			{
+				displayVersion = FormatDisplayVersion (version);
+				return true;
+			}
+			displayVersion = null;
+			return false;
+		}
 
 		static void AppendDisplayVersion (StringBuilder sb, Version version)
 		{
