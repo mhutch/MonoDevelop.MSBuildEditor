@@ -1,0 +1,13 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AspireDashboardDir": {
+      "description": "The directory where the .NET Aspire Dashboard is located",
+      "type": "folder-with-slash"
+    },
+    "AspireDashboardPath": {
+      "description": "The path to the .NET Aspire Dashboard binary",
+      "type": "file"
+    }
+  }
+}

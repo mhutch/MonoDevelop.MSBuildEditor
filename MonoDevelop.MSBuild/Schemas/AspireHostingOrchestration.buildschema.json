@@ -1,0 +1,21 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "DcpDir": {
+      "description": "The path to the directory containing the DCP tools.",
+      "type": "folder-with-slash"
+    },
+    "DcpExtensionsDir": {
+      "description": "The path to the directory containing the DCP tool extensions.",
+      "type": "folder-with-slash"
+    },
+    "DcpBinDir": {
+      "description": "The path to the directory containing the DCP tool extension binaries.",
+      "type": "folder-with-slash"
+    },
+    "DcpCliPath": {
+      "description": "The path to the DCP CLI executable.",
+      "type": "file"
+    }
+  }
+}

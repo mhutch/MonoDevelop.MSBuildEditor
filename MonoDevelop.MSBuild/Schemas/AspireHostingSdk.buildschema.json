@@ -1,0 +1,22 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "types": {
+    "aspire-hosting-sdk-warning": {
+      "baseType": "warning-code",
+      "values": {
+        "ASPIRE002": "Aspire AppHost project has missing dependencies",
+        "ASPIRE003": "Visual Studio version is too old for Aspire AppHost project"
+      }
+    }
+  },
+  "metadata": [
+    {
+      "$appliesTo": [ "ProjectReference" ],
+      "IsAspireProjectResource":{
+        "type": "bool",
+        "description": "Indicates that the referenced project should be orchestrated by the .NET Aspire AppHost, instead of referencing its output assembly.",
+        "defaultValue": "true"
+      }
+    }
+  ]
+}

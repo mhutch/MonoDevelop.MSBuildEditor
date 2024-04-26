@@ -34,6 +34,8 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			}
 		}
 
+		public bool IsAnonymous => Name is null || Name.Length == 0 || Name[0] == '#';
+
 		public string? Name { get; }
 		public DisplayText Description { get; }
 		public bool AllowUnknownValues { get; }
