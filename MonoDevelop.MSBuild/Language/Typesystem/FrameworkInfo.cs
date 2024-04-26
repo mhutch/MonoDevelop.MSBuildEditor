@@ -11,14 +11,17 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 	// a shortname, identifier, version or profile
 	// the "name" is the piece that's being represented and the reference is the
 	// full ID, or as close to it as we have
-	class FrameworkInfo : BaseSymbol
+	class FrameworkInfo : BaseSymbol, IDeprecatable
 	{
-		public FrameworkInfo (string name, NuGetFramework reference)
+		public FrameworkInfo (string name, NuGetFramework reference, string? deprecationMessage = null)
 			: base (name, null)
 		{
 			Reference = reference;
+			DeprecationMessage = deprecationMessage;
 		}
 
 		public NuGetFramework Reference { get; }
+
+		public string? DeprecationMessage { get; }
 	}
 }

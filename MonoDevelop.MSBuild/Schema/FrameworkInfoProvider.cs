@@ -12,12 +12,16 @@ using MonoDevelop.MSBuild.Language.Typesystem;
 
 using NuGet.Frameworks;
 
+using static NuGet.Frameworks.FrameworkConstants;
+
 namespace MonoDevelop.MSBuild.Schema
 {
 	// We can't rely on checking the system or the host IDE for frameworks, as they
 	// may not be installed. We also can't use NuGet.Frameworks, as it has a rather skewed
 	// worldview - it often deals with ranges rather than concrete values, and
 	// sometimes omits important things like version numbers
+	//
+	// for reference, see https://learn.microsoft.com/en-us/dotnet/standard/frameworks
 	//
 	// FIXME: this should really be something that schemas can extend
 	class FrameworkInfoProvider
@@ -28,7 +32,7 @@ namespace MonoDevelop.MSBuild.Schema
 		readonly Dictionary<string, KnownFramework> frameworkByShortName = new();
 
 		// shortName is a value that can be used for the TargetFramework property. not all frameworks have this.
-		readonly record struct KnownFramework(string? ShortName, string Moniker, Version Version, string? Profile = null, string? Platform = null, Version? PlatformVersion = null);
+		readonly record struct KnownFramework(string? ShortName, string Moniker, Version Version, string? Profile = null, string? Platform = null, Version? PlatformVersion = null, string? deprecationMessage = null);
 
 		static class Platform
 		{
@@ -57,10 +61,12 @@ namespace MonoDevelop.MSBuild.Schema
 		public FrameworkInfoProvider ()
 		{
 			Version CreateVersion (int versionMajor, int versionMinor, int versionBuild) => versionBuild > -1 ? new Version (versionMajor, versionMinor, versionBuild) : new Version (versionMajor, versionMinor);
-			void AddLegacy (string? shortName, string moniker, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null) => frameworks.Add (new KnownFramework (shortName, moniker, CreateVersion (versionMajor, versionMinor, versionBuild), profile));
+			void AddLegacy (string? shortName, string moniker, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null, string? deprecationMessage = null)
+				=> frameworks.Add (new KnownFramework (shortName, moniker, CreateVersion (versionMajor, versionMinor, versionBuild), profile, deprecationMessage));
 
 			void AddNetFx (string shortName, int versionMajor, int versionMinor, int versionBuild = -1, string? profile = null) => AddLegacy (shortName, FxID.NETFramework, versionMajor, versionMinor, versionBuild, profile);
 
+			AddNetFx ("net11", 1, 1);
 			AddNetFx ("net20", 2, 0);
 			AddNetFx ("net30", 3, 0);
 			AddNetFx ("net35", 3, 5);
@@ -212,6 +218,51 @@ namespace MonoDevelop.MSBuild.Schema
 			AddLegacy (null, FxID.XamarinWatchOS, 1, 0);
 			AddLegacy (null, FxID.XamarinIOS, 1, 0);
 			AddLegacy (null, FxID.MonoUE, 1, 0);
+
+			AddLegacy ("sl2", FrameworkIdentifiers.Silverlight, 2, 0);
+			AddLegacy ("sl3", FrameworkIdentifiers.Silverlight, 3, 0);
+			AddLegacy ("sl4", FrameworkIdentifiers.Silverlight, 4, 0);
+			AddLegacy ("sl5", FrameworkIdentifiers.Silverlight, 5, 0);
+
+			AddLegacy ("wp", FrameworkIdentifiers.WindowsPhone, 7, 0);
+			AddLegacy ("wp7", FrameworkIdentifiers.WindowsPhone, 7, 0);
+			AddLegacy ("wp75", FrameworkIdentifiers.WindowsPhone, 7, 5);
+			AddLegacy ("wp8", FrameworkIdentifiers.WindowsPhone, 8, 0);
+			AddLegacy ("wp81", FrameworkIdentifiers.WindowsPhone, 8, 1);
+			AddLegacy ("wpa", FrameworkIdentifiers.WindowsPhoneApp, 8, 1);
+			AddLegacy ("wpa81", FrameworkIdentifiers.WindowsPhoneApp, 8, 1);
+
+			AddLegacy ("win", FrameworkIdentifiers.Windows, 8, 0, deprecationMessage: "Use `netcore45`");
+			AddLegacy ("win8", FrameworkIdentifiers.Windows, 8, 0, deprecationMessage: "Use `netcore45`"); // equivalent to netcore45
+			AddLegacy ("win81", FrameworkIdentifiers.Windows, 8, 1, deprecationMessage: "Use `netcore451`"); // equivalent to netcore451
+			AddLegacy ("win10", FrameworkIdentifiers.Windows, 10, 0, deprecationMessage: "Use `uap10.0`"); // equivalent to uap10.0
+
+			AddLegacy ("winrt", FrameworkIdentifiers.WinRT, 4, 5, deprecationMessage: "Use `netcore45`");
+			AddLegacy ("winrt45", FrameworkIdentifiers.WinRT, 4, 5, deprecationMessage: "Use `netcore45`"); // equivalent to netcore45
+
+			AddLegacy ("netcore", FrameworkIdentifiers.NetCore, 4, 5);
+			AddLegacy ("netcore45", FrameworkIdentifiers.NetCore, 4, 5);
+			AddLegacy ("netcore451", FrameworkIdentifiers.NetCore, 4, 5, 1);
+			AddLegacy ("netcore50", FrameworkIdentifiers.NetCore, 5, 0, deprecationMessage: "Use `uap10.0`"); // equivalent to uap10.0
+
+			AddLegacy ("uap", FrameworkIdentifiers.UAP, 10, 0);
+			AddLegacy ("uap10.0", FrameworkIdentifiers.UAP, 10, 0);
+
+			AddLegacy ("tizen", FrameworkIdentifiers.Tizen, 3, 0);
+			AddLegacy ("tizen30", FrameworkIdentifiers.Tizen, 3, 0);
+			AddLegacy ("tizen40", FrameworkIdentifiers.Tizen, 4, 0);
+			AddLegacy ("tizen50", FrameworkIdentifiers.Tizen, 5, 0);
+			AddLegacy ("tizen60", FrameworkIdentifiers.Tizen, 6, 0);
+
+			AddLegacy ("netnano", FrameworkIdentifiers.NanoFramework, 1, 0);
+
+			AddLegacy ("netmf20", FrameworkIdentifiers.NetMicro, 2, 0);
+			AddLegacy ("netmf30", FrameworkIdentifiers.NetMicro, 3, 0);
+			AddLegacy ("netmf35", FrameworkIdentifiers.NetMicro, 3, 5);
+			AddLegacy ("netmf41", FrameworkIdentifiers.NetMicro, 4, 1);
+			AddLegacy ("netmf42", FrameworkIdentifiers.NetMicro, 4, 2);
+			AddLegacy ("netmf43", FrameworkIdentifiers.NetMicro, 4, 3);
+			AddLegacy ("netmf44", FrameworkIdentifiers.NetMicro, 4, 4);
 
 			// sort to make other operations more efficient
 			frameworks.Sort ((x, y) => {
@@ -389,7 +440,7 @@ namespace MonoDevelop.MSBuild.Schema
 		{
 			foreach (var fx in frameworks) {
 				if (fx.ShortName != null) {
-					yield return new FrameworkInfo (fx.ShortName, ToNugetFramework (fx));
+					yield return new FrameworkInfo (fx.ShortName, ToNugetFramework (fx), fx.deprecationMessage);
 				}
 			}
 		}
@@ -403,7 +454,7 @@ namespace MonoDevelop.MSBuild.Schema
 					continue;
 				}
 				lastId = fx.Moniker;
-				yield return new FrameworkInfo (fx.Moniker, new NuGetFramework (lastId));
+				yield return new FrameworkInfo (fx.Moniker, new NuGetFramework (lastId), fx.deprecationMessage);
 			}
 		}
 
@@ -415,7 +466,7 @@ namespace MonoDevelop.MSBuild.Schema
 					continue;
 				}
 				lastReturned = fx.Version;
-				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), new NuGetFramework (fx.Moniker, fx.Version));
+				yield return new FrameworkInfo ("v" + FormatDisplayVersion (fx.Version), new NuGetFramework (fx.Moniker, fx.Version), fx.deprecationMessage);
 			}
 		}
 
@@ -429,7 +480,7 @@ namespace MonoDevelop.MSBuild.Schema
 					continue;
 				}
 				if (fx.Profile is string profile) {
-					yield return new FrameworkInfo (profile, new NuGetFramework (fx.Moniker, fx.Version, fx.Profile));
+					yield return new FrameworkInfo (profile, new NuGetFramework (fx.Moniker, fx.Version, fx.Profile), fx.deprecationMessage);
 				}
 			}
 		}
@@ -498,6 +549,29 @@ namespace MonoDevelop.MSBuild.Schema
 				return "Xamarin.watchOS";
 			case "monoue":
 				return "Mono for Unreal Engine";
+			case ".netcore":
+				return (fx.Version.Major, fx.Version.Minor, fx.Version.Build) switch {
+					(4, 5, 0) => "Windows Store 8.0",
+					(4, 5, 1) => "Windows Store 8.1",
+					(5, 0, 0) => "Universal Windows Platform 10.0",
+					_ => "Windows Store"
+				};
+			case "windows":
+				return WithVersion ("Windows Store");
+			case "windowsphone":
+				return WithVersion ("Windows Phone");
+			case "windowsphoneapp":
+				return WithVersion ("Windows Phone (UWP)");
+			case "uap":
+				return WithVersion ("Universal Windows Platform");
+			case "silverlight":
+				return WithVersion ("Silverlight");
+			case "tizen":
+				return WithVersion ("Tizen");
+			case ".netnanoframework":
+				return ".NET Nano Framework";
+			case ".netmicroframework":
+				return ".NET Micro Framework";
 			}
 			return null;
 
