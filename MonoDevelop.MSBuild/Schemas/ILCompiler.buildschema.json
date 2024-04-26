@@ -1,0 +1,88 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/index.md
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/interop.md
+  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/optimizing.md
+  // based on https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md
+  // based on https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md
+  "properties": {
+    "IlcDumpGeneratedIL": {
+      "description": "Dump IL for method bodies the compiler generated on the fly into `ProjectName.il`.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "IlcGenerateDgmlFile": {
+      "description": "Generates log files `ProjectName.codegen.dgml.xml` and `ProjectName.scan.dgml.xml` in DGML format.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "IlcGenerateMapFile": {
+      "description": "Generates log files `ProjectName.map.xml` which describe layout of objects.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "IlcGenerateMetadataLog": {
+      "description": "Enable generation of a native AoT compiler metadata log.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "IlcGenerateMstatFile": {
+      "description": "Generates an `mstat` file which contains size information about types, methods and blobs emitted.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "IlcInstructionSet": {
+      "description": "Specifies a set of CPU instruction sets to allow targeting newer instruction sets for better performance. Run `ilc --help` for the full list of available instruction sets.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md",
+      "type": "string"
+    },
+    "IlcMaxVectorTBitWidth": {
+      "description": "Specifies a different maximum bit width for `Vector<T>` types. The default is 16 or 32 bytes, depending on the underlying instruction sets supported.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md",
+      "type": "int"
+    },
+    "IlcSingleThreaded": {
+      "description": "Perform native AoT compilation on single thread.",
+      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "OptimizationPreference": {
+      "description": "When using Native AOT, specifies a general optimization goal for compilation instead of the blended default approach.",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/optimizing#optimize-for-size-or-speed",
+      "type": {
+        "values": {
+          "Size": "Instructs the publishing process to favor the size of the executable instead of other performance metrics.",
+          "Speed": "Instructs the publishing process to favor code execution speed."
+        }
+      }
+    }
+  },
+  "items": {
+    "DirectPInvoke": {
+      "description": "When using Native AOT, specifies that internal types and members are visible to the specified friend assemblies. These can be either a `<modulename>`, which enables direct calls for all entry points in a module, or `<modulename!entrypointname>`, which enables a direct call for the specific module and entry point only.",
+      "includeDescription": "module names or module-entrypoint name pairs",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#direct-pinvoke-calls"
+    },
+    "DirectPInvokeList": {
+      "description": "When using Native AOT, specifies a list of entry points in an external file.",
+      "type": "file", // .txt
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#direct-pinvoke-calls"
+    },
+    "LinkerArg": {
+      "description": "When using Native AOT, specifies additional flags to the native linker, such as for `link.exe` on Windows and clang/gcc on Linux.",
+      "includeDescription": "additional arguments",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#linking"
+    },
+    "NativeLibrary": {
+      "description": "When using Native AOT, specifies a native library to be statically linked into the binary. Must be a `.lib` file on Windows and a `.a` file on Unix-like systems.",
+      "type": "file", // .txt
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#linking"
+    }
+  }
+}

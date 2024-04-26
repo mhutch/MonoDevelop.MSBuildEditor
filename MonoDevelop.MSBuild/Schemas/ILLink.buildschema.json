@@ -2,11 +2,6 @@
   "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
   // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/trimming/trimming-options.md
   // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/trimming/prepare-libraries-for-trimming.md
-  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/index.md
-  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/interop.md
-  // based on https://github.com/dotnet/docs/blob/main/docs/core/deploying/native-aot/optimizing.md
-  // based on https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md
-  // based on https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md
   "properties": {
     "PublishTrimmed": {
       "description": "Indicates whether the project should produce trimmed assembly images during publish.",
@@ -55,74 +50,6 @@
       "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options?pivots=dotnet-8-0#remove-symbols",
       "type": "bool",
       "defaultValue": "false"
-    },
-    "OptimizationPreference": {
-      "description": "Specifies a general optimization goal for native AoT compilation instead of the blended default approach.",
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/optimizing#optimize-for-size-or-speed",
-      "type": {
-        "values": {
-          "Size": "Instructs the publishing process to favor the size of the executable instead of other performance metrics.",
-          "Speed": "Instructs the publishing process to favor code execution speed."
-        }
-      }
-    },
-    "EnableSingleFileAnalyzer": {
-      "description": "Enables single-file analysis. Defaults to true when IsAotCompatible is set to true.",
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/tools/sdk-errors/netsdk1195",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "EnableAotAnalyzer": {
-      "description": "Enables AoT analysis. Defaults to true when IsAotCompatible is set to true.",
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/tools/sdk-errors/netsdk1195",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcInstructionSet": {
-      "description": "Specifies a set of CPU instruction sets to allow targeting newer instruction sets for better performance. Run 'ilc --help' for the full list of available instruction sets.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md",
-      "type": "string"
-    },
-    "IlcMaxVectorTBitWidth": {
-      "description": "Specifies a different maximum bit width for Vector<T> types. The default is 16 or 32 bytes, depending on the underlying instruction sets supported.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md",
-      "type": "int"
-    },
-    "IlcGenerateMetadataLog": {
-      "description": "Enable generation of a native AoT compiler metadata log.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcGenerateDgmlFile": {
-      "description": "Generates log files 'ProjectName.codegen.dgml.xml' and 'ProjectName.scan.dgml.xml' in DGML format.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcGenerateMapFile": {
-      "description": "Generates log files 'ProjectName.map.xml' which describe layout of objects.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcSingleThreaded": {
-      "description": "Perform native AoT compilation on single thread.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcDumpGeneratedIL": {
-      "description": "Dump IL for method bodies the compiler generated on the fly into 'ProjectName.il'.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
-    },
-    "IlcGenerateMstatFile": {
-      "description": "Generates an mstat file which contains size information about types, methods and blobs emitted.",
-      "helpUrl": "https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/troubleshooting.md",
-      "type": "bool",
-      "defaultValue": "false"
     }
   },
   "items": {
@@ -145,26 +72,6 @@
       "description": "XML files that specify assemblies, types, and their members that should not be trimmed.",
       "type": "file", // .xml
       "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#root-descriptors"
-    },
-    "DirectPInvoke": {
-      "description": "Specifies that internal types and members are visible to the specified friend assemblies.",
-      "includeDescription": "Either <modulename>, which enables direct calls for all entry points in the module, or <modulename!entrypointname>, which enables a direct call for the specific module and entry point only.",
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#direct-pinvoke-calls"
-    },
-    "DirectPInvokeList": {
-      "description": "Specifies a list of entry points in an external file.",
-      "type": "file", // .txt
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#direct-pinvoke-calls"
-    },
-    "NativeLibrary": {
-      "description": "Specifies a .lib file on Windows and a .a file on Unix-like systems.",
-      "type": "file", // .txt
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#linking"
-    },
-    "LinkerArg": {
-      "description": "Specifies additional flags to the native linker.",
-      "includeDescription": "The flags to specify.",
-      "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot/interop#linking"
     }
   },
   "types": {

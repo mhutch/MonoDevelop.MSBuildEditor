@@ -44,6 +44,7 @@ static class BuiltInSchema
 		   BuiltInSchemaId.CSharpWarningCodes,
 		   BuiltInSchemaId.AnalyzerWarningCodes,
 		   BuiltInSchemaId.StyleRuleCodes], null, "Microsoft.CSharp.CurrentVersion.targets"),
+		([ BuiltInSchemaId.ILCompiler ], null, "Microsoft.NETCore.Native.targets"),
 		([ BuiltInSchemaId.ILLink ], null, "Microsoft.NET.ILLink.targets"),
 		([ BuiltInSchemaId.JavaScript ], "Microsoft.VisualStudio.JavaScript.Sdk", sdkTargets),
 		([ BuiltInSchemaId.NetSdk ], "Microsoft.NET.Sdk", sdkTargets),

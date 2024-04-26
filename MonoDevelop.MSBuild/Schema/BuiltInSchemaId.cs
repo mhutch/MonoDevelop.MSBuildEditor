@@ -28,5 +28,6 @@ enum BuiltInSchemaId
 	ProjectSystemMps,
 	ProjectSystemCps,
 	GenerateAssemblyInfo,
-	ValidatePackage
+	ValidatePackage,
+	ILCompiler
 }
