@@ -95,6 +95,18 @@
       "type": "bool",
       "helpUrl": "https://learn.microsoft.com/dotnet/core/deploying/native-aot#aot-compatibility-analyzers"
     },
+    "EnableSingleFileAnalyzer": {
+      "description": "Enables single-file analysis. Defaults to true when `IsAotCompatible` is set to true.",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/tools/sdk-errors/netsdk1195",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "EnableAotAnalyzer": {
+      "description": "Enables AoT analysis. Defaults to true when `IsAotCompatible` is set to true.",
+      "helpUrl": "https://learn.microsoft.com/dotnet/core/tools/sdk-errors/netsdk1195",
+      "type": "bool",
+      "defaultValue": "false"
+    },
     "DisableTransitiveProjectReferences": {
       "description": "When true, do not discover ProjectReference items representing projects referenced by this project's ProjectReferences. Applies only to projects using the .NET SDK.",
       "type": "bool"
