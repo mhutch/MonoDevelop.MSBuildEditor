@@ -54,4 +54,34 @@ class FrameworkInfoTests
 		var validationResult = FrameworkInfoProvider.Instance.ValidateFrameworkShortName (name, out _, out _, out _, out _, out _);
 		Assert.AreEqual (FrameworkNameValidationResult.UnknownPlatform, validationResult);
 	}
+
+	[TestCase ("net481", ".NET Framework 4.8.1")]
+	[TestCase ("net4.8.1", ".NET Framework 4.8.1")]
+	[TestCase ("wpa81", "Windows Phone (UWP) 8.1")]
+	[TestCase ("net6.0-android9000.0", ".NET 6.0 with platform-specific APIs for Android 9000.0")]
+	[TestCase ("net6.0-android32.0", ".NET 6.0 with platform-specific APIs for Android 32.0")]
+	[TestCase ("net6.0", ".NET 6.0")]
+	public void FrameworkDescription (string tfm, string description)
+	{
+		var fx = FrameworkInfoProvider.TryGetFrameworkInfo (tfm);
+		Assert.IsNotNull (fx);
+
+		var actualDescription = FrameworkInfoProvider.GetDisplayDescription (fx.Reference);
+		Assert.AreEqual (description, actualDescription);
+	}
+
+	[TestCase ("net481", ".NETFramework,Version=v4.8.1")]
+	[TestCase ("net4.8.1", ".NETFramework,Version=v4.8.1")]
+	[TestCase ("wpa81", "WindowsPhoneApp,Version=v8.1")]
+	[TestCase ("net6.0-android9000.0", ".NETCoreApp,Version=v6.0 | Android 9000.0")]
+	[TestCase ("net6.0-android32.0", ".NETCoreApp,Version=v6.0 | Android 32.0")]
+	[TestCase ("net6.0", ".NETCoreApp,Version=v6.0")]
+	public void FrameworkTitle (string tfm, string description)
+	{
+		var fx = FrameworkInfoProvider.TryGetFrameworkInfo (tfm);
+		Assert.IsNotNull (fx);
+
+		var actualDescription = FrameworkInfoProvider.GetDisplayTitle (fx.Reference);
+		Assert.AreEqual (description, actualDescription);
+	}
 }

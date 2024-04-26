@@ -471,6 +471,15 @@ namespace MonoDevelop.MSBuild.Schema
 			return false;
 		}
 
+		public static FrameworkInfo? TryGetFrameworkInfo (string shortName)
+		{
+			var fullref = NuGetFramework.ParseFolder (shortName);
+			if (fullref.IsSpecificFramework) {
+				return new FrameworkInfo (shortName, fullref);
+			}
+			return null;
+		}
+
 		public IEnumerable<FrameworkInfo> GetFrameworksWithShortNames ()
 		{
 			foreach (var fx in frameworks) {
@@ -546,15 +555,15 @@ namespace MonoDevelop.MSBuild.Schema
 		public static string FormatDisplayVersion (Version version)
 		{
 			if (version.Build > 0) {
-				return $"{version.Major}.{version.Minor}.{version.Revision}.{version.Build}";
+				return $"{version.Major}.{version.Minor}.{version.Build}";
 			}
 			if (version.Revision > 0) {
-				return $"{version.Major}.{version.Minor}.{version.Revision}";
+				return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
 			}
 			return $"{version.Major}.{version.Minor}";
 		}
 
-		public static string? GetDescription (NuGetFramework fx)
+		public static string? GetDisplayDescription (NuGetFramework fx)
 		{
 			switch (fx.Framework.ToLowerInvariant ()) {
 			case ".netframework":
@@ -565,7 +574,13 @@ namespace MonoDevelop.MSBuild.Schema
 				if (fx.Version.Major <= 5) {
 					return WithVersion (".NET Core");
 				}
-				return WithVersionAndPlatform (".NET");
+				if (string.IsNullOrEmpty (fx.Platform)) {
+					return $".NET {FormatDisplayVersion (fx.Version)}";
+				}
+				if (TryGetPlatformVersionForDisplay (fx, out var platformDisplayVersion)) {
+					return $".NET {FormatDisplayVersion (fx.Version)} with platform-specific APIs for {FormatPlatformNameForTitle (fx)} {platformDisplayVersion}";
+				}
+				return $".NET {FormatDisplayVersion (fx.Version)} with platform-specific APIs for {FormatPlatformNameForTitle (fx)}";
 			case ".netportable":
 				if (string.IsNullOrEmpty (fx.Profile)) {
 					return "Portable Class Library";
@@ -617,23 +632,9 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 				return $"{description} {FormatDisplayVersion (fx.Version)}";
 			}
-
-			string WithVersionAndPlatform (string description)
-			{
-				if (fx.Version.Major == 0) {
-					return description;
-				}
-				if (string.IsNullOrEmpty (fx.Platform)) {
-					return $"{description} {FormatDisplayVersion (fx.Version)}";
-				}
-				if (TryGetPlatformVersionForDisplay (fx, out var platformDisplayVersion)) {
-					return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)} {platformDisplayVersion}";
-				}
-				return $"{description} {FormatDisplayVersion (fx.Version)} framework with platform-specific APIs for {FormatPlatformNameForTitle (fx)}";
-			}
 		}
 
-		public string FormatNameForTitle (NuGetFramework reference)
+		public static string GetDisplayTitle (NuGetFramework reference)
 		{
 			var titleName = reference.DotNetFrameworkName;
 			if (!reference.HasPlatform) {

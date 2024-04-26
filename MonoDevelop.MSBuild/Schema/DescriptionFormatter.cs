@@ -58,7 +58,7 @@ namespace MonoDevelop.MSBuild.Schema
 					}
 					break;
 				case FrameworkInfo fxi:
-					return FrameworkInfoProvider.GetDescription (fxi.Reference);
+					return FrameworkInfoProvider.GetDisplayDescription (fxi.Reference);
 				}
 			}
 
@@ -94,7 +94,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case FileOrFolderInfo value:
 				return (value.IsFolder? "folder" : "file", info.Name);
 			case FrameworkInfo fxi:
-				return ("framework", FrameworkInfoProvider.Instance.FormatNameForTitle (fxi.Reference));
+				return ("framework", FrameworkInfoProvider.GetDisplayTitle (fxi.Reference));
 			case TaskParameterInfo tpi:
 				return ("parameter", tpi.Name);
 			case FunctionInfo fi:

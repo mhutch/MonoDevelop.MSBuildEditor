@@ -394,7 +394,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildReferenceKind.KnownValue:
 				return rr.GetKnownValueReference ();
 			case MSBuildReferenceKind.TargetFramework:
-				return ResolveFramework (rr.GetTargetFrameworkReference ());
+				return FrameworkInfoProvider.TryGetFrameworkInfo (rr.GetTargetFrameworkReference ());
 			case MSBuildReferenceKind.TargetFrameworkIdentifier:
 				return BestGuessResolveFrameworkIdentifier (rr.GetTargetFrameworkIdentifierReference (), doc.Frameworks);
 			case MSBuildReferenceKind.TargetFrameworkVersion:
@@ -427,15 +427,6 @@ namespace MonoDevelop.MSBuild.Schema
 					return conditionFunctionName;
 				}
 				return null;
-			}
-			return null;
-		}
-
-		static FrameworkInfo ResolveFramework (string shortname)
-		{
-			var fullref = NuGetFramework.ParseFolder (shortname);
-			if (fullref.IsSpecificFramework) {
-				return new FrameworkInfo (shortname, fullref);
 			}
 			return null;
 		}
