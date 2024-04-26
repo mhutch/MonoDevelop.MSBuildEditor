@@ -218,7 +218,9 @@ static class MSBuildIdentifier
 		{ "Disable", MSBuildValueKind.Bool },
 		{ "Require", MSBuildValueKind.Bool },
 		{ "Use", MSBuildValueKind.Bool },
-		{ "Allow", MSBuildValueKind.Bool }
+		{ "Allow", MSBuildValueKind.Bool },
+		{ "Is", MSBuildValueKind.Bool },
+		{ "Has", MSBuildValueKind.Bool }
 	};
 
 	static readonly Dictionary<string, MSBuildValueKind> knownSuffixes = new () {

@@ -66,6 +66,8 @@ class MSBuildIdentifierTests
 	[TestCase ("RequireFoo", MSBuildValueKind.Bool)]
 	[TestCase ("UseFoo", MSBuildValueKind.Bool)]
 	[TestCase ("AllowFoo", MSBuildValueKind.Bool)]
+	[TestCase ("IsFoo", MSBuildValueKind.Bool)]
+	[TestCase ("HasFoo", MSBuildValueKind.Bool)]
 	[TestCase ("FooEnabled", MSBuildValueKind.Bool)]
 	[TestCase ("FooDisabled", MSBuildValueKind.Bool)]
 	[TestCase ("FooRequired", MSBuildValueKind.Bool)]
