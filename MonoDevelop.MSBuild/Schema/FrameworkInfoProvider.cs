@@ -42,6 +42,8 @@ namespace MonoDevelop.MSBuild.Schema
 			public const string macOS = "macOS";
 			public const string tvOS = "tvOS";
 			public const string MacCatalyst = "MacCatalyst";
+			public const string Tizen = "Tizen";
+			public const string Browser = "Browser";
 		}
 
 		static class FxID
@@ -181,6 +183,7 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (7, 0, "net7.0-maccatalyst", Platform.MacCatalyst);
 			AddNetCore (7, 0, "net7.0-macos", Platform.macOS);
 			AddNetCore (7, 0, "net7.0-tvos", Platform.tvOS);
+			AddNetCore (7, 0, "net7.0-tizen", Platform.Tizen);
 
 			AddNetCore (8, 0, "net8.0");
 			AddNetCore (8, 0, "net8.0-windows", Platform.Windows);
@@ -189,6 +192,8 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (8, 0, "net8.0-maccatalyst", Platform.MacCatalyst);
 			AddNetCore (8, 0, "net8.0-macos", Platform.macOS);
 			AddNetCore (8, 0, "net8.0-tvos", Platform.tvOS);
+			AddNetCore (7, 0, "net8.0-tizen", Platform.Tizen);
+			AddNetCore (7, 0, "net8.0-browser", Platform.Browser);
 
 			AddNetCore (9, 0, "net9.0");
 			AddNetCore (9, 0, "net9.0-windows", Platform.Windows);
@@ -197,6 +202,8 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (9, 0, "net9.0-maccatalyst", Platform.MacCatalyst);
 			AddNetCore (9, 0, "net9.0-macos", Platform.macOS);
 			AddNetCore (9, 0, "net9.0-tvos", Platform.tvOS);
+			AddNetCore (7, 0, "net9.0-tizen", Platform.Tizen);
+			AddNetCore (7, 0, "net9.0-browser", Platform.Browser);
 
 			AddLegacy (null, FxID.MonoAndroid, 1, 0);
 			AddLegacy (null, FxID.MonoAndroid, 2, 3);
@@ -624,6 +631,8 @@ namespace MonoDevelop.MSBuild.Schema
 			"macos" => Platform.macOS,
 			"tvos" => Platform.tvOS,
 			"maccatalyst" => Platform.MacCatalyst,
+			"tizen" => Platform.Tizen,
+			"browser" => Platform.Browser,
 			_ => reference.Platform
 		};
 
