@@ -2,8 +2,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
+
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
+	[DebuggerDisplay("PropertyInfo({Name},nq)")]
 	public class PropertyInfo : VariableInfo, IHasHelpUrl
 	{
 		public bool IsReserved { get; }

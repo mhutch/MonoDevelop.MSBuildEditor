@@ -5,9 +5,11 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
+[DebuggerDisplay("ItemInfo({Name},nq)")]
 public class ItemInfo (
 	string name, DisplayText description, string? includeDescription = null,
 	MSBuildValueKind valueKind = MSBuildValueKind.Unknown, CustomTypeInfo? customType = null,

@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
+	[DebuggerDisplay("TaskInfo({Name},nq)")]
 	public class TaskInfo : BaseSymbol, IVersionableSymbol, ITypedSymbol, IHasHelpUrl
 	{
 		Dictionary<string, TaskParameterInfo> parameters;

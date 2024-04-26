@@ -2,11 +2,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
+[DebuggerDisplay("CustomTypeValue({Name},nq)")]
 public sealed class CustomTypeValue (
 	string name, DisplayText description, SymbolVersionInfo? versionInfo = null, string? helpUrl = null,
 	IReadOnlyList<string>? aliases = null)
