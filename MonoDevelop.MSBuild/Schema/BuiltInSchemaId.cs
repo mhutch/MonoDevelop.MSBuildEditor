@@ -29,5 +29,9 @@ enum BuiltInSchemaId
 	ProjectSystemCps,
 	GenerateAssemblyInfo,
 	ValidatePackage,
-	ILCompiler
+	ILCompiler,
+	AspireAppHost,
+	AspireHostingOrchestration,
+	AspireHostingSdk,
+	AspireDashboardSdk
 }

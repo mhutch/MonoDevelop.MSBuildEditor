@@ -119,9 +119,10 @@ namespace MonoDevelop.MSBuild.Schema
 				// all custom types are resolvable
 				state.LoadCustomTypes (customTypes);
 
-				// only named custom types are surfaced directly on the schema
+				// only named custom types are surfaced directly on the schema,
+				// as well as anonymous types deriving from `warning-code` as those are needed for completion
 				foreach (var ct in state.CustomTypes.Values) {
-					if (!string.IsNullOrEmpty (ct.Name)) {
+					if (ct.Name is not null && (!ct.IsAnonymous || ct.BaseKind == MSBuildValueKind.WarningCode)) {
 						Types.Add (ct.Name, ct);
 					}
 				}

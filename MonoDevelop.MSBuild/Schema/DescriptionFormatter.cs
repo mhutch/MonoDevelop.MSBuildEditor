@@ -270,7 +270,7 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.NuGetVersion:
 				return "nuget-version";
 			case MSBuildValueKind.CustomType:
-				if (customTypeInfo != null && customTypeInfo.Name != null) {
+				if (customTypeInfo != null && !customTypeInfo.IsAnonymous) {
 					return customTypeInfo.Name;
 				}
 				// derived types inherit the name from the base type

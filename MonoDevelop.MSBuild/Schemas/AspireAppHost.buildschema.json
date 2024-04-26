@@ -1,0 +1,40 @@
+{
+  "license": "Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.",
+  "properties": {
+    "AspireGeneratedClassesVisibility": {
+      "description": "Controls the visibility of generated .NET Aspire classes, as a C# keyword",
+      "type": {
+        "values": {
+          "public": "The generated class will have `public` visibility",
+          "internal": "The generated class will have `internal` visibility"
+        }
+      },
+      "defaultValue": "public"
+    },
+    "SkipValidateAspireHostProjectResources": {
+      "description": "Skip validation of .NET Aspire AppHost project references",
+      "type": "bool",
+      "defaultValue": "false"
+    },
+    "AspirePublisher": {
+      "description": "Sets the publisher to be invoked by the `GenerateAspireManifest` target",
+      "type": "string",
+      "defaultValue": "manifest"
+    },
+    "AspireManifestPublishOutputPath": {
+      "description": "The path to the output directory for the .NET Aspire manifest publish",
+      "type": "folder-with-slash"
+    }
+  },
+  "targets": {
+    "GenerateAspireManifest": "Generates a .NET Aspire manifest file for the project at the path indicated by the `AspireManifestPublishOutputPath` property "
+  },
+  "types": {
+    "aspire-apphost-warning": {
+      "baseType": "warning-code",
+      "values": {
+        "ASPIRE004": "Project referenced by Aspire AppHost is not an executable"
+      }
+    }
+  },
+}

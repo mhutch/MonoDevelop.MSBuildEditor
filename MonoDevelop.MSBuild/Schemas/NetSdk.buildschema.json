@@ -358,6 +358,24 @@
       "type": "version",
       "helpUrl": "https://learn.microsoft.com/dotnet/core/versions/selection#self-contained-deployments-include-the-selected-runtime"
     },
+    "IsAspireSharedProject": {
+      "description": "Indicates that the project is an .NET Aspire shared project, causing Visual Studio to treat it as such.",
+      "type": "bool"
+    },
+    "IsAspireHost": {
+      "description": "Indicates that the project is an .NET Aspire Host project, causing the Aspire workload targets to be referenced.",
+      "type": "bool"
+    },
+    "SkipAspireWorkloadManifest": {
+      "description": "Indicates that the project should not reference the .NET Aspire workload targets despite setting `IsAspireHost` to `true`.",
+      "type": "bool"
+    },
+    // this is used to generate an attribute in in Microsoft.NET.Sdk.FrameworkReferenceResolution.targets
+    "UserSecretsId": {
+      "description": "The ID that will be used to locate the file storing secret configuration values for this project at development time. Although by default this is a GUID value, arbitrary strings may be used.",
+      "type": "string",
+      "helpUrl": "https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows#enable-secret-storage"
+    }
   },
 
   "items": {

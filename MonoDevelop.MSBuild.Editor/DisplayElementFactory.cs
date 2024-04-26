@@ -368,7 +368,7 @@ namespace MonoDevelop.MSBuild.Editor
 			case TargetInfo:
 				return isPrivate ? KnownImages.MSBuildTargetPrivate : KnownImages.MSBuildTarget;
 			case MetadataInfo:
-				return isPrivate ? KnownImages.MSBuildMetadata : KnownImages.MSBuildMetadataPrivate;
+				return isPrivate ? KnownImages.MSBuildMetadataPrivate : KnownImages.MSBuildMetadata;
 			case TaskInfo:
 				return KnownImages.MSBuildTask;
 			case ConstantSymbol:

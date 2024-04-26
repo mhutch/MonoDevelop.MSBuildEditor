@@ -36,6 +36,10 @@ static class BuiltInSchema
 	static readonly Dictionary<(string? sdkId, string filename), BuiltInSchemaId[]> filenameToIdMap = new (BuiltInSchemaId[] resourceId, string? sdkId, string filename)[] {
 		([ BuiltInSchemaId.Android ], null, "Xamarin.Android.Common.targets"),
 		([ BuiltInSchemaId.Appx ], null, "Microsoft.DesktopBridge.targets"),
+		([ BuiltInSchemaId.AspireAppHost ], null, "Aspire.Hosting.AppHost.targets" ),
+		([ BuiltInSchemaId.AspireHostingOrchestration ], "Aspire.Hosting.Orchestration", sdkTargets ),
+		([ BuiltInSchemaId.AspireHostingSdk ], "Aspire.Hosting.Sdk", sdkTargets ),
+		([ BuiltInSchemaId.AspireDashboardSdk ], "Aspire.Dashboard.Sdk", sdkTargets ),
 		([ BuiltInSchemaId.AspNetCore ], "Microsoft.NET.Sdk.Web", sdkTargets),
 		([ BuiltInSchemaId.CodeAnalysis ], null, "Microsoft.CodeAnalysis.targets"),
 		([ BuiltInSchemaId.CommonTargets ], null, "Microsoft.Common.targets"),

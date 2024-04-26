@@ -176,7 +176,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeWhitespace (ref offset);
 
-			string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
+			string name = MSBuildIdentifier.TryRead (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingItemName, out hasError);
 			}
@@ -347,39 +347,6 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			return buffer.Substring (start, offset - start);
 
 			static bool IsAsciiLetter (char ch) => (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-		}
-
-		static string ReadMSBuildIdentifier (string buffer, ref int offset, int endOffset)
-		{
-			if (offset > endOffset) {
-				return null;
-			}
-
-			int start = offset;
-			char ch = buffer [offset];
-			if (!char.IsLetter (ch) && ch != '_') {
-				return null;
-			}
-			offset++;
-
-			char lastChar = ch;
-			while (offset <= endOffset) {
-				ch = buffer [offset];
-				if (!char.IsLetterOrDigit (ch) && ch != '_' && ch != '-') {
-					break;
-				}
-				offset++;
-				lastChar = ch;
-			}
-
-			// Although a dash is a valid char for MSBuild identifiers, we will disallow the last char being a dash
-			// as this will conflict with item transform handling.
-			// We could probably allow this if we special cased it but I really can't see a good reason to do so.
-			if (lastChar == '-') {
-				offset--;
-			}
-
-			return buffer.Substring (start, offset - start);
 		}
 
 		// TODO: improve and unify with the CLR identifier validation in the validator
@@ -720,7 +687,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 					return new ExpressionProperty (baseOffset + start, offset - start, propRef);
 				}
 			} else {
-				string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
+				string name = MSBuildIdentifier.TryRead (buffer, ref offset, endOffset);
 				if (name == null) {
 					return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingPropertyName, out hasError);
 				}
@@ -1037,7 +1004,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			string name = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
+			string name = MSBuildIdentifier.TryRead (buffer, ref offset, endOffset);
 			if (name == null) {
 				return new ExpressionError (baseOffset + offset, ExpressionErrorKind.ExpectingMetadataOrItemName, out hasError);
 			}
@@ -1076,7 +1043,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 			ConsumeSpace (buffer, ref offset, endOffset);
 
-			string metadataName = ReadMSBuildIdentifier (buffer, ref offset, endOffset);
+			string metadataName = MSBuildIdentifier.TryRead (buffer, ref offset, endOffset);
 			if (metadataName == null) {
 				return new IncompleteExpressionError (
 					baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingMetadataName,

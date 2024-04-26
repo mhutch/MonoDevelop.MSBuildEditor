@@ -829,7 +829,7 @@
       "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#nowin32manifest"
     },
     "Win32Icon": {
-      "description": "A `.ico` icon file to be inserted into the compiled assembly to customize its appeance in File Explorer",
+      "description": "A `.ico` icon file to be inserted into the compiled assembly to customize its appearance in File Explorer",
       "type": "file",
       "helpUrl": "https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/resources#win32icon"
     },
