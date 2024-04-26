@@ -735,7 +735,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildValueKind.TargetFramework:
-				switch (FrameworkInfoProvider.Instance.ValidateFrameworkShortName (value, out var frameworkComponent, out var versionComponent, out var platformComponent, out var platformVersionComponent)) {
+				switch (FrameworkInfoProvider.Instance.ValidateFrameworkShortName (value, out var frameworkComponent, out var versionComponent, out var platformComponent, out var profileComponent, out var platformVersionComponent)) {
 				case FrameworkNameValidationResult.OK:
 					break;
 				case FrameworkNameValidationResult.Malformed:
@@ -749,6 +749,9 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				case FrameworkNameValidationResult.UnknownPlatform:
 					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatform, value, platformComponent);
+					break;
+				case FrameworkNameValidationResult.UnknownProfile:
+					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownProfile, value, profileComponent);
 					break;
 				case FrameworkNameValidationResult.UnknownPlatformVersion:
 					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatformVersion, value, platformVersionComponent, platformComponent);

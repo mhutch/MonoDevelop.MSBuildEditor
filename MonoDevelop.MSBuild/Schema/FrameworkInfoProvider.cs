@@ -247,9 +247,9 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		public FrameworkNameValidationResult ValidateFrameworkShortName (string shortName, out string? frameworkComponent, out Version? versionComponent, out string? platformComponent, out Version? platformVersionComponent)
+		public FrameworkNameValidationResult ValidateFrameworkShortName (string shortName, out string? frameworkComponent, out Version? versionComponent, out string? platformComponent, out string? profileComponent, out Version? platformVersionComponent)
 		{
-			frameworkComponent = platformComponent = null;
+			frameworkComponent = platformComponent = profileComponent = null;
 			versionComponent = platformVersionComponent = null;
 
 			if (frameworkByShortName.ContainsKey (shortName)) {
@@ -265,6 +265,7 @@ namespace MonoDevelop.MSBuild.Schema
 			frameworkComponent = framework.Framework;
 			versionComponent = framework.Version;
 			platformComponent = framework.Platform;
+			profileComponent = framework.Profile;
 			platformVersionComponent = framework.PlatformVersion;
 
 			if (framework.IsUnsupported) {
@@ -279,13 +280,18 @@ namespace MonoDevelop.MSBuild.Schema
 			bool foundIdentifier = false;
 			bool foundVersion = false;
 			bool foundPlatform = false;
+			bool foundProfile = false;
+
 			foreach (var fx in GetFrameworksWithMoniker (framework.Framework)) {
 				foundIdentifier = true;
 
 				if (AreVersionsEquivalent (framework.Version, fx.Version)) {
 					foundVersion = true;
-					if (string.Equals (framework.Platform, fx.Platform, StringComparison.OrdinalIgnoreCase)) {
+					if (framework.HasPlatform && ArePlatformsEquivalent (framework.Platform, fx.Platform)) {
 						foundPlatform = true;
+					}
+					if (framework.HasProfile & ArePlatformsEquivalent (framework.Profile, fx.Profile)) {
+						foundProfile = true;
 					}
 				}
 			}
@@ -295,8 +301,11 @@ namespace MonoDevelop.MSBuild.Schema
 			if (!foundVersion) {
 				return FrameworkNameValidationResult.UnknownVersion;
 			}
-			if (!foundPlatform) {
+			if (framework.HasPlatform && !foundPlatform) {
 				return FrameworkNameValidationResult.UnknownPlatform;
+			}
+			if (framework.HasProfile && !foundProfile) {
+				return FrameworkNameValidationResult.UnknownProfile;
 			}
 			// TODO: unknown platform version
 			return FrameworkNameValidationResult.OK;
@@ -440,6 +449,14 @@ namespace MonoDevelop.MSBuild.Schema
 			return true;
 		}
 
+		public static bool ArePlatformsEquivalent (string? p1, string? p2)
+		{
+			if (string.IsNullOrEmpty (p1)) {
+				return string.IsNullOrEmpty (p2);
+			}
+			return string.Equals (p1, p2, StringComparison.OrdinalIgnoreCase);
+		}
+
 		public static string FormatDisplayVersion (Version version)
 		{
 			if (version.Build > 0) {
@@ -563,6 +580,7 @@ namespace MonoDevelop.MSBuild.Schema
 		UnknownIdentifier,
 		UnknownVersion,
 		UnknownPlatform,
+		UnknownProfile,
 		UnknownPlatformVersion
 	}
 }

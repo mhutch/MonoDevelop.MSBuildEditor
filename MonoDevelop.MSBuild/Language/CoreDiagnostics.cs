@@ -547,6 +547,13 @@ namespace MonoDevelop.MSBuild.Language
 			"The target framework `{0}` has an unknown target platform `{1}`",
 			MSBuildDiagnosticSeverity.Warning);
 
+		public const string TargetFrameworkHasUnknownProfile_Id = nameof (TargetFrameworkHasUnknownProfile);
+		public static readonly MSBuildDiagnosticDescriptor TargetFrameworkHasUnknownProfile = new (
+			TargetFrameworkHasUnknownProfile_Id,
+			"Unknown framework profile",
+			"The target framework `{0}` has unknown profile `{1}`",
+			MSBuildDiagnosticSeverity.Warning);
+
 		public const string TargetFrameworkHasUnknownTargetPlatformVersion_Id = nameof (TargetFrameworkHasUnknownTargetPlatformVersion);
 		public static readonly MSBuildDiagnosticDescriptor TargetFrameworkHasUnknownTargetPlatformVersion = new (
 			TargetFrameworkHasUnknownTargetPlatformVersion_Id,
