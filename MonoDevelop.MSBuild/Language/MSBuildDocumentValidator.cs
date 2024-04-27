@@ -735,7 +735,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildValueKind.TargetFramework:
-				switch (FrameworkInfoProvider.Instance.ValidateFrameworkShortName (value, out var frameworkComponent, out var versionComponent, out var platformComponent, out var platformVersionComponent)) {
+				switch (FrameworkInfoProvider.Instance.ValidateFrameworkShortName (value, out var frameworkComponent, out var versionComponent, out var platformComponent, out var profileComponent, out var platformVersionComponent)) {
 				case FrameworkNameValidationResult.OK:
 					break;
 				case FrameworkNameValidationResult.Malformed:
@@ -750,13 +750,16 @@ namespace MonoDevelop.MSBuild.Language
 				case FrameworkNameValidationResult.UnknownPlatform:
 					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatform, value, platformComponent);
 					break;
+				case FrameworkNameValidationResult.UnknownProfile:
+					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownProfile, value, profileComponent);
+					break;
 				case FrameworkNameValidationResult.UnknownPlatformVersion:
 					AddErrorWithArgs (CoreDiagnostics.TargetFrameworkHasUnknownTargetPlatformVersion, value, platformVersionComponent, platformComponent);
 					break;
 				}
 				break;
 			case MSBuildValueKind.TargetFrameworkIdentifier:
-				if (!FrameworkInfoProvider.Instance.IsFrameworkIdentifierValid (value)) {
+				if (!FrameworkInfoProvider.Instance.IsKnownFrameworkIdentifier (value)) {
 					AddErrorWithArgs (CoreDiagnostics.UnknownTargetFrameworkIdentifier, value);
 				}
 				break;
@@ -769,7 +772,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (Document is MSBuildRootDocument d && d.Frameworks.Count > 0) {
 						bool foundMatch = false;
 						foreach (var fx in d.Frameworks) {
-							if (FrameworkInfoProvider.AreVersionsEquivalent (fx.Version, fxv) && FrameworkInfoProvider.Instance.IsFrameworkVersionValid (fx.Framework, fxv)) {
+							if (FrameworkInfoProvider.AreVersionsEquivalent (fx.Version, fxv) && FrameworkInfoProvider.Instance.IsKnownFrameworkVersion (fx.Framework, fxv)) {
 								foundMatch = true;
 							}
 						}
