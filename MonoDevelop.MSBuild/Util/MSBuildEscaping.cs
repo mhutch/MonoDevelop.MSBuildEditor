@@ -25,6 +25,12 @@
 //
 //
 
+#if NETFRAMEWORK
+#nullable enable annotations
+#else
+#nullable enable
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -106,7 +112,7 @@ namespace MonoDevelop.MSBuild.Util
 			return str;
 		}
 
-		public static string ToMSBuildPath (string absPath, string baseDirectory = null, bool normalize = true)
+		public static string ToMSBuildPath (string absPath, string? baseDirectory = null, bool normalize = true)
 		{
 			if (string.IsNullOrEmpty (absPath))
 				return absPath;
@@ -131,7 +137,7 @@ namespace MonoDevelop.MSBuild.Util
 			return FilePathUtils.AbsoluteToRelativePath (filePath, baseDirectory);
 		}
 
-		public static string FromMSBuildPath (string relPath, string baseDirectory)
+		public static string FromMSBuildPath (string relPath, string? baseDirectory)
 		{
 			FromMSBuildPath (relPath, baseDirectory, out string res);
 			return res;
@@ -146,7 +152,7 @@ namespace MonoDevelop.MSBuild.Util
 			return false;
 		}
 
-		internal static bool FromMSBuildPath (string relPath, string baseDirectory, out string resultPath)
+		internal static bool FromMSBuildPath (string relPath, string? baseDirectory, out string resultPath)
 		{
 			resultPath = relPath;
 

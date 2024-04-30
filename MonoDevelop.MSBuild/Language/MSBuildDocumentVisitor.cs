@@ -153,8 +153,8 @@ abstract class MSBuildDocumentVisitor
 		XElement element, XAttribute attribute,
 		MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 	{
-		if (attribute.Value is string expressionText) {
-			var expression = ParseValue (expressionText, attribute.ValueOffset, attributeSymbol);
+		if (attribute.HasValue && attribute.Value is string expressionText) {
+			var expression = ParseValue (expressionText, attribute.ValueOffset.Value, attributeSymbol);
 			VisitAttributeValue (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol, expressionText, expression);
 		}
 	}

@@ -1,12 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETFRAMEWORK
 #nullable enable annotations
+#else
+#nullable enable
+#endif
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Primitives;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -38,8 +43,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		public IRoslynCompilationProvider CompilationProvider { get; }
 
-		public TaskInfo CreateTaskInfo (
-			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
+		public TaskInfo? CreateTaskInfo (
+			string typeName, string? assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
 			string declaredInFile, int declaredAtOffset,
 			IMSBuildEvaluationContext evaluationContext,
 			ILogger logger)
@@ -50,20 +55,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 
 			var tasks = GetTaskAssembly (assemblyName, assemblyFile, assemblyFileStr, declaredInFile, evaluationContext, logger);
-			IAssemblySymbol assembly = tasks?.assembly;
+			IAssemblySymbol? assembly = tasks?.assembly;
 			if (assembly == null) {
 				//TODO log this?
 				return null;
 			}
 
-			string asmShortName;
-			if (string.IsNullOrEmpty (assemblyName)) {
-				asmShortName = Path.GetFileNameWithoutExtension (tasks.Value.path);
-			} else {
-				asmShortName = new AssemblyName (assemblyName).Name;
-			}
-
-			INamedTypeSymbol FindType (INamespaceSymbol ns, string name)
+			INamedTypeSymbol? FindType (INamespaceSymbol ns, string name)
 			{
 				foreach (var m in ns.GetMembers ()) {
 					switch (m) {
@@ -111,10 +109,11 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				parameters);
 		}
 
-		static void GetTaskInfoFromTask (INamedTypeSymbol type, ILogger logger, Dictionary<string, TaskParameterInfo> parameters, out string? deprecationMessage)
+		static void GetTaskInfoFromTask (INamedTypeSymbol topType, ILogger logger, Dictionary<string, TaskParameterInfo> parameters, out string? deprecationMessage)
 		{
 			deprecationMessage = null;
 
+			INamedTypeSymbol? type = topType;
 			while (type != null) {
 				foreach (var member in type.GetMembers ()) {
 					//skip overrides as they will have incorrect accessibility. trust the base definition.
@@ -131,7 +130,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 				if (deprecationMessage is null) {
 					foreach (var att in type.GetAttributes ()) {
-						switch (att.AttributeClass.Name) {
+						switch (att.AttributeClass?.Name) {
 						case "ObsoleteAttribute":
 							if (att.AttributeClass.GetFullName () == "System.ObsoleteAttribute") {
 								deprecationMessage = (att.ConstructorArguments.FirstOrDefault ().Value as string) ?? "Deprecated";
@@ -152,13 +151,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			bool IsSpecialName (string name) => name == "Log" || name == "HostObject" || name.StartsWith ("BuildEngine", StringComparison.Ordinal);
 		}
 
-		static TaskParameterInfo ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
+		static TaskParameterInfo? ConvertParameter (IPropertySymbol prop, INamedTypeSymbol type)
 		{
 			bool isOutput = false, isRequired = false;
-			string deprecationMessage = null;
+			string? deprecationMessage = null;
 
 			foreach (var att in prop.GetAttributes ()) {
-				switch (att.AttributeClass.Name) {
+				switch (att.AttributeClass?.Name) {
 				case "OutputAttribute":
 					if (att.AttributeClass.GetFullName () == "Microsoft.Build.Framework.OutputAttribute") {
 						isOutput = true;
@@ -213,11 +212,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, versionInfo);
 		}
 
-		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies
-			= new Dictionary<(string, string, string), (string, IAssemblySymbol)?> ();
+		Dictionary<(string? fileExpr, string? asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies = new ();
 
 		protected (string path, IAssemblySymbol assembly)? GetTaskAssembly (
-			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
+			string? assemblyName, ExpressionNode? assemblyFile, string? assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
 			var key = (assemblyName?.ToLowerInvariant (), assemblyFileStr?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
@@ -236,7 +234,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 
 		(string path, IAssemblySymbol compilation)? ResolveTaskFile (
-			string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
+			string? assemblyName, ExpressionNode? assemblyFile, string? assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
 			if (!evaluationContext.TryGetProperty (ReservedPropertyNames.binPath, out var binPathProp)) {
@@ -256,8 +254,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			}
 
 			if (assemblyFile is not null) {
-				string path = null;
-				string dllName = null;
+				string? path = null;
+				string? dllName = null;
 
 				var permutations = evaluationContext.EvaluatePathWithPermutation (assemblyFile, Path.GetDirectoryName (declaredInFile));
 				foreach (var p in permutations) {
@@ -278,12 +276,19 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					LogDidNotFindTasksAssemblyFile (logger, assemblyFileStr, declaredInFile);
 					return null;
 				}
-				return CreateResult (path);
+
+				var result = CreateResult (path);
+				if (resolvedAssemblies is null) {
+					CouldNotLoadTasksAssemblyModule (logger, assemblyFileStr, declaredInFile);
+					return null;
+				}
+
+				return result;
 			}
 
 			return null;
 
-			(string, IAssemblySymbol) CreateResult (string path)
+			(string, IAssemblySymbol)? CreateResult (string path)
 			{
 				var name = Path.GetFileNameWithoutExtension (path);
 
@@ -308,10 +313,17 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					references: paths.Where (File.Exists).Select (dll => CompilationProvider.CreateReference (dll)).ToArray ()
 				);
 
-				IAssemblySymbol asm = compilation
-					.SourceModule
+				if (compilation.SourceModule is not IModuleSymbol module) {
+					return null;
+				}
+
+				IAssemblySymbol? asm = module
 					.ReferencedAssemblySymbols
 					.FirstOrDefault (a => string.Equals (a.Name, name, StringComparison.OrdinalIgnoreCase));
+
+				if (asm is null) {
+					return null;
+				}
 
 				return (path, asm);
 			}
@@ -319,7 +331,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		// HACK to find tasks assembly when editing targets file in a project that builds the task assembly
 		// this doesn't update when the assembly changes, assumes that the project name matches the assembly, and assumes that the output dir is `bin`
-		static string FindLocalTasksAssembly (string assemblyName, string declaredInFile)
+		static string? FindLocalTasksAssembly (string assemblyName, string declaredInFile)
 		{
 			var directory = Path.GetDirectoryName (declaredInFile);
 			if (ExistsInDirectoryAbove (assemblyName + ".csproj", ref directory, 2)) {
@@ -331,7 +343,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return null;
 		}
 
-		static bool ExistsInDirectoryAbove (string filename, ref string directory, int searchLevelsUp = 0)
+		static bool ExistsInDirectoryAbove (string filename, [NotNullWhen(true)] ref string? directory, int searchLevelsUp = 0)
 		{
 			do {
 				if (directory is null) {
@@ -347,10 +359,11 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		[LoggerMessage (EventId = 0, Level = LogLevel.Warning, Message = "Error loading tasks assembly name='{assemblyName}' file='{assemblyFile}' in '{declaredInFile}'")]
-		static partial void LogErrorLoadingTasksAssembly (ILogger logger, Exception ex, UserIdentifiable<string> assemblyName, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
+		static partial void LogErrorLoadingTasksAssembly (ILogger logger, Exception ex, UserIdentifiable<string?> assemblyName, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
 
 		[LoggerMessage (EventId = 1, Level = LogLevel.Warning, Message = "Did not find tasks assembly file '{assemblyFile}' from file '{declaredInFile}'")]
 		static partial void LogDidNotFindTasksAssemblyFile (ILogger logger, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
+
 
 		[LoggerMessage (EventId = 2, Level = LogLevel.Warning, Message = "Did not find tasks assembly '{assemblyName}' from file '{declaredInFile}'")]
 		static partial void LogDidNotFindTasksAssembly (ILogger logger, UserIdentifiable<string> assemblyName, UserIdentifiableFileName declaredInFile);
@@ -363,5 +376,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		[LoggerMessage (EventId = 5, Level = LogLevel.Warning, Message = "Did not resolve task type '{taskTypeName}'")]
 		static partial void LogFailedToResolveTaskType (ILogger logger, string taskTypeName);
+
+		[LoggerMessage (EventId = 6, Level = LogLevel.Warning, Message = "Could not load module from tasks assembly file '{assemblyFile}' from file '{declaredInFile}'")]
+		static partial void CouldNotLoadTasksAssemblyModule (ILogger logger, UserIdentifiableFileName assemblyFile, UserIdentifiableFileName declaredInFile);
 	}
 }

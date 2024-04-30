@@ -33,14 +33,17 @@ class UserIdentifiableValueSanitizer
 		_ => HashUserValue (value.Value)
 	};
 
-	public string Sanitize (UserIdentifiableFileName filename) => IsNonUserFilePath (filename.Value)? filename.Value : HashUserString (filename.Value);
+	public string Sanitize (UserIdentifiableFileName filename) => filename.Value is not null && IsNonUserFilePath (filename.Value)? filename.Value : HashUserString (filename.Value);
 
 	public object Sanitize (UserIdentifiable<Type> type) => IsNonUserType (type.Value) ? type.Value : HashUserString (type.Value.ToString ());
 
 	string HashUserValue (object? value) => value?.ToString () is string stringVal? HashUserString (stringVal) : "[null]";
 
-	public string HashUserString (string value)
+	public string HashUserString (string? value)
 	{
+		if (value is null) {
+			return "[null]";
+		}
 		lock (hasher) {
 			var hash = hasher.Hash (value);
 			// only take the first half of the hash to make it easier to deal with in logs
@@ -54,7 +57,7 @@ class UserIdentifiableValueSanitizer
 
 	public bool IsUserIdentifiableValue (IUserIdentifiableValue value)
 		=> value switch {
-			UserIdentifiableFileName filename => !IsNonUserFilePath (filename.Value),
+			UserIdentifiableFileName filename => filename.Value is null || !IsNonUserFilePath (filename.Value),
 			UserIdentifiable<Type> type => !IsNonUserType (type.Value),
 			_ => true
 		};

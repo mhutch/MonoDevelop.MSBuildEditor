@@ -147,8 +147,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 		{
-			if (attributeSyntax.ValueKind == MSBuildValueKind.ItemName.AsLiteral () && IsMatch (attribute.Value)) {
-				AddResult (attribute.ValueSpan, ReferenceUsage.Write);
+			if (attributeSyntax.ValueKind == MSBuildValueKind.ItemName.AsLiteral () && attribute.HasNonEmptyValue && IsMatch (attribute.Value)) {
+				AddResult (attribute.ValueSpan.Value, ReferenceUsage.Write);
 			}
 
 			base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
@@ -193,8 +193,8 @@ namespace MonoDevelop.MSBuild.Language
 
 		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 		{
-			if (attributeSymbol.ValueKind == MSBuildValueKind.PropertyName.AsLiteral () && IsMatch (attribute.Value)) {
-				AddResult (attribute.ValueSpan, ReferenceUsage.Write);
+			if (attributeSymbol.ValueKind == MSBuildValueKind.PropertyName.AsLiteral () && attribute.HasNonEmptyValue && IsMatch (attribute.Value)) {
+				AddResult (attribute.ValueSpan.Value, ReferenceUsage.Write);
 			}
 
 			base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
@@ -233,11 +233,11 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 			case MSBuildSyntaxKind.UsingTask:
 				var nameAtt = element.Attributes.Get ("TaskName", true);
-				if (nameAtt != null && !string.IsNullOrEmpty (nameAtt.Value)) {
-					var nameIdx = nameAtt.Value.LastIndexOf ('.') + 1;
-					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : nameAtt.Value;
+				if (nameAtt is not null && nameAtt.TryGetNonEmptyValue (out var taskName)) {
+					var nameIdx = taskName.LastIndexOf ('.') + 1;
+					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : taskName;
 					if (IsMatch (name)) {
-						AddResult (nameAtt.ValueOffset + nameIdx, name.Length, ReferenceUsage.Declaration);
+						AddResult (nameAtt.ValueOffset.Value + nameIdx, name.Length, ReferenceUsage.Declaration);
 					}
 				}
 				break;
@@ -392,8 +392,8 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			if (elementSyntax.SyntaxKind == MSBuildSyntaxKind.Target) {
 				var nameAtt = element.Attributes.Get ("Name", true);
-				if (nameAtt != null && IsMatch (nameAtt.Value)) {
-					AddResult (nameAtt.ValueSpan, ReferenceUsage.Declaration);
+				if (nameAtt != null && nameAtt.HasValue && IsMatch (nameAtt.Value)) {
+					AddResult (nameAtt.ValueSpan.Value, ReferenceUsage.Declaration);
 				}
 			}
 			base.VisitResolvedElement (element, elementSyntax, elementSymbol);

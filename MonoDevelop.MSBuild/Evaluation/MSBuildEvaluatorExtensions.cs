@@ -2,6 +2,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETFRAMEWORK
+#nullable enable annotations
+#else
+#nullable enable
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,11 +26,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, string expression)
 			=> Evaluate (context, ExpressionParser.Parse (expression));
 
-		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateNodeAsString (context, expression));
+		public static EvaluatedValue Evaluate (this IMSBuildEvaluationContext context, ExpressionNode expression) => new (EvaluateNodeAsString (context, expression) ?? "");
 
-		static string EvaluateNodeAsString (this IMSBuildEvaluationContext context, ExpressionNode expression) => Stringify (EvaluateNode (context, expression));
+		static string? EvaluateNodeAsString (this IMSBuildEvaluationContext context, ExpressionNode expression) => Stringify (EvaluateNode (context, expression));
 
-		static object EvaluateNode (this IMSBuildEvaluationContext context, ExpressionNode expression)
+		static object? EvaluateNode (this IMSBuildEvaluationContext context, ExpressionNode expression)
 		{
 			switch (expression.NodeKind) {
 			case ExpressionNodeKind.Text:
@@ -46,7 +52,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				return propertyValue?.EscapedValue;
 
 			case ExpressionNodeKind.PropertyFunctionInvocation:
-				TryEvaluatePropertyFunction (context, (ExpressionPropertyFunctionInvocation)expression, out object functionReturn);
+				TryEvaluatePropertyFunction (context, (ExpressionPropertyFunctionInvocation)expression, out object? functionReturn);
 				return functionReturn;
 
 			// HACK: TryExecuteWellKnownFunction only supports doubles on Math.Max so coerce preemptively for now
@@ -68,8 +74,9 @@ namespace MonoDevelop.MSBuild.Evaluation
 		{
 			var sb = new StringBuilder ();
 			foreach (var n in expr.Nodes) {
-				string evaluated = EvaluateNodeAsString (context, n);
-				sb.Append (evaluated);
+				if (EvaluateNodeAsString (context, n) is string evaluated) {
+					sb.Append (evaluated);
+				}
 			}
 			return sb.ToString ();
 		}
@@ -93,7 +100,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public static IEnumerable<string> EvaluatePathWithPermutation (
 			this IMSBuildEvaluationContext context,
 			ExpressionNode pathExpression,
-			string baseDirectory)
+			string? baseDirectory)
 		{
 			foreach (var p in EvaluateWithPermutation (context, null, pathExpression, 0)) {
 				if (p == null) {
@@ -104,7 +111,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		}
 
 		// make sure stringification is kept consistent across all evaluation methods
-		static string Stringify (object evaluationResult) => evaluationResult?.ToString ();
+		static string? Stringify (object? evaluationResult) => evaluationResult?.ToString ();
 
 		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string expression)
 			=> EvaluateWithPermutation (context, null, ExpressionParser.Parse (expression), 0);
@@ -112,7 +119,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 		public static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, ExpressionNode expression)
 			=> EvaluateWithPermutation (context, null, expression, 0);
 
-		static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string prefix, ExpressionNode expression, int depth)
+		static IEnumerable<string> EvaluateWithPermutation (this IMSBuildEvaluationContext context, string? prefix, ExpressionNode expression, int depth)
 		{
 			switch (expression) {
 			// yield plain text
@@ -123,8 +130,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 			// recursively yield evaluated property
 			case ExpressionProperty prop: {
 				if (prop.Expression is ExpressionPropertyFunctionInvocation inv) {
-					if (TryEvaluatePropertyFunction (context, inv, out object propEvalResult)) {
-						yield return Stringify (propEvalResult);
+					if (TryEvaluatePropertyFunction (context, inv, out object? propEvalResult)) {
+						yield return Stringify (propEvalResult) ?? "";
 					}
 					yield break;
 				}
@@ -132,7 +139,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 					LogOnlySupportSimpleProperties (context.Logger);
 					yield break;
 				}
-				if (context.TryGetMultivaluedProperty (prop.Name, out var p) && p is OneOrMany<EvaluatedValue> values) {
+				if (prop.Name is not null && context.TryGetMultivaluedProperty (prop.Name, out var p) && p is OneOrMany<EvaluatedValue> values) {
 					foreach (var v in values) {
 						yield return prefix + v.EscapedValue;
 					}
@@ -179,10 +186,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 			}
 		}
 
-		static bool TryEvaluatePropertyFunction (this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv,  out object result)
+		static bool TryEvaluatePropertyFunction (this IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv, out object? result)
 		{
-			Type receiver = null;
-			object instance = null;
+			Type? receiver = null;
+			object? instance = null;
 
 			if (inv.Target is ExpressionClassReference classRef) {
 				receiver = TryGetStaticFunctionReceiver (classRef);
@@ -203,6 +210,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			string functionName;
 			if (inv.IsIndexer) {
+				if (instance is null) {
+					result = null;
+					return false;
+				}
 				functionName = IndexerNameForInstance (instance);
 			} else {
 				functionName = inv.IsProperty ? $"get_{inv.Function.Name}" : inv.Function.Name;
@@ -216,7 +227,11 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			try {
 				// TODO: reflection based dispatch
-				if (Microsoft.Build.Evaluation.Expander.Function.TryExecuteWellKnownFunction (receiver, functionName, filesystem, out result, instance, args)) {
+				if (Microsoft.Build.Evaluation.Expander.Function.TryExecuteWellKnownFunction (
+					receiver, functionName, filesystem, out result,
+					instance! /* null when static */,
+					args! /* callee handles null values in array */))
+				{
 					return true;
 				}
 			} catch (Exception ex) {
@@ -237,17 +252,17 @@ namespace MonoDevelop.MSBuild.Evaluation
 			_ => "get_Item"
 		};
 
-		static object[] EvaluateArguments (IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv)
+		static object?[] EvaluateArguments (IMSBuildEvaluationContext context, ExpressionPropertyFunctionInvocation inv)
 		{
 			if (inv.Arguments is ExpressionArgumentList list && list.Arguments is List<ExpressionNode> args) {
 				return EvaluateNodesAsArray (context, args);
 			}
-			return null;
+			return Array.Empty<object?> ();
 		}
 
-		static object[] EvaluateNodesAsArray (IMSBuildEvaluationContext context, List<ExpressionNode> arguments)
+		static object?[] EvaluateNodesAsArray (IMSBuildEvaluationContext context, List<ExpressionNode> arguments)
 		{
-			var results = new object[arguments.Count];
+			var results = new object?[arguments.Count];
 			for (int i = 0; i < results.Length; i++) {
 				results[i] = EvaluateNode (context, arguments[i]);
 			}
@@ -263,7 +278,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			context.TryGetProperty (WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
 
 			return new Microsoft.Build.Shared.BuildEnvironmentHelper {
-				CurrentMSBuildToolsDirectory = toolsPath?.EscapedValue,
+				CurrentMSBuildToolsDirectory = toolsPath?.EscapedValue ?? "",
 				MSBuildExtensionsPath = "",
 				MSBuildSDKsPath = sdksPath?.EscapedValue ?? "",
 				MSBuildToolsDirectory32 = toolsPath32?.EscapedValue ?? toolsPath?.EscapedValue ?? "",
@@ -272,7 +287,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			};
 		}
 
-		static Type TryGetStaticFunctionReceiver (ExpressionClassReference classRef)
+		static Type? TryGetStaticFunctionReceiver (ExpressionClassReference classRef)
 		{
 			// these are the types supported by TryExecuteWellKnownFunction
 			// FIXME: support other types

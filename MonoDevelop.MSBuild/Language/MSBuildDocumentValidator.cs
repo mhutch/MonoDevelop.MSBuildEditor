@@ -295,7 +295,7 @@ namespace MonoDevelop.MSBuild.Language
 					Document.Diagnostics.Add (CoreDiagnostics.TaskFactoryMustHaveBody, element.NameSpan);
 				}
 
-				if (taskFactoryAtt is not null && taskFactoryAtt.Value is string taskFactoryName && taskFactoryName.Length > 0) {
+				if (taskFactoryAtt is not null && taskFactoryAtt.TryGetValue (out var taskFactoryName) && taskFactoryName.Length > 0) {
 					switch (taskFactoryName.ToLowerInvariant ()) {
 					case "codetaskfactory":
 						if (string.Equals (asmFileAtt?.Value, "$(RoslynCodeTaskFactory)")) {
@@ -308,7 +308,7 @@ namespace MonoDevelop.MSBuild.Language
 						}
 						break;
 					default:
-						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, taskFactoryAtt.ValueSpan, taskFactoryName);
+						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, taskFactoryAtt.ValueSpan.Value, taskFactoryName);
 						break;
 					}
 				}
@@ -434,16 +434,15 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var child in element.Elements) {
 				if (child.NameEquals ("Output", true)) {
 					var paramNameAtt = child.Attributes.Get ("TaskParameter", true);
-					var paramName = paramNameAtt?.Value;
-					if (string.IsNullOrEmpty (paramName)) {
+					if (!paramNameAtt.TryGetValue (out string paramName) || paramName.Length == 0) {
 						continue;
 					}
 					if (!info.Parameters.TryGetValue (paramName, out TaskParameterInfo pi)) {
-						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, paramNameAtt.ValueSpan, element.Name.Name, paramName);
+						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, paramNameAtt.ValueSpan.Value, element.Name.Name, paramName);
 						continue;
 					}
 					if (!pi.IsOutput) {
-						Document.Diagnostics.Add (CoreDiagnostics.NonOutputTaskParameter, paramNameAtt.ValueSpan, element.Name.Name, paramName);
+						Document.Diagnostics.Add (CoreDiagnostics.NonOutputTaskParameter, paramNameAtt.ValueSpan.Value, element.Name.Name, paramName);
 						continue;
 					}
 				}
