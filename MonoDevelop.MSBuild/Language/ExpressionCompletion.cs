@@ -152,8 +152,9 @@ namespace MonoDevelop.MSBuild.Language
 				if (isExplicit) {
 					var lastSlash = text.Value.LastIndexOf ('\\');
 					if (lastSlash != -1) {
-						spanLength = text.Length - lastSlash - 1;
-					triggerNode = triggerExpression;
+						spanStart = lastSlash + 1;
+						spanLength = text.Length - spanStart;
+						triggerNode = triggerExpression;
 						return TriggerState.DirectorySeparator;
 					}
 					spanLength = length;
