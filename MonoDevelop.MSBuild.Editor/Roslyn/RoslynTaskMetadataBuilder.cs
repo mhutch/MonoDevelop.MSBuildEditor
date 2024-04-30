@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Evaluation;
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
@@ -98,13 +99,15 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			var parameters = new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
 			GetTaskInfoFromTask (type, logger, parameters, out string? deprecationMessage);
 
+			var versionInfo = deprecationMessage is not null ? SymbolVersionInfo.Deprecated (deprecationMessage) : null;
+
 			return new TaskInfo (
 				type.Name, RoslynHelpers.GetDescription (type),
 				TaskDeclarationKind.Assembly,
 				type.GetFullName (),
 				assemblyName, assemblyFileStr,
 				declaredInFile, declaredAtOffset,
-				deprecationMessage,
+				versionInfo,
 				parameters);
 		}
 
@@ -205,7 +208,9 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				kind = kind.AsList ();
 			}
 
-			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, deprecationMessage);
+			var versionInfo = deprecationMessage is not null ? SymbolVersionInfo.Deprecated (deprecationMessage) : null;
+
+			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, versionInfo);
 		}
 
 		Dictionary<(string fileExpr, string asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies

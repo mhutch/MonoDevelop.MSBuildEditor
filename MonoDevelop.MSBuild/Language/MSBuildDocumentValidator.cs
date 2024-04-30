@@ -63,8 +63,8 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			CheckDeprecated (elementSyntax, element);
 
-			if (elementSymbol != elementSyntax && elementSymbol is IDeprecatable deprecatable) {
-				CheckDeprecated (deprecatable, element);
+			if (elementSymbol != elementSyntax && elementSymbol is IVersionableSymbol versionableSymbol) {
+				CheckDeprecated (versionableSymbol, element);
 			}
 
 			foreach (var rat in elementSyntax.Attributes) {
@@ -165,18 +165,18 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		bool CheckDeprecated (IDeprecatable info, INamedXObject namedObj) => CheckDeprecated (info, namedObj.NameSpan);
+		bool CheckDeprecated (IVersionableSymbol versionableSymbol, INamedXObject namedObj) => CheckDeprecated (versionableSymbol, namedObj.NameSpan);
 
-		bool CheckDeprecated (IDeprecatable info, ExpressionNode expressionNode) => CheckDeprecated (info, expressionNode.Span);
+		bool CheckDeprecated (IVersionableSymbol versionableSymbol, ExpressionNode expressionNode) => CheckDeprecated (versionableSymbol, expressionNode.Span);
 
-		bool CheckDeprecated (IDeprecatable info, TextSpan squiggleSpan)
+		bool CheckDeprecated (IVersionableSymbol versionableSymbol, TextSpan squiggleSpan)
 		{
-			if (info.IsDeprecated (out string? deprecationMessage)) {
+			if (versionableSymbol.IsDeprecated (out string? deprecationMessage)) {
 				Document.Diagnostics.Add (
 					CoreDiagnostics.DeprecatedWithMessage,
 					squiggleSpan,
-					DescriptionFormatter.GetKindNoun (info),
-					info.Name,
+					DescriptionFormatter.GetKindNoun (versionableSymbol),
+					versionableSymbol.Name,
 					deprecationMessage
 				);
 				return true;
@@ -479,8 +479,8 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			CheckDeprecated (attributeSyntax, attribute);
 
-			if (attributeSymbol != attributeSyntax && attributeSymbol is IDeprecatable deprecatable) {
-				CheckDeprecated (deprecatable, attribute);
+			if (attributeSymbol != attributeSyntax && attributeSymbol is IVersionableSymbol versionableSymbol) {
+				CheckDeprecated (versionableSymbol, attribute);
 			}
 
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
@@ -640,8 +640,8 @@ namespace MonoDevelop.MSBuild.Language
 					AddFixableError (CoreDiagnostics.UnknownValue, DescriptionFormatter.GetTitleCaseKindNoun (valueSymbol), valueSymbol.Name, value);
 					return;
 				}
-				if (isKnownValue && knownValue is IDeprecatable deprecatable) {
-					CheckDeprecated (deprecatable, expressionText);
+				if (isKnownValue && knownValue is IVersionableSymbol versionableSymbol) {
+					CheckDeprecated (versionableSymbol, expressionText);
 				}
 			}
 

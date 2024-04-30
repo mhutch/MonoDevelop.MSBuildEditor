@@ -199,6 +199,9 @@
   <data name="Element_Project_Attributes" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/project-element-msbuild#attributes</value>
   </data>
+  <data name="Element_Project_ToolsVersion" xml:space="preserve">
+    <value>https://learn.microsoft.com/visualstudio/msbuild/msbuild-toolset-toolsversion</value>
+  </data>
   <data name="Element_Property" xml:space="preserve">
     <value>https://learn.microsoft.com/visualstudio/msbuild/property-element-msbuild</value>
   </data>

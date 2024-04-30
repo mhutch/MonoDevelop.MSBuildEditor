@@ -16,14 +16,6 @@ public interface ISymbol
 }
 
 /// <summary>
-/// Common interface for symbols that may be deprecated
-/// </summary>
-public interface IDeprecatable : ISymbol
-{
-	string? DeprecationMessage { get; }
-}
-
-/// <summary>
 /// Common interface for symbols that are typed
 /// </summary>
 public interface ITypedSymbol : ISymbol

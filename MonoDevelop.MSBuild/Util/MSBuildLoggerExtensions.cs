@@ -16,9 +16,9 @@ static partial class MSBuildLoggerExtensions
 	/// Helper for switch expressions to log a message about missing cases when they can gracefully return a default value instead of throwing
 	/// </summary>
 	/// <remarks>This must be kept internal so that analyzers and fixes don't use it, as it does not sanitize the callsite for PII.</remarks>
-	internal static TReturn LogUnhandledCaseAndReturnDefaultValue<TReturn,TSwitchValue> (this ILogger logger, TReturn valueToReturn, TSwitchValue missingValue, [CallerMemberName] string methodName = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+	internal static TReturn LogUnhandledCaseAndReturnDefaultValue<TReturn,TSwitchValue> (this ILogger logger, TReturn valueToReturn, TSwitchValue missingValue, [CallerMemberName] string? methodName = null, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = 0) where TSwitchValue : notnull
 	{
-		LogUnhandledCase(logger, missingValue, methodName, filePath, lineNumber);
+		LogUnhandledCase(logger, missingValue, methodName!, filePath!, lineNumber);
 		return valueToReturn;
 	}
 

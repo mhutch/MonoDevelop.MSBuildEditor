@@ -4,21 +4,23 @@
 
 #nullable enable
 
+using System;
+
 using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Language.Syntax;
 
-public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHasHelpUrl
+public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IVersionableSymbol, IHasHelpUrl
 {
 	protected MSBuildSyntax (
 		string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
 		CustomTypeInfo? customType = null,
-		string? deprecationMessage = null,
+		SymbolVersionInfo? versionInfo = null,
 		string? helpUrl = null)
 	{
 		Name = name;
 		Description = description;
-		DeprecationMessage = deprecationMessage;
+		VersionInfo = versionInfo;
 		HelpUrl = helpUrl;
 
 		ValueKind = valueKind;
@@ -30,6 +32,6 @@ public abstract class MSBuildSyntax : ISymbol, ITypedSymbol, IDeprecatable, IHas
 
 	public virtual MSBuildValueKind ValueKind { get; }
 	public CustomTypeInfo? CustomType { get; }
-	public string? DeprecationMessage { get; }
+	public SymbolVersionInfo? VersionInfo { get; }
 	public virtual string? HelpUrl { get; }
 }

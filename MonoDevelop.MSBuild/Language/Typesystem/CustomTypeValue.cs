@@ -3,11 +3,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
-public sealed class CustomTypeValue (string name, DisplayText description, string? deprecationMessage = null, string? helpUrl = null, IReadOnlyList<string>? aliases = null)
-	: ISymbol, ITypedSymbol, IDeprecatable, IHasHelpUrl
+[DebuggerDisplay("CustomTypeValue({Name},nq)")]
+public sealed class CustomTypeValue (
+	string name, DisplayText description, SymbolVersionInfo? versionInfo = null, string? helpUrl = null,
+	IReadOnlyList<string>? aliases = null)
+	: ISymbol, ITypedSymbol, IVersionableSymbol, IHasHelpUrl
 {
 	public CustomTypeInfo CustomType { get; private set; }
 
@@ -17,7 +21,7 @@ public sealed class CustomTypeValue (string name, DisplayText description, strin
 
 	public DisplayText Description { get; } = description;
 
-	public string? DeprecationMessage { get; } = deprecationMessage;
+	public SymbolVersionInfo? VersionInfo { get; } = versionInfo;
 
 	public string? HelpUrl => helpUrl ?? CustomType?.HelpUrl;
 

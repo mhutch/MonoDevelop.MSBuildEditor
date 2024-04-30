@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem
 {
+	[DebuggerDisplay("CustomTypeInfo({Name},nq)")]
 	public sealed class CustomTypeInfo
 	{
 		public CustomTypeInfo (

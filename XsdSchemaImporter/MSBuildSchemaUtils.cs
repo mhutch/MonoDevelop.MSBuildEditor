@@ -78,7 +78,7 @@ static class MSBuildSchemaUtils
 		foreach (var op in otherSchema.Properties.Values) {
 			var otherProp = op;
 			if (treatStringValueKindAsUnknownInOther && otherProp.ValueKind == MSBuildValueKind.String) {
-				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.DeprecationMessage);
+				otherProp = new PropertyInfo (otherProp.Name, otherProp.Description, otherProp.IsReserved, otherProp.IsReadOnly, MSBuildValueKind.Unknown, null, otherProp.DefaultValue, otherProp.VersionInfo);
 			}
 			if (!basisSchema.Properties.TryGetValue(otherProp.Name, out var basisProp)) {
 				if (!otherProp.Description.IsEmpty || otherProp.ValueKind != MSBuildValueKind.Unknown) {
@@ -125,7 +125,7 @@ static class MSBuildSchemaUtils
 	}
 
 	static void AddRange<TValue>(string valueKind, Dictionary<string, TValue> d, IEnumerable<KeyValuePair<string, TValue>> range)
-		where TValue : BaseSymbol, MonoDevelop.MSBuild.Language.IDeprecatable
+		where TValue : BaseSymbol, IVersionableSymbol
 	{
 		foreach (var kv in range) {
 			if (!d.TryAdd(kv.Key, kv.Value)) {

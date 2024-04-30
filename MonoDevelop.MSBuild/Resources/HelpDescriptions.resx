@@ -345,4 +345,7 @@
   <data name="ReservedProperty_MSBuildSemanticVersion" xml:space="preserve">
     <value>The full version of the MSBuild assemblies in use in SemVer format.</value>
   </data>
+  <data name="ToolsVersion_Deprecated" xml:space="preserve">
+    <value>The `ToolsVersion` property is ignored in MSBuild 16.0 and later.</value>
+  </data>
 </root>

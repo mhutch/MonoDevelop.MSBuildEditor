@@ -6,11 +6,11 @@ using System;
 
 namespace MonoDevelop.MSBuild.Language.Typesystem;
 
-public abstract class VariableInfo : BaseSymbol, ITypedSymbol, IDeprecatable
+public abstract class VariableInfo : BaseSymbol, ITypedSymbol, IVersionableSymbol
 {
 	protected VariableInfo (
 		string name, DisplayText description, MSBuildValueKind valueKind = MSBuildValueKind.Unknown,
-		CustomTypeInfo? customType = null, string? defaultValue = null, string? deprecationMessage = null)
+		CustomTypeInfo? customType = null, string? defaultValue = null, SymbolVersionInfo? versionInfo = null)
 		: base (name, description)
 	{
 		if (valueKind.IsCustomType () && customType == null) {
@@ -24,12 +24,12 @@ public abstract class VariableInfo : BaseSymbol, ITypedSymbol, IDeprecatable
 
 		CustomType = customType;
 		DefaultValue = defaultValue;
-		DeprecationMessage = deprecationMessage;
+		VersionInfo = versionInfo;
 		ValueKind = valueKind;
 	}
 
 	public MSBuildValueKind ValueKind { get; }
 	public CustomTypeInfo? CustomType { get; }
 	public string? DefaultValue { get; }
-	public string? DeprecationMessage { get; }
+	public SymbolVersionInfo? VersionInfo { get; }
 }

@@ -60,8 +60,10 @@ partial class MSBuildDiagnosticQuickInfoSource : IAsyncQuickInfoSource
 			elements.Add (displayElementFactory.GetDiagnosticTooltip (diagnostic));
 
 			var tagSpan = mappingSpan.Span.GetSpans (snapshot).First ();
-			applicableToSpan = applicableToSpan.HasValue ? applicableToSpan.Value.Overlap (tagSpan) : tagSpan;
+			applicableToSpan = applicableToSpan.HasValue ? (applicableToSpan.Value.Overlap (tagSpan)?? triggerSpan) : tagSpan;
 		}
+
+		applicableToSpan ??= triggerSpan;
 
 		return new QuickInfoItem (
 			snapshot.CreateTrackingSpan (applicableToSpan.Value, SpanTrackingMode.EdgeExclusive),
