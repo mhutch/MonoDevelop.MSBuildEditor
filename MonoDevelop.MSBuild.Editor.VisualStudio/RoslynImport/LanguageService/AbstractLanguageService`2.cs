@@ -60,6 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         internal void Setup()
         {
+            Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+
             this.ComAggregate = CreateComAggregate();
 
             // First, acquire any services we need throughout our lifetime.
@@ -84,7 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private object CreateComAggregate()
-            => Interop.ComAggregate.CreateAggregatedObject(this);
+		{
+            Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+            return Interop.ComAggregate.CreateAggregatedObject(this);
+        }
 
         internal void TearDown()
         {

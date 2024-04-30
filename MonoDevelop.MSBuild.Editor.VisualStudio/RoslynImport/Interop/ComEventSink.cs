@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public static ComEventSink Advise<T>(object obj, T sink) where T : class
         {
+            Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+
             if (!typeof(T).IsInterface)
             {
                 throw new InvalidOperationException();
@@ -46,6 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void Unadvise()
         {
+            Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+
             if (_unadvised)
             {
                 throw new InvalidOperationException("Already unadvised.");

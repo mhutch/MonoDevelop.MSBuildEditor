@@ -33,7 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 		///          will be forwarded to the managed implementation.
 		/// </summary>
 		internal static object CreateAggregatedObject (object managedObject)
-			=> WrapperPolicy.CreateAggregatedObject (managedObject);
+		{
+			Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+			return WrapperPolicy.CreateAggregatedObject (managedObject);
+		}
 
 		/// <summary>
 		/// Return the RCW for the native IComWrapperFixed instance aggregating "managedObject"

@@ -58,6 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 			public int RemoveAdornments ()
 			{
+				Shell.ThreadHelper.ThrowIfNotOnUIThread ();
+
 				_sink.Unadvise ();
 
 				return VSConstants.S_OK;
