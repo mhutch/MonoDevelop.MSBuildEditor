@@ -323,12 +323,12 @@ namespace MonoDevelop.MSBuild.Schema
 			//prefer infos with descriptions, in case non-schema infos (or item infos that
 			//just add metadata) are found first
 			foreach (var info in seq) {
-				if (info.Description.Text != null) {
+				if (!string.IsNullOrEmpty (info.Description.Text)) {
 					return info;
 				}
-				return first ?? info;
+				first ??= info;
 			}
-			return null;
+			return first;
 		}
 
 		public static IEnumerable<CustomTypeInfo> GetDerivedTypes (this IEnumerable<IMSBuildSchema> schemas, MSBuildValueKind baseKind)
