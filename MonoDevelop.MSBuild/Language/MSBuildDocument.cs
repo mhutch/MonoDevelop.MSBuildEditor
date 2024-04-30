@@ -168,8 +168,8 @@ namespace MonoDevelop.MSBuild.Language
 			SdkInfo sdkInfo = null;
 			string sdkString = null;
 
-			if (element.SdkAttribute is MSBuildAttribute sdkAtt && sdkAtt.Value is ExpressionText sdkTxt) {
-				var loc = sdkAtt.XAttribute.ValueSpan;
+			if (element.SdkAttribute is MSBuildAttribute sdkAtt && sdkAtt.Value is ExpressionText sdkTxt && sdkAtt.XAttribute.HasValue) {
+				var loc = sdkAtt.XAttribute.ValueSpan.Value;
 
 				sdkString = sdkTxt.Value;
 
@@ -200,8 +200,8 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (importPath != null) {
-				var loc = importAtt.XAttribute.ValueSpan;
+			if (importPath != null && importAtt.XAttribute.HasValue) {
+				var loc = importAtt.XAttribute.ValueSpan.Value;
 
 				foreach (var import in importResolver.Resolve (importPath, importTxt, sdkString, sdkInfo)) {
 					AddImport (import);
@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Language
 				yield break;
 			}
 
-			int offset = IsToplevel ? sdksAtt.ValueOffset : sdksAtt.Span.Start;
+			int offset = IsToplevel && sdksAtt.HasValue ? sdksAtt.ValueOffset.Value : sdksAtt.Span.Start;
 
 			foreach (var sdk in SplitSdkValue (offset, sdksAtt.Value)) {
 				if (sdk.id == null) {

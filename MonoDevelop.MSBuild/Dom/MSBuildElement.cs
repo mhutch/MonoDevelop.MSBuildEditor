@@ -47,11 +47,11 @@ namespace MonoDevelop.MSBuild.Dom
 				if (attributeSyntax != null) {
 
 					ExpressionNode attributeValue = null;
-					if (!string.IsNullOrEmpty (xatt.Value)) {
+					if (xatt.HasNonEmptyValue) {
 						if (attributeSyntax.ValueKind == MSBuildValueKind.Condition) {
-							attributeValue = ExpressionParser.ParseCondition (xatt.Value, xatt.ValueOffset);
+							attributeValue = ExpressionParser.ParseCondition (xatt.Value, xatt.ValueOffset.Value);
 						} else {
-							attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset);
+							attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset.Value);
 						}
 					}
 

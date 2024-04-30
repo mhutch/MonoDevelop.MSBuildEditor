@@ -63,7 +63,7 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 		}
 
 		if (context.XObject is XAttribute att) {
-			if (att.Span.Contains (context.SelectedSpan) && att.Value is string attVal) {
+			if (att.Span.Contains (context.SelectedSpan) && att.TryGetValue (out var attVal)) {
 				switch (context.AttributeSyntax?.SyntaxKind) {
 				case MSBuildSyntaxKind.Item_Metadata:
 				case MSBuildSyntaxKind.Item_Include:
@@ -76,15 +76,15 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 				case MSBuildSyntaxKind.Target_DependsOnTargets:
 				case MSBuildSyntaxKind.Target_Inputs:
 					return (
-						ExpressionParser.Parse (att.Value, ExpressionOptions.ItemsMetadataAndLists, att.ValueOffset),
+						ExpressionParser.Parse (attVal, ExpressionOptions.ItemsMetadataAndLists, att.ValueOffset.Value),
 						attVal,
-						att.ValueOffset);
+						att.ValueOffset.Value);
 				default:
 					if ((context.AttributeSyntax?.SyntaxKind & MSBuildSyntaxKind.ConditionAttribute) != 0) {
 						return (
-							ExpressionParser.ParseCondition (attVal, att.ValueOffset),
+							ExpressionParser.ParseCondition (attVal, att.ValueOffset.Value),
 							attVal,
-							att.ValueOffset);
+							att.ValueOffset.Value);
 					}
 					break;
 				}

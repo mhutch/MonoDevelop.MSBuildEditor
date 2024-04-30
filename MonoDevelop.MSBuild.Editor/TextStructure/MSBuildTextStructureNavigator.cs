@@ -79,42 +79,58 @@ namespace MonoDevelop.MSBuild.Editor.TextStructure
 
 			if (nodePath.Count > 0) {
 				var leaf = nodePath[nodePath.Count - 1];
-				if (leaf is XAttribute || leaf is XText) {
-					var syntax = MSBuildElementSyntax.Get (nodePath);
-					if (syntax != null) {
-						int offset;
-						string text;
-						bool isCondition = false;
-						if (leaf is XText t) {
-							offset = t.Span.Start;
-							text = t.Text;
-						} else {
-							var att = (XAttribute)leaf;
-							offset = att.ValueOffset;
-							text = att.Value;
-							isCondition = true;
-						}
-
-						var expr = isCondition
-							? ExpressionParser.ParseCondition (text, offset)
-							: ExpressionParser.Parse (text, ExpressionOptions.ItemsMetadataAndLists, offset);
-
-						var expansion = Expand (activeSpan, expr, out var isText);
-
-						if (expansion is SnapshotSpan expandedSpan) {
-							if (isText) {
-								var xmlNavigatorSpan = xmlNavigator.GetSpanOfEnclosing (activeSpan);
-								if (expandedSpan.Contains (xmlNavigatorSpan)) {
-									return xmlNavigatorSpan;
-								}
-							}
-							return expandedSpan;
-						}
-					}
+				if (TryGetValueSpan (leaf) is SnapshotSpan valueSpan) {
+					return valueSpan;
 				}
 			}
 
 			return xmlNavigator.GetSpanOfEnclosing (activeSpan);
+
+
+			SnapshotSpan? TryGetValueSpan (XObject leaf)
+			{
+				if (leaf is not XAttribute && leaf is not XText) {
+					return null;
+				}
+
+				var syntax = MSBuildElementSyntax.Get (nodePath);
+				if (syntax is null) {
+					return null;
+				}
+
+				int offset = 0;
+				string text = null;
+				bool isCondition = false;
+
+				if (leaf is XText t) {
+					offset = t.Span.Start;
+					text = t.Text;
+				} else if (leaf is XAttribute att && att.TryGetValue (out var attVal)) {
+					offset = att.ValueOffset.Value;
+					text = att.Value;
+					isCondition = true;
+				} else {
+					return null;
+				}
+
+				var expr = isCondition
+					? ExpressionParser.ParseCondition (text, offset)
+					: ExpressionParser.Parse (text, ExpressionOptions.ItemsMetadataAndLists, offset);
+
+				var expansion = Expand (activeSpan, expr, out var isText);
+
+				if (expansion is SnapshotSpan expandedSpan) {
+					if (isText) {
+						var xmlNavigatorSpan = xmlNavigator.GetSpanOfEnclosing (activeSpan);
+						if (expandedSpan.Contains (xmlNavigatorSpan)) {
+							return xmlNavigatorSpan;
+						}
+					}
+					return expandedSpan;
+				}
+
+				return null;
+			}
 		}
 
 		SnapshotSpan? Expand (SnapshotSpan activeSpan, ExpressionNode expr, out bool isText)
