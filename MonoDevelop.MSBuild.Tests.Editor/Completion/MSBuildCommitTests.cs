@@ -24,6 +24,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 				filename: filename,
 				initialize: (tv) => {
 					tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
+					return Task.CompletedTask;
 				}
 			);
 		}
