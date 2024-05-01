@@ -161,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			int start = offset;
 
 			var ch = buffer[start];
-			if (ch == '.' || char.IsDigit (ch)) {
+			if (ch == '-' || ch == '.' || char.IsDigit (ch)) {
 				return ReadArgumentNumber (buffer, ref offset, endOffset, baseOffset, out hasError);
 			}
 
