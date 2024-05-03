@@ -135,6 +135,14 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
+		public const string SdkElementAfterNonSdkElement_Id = nameof (SdkElementAfterNonSdkElement);
+		public static readonly MSBuildDiagnosticDescriptor SdkElementAfterNonSdkElement = new (
+			SdkElementAfterNonSdkElement_Id,
+			"`Sdk` element should immediately follow `Project` element",
+			"The `Sdk` element does not immediately follow the `Project` element, which is misleading with respect to evaluation order, as the SDK's `Sdk.props` will not be imported at the location of the `Sdk` element, but will be treated as if it were appended to the project's `Sdk` attribute.",
+			MSBuildDiagnosticSeverity.Warning
+		);
+
 		public const string RedundantMinimumVersion_Id = nameof (RedundantMinimumVersion);
 		public static readonly MSBuildDiagnosticDescriptor RedundantMinimumVersion = new (
 			RedundantMinimumVersion_Id,

@@ -161,6 +161,17 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildSyntaxKind.Sdk:
+				if (element.Parent is XElement parent) {
+					foreach (var el in parent.Elements) {
+						if (el == element) {
+							break;
+						}
+						if (!el.Name.Equals (ElementName.Sdk, true)) {
+							Document.Diagnostics.Add (CoreDiagnostics.SdkElementAfterNonSdkElement, element.NameSpan);
+							break;
+						}
+					}
+				}
 				ValidateImportOrSdkAttributes (element, isSdkElement: true);
 				break;
 			}

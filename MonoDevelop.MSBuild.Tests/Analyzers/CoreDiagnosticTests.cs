@@ -397,5 +397,38 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				includeNoTargetsWarning: false
 			);
 		}
+
+		[Test]
+		public void SdkElementAfterNonSdkElement ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""Foo1"" Version=""1.0"" />
+  <Sdk Name=""Foo2"" MinimumVersion=""2.0"" />
+  <PropertyGroup>
+  </PropertyGroup>
+  <|Sdk| Name=""Foo3"" Version=""1.0"" />
+  <|Sdk| Name=""Foo4"" MinimumVersion=""2.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.SdkElementAfterNonSdkElement,
+					spans[0]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.SdkElementAfterNonSdkElement,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
 	}
 }
