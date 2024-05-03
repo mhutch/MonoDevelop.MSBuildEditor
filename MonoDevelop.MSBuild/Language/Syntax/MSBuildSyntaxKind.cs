@@ -78,6 +78,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		Sdk_Name                     = Sdk + (3 << 16),
 		Sdk_Version                  = Sdk + (4 << 16),
+		Sdk_MinimumVersion           = Sdk + (5 << 16),
 
 		Target_Label                = Target | LabelAttribute,
 		Target_Condition            = Target | ConditionAttribute,

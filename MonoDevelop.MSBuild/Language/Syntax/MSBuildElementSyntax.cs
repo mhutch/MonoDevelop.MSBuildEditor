@@ -300,6 +300,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			Sdk.attributes = [
 				new (Project, AttributeName.Name, ElementDescriptions.Sdk_Name, MSBuildSyntaxKind.Sdk_Name, MSBuildValueKind.Sdk, required: true),
 				new (Project, AttributeName.Version, ElementDescriptions.Sdk_Version, MSBuildSyntaxKind.Sdk_Version, MSBuildValueKind.SdkVersion),
+				new (Project, AttributeName.MinimumVersion, ElementDescriptions.Sdk_MinimumVersion, MSBuildSyntaxKind.Sdk_MinimumVersion, MSBuildValueKind.SdkVersion),
 			];
 
 			Target.attributes = [

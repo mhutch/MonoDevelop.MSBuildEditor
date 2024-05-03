@@ -413,6 +413,7 @@ namespace MonoDevelop.MSBuild.Dom
 
 		public MSBuildAttribute NameAttribute => GetAttribute (MSBuildSyntaxKind.Sdk_Name);
 		public MSBuildAttribute Version => GetAttribute (MSBuildSyntaxKind.Sdk_Version);
+		public MSBuildAttribute MinimumVersion => GetAttribute (MSBuildSyntaxKind.Sdk_MinimumVersion);
 	}
 
 	public class MSBuildTaskElement : MSBuildConditionedElement

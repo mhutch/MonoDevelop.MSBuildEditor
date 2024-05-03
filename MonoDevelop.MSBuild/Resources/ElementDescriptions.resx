@@ -432,4 +432,7 @@
   <data name="Sdk.Version" xml:space="preserve">
     <value>Optional version of the MSBuild project SDK</value>
   </data>
+  <data name="Sdk.MinimumVersion" xml:space="preserve">
+    <value>Optional minimum version of the MSBuild project SDK</value>
+  </data>
 </root>
