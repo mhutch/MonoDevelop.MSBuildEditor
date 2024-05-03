@@ -206,7 +206,7 @@ namespace MonoDevelop.MSBuild.Language
 		void ValidateOnErrorOnlyFollowedByOnError (XElement element)
 		{
 			var nextSibling = element.GetNextSiblingElement ();
-			if (nextSibling != null && !nextSibling.NameEquals ("OnError", true)) {
+			if (nextSibling != null && !nextSibling.Name.Equals ("OnError", true)) {
 				Document.Diagnostics.Add (CoreDiagnostics.OnErrorMustBeLastInTarget, element.GetNextSiblingElement ().NameSpan);
 			}
 		}
@@ -222,7 +222,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			bool foundItemOrPropertyName = false;
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("ItemName", true) || att.NameEquals ("PropertyName", true)) {
+				if (att.Name.Equals ("ItemName", true) || att.Name.Equals ("PropertyName", true)) {
 					foundItemOrPropertyName = true;
 					break;
 				}
@@ -269,7 +269,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			XElement parameterGroup = null, taskBody = null;
 			foreach (var child in element.Elements) {
-				if (child.NameEquals ("ParameterGroup", true)) {
+				if (child.Name.Equals ("ParameterGroup", true)) {
 					if (parameterGroup != null) {
 						Document.Diagnostics.Add (CoreDiagnostics.OneParameterGroup, child.NameSpan);
 					}
@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Language
 						Document.Diagnostics.Add (CoreDiagnostics.OneTaskBody, child.NameSpan);
 					}
 					parameterGroup = child;
-				} else if (child.NameEquals ("Task", true)) {
+				} else if (child.Name.Equals ("Task", true)) {
 					taskBody = child;
 				}
 			}
@@ -357,10 +357,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var att in element.Attributes) {
-				if (att.NameEquals ("Version", true)) {
+				if (att.Name.Equals ("Version", true)) {
 					Document.Diagnostics.Add (CoreDiagnostics.ImportVersionRequiresSdk, att.NameSpan);
 				}
-				if (att.NameEquals ("MinVersion", true)) {
+				if (att.Name.Equals ("MinVersion", true)) {
 					Document.Diagnostics.Add (CoreDiagnostics.ImportMinVersionRequiresSdk, att.NameSpan);
 				}
 			}
@@ -371,15 +371,15 @@ namespace MonoDevelop.MSBuild.Language
 			bool isInTarget = resolved.IsInTarget (element);
 			bool hasInclude = false, hasUpdate = false, hasRemove = false;
 			foreach (var att in element.Attributes) {
-				hasInclude |= att.NameEquals ("Include", true);
-				hasRemove |= att.NameEquals ("Remove", true);
-				if (att.NameEquals ("Update", true)) {
+				hasInclude |= att.Name.Equals ("Include", true);
+				hasRemove |= att.Name.Equals ("Remove", true);
+				if (att.Name.Equals ("Update", true)) {
 					hasUpdate = true;
 					if (isInTarget) {
 						Document.Diagnostics.Add (CoreDiagnostics.ItemAttributeNotValidInTarget, att.NameSpan, att.Name.Name);
 					}
 				}
-				if (att.NameEquals ("KeepMetadata", true) || att.NameEquals ("RemoveMetadata", true) || att.NameEquals ("KeepDuplicates", true)) {
+				if (att.Name.Equals ("KeepMetadata", true) || att.Name.Equals ("RemoveMetadata", true) || att.Name.Equals ("KeepDuplicates", true)) {
 					if (!isInTarget) {
 						Document.Diagnostics.Add (CoreDiagnostics.ItemAttributeOnlyValidInTarget, att.NameSpan, att.Name.Name);
 					}
@@ -432,7 +432,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var child in element.Elements) {
-				if (child.NameEquals ("Output", true)) {
+				if (child.Name.Equals ("Output", true)) {
 					var paramNameAtt = child.Attributes.Get ("TaskParameter", true);
 					if (!paramNameAtt.TryGetValue (out string paramName) || paramName.Length == 0) {
 						continue;

@@ -80,7 +80,7 @@ namespace MonoDevelop.MSBuild.Schema
 				goto case MSBuildSyntaxKind.ItemGroup;
 			case MSBuildSyntaxKind.ItemGroup:
 			case MSBuildSyntaxKind.PropertyGroup:
-				if (element.ParentElement is XElement te && te.NameEquals (MSBuildElementSyntax.Target.Name, true)) {
+				if (element.ParentElement is XElement te && te.Name.Equals (MSBuildElementSyntax.Target.Name, true)) {
 					targetElement = te;
 					return true;
 				}

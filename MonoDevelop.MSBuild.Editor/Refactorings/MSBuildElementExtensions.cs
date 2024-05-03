@@ -40,7 +40,7 @@ static class MSBuildElementExtensions
 	public static IEnumerable<XElement> OfSyntax (this IEnumerable<XElement> elements, MSBuildElementSyntax syntax)
 	{
 		foreach (var el in elements) {
-			if (el.NameEquals (syntax.Name, true)) {
+			if (el.Name.Equals (syntax.Name, true)) {
 				yield return el;
 			}
 		}

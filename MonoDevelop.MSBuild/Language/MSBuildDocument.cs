@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public void Build (XDocument doc, MSBuildParserContext context)
 		{
-			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.NameEquals ("Project", true));
+			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name.Equals ("Project", true));
 			if (project == null) {
 				//TODO: error
 				return;

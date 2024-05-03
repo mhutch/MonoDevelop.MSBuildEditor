@@ -66,7 +66,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 					if (n is XDocument) {
 						continue;
 					}
-					if (n is XElement xroot && xroot.NameEquals ("Project", true)) {
+					if (n is XElement xroot && xroot.Name.Equals ("Project", true)) {
 						elementSyntax = Project;
 						continue;
 					}
@@ -95,7 +95,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 
 		public static MSBuildElementSyntax Get (XElement el)
 		{
-			if (el.Parent is XDocument && el.NameEquals (Project.Name, true)) {
+			if (el.Parent is XDocument && el.Name.Equals ("Project", true)) {
 				return Project;
 			}
 			var parentSyntax = el.Parent is XElement p ? Get (p) : null;

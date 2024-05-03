@@ -159,12 +159,12 @@ namespace MonoDevelop.MSBuild.Language
 			{
 				switch (elementSyntax.SyntaxKind) {
 				case MSBuildSyntaxKind.Import:
-					if (attribute.NameEquals ("Project", true)) {
+					if (attribute.Name.Equals ("Project", true)) {
 						CaptureAnnotations ();
 					}
 					break;
 				case MSBuildSyntaxKind.Project:
-					if (attribute.NameEquals ("Sdk", true)) {
+					if (attribute.Name.Equals ("Sdk", true)) {
 						CaptureAnnotations ();
 					}
 					break;

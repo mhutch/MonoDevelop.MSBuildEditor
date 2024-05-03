@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			}
 
 			// check it isn't in an ItemDefinitionGroup
-			if (!(itemElement?.Parent is XElement pe && pe.NameEquals ("ItemGroup", true))) {
+			if (!(itemElement?.Parent is XElement pe && pe.Name.Equals ("ItemGroup", true))) {
 				return Task.CompletedTask;
 			}
 
