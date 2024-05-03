@@ -8,6 +8,7 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 
@@ -283,6 +284,64 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				includeCoreDiagnostics: true,
 				schema: schema,
 				expectedDiagnostics: expected
+			);
+		}
+
+		[Test]
+		public void ImportWithVersionButNoSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""|Foo.props|"" |Version|=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedImport,
+					spans[0],
+					"Foo.props"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.ImportVersionRequiresSdk,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void ImportWithMinVersionButNoSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""|Foo.props|"" |MinimumVersion|=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedImport,
+					spans[0],
+					"Foo.props"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.ImportMinimumVersionRequiresSdk,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
 			);
 		}
 	}
