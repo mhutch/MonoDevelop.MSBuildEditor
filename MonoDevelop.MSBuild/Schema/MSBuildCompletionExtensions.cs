@@ -37,11 +37,14 @@ namespace MonoDevelop.MSBuild.Schema
 				if (!spat.IsAbstract) {
 					if (rr.ElementSyntax.SyntaxKind == MSBuildSyntaxKind.Item) {
 						if (isInTarget) {
-							if (spat.Name == "Update") {
+							if (spat.SyntaxKind == MSBuildSyntaxKind.Item_Update) {
 								continue;
 							}
 						} else {
-							if (spat.Name == "KeepMetadata" || spat.Name == "RemoveMetadata" || spat.Name == "KeepDuplicates") {
+							switch (spat.SyntaxKind) {
+							case MSBuildSyntaxKind.Item_KeepMetadata:
+							case MSBuildSyntaxKind.Item_RemoveMetadata:
+							case MSBuildSyntaxKind.Item_KeepDuplicates:
 								continue;
 							}
 						}
@@ -251,7 +254,7 @@ namespace MonoDevelop.MSBuild.Schema
 
 			if (rr.AttributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Import_Project && rr.Element != null) {
 
-				var sdkAtt = rr.Element.Attributes.Get ("Sdk", true)?.Value;
+				var sdkAtt = rr.Element.Attributes.Get (MSBuildAttributeName.Sdk, true)?.Value;
 				if (string.IsNullOrEmpty (sdkAtt) || !Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
 					// if there's an invalid SDK attribute, don't try to provide path completion, it'll be wrong
 					return null;

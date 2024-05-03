@@ -63,6 +63,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 		Item_Update         = Item + (7 << 16),
 		Item_KeepMetadata   = Item + (8 << 16),
 		Item_RemoveMetadata = Item + (9 << 16),
+		Item_KeepDuplicates = Item + (10 << 16),
 
 		Parameter_Required      = Parameter + (3 << 16),
 		Parameter_Output        = Parameter + (4 << 16),

@@ -369,14 +369,14 @@ namespace MonoDevelop.MSBuild.Language
 		public static readonly MSBuildDiagnosticDescriptor ImportVersionRequiresSdk = new (
 			ImportVersionRequiresSdk_Id,
 			"Import Version requires Sdk",
-			"Import may only have a Version attribute if it has an Sdk attribute",
+			"Import may only have a `Version` attribute if it has an `Sdk` attribute",
 			MSBuildDiagnosticSeverity.Error);
 
-		public const string ImportMinVersionRequiresSdk_Id = nameof(ImportMinVersionRequiresSdk);
-		public static readonly MSBuildDiagnosticDescriptor ImportMinVersionRequiresSdk = new (
-			ImportMinVersionRequiresSdk_Id,
-			"Import MinVersion requires Sdk",
-			"Import may only have a MinVersion attribute if it has an Sdk attribute",
+		public const string ImportMinimumVersionRequiresSdk_Id = nameof(ImportMinimumVersionRequiresSdk);
+		public static readonly MSBuildDiagnosticDescriptor ImportMinimumVersionRequiresSdk = new (
+			ImportMinimumVersionRequiresSdk_Id,
+			"Import `MinimumVersion` requires Sdk",
+			"Import may only have a `MinimumVersion` attribute if it has an `Sdk` attribute",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnknownValue_Id = nameof(UnknownValue);

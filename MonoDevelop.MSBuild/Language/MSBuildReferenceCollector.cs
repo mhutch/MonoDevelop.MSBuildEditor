@@ -232,7 +232,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildSyntaxKind.UsingTask:
-				var nameAtt = element.Attributes.Get ("TaskName", true);
+				var nameAtt = element.Attributes.Get (MSBuildAttributeName.TaskName, true);
 				if (nameAtt is not null && nameAtt.TryGetNonEmptyValue (out var taskName)) {
 					var nameIdx = taskName.LastIndexOf ('.') + 1;
 					string name = nameIdx > 0 ? nameAtt.Value.Substring (nameIdx) : taskName;
@@ -277,7 +277,7 @@ namespace MonoDevelop.MSBuild.Language
 		internal static ExpressionNode? GetIncludeExpression (XElement itemElement)
 		{
 			var include = itemElement.Attributes
-				.FirstOrDefault (e => string.Equals (e.Name.Name, "Include", StringComparison.OrdinalIgnoreCase));
+				.FirstOrDefault (e => e.Name.Equals (MSBuildAttributeName.Include, true));
 
 			if (include == null || string.IsNullOrWhiteSpace (include.Value)) {
 				return null;
@@ -391,7 +391,7 @@ namespace MonoDevelop.MSBuild.Language
 		protected override void VisitResolvedElement (XElement element, MSBuildElementSyntax elementSyntax, ITypedSymbol elementSymbol)
 		{
 			if (elementSyntax.SyntaxKind == MSBuildSyntaxKind.Target) {
-				var nameAtt = element.Attributes.Get ("Name", true);
+				var nameAtt = element.Attributes.Get (MSBuildAttributeName.Name, true);
 				if (nameAtt != null && nameAtt.HasValue && IsMatch (nameAtt.Value)) {
 					AddResult (nameAtt.ValueSpan.Value, ReferenceUsage.Declaration);
 				}

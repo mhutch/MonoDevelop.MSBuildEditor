@@ -14,7 +14,7 @@ static class MSBuildElementExtensions
 	/// <summary>
 	/// The <c>Condition</c> attribute, if any
 	/// </summary>
-	public static XAttribute? Condition (this XElement el) => el.Attributes.Get ("Condition", true);
+	public static XAttribute? Condition (this XElement el) => el.Attributes.Get (MSBuildAttributeName.Condition, true);
 
 	/// <summary>
 	/// Whether the element has a <c>Condition</c> attribute

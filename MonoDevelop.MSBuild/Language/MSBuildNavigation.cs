@@ -157,23 +157,9 @@ namespace MonoDevelop.MSBuild.Language
 				MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax,
 				ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
 			{
-				switch (elementSyntax.SyntaxKind) {
-				case MSBuildSyntaxKind.Import:
-					if (attribute.Name.Equals ("Project", true)) {
-						CaptureAnnotations ();
-					}
-					break;
-				case MSBuildSyntaxKind.Project:
-					if (attribute.Name.Equals ("Sdk", true)) {
-						CaptureAnnotations ();
-					}
-					break;
-				}
-
-				base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
-
-				void CaptureAnnotations ()
-				{
+				switch (attributeSyntax.SyntaxKind) {
+				case MSBuildSyntaxKind.Project_Sdk:
+				case MSBuildSyntaxKind.Import_Project:
 					var annotations = Document.Annotations.GetMany<NavigationAnnotation> (attribute);
 					if (annotations != null) {
 						foreach (var group in annotations.GroupBy (a => a.Span.Start)) {
@@ -183,7 +169,10 @@ namespace MonoDevelop.MSBuild.Language
 							));
 						}
 					}
+					break;
 				}
+
+				base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
 			}
 
 			protected override void VisitValue (
