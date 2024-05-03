@@ -62,7 +62,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				//code completion is forgiving, all we care about best guess resolve for deepest child
-				if (node is XElement xel && xel.Name.Prefix == null && xel.Name.Name is string elName) {
+				if (node is XElement xel && !xel.Name.HasPrefix && xel.Name.Name is string elName) {
 					el = xel;
 					languageElement = MSBuildElementSyntax.Get (elName, languageElement);
 					if (languageElement != null)
@@ -164,7 +164,7 @@ namespace MonoDevelop.MSBuild.Language
 					rr.ReferenceKind = MSBuildReferenceKind.Task;
 					return;
 				case MSBuildSyntaxKind.Parameter:
-					var taskName = element.ParentElement!.ParentElement!.Attributes.Get ("TaskName", true)?.Value;
+					var taskName = element.ParentElement!.ParentElement!.Attributes.Get (MSBuildAttributeName.TaskName, true)?.Value;
 					if (!string.IsNullOrEmpty (taskName)) {
 						taskName = taskName.Substring (taskName.LastIndexOf ('.') + 1);
 						rr.ReferenceKind = MSBuildReferenceKind.TaskParameter;

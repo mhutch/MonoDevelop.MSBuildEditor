@@ -10,6 +10,7 @@ using System.Linq;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.MSBuild.Workspace;
@@ -55,7 +56,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		public void Build (XDocument doc, MSBuildParserContext context)
 		{
-			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.NameEquals ("Project", true));
+			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name.Equals (MSBuildElementName.Project, true));
 			if (project == null) {
 				//TODO: error
 				return;

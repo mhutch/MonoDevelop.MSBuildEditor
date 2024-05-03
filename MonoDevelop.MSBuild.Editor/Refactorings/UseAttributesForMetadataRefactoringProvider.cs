@@ -34,7 +34,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			}
 
 			// check it isn't in an ItemDefinitionGroup
-			if (!(itemElement?.Parent is XElement pe && pe.NameEquals ("ItemGroup", true))) {
+			if (!(itemElement?.Parent is XElement pe && pe.Name.Equals (MSBuildElementName.ItemGroup, true))) {
 				return Task.CompletedTask;
 			}
 
@@ -55,14 +55,14 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 
 			bool foundAny = false;
 
-			// we can only tranform the item if its only children are metadata elements without attributes
+			// we can only transform the item if its only children are metadata elements without attributes
 			foreach (var node in item.Nodes) {
-				if (!(node is XElement meta) || meta.Attributes.First != null) {
+				if (node is not XElement meta || meta.Attributes.First is not null || !meta.IsNamed || meta.Name.HasPrefix) {
 					return false;
 				}
 
 				// if the metadata element has a child, it must be a single text node
-				if (meta.FirstChild != null && (!(meta.FirstChild is XText t) || t.NextSibling != null)) {
+				if (meta.FirstChild != null && (meta.FirstChild is not XText t || t.NextSibling != null)) {
 					return false;
 				}
 

@@ -61,16 +61,15 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 </PropertyGroup>
 </Project>";
 
-			var schema = new MSBuildSchema {
-				new PropertyInfo ("EnableFoo", "", MSBuildValueKind.Bool)
-			};
+			var enableFooProp = new PropertyInfo ("EnableFoo", "", MSBuildValueKind.Bool);
+			var schema = new MSBuildSchema { enableFooProp };
 
 			var expected = new MSBuildDiagnostic (
 				CoreDiagnostics.InvalidBool,
 				SpanFromLineColLength (source, 3, 15, 9),
 				ImmutableDictionary<string, object>.Empty
-					.Add ("Name", "bl&ah")
-					.Add ("ValueKind", MSBuildValueKind.Bool),
+					.Add (CoreDiagnosticProperty.MisspelledNameOrValue, "bl&ah")
+					.Add (CoreDiagnosticProperty.MisspelledValueExpectedType, enableFooProp),
 				messageArgs: ["bl&ah"]
 			);
 
@@ -154,18 +153,16 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					CoreDiagnostics.UnknownValue,
 					SpanFromLineColLength (source, 3, 23, 3),
 					ImmutableDictionary<string, object>.Empty
-						.Add ("Name", "Bye")
-						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType),
+						.Add (CoreDiagnosticProperty.MisspelledNameOrValue, "Bye")
+						.Add (CoreDiagnosticProperty.MisspelledValueExpectedType, greetingsProp),
 					messageArgs: [ "Property", "Greetings", "Bye" ]
 				),
 				new MSBuildDiagnostic (
 					CoreDiagnostics.UnknownValue,
 					SpanFromLineColLength (source, 3, 33, 6),
 					ImmutableDictionary<string, object>.Empty
-						.Add ("Name", "See Ya")
-						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType),
+						.Add (CoreDiagnosticProperty.MisspelledNameOrValue, "See Ya")
+						.Add (CoreDiagnosticProperty.MisspelledValueExpectedType, greetingsProp),
 					messageArgs: ["Property", "Greetings", "See Ya" ]
 				)
 			};
@@ -202,9 +199,8 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 					CoreDiagnostics.UnknownValue,
 					SpanFromLineColLength (source, 3, 24, 3),
 					ImmutableDictionary<string, object>.Empty
-						.Add ("Name", "Bye")
-						.Add ("ValueKind", MSBuildValueKind.CustomType)
-						.Add ("CustomType", customType),
+						.Add (CoreDiagnosticProperty.MisspelledNameOrValue, "Bye")
+						.Add (CoreDiagnosticProperty.MisspelledValueExpectedType, greetingsProp),
 					messageArgs: [ "Property", "Greetings", "Bye" ]
 				),
 			};

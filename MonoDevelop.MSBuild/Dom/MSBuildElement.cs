@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -22,47 +23,47 @@ namespace MonoDevelop.MSBuild.Dom
 			: base (parent, value)
 		{
 			XElement = xelement;
+			Debug.Assert (xelement.IsNamed && !xelement.Name.HasPrefix);
 
 			MSBuildElement prevChild = null;
 			foreach (var childElement in xelement.Elements) {
-				var childSyntax = Syntax.GetChild (childElement.Name.FullName);
-				if (childSyntax != null) {
-					ExpressionNode childValue = null;
-					if (childSyntax.ValueKind != MSBuildValueKind.Nothing && childElement.FirstChild is XText t) {
-						childValue = ExpressionParser.Parse (t.Text, ExpressionOptions.ItemsMetadataAndLists, t.Span.Start);
-					}
-					var child = CreateElement (childSyntax.SyntaxKind, this, childElement, childValue);
-					if (prevChild == null) {
-						firstChild = child;
-					} else {
-						prevChild.nextSibling = child;
-					}
-					prevChild = child;
+				if (childElement.Name.HasPrefix || Syntax.GetChild (childElement.Name.Name) is not MSBuildElementSyntax childSyntax) {
+					continue;
 				}
+				ExpressionNode childValue = null;
+				if (childSyntax.ValueKind != MSBuildValueKind.Nothing && childElement.FirstChild is XText t) {
+					childValue = ExpressionParser.Parse (t.Text, ExpressionOptions.ItemsMetadataAndLists, t.Span.Start);
+				}
+				var child = CreateElement (childSyntax.SyntaxKind, this, childElement, childValue);
+				if (prevChild == null) {
+					firstChild = child;
+				} else {
+					prevChild.nextSibling = child;
+				}
+				prevChild = child;
 			}
 
 			MSBuildAttribute prevAttribute = null;
 			foreach (var xatt in xelement.Attributes) {
-				var attributeSyntax = Syntax.GetAttribute (xatt.Name.FullName);
-				if (attributeSyntax != null) {
-
-					ExpressionNode attributeValue = null;
-					if (xatt.HasNonEmptyValue) {
-						if (attributeSyntax.ValueKind == MSBuildValueKind.Condition) {
-							attributeValue = ExpressionParser.ParseCondition (xatt.Value, xatt.ValueOffset.Value);
-						} else {
-							attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset.Value);
-						}
-					}
-
-					var attribute = new MSBuildAttribute (this, xatt, attributeSyntax, attributeValue);
-					if (prevAttribute == null) {
-						firstAttribute = attribute;
-					} else {
-						prevAttribute.nextSibling = attribute;
-					}
-					prevAttribute = attribute;
+				if (Syntax.GetAttribute (xatt) is not MSBuildAttributeSyntax attributeSyntax) {
+					continue;
 				}
+				ExpressionNode attributeValue = null;
+				if (xatt.HasNonEmptyValue) {
+					if (attributeSyntax.ValueKind == MSBuildValueKind.Condition) {
+						attributeValue = ExpressionParser.ParseCondition (xatt.Value, xatt.ValueOffset.Value);
+					} else {
+						attributeValue = ExpressionParser.Parse (xatt.Value, ExpressionOptions.ItemsMetadataAndLists, xatt.ValueOffset.Value);
+					}
+				}
+
+				var attribute = new MSBuildAttribute (this, xatt, attributeSyntax, attributeValue);
+				if (prevAttribute == null) {
+					firstAttribute = attribute;
+				} else {
+					prevAttribute.nextSibling = attribute;
+				}
+				prevAttribute = attribute;
 			}
 		}
 
@@ -71,7 +72,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public abstract MSBuildElementSyntax Syntax { get; }
 		public XElement XElement { get; }
 
-		public string ElementName => XElement.Name.FullName;
+		public string ElementName => XElement.Name.Name;
 
 		public bool IsElementNamed (string name) => string.Equals (ElementName, name, StringComparison.OrdinalIgnoreCase);
 
@@ -125,7 +126,7 @@ namespace MonoDevelop.MSBuild.Dom
 		{
 			var element = firstChild;
 			while (element != null) {
-				if (string.Equals (element.XElement.Name.FullName, elementName, StringComparison.OrdinalIgnoreCase) && element is T typedElement) {
+				if (element.XElement.Name.Equals (elementName, true) && element is T typedElement) {
 					return typedElement;
 				}
 				element = element.nextSibling;
@@ -267,7 +268,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute UpdateAttribute => GetAttribute (MSBuildSyntaxKind.Item_Update);
 		public MSBuildAttribute KeepMetadataAttribute => GetAttribute (MSBuildSyntaxKind.Item_KeepMetadata);
 		public MSBuildAttribute RemoveMetadataAttribute => GetAttribute (MSBuildSyntaxKind.Item_RemoveMetadata);
-		public MSBuildAttribute KeepDuplicatesAttribute => GetAttribute (MSBuildSyntaxKind.Parameter_Required);
+		public MSBuildAttribute KeepDuplicatesAttribute => GetAttribute (MSBuildSyntaxKind.Item_KeepDuplicates);
 
 		public IEnumerable<MSBuildAttribute> MetadataAttributes => GetAttributes (MSBuildSyntaxKind.Item_Metadata);
 

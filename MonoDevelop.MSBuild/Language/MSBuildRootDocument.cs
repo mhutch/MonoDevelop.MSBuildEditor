@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Workspace;
 using MonoDevelop.Xml.Dom;
@@ -268,13 +269,13 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (XDocument.RootElement != null) {
-					var sdkAtt = XDocument.RootElement.Attributes["Sdk"];
+					var sdkAtt = XDocument.RootElement.Attributes.Get (MSBuildAttributeName.Sdk, true);
 					if (sdkAtt != null) {
 						toolsVersion = MSBuildToolsVersion.V15_0;
 						return toolsVersion.Value;
 					}
 
-					var tvAtt = XDocument.RootElement.Attributes["ToolsVersion"];
+					var tvAtt = XDocument.RootElement.Attributes.Get (MSBuildAttributeName.ToolsVersion, true);
 					if (tvAtt != null) {
 						var val = tvAtt.Value;
 						if (MSBuildToolsVersionExtensions.TryParse (val, out MSBuildToolsVersion tv)) {

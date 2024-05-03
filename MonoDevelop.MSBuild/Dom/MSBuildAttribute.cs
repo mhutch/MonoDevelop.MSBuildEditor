@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
+
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
@@ -16,6 +18,7 @@ namespace MonoDevelop.MSBuild.Dom
 		{
 			XAttribute = xattribute;
 			Syntax = syntax;
+			Debug.Assert (xattribute.IsNamed && !xattribute.Name.HasPrefix);
 		}
 
 		public MSBuildAttributeSyntax Syntax { get; }
@@ -23,7 +26,7 @@ namespace MonoDevelop.MSBuild.Dom
 
 		public override MSBuildSyntaxKind SyntaxKind => Syntax.SyntaxKind;
 
-		public string Name => XAttribute.Name.FullName;
+		public string Name => XAttribute.Name.Name;
 
 		public bool IsNamed (string name) => string.Equals (Name, name, System.StringComparison.OrdinalIgnoreCase);
 	}

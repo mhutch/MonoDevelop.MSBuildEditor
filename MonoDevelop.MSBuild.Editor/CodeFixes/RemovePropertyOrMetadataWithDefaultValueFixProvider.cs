@@ -22,7 +22,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 		public override Task RegisterCodeFixesAsync (MSBuildFixContext context)
 		{
 			foreach (var diag in context.Diagnostics) {
-				if (!(diag.Properties.TryGetValue ("Info", out var val) && val is VariableInfo info)) {
+				if (!(diag.Properties.TryGetValue (CoreDiagnosticProperty.Symbol, out var val) && val is VariableInfo info)) {
 					continue;
 				}
 

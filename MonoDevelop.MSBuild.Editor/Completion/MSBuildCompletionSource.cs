@@ -274,7 +274,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
-		static bool ItemIsInItemGroup (XElement itemEl) => itemEl.Parent is XElement parent && parent.NameEquals (MSBuildElementSyntax.ItemGroup.Name, true);
+		static bool ItemIsInItemGroup (XElement itemEl) => itemEl.Parent is XElement parent && parent.Name.Equals (MSBuildElementSyntax.ItemGroup.Name, true);
 
 		static XElement GetItemGroupItemFromMetadata (MSBuildResolveResult rr)
 			=> rr.ElementSyntax.SyntaxKind switch {
@@ -284,7 +284,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			};
 
 		static XAttribute GetIncludeOrUpdateAttribute (XElement item)
-			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att.Name.FullName)?.SyntaxKind switch {
+			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att)?.SyntaxKind switch {
 				MSBuildSyntaxKind.Item_Include => true,
 				MSBuildSyntaxKind.Item_Update => true,
 				_ => false

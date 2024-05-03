@@ -14,7 +14,7 @@ static class MSBuildElementExtensions
 	/// <summary>
 	/// The <c>Condition</c> attribute, if any
 	/// </summary>
-	public static XAttribute? Condition (this XElement el) => el.Attributes.Get ("Condition", true);
+	public static XAttribute? Condition (this XElement el) => el.Attributes.Get (MSBuildAttributeName.Condition, true);
 
 	/// <summary>
 	/// Whether the element has a <c>Condition</c> attribute
@@ -40,7 +40,7 @@ static class MSBuildElementExtensions
 	public static IEnumerable<XElement> OfSyntax (this IEnumerable<XElement> elements, MSBuildElementSyntax syntax)
 	{
 		foreach (var el in elements) {
-			if (el.NameEquals (syntax.Name, true)) {
+			if (el.Name.Equals (syntax.Name, true)) {
 				yield return el;
 			}
 		}

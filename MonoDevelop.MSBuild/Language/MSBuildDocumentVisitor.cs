@@ -64,7 +64,7 @@ abstract class MSBuildDocumentVisitor
 		if (!element.Name.IsValid) {
 			return;
 		}
-		var resolved = MSBuildElementSyntax.Get (element.Name.Name, parent);
+		var resolved = MSBuildElementSyntax.Get (element, parent);
 		VisitResolvedElement (element, resolved);
 	}
 
@@ -119,9 +119,7 @@ abstract class MSBuildDocumentVisitor
 				continue;
 			}
 
-			var attributeSyntax = elementSyntax.GetAttribute (attributeName);
-
-			if (attributeSyntax is null) {
+			if (att.Name.HasPrefix || elementSyntax.GetAttribute (attributeName) is not MSBuildAttributeSyntax attributeSyntax) {
 				VisitUnknownAttribute (element, att);
 				continue;
 			}
