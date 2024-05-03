@@ -8,6 +8,7 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
+using MonoDevelop.MSBuild.Language.Typesystem;
 
 namespace MonoDevelop.MSBuild.Analyzers
 {
@@ -69,7 +70,10 @@ namespace MonoDevelop.MSBuild.Analyzers
 		static bool HasTargetFrameworksPropertyWithNonSingularValue (MSBuildPropertyGroupElement pg) =>
 			pg.PropertyElements.Any (p => p.IsElementNamed ("TargetFrameworks") && p.Value is not ExpressionText t);
 
-		bool CoreDiagnosticFilter (MSBuildDiagnostic arg)
-			=> arg.Properties != null && arg.Properties.TryGetValue ("Name", out var value) && (string)value == "TargetFramework";
+		static bool CoreDiagnosticFilter (MSBuildDiagnostic arg) =>
+			arg.Properties is not null
+			&& arg.Properties.TryGetValue(CoreDiagnosticProperty.Symbol, out var value)
+			&& value is PropertyInfo pi
+			&& string.Equals (pi.Name, "TargetFramework", System.StringComparison.OrdinalIgnoreCase);
 	}
 }

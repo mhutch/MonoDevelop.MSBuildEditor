@@ -39,13 +39,13 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 			var spellChecker = SpellCheckerProvider.GetSpellChecker (context.Buffer);
 
 			foreach (var diag in context.Diagnostics) {
-				var name = (string)diag.Properties["Name"];
+				var name = (string)diag.Properties[CoreDiagnosticProperty.MisspelledNameOrValue];
 
 				TextSpan[] spans;
-				if (diag.Properties.TryGetValue("Spans", out var spansObj)) {
+				if (diag.Properties.TryGetValue(CoreDiagnosticProperty.MisspelledNameSpans, out var spansObj)) {
 					spans = (TextSpan[])spansObj;
 				} else {
-					spans = new[] { diag.Span };
+					spans = [diag.Span];
 				}
 
 				switch (diag.Descriptor.Id) {
@@ -69,7 +69,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 				case CoreDiagnostics.UnreadMetadata_Id:
 				case CoreDiagnostics.UnwrittenMetadata_Id:
-					var itemName = (string)diag.Properties["ItemName"];
+					var itemName = (string)diag.Properties[CoreDiagnosticProperty.MisspelledMetadataItemName];
 					foreach (var metadata in await spellChecker.FindSimilarMetadata (context.Document, itemName, name)) {
 						// don't fix writes with reserved metadata
 						if (metadata.Reserved && diag.Descriptor.Id == CoreDiagnostics.UnreadMetadata.Id) {
@@ -81,8 +81,9 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 				case CoreDiagnostics.UnknownValue_Id:
 				case CoreDiagnostics.InvalidBool_Id:
-					var kind = (MSBuildValueKind)diag.Properties["ValueKind"];
-					CustomTypeInfo customType = kind == MSBuildValueKind.CustomType? (CustomTypeInfo)diag.Properties["CustomType"] : null;
+					var expectedType = (ITypedSymbol)diag.Properties[CoreDiagnosticProperty.MisspelledValueExpectedType];
+					var kind = expectedType.ValueKind.WithoutModifiers ();
+					CustomTypeInfo customType = kind == MSBuildValueKind.CustomType ? expectedType.CustomType : null;
 					foreach (var value in await spellChecker.FindSimilarValues (context.Document, kind, customType, name)) {
 						context.RegisterCodeFix (new FixNameAction (spans, name, value.Name), diag);
 					}
