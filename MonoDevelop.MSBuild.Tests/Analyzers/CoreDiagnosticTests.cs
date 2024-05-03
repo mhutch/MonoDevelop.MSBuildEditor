@@ -344,5 +344,58 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				includeNoTargetsWarning: false
 			);
 		}
+
+		[Test]
+		public void RedundantSdkMinVersion ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""Foo"" |MinimumVersion|=""2.0"" Version=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.RedundantMinimumVersion,
+					spans[0]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void RedundantImportMinVersion ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""Foo.props"" Sdk=""|Bar|"" |MinimumVersion|=""2.0"" Version=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[0],
+					"Bar"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.RedundantMinimumVersion,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
 	}
 }

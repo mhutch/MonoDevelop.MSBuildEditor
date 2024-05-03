@@ -135,6 +135,14 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Warning
 		);
 
+		public const string RedundantMinimumVersion_Id = nameof (RedundantMinimumVersion);
+		public static readonly MSBuildDiagnosticDescriptor RedundantMinimumVersion = new (
+			RedundantMinimumVersion_Id,
+			"Redundant `MinimumVersion` attribute",
+			"The `MinimumVersion` attribute is redundant when a `Version` attribute is also specified on an `Import` or `Sdk` element",
+			MSBuildDiagnosticSeverity.Error
+		);
+
 		public const string TaskDefinitionNotResolvedFromAssembly_Id = nameof (TaskDefinitionNotResolvedFromAssembly);
 		public static readonly MSBuildDiagnosticDescriptor TaskDefinitionNotResolvedFromAssembly = new (
 			TaskDefinitionNotResolvedFromAssembly_Id,
