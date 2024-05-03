@@ -131,6 +131,8 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("'$(foo)' == '' and ('$(bar)' == '')")] // paren group at end of expression string
 		[TestCase ("")] // empty expression
 		[TestCase (" ")] // whitespace only
+		[TestCase ("'$(foo)' > 1.0")] // decimal literal
+		[TestCase ("'$(foo)' > -1.0")] // negative decimal literal
 		public void TestParseNoError (string expressionString)
 		{
 			var expression = ExpressionParser.ParseCondition (expressionString, 0);
