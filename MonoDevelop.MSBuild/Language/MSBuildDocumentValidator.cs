@@ -293,19 +293,17 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				if (taskFactoryAtt is not null && taskFactoryAtt.TryGetValue (out var taskFactoryName) && taskFactoryName.Length > 0) {
-					switch (taskFactoryName.ToLowerInvariant ()) {
-					case "codetaskfactory":
-						if (string.Equals (asmFileAtt?.Value, "$(RoslynCodeTaskFactory)")) {
-							goto case "roslyncodetaskfactory";
-						}
-						break;
-					case "roslyncodetaskfactory":
+					switch (WellKnownTaskFactory.TryGet (taskFactoryName, asmFileAtt?.Value)) {
+					case WellKnownTaskFactory.RoslynCodeTaskFactory:
 						if (taskBody is not null) {
 							ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
 						}
 						break;
-					default:
+					case null:
 						Document.Diagnostics.Add (CoreDiagnostics.UnknownTaskFactory, taskFactoryAtt.ValueSpan.Value, taskFactoryName);
+						break;
+					default:
+						// known but we don't have any special handling
 						break;
 					}
 				}
