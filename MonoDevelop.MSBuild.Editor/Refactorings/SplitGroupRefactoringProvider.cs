@@ -49,7 +49,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			}
 
 			//check name is cased correctly
-			var groupName = MSBuildElementSyntax.Get (group.Name.FullName)?.Name;
+			var groupName = MSBuildElementSyntax.Get (group)?.Name;
 
 			context.RegisterRefactoring (new SplitGroupAction (previousElement, groupName));
 

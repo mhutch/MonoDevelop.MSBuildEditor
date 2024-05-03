@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -22,6 +23,7 @@ namespace MonoDevelop.MSBuild.Dom
 			: base (parent, value)
 		{
 			XElement = xelement;
+			Debug.Assert (xelement.IsNamed && !xelement.Name.HasPrefix);
 
 			MSBuildElement prevChild = null;
 			foreach (var childElement in xelement.Elements) {
@@ -43,7 +45,7 @@ namespace MonoDevelop.MSBuild.Dom
 
 			MSBuildAttribute prevAttribute = null;
 			foreach (var xatt in xelement.Attributes) {
-				if (xatt.Name.HasPrefix || Syntax.GetAttribute (xatt.Name.Name) is not MSBuildAttributeSyntax attributeSyntax) {
+				if (Syntax.GetAttribute (xatt) is not MSBuildAttributeSyntax attributeSyntax) {
 					continue;
 				}
 				ExpressionNode attributeValue = null;
@@ -70,7 +72,7 @@ namespace MonoDevelop.MSBuild.Dom
 		public abstract MSBuildElementSyntax Syntax { get; }
 		public XElement XElement { get; }
 
-		public string ElementName => XElement.Name.FullName;
+		public string ElementName => XElement.Name.Name;
 
 		public bool IsElementNamed (string name) => string.Equals (ElementName, name, StringComparison.OrdinalIgnoreCase);
 
@@ -124,7 +126,7 @@ namespace MonoDevelop.MSBuild.Dom
 		{
 			var element = firstChild;
 			while (element != null) {
-				if (string.Equals (element.XElement.Name.FullName, elementName, StringComparison.OrdinalIgnoreCase) && element is T typedElement) {
+				if (element.XElement.Name.Equals (elementName, true) && element is T typedElement) {
 					return typedElement;
 				}
 				element = element.nextSibling;

@@ -51,6 +51,9 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			return children != null && children.Any (c => string.Equals (name, c.Name, StringComparison.OrdinalIgnoreCase));
 		}
 
+		public static MSBuildElementSyntax Get (XElement element, MSBuildElementSyntax? parent = null)
+			=> !element.IsNamed || element.Name.HasPrefix ? null : Get (element.Name.Name, parent);
+
 		public static MSBuildElementSyntax Get (string name, MSBuildElementSyntax? parent = null)
 		{
 			if (parent != null) {
@@ -76,15 +79,14 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 					return null;
 				}
 				if (n is XElement xel) {
-					elementSyntax = Get (xel.Name.FullName, elementSyntax);
+					elementSyntax = Get (xel, elementSyntax);
 					if (elementSyntax != null) {
 						continue;
 					}
 					return null;
 				}
 				if (n is XAttribute att) {
-					var attributeSyntax = elementSyntax.GetAttribute (att.Name.FullName);
-					if (attributeSyntax != null) {
+					if (elementSyntax.GetAttribute (att) is MSBuildAttributeSyntax attributeSyntax) {
 						return (elementSyntax, attributeSyntax);
 					}
 					return null;
@@ -103,7 +105,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			}
 			var parentSyntax = el.Parent is XElement p ? Get (p) : null;
 			if (parentSyntax != null) {
-				return Get (el.Name.Name, parentSyntax);
+				return Get (el, parentSyntax);
 			}
 			return null;
 		}
@@ -117,7 +119,7 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 				if (att.Parent is XElement attEl) {
 					var elementSyntax = Get (attEl);
 					if (elementSyntax != null) {
-						return (elementSyntax, elementSyntax.GetAttribute (att.Name.FullName));
+						return (elementSyntax, elementSyntax.GetAttribute (att));
 					}
 					return (elementSyntax, null);
 				}
@@ -143,6 +145,8 @@ namespace MonoDevelop.MSBuild.Language.Syntax
 			}
 			return null;
 		}
+
+		public MSBuildAttributeSyntax GetAttribute (XAttribute att) => att.Name.HasPrefix || !att.IsNamed? null : GetAttribute (att.Name.Name);
 
 		public MSBuildAttributeSyntax GetAttribute (string name)
 		{

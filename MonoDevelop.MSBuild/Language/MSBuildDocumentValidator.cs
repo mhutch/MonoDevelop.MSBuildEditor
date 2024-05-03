@@ -415,7 +415,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var att in element.Attributes) {
-				if (!resolvedElement.GetAttribute (att.Name.Name).IsAbstract) {
+				if (!resolvedElement.GetAttribute (att)?.IsAbstract ?? false) {
 					continue;
 				}
 				if (!info.Parameters.TryGetValue (att.Name.Name, out TaskParameterInfo pi)) {

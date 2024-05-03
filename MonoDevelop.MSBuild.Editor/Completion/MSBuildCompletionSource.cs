@@ -284,7 +284,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			};
 
 		static XAttribute GetIncludeOrUpdateAttribute (XElement item)
-			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att.Name.FullName)?.SyntaxKind switch {
+			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att)?.SyntaxKind switch {
 				MSBuildSyntaxKind.Item_Include => true,
 				MSBuildSyntaxKind.Item_Update => true,
 				_ => false
