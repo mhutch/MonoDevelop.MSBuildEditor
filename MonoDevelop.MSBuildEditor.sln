@@ -47,6 +47,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MiniEditor", "MiniEditor", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildLanguageServer", "MSBuildLanguageServer\MSBuildLanguageServer.csproj", "{6D59750D-6CF5-423D-9788-C5733A5BB662}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuildLanguageServer.Tests", "MSBuildLanguageServer.Tests\MSBuildLanguageServer.Tests.csproj", "{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		external\roslyn\src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{6d59750d-6cf5-423d-9788-c5733a5bb662}*SharedItemsImports = 5
@@ -153,6 +155,14 @@ Global
 		{6D59750D-6CF5-423D-9788-C5733A5BB662}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D59750D-6CF5-423D-9788-C5733A5BB662}.ReleaseMac|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D59750D-6CF5-423D-9788-C5733A5BB662}.ReleaseMac|Any CPU.Build.0 = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.DebugMac|Any CPU.Build.0 = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.ReleaseMac|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B8A7A95-E87C-4C81-97BC-28BABA5884A9}.ReleaseMac|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
