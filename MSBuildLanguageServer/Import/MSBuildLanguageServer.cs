@@ -1,5 +1,5 @@
 // modified copy of
-// https://github.com/dotnet/roslyn/blob/ed71f060344d29e4fa70fc6096fa5a069d9903d8/src/Features/LanguageServer/Protocol/RoslynLanguageServer.cs
+// https://github.com/dotnet/roslyn/blob/c5b98ae61ab894230786db2cde711ce4525a2597/src/Features/LanguageServer/Protocol/RoslynLanguageServer.cs
 // changes annotated inline with // MODIFICATION
 //
 // Licensed to the .NET Foundation under one or more agreements.
@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -30,15 +32,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public MSBuildLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
+            JsonSerializer serializer,
             ICapabilitiesProvider capabilitiesProvider,
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, logger)
+            : base(jsonRpc, serializer, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
+
+            VSCodeInternalExtensionUtilities.AddVSCodeInternalExtensionConverters(serializer);
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
@@ -55,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, _logger, GetHandlerProvider());
+            return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
-            AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
+            AddBaseServiceFromFunc<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
             AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
             AddBaseService<IInitializeManager>(new InitializeManager());
@@ -86,12 +91,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
 			//MODIFICATION 1
 			/*
+            AddBaseService<ILanguageInfoProvider>(new LanguageInfoProvider());
+
             // In all VS cases, we already have a misc workspace.  Specifically
             // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
+                AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
 			*/
 			// END MODIFICATION 1
 
@@ -104,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             void AddBaseServiceFromFunc<T>(Func<ILspServices, object> creatorFunc)
             {
-                var added = baseServices.GetValueOrDefault(typeof(T), ImmutableArray<Func<ILspServices, object>>.Empty).Add(creatorFunc);
+                var added = baseServices.GetValueOrDefault(typeof(T), []).Add(creatorFunc);
                 baseServices[typeof(T)] = added;
             }
         }
@@ -114,5 +121,74 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             OnInitialized();
             return Task.CompletedTask;
         }
+
+		// MODIFICATION 3
+		/*
+        protected override string GetLanguageForRequest(string methodName, JToken? parameters)
+        {
+            if (parameters == null)
+            {
+                Logger.LogInformation("No request parameters given, using default language handler");
+                return LanguageServerConstants.DefaultLanguageName;
+            }
+
+            // For certain requests like text syncing we'll always use the default language handler
+            // as we do not want languages to be able to override them.
+            if (ShouldUseDefaultLanguage(methodName))
+            {
+                return LanguageServerConstants.DefaultLanguageName;
+            }
+
+            var lspWorkspaceManager = GetLspServices().GetRequiredService<LspWorkspaceManager>();
+
+            // All general LSP spec document params have the following json structure
+            // { "textDocument": { "uri": "<uri>" ... } ... }
+            //
+            // We can easily identify the URI for the request by looking for this structure
+            var textDocumentToken = parameters["textDocument"] ?? parameters["_vs_textDocument"];
+            if (textDocumentToken is not null)
+            {
+                var uriToken = textDocumentToken["uri"];
+                Contract.ThrowIfNull(uriToken, "textDocument does not have a uri property");
+                var uri = uriToken.ToObject<Uri>(_jsonSerializer);
+                Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
+                var language = lspWorkspaceManager.GetLanguageForUri(uri);
+                Logger.LogInformation($"Using {language} from request text document");
+                return language;
+            }
+
+            // All the LSP resolve params have the following known json structure
+            // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
+            //
+            // We can deserialize the data object using our unified DocumentResolveData.
+            var dataToken = parameters["data"];
+            if (dataToken is not null)
+            {
+                var data = dataToken.ToObject<DocumentResolveData>(_jsonSerializer);
+                Contract.ThrowIfNull(data, "Failed to document resolve data object");
+                var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
+                Logger.LogInformation($"Using {language} from data text document");
+                return language;
+            }
+
+            // This request is not for a textDocument and is not a resolve request.
+            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            return LanguageServerConstants.DefaultLanguageName;
+
+            static bool ShouldUseDefaultLanguage(string methodName)
+                => methodName switch
+                {
+                    Methods.InitializeName => true,
+                    Methods.InitializedName => true,
+                    Methods.TextDocumentDidOpenName => true,
+                    Methods.TextDocumentDidChangeName => true,
+                    Methods.TextDocumentDidCloseName => true,
+                    Methods.TextDocumentDidSaveName => true,
+                    Methods.ShutdownName => true,
+                    Methods.ExitName => true,
+                    _ => false,
+                };
+        }
+		*/
     }
 }

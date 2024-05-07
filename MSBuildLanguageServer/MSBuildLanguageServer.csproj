@@ -30,6 +30,7 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ILspServiceRequestHandler.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ILspServiceNotificationHandler.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/ServerInfoProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentResolveData.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/TelemetryService.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/AbstractLspServiceProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RoslynLspServiceProvider.cs" />
@@ -62,10 +63,15 @@
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/ObjectPools/*.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Collections/*.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/*.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/IsExternalInit.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/CompilerFeatureRequiredAttribute.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/RequiredMemberAttribute.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/SetsRequiredMembersAttribute.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathUtilities.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathKind.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/TaskExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/ValueTaskExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/IExpeditableDelaySource.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/LspServices/RequestTelemetryScope.cs" />
@@ -75,7 +81,15 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/WindowsErrorReporting.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/NamedPipeInformation.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/CustomExportAssemblyLoader.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/AssemblyLoadContextWrapper.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListener.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsyncToken.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/ValueTaskExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/TaskExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`0.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`1.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`2.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/CancellationSeries.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/ExtensionAssemblyManager.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
@@ -103,6 +117,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
     <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>

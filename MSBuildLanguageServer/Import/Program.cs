@@ -1,7 +1,7 @@
 // modified copy of
-// https://raw.githubusercontent.com/dotnet/roslyn/dd0d32d33f4f67bc3c0befd47d4eda2bc4052dfc/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Program.cs
+// https://raw.githubusercontent.com/dotnet/roslyn/7809895241dc3931ca12054a08761bf34e6f6fae/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Program.cs
 // changes annotated inline with // MODIFICATION
-//
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -11,18 +11,22 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 // BEGIN MODIFICATION 1
-//using Microsoft.CodeAnalysis.Contracts.Telemetry;
+/*
+using Microsoft.CodeAnalysis.Contracts.Telemetry;
+using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+*/
 using Microsoft.CodeAnalysis.LanguageServer;
-//using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-//using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;*/
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
-//using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-// END MODIFICATION 1
+using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -62,6 +66,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
+    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -71,8 +76,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
         else
         {
-            var timeout = TimeSpan.FromMinutes(1);
-            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            var timeout = TimeSpan.FromMinutes(2);
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
@@ -83,14 +87,14 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
+    var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
-
 	// BEGIN MODIFICATION 3
-/*
+	/*
     // Initialize the server configuration MEF exported value.
     exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
 
@@ -106,13 +110,16 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    // Include analyzers from extension assemblies.
+    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
+
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
-*/
+	*/
 	// END MODIFICATION 3
 
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
@@ -141,13 +148,15 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
     finally
     {
-/*
+		// BEGIN MODIFICATION 4
+		/*
         // After the LSP server shutdown, report session wide telemetry
         RoslynLogger.ShutdownAndReportSessionTelemetry();
 
         // Server has exited, cancel our service broker service
         await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
-*/
+		*/
+		// END MODIFICATION 4
     }
 }
 
@@ -193,9 +202,21 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension", "--extensions") // TODO: remove plural form
+    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension")
     {
         Description = "Full paths of extension assemblies to load (optional).",
+        Required = false
+    };
+
+    var devKitDependencyPathOption = new CliOption<string?>("--devKitDependencyPath")
+    {
+        Description = "Full path to the Roslyn dependency used with DevKit (optional).",
+        Required = false
+    };
+
+    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
+    {
+        Description = "Full path to the Razor source generator (optional).",
         Required = false
     };
 
@@ -208,6 +229,8 @@ static CliRootCommand CreateCommandLineParser()
         telemetryLevelOption,
         sessionIdOption,
         extensionAssemblyPathsOption,
+        devKitDependencyPathOption,
+        razorSourceGeneratorOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -217,7 +240,9 @@ static CliRootCommand CreateCommandLineParser()
         var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
-        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
+        var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
+        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -227,6 +252,8 @@ static CliRootCommand CreateCommandLineParser()
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
+            DevKitDependencyPath: devKitDependencyPath,
+            RazorSourceGenerator: razorSourceGenerator,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
@@ -256,7 +283,7 @@ static string GetUnixTypePipeName(string pipeName)
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
 }
 
-// BEGIN MODIFICATION 4
+// BEGIN MODIFICATION 5
 // this was defined in a file we have not imported
 internal record class ServerConfiguration(
     bool LaunchDebugger,
@@ -265,5 +292,7 @@ internal record class ServerConfiguration(
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
+    string? DevKitDependencyPath,
+    string? RazorSourceGenerator,
     string ExtensionLogDirectory);
-// END MODIFICATION 4
+// END MODIFICATION 5

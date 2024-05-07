@@ -1,5 +1,5 @@
 // modified version of
-// https://raw.githubusercontent.com/dotnet/roslyn/dd0d32d33f4f67bc3c0befd47d4eda2bc4052dfc/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/ExportProviderBuilder.cs
+// https://raw.githubusercontent.com/dotnet/roslyn/721e3c9adb4d312ea2af757d5fe9ebd94740f236/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/ExportProviderBuilder.cs
 // changes annotated inline with // MODIFICATION
 
 // Licensed to the .NET Foundation under one or more agreements.
@@ -8,68 +8,54 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, string? devKitDependencyPath, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-
         var baseDirectory = AppContext.BaseDirectory;
 
-        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
-
-        // Load any Roslyn assemblies from the extension directory
 		// BEGIN MODIFICATION 1
 		/*
+        // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
         assemblyPaths = assemblyPaths.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
 
-        // Temporarily explicitly load the dlls we want to add to the MEF composition.  This is due to a runtime bug
-        // in the 7.0.4 runtime where the APIs MEF uses to load assemblies break with R2R assemblies.
-        // See https://github.com/dotnet/runtime/issues/83526
-        //
-        // Once a newer version of the runtime is widely available, we can remove this.
-        foreach (var path in assemblyPaths)
+        // DevKit assemblies are not shipped in the main language server folder
+        // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
+        // So manually add them to the MEF catalog here.
+        if (devKitDependencyPath != null)
         {
-            Assembly.LoadFrom(path);
+            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
         }
 		*/
 		var assemblyPaths = Enumerable.Empty<string>();
 		// END MODIFICATION 1
+
+        // Add the extension assemblies to the MEF catalog.
+        assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
+
+        logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
+
+        // Create a MEF resolver that can resolve assemblies in the extension contexts.
+        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager, loggerFactory));
 
         var discovery = PartDiscovery.Combine(
             resolver,
             new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(resolver));
 
-        var assemblies = new List<Assembly>()
-        {
-            typeof(ExportProviderBuilder).Assembly,
-			// BEGIN MODIFICATION 2
-			typeof(MonoDevelop.Xml.Editor.XmlContentTypeNames).Assembly, // MonoDevelop.Xml.Editor.dll
-			typeof(MonoDevelop.MSBuild.Editor.MSBuildContentType).Assembly // MonoDevelop.MSBuild.Editor.dll
-			// END MODIFICATION 2
-        };
-
-        foreach (var extensionAssemblyPath in extensionAssemblyPaths)
-        {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
-            {
-                assemblies.Add(extensionAssembly);
-            }
-        }
-
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(resolver)
-            .AddParts(await discovery.CreatePartsAsync(assemblies))
             .AddParts(await discovery.CreatePartsAsync(assemblyPaths))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
@@ -103,10 +89,10 @@ internal sealed class ExportProviderBuilder
         //     but found 0.
         //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? Enumerable.Empty<string>();
-		// BEGIN MODIFICATION 3
+		// BEGIN MODIFICATION 2
         //var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
 		var expectedErroredParts = new string[] { };
-		// END MODIFICATION 3
+		// END MODIFICATION 2
         if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
         {
             try

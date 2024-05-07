@@ -49,3 +49,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 		public Host.HostServices HostServices => new ();
 	}
 }
+
+namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions
+{
+	class StarredCompletionAssemblyHelper
+	{
+		// not called unless serverConfiguration.StarredCompletionsPath is non-null
+		public static string GetStarredCompletionAssemblyPath(string starredCompletionsPath)
+			=> throw new NotSupportedException ();
+	}
+
+}
