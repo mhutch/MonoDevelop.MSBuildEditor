@@ -1,6 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETFRAMEWORK
+#nullable enable annotations
+#else
+#nullable enable
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +14,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace MonoDevelop.MSBuild.Schema;
-
 static class BuiltInSchema
 {
 	// don't inline this, MSBuildSchema.LoadResource gets the calling assembly
@@ -20,9 +25,9 @@ static class BuiltInSchema
 	static MSBuildSchema Load (BuiltInSchemaId[] schemaIds, out IList<MSBuildSchemaLoadError> loadErrors)
 		=> MSBuildSchema.LoadResourcesFromCallingAssembly (schemaIds.Select (schemaId => $"MonoDevelop.MSBuild.Schemas.{schemaId}.buildschema.json"), out loadErrors);
 
-	public static MSBuildSchema? TryLoadForFile (string filePath, string sdkId, out IList<MSBuildSchemaLoadError>? loadErrors)
+	public static MSBuildSchema? TryLoadForFile (string filePath, string? sdkId, out IList<MSBuildSchemaLoadError>? loadErrors)
 	{
-		if (filenameToIdMap.TryGetValue (new (sdkId, Path.GetFileName (filePath)), out BuiltInSchemaId[] schemaIds)) {
+		if (filenameToIdMap.TryGetValue (new (sdkId, Path.GetFileName (filePath)), out BuiltInSchemaId[]? schemaIds)) {
 			return Load (schemaIds, out loadErrors);
 		}
 		loadErrors = null;

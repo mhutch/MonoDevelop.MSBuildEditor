@@ -103,7 +103,7 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateUsingTask (element);
 				break;
 			case MSBuildSyntaxKind.Import:
-				ValidateImportOnlyHasVersionIfHasSdk (element);
+				ValidateImportOrSdkAttributes (element, isSdkElement: false);
 				break;
 			case MSBuildSyntaxKind.Item:
 				ValidateItemAttributes (elementSyntax, element);
@@ -159,6 +159,20 @@ namespace MonoDevelop.MSBuild.Language
 						metaItem, element.Name.Name
 					);
 				}
+				break;
+			case MSBuildSyntaxKind.Sdk:
+				if (element.Parent is XElement parent) {
+					foreach (var el in parent.Elements) {
+						if (el == element) {
+							break;
+						}
+						if (!el.Name.Equals (ElementName.Sdk, true)) {
+							Document.Diagnostics.Add (CoreDiagnostics.SdkElementAfterNonSdkElement, element.NameSpan);
+							break;
+						}
+					}
+				}
+				ValidateImportOrSdkAttributes (element, isSdkElement: true);
 				break;
 			}
 
@@ -345,7 +359,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void ValidateImportOnlyHasVersionIfHasSdk (XElement element)
+		void ValidateImportOrSdkAttributes (XElement element, bool isSdkElement)
 		{
 			XAttribute? versionAtt = null, minVersionAtt = null, sdkAtt = null;
 			foreach (var att in element.Attributes) {
@@ -353,18 +367,22 @@ namespace MonoDevelop.MSBuild.Language
 					versionAtt = att;
 				} else if (att.Name.Equals (AttributeName.MinimumVersion, true)) {
 					minVersionAtt = att;
-				} else if (att.Name.Equals (AttributeName.Sdk, true)) {
+				} else if (!isSdkElement && att.Name.Equals (AttributeName.Sdk, true)) {
 					sdkAtt = att;
 				}
 			}
 
-			if (sdkAtt is null) {
+			if (!isSdkElement && sdkAtt is null) {
 				if (minVersionAtt is not null) {
 					Document.Diagnostics.Add (CoreDiagnostics.ImportMinimumVersionRequiresSdk, minVersionAtt.NameSpan);
 				}
 				if (versionAtt is not null) {
 					Document.Diagnostics.Add (CoreDiagnostics.ImportVersionRequiresSdk, versionAtt.NameSpan);
 				}
+			}
+
+			if (minVersionAtt is not null && versionAtt is not null) {
+				Document.Diagnostics.Add (CoreDiagnostics.RedundantMinimumVersion, minVersionAtt.NameSpan);
 			}
 		}
 
@@ -484,12 +502,21 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
-				if (attributeSyntax.Required) {
-					Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
-				} else {
-					Document.Diagnostics.Add (CoreDiagnostics.AttributeEmpty, attribute.NameSpan, attribute.Name);
+				switch (attributeSyntax.SyntaxKind) {
+				// ignore if more specific warning implemented elsewhere
+				case MSBuildSyntaxKind.Sdk_Name:
+				case MSBuildSyntaxKind.Import_Sdk:
+					break;
+				// else report a generic warning
+				default:
+					if (attributeSyntax.Required) {
+						Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
+						break;
+					} else {
+						Document.Diagnostics.Add (CoreDiagnostics.AttributeEmpty, attribute.NameSpan, attribute.Name);
+					}
+					break;
 				}
-				return;
 			}
 		}
 

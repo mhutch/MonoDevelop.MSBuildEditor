@@ -252,10 +252,10 @@ namespace MonoDevelop.MSBuild.Schema
 
 			string baseDir = null;
 
-			if (rr.AttributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Import_Project && rr.Element != null) {
+			if (rr.AttributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Import_Project && rr.ElementSymbol != null) {
 
 				var sdkAtt = rr.Element.Attributes.Get (MSBuildAttributeName.Sdk, true)?.Value;
-				if (string.IsNullOrEmpty (sdkAtt) || !Microsoft.Build.Framework.SdkReference.TryParse (sdkAtt, out var sdkRef)) {
+				if (string.IsNullOrEmpty (sdkAtt) || !MSBuildSdkReference.TryParse (sdkAtt, out var sdkRef)) {
 					// if there's an invalid SDK attribute, don't try to provide path completion, it'll be wrong
 					return null;
 				}
@@ -264,7 +264,7 @@ namespace MonoDevelop.MSBuild.Schema
 					return new[] { new FileOrFolderInfo ("AutoImport.props", false, "Auto-imported workload properties") };
 				}
 
-				var sdkInfo = doc.Environment.ResolveSdk ((sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), doc.Filename, null, doc.FileEvaluationContext.Logger);
+				var sdkInfo = doc.Environment.ResolveSdk (sdkRef, doc.Filename, null, doc.FileEvaluationContext.Logger);
 
 				// only do path completion for single-path SDKs
 				// handling multiple value correctly would involve computing the files that exists in all paths

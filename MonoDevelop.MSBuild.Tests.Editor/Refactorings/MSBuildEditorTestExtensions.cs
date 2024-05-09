@@ -114,7 +114,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			logger ??= TestLoggerFactory.CreateTestMethodLogger ().RethrowExceptions ();
 
 			var snapshot = textView.TextBuffer.CurrentSnapshot;
-			var diagnostics = MSBuildDocumentTest.GetDiagnostics (snapshot.GetText (), out var parsedDocument, analyzers, includeCoreDiagnostics, logger, schema, null, cancellationToken);
+			var diagnostics = MSBuildDocumentTest.GetDiagnostics (snapshot.GetText (), out var parsedDocument, analyzers, includeCoreDiagnostics, logger, schema, cancellationToken: cancellationToken);
 
 			var codeFixService = new MSBuildCodeFixService (codeFixes.ToArray ());
 			var fixes = await codeFixService.GetFixes (textView.TextBuffer, parsedDocument, diagnostics, range, requestedSeverities, cancellationToken);

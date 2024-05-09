@@ -134,17 +134,6 @@ namespace MonoDevelop.MSBuild.Dom
 			return null;
 		}
 
-		public IEnumerable<MSBuildElement> GetElements (MSBuildSyntaxKind kind)
-		{
-			var el = firstChild;
-			while (el != null) {
-				if (el.SyntaxKind == kind) {
-					yield return el;
-				}
-				el = el.nextSibling;
-			}
-		}
-
 		public IEnumerable<T> GetElements<T> () where T : MSBuildElement
 		{
 			var el = firstChild;
@@ -239,7 +228,14 @@ namespace MonoDevelop.MSBuild.Dom
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Choose;
 	}
 
-	public class MSBuildImportElement : MSBuildConditionedElement
+	interface IElementHasSdkReference
+	{
+		MSBuildAttribute SdkAttribute { get; }
+		MSBuildAttribute VersionAttribute { get; }
+		MSBuildAttribute MinimumVersionAttribute { get; }
+	}
+
+	public class MSBuildImportElement : MSBuildConditionedElement, IElementHasSdkReference
 	{
 		internal MSBuildImportElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 
@@ -367,6 +363,8 @@ namespace MonoDevelop.MSBuild.Dom
 		public MSBuildAttribute TreatAsLocalPropertyAttribute => GetAttribute (MSBuildSyntaxKind.Project_TreatAsLocalProperty);
 		public MSBuildAttribute XmlnsAttribute => GetAttribute (MSBuildSyntaxKind.Project_xmlns);
 		public MSBuildAttribute SdkAttribute => GetAttribute (MSBuildSyntaxKind.Project_Sdk);
+
+		public IEnumerable<MSBuildSdkElement> SdkElements => GetElements<MSBuildSdkElement> ();
 	}
 
 	public class MSBuildProjectExtensionsElement : MSBuildElement
@@ -406,13 +404,16 @@ namespace MonoDevelop.MSBuild.Dom
 		public IEnumerable<MSBuildTaskElement> TaskElements => GetElements<MSBuildTaskElement> ();
 	}
 
-	public class MSBuildSdkElement : MSBuildElement
+	public class MSBuildSdkElement : MSBuildElement, IElementHasSdkReference
 	{
 		internal MSBuildSdkElement (MSBuildElement parent, XElement xelement, ExpressionNode value) : base (parent, xelement, value) { }
 		public override MSBuildElementSyntax Syntax => MSBuildElementSyntax.Sdk;
 
 		public MSBuildAttribute NameAttribute => GetAttribute (MSBuildSyntaxKind.Sdk_Name);
-		public MSBuildAttribute Version => GetAttribute (MSBuildSyntaxKind.Sdk_Version);
+		public MSBuildAttribute VersionAttribute => GetAttribute (MSBuildSyntaxKind.Sdk_Version);
+		public MSBuildAttribute MinimumVersionAttribute => GetAttribute (MSBuildSyntaxKind.Sdk_MinimumVersion);
+
+		MSBuildAttribute IElementHasSdkReference.SdkAttribute => NameAttribute;
 	}
 
 	public class MSBuildTaskElement : MSBuildConditionedElement

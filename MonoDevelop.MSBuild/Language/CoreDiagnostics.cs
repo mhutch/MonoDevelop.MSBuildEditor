@@ -10,7 +10,15 @@ namespace MonoDevelop.MSBuild.Language
 		public const string EmptySdkAttribute_Id = nameof(EmptySdkAttribute);
 		public static readonly MSBuildDiagnosticDescriptor EmptySdkAttribute = new (
 			EmptySdkAttribute_Id,
-			"Empty SDK attribute",
+			"Empty project `Sdk` attribute", // <Project Sdk=
+			null,
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string EmptySdkNameAttribute_Id = nameof (EmptySdkName);
+		public static readonly MSBuildDiagnosticDescriptor EmptySdkName = new (
+			EmptySdkNameAttribute_Id,
+			"Empty SDK name",
 			null,
 			MSBuildDiagnosticSeverity.Error
 		);
@@ -23,11 +31,11 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Error
 		);
 
-		public const string SdkNotFound_Id = nameof(SdkNotFound);
-		public static readonly MSBuildDiagnosticDescriptor SdkNotFound = new (
-			SdkNotFound_Id,
-			"SDK not found",
-			"The SDK `{0}` was not found",
+		public const string AttributeOnlyPermitsProperties_Id = nameof (AttributeOnlyPermitsProperties);
+		public static readonly MSBuildDiagnosticDescriptor AttributeOnlyPermitsProperties = new (
+			AttributeOnlyPermitsProperties_Id,
+			"Attribute only permits properties in expressions",
+			"The `{0}` attribute does not permit item and metadata expressions",
 			MSBuildDiagnosticSeverity.Error
 		);
 
@@ -133,6 +141,22 @@ namespace MonoDevelop.MSBuild.Language
 			"Deprecated {0}",
 			"The {0} `{1}` is deprecated: {2}",
 			MSBuildDiagnosticSeverity.Warning
+		);
+
+		public const string SdkElementAfterNonSdkElement_Id = nameof (SdkElementAfterNonSdkElement);
+		public static readonly MSBuildDiagnosticDescriptor SdkElementAfterNonSdkElement = new (
+			SdkElementAfterNonSdkElement_Id,
+			"`Sdk` element should immediately follow `Project` element",
+			"The `Sdk` element does not immediately follow the `Project` element, which is misleading with respect to evaluation order, as the SDK's `Sdk.props` will not be imported at the location of the `Sdk` element, but will be treated as if it were appended to the project's `Sdk` attribute.",
+			MSBuildDiagnosticSeverity.Warning
+		);
+
+		public const string RedundantMinimumVersion_Id = nameof (RedundantMinimumVersion);
+		public static readonly MSBuildDiagnosticDescriptor RedundantMinimumVersion = new (
+			RedundantMinimumVersion_Id,
+			"Redundant `MinimumVersion` attribute",
+			"The `MinimumVersion` attribute is redundant when a `Version` attribute is also specified on an `Import` or `Sdk` element",
+			MSBuildDiagnosticSeverity.Error
 		);
 
 		public const string TaskDefinitionNotResolvedFromAssembly_Id = nameof (TaskDefinitionNotResolvedFromAssembly);

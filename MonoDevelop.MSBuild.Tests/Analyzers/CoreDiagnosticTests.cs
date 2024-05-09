@@ -8,6 +8,7 @@ using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 
@@ -225,7 +226,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 		public void TargetFrameworkError (string tfm, string diagnosticId)
 		{
 			// the invalid value has whitespace around it and uses an entity, so we can test the position and length of the error
-			var source = @"<Project Sdk=""Microsoft.NET.Sdk"">
+			var source = @"<Project>
 <PropertyGroup>
 	<TargetFramework>  {0}  </TargetFramework>
 </PropertyGroup>
@@ -237,7 +238,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				new PropertyInfo ("TargetFramework", "", MSBuildValueKind.TargetFramework)
 			};
 
-			var diagnostics = GetDiagnostics (source, out _, schema: schema, includeCoreDiagnostics: true);
+			var diagnostics = GetDiagnostics (source, out _, schema: schema, includeCoreDiagnostics: true, ignoreDiagnostics: [ CoreDiagnostics.NoTargets ]);
 
 			if (diagnosticId is null) {
 				Assert.AreEqual (0, diagnostics.Count);
@@ -283,6 +284,376 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				includeCoreDiagnostics: true,
 				schema: schema,
 				expectedDiagnostics: expected
+			);
+		}
+
+		[Test]
+		public void ImportWithVersionButNoSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""|Foo.props|"" |Version|=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedImport,
+					spans[0],
+					"Foo.props"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.ImportVersionRequiresSdk,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void ImportWithMinVersionButNoSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""|Foo.props|"" |MinimumVersion|=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedImport,
+					spans[0],
+					"Foo.props"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.ImportMinimumVersionRequiresSdk,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void RedundantSdkMinVersion ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""Foo"" |MinimumVersion|=""2.0"" Version=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.RedundantMinimumVersion,
+					spans[0]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [CoreDiagnostics.UnresolvedSdk]
+			);
+		}
+
+		[Test]
+		public void RedundantImportMinVersion ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""Foo.props"" Sdk=""Bar"" |MinimumVersion|=""2.0"" Version=""1.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.RedundantMinimumVersion,
+					spans[0]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [CoreDiagnostics.UnresolvedSdk]
+			);
+		}
+
+		[Test]
+		public void SdkElementAfterNonSdkElement ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""Foo1"" Version=""1.0"" />
+  <Sdk Name=""Foo2"" MinimumVersion=""2.0"" />
+  <PropertyGroup>
+  </PropertyGroup>
+  <|Sdk| Name=""Foo3"" Version=""1.0"" />
+  <|Sdk| Name=""Foo4"" MinimumVersion=""2.0"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.SdkElementAfterNonSdkElement,
+					spans[0]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.SdkElementAfterNonSdkElement,
+					spans[1]
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [CoreDiagnostics.UnresolvedSdk]
+			);
+		}
+
+		[Test]
+		public void UnresolvedProjectAttributeSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project Sdk=""|Foo|;|Bar/2.0|"">
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[0],
+					"Foo"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[1],
+					"Bar/2.0"
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void UnresolvedImportSdk ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""Hello.props"" Sdk=""|Foo|"" />
+  <Import Project=""Hello.props"" Sdk=""|Bar|"" Version=""10.1"" />
+  <Import Project=""Hello.props"" Sdk=""|Baz|"" MinimumVersion=""1.5"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[0],
+					"Foo"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[1],
+					"Bar/10.1"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[2],
+					"Baz/min=1.5"
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void UnresolvedSdkElement ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""|Foo|"" />
+  <Sdk Name=""|Bar|"" Version=""10.1"" />
+  <Sdk Name=""|Baz|"" MinimumVersion=""1.5"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[0],
+					"Foo"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[1],
+					"Bar/10.1"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[2],
+					"Baz/min=1.5"
+				)
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false
+			);
+		}
+
+		[Test]
+		public void EmptySdkName_SdkElement ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk |Name|="""" />
+  <Sdk Name=""|$(UnknownProperty)|"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.EmptySdkName,
+					spans[0]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.EmptySdkName,
+					spans[1]
+				),
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [ CoreDiagnostics.UnwrittenProperty ]
+			);
+		}
+
+		[Test]
+		public void EmptySdkName_ImportElement ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Import Project=""hello.props"" |Sdk|="""" />
+  <Import Project=""hello.props"" Sdk=""|$(UnknownProperty)|"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.EmptySdkName,
+					spans[0]
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.EmptySdkName,
+					spans[1]
+				),
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [CoreDiagnostics.UnwrittenProperty]
+			);
+		}
+
+		[Test]
+		public void SdkNameExpressionHasItem ()
+		{
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""|@(UnknownItem)|"" />
+  <Import Project=""Hello.props"" Sdk=""|@(UnknownItem)|"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.AttributeOnlyPermitsProperties,
+					spans[0],
+					"Name"
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.AttributeOnlyPermitsProperties,
+					spans[1],
+					"Sdk"
+				),
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [ CoreDiagnostics.UnwrittenItem ]
+			);
+		}
+
+		[Test]
+		public void SdkNameExpressionWithProperty ()
+		{
+			// simple test using an empty property as we don't have a way to pass in properties yet
+			var source = TextWithMarkers.Parse (
+@"<Project>
+  <Sdk Name=""|Foo$(UnknownProperty)Bar|"" Version=""1.$(UnknownVersionProp)"" />
+  <Import Project=""Hello.props"" Sdk=""|A$(UnknownProperty)Bee|"" />
+</Project>", '|');
+
+			var spans = source.GetMarkedSpans ('|');
+			var expected = new[] {
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[0],
+					"FooBar/1."
+				),
+				new MSBuildDiagnostic (
+					CoreDiagnostics.UnresolvedSdk,
+					spans[1],
+					"ABee"
+				),
+			};
+
+			VerifyDiagnostics (
+				source.Text,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: expected,
+				includeNoTargetsWarning: false,
+				ignoreDiagnostics: [CoreDiagnostics.UnwrittenProperty]
 			);
 		}
 	}
