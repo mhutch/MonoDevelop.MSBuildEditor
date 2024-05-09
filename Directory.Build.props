@@ -6,9 +6,6 @@
     <LangVersion>latest</LangVersion>
     <DebugType>embedded</DebugType>
     <NBGV_ThisAssemblyNamespace>$(MSBuildProjectName)</NBGV_ThisAssemblyNamespace>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" PrivateAssets="all" />
-  </ItemGroup>
 </Project>
