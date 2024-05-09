@@ -13,7 +13,7 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	class MSBuildSchemaProvider
 	{
-		public MSBuildSchema? GetSchema (string path, string sdk, ILogger logger)
+		public MSBuildSchema? GetSchema (string path, string? sdk, ILogger logger)
 		{
 			var schema = GetSchema (path, sdk, out var loadErrors);
 
@@ -31,7 +31,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schema;
 		}
 
-		public virtual MSBuildSchema? GetSchema (string path, string sdk, out IList<MSBuildSchemaLoadError>? loadErrors)
+		public virtual MSBuildSchema? GetSchema (string path, string? sdk, out IList<MSBuildSchemaLoadError>? loadErrors)
 		{
 			string filename = path + ".buildschema.json";
 			if (File.Exists (filename)) {
