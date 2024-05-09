@@ -27,6 +27,6 @@ namespace MonoDevelop.MSBuild
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
-		public SdkInfo ResolveSdk ((string name, string version, string minimumVersion) sdk, string projectFile, string solutionPath, ILogger logger) => null;
+		public SdkInfo ResolveSdk (MSBuildSdkReference sdk, string projectFile, string solutionPath, ILogger logger) => null;
 	}
 }

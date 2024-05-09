@@ -11,14 +11,14 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Logging;
 using MonoDevelop.Xml.Parser;
-
-using SdkReference = Microsoft.Build.Framework.SdkReference;
 
 namespace MonoDevelop.MSBuild.Language
 {
@@ -114,10 +114,17 @@ namespace MonoDevelop.MSBuild.Language
 			string thisFilePath,
 			ExpressionNode importExpr,
 			string importExprString,
-			string sdk,
+			string sdkString,
 			SdkInfo resolvedSdk,
 			bool isImplicitImport = false)
 		{
+
+			//yield a placeholder for tooltips, imports pad etc to query
+			if (sdkString is not null && resolvedSdk is null) {
+				yield return new Import (importExprString, sdkString, null, resolvedSdk, DateTime.MinValue, false);
+				yield break;
+			}
+
 			//FIXME: add support for MSBuildUserExtensionsPath, the context does not currently support it
 			if (importExprString.IndexOf ("$(MSBuildUserExtensionsPath)", StringComparison.OrdinalIgnoreCase) > -1) {
 				yield break;
@@ -183,7 +190,7 @@ namespace MonoDevelop.MSBuild.Language
 					foreach (var f in files) {
 						Import wildImport;
 						try {
-							wildImport = GetCachedOrParse (importExprString, f, sdk, resolvedSdk, File.GetLastWriteTimeUtc (f));
+							wildImport = GetCachedOrParse (importExprString, f, sdkString, resolvedSdk, File.GetLastWriteTimeUtc (f));
 						} catch (Exception ex) when (IsNotCancellation (ex)) {
 							LogErrorReadingImportWildcardCandidate (Logger, ex, f);
 							continue;
@@ -200,7 +207,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (!fi.Exists) {
 						continue;
 					}
-					import = GetCachedOrParse (importExprString, filename, sdk, resolvedSdk, fi.LastWriteTimeUtc, isImplicitImport);
+					import = GetCachedOrParse (importExprString, filename, sdkString, resolvedSdk, fi.LastWriteTimeUtc, isImplicitImport);
 				} catch (Exception ex) when (IsNotCancellation (ex)) {
 					LogErrorReadingImportCandidate (Logger, ex, filename);
 					continue;
@@ -213,7 +220,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			//yield a placeholder for tooltips, imports pad etc to query
 			if (!foundAny) {
-				yield return new Import (importExprString, sdk, null, resolvedSdk, DateTime.MinValue, false);
+				yield return new Import (importExprString, sdkString, null, resolvedSdk, DateTime.MinValue, false);
 			}
 
 			// we skip logging for wildcards as these are generally extensibility points that are often unused
@@ -235,19 +242,29 @@ namespace MonoDevelop.MSBuild.Language
 
 		static readonly HashSet<string> failedImports = new HashSet<string> ();
 
-		public SdkInfo ResolveSdk (MSBuildDocument doc, string sdk, TextSpan loc)
+		/// <summary>
+		/// Tries to parse an SDK reference from the Project Sdk attribute. Logs failure to the context and adds
+		/// an error to the document if it cannot be parsed.
+		/// </summary>
+		public bool TryParseSdkReferenceFromProjectSdk (MSBuildDocument doc, string sdkReference, TextSpan loc, out MSBuildSdkReference parsedReference)
 		{
-			if (!SdkReference.TryParse (sdk, out SdkReference sdkRef)) {
-				LogCouldNotParseSdk (Logger, sdk);
-				if (doc.IsToplevel) {
-					doc.Diagnostics.Add (CoreDiagnostics.InvalidSdkAttribute, loc, sdk);
-				}
-				return null;
+			if (MSBuildSdkReference.TryParse (sdkReference, out parsedReference)) {
+				return true;
 			}
 
+			LogCouldNotParseSdk (Logger, sdkReference);
+			if (doc.IsToplevel) {
+				doc.Diagnostics.Add (CoreDiagnostics.InvalidSdkAttribute, loc, parsedReference);
+			}
+
+			return false;
+		}
+
+		public SdkInfo ResolveSdk (MSBuildDocument doc, MSBuildSdkReference sdkReference, TextSpan? unresolvedSdkDiagnosticSpan)
+		{
 			try {
-				var sdkInfo = Environment.ResolveSdk ((sdkRef.Name, sdkRef.Version, sdkRef.MinimumVersion), ProjectPath, null, Logger);
-				if (sdk != null) {
+				var sdkInfo = Environment.ResolveSdk (sdkReference, ProjectPath, null, Logger);
+				if (sdkInfo is not null) {
 					return sdkInfo;
 				}
 			} catch (Exception ex) when (IsNotCancellation (ex)) {
@@ -255,9 +272,10 @@ namespace MonoDevelop.MSBuild.Language
 				return null;
 			}
 
-			LogDidNotFindSdk (Logger, sdk);
-			if (doc.IsToplevel) {
-				doc.Diagnostics.Add (CoreDiagnostics.SdkNotFound, loc, sdk);
+			string sdkReferenceString = sdkReference.ToString ();
+			LogDidNotFindSdk (Logger, sdkReferenceString);
+			if (doc.IsToplevel && unresolvedSdkDiagnosticSpan is not null) {
+				doc.Diagnostics.Add (CoreDiagnostics.UnresolvedSdk, unresolvedSdkDiagnosticSpan.Value, sdkReferenceString);
 			}
 			return null;
 		}
@@ -271,23 +289,23 @@ namespace MonoDevelop.MSBuild.Language
 
 
 		[LoggerMessage (EventId = 2, Level = LogLevel.Debug, Message = "Error evaluating import wildcard candidate '{candidateFilename}'")]
-		static partial void LogErrorEvaluatingImportWildcardCandidate (ILogger logger, Exception ex, string candidateFilename);
+		static partial void LogErrorEvaluatingImportWildcardCandidate (ILogger logger, Exception ex, UserIdentifiableFileName candidateFilename);
 
 
 		[LoggerMessage (EventId = 3, Level = LogLevel.Debug, Message = "Error reading import wildcard candidate '{candidateFilename}'")]
-		static partial void LogErrorReadingImportWildcardCandidate (ILogger logger, Exception ex, string candidateFilename);
+		static partial void LogErrorReadingImportWildcardCandidate (ILogger logger, Exception ex, UserIdentifiableFileName candidateFilename);
 
 
 		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error reading import candidate '{candidateFilename}'")]
-		static partial void LogErrorReadingImportCandidate (ILogger logger, Exception ex, string candidateFilename);
+		static partial void LogErrorReadingImportCandidate (ILogger logger, Exception ex, UserIdentifiableFileName candidateFilename);
 
 
 		[LoggerMessage (EventId = 5, Level = LogLevel.Debug, Message = "Could not resolve import '{importExpr}'")]
-		static partial void LogCouldNotResolveImport (ILogger logger, string importExpr);
+		static partial void LogCouldNotResolveImport (ILogger logger, UserIdentifiable<string> importExpr);
 
 
 		[LoggerMessage (EventId = 6, Level = LogLevel.Error, Message = "Could not parse SDK reference '{sdk}'")]
-		static partial void LogCouldNotParseSdk (ILogger logger, string sdk);
+		static partial void LogCouldNotParseSdk (ILogger logger, UserIdentifiable<string> sdk);
 
 
 		[LoggerMessage (EventId = 7, Level = LogLevel.Error, Message = "Error in SDK resolver")]
@@ -295,6 +313,6 @@ namespace MonoDevelop.MSBuild.Language
 
 
 		[LoggerMessage (EventId = 8, Level = LogLevel.Error, Message = "Did not find SDK '{sdk}'")]
-		static partial void LogDidNotFindSdk (ILogger logger, string sdk);
+		static partial void LogDidNotFindSdk (ILogger logger, UserIdentifiable<string> sdk);
 	}
 }

@@ -502,12 +502,21 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (string.IsNullOrWhiteSpace (attribute.Value)) {
-				if (attributeSyntax.Required) {
-					Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
-				} else {
-					Document.Diagnostics.Add (CoreDiagnostics.AttributeEmpty, attribute.NameSpan, attribute.Name);
+				switch (attributeSyntax.SyntaxKind) {
+				// ignore if more specific warning implemented elsewhere
+				case MSBuildSyntaxKind.Sdk_Name:
+				case MSBuildSyntaxKind.Import_Sdk:
+					break;
+				// else report a generic warning
+				default:
+					if (attributeSyntax.Required) {
+						Document.Diagnostics.Add (CoreDiagnostics.RequiredAttributeEmpty, attribute.NameSpan, attribute.Name);
+						break;
+					} else {
+						Document.Diagnostics.Add (CoreDiagnostics.AttributeEmpty, attribute.NameSpan, attribute.Name);
+					}
+					break;
 				}
-				return;
 			}
 		}
 

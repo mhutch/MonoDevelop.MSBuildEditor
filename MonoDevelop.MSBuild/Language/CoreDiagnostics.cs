@@ -10,7 +10,15 @@ namespace MonoDevelop.MSBuild.Language
 		public const string EmptySdkAttribute_Id = nameof(EmptySdkAttribute);
 		public static readonly MSBuildDiagnosticDescriptor EmptySdkAttribute = new (
 			EmptySdkAttribute_Id,
-			"Empty SDK attribute",
+			"Empty project `Sdk` attribute", // <Project Sdk=
+			null,
+			MSBuildDiagnosticSeverity.Error
+		);
+
+		public const string EmptySdkNameAttribute_Id = nameof (EmptySdkName);
+		public static readonly MSBuildDiagnosticDescriptor EmptySdkName = new (
+			EmptySdkNameAttribute_Id,
+			"Empty SDK name",
 			null,
 			MSBuildDiagnosticSeverity.Error
 		);
@@ -23,11 +31,11 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildDiagnosticSeverity.Error
 		);
 
-		public const string SdkNotFound_Id = nameof(SdkNotFound);
-		public static readonly MSBuildDiagnosticDescriptor SdkNotFound = new (
-			SdkNotFound_Id,
-			"SDK not found",
-			"The SDK `{0}` was not found",
+		public const string AttributeOnlyPermitsProperties_Id = nameof (AttributeOnlyPermitsProperties);
+		public static readonly MSBuildDiagnosticDescriptor AttributeOnlyPermitsProperties = new (
+			AttributeOnlyPermitsProperties_Id,
+			"Attribute only permits properties in expressions",
+			"The `{0}` attribute does not permit item and metadata expressions",
 			MSBuildDiagnosticSeverity.Error
 		);
 

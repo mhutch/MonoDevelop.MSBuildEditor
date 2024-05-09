@@ -32,6 +32,10 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		static object? EvaluateNode (this IMSBuildEvaluationContext context, ExpressionNode expression)
 		{
+			if (expression is null) {
+				throw new ArgumentNullException (nameof (expression));
+			}
+
 			switch (expression.NodeKind) {
 			case ExpressionNodeKind.Text:
 				return ((ExpressionText)expression).Value;
