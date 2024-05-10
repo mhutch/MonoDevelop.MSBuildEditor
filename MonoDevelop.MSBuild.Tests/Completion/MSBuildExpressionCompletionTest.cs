@@ -22,8 +22,7 @@ namespace MonoDevelop.MSBuild.Tests.Completion;
 
 class MSBuildExpressionCompletionTest
 {
-	[OneTimeSetUp]
-	public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+	static MSBuildExpressionCompletionTest () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 
 	protected IEnumerable<ISymbol> GetExpressionCompletion (
 		string sourceWithMarkers,
