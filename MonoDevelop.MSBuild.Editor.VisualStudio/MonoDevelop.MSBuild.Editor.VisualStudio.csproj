@@ -13,14 +13,6 @@
     <!-- copying the lock file assemblies is pointless and makes it unclear what's being included in the vsix -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <UseWPF>true</UseWPF>
-    <NoWarn>
-      $(NoWarn);
-      <!--
-      Community.VisualStudio.Toolkit.17 warns if NewtonSoft.Json is > 13.0.1,
-      but Microsoft.VisualStudio.SDK 17.6 references NewtonSoft.Json 13.0.3
-      -->
-      CVSTBLD002
-    </NoWarn>
   </PropertyGroup>
   <!-- deploy and run the extension in VS -->
   <PropertyGroup>
@@ -67,7 +59,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
     <PackageReference Include="PropertyChanged.SourceGenerator" />
-    <PackageReference Include="Newtonsoft.Json" IncludeAssets="compile" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">

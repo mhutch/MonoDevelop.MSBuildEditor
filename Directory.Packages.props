@@ -1,32 +1,39 @@
 <Project>
+  <PropertyGroup>
+    <!--
+    We cannot go higher than 17.5.
+    IConnectedSpan gained a new Disconnect() method in 17.6, which MiniEditor cannot implement as it is internal.
+    -->
+    <VSEditorNugetVersion>17.5.279</VSEditorNugetVersion>
+  </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Community.VisualStudio.Toolkit.17" Version="17.0.507" />
     <PackageVersion Include="Markdig.Signed" Version="0.37.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.22.0" />
-    <PackageVersion Include="Microsoft.Build" Version="17.6.3" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
-    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.6.268" />
-    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.6.36389" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.6.36387" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="17.6.268" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.6.268" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.6.36389" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VSEditorNugetVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.5.33428.366" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VSEditorNugetVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VSEditorNugetVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
     <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.6.268" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.6.268" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.6.40" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.6.17" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VSEditorNugetVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VSEditorNugetVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.5.22" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.0.51" />
     <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NuGet.VisualStudio" Version="17.6.2" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="17.5.1" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="3.10.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
