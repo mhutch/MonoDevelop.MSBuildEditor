@@ -116,12 +116,14 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			foreach (var sdkElement in sdkElements) {
-				var resolvedSdk = importResolver.ResolveSdk (this, sdkElement);
-				if (resolvedSdk is not null) {
-					// technically we should re-resolve Sdk elements before doing the Sdk.targets import
-					// as it may use properties that change between the Sdk.props and Sdk.targets
-					// but that seems broken and wasteful so ignore it for now
-					projectAttributeSdks.Add (resolvedSdk);
+				if (sdkElement.NameAttribute is not null) {
+					var resolvedSdk = importResolver.ResolveSdk (this, sdkElement);
+					if (resolvedSdk is not null) {
+						// technically we should re-resolve Sdk elements before doing the Sdk.targets import
+						// as it may use properties that change between the Sdk.props and Sdk.targets
+						// but that seems broken and wasteful so ignore it for now
+						projectAttributeSdks.Add (resolvedSdk);
+					}
 				}
 			}
 
