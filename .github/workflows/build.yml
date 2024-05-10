@@ -18,22 +18,22 @@ jobs:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0 # GitVersioning needs deep clone
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           8.0.x
 
     - name: Find MSBuild
       if: startsWith(matrix.os, 'windows')
-      uses: microsoft/setup-msbuild@v1.1.0
+      uses: microsoft/setup-msbuild@v2
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       with:
         path: ${{ env.NUGET_PACKAGES }}
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
@@ -59,13 +59,13 @@ jobs:
     - name: Test
       run: dotnet test --no-build -c ${{ matrix.config }}
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: startsWith(matrix.os, 'windows')
       with:
         name: MSBuild Editor Extension Package (VSWin)
         path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/**/*.vsix
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: startsWith(matrix.os, 'macos')
       with:
         name: MSBuild Editor Extension Package (VSMac)
