@@ -201,7 +201,8 @@ namespace MonoDevelop.MSBuild.Language
 		[LoggerMessage (EventId = 5, Level = LogLevel.Debug, Message = "Could not resolve import '{importExpr}'")]
 		static partial void LogCouldNotResolveImport (ILogger logger, UserIdentifiable<string> importExpr);
 
-		[LoggerMessage (EventId = 6, Level = LogLevel.Error, Message = "Could not parse SDK reference '{sdk}'")]
+
+		[LoggerMessage (EventId = 6, Level = LogLevel.Debug, Message = "Could not parse SDK reference '{sdk}'")]
 		static partial void LogCouldNotParseSdk (ILogger logger, UserIdentifiable<string> sdk);
 
 
@@ -209,7 +210,7 @@ namespace MonoDevelop.MSBuild.Language
 		static partial void LogErrorInSdkResolver (ILogger logger, Exception ex);
 
 
-		[LoggerMessage (EventId = 8, Level = LogLevel.Error, Message = "Did not find SDK '{sdk}'")]
+		[LoggerMessage (EventId = 8, Level = LogLevel.Debug, Message = "Did not find SDK '{sdk}'")]
 		static partial void LogDidNotFindSdk (ILogger logger, UserIdentifiable<string> sdk);
 	}
 }
