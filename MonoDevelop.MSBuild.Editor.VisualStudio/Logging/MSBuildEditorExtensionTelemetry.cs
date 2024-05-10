@@ -7,15 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Threading.Tasks;
 
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.Extensions.Logging;
-
-using MonoDevelop.MSBuild.Editor.VisualStudio.Options;
 
 namespace MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 

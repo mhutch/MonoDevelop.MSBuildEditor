@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.Logging;
 class MSBuildExtensionLogger : ILogger
 {
 	MSBuildEditorExtensionTelemetry telemetry;
-	MSBuildOutputPaneWriter outputPaneWriter;
+	readonly MSBuildOutputPaneWriter outputPaneWriter;
 
 	const LogLevel activityLogLogLevel = LogLevel.Warning;
 	const LogLevel telemetryLogLevel = LogLevel.Warning;
@@ -105,7 +105,7 @@ class MSBuildExtensionLogger : ILogger
 
 			var telemetryProperties = properties;
 			if (sanitizationFailed) {
-				telemetryProperties = telemetryProperties.Append (new KeyValuePair<string, string> ("sanitizationFailed", "true"));
+				telemetryProperties?.Append (new KeyValuePair<string, string> ("sanitizationFailed", "true"));
 			}
 			if (exception is not null) {
 				telemetry.TrackException (exception, logLevel, sanitizedMessage, categoryName, eventId, telemetryProperties);
