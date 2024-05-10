@@ -123,12 +123,15 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (TryGetValues ("TargetFrameworkIdentifier", out List<EvaluatedValue> idList) && TryGetValues ("TargetFrameworkVersion", out List<EvaluatedValue> versionList)) {
 				var id = idList[0].EscapedValue;
-				var version = versionList.OfType<ExpressionText> ().Select (v => {
-					string s = v.Value;
+				var version = versionList.Select (v => {
+					string s = v.Unescape();
+					if (s is null) {
+						return null;
+					}
 					if (s[0] == 'v') {
 						s = s.Substring (1);
 					}
-					if (IsConstExpr (v) && Version.TryParse (s, out Version parsed)) {
+					if (Version.TryParse (s, out Version parsed)) {
 						return parsed;
 					}
 					return null;
@@ -146,8 +149,6 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			return list;
-
-			bool IsConstExpr (ExpressionNode n) => n is ExpressionText;
 		}
 	}
 }

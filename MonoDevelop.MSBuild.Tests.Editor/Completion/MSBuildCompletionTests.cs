@@ -426,7 +426,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 				CompletionTriggerReason.Backspace,
 				filename: "EagerElementTrigger.csproj");
 
-			Assert.Zero (result.Items.Length);
+			Assert.Zero (result.ItemList.Count);
 		}
 
 		[Test]

@@ -54,7 +54,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						if (this.completionItemManager == null) {
 							this.completionItemManager = completionItemManager;
 							nonNuGetItems = ImmutableArray.CreateRange (
-								data.InitialSortedList.Where (i => !i.Properties.TryGetProperty (typeof (Tuple<string, FeedKind>), out Tuple<string, FeedKind> info))
+								data.InitialSortedItemList.Where (i => !i.Properties.TryGetProperty (typeof (Tuple<string, FeedKind>), out Tuple<string, FeedKind> info))
 							);
 						}
 						searchJob?.Cancel ();
@@ -62,7 +62,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					}
 					// apply the updated list if there is one
 					isUpdatedListEnqueued = false;
-					return updatedList ?? data.InitialSortedList;
+					// FIXME: can we avoid the AsImmutableArray() here?
+					return updatedList ?? data.InitialSortedItemList.ToImmutableArray ();
 				}
 			}
 

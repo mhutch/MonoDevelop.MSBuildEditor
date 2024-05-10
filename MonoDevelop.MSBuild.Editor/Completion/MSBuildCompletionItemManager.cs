@@ -65,7 +65,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					//don't pass the CancellationToken to the search job, else filtering operations will cancel searches
 					var newList = searchInfo.Update (this, data);
 
-					if (newList.Length != data.InitialSortedList.Length) {
+					if (newList.Length != data.InitialSortedItemList.Count) {
 						data = new AsyncCompletionSessionDataSnapshot (
 							newList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters, data.IsSoftSelected, data.DisplaySuggestionItem
 						);
