@@ -3,12 +3,9 @@
 
 using MonoDevelop.MSBuild.Tests.Helpers;
 
-using NUnit.Framework;
-
 namespace MonoDevelop.MSBuild.Tests;
 
 partial class MSBuildDocumentTest
 {
-	[OneTimeSetUp]
-	public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+	static MSBuildDocumentTest () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 }

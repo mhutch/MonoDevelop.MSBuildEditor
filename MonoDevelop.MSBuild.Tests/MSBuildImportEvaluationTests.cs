@@ -26,8 +26,7 @@ namespace MonoDevelop.MSBuild.Tests
 	[TestFixture]
 	public class MSBuildImportEvaluationTests
 	{
-		[OneTimeSetUp]
-		public void LoadMSBuild () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
+		static MSBuildImportEvaluationTests () => MSBuildTestHelpers.RegisterMSBuildAssemblies ();
 
 		[Test]
 		[TestCase("Hello\\Bye.targets", "Hello\\Bye.targets")]

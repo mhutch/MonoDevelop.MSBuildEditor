@@ -111,6 +111,9 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio.FindReferences
 			ThreadHelper.ThrowIfNotOnUIThread ();
 
 			var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService (typeof (SVsFindAllReferences));
+			if (vsFindAllReferencesService is null) {
+				throw new InvalidOperationException ("Could not get IFindAllReferencesService");
+			}
 
 			// Get the appropriate window for FAR results to go into.
 			var window = vsFindAllReferencesService.StartSearch (title);

@@ -1,14 +1,12 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31815.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuildEditor", "MonoDevelop.MSBuildEditor\MonoDevelop.MSBuildEditor.csproj", "{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5A6AA30D-5371-4431-9299-D8F793536DEC}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		README.md = README.md
 		TODO.md = TODO.md
 	EndProjectSection
@@ -23,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Editor", "M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.MSBuild.Editor", "MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj", "{17E0FE72-B6D9-4187-BD80-D8A27BC74533}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoDevelop.MSBuild.Editor.VisualStudio", "MonoDevelop.MSBuild.Editor.VisualStudio\MonoDevelop.MSBuild.Editor.VisualStudio.csproj", "{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.MSBuild.Editor.VisualStudio", "MonoDevelop.MSBuild.Editor.VisualStudio\MonoDevelop.MSBuild.Editor.VisualStudio.csproj", "{6D7BB05D-5C0A-4A4E-A177-43F5AF67DF5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.MiniEditor", "MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj", "{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912}"
 EndProject
@@ -34,8 +32,18 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoDevelop.Xml.Editor.Tests", "MonoDevelop.Xml\Editor.Tests\MonoDevelop.Xml.Editor.Tests.csproj", "{BF75E67F-34E4-412C-B886-E4251366EE57}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MonoDevelop.Xml", "MonoDevelop.Xml", "{442FCBDB-C87E-4BA4-BA76-463F7877570F}"
+	ProjectSection(SolutionItems) = preProject
+		MonoDevelop.Xml\Directory.Build.props = MonoDevelop.Xml\Directory.Build.props
+		MonoDevelop.Xml\Directory.Packages.props = MonoDevelop.Xml\Directory.Packages.props
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XsdSchemaImporter", "XsdSchemaImporter\XsdSchemaImporter.csproj", "{36BACB3E-74B0-45D8-9C48-178BB9549BF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XsdSchemaImporter", "XsdSchemaImporter\XsdSchemaImporter.csproj", "{36BACB3E-74B0-45D8-9C48-178BB9549BF1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MiniEditor", "MiniEditor", "{7D15BAC9-838F-4908-B9DB-CDFDF5AF66D2}"
+	ProjectSection(SolutionItems) = preProject
+		MonoDevelop.Xml\external\MiniEditor\Directory.Build.props = MonoDevelop.Xml\external\MiniEditor\Directory.Build.props
+		MonoDevelop.Xml\external\MiniEditor\Directory.Packages.props = MonoDevelop.Xml\external\MiniEditor\Directory.Packages.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,12 +53,6 @@ Global
 		ReleaseMac|Any CPU = ReleaseMac|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.DebugMac|Any CPU.Build.0 = Debug|Any CPU
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.ReleaseMac|Any CPU.ActiveCfg = Release|Any CPU
-		{CBE54CAB-5DFE-477C-BE7F-65CB150BF5E1}.ReleaseMac|Any CPU.Build.0 = Release|Any CPU
 		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87DE05FC-4B18-4C21-8AA5-237CB5B97780}.DebugMac|Any CPU.ActiveCfg = Debug|Any CPU
@@ -142,9 +144,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{7D15BAC9-838F-4908-B9DB-CDFDF5AF66D2} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
 		{87DE05FC-4B18-4C21-8AA5-237CB5B97780} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
 		{563FFDF7-0739-42DF-B987-B804A26D1E0B} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
-		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
+		{BE0CC91A-31C5-4C0D-B2E4-E8D781DCD912} = {7D15BAC9-838F-4908-B9DB-CDFDF5AF66D2}
 		{0B54E9C0-AADE-4515-B731-D244586D6BD1} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
 		{BF75E67F-34E4-412C-B886-E4251366EE57} = {442FCBDB-C87E-4BA4-BA76-463F7877570F}
 	EndGlobalSection

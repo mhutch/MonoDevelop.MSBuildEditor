@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net6.0</TargetFrameworks>
+    <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>1591;1573</NoWarn>
+    <NoWarn>$(NoWarn);1591;1573</NoWarn>
     <Nullable>annotations</Nullable>
   </PropertyGroup>
 
@@ -12,8 +12,8 @@
     <!-- for imported NuGet code in external\NuGet.Frameworks -->
     <DefineConstants>$(DefineConstants);NUGET_FRAMEWORKS_INTERNAL</DefineConstants>
     <!-- for imported MSBuild code in Evaluation\Imported -->
-    <DefineConstants>$(DefineConstants);FEATURE_CULTUREINFO_GETCULTURES;FEATURE_ASSEMBLY_LOCATION;FEATURE_ASSEMBLY_GETENTRYASSEMBLY</DefineConstants>
-    <DefineConstants Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))=='.NETCoreApp'">$(DefineConstants);RUNTIME_TYPE_NETCORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);FEATURE_CULTUREINFO_GETCULTURES;FEATURE_ASSEMBLY_LOCATION;FEATURE_ASSEMBLY_GETENTRYASSEMBLY;FEATURE_DEBUG_LAUNCH</DefineConstants>
+    <DefineConstants Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))=='.NETCoreApp'">$(DefineConstants);RUNTIME_TYPE_NETCORE;FEATURE_ASSEMBLYLOADCONTEXT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,10 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
-    <PackageReference Include="System.CodeDom" Version="6.0.0" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier($(TargetFramework)))' != '.NETFramework'" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Reflection.Metadata" />
+    <PackageReference Include="System.CodeDom" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier($(TargetFramework)))' != '.NETFramework'" />
+    <PackageReference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,10 +40,10 @@
     These are all expected to be provided at runtime via the host loading then from an MSBuild installation.
     They are not exposed in the API so referencers need not reference them in any way.
     -->
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" IncludeAssets="compile" PrivateAssets="all" />
     <!-- this is transitive from Microsoft.Build but it's an impl detail -->
-    <PackageReference Include="Microsoft.NET.StringTools" Version="1.0.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,14 +68,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource
-      Update="Resources\*.resx"
-      Generator="MSBuild:Compile"
-      StronglyTypedLanguage="CSharp"
-      StronglyTypedClassName="%(Filename)"
-      StronglyTypedNamespace="MonoDevelop.MSBuild"
-      StronglyTypedFileName="$(IntermediateOutputPath)\MonoDevelop.MSBuild.%(Filename).g.cs"
-      LogicalName="MonoDevelop.MSBuild.%(Filename).resources" />
+    <EmbeddedResource Update="Resources\*.resx" Generator="MSBuild:Compile" StronglyTypedLanguage="CSharp" StronglyTypedClassName="%(Filename)" StronglyTypedNamespace="MonoDevelop.MSBuild" StronglyTypedFileName="$(IntermediateOutputPath)\MonoDevelop.MSBuild.%(Filename).g.cs" LogicalName="MonoDevelop.MSBuild.%(Filename).resources" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties schemas_4aspnetcore_1buildschema_1json__JsonSchema="buildschema.json" schemas_4buildschema_1json__JsonSchema="https://json-schema.org/draft-04/schema#" schemas_4codeanalysis_1buildschema_1json__JsonSchema="buildschema.json" schemas_4commontargets_1buildschema_1json__JsonSchema="buildschema.json" schemas_4cpp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4csharp_1buildschema_1json__JsonSchema="buildschema.json" schemas_4illink_1buildschema_1json__JsonSchema="buildschema.json" schemas_4javascript_1buildschema_1json__JsonSchema="buildschema.json" schemas_4netsdk_1buildschema_1json__JsonSchema="buildschema.json" schemas_4nugetpack_1buildschema_1json__JsonSchema="buildschema.json" schemas_4roslyn_1buildschema_1json__JsonSchema="buildschema.json" schemas_4visualbasic_1buildschema_1json__JsonSchema="buildschema.json" /></VisualStudio></ProjectExtensions>

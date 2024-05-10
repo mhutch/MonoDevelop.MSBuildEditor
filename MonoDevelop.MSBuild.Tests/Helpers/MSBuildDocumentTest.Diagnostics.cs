@@ -37,6 +37,10 @@ partial class MSBuildDocumentTest
 		// internal errors should cause test failure
 		logger ??= TestLoggerFactory.CreateTestMethodLogger ().RethrowExceptions ();
 
+		// suppress LogDidNotFindSdk messages as they are super noisy
+		// and not relevant when testing diagnostics, as we will get diagnostics for them anyways
+		logger = logger.WithFilter (["LogDidNotFindSdk"]);
+
 		parsedDocument = GetParsedDocument (source, logger, schema, previousDocument, cancellationToken);
 
 		var analyzerDriver = new MSBuildAnalyzerDriver (logger);

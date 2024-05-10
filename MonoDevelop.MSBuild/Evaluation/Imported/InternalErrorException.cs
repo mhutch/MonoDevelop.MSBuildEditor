@@ -8,7 +8,7 @@
 //
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Shared/InternalErrorException.cs
 //
-//  CHANGES: None
+//  CHANGES: added #if NETFRAMEWORK around serialization code
 
 
 
@@ -69,7 +69,9 @@ namespace Microsoft.Build.Shared
             ConsiderDebuggerLaunch(message, innerException);
         }
 
+#if NETFRAMEWORK
         #region Serialization (update when adding new class members)
+
 
         /// <summary>
         /// Private constructor used for (de)serialization. The constructor is private as this class is sealed
@@ -83,6 +85,7 @@ namespace Microsoft.Build.Shared
 
         // Base implementation of GetObjectData() is sufficient; we have no fields
         #endregion
+#endif
 
         #region ConsiderDebuggerLaunch
         /// <summary>

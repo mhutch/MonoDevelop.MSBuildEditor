@@ -8,8 +8,8 @@
 //
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Shared/AssemblyUtilities.cs
 //
-//  CHANGES: None
-
+//  CHANGES:
+//    * comment out unused APIs as they have warnings
 
 
 using System;
@@ -30,6 +30,7 @@ namespace Microsoft.Build.Shared
     /// </summary>
     internal static class AssemblyUtilities
     {
+/*
 #if !FEATURE_CULTUREINFO_GETCULTURES
         // True when the cached method info objects have been set.
         private static bool s_initialized;
@@ -40,6 +41,7 @@ namespace Microsoft.Build.Shared
 
         private static Lazy<CultureInfo[]> s_validCultures = new Lazy<CultureInfo[]>(() => GetValidCultures(), true);
 #endif
+*/
 
 #if !CLR2COMPATIBILITY
         private static Lazy<Assembly> s_entryAssembly = new Lazy<Assembly>(() => GetEntryAssembly());
@@ -76,6 +78,7 @@ namespace Microsoft.Build.Shared
         }
 #endif
 
+/*
         public static AssemblyName CloneIfPossible(this AssemblyName assemblyNameToClone)
         {
 #if CLR2COMPATIBILITY
@@ -151,7 +154,7 @@ namespace Microsoft.Build.Shared
             s_initialized = true;
         }
 #endif // !FEATURE_CULTUREINFO_GETCULTURES
-
+*/
         private static Assembly GetEntryAssembly()
         {
 #if FEATURE_ASSEMBLY_GETENTRYASSEMBLY
@@ -165,6 +168,7 @@ namespace Microsoft.Build.Shared
 #endif
         }
 
+/*
 #if !FEATURE_CULTUREINFO_GETCULTURES
         private static CultureInfo[] GetValidCultures()
         {
@@ -183,5 +187,6 @@ namespace Microsoft.Build.Shared
             return cultures;
         }
 #endif
+*/
     }
 }

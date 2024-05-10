@@ -31,6 +31,14 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
 		internal MSBuildSdkResolver (IMSBuildEnvironment environment, ILogger environmentLogger)
 		{
+			Microsoft.Build.Shared.BuildEnvironmentHelper.Instance ??= new Microsoft.Build.Shared.BuildEnvironmentHelper {
+				CurrentMSBuildToolsDirectory = environment.ToolsPath,
+				MSBuildSDKsPath = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath) ? sdksPath : null!,
+				MSBuildExtensionsPath = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildExtensionsPath, out var extPath) ? extPath : null!,
+				MSBuildToolsDirectory32 = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildFrameworkToolsPath32, out var toolsPath32) ? toolsPath32 : null!,
+				MSBuildToolsDirectory64 = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildFrameworkToolsPath64, out var toolsPath64) ? toolsPath64 : null!,
+			};
+
 			this.msbuildEnvironment = environment;
 			this.environmentLogger = environmentLogger;
 			this.resolvers = new (() => LoadResolvers (environmentLogger));

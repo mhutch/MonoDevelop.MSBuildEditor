@@ -40,23 +40,27 @@
     <None Include="..\MonoDevelop.MSBuildEditor\Syntax\OSSREADME.json" Link="Grammars\OSSREADME.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.451" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0-1.final" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.6.2164" />
-    <PackageReference Include="NuGet.VisualStudio" Version="17.5.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.21.0" />
-    <PackageReference Include="Markdig.Signed" Version="0.31.0" PrivateAssets="runtime" />
+    <PackageReference Include="Community.VisualStudio.Toolkit.17" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" />
+    <PackageReference Include="NuGet.VisualStudio" />
+    <PackageReference Include="Microsoft.ApplicationInsights" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" />
+    <PackageReference Include="Markdig.Signed" PrivateAssets="runtime" />
     <!-- resolve conflicts -->
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0-1.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.6.0-1.final" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0-1.final" />
-    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="17.5.279" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="17.5.279" />
-    <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.0.8" />
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="PropertyChanged.SourceGenerator" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj">
