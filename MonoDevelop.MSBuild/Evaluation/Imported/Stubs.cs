@@ -146,6 +146,7 @@ namespace Microsoft.Build.Shared
 		public bool AlwaysUseContentTimestamp => false;
 		public bool DisableLongPaths => false;
 		public bool UseSymlinkTimeInsteadOfTargetTime => false;
+		public bool UseSingleLoadContext => false;
 	}
 
 	class FrameworkLocationHelper
