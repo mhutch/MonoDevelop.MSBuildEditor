@@ -982,7 +982,7 @@
   "metadata": [
     {
       // Metadata that controls how assets are consumed/propagated from a reference
-      "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference" ],
+      "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference", "GlobalPackageReference", "PackageVersion" ],
       "IncludeAssets": {
         "description": "Assets that will be consumed by the project",
         "defaultValue": "all",
