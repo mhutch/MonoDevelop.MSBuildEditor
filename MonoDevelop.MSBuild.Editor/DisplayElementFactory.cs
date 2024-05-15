@@ -296,9 +296,10 @@ namespace MonoDevelop.MSBuild.Editor
 
 		static List<(string prefix, string subst)> GetPrefixes (IMSBuildEnvironment environment)
 		{
-			var list = new List<(string prefix, string subst)> {
-				(environment.ToolsPath, $"$({ReservedPropertyNames.binPath})")
-			};
+			var list = new List<(string prefix, string subst)> ();
+			if (environment.ToolsPath is string toolsPath) {
+				list.Add ((toolsPath, $"$({ReservedPropertyNames.binPath})"));
+			}
 
 			if (environment.ToolsetProperties != null) {
 				var wellKnownPathProperties = new[] { WellKnownProperties.MSBuildSDKsPath, WellKnownProperties.MSBuildExtensionsPath, WellKnownProperties.MSBuildExtensionsPath32, WellKnownProperties.MSBuildExtensionsPath64 };

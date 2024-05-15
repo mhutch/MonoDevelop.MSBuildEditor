@@ -2,7 +2,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#endif
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using MonoDevelop.MSBuild.Analysis;
@@ -27,20 +32,24 @@ namespace MonoDevelop.MSBuild.Language
 		/// </summary>
 		public int ImportsHash { get; private set; }
 
-		public AnnotationTable<XObject> Annotations { get; } = new AnnotationTable<XObject> ();
-		public List<MSBuildDiagnostic> Diagnostics { get; }
-		public bool IsToplevel => Diagnostics is not null;
+		public AnnotationTable<XObject>? Annotations { get; }
+		public List<MSBuildDiagnostic>? Diagnostics { get; }
+
+		[MemberNotNullWhen(true, nameof(Diagnostics), nameof(Annotations))]
+		public bool IsTopLevel => Diagnostics is not null;
+
 		public MSBuildFileKind FileKind { get; }
 
-		public MSBuildProjectElement ProjectElement { get; private set; }
+		public MSBuildProjectElement? ProjectElement { get; private set; }
 
-		public MSBuildDocument (string filename, bool isToplevel)
+		public MSBuildDocument (string? filename, bool isTopLevel)
 		{
 			Filename = filename;
 			FileKind = MSBuildFileKindExtensions.GetFileKind (Filename);
 
-			if (isToplevel) {
+			if (isTopLevel) {
 				Diagnostics = new ();
+				Annotations = new ();
 			}
 		}
 
@@ -50,24 +59,24 @@ namespace MonoDevelop.MSBuild.Language
 		public string? Filename { get; }
 
 		public MSBuildSchema? Schema { get; internal set; }
-		public MSBuildInferredSchema InferredSchema { get; private set; }
+		public MSBuildInferredSchema? InferredSchema { get; private set; }
 
 		public void Build (XDocument doc, MSBuildParserContext context)
 		{
 			var project = doc.Nodes.OfType<XElement> ().FirstOrDefault (x => x.Name.Equals (MSBuildElementName.Project, true));
-			if (project == null) {
+			if (project is null) {
 				//TODO: error
 				return;
 			}
 
 			var projectElement = new MSBuildProjectElement (project);
-			if (IsToplevel) {
+			if (IsTopLevel) {
 				ProjectElement = projectElement;
 			}
 
 			ResolveImports (projectElement, context);
 
-			InferredSchema = MSBuildInferredSchema.Build (projectElement, Filename, IsToplevel, context);
+			InferredSchema = MSBuildInferredSchema.Build (projectElement, Filename, IsTopLevel, context);
 		}
 
 		static void GetPropertiesToTrack (PropertyValueCollector propertyVals, MSBuildProjectElement project)
@@ -134,7 +143,7 @@ namespace MonoDevelop.MSBuild.Language
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
 			{
 				foreach (var prop in pg.Elements) {
-					context.PropertyCollector.Collect (importResolver.FileEvaluationContext, prop.ElementName, prop.Value);
+					context.PropertyCollector.Collect (importResolver.FileEvaluationContext, prop.Name, prop.Value);
 				}
 			}
 
@@ -170,15 +179,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var importAtt = element.ProjectAttribute;
 
-			ExpressionNode importPath = null;
-			string importTxt = null;
-
-			if (importAtt?.Value != null) {
-				importPath = importAtt.Value;
-				importTxt = importAtt.XAttribute.Value;
-			}
-
-			SdkInfo sdk = null;
+			SdkInfo? sdk = null;
 			if (element.SdkAttribute is not null) {
 				sdk = importResolver.ResolveSdk (this, element);
 				if (sdk is null) {
@@ -192,40 +193,40 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (importPath != null && importAtt.XAttribute.HasValue) {
+			if (importAtt is not null && importAtt.Value is ExpressionNode importPath && importAtt.XAttribute.HasValue) {
 				var loc = importAtt.XAttribute.ValueSpan.Value;
 
-				foreach (var import in importResolver.Resolve (importPath, importTxt, sdk?.ToString(), sdk)) {
+				foreach (var import in importResolver.Resolve (importPath, importAtt.XAttribute.Value, sdk?.ToString(), sdk)) {
 					AddImport (import);
 
-					if (IsToplevel) {
+					if (IsTopLevel) {
 						if (import.IsResolved) {
 							Annotations.Add (importAtt.XAttribute, new NavigationAnnotation (import.Filename, loc));
 						} else {
-							ReportUnresolvedImport (import, loc, element.ConditionAttribute is not null);
+							ReportUnresolvedImport (Diagnostics, import, loc, element.ConditionAttribute is not null);
 						}
 					}
 				}
 			}
 		}
 
-		void ReportUnresolvedImport (Import import, TextSpan location, bool isConditioned)
+		static void ReportUnresolvedImport (List<MSBuildDiagnostic> diagnostics, Import import, TextSpan location, bool isConditioned)
 		{
 			if (import.Sdk is not null) {
-				Diagnostics.Add (
+				diagnostics.Add (
 					isConditioned ? CoreDiagnostics.UnresolvedSdkImportConditioned : CoreDiagnostics.UnresolvedSdkImport,
 					location,
 					import.OriginalImport,
 					import.Sdk);
 			} else {
-				Diagnostics.Add (
+				diagnostics.Add (
 					isConditioned ? CoreDiagnostics.UnresolvedImportConditioned : CoreDiagnostics.UnresolvedImport,
 					location,
 					import.OriginalImport);
 			}
 		}
 
-		static IEnumerable<(string id, TextSpan span)> SplitSdkValue (int offset, string value)
+		static IEnumerable<(string? id, TextSpan span)> SplitSdkValue (int offset, string value)
 		{
 			int start = 0, end;
 			while ((end = value.IndexOf (';', start)) > -1) {
@@ -237,7 +238,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			TextSpan CreateSpan (int s, int e) => TextSpan.FromBounds (offset + s, offset + e);
 
-			(string id, TextSpan loc) MakeResult ()
+			(string? id, TextSpan loc) MakeResult ()
 			{
 				int trimStart = start, trimEnd = end;
 				while (trimStart < trimEnd) {
@@ -264,19 +265,19 @@ namespace MonoDevelop.MSBuild.Language
 				yield break;
 			}
 
-			string sdks = sdksAtt.Value;
+			string? sdks = sdksAtt.Value;
 			if (string.IsNullOrEmpty (sdks)) {
-				if (IsToplevel) {
+				if (IsTopLevel) {
 					Diagnostics.Add (CoreDiagnostics.EmptySdkName, sdksAtt.ValueSpan ?? sdksAtt.NameSpan);
 				}
 				yield break;
 			}
 
-			int offset = IsToplevel && sdksAtt.HasValue ? sdksAtt.ValueOffset.Value : sdksAtt.Span.Start;
+			int offset = IsTopLevel && sdksAtt.HasValue ? sdksAtt.ValueOffset.Value : sdksAtt.Span.Start;
 
 			foreach (var sdk in SplitSdkValue (offset, sdksAtt.Value)) {
 				if (string.IsNullOrEmpty (sdk.id)) {
-					if (IsToplevel) {
+					if (IsTopLevel) {
 						Diagnostics.Add (CoreDiagnostics.EmptySdkName, sdk.span);
 					}
 				} else {
@@ -287,7 +288,7 @@ namespace MonoDevelop.MSBuild.Language
 					if (sdkInfo is null) {
 						continue;
 					}
-					if (IsToplevel) {
+					if (IsTopLevel) {
 						foreach (var sdkPath in sdkInfo.Paths) {
 							Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span) { IsSdk = true });
 						}
@@ -361,7 +362,7 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			var files = new HashSet<string> ();
 			foreach (var doc in GetDescendentDocuments ()) {
-				if (doc.Filename != null && doc.InferredSchema.ContainsInfo (info)) {
+				if (doc.Filename != null && doc.InferredSchema is { } schema && schema.ContainsInfo (info)) {
 					files.Add (doc.Filename);
 				}
 			}

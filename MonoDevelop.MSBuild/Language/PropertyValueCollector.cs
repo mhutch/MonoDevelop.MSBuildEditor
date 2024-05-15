@@ -1,19 +1,26 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
+
 using NuGet.Frameworks;
 
 namespace MonoDevelop.MSBuild.Language
 {
 	class PropertyValueCollector : IEnumerable<KeyValuePair<string, List<EvaluatedValue>>>
 	{
-		readonly Dictionary<string, List<EvaluatedValue>> props = new (StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, List<EvaluatedValue>?> props = new (StringComparer.OrdinalIgnoreCase);
 
 		public PropertyValueCollector (bool collectTargetFrameworks)
 		{
@@ -45,11 +52,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public IEnumerable<List<EvaluatedValue>> Values => props.Values;
-
-
 		// TODO: make this smarter. should avoid collecting same value twice, and outright replace values when the new value is not conditioned in any way.
-		public void Collect (IMSBuildEvaluationContext fileEvaluationContext, string name, ExpressionNode value)
+		public void Collect (IMSBuildEvaluationContext fileEvaluationContext, string name, ExpressionNode? value)
 		{
 			if (value == null) {
 				return;
@@ -57,12 +61,12 @@ namespace MonoDevelop.MSBuild.Language
 
 			const bool collectAll = false;
 
-			if (props.TryGetValue (name, out List<EvaluatedValue> values) || collectAll) {
+			if (props.TryGetValue (name, out List<EvaluatedValue>? values) || collectAll) {
 
 				var combinedContext = new MSBuildCollectedValuesEvaluationContext (fileEvaluationContext, this);
 
 				if (values == null) {
-					props [name] = values = new List<EvaluatedValue> ();
+					props [name] = values = [];
 				}
 
 				foreach (var val in combinedContext.EvaluateWithPermutation (value).ToList ()) {
@@ -87,7 +91,7 @@ namespace MonoDevelop.MSBuild.Language
 
 		IEnumerator IEnumerable.GetEnumerator () => props.GetEnumerator ();
 
-		internal bool TryGetValues (string name, out List<EvaluatedValue> values)
+		internal bool TryGetValues (string name, [NotNullWhen (true)] out List<EvaluatedValue>? values)
 		{
 			return props.TryGetValue (name, out values) && values != null && values.Count > 0;
 		}
@@ -104,10 +108,12 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (TryGetValues ("TargetFrameworks", out List<EvaluatedValue> multiFxList)) {
+			if (TryGetValues ("TargetFrameworks", out List<EvaluatedValue>? multiFxList)) {
 				foreach (var multiFxExpr in multiFxList) {
-					foreach (var fxExpr in multiFxExpr.EscapedValue.Split (';')) {
-						CaptureFramework (fxExpr);
+					if (multiFxExpr.EscapedValue is string fxStr) {
+						foreach (var fxExpr in fxStr.Split (';')) {
+							CaptureFramework (fxExpr);
+						}
 					}
 				}
 				if (list.Count > 0) {
@@ -115,30 +121,32 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			if (TryGetValues ("TargetFramework", out List<EvaluatedValue> fxList)) {
+			if (TryGetValues ("TargetFramework", out List<EvaluatedValue>? fxList)) {
 				foreach (var fxExpr in fxList) {
-					CaptureFramework (fxExpr.EscapedValue);
+					if (fxExpr.EscapedValue is string fxStr) {
+						CaptureFramework (fxStr);
+					}
 				}
 			}
 
-			if (TryGetValues ("TargetFrameworkIdentifier", out List<EvaluatedValue> idList) && TryGetValues ("TargetFrameworkVersion", out List<EvaluatedValue> versionList)) {
+			if (TryGetValues ("TargetFrameworkIdentifier", out List<EvaluatedValue>? idList) && TryGetValues ("TargetFrameworkVersion", out List<EvaluatedValue>? versionList)) {
 				var id = idList[0].EscapedValue;
 				var version = versionList.Select (v => {
-					string s = v.Unescape();
+					string? s = v.Unescape();
 					if (s is null) {
 						return null;
 					}
 					if (s[0] == 'v') {
 						s = s.Substring (1);
 					}
-					if (Version.TryParse (s, out Version parsed)) {
+					if (Version.TryParse (s, out Version? parsed)) {
 						return parsed;
 					}
 					return null;
 				}).FirstOrDefault (v => v != null);
 
 				if (version != null && !string.IsNullOrEmpty (id)) {
-					if (TryGetValues ("TargetFrameworkProfile", out List<EvaluatedValue> profileList)) {
+					if (TryGetValues ("TargetFrameworkProfile", out List<EvaluatedValue>? profileList)) {
 						var profile = profileList[0].EscapedValue;
 						list.Add (new NuGetFramework (id, version, profile));
 						return list;

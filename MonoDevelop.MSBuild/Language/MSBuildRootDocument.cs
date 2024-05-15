@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +15,7 @@ using System.Threading;
 
 using Microsoft.Extensions.Logging;
 
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Dom;
 using MonoDevelop.MSBuild.Evaluation;
 using MonoDevelop.MSBuild.Language.Expressions;
@@ -27,22 +32,29 @@ namespace MonoDevelop.MSBuild.Language
 	partial class MSBuildRootDocument : MSBuildDocument, IEnumerable<IMSBuildSchema>
 	{
 		MSBuildToolsVersion? toolsVersion;
-		ICollection<MSBuildSchema> fallbackSchemas;
+		ICollection<MSBuildSchema>? fallbackSchemas;
 
-		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; }
+		public IReadOnlyList<NuGetFramework> Frameworks { get; private set; } = [];
 		public ITextSource Text { get; private set; }
 		public XDocument XDocument { get; internal set; }
 		public IMSBuildEnvironment Environment { get; private set; }
 
-		public IMSBuildEvaluationContext FileEvaluationContext { get; private set; }
+		public IMSBuildEvaluationContext? FileEvaluationContext { get; private set; }
 
-		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null) { XDocument = new XDocument (), Environment = new NullMSBuildEnvironment () };
+		public new List<MSBuildDiagnostic> Diagnostics => base.Diagnostics!;
 
-		public MSBuildRootDocument (string? filename) : base (filename, true)
+		public new AnnotationTable<XObject> Annotations => base.Annotations!;
+
+		public static MSBuildRootDocument Empty { get; } = new MSBuildRootDocument (null, new XDocument (), new EmptyTextSource (), new NullMSBuildEnvironment ());
+
+		public MSBuildRootDocument (string? filename, XDocument document, ITextSource text, IMSBuildEnvironment environment) : base (filename, true)
 		{
+			this.XDocument = document;
+			this.Text = text;
+			this.Environment = environment;
 		}
 
-		public string GetTargetFrameworkNuGetSearchParameter ()
+		public string? GetTargetFrameworkNuGetSearchParameter ()
 		{
 			if (Frameworks.Count == 1) {
 				return Frameworks[0].DotNetFrameworkName;
@@ -67,11 +79,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			var propVals = new PropertyValueCollector (true);
 
-			var doc = new MSBuildRootDocument (filePath) {
-				XDocument = xdocument,
-				Text = textSource,
-				Environment = environment
-			};
+			var doc = new MSBuildRootDocument (filePath, xdocument, textSource, environment);
 
 			var importedFiles = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 
@@ -102,10 +110,10 @@ namespace MonoDevelop.MSBuild.Language
 			{
 				var dir = Path.GetDirectoryName (doc.Filename);
 				path = path.Replace ('\\', Path.DirectorySeparatorChar);
-				return Path.GetFullPath (Path.Combine (dir, path));
+				return Path.GetFullPath (dir is null? path : Path.Combine (dir, path));
 			}
 
-			Import TryAddImport (string label, string possibleFile, bool isImplicitImport)
+			Import? TryAddImport (string label, string possibleFile, bool isImplicitImport)
 			{
 				try {
 					var fi = new FileInfo (possibleFile);
@@ -120,7 +128,7 @@ namespace MonoDevelop.MSBuild.Language
 				return null;
 			}
 
-			Import TryImportSibling (MSBuildFileKind ifThisKind, string thenTryThisExtension)
+			Import? TryImportSibling (MSBuildFileKind ifThisKind, string thenTryThisExtension)
 			{
 				if (doc.FileKind != ifThisKind || filePath is null) {
 					return null;
@@ -158,7 +166,7 @@ namespace MonoDevelop.MSBuild.Language
 				// will likely share a schema file.
 				var schema = doc.Schema ?? propsImport?.Document?.Schema;
 				if (schema != null) {
-					TryImportIntellisenseImports (doc.Schema);
+					TryImportIntellisenseImports (schema);
 				}
 
 				doc.Build (xdocument, parseContext);
@@ -205,13 +213,17 @@ namespace MonoDevelop.MSBuild.Language
 				doc.Frameworks = propVals.GetFrameworks ();
 			} catch (Exception ex) {
 				LogUnhandledErrorDeterminingTargetFramework (logger, ex);
-				doc.Frameworks = new List<NuGetFramework> ();
 			}
 
 			try {
-				//this has to run in a second pass so that it runs after all the schemas are loaded
-				var validator = new MSBuildDocumentValidator (doc, textSource, logger);
-				validator.Run (doc.XDocument.RootElement, token: token);
+				if (doc.ProjectElement is null || doc.XDocument.RootElement is null) {
+					doc.Diagnostics.Add (CoreDiagnostics.MissingProjectElement, new TextSpan (0, 0));
+				}
+				else {
+					//this has to run in a second pass so that it runs after all the schemas are loaded
+					var validator = new MSBuildDocumentValidator (doc, textSource, logger);
+					validator.Run (doc.XDocument.RootElement, token: token);
+				}
 			} catch (Exception ex) when (parseContext.IsNotCancellation (ex)) {
 				LogUnhandledErrorValidatingDocument (logger, ex);
 			}
@@ -278,9 +290,8 @@ namespace MonoDevelop.MSBuild.Language
 					}
 
 					var tvAtt = XDocument.RootElement.Attributes.Get (MSBuildAttributeName.ToolsVersion, true);
-					if (tvAtt != null) {
-						var val = tvAtt.Value;
-						if (MSBuildToolsVersionExtensions.TryParse (val, out MSBuildToolsVersion tv)) {
+					if (tvAtt is not null && tvAtt.HasValue) {
+						if (MSBuildToolsVersionExtensions.TryParse (tvAtt.Value, out MSBuildToolsVersion tv)) {
 							toolsVersion = tv;
 							return tv;
 						}
@@ -343,5 +354,13 @@ namespace MonoDevelop.MSBuild.Language
 
 		[LoggerMessage (EventId = 6, Level = LogLevel.Warning, Message = "Error validating document")]
 		static partial void LogUnhandledErrorValidatingDocument (ILogger logger, Exception ex);
+
+		class EmptyTextSource : ITextSource
+		{
+			public char this[int offset] => throw new IndexOutOfRangeException ();
+			public int Length => 0;
+			public TextReader CreateReader () => new StringReader ("");
+			public string GetText (int begin, int length) => throw new IndexOutOfRangeException ();
+		}
 	}
 }

@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -60,9 +62,9 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		/// <summary>
 		/// Returns the first path, or null if none are defined.
 		/// </summary>
-		public string Path => Paths is not null && Paths.Count > 0 ? Paths[0] : null;
+		public string? Path => Paths is not null && Paths.Count > 0 ? Paths[0] : null;
 
-		public IDictionary<string, SdkResultItem> ItemsToAdd { get; }
-		public IDictionary<string, string> PropertiesToAdd { get; }
+		public IDictionary<string, SdkResultItem>? ItemsToAdd { get; }
+		public IDictionary<string, string>? PropertiesToAdd { get; }
 	}
 }

@@ -2,9 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#if NETFRAMEWORK
-#nullable enable annotations
-#else
+#if NETCOREAPP
 #nullable enable
 #endif
 
@@ -85,13 +83,13 @@ namespace MonoDevelop.MSBuild.Evaluation
 			return sb.ToString ();
 		}
 
-		public static string EvaluatePath (
+		public static string? EvaluatePath (
 			this IMSBuildEvaluationContext context,
 			ExpressionNode expression,
 			string baseDirectory)
-			=> MSBuildEscaping.FromMSBuildPath (context.Evaluate(expression).EscapedValue, baseDirectory);
+			=> context.Evaluate (expression).EscapedValue is string value? MSBuildEscaping.FromMSBuildPath (value, baseDirectory) : null;
 
-		public static string EvaluatePath (
+		public static string? EvaluatePath (
 			this IMSBuildEvaluationContext context,
 			string expression,
 			string baseDirectory)
@@ -223,8 +221,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 				functionName = inv.IsProperty ? $"get_{inv.Function.Name}" : inv.Function.Name;
 			}
 
-			// FIXME: cache this?
-			Microsoft.Build.Shared.BuildEnvironmentHelper.Instance = GetBuildEnvironmentFromContext (context);
+			Microsoft.Build.Shared.BuildEnvironmentHelper.EnsureInitialized (context);
 			var filesystem = Microsoft.Build.Shared.FileSystem.FileSystems.Default;
 
 			var args = EvaluateArguments (context, inv);
@@ -271,24 +268,6 @@ namespace MonoDevelop.MSBuild.Evaluation
 				results[i] = EvaluateNode (context, arguments[i]);
 			}
 			return results;
-		}
-
-		// FIXME: populate this better?
-		static Microsoft.Build.Shared.BuildEnvironmentHelper GetBuildEnvironmentFromContext (IMSBuildEvaluationContext context)
-		{
-			context.TryGetProperty (WellKnownProperties.MSBuildToolsPath32, out var toolsPath32);
-			context.TryGetProperty (WellKnownProperties.MSBuildToolsPath64, out var toolsPath64);
-			context.TryGetProperty (ReservedPropertyNames.toolsPath, out var toolsPath);
-			context.TryGetProperty (WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
-
-			return new Microsoft.Build.Shared.BuildEnvironmentHelper {
-				CurrentMSBuildToolsDirectory = toolsPath?.EscapedValue ?? "",
-				MSBuildExtensionsPath = "",
-				MSBuildSDKsPath = sdksPath?.EscapedValue ?? "",
-				MSBuildToolsDirectory32 = toolsPath32?.EscapedValue ?? toolsPath?.EscapedValue ?? "",
-				MSBuildToolsDirectory64 = toolsPath64?.EscapedValue ?? toolsPath?.EscapedValue ?? "",
-				VisualStudioInstallRootDirectory = ""
-			};
 		}
 
 		static Type? TryGetStaticFunctionReceiver (ExpressionClassReference classRef)

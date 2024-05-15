@@ -2,9 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#if NETFRAMEWORK
-#nullable enable annotations
-#else
+#if NETCOREAPP
 #nullable enable
 #endif
 
@@ -45,7 +43,7 @@ class MSBuildImportResolver
 
 	IMSBuildEvaluationContext EvaluationContext => evalContext ??= new MSBuildCollectedValuesEvaluationContext (FileEvaluationContext, parseContext.PropertyCollector);
 
-	public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string sdkString, SdkInfo resolvedSdk, bool isImplicitImport = false)
+	public IEnumerable<Import> Resolve (ExpressionNode importExpr, string importExprString, string? sdkString, SdkInfo? resolvedSdk, bool isImplicitImport = false)
 	{
 		//yield a placeholder for tooltips, imports pad etc to query
 		if (sdkString is not null && resolvedSdk is null) {
@@ -173,7 +171,7 @@ class MSBuildImportResolver
 		}
 
 		if (string.IsNullOrEmpty (sdkName)) {
-			if (doc.IsToplevel) {
+			if (doc.IsTopLevel) {
 				doc.Diagnostics.Add (CoreDiagnostics.EmptySdkName, nameAttribute.Value?.Span ?? nameAttribute.XAttribute.NameSpan);
 			}
 			return null;
@@ -210,7 +208,7 @@ class MSBuildImportResolver
 			return null;
 		}
 
-		if (doc.IsToplevel) {
+		if (doc.IsTopLevel) {
 			foreach (var p in sdkInfo.Paths) {
 				doc.Annotations.Add (element.SdkAttribute.XAttribute, new NavigationAnnotation (p,nameAttribute.Value.Span));
 			}

@@ -3,8 +3,6 @@
 
 #if NETCOREAPP
 #nullable enable
-#else
-#nullable enable annotations
 #endif
 
 using System;

@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 
 using Microsoft.Build.FileSystem;
+using Microsoft.Build.Internal;
+using MonoDevelop.MSBuild.Evaluation;
+
+using MonoDevelop.MSBuild;
 
 namespace Microsoft.NET.StringTools
 {
@@ -108,19 +112,63 @@ namespace Microsoft.Build.Shared.FileSystem
 
 namespace Microsoft.Build.Shared
 {
-	class BuildEnvironmentHelper
-	{
-		public static BuildEnvironmentHelper Instance { get; set; }
-		public string MSBuildExtensionsPath { get; set; }
-		public string VisualStudioInstallRootDirectory { get; set; }
-		public string MSBuildToolsDirectory64 { get; set; }
-		public string MSBuildSDKsPath { get; set; }
-		public string MSBuildToolsDirectory32 { get; set; }
-		public string CurrentMSBuildToolsDirectory { get; set; }
-		public BuildEnvironmentMode Mode => BuildEnvironmentMode.None;
-		public bool RunningInVisualStudio => false;
-		public bool RunningTests => false;
-	}
+    class BuildEnvironmentHelper
+    {
+        static BuildEnvironmentHelper _instance;
+
+        public static BuildEnvironmentHelper Instance => _instance ?? throw new InvalidOperationException ("BuildEnvironmentHelper has not been initialized");
+
+        public string MSBuildExtensionsPath { get; }
+        public string VisualStudioInstallRootDirectory { get; }
+        public string MSBuildToolsDirectory64 { get; }
+        public string MSBuildSDKsPath { get; }
+        public string MSBuildToolsDirectory32 { get; }
+        public string CurrentMSBuildToolsDirectory { get; }
+        public BuildEnvironmentMode Mode => BuildEnvironmentMode.None;
+        public bool RunningInVisualStudio => false;
+        public bool RunningTests => false;
+
+        public static void EnsureInitialized(IMSBuildEvaluationContext context)
+        {
+            if(_instance is null)
+            {
+                return;
+            }
+
+            context.TryGetProperty(ReservedPropertyNames.toolsPath, out var toolsPath);
+            context.TryGetProperty(WellKnownProperties.MSBuildToolsPath32, out var toolsPath32);
+            context.TryGetProperty(WellKnownProperties.MSBuildToolsPath64, out var toolsPath64);
+            context.TryGetProperty(WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
+
+            _instance = new BuildEnvironmentHelper(toolsPath?.EscapedValue, toolsPath32?.EscapedValue, toolsPath64?.EscapedValue, sdksPath?.EscapedValue);
+        }
+
+        public static void EnsureInitialized(IMSBuildEnvironment environment)
+        {
+            if(_instance is not null)
+            {
+                return;
+            }
+
+            var toolsPath = environment.ToolsPath;
+            environment.ToolsetProperties.TryGetValue(WellKnownProperties.MSBuildToolsPath32, out var toolsPath32);
+            environment.ToolsetProperties.TryGetValue(WellKnownProperties.MSBuildToolsPath64, out var toolsPath64);
+            environment.ToolsetProperties.TryGetValue(WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
+
+            _instance = new BuildEnvironmentHelper(toolsPath, toolsPath32, toolsPath64, sdksPath);
+        }
+
+        // FIXME: improve BuildEnvironmentHelper initialization
+        private BuildEnvironmentHelper(string? toolsPath, string? toolsPath32, string? toolsPath64, string? sdksPath)
+        {
+            CurrentMSBuildToolsDirectory = toolsPath ?? "";
+            MSBuildExtensionsPath = "";
+            MSBuildSDKsPath = sdksPath ?? "";
+            MSBuildToolsDirectory32 = toolsPath32 ?? toolsPath ?? "";
+            MSBuildToolsDirectory64 = toolsPath64 ?? toolsPath ?? "";
+            VisualStudioInstallRootDirectory = "";
+        }
+    }
 
 	class MSBuildConstants
 	{

@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 using MonoDevelop.MSBuild.SdkResolution;
 
@@ -20,6 +21,8 @@ namespace MonoDevelop.MSBuild.Language
 		public SdkInfo? ResolvedSdk { get; }
 		public DateTime TimeStampUtc { get; }
 		public MSBuildDocument? Document { get; set; }
+
+		[MemberNotNullWhen(true, nameof(Document), nameof(Filename))]
 		public bool IsResolved => Document is not null;
 
 		/// <summary>

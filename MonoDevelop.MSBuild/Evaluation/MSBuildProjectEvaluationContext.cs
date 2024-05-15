@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -27,7 +31,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 		public ILogger Logger { get; }
 
-		public MSBuildProjectEvaluationContext (IMSBuildEnvironment env, string projectFilePath, ILogger logger)
+		public MSBuildProjectEvaluationContext (IMSBuildEnvironment env, string? projectFilePath, ILogger logger)
 		{
 			this.env = env;
 
@@ -82,7 +86,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			// the path arguments should already be absolute but may not be for tests etc
 			projectPath = Path.GetFullPath (projectPath);
 
-			string projectDirectory = Path.GetDirectoryName (projectPath);
+			string? projectDirectory = Path.GetDirectoryName (projectPath);
 
 			values[ReservedPropertyNames.projectFile] = EvaluatedValue.FromUnescaped (Path.GetFileName (projectPath));
 			values[ReservedPropertyNames.projectName] = EvaluatedValue.FromUnescaped (Path.GetFileNameWithoutExtension (projectPath));
@@ -90,7 +94,7 @@ namespace MonoDevelop.MSBuild.Evaluation
 			values[ReservedPropertyNames.projectExtension] = EvaluatedValue.FromUnescaped (Path.GetExtension (projectPath));
 			values[ReservedPropertyNames.projectDirectory] = EvaluatedValue.FromNativePath (Path.GetDirectoryName (projectPath));
 
-			int rootLength = Path.GetPathRoot (projectDirectory).Length;
+			int rootLength = Path.GetPathRoot (projectDirectory)?.Length ?? 0;
 			values[ReservedPropertyNames.projectDirectoryNoRoot] = EvaluatedValue.FromNativePath (FileUtilities.EnsureNoLeadingOrTrailingSlash (projectDirectory, rootLength));
 
 			//HACK: we don't get a usable value for this without real evaluation so hardcode 'obj'

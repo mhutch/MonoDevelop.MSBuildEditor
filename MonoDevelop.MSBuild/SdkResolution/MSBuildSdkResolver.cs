@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
@@ -31,13 +30,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
 		internal MSBuildSdkResolver (IMSBuildEnvironment environment, ILogger environmentLogger)
 		{
-			Microsoft.Build.Shared.BuildEnvironmentHelper.Instance ??= new Microsoft.Build.Shared.BuildEnvironmentHelper {
-				CurrentMSBuildToolsDirectory = environment.ToolsPath,
-				MSBuildSDKsPath = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath) ? sdksPath : null!,
-				MSBuildExtensionsPath = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildExtensionsPath, out var extPath) ? extPath : null!,
-				MSBuildToolsDirectory32 = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildFrameworkToolsPath32, out var toolsPath32) ? toolsPath32 : null!,
-				MSBuildToolsDirectory64 = environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildFrameworkToolsPath64, out var toolsPath64) ? toolsPath64 : null!,
-			};
+			Microsoft.Build.Shared.BuildEnvironmentHelper.EnsureInitialized (environment);
 
 			this.msbuildEnvironment = environment;
 			this.environmentLogger = environmentLogger;
@@ -46,7 +39,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 
 		// helpers for imported code
 		string? SDKsPath => msbuildEnvironment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath) ? sdksPath : null;
-		string ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
+		string? ToolsPath32 => msbuildEnvironment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildToolsPath32, out var toolsPath32)? toolsPath32 : msbuildEnvironment.ToolsPath;
 
 		/// <summary>
 		///     Get path on disk to the referenced SDK.
@@ -55,7 +48,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		/// <param name="projectFile">Location of the element within the project which referenced the SDK.</param>
 		/// <param name="solutionPath">Path to the solution if known.</param>
 		/// <returns>Path to the root of the referenced SDK.</returns>
-		internal SdkInfo? ResolveSdk (SdkReference sdk, string projectFile, string solutionPath, ILogger logger)
+		internal SdkInfo? ResolveSdk (SdkReference sdk, string projectFile, string? solutionPath, ILogger logger)
 		{
 			using var logScope = logger.BeginScope (projectFile);
 

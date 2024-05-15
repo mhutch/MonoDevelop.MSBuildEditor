@@ -289,5 +289,26 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			}
 			return null;
 		}
+
+		public static bool IsNullOrEmpty (this ExpressionNode? node)
+			=> node is null || (node is ExpressionText text && text.Length == 0);
+
+		public static bool IsNullOrWhitespace (this ExpressionNode? node)
+			=> node is null
+			|| (node is ExpressionText text && (text.Length == 0 || string.IsNullOrWhiteSpace (text.GetUnescapedValue (false, out _, out _))));
+
+		public static bool? AsConstBool (this ExpressionNode? node)
+			=> node switch {
+				ExpressionArgumentBool b => b.Value,
+				ExpressionText t when string.Equals (t.Value, "True", System.StringComparison.OrdinalIgnoreCase) => true,
+				ExpressionText t when string.Equals (t.Value, "False", System.StringComparison.OrdinalIgnoreCase) => false,
+				_ => null
+			};
+
+		public static string? AsConstString (this ExpressionNode? node)
+			=> node switch {
+				ExpressionText t => t.Value,
+				_ => null
+			};
 	}
 }
