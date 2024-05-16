@@ -88,6 +88,19 @@ namespace MonoDevelop.MSBuild.Evaluation
 
 			string? projectDirectory = Path.GetDirectoryName (projectPath);
 
+			// TODO: should we be setting these at all? behavior for unsaved files without a path is very poorly defined
+			if (projectDirectory is null) {
+				values[ReservedPropertyNames.projectFile] = new ();
+				values[ReservedPropertyNames.projectName] = new ();
+				values[ReservedPropertyNames.projectFullPath] = new();
+				values[ReservedPropertyNames.projectExtension] = new();
+				values[ReservedPropertyNames.projectDirectory] = new();
+				values[ReservedPropertyNames.projectDirectoryNoRoot] = new ();
+				values[WellKnownProperties.MSBuildProjectExtensionsPath] = new ("obj");
+				values[ReservedPropertyNames.startupDirectory] = new ();
+				return;
+			}
+
 			values[ReservedPropertyNames.projectFile] = EvaluatedValue.FromUnescaped (Path.GetFileName (projectPath));
 			values[ReservedPropertyNames.projectName] = EvaluatedValue.FromUnescaped (Path.GetFileNameWithoutExtension (projectPath));
 			values[ReservedPropertyNames.projectFullPath] = EvaluatedValue.FromNativePath (projectPath);

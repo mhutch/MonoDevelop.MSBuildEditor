@@ -113,7 +113,7 @@ namespace MonoDevelop.MSBuild.Language
 			return ParseImport (new Import (importExpr, sdk, resolvedFilename, resolvedSdk, mtimeUtc, isImplicitImport));
 		}
 
-		internal MSBuildImportResolver CreateImportResolver (string filename)
+		internal MSBuildImportResolver CreateImportResolver (string? filename)
 		{
 			if (filename == ProjectPath) {
 				return new MSBuildImportResolver (this, filename, RootDocument.FileEvaluationContext);

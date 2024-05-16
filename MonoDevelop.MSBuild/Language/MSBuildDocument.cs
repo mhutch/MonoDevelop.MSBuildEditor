@@ -7,6 +7,7 @@
 #endif
 
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -126,8 +127,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			foreach (var sdkElement in sdkElements) {
 				if (sdkElement.NameAttribute is not null) {
-					var resolvedSdk = importResolver.ResolveSdk (this, sdkElement);
-					if (resolvedSdk is not null) {
+					if (importResolver.ResolveSdk (this, sdkElement) is { } resolvedSdk) {
 						// technically we should re-resolve Sdk elements before doing the Sdk.targets import
 						// as it may use properties that change between the Sdk.props and Sdk.targets
 						// but that seems broken and wasteful so ignore it for now
@@ -136,8 +136,8 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			foreach (var sdk in projectAttributeSdks) {
-				AddSdkImport (sdkPropsExpr, sdkPropsExpr.Value, sdk.ToString(), sdk, false);
+			foreach ((SdkInfo sdk, string sdkRef) in projectAttributeSdks) {
+				AddSdkImport (sdkPropsExpr, sdkPropsExpr.Value, sdkRef, sdk, false);
 			}
 
 			void ExtractProperties (MSBuildPropertyGroupElement pg)
@@ -170,8 +170,8 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			foreach (var sdk in projectAttributeSdks) {
-				AddSdkImport (sdkTargetsExpr, sdkTargetsExpr.Value, sdk.ToString (), sdk, false);
+			foreach ((SdkInfo sdk, string sdkRef) in projectAttributeSdks) {
+				AddSdkImport (sdkTargetsExpr, sdkTargetsExpr.Value, sdkRef, sdk, false);
 			}
 		}
 
@@ -180,13 +180,18 @@ namespace MonoDevelop.MSBuild.Language
 			var importAtt = element.ProjectAttribute;
 
 			SdkInfo? sdk = null;
+			string? sdkRef= null;
+
 			if (element.SdkAttribute is not null) {
-				sdk = importResolver.ResolveSdk (this, element);
-				if (sdk is null) {
+				if (importResolver.ResolveSdk (this, element) is not { } resolvedSdk) {
 					// TODO: add placeholder import
 					return;
 				}
-				if (sdk is not null && string.Equals (sdk.Name, MSBuildCompletionExtensions.WorkloadAutoImportPropsLocatorName, System.StringComparison.OrdinalIgnoreCase)) {
+
+				sdk = resolvedSdk.sdk;
+				sdkRef = resolvedSdk.sdkReference;
+
+				if (string.Equals (sdk.Name, MSBuildCompletionExtensions.WorkloadAutoImportPropsLocatorName, System.StringComparison.OrdinalIgnoreCase)) {
 					if (sdk.Paths.Count == 0) {
 						return;
 					}
@@ -196,7 +201,7 @@ namespace MonoDevelop.MSBuild.Language
 			if (importAtt is not null && importAtt.Value is ExpressionNode importPath && importAtt.XAttribute.HasValue) {
 				var loc = importAtt.XAttribute.ValueSpan.Value;
 
-				foreach (var import in importResolver.Resolve (importPath, importAtt.XAttribute.Value, sdk?.ToString(), sdk)) {
+				foreach (var import in importResolver.Resolve (importPath, importAtt.XAttribute.Value, sdkRef, sdk)) {
 					AddImport (import);
 
 					if (IsTopLevel) {
@@ -258,24 +263,21 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		IEnumerable<SdkInfo> GetProjectAttributeSdks (MSBuildProjectElement project, MSBuildParserContext context)
+		IEnumerable<(SdkInfo resolvedSdk, string originalSdkReference)> GetProjectAttributeSdks (MSBuildProjectElement project, MSBuildParserContext context)
 		{
 			var sdksAtt = project.SdkAttribute?.XAttribute;
 			if (sdksAtt == null) {
 				yield break;
 			}
 
-			string? sdks = sdksAtt.Value;
-			if (string.IsNullOrEmpty (sdks)) {
+			if (!sdksAtt.HasNonEmptyValue) {
 				if (IsTopLevel) {
 					Diagnostics.Add (CoreDiagnostics.EmptySdkName, sdksAtt.ValueSpan ?? sdksAtt.NameSpan);
 				}
 				yield break;
 			}
 
-			int offset = IsTopLevel && sdksAtt.HasValue ? sdksAtt.ValueOffset.Value : sdksAtt.Span.Start;
-
-			foreach (var sdk in SplitSdkValue (offset, sdksAtt.Value)) {
+			foreach (var sdk in SplitSdkValue (sdksAtt.ValueOffset.Value, sdksAtt.Value)) {
 				if (string.IsNullOrEmpty (sdk.id)) {
 					if (IsTopLevel) {
 						Diagnostics.Add (CoreDiagnostics.EmptySdkName, sdk.span);
@@ -293,6 +295,7 @@ namespace MonoDevelop.MSBuild.Language
 							Annotations.Add (sdksAtt, new NavigationAnnotation (sdkPath, sdk.span) { IsSdk = true });
 						}
 					}
+					yield return (sdkInfo, sdk.id);
 				}
 			}
 		}

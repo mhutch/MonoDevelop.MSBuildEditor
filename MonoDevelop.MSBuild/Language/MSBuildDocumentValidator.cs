@@ -322,7 +322,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (taskFactoryAtt is not null && taskFactoryAtt.TryGetValue (out var taskFactoryName) && taskFactoryName.Length > 0) {
 					switch (WellKnownTaskFactory.TryGet (taskFactoryName, asmFileAtt?.Value)) {
 					case WellKnownTaskFactory.RoslynCodeTaskFactory:
-						if (taskBody is not null) {
+						if (taskBody is not null && parameterGroup is not null) {
 							ValidateRoslynCodeTaskFactory (element, taskBody, parameterGroup);
 						}
 						break;
