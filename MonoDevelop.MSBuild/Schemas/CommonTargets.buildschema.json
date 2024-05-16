@@ -99,6 +99,32 @@
         }
       }
     },
+    "GlobalPackageReference": {
+      "description": "A global package reference is used to specify that a package will be used by every project in a repository",
+      "includeDescription": "NuGet package IDs",
+      "type": "nuget-id",
+      "packageType": "Dependency",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management#global-package-references",
+      "metadata": {
+        "Version": {
+          "description": "The version of the NuGet package dependency",
+          "type": "nuget-version"
+        }
+      }
+    },
+    "PackageVersion": {
+      "description": "Define each of the respective package versions required of your projects",
+      "includeDescription": "NuGet package IDs",
+      "type": "nuget-id",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management#enabling-central-package-management",
+      "packageType": "Dependency",
+      "metadata": {
+        "Version": {
+          "description": "The version of the NuGet package dependency",
+          "type": "nuget-version"
+        }
+      }
+    },
     "DotNetCliToolReference": {
       "description": "The CLI tool that the user wants restored in the context of the project",
       "includeDescription": "tool NuGet package IDs",
@@ -982,7 +1008,7 @@
   "metadata": [
     {
       // Metadata that controls how assets are consumed/propagated from a reference
-      "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference" ],
+      "$appliesTo": [ "PackageReference", "ProjectReference", "DotNetCliToolReference", "GlobalPackageReference", "PackageVersion" ],
       "IncludeAssets": {
         "description": "Assets that will be consumed by the project",
         "defaultValue": "all",
