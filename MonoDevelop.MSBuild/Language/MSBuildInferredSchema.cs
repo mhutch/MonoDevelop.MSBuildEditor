@@ -90,16 +90,16 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			switch (element.SyntaxKind) {
 			case MSBuildSyntaxKind.Item:
-				CollectItem (element.ElementName, ReferenceUsage.Write);
+				CollectItem (element.Name, ReferenceUsage.Write);
 				break;
 			case MSBuildSyntaxKind.Property:
-				CollectProperty (element.ElementName, ReferenceUsage.Write);
+				CollectProperty (element.Name, ReferenceUsage.Write);
 				break;
 			case MSBuildSyntaxKind.UsingTask:
 				CollectTaskDefinition ((MSBuildUsingTaskElement)element, parseContext);
 				break;
 			case MSBuildSyntaxKind.Task:
-				CollectTask (element.ElementName);
+				CollectTask (element.Name);
 				break;
 			case MSBuildSyntaxKind.Target:
 				var target = (MSBuildTargetElement)element;
@@ -115,7 +115,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 				break;
 			case MSBuildSyntaxKind.Metadata:
-				CollectMetadata (element.Parent.ElementName, element.ElementName, ReferenceUsage.Write);
+				CollectMetadata (element.Parent.Name, element.Name, ReferenceUsage.Write);
 				break;
 			}
 
@@ -126,7 +126,7 @@ namespace MonoDevelop.MSBuild.Language
 			foreach (var att in element.Attributes) {
 				switch (att.SyntaxKind) {
 				case MSBuildSyntaxKind.Item_Metadata:
-					CollectMetadata (element.ElementName, att.Name, ReferenceUsage.Write);
+					CollectMetadata (element.Name, att.Name, ReferenceUsage.Write);
 					goto default;
 				case MSBuildSyntaxKind.Output_ItemName:
 					if (att.AsConstString () is string itemName) {
@@ -155,7 +155,7 @@ namespace MonoDevelop.MSBuild.Language
 					ExtractReferences (attKind, att.Value);
 				}
 				if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
-					CollectMetadata (element.ElementName, att.Name, ReferenceUsage.Write);
+					CollectMetadata (element.Name, att.Name, ReferenceUsage.Write);
 				}
 			}
 
@@ -184,7 +184,7 @@ namespace MonoDevelop.MSBuild.Language
 			var kind = element.Syntax.ValueKind;
 
 			if (element.SyntaxKind == MSBuildSyntaxKind.Property) {
-				switch (element.ElementName.ToLowerInvariant ()) {
+				switch (element.Name.ToLowerInvariant ()) {
 				case "configuration":
 					return MSBuildValueKind.Configuration;
 				case "configurations":
@@ -309,7 +309,7 @@ namespace MonoDevelop.MSBuild.Language
 		void CollectTaskParameterDefinition (string taskName, MSBuildParameterElement def)
 		{
 			var task = Tasks[taskName];
-			var parameterName = def.ElementName;
+			var parameterName = def.Name;
 			if (task.Parameters.ContainsKey (parameterName)) {
 				return;
 			}
@@ -414,7 +414,7 @@ namespace MonoDevelop.MSBuild.Language
 				declarationKind = TaskDeclarationKind.TaskFactoryExplicitParameters;
 				foreach (var parameterElement in parameterGroup.ParameterElements) {
 					var parameter = new TaskParameterInfo (
-						parameterElement.ElementName,
+						parameterElement.Name,
 						null,
 						parameterElement.RequiredAttribute?.AsConstBool () ?? false,
 						parameterElement.OutputAttribute?.AsConstBool () ?? false,

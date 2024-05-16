@@ -61,7 +61,7 @@ namespace MonoDevelop.MSBuild.Analysis
 
 		public void ExecutePropertyWriteActions (MSBuildPropertyElement element)
 		{
-			if (Context.GetPropertyWriteActions (element.ElementName, out var actions)) {
+			if (Context.GetPropertyWriteActions (element.Name, out var actions)) {
 				var ctx = new PropertyWriteDiagnosticContext (this, element);
 				foreach (var (analyzer, action) in actions) {
 					try {

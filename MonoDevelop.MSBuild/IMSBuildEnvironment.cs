@@ -19,7 +19,7 @@ namespace MonoDevelop.MSBuild
 	{
 		Version EngineVersion { get; }
 		string ToolsVersion { get; }
-		string ToolsPath { get; }
+		string? ToolsPath { get; }
 
 		/// <summary>
 		/// Properties defined by the MSBuild toolset, such as MSBuildExtensionsPaths
@@ -36,7 +36,7 @@ namespace MonoDevelop.MSBuild
 		IList<SdkInfo> GetRegisteredSdks ();
 
 		// TODO: should this support reporting warnings up to the caller as user-visible warnings rather than log messages?
-		SdkInfo ResolveSdk (MSBuildSdkReference sdkReference, string projectFile, string? solutionPath, ILogger? logger);
+		SdkInfo? ResolveSdk (MSBuildSdkReference sdkReference, string projectFile, string? solutionPath, ILogger logger);
 	}
 
 	public static class MSBuildEnvironmentExtensions

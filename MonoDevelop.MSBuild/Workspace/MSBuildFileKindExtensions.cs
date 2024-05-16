@@ -2,19 +2,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System.IO;
 using System;
-
-/* Unmerged change from project 'MonoDevelop.MSBuild (net6.0)'
-Before:
-using System.Diagnostics;
-After:
-using System.Diagnostics;
-using MonoDevelop;
-using MonoDevelop.MSBuild;
-using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Workspace;
-*/
 using System.Diagnostics;
 
 namespace MonoDevelop.MSBuild.Workspace

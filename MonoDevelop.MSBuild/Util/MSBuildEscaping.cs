@@ -25,9 +25,7 @@
 //
 //
 
-#if NETFRAMEWORK
-#nullable enable annotations
-#else
+#if NETCOREAPP
 #nullable enable
 #endif
 

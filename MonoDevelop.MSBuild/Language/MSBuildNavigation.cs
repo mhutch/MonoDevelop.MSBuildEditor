@@ -3,8 +3,6 @@
 
 #if NETCOREAPP
 #nullable enable
-#else
-#nullable enable annotations
 #endif
 
 using System;
@@ -160,7 +158,7 @@ namespace MonoDevelop.MSBuild.Language
 				switch (attributeSyntax.SyntaxKind) {
 				case MSBuildSyntaxKind.Project_Sdk:
 				case MSBuildSyntaxKind.Import_Project:
-					var annotations = Document.Annotations.GetMany<NavigationAnnotation> (attribute);
+					var annotations = Document.Annotations?.GetMany<NavigationAnnotation> (attribute);
 					if (annotations != null) {
 						foreach (var group in annotations.GroupBy (a => a.Span.Start)) {
 							var first = group.First ();

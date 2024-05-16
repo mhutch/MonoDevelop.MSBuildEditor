@@ -1,6 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETCOREAPP
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,7 +26,7 @@ namespace MonoDevelop.MSBuild
 	partial class CurrentProcessMSBuildEnvironment : IMSBuildEnvironment
 	{
 		readonly Toolset toolset;
-		readonly Dictionary<SdkReference, SdkInfo> resolvedSdks = new();
+		readonly Dictionary<SdkReference, SdkInfo?> resolvedSdks = new();
 		readonly MSBuildSdkResolver sdkResolver;
 		readonly ILogger logger;
 
@@ -41,7 +45,7 @@ namespace MonoDevelop.MSBuild
 		}
 
 		public string ToolsVersion => toolset.ToolsVersion;
-        public string ToolsPath => toolset.ToolsPath;
+		public string? ToolsPath => toolset.ToolsPath;
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
@@ -54,10 +58,10 @@ namespace MonoDevelop.MSBuild
 		public IReadOnlyDictionary<string, string[]> ProjectImportSearchPaths { get; }
 
 		//FIXME: caching should be specific to the (projectFile, string solutionPath) pair
-		public virtual SdkInfo ResolveSdk (MSBuildSdkReference sdk, string projectFile, string solutionPath, ILogger logger = null)
+		public virtual SdkInfo? ResolveSdk (MSBuildSdkReference sdk, string projectFile, string? solutionPath, ILogger logger)
 		{
 			var sdkRef =  sdk.AsSdkReference ();
-			if (!resolvedSdks.TryGetValue (sdkRef, out SdkInfo sdkInfo)) {
+			if (!resolvedSdks.TryGetValue (sdkRef, out SdkInfo? sdkInfo)) {
 				try {
 					sdkInfo = sdkResolver.ResolveSdk (sdkRef, projectFile, solutionPath, logger ?? this.logger);
 				} catch (Exception ex) {
@@ -85,7 +89,9 @@ namespace MonoDevelop.MSBuild
 			var environmentVariables = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
 
 			foreach (DictionaryEntry envVar in Environment.GetEnvironmentVariables ()) {
-				environmentVariables.Add ((string)envVar.Key, (string)envVar.Value);
+				if (envVar.Value is string value) {
+					environmentVariables.Add ((string)envVar.Key, value);
+				}
 			}
 
 			return environmentVariables;
@@ -97,23 +103,42 @@ namespace MonoDevelop.MSBuild
 
 			try {
 				var dictProp = toolset.GetType ().GetProperty ("ImportPropertySearchPathsTable", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-				var dict = (IDictionary)dictProp.GetValue (toolset);
+				if (dictProp is null) {
+					LogToolsetSearchPathsErrorWithMessage (logger, "could not get ImportPropertySearchPathsTable property");
+					return converted;
+				}
+
+				var dict = (IDictionary?)dictProp.GetValue (toolset);
+				if (dict is null) {
+					LogToolsetSearchPathsErrorWithMessage (logger, "ImportPropertySearchPathsTable property value is not IDictionary");
+					return converted;
+				}
+
 				var importPathsType = typeof (ProjectCollection).Assembly.GetType ("Microsoft.Build.Evaluation.ProjectImportPathMatch");
+				if (importPathsType is null) {
+					LogToolsetSearchPathsErrorWithMessage (logger, "could not get ProjectImportPathMatch type");
+					return converted;
+				}
+
 				var pathsField = importPathsType.GetField ("SearchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
 					// in MSBuild15 'SearchPaths' is a public property, and '_searchPaths' is the backing field
 					?? importPathsType.GetField ("_searchPaths", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+				if (pathsField is null) {
+					LogToolsetSearchPathsErrorWithMessage (logger, "could not get SearchPaths or _searchPaths fields");
+					return converted;
+				}
 
 				var enumerator = dict.GetEnumerator ();
 				while (enumerator.MoveNext ()) {
-					if (enumerator.Value == null) {
-						continue;
-					}
 					var key = (string)enumerator.Key;
-					var val = (List<string>)pathsField.GetValue (enumerator.Value);
-					converted.Add (key, val.ToArray ());
+					if (pathsField.GetValue (enumerator.Value) is List<string> val) {
+						converted.Add (key, val.ToArray ());
+					} else {
+						LogToolsetSearchPathsErrorWithMessage (logger, $"search path '{key}' value not convertible to List<string>");
+					}
 				}
 			} catch (Exception ex) {
-				LogUnhandledErrorInToolsetSearchPaths (logger, ex);
+				LogToolsetSearchPathsUnhandledError (logger, ex);
 			}
 
 			return converted;
@@ -123,6 +148,9 @@ namespace MonoDevelop.MSBuild
 		static partial void LogUnhandledErrorInSdkResolver (ILogger logger, Exception ex);
 
 		[LoggerMessage (EventId = 1, Level = LogLevel.Error, Message = "Unhandled error getting toolset search paths")]
-		static partial void LogUnhandledErrorInToolsetSearchPaths (ILogger logger, Exception ex);
+		static partial void LogToolsetSearchPathsUnhandledError (ILogger logger, Exception ex);
+
+		[LoggerMessage (EventId = 2, Level = LogLevel.Error, Message = "Error getting toolset search paths: {message}")]
+		static partial void LogToolsetSearchPathsErrorWithMessage (ILogger logger, string message);
 	}
 }

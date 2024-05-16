@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -17,7 +19,7 @@ namespace MonoDevelop.MSBuild
 
 		public string ToolsVersion => MSBuildToolsVersion.Unknown.ToVersionString ();
 
-		public string ToolsPath => null;
+		public string? ToolsPath => null;
 
 		public IReadOnlyDictionary<string, string> ToolsetProperties { get; } = new Dictionary<string, string> ();
 
@@ -27,6 +29,6 @@ namespace MonoDevelop.MSBuild
 
 		public IList<SdkInfo> GetRegisteredSdks () => Array.Empty<SdkInfo> ();
 
-		public SdkInfo ResolveSdk (MSBuildSdkReference sdk, string projectFile, string solutionPath, ILogger logger) => null;
+		public SdkInfo? ResolveSdk (MSBuildSdkReference sdk, string projectFile, string? solutionPath, ILogger logger) => null;
 	}
 }

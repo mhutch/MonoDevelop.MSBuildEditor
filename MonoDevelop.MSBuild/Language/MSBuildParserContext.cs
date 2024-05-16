@@ -2,9 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#if NETFRAMEWORK
-#nullable enable annotations
-#else
+#if NETCOREAPP
 #nullable enable
 #endif
 
@@ -31,7 +29,7 @@ namespace MonoDevelop.MSBuild.Language
 		public MSBuildRootDocument RootDocument { get; }
 		public MSBuildRootDocument? PreviousRootDocument { get; }
 		public HashSet<string> ImportedFiles { get; }
-		public string ProjectPath { get; }
+		public string? ProjectPath { get; }
 		public PropertyValueCollector PropertyCollector { get; }
 		public ITaskMetadataBuilder TaskBuilder { get; }
 		public MSBuildSchemaProvider SchemaProvider { get; }
@@ -45,7 +43,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildRootDocument doc,
 			MSBuildRootDocument? previous,
 			HashSet<string> importedFiles,
-			string projectPath,
+			string? projectPath,
 			PropertyValueCollector propVals,
 			ITaskMetadataBuilder taskBuilder,
 			ILogger logger,
@@ -115,7 +113,7 @@ namespace MonoDevelop.MSBuild.Language
 			return ParseImport (new Import (importExpr, sdk, resolvedFilename, resolvedSdk, mtimeUtc, isImplicitImport));
 		}
 
-		internal MSBuildImportResolver CreateImportResolver (string filename)
+		internal MSBuildImportResolver CreateImportResolver (string? filename)
 		{
 			if (filename == ProjectPath) {
 				return new MSBuildImportResolver (this, filename, RootDocument.FileEvaluationContext);
@@ -136,7 +134,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			LogCouldNotParseSdk (Logger, sdkReference);
-			if (doc.IsToplevel) {
+			if (doc.IsTopLevel) {
 				doc.Diagnostics.Add (CoreDiagnostics.InvalidSdkAttribute, loc, parsedReference);
 			}
 
@@ -146,7 +144,13 @@ namespace MonoDevelop.MSBuild.Language
 		public SdkInfo? ResolveSdk (MSBuildDocument doc, MSBuildSdkReference sdkReference, TextSpan? unresolvedSdkDiagnosticSpan)
 		{
 			try {
-				var sdkInfo = Environment.ResolveSdk (sdkReference, ProjectPath, null, Logger);
+				// NOTE: Microsoft.Build.Framework.SdkResolver requires the project path to be non-null, so
+				// if the file is unsaved, construct a placeholder name and use that.
+				// TODO: Centralize the logic for determining a placeholder name for unsaved files.
+				var projectPathForSdkResolution = ProjectPath
+					?? Path.Combine (System.Environment.GetFolderPath (System.Environment.SpecialFolder.UserProfile), "Unsaved.proj");
+
+				var sdkInfo = Environment.ResolveSdk (sdkReference, projectPathForSdkResolution, null, Logger);
 				if (sdkInfo is not null) {
 					return sdkInfo;
 				}
@@ -157,7 +161,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			string sdkReferenceString = sdkReference.ToString ();
 			LogDidNotFindSdk (Logger, sdkReferenceString);
-			if (doc.IsToplevel && unresolvedSdkDiagnosticSpan is not null) {
+			if (doc.IsTopLevel && unresolvedSdkDiagnosticSpan is not null) {
 				doc.Diagnostics.Add (CoreDiagnostics.UnresolvedSdk, unresolvedSdkDiagnosticSpan.Value, sdkReferenceString);
 			}
 			return null;
