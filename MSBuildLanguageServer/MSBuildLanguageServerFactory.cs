@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using System.Composition;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 [Export(typeof(ILanguageServerFactory)), Shared]
 [method: ImportingConstructor]
@@ -17,7 +17,7 @@ class MSBuildLanguageServerFactory (CSharpVisualBasicLspServiceProvider lspServi
 
 	public AbstractLanguageServer<RequestContext> Create (
 		JsonRpc jsonRpc,
-		JsonSerializer jsonSerializer,
+		JsonSerializerOptions options,
 		ICapabilitiesProvider capabilitiesProvider,
 		WellKnownLspServerKinds serverKind,
 		AbstractLspLogger logger,
@@ -26,7 +26,7 @@ class MSBuildLanguageServerFactory (CSharpVisualBasicLspServiceProvider lspServi
 		return new Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer (
 			lspServiceProvider,
 			jsonRpc,
-			jsonSerializer,
+			options,
 			capabilitiesProvider,
 			logger,
 			hostServices,

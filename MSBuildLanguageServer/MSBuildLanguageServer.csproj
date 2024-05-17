@@ -95,6 +95,7 @@
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`2.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/CancellationSeries.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/ExtensionAssemblyManager.cs" />
+    <Compile Remove="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/NewtonsoftLanguageServer.cs"/>
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
@@ -110,6 +111,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer'))"
+      Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer'))"
+      Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../MonoDevelop.MSBuild.Editor/MonoDevelop.MSBuild.Editor.csproj" />
     <ProjectReference Include="../MonoDevelop.MSBuild/MonoDevelop.MSBuild.csproj" />
     <ProjectReference Include="../MonoDevelop.Xml/Core/MonoDevelop.Xml.Core.csproj" />
@@ -122,7 +130,8 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -132,7 +141,6 @@
       StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
       StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
       Generator="MSBuild:Compile"
-      Link="sdk\resource\%(ClassName).resx"
       StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs"
       LogicalName="%(ClassName).resources" />
   </ItemGroup>

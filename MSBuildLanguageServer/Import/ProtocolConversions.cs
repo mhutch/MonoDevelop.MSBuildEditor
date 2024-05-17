@@ -1,5 +1,6 @@
 // modified copy of
-// https://raw.githubusercontent.com/dotnet/roslyn/fca6e1fcdcded85e69cc32e15acfb6820cd45597/src/Features/LanguageServer/Protocol/Extensions/ProtocolConversions.cs// changes annotated inline with // MODIFICATION
+// https://raw.githubusercontent.com/dotnet/roslyn/044acb4ec888bf080b707e3db6818107e018d80b/src/Features/LanguageServer/Protocol/Extensions/ProtocolConversions.cs
+// changes annotated inline with // MODIFICATION
 // with portions commented out using /* */ comments
 
 // Licensed to the .NET Foundation under one or more agreements.
@@ -12,10 +13,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-/*
 using System.Threading;
 using System.Threading.Tasks;
+/*
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -111,7 +113,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
         }.ToImmutableDictionary();
+		*/
 
+        public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
+        {
+            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            options.Converters.Add(new NaturalObjectConverter());
+            return options;
+        }
+
+        /// <summary>
+        /// Options that know how to serialize / deserialize basic LSP types.
+        /// Useful when there are particular fields that are not serialized or deserialized by normal request handling (for example
+        /// deserializing a field that is typed as object instead of a concrete type).
+        /// </summary>
+        public static JsonSerializerOptions LspJsonSerializerOptions = new JsonSerializerOptions().AddLspSerializerOptions();
+
+		/*
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
         public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
@@ -176,8 +194,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return triggerCharacter;
             }
         }
-*/
-        public static string GetDocumentFilePathFromUri(Uri uri)
+		*/
+
+		public static string GetDocumentFilePathFromUri(Uri uri)
             => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
 
         /// <summary>
@@ -207,9 +226,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         internal static Uri CreateRelativePatternBaseUri(string path)
         {
-            // According to VSCode LSP RelativePattern spec,
+            // According to VSCode LSP RelativePattern spec, 
             // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
-            // the baseUri should not end in a trailing separator, nor should it
+            // the baseUri should not end in a trailing separator, nor should it 
             // have any relative segmeents (., ..)
             if (path[^1] == System.IO.Path.DirectorySeparatorChar)
             {
@@ -289,7 +308,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return true;
         }
-/*
+
+		/*
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
             return new LSP.TextDocumentPositionParams()
@@ -535,10 +555,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return location;
             }
         }
-*/
+		*/
+
         public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
             => (uri != null) ? new LSP.CodeDescription { Href = uri } : null;
-/*
+		/*
+
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
             if (Enum.TryParse<LSP.SymbolKind>(kind, out var symbolKind))
@@ -958,7 +980,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
-                // Markdown ignores spaces at the start of lines outside of code blocks,
+                // Markdown ignores spaces at the start of lines outside of code blocks, 
                 // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
                 // We want to use regular spaces everywhere else to allow the client to wrap long text.
                 if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
