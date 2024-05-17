@@ -12,7 +12,7 @@ readonly struct RequestContext (ILspServices services, ILspLogger logger)
 	public ILspLogger Logger { get; } = logger;
 	public WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.MSBuild;
 
-	public static async Task<RequestContext> CreateAsync(
+	public static Task<RequestContext> CreateAsync(
 		bool mutatesSolutionState,
 		bool requiresLSPSolution,
 		TextDocumentIdentifier? textDocument,
@@ -32,16 +32,16 @@ readonly struct RequestContext (ILspServices services, ILspLogger logger)
 
 	public T GetRequiredLspService<T>() where T : class, ILspService
     {
-        return services.GetRequiredService<T>();
+        return Services.GetRequiredService<T>();
     }
 
     public T GetRequiredService<T>() where T : class
     {
-        return services.GetRequiredService<T>();
+        return Services.GetRequiredService<T>();
     }
 
     public IEnumerable<T> GetRequiredServices<T>() where T : class
     {
-        return services.GetRequiredServices<T>();
+        return Services.GetRequiredServices<T>();
     }
 }

@@ -7,6 +7,11 @@
     <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Exe</OutputType>
+    <NoWarn>
+      $(NoWarn);
+      <!-- imported roslyn code triggers VS threading analyzer warnings -->
+      VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD002
+    </NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
