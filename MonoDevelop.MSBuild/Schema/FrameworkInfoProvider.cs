@@ -146,55 +146,55 @@ namespace MonoDevelop.MSBuild.Schema
 			AddPortable40 ("Profile344", "portable-net45+sl5+win8+wpa81+wp8");
 
 
-			void AddNetCore (int versionMajor, int versionMinor, string shortname, string? platform = null, Version? platformVersion = null) => frameworks.Add (new KnownFramework (shortname, FxID.NETCoreApp, new Version (versionMajor, versionMinor), null, platform, platformVersion));
+			void AddNetCoreApp (int versionMajor, int versionMinor, string shortname, string? platform = null, Version? platformVersion = null) => frameworks.Add (new KnownFramework (shortname, FxID.NETCoreApp, new Version (versionMajor, versionMinor), null, platform, platformVersion));
 
-			AddNetCore (1, 0, "netcoreapp1.0");
-			AddNetCore (1, 1, "netcoreapp1.1");
-			AddNetCore (2, 0, "netcoreapp2.0");
-			AddNetCore (2, 1, "netcoreapp2.1");
-			AddNetCore (2, 2, "netcoreapp2.2");
-			AddNetCore (3, 0, "netcoreapp3.0");
-			AddNetCore (3, 1, "netcoreapp3.1");
+			AddNetCoreApp (1, 0, "netcoreapp1.0");
+			AddNetCoreApp (1, 1, "netcoreapp1.1");
+			AddNetCoreApp (2, 0, "netcoreapp2.0");
+			AddNetCoreApp (2, 1, "netcoreapp2.1");
+			AddNetCoreApp (2, 2, "netcoreapp2.2");
+			AddNetCoreApp (3, 0, "netcoreapp3.0");
+			AddNetCoreApp (3, 1, "netcoreapp3.1");
 
-			AddNetCore (5, 0, "net5.0");
-			AddNetCore (5, 0, "net5.0-windows");
+			AddNetCoreApp (5, 0, "net5.0");
+			AddNetCoreApp (5, 0, "net5.0-windows");
 
-			AddNetCore (6, 0, "net6.0");
-			AddNetCore (6, 0, "net6.0-windows", KnownPlatform.Windows);
-			AddNetCore (6, 0, "net6.0-android", KnownPlatform.Android);
-			AddNetCore (6, 0, "net6.0-ios", KnownPlatform.iOS);
-			AddNetCore (6, 0, "net6.0-maccatalyst", KnownPlatform.MacCatalyst);
-			AddNetCore (6, 0, "net6.0-macos", KnownPlatform.macOS);
-			AddNetCore (6, 0, "net6.0-tvos", KnownPlatform.tvOS);
+			AddNetCoreApp (6, 0, "net6.0");
+			AddNetCoreApp (6, 0, "net6.0-windows", KnownPlatform.Windows);
+			AddNetCoreApp (6, 0, "net6.0-android", KnownPlatform.Android);
+			AddNetCoreApp (6, 0, "net6.0-ios", KnownPlatform.iOS);
+			AddNetCoreApp (6, 0, "net6.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCoreApp (6, 0, "net6.0-macos", KnownPlatform.macOS);
+			AddNetCoreApp (6, 0, "net6.0-tvos", KnownPlatform.tvOS);
 
-			AddNetCore (7, 0, "net7.0");
-			AddNetCore (7, 0, "net7.0-windows", KnownPlatform.Windows);
-			AddNetCore (7, 0, "net7.0-android", KnownPlatform.Android);
-			AddNetCore (7, 0, "net7.0-ios", KnownPlatform.iOS);
-			AddNetCore (7, 0, "net7.0-maccatalyst", KnownPlatform.MacCatalyst);
-			AddNetCore (7, 0, "net7.0-macos", KnownPlatform.macOS);
-			AddNetCore (7, 0, "net7.0-tvos", KnownPlatform.tvOS);
-			AddNetCore (7, 0, "net7.0-tizen", KnownPlatform.Tizen);
+			AddNetCoreApp (7, 0, "net7.0");
+			AddNetCoreApp (7, 0, "net7.0-windows", KnownPlatform.Windows);
+			AddNetCoreApp (7, 0, "net7.0-android", KnownPlatform.Android);
+			AddNetCoreApp (7, 0, "net7.0-ios", KnownPlatform.iOS);
+			AddNetCoreApp (7, 0, "net7.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCoreApp (7, 0, "net7.0-macos", KnownPlatform.macOS);
+			AddNetCoreApp (7, 0, "net7.0-tvos", KnownPlatform.tvOS);
+			AddNetCoreApp (7, 0, "net7.0-tizen", KnownPlatform.Tizen);
 
-			AddNetCore (8, 0, "net8.0");
-			AddNetCore (8, 0, "net8.0-windows", KnownPlatform.Windows);
-			AddNetCore (8, 0, "net8.0-android", KnownPlatform.Android);
-			AddNetCore (8, 0, "net8.0-ios", KnownPlatform.iOS);
-			AddNetCore (8, 0, "net8.0-maccatalyst", KnownPlatform.MacCatalyst);
-			AddNetCore (8, 0, "net8.0-macos", KnownPlatform.macOS);
-			AddNetCore (8, 0, "net8.0-tvos", KnownPlatform.tvOS);
-			AddNetCore (7, 0, "net8.0-tizen", KnownPlatform.Tizen);
-			AddNetCore (7, 0, "net8.0-browser", KnownPlatform.Browser);
+			AddNetCoreApp (8, 0, "net8.0");
+			AddNetCoreApp (8, 0, "net8.0-windows", KnownPlatform.Windows);
+			AddNetCoreApp (8, 0, "net8.0-android", KnownPlatform.Android);
+			AddNetCoreApp (8, 0, "net8.0-ios", KnownPlatform.iOS);
+			AddNetCoreApp (8, 0, "net8.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCoreApp (8, 0, "net8.0-macos", KnownPlatform.macOS);
+			AddNetCoreApp (8, 0, "net8.0-tvos", KnownPlatform.tvOS);
+			AddNetCoreApp (7, 0, "net8.0-tizen", KnownPlatform.Tizen);
+			AddNetCoreApp (7, 0, "net8.0-browser", KnownPlatform.Browser);
 
-			AddNetCore (9, 0, "net9.0");
-			AddNetCore (9, 0, "net9.0-windows", KnownPlatform.Windows);
-			AddNetCore (9, 0, "net9.0-android", KnownPlatform.Android);
-			AddNetCore (9, 0, "net9.0-ios", KnownPlatform.iOS);
-			AddNetCore (9, 0, "net9.0-maccatalyst", KnownPlatform.MacCatalyst);
-			AddNetCore (9, 0, "net9.0-macos", KnownPlatform.macOS);
-			AddNetCore (9, 0, "net9.0-tvos", KnownPlatform.tvOS);
-			AddNetCore (7, 0, "net9.0-tizen", KnownPlatform.Tizen);
-			AddNetCore (7, 0, "net9.0-browser", KnownPlatform.Browser);
+			AddNetCoreApp (9, 0, "net9.0");
+			AddNetCoreApp (9, 0, "net9.0-windows", KnownPlatform.Windows);
+			AddNetCoreApp (9, 0, "net9.0-android", KnownPlatform.Android);
+			AddNetCoreApp (9, 0, "net9.0-ios", KnownPlatform.iOS);
+			AddNetCoreApp (9, 0, "net9.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCoreApp (9, 0, "net9.0-macos", KnownPlatform.macOS);
+			AddNetCoreApp (9, 0, "net9.0-tvos", KnownPlatform.tvOS);
+			AddNetCoreApp (7, 0, "net9.0-tizen", KnownPlatform.Tizen);
+			AddNetCoreApp (7, 0, "net9.0-browser", KnownPlatform.Browser);
 
 			AddLegacy (null, FxID.MonoAndroid, 1, 0);
 			AddLegacy (null, FxID.MonoAndroid, 2, 3);
@@ -241,10 +241,11 @@ namespace MonoDevelop.MSBuild.Schema
 			AddLegacy ("netcore", FrameworkIdentifiers.NetCore, 4, 5);
 			AddLegacy ("netcore45", FrameworkIdentifiers.NetCore, 4, 5);
 			AddLegacy ("netcore451", FrameworkIdentifiers.NetCore, 4, 5, 1);
-			AddLegacy ("netcore50", FrameworkIdentifiers.NetCore, 5, 0, deprecationMessage: "Use `uap10.0`"); // equivalent to uap10.0
+			AddLegacy ("netcore50", FrameworkIdentifiers.NetCore, 5, 0);
 
 			AddLegacy ("uap", FrameworkIdentifiers.UAP, 10, 0);
 			AddLegacy ("uap10.0", FrameworkIdentifiers.UAP, 10, 0);
+			AddLegacy ("uap10.0.15138", FrameworkIdentifiers.UAP, 10, 0, 15138); // start supports .net standard 2.0
 
 			AddLegacy ("tizen", FrameworkIdentifiers.Tizen, 3, 0);
 			AddLegacy ("tizen30", FrameworkIdentifiers.Tizen, 3, 0);
@@ -539,7 +540,7 @@ namespace MonoDevelop.MSBuild.Schema
 				return WithVersion (".NET Standard");
 			case ".netcoreapp":
 				if (fx.Version.Major <= 5) {
-					return WithVersion (".NET Core");
+					return WithVersion (".NET Core App");
 				}
 				if (string.IsNullOrEmpty (fx.Platform)) {
 					return $".NET {FormatDisplayVersion (fx.Version)}";
@@ -568,19 +569,25 @@ namespace MonoDevelop.MSBuild.Schema
 				return "Mono for Unreal Engine";
 			case ".netcore":
 				return (fx.Version.Major, fx.Version.Minor, fx.Version.Build) switch {
-					(4, 5, 0) => "Windows Store 8.0",
-					(4, 5, 1) => "Windows Store 8.1",
-					(5, 0, 0) => "Universal Windows Platform 10.0",
-					_ => "Windows Store"
+					(4, 5, 0) => ".NET Framework Core 4.5 (Windows Store 8.0)",
+					(4, 5, 1) => ".NET Framework Core 4.5.1 (Windows Store 8.1)",
+					(5, 0, 0) => ".NET Framework Core 5.0 (Universal Windows Platform)",
+					_ => WithVersion (".NET Framework Core")
 				};
 			case "windows":
 				return WithVersion ("Windows Store");
 			case "windowsphone":
 				return WithVersion ("Windows Phone");
 			case "windowsphoneapp":
-				return WithVersion ("Windows Phone (UWP)");
+				if (fx.Version.Major == 0) {
+					return "Windows Phone App (Universal Application)";
+				}
+				return $"Windows Phone App {FormatDisplayVersion (fx.Version)} (Universal Application)";
 			case "uap":
-				return WithVersion ("Universal Windows Platform");
+				if (fx.Version.Major == 0) {
+					return "Universal Windows Platform";
+				}
+				return $"Universal Windows Platform with minimum target to Windows {FormatDisplayVersion (fx.Version)}";
 			case "silverlight":
 				return WithVersion ("Silverlight");
 			case "tizen":

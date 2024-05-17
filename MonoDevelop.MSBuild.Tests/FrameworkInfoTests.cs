@@ -57,7 +57,7 @@ class FrameworkInfoTests
 
 	[TestCase ("net481", ".NET Framework 4.8.1")]
 	[TestCase ("net4.8.1", ".NET Framework 4.8.1")]
-	[TestCase ("wpa81", "Windows Phone (UWP) 8.1")]
+	[TestCase ("wpa81", "Windows Phone App 8.1 (Universal Application)")]
 	[TestCase ("net6.0-android9000.0", ".NET 6.0 with platform-specific APIs for Android 9000.0")]
 	[TestCase ("net6.0-android", ".NET 6.0 with platform-specific APIs for Android 31.0")]
 	[TestCase ("net6.0-android32.0", ".NET 6.0 with platform-specific APIs for Android 32.0")]
