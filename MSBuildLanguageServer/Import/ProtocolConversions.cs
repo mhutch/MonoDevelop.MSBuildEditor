@@ -28,7 +28,9 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
+*/
 using Microsoft.CodeAnalysis.Text;
+/*
 using Roslyn.Text.Adornments;
 */
 using Roslyn.Utilities;
@@ -324,12 +326,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
             => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
-
+		*/
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-
+		/*
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);

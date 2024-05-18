@@ -294,5 +294,6 @@ internal record class ServerConfiguration(
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
     string? RazorSourceGenerator,
-    string ExtensionLogDirectory);
+    string? ExtensionLogDirectory,
+    string? RazorDesignTimePath = null);
 // END MODIFICATION 5

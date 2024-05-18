@@ -1,21 +1,61 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer.Tests</RootNamespace>
+    <NoWarn>
+      $(NoWarn);
+      <!--
+      imported roslyn code triggers VS threading analyzer warnings
+      and while disabling them in the editorconfig works for CLI builds, it does not seem to work in VS
+      -->
+      VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD002
+    </NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/AbstractLanguageServerProtocolTests.InitializationOptions.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/TestOutputLspLogger.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerHostTests.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/LanguageServerTestComposition.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestLoggerProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestOutputLogger.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/TestComposition.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/NoOpLspLogger.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/ITestErrorHandler.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/ExportProviderCache.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Helpers/MefHostServicesHelpers.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext+DenyExecutionSynchronizationContext.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListenerProvider.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/UseExportProviderAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit.Analyzers" />
-    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer" Alias="RoslynLanguageServer" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
     <ProjectReference Include="..\MSBuildLanguageServer\MSBuildLanguageServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer.Tests'))" Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer.Tests'))" Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
   </ItemGroup>
 
 </Project>

@@ -9,7 +9,10 @@
     <OutputType>Exe</OutputType>
     <NoWarn>
       $(NoWarn);
-      <!-- imported roslyn code triggers VS threading analyzer warnings -->
+      <!--
+      imported roslyn code triggers VS threading analyzer warnings
+      and while disabling them in the editorconfig works for CLI builds, it does not seem to work in VS
+      -->
       VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD002
     </NoWarn>
   </PropertyGroup>
@@ -96,6 +99,9 @@
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/CancellationSeries.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/ExtensionAssemblyManager.cs" />
     <Compile Remove="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/NewtonsoftLanguageServer.cs"/>
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/IMefHostExportProvider.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostServicesProvider.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Remote/Core/VisualStudioMefHostServices.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
