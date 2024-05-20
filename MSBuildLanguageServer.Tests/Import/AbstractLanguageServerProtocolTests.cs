@@ -27,8 +27,8 @@ using Microsoft.CodeAnalysis.Extensions;
 */
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-/*
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+/*
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 */

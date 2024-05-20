@@ -6,8 +6,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
-
-using MSBuildLanguageServer.Tests;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Roslyn.Test.Utilities
 {

@@ -98,10 +98,17 @@
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`2.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/CancellationSeries.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Services/ExtensionAssemblyManager.cs" />
-    <Compile Remove="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/NewtonsoftLanguageServer.cs"/>
+    <Compile Remove="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/NewtonsoftLanguageServer.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/IMefHostExportProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostServicesProvider.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Remote/Core/VisualStudioMefHostServices.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidOpenHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidChangeHandler.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidCloseHandler.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/SourceHashAlgorithms.cs" />
+    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/IDocumentChangeTracker.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/SpecializedTasks.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/FixedSizeArrayBuilder.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />

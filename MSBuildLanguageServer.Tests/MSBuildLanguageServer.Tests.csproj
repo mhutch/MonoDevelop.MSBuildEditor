@@ -41,6 +41,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>

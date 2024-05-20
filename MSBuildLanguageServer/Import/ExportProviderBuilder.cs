@@ -24,8 +24,8 @@ internal sealed class ExportProviderBuilder
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
 
-		// BEGIN MODIFICATION 1
-		/*
+        // BEGIN MODIFICATION 1
+        /*
         // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
         assemblyPaths = assemblyPaths.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
@@ -38,7 +38,9 @@ internal sealed class ExportProviderBuilder
             assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
         }
 		*/
-		var assemblyPaths = Enumerable.Empty<string>();
+        IEnumerable<string> assemblyPaths = [
+            typeof (MSBuildLanguageServer).Assembly.Location
+            ];
 		// END MODIFICATION 1
 
         // Add the extension assemblies to the MEF catalog.

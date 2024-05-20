@@ -19,7 +19,9 @@ using System.Threading;
 using System.Threading.Tasks;
 /*
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+*/
 using Microsoft.CodeAnalysis.ErrorReporting;
+/*
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -331,7 +333,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => new LinePosition(position.Line, position.Character);
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-		/*
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var linePosSpan = text.Lines.GetLinePositionSpan(textSpan);
             return LinePositionToRange(linePosSpan);
         }
-
+        /*
         public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
             => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
