@@ -58,10 +58,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 		public static string ToTelemetryString(this WellKnownLspServerKinds serverKind)
 			=> serverKind switch
 			{
-				WellKnownLspServerKinds.MSBuild => "MSBuild",
+				WellKnownLspServerKinds.MSBuild => LanguageName.MSBuild,
 				_ => throw ExceptionUtilities.UnexpectedValue(serverKind),
 			};
 	}
+
+    class LanguageName
+    {
+        public const string MSBuild = nameof(MSBuild);
+    }
 }
 
 // Logger.cs has a Using for this namespace but doesn't actually use classes from it

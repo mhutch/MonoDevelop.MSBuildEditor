@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Core.Tests\MonoDevelop.Xml.Core.Tests.csproj" />
     <ProjectReference Include="..\MSBuildLanguageServer\MSBuildLanguageServer.csproj" />
   </ItemGroup>
 
