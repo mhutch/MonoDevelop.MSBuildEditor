@@ -3,6 +3,7 @@
 
 #nullable enable
 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 using MonoDevelop.Xml.Tests;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 
@@ -77,7 +78,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			var position = parsed.GetMarkedPosition (caretMarker);
 
 			var textView = test.CreateTextView (text);
-			
+
 			return textView;
 		}
 

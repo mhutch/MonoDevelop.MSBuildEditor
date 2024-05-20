@@ -3,6 +3,7 @@
 
 #nullable enable
 
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,10 +11,10 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests.Parser;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 using NUnit.Framework.Internal;

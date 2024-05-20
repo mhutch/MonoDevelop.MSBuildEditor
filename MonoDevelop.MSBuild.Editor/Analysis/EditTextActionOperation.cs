@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
@@ -188,8 +187,8 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections, baseIndentDepth));
 		public EditTextActionOperation InsertAndSelect (int offset, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
 			=> WithEdit (new Edit (EditKind.Insert, new TextSpan (offset, 0), text, relativeSelections ?? new[] { new TextSpan (0, text.Length) }, baseIndentDepth));
-		public EditTextActionOperation InsertAndSelect (int offset, string text, char selectionMarker, int baseIndentDepth = 0)
-			=> WithEdit (Edit.WithMarkedSelection (EditKind.Insert, new TextSpan (offset, 0), text, selectionMarker, baseIndentDepth));
+		public EditTextActionOperation InsertAndSelect (int offset, string textWithMarkers, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Insert, new TextSpan (offset, 0), textWithMarkers, selectionMarker, baseIndentDepth));
 
 		public EditTextActionOperation Replace (int offset, int length, string text, int baseIndentDepth = 0)
 			=> WithEdit (new Edit (EditKind.Replace, new TextSpan (offset, length), text));
@@ -201,10 +200,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public EditTextActionOperation ReplaceAndSelect (TextSpan span, string text, TextSpan[]? relativeSelections = null, int baseIndentDepth = 0)
 			=> WithEdit (new Edit (EditKind.Replace, span, text, relativeSelections ?? new[] { new TextSpan (0, text.Length) }, baseIndentDepth));
 
-		public EditTextActionOperation ReplaceAndSelect (int offset, int length, string text, char selectionMarker, int baseIndentDepth = 0)
-			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, new TextSpan (offset, length), text, selectionMarker, baseIndentDepth));
-		public EditTextActionOperation ReplaceAndSelect (TextSpan span, string text, char selectionMarker, int baseIndentDepth = 0)
-			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, span, text, selectionMarker, baseIndentDepth));
+		public EditTextActionOperation ReplaceAndSelect (int offset, int length, string textWithMarkers, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, new TextSpan (offset, length), textWithMarkers, selectionMarker, baseIndentDepth));
+		public EditTextActionOperation ReplaceAndSelect (TextSpan span, string textWithMarkers, char selectionMarker, int baseIndentDepth = 0)
+			=> WithEdit (Edit.WithMarkedSelection (EditKind.Replace, span, textWithMarkers, selectionMarker, baseIndentDepth));
 
 		public EditTextActionOperation Delete (int offset, int length)
 			=> WithEdit (new Edit (EditKind.Delete, new TextSpan (offset, length)));
@@ -235,11 +234,39 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				BaseIndentDepth = baseIndentDepth;
 			}
 
-			public static Edit WithMarkedSelection (EditKind kind, TextSpan span, string text, char selectionMarker, int? baseIndentDepth = null)
+			public static Edit WithMarkedSelection (EditKind kind, TextSpan span, string textWithMarkers, char selectionMarker, int? baseIndentDepth = null)
 			{
-				var parsed = TextWithMarkers.Parse (text, selectionMarker);
-				var relativeSelections = parsed.GetMarkedSpans ();
-				return new Edit (kind, span, parsed.Text, relativeSelections, baseIndentDepth);
+				(var text, var relativeSelections) = ExtractSpans (textWithMarkers, selectionMarker);
+
+				return new Edit (kind, span, text, relativeSelections.ToArray (), baseIndentDepth);
+			}
+
+			static (string text, List<TextSpan> selections) ExtractSpans (string textWithMarkers, char selectionMarker)
+			{
+				var spans = new List<TextSpan> ();
+
+				int spanStart = -1;
+				var cleanTextBuilder = new StringBuilder (textWithMarkers.Length);
+
+				for (int i = 0; i < textWithMarkers.Length; i++) {
+					char c = textWithMarkers[i];
+					if (c == selectionMarker) {
+						if (spanStart < 0) {
+							spanStart = cleanTextBuilder.Length;
+						} else {
+							spans.Add (new TextSpan (spanStart, cleanTextBuilder.Length));
+							spanStart = -1;
+						}
+					} else {
+						cleanTextBuilder.Append (c);
+					}
+				}
+
+				if (spanStart > -1) {
+					throw new ArgumentException ("Odd number of markers");
+				}
+
+				return new (cleanTextBuilder.ToString (), spans);
 			}
 		}
 
