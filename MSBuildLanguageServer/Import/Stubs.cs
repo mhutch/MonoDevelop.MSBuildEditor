@@ -6,39 +6,6 @@
 using System.Composition;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
-{
-	public abstract class HostServices
-	{
-		protected internal abstract HostWorkspaceServices CreateWorkspaceServices (Workspace workspace);
-	}
-}
-
-namespace Microsoft.CodeAnalysis.Host.Mef
-{
-	class MefWorkspaceServices : HostWorkspaceServices
-	{
-		public MefWorkspaceServices (IMefHostExportProvider host, Workspace workspace)
-		{
-		}
-	}
-}
-
-namespace Microsoft.CodeAnalysis.Host
-{
-	public abstract class HostWorkspaceServices
-	{
-	}
-}
-
-namespace Microsoft.CodeAnalysis
-{
-	public class Workspace
-	{
-	}
-}
-
-
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
 	enum WellKnownLspServerKinds
@@ -89,3 +56,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions
 
 }
 
+namespace Microsoft.CodeAnalysis.Serialization
+{
+    struct AssetPath
+    {
+        public bool IncludeDocumentAttributes { get; }
+        public bool IncludeDocumentText { get; }
+    }
+}

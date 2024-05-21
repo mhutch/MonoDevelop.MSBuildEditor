@@ -1,6 +1,7 @@
 // based on
 // https://raw.githubusercontent.com/dotnet/roslyn/b9c35f1021d2d9d40521474c388d49ee7580ec98/src/Features/LanguageServer/Protocol/Handler/RequestContext.cs
-// with some parts commented out with /* */ comments
+// portions commented out using /* */ comments
+// and other changes annotated inline with // MODIFICATION
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.

@@ -47,6 +47,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer" Alias="RoslynLanguageServer" />
+    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.Workspace" Alias="Workspace" />
   </ItemGroup>
 
   <ItemGroup>
