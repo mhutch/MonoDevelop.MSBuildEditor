@@ -7,6 +7,11 @@
     <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Exe</OutputType>
+    <!--
+    Makes some of the imported roslyn code compile unmodified.
+    May have other implications but none found so far.
+    -->
+    <DefineConstants>$(DefineConstants);CODE_STYLE</DefineConstants>
     <NoWarn>
       $(NoWarn);
       <!--
@@ -101,7 +106,6 @@
     <Compile Remove="../external/roslyn/src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/NewtonsoftLanguageServer.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/IMefHostExportProvider.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostServicesProvider.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Remote/Core/VisualStudioMefHostServices.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidOpenHandler.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidChangeHandler.cs" />
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/DocumentChanges/DidCloseHandler.cs" />
@@ -109,34 +113,14 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/Handler/IDocumentChangeTracker.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/SpecializedTasks.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/FixedSizeArrayBuilder.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/TaskScheduler/ITaskSchedulerProvider.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/IWorkspaceService.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/TaskScheduler/IWorkspaceAsynchronousOperationListenerProvider.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/TaskQueue.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/TextLoader.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/TextAndVersion.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/TextDocumentState_Checksum.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/TextDocumentStates.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/VersionSource/ITextAndVersionSource.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/ConstantTextAndVersionSource.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/LoadTextOptions.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/PreservationMode.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/TemporaryStorage/ITemporaryStorageTextHandle.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/VersionSource/RecoverableTextAndVersion.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/VersionStamp.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/Checksum.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/Checksum_Factory.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/AsyncLazy.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/AsyncLazy`1.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Serialization/SerializableSourceText.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Solution/VersionSource/LoadableTextAndVersionSource.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Helpers/MefHostServicesHelpers.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/HostServices.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/Mef/ExportWorkspaceServiceAttribute.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/WorkspaceServiceMetadata.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Workspace/Host/Mef/IWorkspaceServiceFactory.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/LanguageServiceMetadata.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefLanguageServices.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/LayeredServiceUtilities.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefWorkspaceServices.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILayeredServiceMetadata.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILanguageMetadata.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/IDictionaryExtensions.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
@@ -149,6 +133,8 @@
       LogicalName="Microsoft.CodeAnalysis.LanguageServer.LanguageServerProtocolResources" />
     <EmbeddedResource Include="../external/roslyn/src/Compilers/Core/Portable/CodeAnalysisResources.resx"
       GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeAnalysisResources" />
+    <EmbeddedResource Include="../external/roslyn/src/CodeStyle/Core/Analyzers/CodeStyleResources.resx"
+      GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeStyleResources" />
   </ItemGroup>
 
   <ItemGroup>
@@ -173,14 +159,8 @@
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="StreamJsonRpc" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.Workspace" Alias="Workspace" />
-    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.DocumentId" Alias="DocumentId" />
-    <!-- we don't have solutions or projects, so merge the solution and workspace services -->
-    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.WorkspaceServices" Alias="SolutionServices" />
-    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.WorkspaceServices" Alias="HostWorkspaceServices" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" PrivateAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>

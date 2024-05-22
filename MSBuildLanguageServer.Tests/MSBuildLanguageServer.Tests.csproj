@@ -26,11 +26,9 @@
     <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/NoOpLspLogger.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/ITestErrorHandler.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/ExportProviderCache.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Helpers/MefHostServicesHelpers.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext+DenyExecutionSynchronizationContext.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListenerProvider.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/UseExportProviderAttribute.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
     <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
   </ItemGroup>
@@ -42,12 +40,12 @@
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" PrivateAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer" Alias="RoslynLanguageServer" />
-    <Using Include="MonoDevelop.MSBuild.Editor.LanguageServer.Workspace" Alias="Workspace" />
   </ItemGroup>
 
   <ItemGroup>

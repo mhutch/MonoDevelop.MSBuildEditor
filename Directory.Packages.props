@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <RoslynVersion>4.5</RoslynVersion>
     <!--
     We cannot go higher than 17.5.
     IConnectedSpan gained a new Disconnect() method in 17.6, which MiniEditor cannot implement as it is internal.
@@ -14,9 +15,10 @@
     <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
-    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="17.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VSEditorNugetVersion)" />
@@ -24,7 +26,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.5.33428.366" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="$(RoslynVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
     <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VSEditorNugetVersion)" />
