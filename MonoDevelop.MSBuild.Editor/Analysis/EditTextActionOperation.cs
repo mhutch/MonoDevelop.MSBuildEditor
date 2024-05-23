@@ -254,7 +254,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 						if (spanStart < 0) {
 							spanStart = cleanTextBuilder.Length;
 						} else {
-							spans.Add (new TextSpan (spanStart, cleanTextBuilder.Length));
+							spans.Add (TextSpan.FromBounds (spanStart, cleanTextBuilder.Length));
 							spanStart = -1;
 						}
 					} else {
