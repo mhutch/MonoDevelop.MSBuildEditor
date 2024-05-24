@@ -66,17 +66,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // UseExportProviderAttribute to test classes that rely on it.
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
 
-            testHookMethod = typeof(MefHostServices)
-                .GetNestedType("TestAccessor", BindingFlags.NonPublic)
-                ?.GetMethod("TestAccessor", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+            // don't really have anywhere better to put this right now
+            MonoDevelop.MSBuild.Tests.Helpers.MSBuildTestHelpers.RegisterMSBuildAssemblies();
+
+            var hostServicesType = typeof(MefHostServices);
+            var testAccessorType = hostServicesType.GetNestedType("TestAccessor", BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("Could not get test accessor type MefHostServices.TestAccessor");
+            creationHookType = hostServicesType.GetNestedType("CreationHook", BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("Could not get test accessor type MefHostServices.CreationHook");
+            testHookMethod = testAccessorType.GetMethod("HookServiceCreation", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
                 ?? throw new InvalidOperationException("Could not get test accessor method for MefHostServices.TestAccessor.HookServiceCreation");
         }
 
+        static Type creationHookType;
         static MethodInfo testHookMethod;
 
         static void HookServiceCreationViaReflection(Func<IEnumerable<Assembly>, MefHostServices> hook)
         {
-            testHookMethod.Invoke(null, [hook]);
+            var handler = new HookHandler(hook);
+            var creationHook = Delegate.CreateDelegate(creationHookType, handler, typeof(HookHandler).GetMethod("Run")!);
+            testHookMethod.Invoke(null, [creationHook]);
+        }
+
+        class HookHandler(Func<IEnumerable<Assembly>, MefHostServices> hook)
+        {
+            public MefHostServices Run(IEnumerable<Assembly> assemblies) => hook(assemblies);
         }
 
         public override void Before(MethodInfo? methodUnderTest)

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Workspace;
 
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -171,17 +172,16 @@ internal readonly struct RequestContext
     private readonly ILspLogger _logger;
 
     public RequestContext(
-        Workspace? workspace,
         /*
+        Workspace? workspace,
         Solution? solution,
         */
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        /*
-        TextDocument? document,
-        */
+        // MODOFICATION: changed from TextDocument to LspEditorDocument
+        LspEditorDocument? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
@@ -201,6 +201,10 @@ internal readonly struct RequestContext
         }
         */
 
+        // MODIFICATION: new code
+        this.document = document;
+        // END MODIFICATION
+
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
@@ -219,6 +223,14 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
+    // MODIFICATION new code based on GetRequiredDocument
+    readonly LspEditorDocument? document;
+
+    public LspEditorDocument? Document => document;
+
+    public LspEditorDocument GetRequiredDocument() => document ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}");
+    // END MODIFCATION
+
     /*
     public Document GetRequiredDocument()
     {
@@ -226,7 +238,7 @@ internal readonly struct RequestContext
             ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
             : Document;
     }
-
+/*
     public TextDocument GetRequiredTextDocument()
     {
         return TextDocument is null
@@ -247,7 +259,8 @@ internal readonly struct RequestContext
         string method,
         CancellationToken cancellationToken)
     {
-        var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        // MODIFICATION: changed LspWorkspaceManager to LspEditorWorkspace
+        var lspWorkspaceManager = lspServices.GetRequiredService<LspEditorWorkspace>();
         var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
 
         // Retrieve the current LSP tracked text as of this request.
@@ -259,17 +272,23 @@ internal readonly struct RequestContext
         // 2. We explicitly don't give the handler a solution or document, even if we could
         //    so they're not accidentally operating on stale solution state.
         RequestContext context;
-        /*
         if(!requiresLSPSolution)
         {
-        */
             context = new RequestContext(
-                workspace: null, /*solution: null,*/ logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, /*document: null,*/
+                /*workspace: null, solution: null,*/ logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
                 queueCancellationToken: cancellationToken);
-        /*
+
         } else
         {
+            // MODIFICATION: New code
+            if (textDocument is null) {
+                throw new ArgumentNullException($"{nameof(textDocument)} is null when it was required for {method}");
+            }
+
+            var document = lspWorkspaceManager.GetEditorDocument(textDocument.Uri);
+            // END MODIFICATION
+            /*
             Workspace? workspace = null;
             Solution? solution = null;
             TextDocument? document = null;
@@ -293,10 +312,10 @@ internal readonly struct RequestContext
                 FatalError.ReportWithDumpAndCatch(new Exception(
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
-
-            context = new RequestContext(
+*/
+            context = new RequestContext(/*
                 workspace,
-                solution,
+                solution,*/
                 logger,
                 method,
                 clientCapabilities,
@@ -308,7 +327,6 @@ internal readonly struct RequestContext
                 lspServices,
                 cancellationToken);
         }
-        */
 
         return context;
     }

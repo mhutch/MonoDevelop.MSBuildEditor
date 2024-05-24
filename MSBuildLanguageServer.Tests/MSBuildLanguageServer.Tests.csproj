@@ -31,6 +31,7 @@
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
     <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs"/>
   </ItemGroup>
 
   <ItemGroup>

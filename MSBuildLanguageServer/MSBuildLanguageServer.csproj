@@ -121,6 +121,9 @@
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILayeredServiceMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILanguageMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/IDictionaryExtensions.cs" />
+    <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.cs" />
+    <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.ParseOperation.cs" />
+    <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParseService.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
@@ -145,11 +148,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../MonoDevelop.MSBuild.Editor/MonoDevelop.MSBuild.Editor.csproj" />
     <ProjectReference Include="../MonoDevelop.MSBuild/MonoDevelop.MSBuild.csproj" />
     <ProjectReference Include="../MonoDevelop.Xml/Core/MonoDevelop.Xml.Core.csproj" />
-    <ProjectReference Include="../MonoDevelop.Xml/Editor/MonoDevelop.Xml.Editor.csproj" />
-    <ProjectReference Include="../MonoDevelop.Xml/external/MiniEditor/Microsoft.VisualStudio.MiniEditor/Microsoft.VisualStudio.MiniEditor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
