@@ -4,13 +4,13 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$ts-webpack-watch",
-			"isBackground": true,
+			"label": "Build VS Code Extension in Background",
+			"dependsOn": [
+				"npm: watch:tsc",
+				"npm: watch:esbuild"
+			],
 			"presentation": {
-				"reveal": "never",
-				"group": "watchers"
+				"reveal": "never"
 			},
 			"group": {
 				"kind": "build",
@@ -18,9 +18,55 @@
 			}
 		},
 		{
+			"label": "npm: watch:esbuild",
+			"type": "npm",
+			"script": "watch:esbuild",
+			"path": "msbuild-editor-vscode",
+			"group": "build",
+			"problemMatcher": {
+				"base": "$esbuild-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
+			"isBackground": true,
+			"presentation": {
+				"group": "watch",
+				"reveal": "never"
+			}
+		},
+		{
+			"label": "npm: watch:tsc",
+			"type": "npm",
+			"script": "watch:tsc",
+			"path": "msbuild-editor-vscode",
+			"group": "build",
+			"problemMatcher": {
+				"base": "$tsc-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
+			"isBackground": true,
+			"presentation": {
+				"group": "watch",
+				"reveal": "never"
+			}
+		},
+		{
+			"label": "npm: watch-tests",
 			"type": "npm",
 			"script": "watch-tests",
-			"problemMatcher": "$tsc-watch",
+			"path": "msbuild-editor-vscode",
+			"problemMatcher": {
+				"base": "$tsc-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
 			"isBackground": true,
 			"presentation": {
 				"reveal": "never",
@@ -29,7 +75,7 @@
 			"group": "build"
 		},
 		{
-			"label": "tasks: watch-tests",
+			"label": "Build VS Code Tests in Background",
 			"dependsOn": [
 				"npm: watch",
 				"npm: watch-tests"

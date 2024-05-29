@@ -4,8 +4,9 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "amodio.tsl-problem-matcher",
+    "ms-vscode.extension-test-runner",
     "ms-dotnettools.csharp",
     "streetsidesoftware.code-spell-checker",
-    "editorconfig.editorconfig"
+    "editorconfig.editorconfig",
   ]
 }
