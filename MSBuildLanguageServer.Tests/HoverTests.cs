@@ -20,7 +20,15 @@ public class HoverTests(ITestOutputHelper testOutputHelper) : AbstractLanguageSe
     {
         (string documentText, int caretPos) = TextWithMarkers.ExtractSinglePosition (@"<Pro|ject></Project>", '|');
 
-        await using var testLspServer = await CreateTestLspServerAsync(documentText, false, CapabilitiesWithVSExtensions);
+        var capabilities = new LSP.ClientCapabilities {
+            TextDocument = new LSP.TextDocumentClientCapabilities {
+                Hover = new LSP.HoverSetting {
+                    ContentFormat = [ LSP.MarkupKind.PlainText ]
+                }
+            }
+        };
+
+        await using var testLspServer = await CreateTestLspServerAsync(documentText, false, capabilities);
 
         var documentId = new LSP.TextDocumentIdentifier { Uri = new Uri("file://foo.csproj") };
 
@@ -48,7 +56,10 @@ public class HoverTests(ITestOutputHelper testOutputHelper) : AbstractLanguageSe
             CancellationToken.None);
 
         Assert.NotNull(result);
+
         var markup = Assert.IsType<LSP.MarkupContent>(result.Contents?.Value);
-        Assert.Equal("Hello", markup.Value);
+        var markupValue = markup.Value.Replace("\r\n", "\n");
+
+        Assert.Equal("keyword Project\nAn MSBuild project.", markupValue);
     }
 }

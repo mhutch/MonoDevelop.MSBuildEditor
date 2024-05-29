@@ -83,7 +83,7 @@ partial class LspXmlParserService
     {
         XmlSpineParser? parser = null;
 
-        var offset = text.GetOffsetFromPosition(point);
+        var offset = point.ToOffset (text);
 
         if(baseline is not null)
         {

@@ -124,6 +124,7 @@
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.cs" />
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.ParseOperation.cs" />
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParseService.cs" />
+    <Compile Remove="../external/roslyn/src/Features/LanguageServer/Protocol/Protocol/ClientCapabilities.cs" />
   </ItemGroup>
 
   <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />

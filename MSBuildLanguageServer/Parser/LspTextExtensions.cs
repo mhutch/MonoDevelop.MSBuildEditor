@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Text;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+
 using MonoDevelop.Xml.Parser;
 
 using BF = System.Reflection.BindingFlags;
@@ -34,9 +36,6 @@ static class LspTextExtensions
 
         return result ? 1 : -1;
     }
-
-    public static int GetOffsetFromPosition(this SourceText text, LinePosition position)
-        => text.Lines[position.Line].Start + position.Character;
 
     // TODO: convert users of this to use SourceText instead
     public static ITextSource GetTextSource(this SourceText text)
