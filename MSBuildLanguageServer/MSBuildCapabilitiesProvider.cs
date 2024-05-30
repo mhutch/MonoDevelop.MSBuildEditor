@@ -8,9 +8,11 @@ using Roslyn.LanguageServer.Protocol;
 [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
 class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
 {
-	public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
-	{
-		var capabilities = new ServerCapabilities ();
-		return capabilities;
-	}
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    {
+        var capabilities = new ServerCapabilities {
+            HoverProvider = true
+        };
+        return capabilities;
+    }
 }

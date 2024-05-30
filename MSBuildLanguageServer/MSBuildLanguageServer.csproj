@@ -162,6 +162,7 @@
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" PrivateAssets="runtime" />
+    <PackageReference Include ="Microsoft.Build.Locator "/>
   </ItemGroup>
 
   <ItemGroup>

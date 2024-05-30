@@ -91,7 +91,8 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
 
         if(rr.ReferenceKind == MSBuildReferenceKind.NuGetID)
         {
-            var packageSearchManager = context.GetRequiredService<NuGetSearchService>();
+            var packageSearchManager = context.GetRequiredLspService<NuGetSearchService>();
+
             var renderer = CreateRenderer();
             return await CreateNuGetQuickInfo(renderer, packageSearchManager, logger, sourceText, doc, rr, cancellationToken);
         }
@@ -146,11 +147,13 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
             //FIXME: can we use the correct version here?
             var infos = await packageSearchManager.SearchPackageInfo(packageId, null, frameworkId).ToTask(token);
 
+
             //prefer non-local results as they will have more metadata
             info = infos
                 .FirstOrDefault(p => p.SourceKind != ProjectFileTools.NuGetSearch.Feeds.FeedKind.Local)
                 ?? infos.FirstOrDefault();
-        } catch(Exception ex) when(!(ex is OperationCanceledException && token.IsCancellationRequested))
+        }
+        catch(Exception ex) when(!(ex is OperationCanceledException && token.IsCancellationRequested))
         {
             logger.LogException(ex);
         }

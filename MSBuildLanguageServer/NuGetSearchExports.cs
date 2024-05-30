@@ -67,6 +67,9 @@ internal class ExportedWebRequestFactory : WebRequestFactory
 [Export(typeof(IPackageFeedRegistryProvider))]
 internal class ExportedPackageFeedRegistryProvider : IPackageFeedRegistryProvider
 {
-    // TODO: where should we get this from?
-    public IReadOnlyList<string> ConfiguredFeeds => Array.Empty<string>();
+    // TODO: where should we get this from? hardcode some basic ones for now
+    public IReadOnlyList<string> ConfiguredFeeds { get; } = [
+        "https://api.nuget.org/v3/index.json",
+        Environment.ExpandEnvironmentVariables("%USERPROFILE%\\.nuget\\packages")
+    ];
 }

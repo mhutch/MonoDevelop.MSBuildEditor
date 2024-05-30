@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
             var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
+            // TODO: MSBuildRuntimeService
+            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
             AddBaseService<AbstractLspLogger>(logger);
