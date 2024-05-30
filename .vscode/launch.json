@@ -12,9 +12,10 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}/msbuild-editor-vscode",
-				"--disable-extensions",
-				//"--profile-temp"
 			],
+			"env": {
+				"MSBUILD_LANGUAGE_SERVER_PATH": "${workspaceFolder}/artifacts/bin/MSBuildLanguageServer/debug/MSBuildLanguageServer.dll",
+			},
 			"outFiles": [
 				"${workspaceFolder}/msbuild-editor-vscode/dist/**/*.js"
 			],
