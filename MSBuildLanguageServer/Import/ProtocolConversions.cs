@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
+
+        // MODIFICATION: added accessor for markdown escape regex
+        public static string EscapeMarkdown(string unescaped) => s_markdownEscapeRegex.Replace(unescaped, @"\$1");
 /*
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
         // way which can confuse users

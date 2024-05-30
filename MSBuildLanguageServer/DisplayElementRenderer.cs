@@ -302,7 +302,7 @@ partial class DisplayElementRenderer
 
 		if (navs.Count == 1) {
             sb.Append("Resolved path: ");
-            sb.Append($"[{navs[0].Path}]({ProtocolConversions.CreateAbsoluteUri(navs[0].Path)})");
+            AddFileLink(navs[0].Path);
             return sb.ToString();
 		}
 
@@ -311,7 +311,7 @@ partial class DisplayElementRenderer
 		int i = 0;
 		foreach (var location in navs) {
             AddBreak();
-            sb.Append($"[{location.Path}]({ProtocolConversions.CreateAbsoluteUri(location.Path)})");
+            AddFileLink(location.Path);
 			if (i == 5) {
                 AddBreak();
                 // TODO: make this a link
@@ -501,7 +501,6 @@ partial class DisplayElementRenderer
             return sb.ToString();
         }
 
-
 		var nugetOrgUrl = package.GetNuGetOrgUrl ();
 		if (nugetOrgUrl != null) {
             NewBlock();
@@ -515,11 +514,31 @@ partial class DisplayElementRenderer
             AddLink(projectUrl, "Go to project URL");
 		}
 
-
         return sb.ToString ();
 	}
 
-	void AddLink (string url, string linkText) => sb.Append ($"[{linkText}({url})");
+	void AddLink (string url, string linkText)
+    {
+		if(!supportsMarkdown)
+		{
+			throw new NotSupportedException ("Cannot add link when markdown is not supported");
+		}
+		sb.Append ($"[{Escape(linkText)}]({url})");
+	}
+
+	void AddFileLink (string filePath, string? linkText = null)
+	{
+		if (!supportsMarkdown)
+		{
+		    sb.Append(filePath);
+		    return;
+		}
+		var fullPath = Path.GetFullPath(filePath);
+		var uriString = ProtocolConversions.GetAbsoluteUriString(fullPath);
+		sb.Append ($"[{Escape(linkText ?? filePath)}]({uriString})");
+	}
+
+	static string Escape(string s) => ProtocolConversions.EscapeMarkdown (s);
 
 	//public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessage () ?? diagnostic.GetFormattedTitle ());
 
