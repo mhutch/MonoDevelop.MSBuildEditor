@@ -32,7 +32,6 @@ import {
     CancellationToken,
     RequestHandler,
     ResponseError,
-	DocumentSelector,
 } from 'vscode-languageclient/node';
 import { PlatformInformation } from '../shared/platform';
 import TelemetryReporter from '@vscode/extension-telemetry';
@@ -46,6 +45,15 @@ import { NamedPipeInformation } from './roslynProtocol';
 
 let _channel: vscode.OutputChannel;
 let _traceChannel: vscode.OutputChannel;
+
+export interface RoslynLanguageServerDefinition {
+	clientId : string,
+	clientName : string,
+	clientOptions: LanguageClientOptions,
+	serverPathEnvVar: string,
+	bundledServerPath : string
+	commandIdPrefix : string,
+}
 
 export interface RoslynLanguageServerOptions extends DotnetRuntimeResolverOptions {
 	readonly serverPath: string | undefined;
@@ -108,15 +116,11 @@ export class RoslynLanguageServer {
      * This promise will complete when the server starts.
      */
     public static async initializeAsync(
-		clientId : string,
-		clientName : string,
+		lspDefinition : RoslynLanguageServerDefinition,
         platformInfo: PlatformInformation,
         hostExecutableResolver: IHostExecutableResolver,
         context: vscode.ExtensionContext,
         telemetryReporter: TelemetryReporter,
-		documentSelector: DocumentSelector,
-		serverPathEnvVar: string,
-		bundledServerPath : string,
 		lspOptions: RoslynLanguageServerOptions
     ): Promise<RoslynLanguageServer> {
         const serverOptions: ServerOptions = async () => {
@@ -125,45 +129,39 @@ export class RoslynLanguageServer {
                 hostExecutableResolver,
                 context,
                 telemetryReporter,
-				serverPathEnvVar,
-				bundledServerPath,
+				lspDefinition.serverPathEnvVar,
+				lspDefinition.bundledServerPath,
 				lspOptions
             );
         };
 
-        // Options to control the language client
-        const clientOptions: LanguageClientOptions = {
-            // Register the server for plain csharp documents
-            documentSelector: documentSelector,
-            synchronize: {
-                fileEvents: [],
-            },
-            traceOutputChannel: _traceChannel,
-            outputChannel: _channel,
-            uriConverters: {
-                // VSCode encodes the ":" as "%3A" in file paths, for example "file:///c%3A/Users/dabarbet/source/repos/ConsoleApp8/ConsoleApp8/Program.cs".
-                // System.Uri does not decode the LocalPath property correctly into a valid windows path, instead you get something like
-                // "/c:/Users/dabarbet/source/repos/ConsoleApp8/ConsoleApp8/Program.cs" (note the incorrect forward slashes and prepended "/").
-                // Properly decoded, it would look something like "c:\Users\dabarbet\source\repos\ConsoleApp8\ConsoleApp8\Program.cs"
-                // So instead we decode the URI here before sending to the server.
-                code2Protocol: UriConverter.serialize,
-                protocol2Code: UriConverter.deserialize,
-            },
-			/*
+		// TODO: clone instead of mutate, or replace lspDefinition.clientOptions with a set of specific things we can copy
+		lspDefinition.clientOptions.traceOutputChannel = _traceChannel;
+		lspDefinition.clientOptions.outputChannel = _channel;
+		lspDefinition.clientOptions.uriConverters = {
+			// VSCode encodes the ":" as "%3A" in file paths, for example "file:///c%3A/Users/dabarbet/source/repos/ConsoleApp8/ConsoleApp8/Program.cs".
+			// System.Uri does not decode the LocalPath property correctly into a valid windows path, instead you get something like
+			// "/c:/Users/dabarbet/source/repos/ConsoleApp8/ConsoleApp8/Program.cs" (note the incorrect forward slashes and prepended "/").
+			// Properly decoded, it would look something like "c:\Users\dabarbet\source\repos\ConsoleApp8\ConsoleApp8\Program.cs"
+			// So instead we decode the URI here before sending to the server.
+			code2Protocol: UriConverter.serialize,
+			protocol2Code: UriConverter.deserialize,
+		};
+
+		/*
             middleware: {
                 workspace: {
                     configuration: (params) => readConfigurations(params),
                 },
             },
-			*/
-        };
+		*/
 
         // Create the language client and start the client.
         const client = new RoslynLanguageClient(
-            clientId,
-            clientName,
+            lspDefinition.clientId,
+            lspDefinition.clientName,
             serverOptions,
-            clientOptions,
+            lspDefinition.clientOptions,
 			lspOptions
         );
 
@@ -461,27 +459,22 @@ export class RoslynLanguageServer {
  * The returned promise will complete when the server starts.
  */
 export async function activateRoslynLanguageServer(
-	commandIdPrefix : string,
-	clientId : string,
-	clientName : string,
+	lspDefinition : RoslynLanguageServerDefinition,
     context: vscode.ExtensionContext,
     platformInfo: PlatformInformation,
     optionObservable: Observable<void>,
     outputChannel: vscode.OutputChannel,
     reporter: TelemetryReporter,
-	documentSelector: DocumentSelector,
-	serverPathEnvVar: string,
-	bundledServerPath : string,
 	lspOptions: RoslynLanguageServerOptions
 ): Promise<RoslynLanguageServer> {
     // Create a channel for outputting general logs from the language server.
     _channel = outputChannel;
     // Create a separate channel for outputting trace logs - these are incredibly verbose and make other logs very difficult to see.
-    _traceChannel = vscode.window.createOutputChannel(`${clientName} Trace Logs`);
+    _traceChannel = vscode.window.createOutputChannel(`${lspDefinition.clientName} Trace Logs`);
 
     const hostExecutableResolver = new DotnetRuntimeExtensionResolver(
         platformInfo,
-        (platformInfo: PlatformInformation) => getServerPath(platformInfo, serverPathEnvVar, bundledServerPath, lspOptions),
+        (platformInfo: PlatformInformation) => getServerPath(platformInfo, lspDefinition.serverPathEnvVar, lspDefinition.bundledServerPath, lspOptions),
         outputChannel,
         context.extensionPath,
 		context.extension.id,
@@ -489,19 +482,15 @@ export async function activateRoslynLanguageServer(
     );
 
     const languageServer = await RoslynLanguageServer.initializeAsync(
-		clientId,
-		clientName,
+		lspDefinition,
         platformInfo,
         hostExecutableResolver,
         context,
         reporter,
-		documentSelector,
-		serverPathEnvVar,
-		bundledServerPath,
 		lspOptions
     );
 
-	registerCommands(commandIdPrefix, context, languageServer, hostExecutableResolver, _channel);
+	registerCommands(lspDefinition.commandIdPrefix, context, languageServer, hostExecutableResolver, _channel);
 
     context.subscriptions.push(registerLanguageServerOptionChanges(optionObservable, languageServer, lspOptions, RoslynLanguageOptionsThatTriggerReload));
 

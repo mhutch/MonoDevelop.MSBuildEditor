@@ -18,7 +18,8 @@ import { PlatformInformation } from './shared/platform';
 //import { TelemetryObserver } from './observers/telemetryObserver';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import createOptionStream from './shared/observables/createOptionStream';
-import { RoslynLanguageServer, activateRoslynLanguageServer, RoslynLanguageServerOptions } from './lsptoolshost/roslynLanguageServer';
+import { RoslynLanguageServer, activateRoslynLanguageServer, RoslynLanguageServerOptions, RoslynLanguageServerDefinition } from './lsptoolshost/roslynLanguageServer';
+import { LanguageClientOptions } from 'vscode-languageclient';
 import path from 'path';
 /*
 import { ServerStateChange } from './lsptoolshost/serverStateChange';
@@ -26,7 +27,7 @@ import { languageServerOptions } from './shared/options';
 import { getComponentFolder } from './lsptoolshost/builtInComponents';
 */
 
-export async function activate(context: vscode.ExtensionContext, lspOptions : RoslynLanguageServerOptions) {
+export async function activate(context: vscode.ExtensionContext, lspOptions : RoslynLanguageServerOptions, lspDefinition : RoslynLanguageServerDefinition) {
     const optionStream = createOptionStream("msbuild");
 
     const eventStream = new EventStream();
@@ -75,23 +76,14 @@ export async function activate(context: vscode.ExtensionContext, lspOptions : Ro
 		});
 	});
 */
-	const commandIdPrefix = "msbuild";
-	const clientId = "msbuild-lsp";
-	const clientName = "MSBuild LSP";
-
 	// Start the server, but do not await the completion to avoid blocking activation.
 	roslynLanguageServerStartedPromise = activateRoslynLanguageServer(
-		commandIdPrefix,
-		clientId,
-		clientName,
+		lspDefinition,
 		context,
 		platformInfo,
 		optionStream,
 		csharpChannel,
 		reporter,
-		[{ scheme: 'file', language: 'msbuild' }],
-		"MSBUILD_LANGUAGE_SERVER_PATH",
-		path.join(context.extensionPath, 'server', 'MSBuildLanguageServer.dll'),
 		lspOptions
 	);
 
