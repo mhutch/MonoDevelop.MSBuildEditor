@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as roslyn from './roslynImport/main';
 import { workspace, ExtensionContext } from 'vscode';
 import { msbuildEditorOptions } from './options';
+import hoverMiddleware from './hoverMiddleware';
 import { RoslynLanguageServerDefinition } from './roslynImport/lsptoolshost/roslynLanguageServer';
 import path from 'path';
 
@@ -17,6 +18,9 @@ export function activate(context: ExtensionContext) {
 			markdown: {
 				supportHtml: true
 			},
+			middleware: {
+				provideHover: hoverMiddleware,
+			}
 		},
 		serverPathEnvVar: 'MSBUILD_LANGUAGE_SERVER_PATH',
 		bundledServerPath: path.join(context.extensionPath, 'server', 'MSBuildLanguageServer.dll'),
