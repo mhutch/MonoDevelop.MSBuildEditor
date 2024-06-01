@@ -14,6 +14,7 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 

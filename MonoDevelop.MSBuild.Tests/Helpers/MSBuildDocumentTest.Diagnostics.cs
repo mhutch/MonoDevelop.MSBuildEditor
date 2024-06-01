@@ -108,7 +108,7 @@ partial class MSBuildDocumentTest
 						Is.EquivalentTo (expectedDiag.Properties ?? Enumerable.Empty<KeyValuePair<string, object>> ())
 						.UsingDictionaryComparer<string, object> ());
 					// checks messageArgs
-					Assert.That (actualDiag.GetFormattedMessage (), Is.EqualTo (expectedDiag.GetFormattedMessage ()));
+					Assert.That (actualDiag.GetFormattedMessageWithTitle (), Is.EqualTo (expectedDiag.GetFormattedMessageWithTitle ()));
 					found = true;
 					actualDiagnostics.RemoveAt (i);
 					break;

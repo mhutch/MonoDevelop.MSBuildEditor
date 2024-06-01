@@ -3,6 +3,7 @@
 
 #nullable enable
 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,11 @@ using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 using MonoDevelop.Xml.Tests;
+using MonoDevelop.Xml.Tests.Utils;
+
+using TextSpan = MonoDevelop.Xml.Dom.TextSpan;
 
 using NUnit.Framework;
 
@@ -49,16 +52,17 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			where T : MSBuildRefactoringProvider, new()
 		{
 			var refactoringService = new MSBuildRefactoringService (new[] { new T () });
-			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker);
+			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker, allowZeroWidthSingleMarker: true);
 
 			return test.GetRefactorings (refactoringService, textView, cancellationToken);
 		}
 
-		public static ITextView CreateTextViewWithSelection (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker)
+		public static ITextView CreateTextViewWithSelection (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker, bool allowZeroWidthSingleMarker = false)
 		{
 			var parsed = TextWithMarkers.Parse (documentWithSelection, selectionMarker);
+
 			var text = parsed.Text;
-			var selection = parsed.GetMarkedSpan (selectionMarker);
+			TextSpan selection = parsed.GetMarkedSpan (selectionMarker, allowZeroWidthSingleMarker);
 
 			var textView = test.CreateTextView (text);
 
@@ -77,7 +81,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			var position = parsed.GetMarkedPosition (caretMarker);
 
 			var textView = test.CreateTextView (text);
-			
+
 			return textView;
 		}
 
@@ -146,7 +150,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			where TAnalyzer : MSBuildAnalyzer, new()
 			where TCodeFix : MSBuildFixProvider, new()
 		{
-			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker);
+			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker, allowZeroWidthSingleMarker: true);
 
 			return test.GetCodeFixes ([new TAnalyzer ()], [new TCodeFix ()], textView, textView.Selection.SelectedSpans.Single(), requestedSeverities, false, null, logger, cancellationToken);
 		}

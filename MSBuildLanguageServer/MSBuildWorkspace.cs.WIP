@@ -1,0 +1,80 @@
+using Microsoft.CodeAnalysis;
+
+using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Schema;
+
+namespace MonoDevelop.MSBuild.Editor.LanguageServer;
+
+class MSBuildWorkspace
+{
+    // msbuild workspace directs files into solutions/projects
+    // solution represents projects that are grouped together for find references etc
+
+    // generic processor that processes open documents
+
+    // xml processor
+
+}
+
+/// <summary>
+/// Represents an MSBuild project or entrypoint and the files it transitively imports.
+/// The imported files may be part of more than one project.
+/// </summary>
+class MSBuildProject
+{
+
+}
+
+/// <summary>
+/// A group of related projects considered together for find references, renames, etc.
+/// A project may only be part of one ProjectGroup.
+/// </summary>
+class MSBuildProjectGroup
+{
+
+}
+
+/// <summary>
+/// Subscribes to change events from MSBuildOpenDocumentTracker (for now),
+/// runs analyzers, and fires events when diagnostics are updated
+/// </summary>
+class MSBuildAnalyzerService
+{
+
+}
+
+
+/// <summary>
+/// Tracks open documents and fires events when they change
+/// </summary>
+class MSBuildOpenDocumentTracker
+{
+    Dictionary<DocumentId, TextAndVersion> openDocuments = new();
+
+    public void OpenDocument(string filePath)
+    {
+
+    }
+    // open documents
+    // open document
+    // close document
+    // update document text
+}
+
+/// <summary>
+/// Immutable representation of an MSBuild document state at some point in time.
+/// ALWAYS HAS A PATH: we are discarding the ability to work on unsaved files for now as it complicates things, can add it back later if needed.
+/// </summary>
+record class MSBuildDocumentState(DocumentId Id, MSBuildDocumentPath FilePath, VersionStamp Version, MSBuildSchema Schema, MSBuildInferredSchema InferredSchema, MSBuildDocumentImport[] Imports)
+{
+}
+
+record class MSBuildDocumentImport(MSBuildDocumentPath FilePath)
+{
+    // TODO: add conditions
+}
+
+// represents a file path that has already been made absolute and normalized
+struct MSBuildDocumentPath
+{
+}

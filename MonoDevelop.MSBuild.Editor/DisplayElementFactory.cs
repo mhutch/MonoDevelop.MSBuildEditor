@@ -566,7 +566,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		static ClassifiedTextRun CreateWebLink (string url, string linkText) => new ClassifiedTextRun ("navigableSymbol", linkText, () => Process.Start (url), url);
 
-		public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessage () ?? diagnostic.GetFormattedTitle ());
+		public object GetDiagnosticTooltip (MSBuildDiagnostic diagnostic) => GetDiagnosticElement (diagnostic.Descriptor.Severity, diagnostic.GetFormattedMessageWithTitle ());
 
 		ContainerElement GetDiagnosticElement (MSBuildDiagnosticSeverity severity, string message)
 		{
