@@ -66,9 +66,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // UseExportProviderAttribute to test classes that rely on it.
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
 
-            // don't really have anywhere better to put this right now
-            MonoDevelop.MSBuild.Tests.Helpers.MSBuildTestHelpers.RegisterMSBuildAssemblies();
-
             var hostServicesType = typeof(MefHostServices);
             var testAccessorType = hostServicesType.GetNestedType("TestAccessor", BindingFlags.NonPublic)
                 ?? throw new InvalidOperationException("Could not get test accessor type MefHostServices.TestAccessor");

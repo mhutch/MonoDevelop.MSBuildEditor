@@ -35,7 +35,7 @@ namespace MonoDevelop.MSBuild.Editor;
 partial class DisplayElementRenderer
 {
     readonly string[]? allowedTags;
-    readonly bool supportsMarkdown;
+    readonly bool supportsMarkdown, supportsIcons;
     readonly StringBuilder sb = new();
     readonly ILogger logger;
 
@@ -43,6 +43,7 @@ partial class DisplayElementRenderer
     {
         allowedTags = clientCapabilities.General?.Markdown?.AllowedTags;
         supportsMarkdown = contentFormats?.IndexOf(MarkupKind.Markdown) > -1;
+        supportsIcons = supportsMarkdown; // TODO: detect VS Code
         this.logger = logger;
     }
 
@@ -586,6 +587,10 @@ partial class DisplayElementRenderer
 
     void AppendIcon(MSBuildGlyph glyph)
     {
+        if(!supportsIcons)
+        {
+            return;
+        }
         var iconName = glyph.ToVSCodeImage().ToVSCodeImageId();
         sb.Append($"$({iconName}) "); //  icons are text so add a trailing space to separate from following text
     }

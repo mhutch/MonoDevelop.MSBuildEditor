@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
+using MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Workspace;
 using MonoDevelop.MSBuild.Schema;
 
@@ -15,18 +16,15 @@ namespace MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
 class LspMSBuildParserFactory : ILspServiceFactory
 {
     ITaskMetadataBuilder taskMetadataBuilder;
-    IMSBuildEnvironment msbuildEnvironment;
     MSBuildSchemaProvider schemaProvider;
 
     [ImportingConstructor]
     public LspMSBuildParserFactory(
         [Import(AllowDefault = true)] ITaskMetadataBuilder taskMetadataBuilder,
-        [Import(AllowDefault = true)] MSBuildSchemaProvider schemaProvider,
-        [Import(AllowDefault = true)] IMSBuildEnvironment msbuildEnvironment)
+        [Import(AllowDefault = true)] MSBuildSchemaProvider schemaProvider)
     {
         this.taskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder();
         this.schemaProvider = schemaProvider ?? new MSBuildSchemaProvider();
-        this.msbuildEnvironment = msbuildEnvironment;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
@@ -34,19 +32,8 @@ class LspMSBuildParserFactory : ILspServiceFactory
         var logger = lspServices.GetRequiredService<ILspLogger>();
         var workspace = lspServices.GetRequiredService<LspEditorWorkspace>();
         var xmlParserService = lspServices.GetRequiredService<LspXmlParserService>();
-
-        if(msbuildEnvironment == null)
-        {
-            var log = logger.ToILogger();
-            try
-            {
-                msbuildEnvironment = new CurrentProcessMSBuildEnvironment(log);
-            } catch(Exception ex)
-            {
-                logger.LogException(ex, "Failed to initialize MSBuild runtime info");
-                msbuildEnvironment = new NullMSBuildEnvironment();
-            }
-        }
+        var runtimeService = lspServices.GetRequiredService<MSBuildRuntimeService>();
+        var msbuildEnvironment = runtimeService.MSBuildEnvironment;
 
         return new LspMSBuildParserService(logger, workspace, xmlParserService, msbuildEnvironment, schemaProvider, taskMetadataBuilder);
     }
