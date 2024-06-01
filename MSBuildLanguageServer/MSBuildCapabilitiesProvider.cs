@@ -11,7 +11,13 @@ class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
         var capabilities = new ServerCapabilities {
-            HoverProvider = true
+            HoverProvider = true,
+            TextDocumentSync = new TextDocumentSyncOptions {
+                OpenClose = true,
+                Change = TextDocumentSyncKind.Incremental
+                // Save = true, // todo update mtime
+            },
+            DiagnosticOptions = new DiagnosticOptions { }
         };
         return capabilities;
     }

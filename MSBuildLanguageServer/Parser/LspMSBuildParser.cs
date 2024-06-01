@@ -3,6 +3,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
+
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor.Parsing;
@@ -51,12 +52,6 @@ partial class LspMSBuildParserService
                         service.taskMetadataBuilder,
                         service.extLogger,
                         token);
-                    /*
-                    if (doc.ProjectElement is not null) {
-                        var analyzerDiagnostics = analyzerDriver.Analyze (doc, true, token);
-                        doc.Diagnostics.Clear ();
-                        doc.Diagnostics.AddRange (analyzerDiagnostics);
-                    }*/
                 } catch(Exception ex) when(!(ex is OperationCanceledException && token.IsCancellationRequested))
                 {
                     LogUnhandledParserError(ex);
