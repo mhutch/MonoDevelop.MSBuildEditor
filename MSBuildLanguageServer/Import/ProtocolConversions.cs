@@ -1,5 +1,5 @@
 // modified copy of
-// https://raw.githubusercontent.com/dotnet/roslyn/044acb4ec888bf080b707e3db6818107e018d80b/src/Features/LanguageServer/Protocol/Extensions/ProtocolConversions.cs
+// https://raw.githubusercontent.com/dotnet/roslyn/12f89683716864af2582b59f9b94395ad8f39910/src/LanguageServer/Protocol/Extensions/ProtocolConversions.cs
 // changes annotated inline with // MODIFICATION
 // with portions commented out using /* */ comments
 
@@ -120,12 +120,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
         }.ToImmutableDictionary();
-		*/
+        */
 
-        public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
+        // MODIFICATION: added option to suppress VS extensions
+        public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options, bool excludeVSExtensionConverters = false)
         {
-            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
-            options.Converters.Add(new NaturalObjectConverter());
+            if (!excludeVSExtensionConverters)
+            {
+                LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            }
+            options.Converters.Add(new LSP.NaturalObjectConverter());
             return options;
         }
 
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         public static JsonSerializerOptions LspJsonSerializerOptions = new JsonSerializerOptions().AddLspSerializerOptions();
 
-		/*
+        /*
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
         public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
@@ -201,9 +205,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return triggerCharacter;
             }
         }
-		*/
+        */
 
-		public static string GetDocumentFilePathFromUri(Uri uri)
+        public static string GetDocumentFilePathFromUri(Uri uri)
             => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
 
         /// <summary>
@@ -316,7 +320,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return true;
         }
 
-		/*
+        /*
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
             return new LSP.TextDocumentPositionParams()
@@ -331,11 +335,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
             => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
-		*/
+        */
+
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);
@@ -1031,6 +1037,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 End = LinePositionToPosition(mappedSpanResult.LinePositionSpan.End)
             };
         }
-		*/
+        */
     }
 }

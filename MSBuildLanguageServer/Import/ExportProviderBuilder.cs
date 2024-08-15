@@ -1,5 +1,5 @@
 // modified version of
-// https://raw.githubusercontent.com/dotnet/roslyn/721e3c9adb4d312ea2af757d5fe9ebd94740f236/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/ExportProviderBuilder.cs
+// https://raw.githubusercontent.com/dotnet/roslyn/12f89683716864af2582b59f9b94395ad8f39910/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/ExportProviderBuilder.cs
 // changes annotated inline with // MODIFICATION
 
 // Licensed to the .NET Foundation under one or more agreements.
@@ -7,7 +7,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Reflection;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -19,12 +18,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, string? devKitDependencyPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(
+        ExtensionAssemblyManager extensionManager,
+        IAssemblyLoader assemblyLoader,
+        string? devKitDependencyPath,
+        ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
 
-        // BEGIN MODIFICATION 1
+        // BEGIN MODIFICATION
         /*
         // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
@@ -37,19 +40,19 @@ internal sealed class ExportProviderBuilder
         {
             assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
         }
-		*/
+        */
         IEnumerable<string> assemblyPaths = [
             typeof (MSBuildLanguageServer).Assembly.Location
             ];
-		// END MODIFICATION 1
+        // END MODIFICATION
 
         // Add the extension assemblies to the MEF catalog.
-        assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
+        assemblyPaths = assemblyPaths.Concat(extensionManager.ExtensionAssemblyPaths);
 
         logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
 
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
-        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager, loggerFactory));
+        var resolver = new Resolver(assemblyLoader);
 
         var discovery = PartDiscovery.Combine(
             resolver,
@@ -91,10 +94,14 @@ internal sealed class ExportProviderBuilder
         //     but found 0.
         //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? Enumerable.Empty<string>();
-		// BEGIN MODIFICATION 2
-        //var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
+
+        // BEGIN MODIFICATION
+        /*
+        var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
+        */
 		var expectedErroredParts = new string[] { };
-		// END MODIFICATION 2
+        // END MODIFICATION
+
         if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
         {
             try

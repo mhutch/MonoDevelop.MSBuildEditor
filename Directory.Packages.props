@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <RoslynVersion>4.5</RoslynVersion>
+    <RoslynVersion>4.12.0-2.24380.3</RoslynVersion>
     <!--
     We cannot go higher than 17.5.
     IConnectedSpan gained a new Disconnect() method in 17.6, which MiniEditor cannot implement as it is internal.
@@ -45,7 +45,7 @@
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.24209.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.17.11" />

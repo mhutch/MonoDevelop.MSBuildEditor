@@ -1,5 +1,5 @@
 // modified copy of
-// https://github.com/dotnet/roslyn/blob/b292a51d13e020e350366ac305706367cd9db5c2/src/Features/LanguageServer/Protocol/RoslynLanguageServer.cs
+// https://github.com/dotnet/roslyn/blob/12f89683716864af2582b59f9b94395ad8f39910/src/LanguageServer/Protocol/RoslynLanguageServer.cs
 // changes annotated inline with // MODIFICATION
 
 // Licensed to the .NET Foundation under one or more agreements.
@@ -7,6 +7,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal sealed class MSBuildLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
+        private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
         private readonly WellKnownLspServerKinds _serverKind;
 
         public MSBuildLanguageServer(
@@ -36,8 +37,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, serializerOptions, logger)
+            WellKnownLspServerKinds serverKind,
+            AbstractTypeRefResolver? typeRefResolver = null)
+            : base(jsonRpc, serializerOptions, logger, typeRefResolver)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
@@ -49,10 +51,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Initialize();
         }
 
-        public static SystemTextJsonFormatter CreateJsonMessageFormatter()
+        // MODIFICATION: added option to suppress VS extension converters
+        public static SystemTextJsonFormatter CreateJsonMessageFormatter(bool excludeVSExtensionConverters = false)
         {
             var messageFormatter = new SystemTextJsonFormatter();
-            messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
+            messageFormatter.JsonSerializerOptions.AddLspSerializerOptions(excludeVSExtensionConverters);
             return messageFormatter;
         }
 
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
-        private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
+        private FrozenDictionary<string, ImmutableArray<BaseService>> GetBaseServices(
             JsonRpc jsonRpc,
             AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
@@ -75,48 +78,92 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             WellKnownLspServerKinds serverKind,
             ImmutableArray<string> supportedLanguages)
         {
-            var baseServices = new Dictionary<Type, ImmutableArray<Func<ILspServices, object>>>();
+            // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
+            var baseServiceMap = new Dictionary<string, object>();
+
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
             var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
-            AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
-            AddBaseService<ILspLogger>(logger);
-            AddBaseService<AbstractLspLogger>(logger);
-            AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
-            AddBaseService<ILifeCycleManager>(lifeCycleManager);
-            AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
-            AddBaseServiceFromFunc<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
-            AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
-            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
-            AddBaseService<IInitializeManager>(new InitializeManager());
-            AddBaseService<IMethodHandler>(new InitializeHandler());
-            AddBaseService<IMethodHandler>(new InitializedHandler());
-            AddBaseService<IOnInitialized>(this);
+            AddService<IClientLanguageServerManager>(clientLanguageServerManager);
+            AddService<ILspLogger>(logger);
+            AddService<AbstractLspLogger>(logger);
+            AddService<ICapabilitiesProvider>(capabilitiesProvider);
+            AddService<ILifeCycleManager>(lifeCycleManager);
+            AddService(new ServerInfoProvider(serverKind, supportedLanguages));
+            AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
+            AddLazyService<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
+            AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
+            AddService<IInitializeManager>(new InitializeManager());
+            AddService<IMethodHandler>(new InitializeHandler());
+            AddService<IMethodHandler>(new InitializedHandler());
+            AddService<IOnInitialized>(this);
 
-			// MODIFICATION 1
+            // MODIFICATION 1
 			/*
-			AddBaseService<ILanguageInfoProvider>(new LanguageInfoProvider());
+            AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
 
             // In all VS cases, we already have a misc workspace.  Specifically
             // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
-			*/
-			// END MODIFICATION 1
+                AddLazyService<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
+            */
 
-			return baseServices.ToImmutableDictionary();
+            return baseServiceMap.ToFrozenDictionary(
+                keySelector: kvp => kvp.Key,
+                elementSelector: kvp => kvp.Value switch
+                {
+                    BaseService service => [service],
+                    ImmutableArray<BaseService>.Builder builder => builder.ToImmutable(),
+                    _ => throw ExceptionUtilities.Unreachable()
+                });
 
-            void AddBaseService<T>(T instance) where T : class
+            void AddService<T>(T instance)
+                where T : class
             {
-                AddBaseServiceFromFunc<T>((_) => instance);
+                AddBaseService(BaseService.Create(instance));
             }
 
-            void AddBaseServiceFromFunc<T>(Func<ILspServices, object> creatorFunc)
+            void AddLazyService<T>(Func<ILspServices, T> creator)
+                where T : class
             {
-                var added = baseServices.GetValueOrDefault(typeof(T), []).Add(creatorFunc);
-                baseServices[typeof(T)] = added;
+                AddBaseService(BaseService.CreateLazily(creator));
+            }
+
+            void AddBaseService(BaseService baseService)
+            {
+                var typeName = baseService.Type.FullName;
+                Contract.ThrowIfNull(typeName);
+
+                // If the service doesn't exist in the map yet, just add it.
+                if (!baseServiceMap.TryGetValue(typeName, out var value))
+                {
+                    baseServiceMap.Add(typeName, baseService);
+                    return;
+                }
+
+                // If the service exists in the map, check to see if it's a...
+                switch (value)
+                {
+                    // ... BaseService. In this case, update the map with an ImmutableArray<BaseService>.Builder
+                    // and add both the existing and new services to it.
+                    case BaseService existingService:
+                        var builder = ImmutableArray.CreateBuilder<BaseService>();
+                        builder.Add(existingService);
+                        builder.Add(baseService);
+
+                        baseServiceMap[typeName] = builder;
+                        break;
+
+                    // ... ImmutableArray<BaseService>.Builder. In this case, just add the new service to the builder.
+                    case ImmutableArray<BaseService>.Builder existingBuilder:
+                        existingBuilder.Add(baseService);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable();
+                }
             }
         }
 
@@ -126,8 +173,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-		// MODIFICATION 2
-		/*
+        // MODIFICATION 2
+        /*
         protected override string GetLanguageForRequest(string methodName, JsonElement? parameters)
         {
             if (parameters == null)
@@ -194,7 +241,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
             }
         }
-		*/
-		// END MODIFICATION 2
+        */
     }
 }
