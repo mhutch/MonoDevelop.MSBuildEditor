@@ -50,23 +50,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 	}
 }
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
-{
-	[Shared]
-	[Export (typeof (IAsynchronousOperationListenerProvider))]
-	[Export (typeof (AsynchronousOperationListenerProvider))]
-	class AsynchronousOperationListenerProvider
-	{
-		internal static void Enable (bool enable, bool diagnostics)
-		{
-		}
-
-		internal IEnumerable<string> GetTokens () => [];
-
-		internal Task WaitAllDispatcherOperationAndTasksAsync (Workspace? workspace) => Task.CompletedTask;
-	}
-}
-
 namespace Microsoft.CodeAnalysis.Options
 {
 	interface IGlobalOptionService

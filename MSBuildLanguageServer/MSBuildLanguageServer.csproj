@@ -97,8 +97,13 @@
     <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/WindowsErrorReporting.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/NamedPipeInformation.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/CustomExportAssemblyLoader.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListener.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/FeatureAttribute.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsyncToken.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/AsynchronousOperationListenerProvider+NullListenerProvider.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/AsynchronousOperationListenerProvider+NullOperationListener.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/EmptyAsyncToken.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/ValueTaskExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/TaskExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/Utilities/AsyncBatchingWorkQueue`0.cs" />

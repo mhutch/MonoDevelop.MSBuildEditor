@@ -18,20 +18,19 @@
   <ItemGroup>
     <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/AbstractLanguageServerProtocolTests.InitializationOptions.cs" />
     <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/TestOutputLspLogger.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerHostTests.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/LanguageServerTestComposition.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestLoggerProvider.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestOutputLogger.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerHostTests.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/LanguageServerTestComposition.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestLoggerProvider.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestOutputLogger.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/TestComposition.cs" />
-    <Compile Include="../external/roslyn/src/Features/LanguageServer/Protocol/NoOpLspLogger.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Protocol/NoOpLspLogger.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/ITestErrorHandler.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/ExportProviderCache.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext+DenyExecutionSynchronizationContext.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Shared/TestHooks/IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
     <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
-    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs"/>
+    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs" />
   </ItemGroup>
 
   <ItemGroup>

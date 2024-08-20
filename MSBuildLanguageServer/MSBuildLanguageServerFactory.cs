@@ -24,7 +24,8 @@ class MSBuildLanguageServerFactory (CSharpVisualBasicLspServiceProvider lspServi
 		ICapabilitiesProvider capabilitiesProvider,
 		WellKnownLspServerKinds serverKind,
 		AbstractLspLogger logger,
-		HostServices hostServices)
+		HostServices hostServices,
+        AbstractTypeRefResolver? typeRefResolver = null)
 	{
 		return new Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer (
 			lspServiceProvider,
@@ -34,6 +35,7 @@ class MSBuildLanguageServerFactory (CSharpVisualBasicLspServiceProvider lspServi
 			logger,
 			hostServices,
 			[ "MSBuild" ],
-			serverKind);
+			serverKind,
+            typeRefResolver);
 	}
 }

@@ -4,6 +4,8 @@
 // stubs to help imported files work w/o bringing in too many dependencies
 
 using System.Composition;
+using System.Runtime.CompilerServices;
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -42,7 +44,12 @@ namespace Microsoft.CodeAnalysis.Options {
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-	interface ExperimentalCapabilitiesProvider : ICapabilitiesProvider {}
+    interface ExperimentalCapabilitiesProvider : ICapabilitiesProvider { }
+}
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+{
+    class RoslynDocumentSymbol : Roslyn.LanguageServer.Protocol.DocumentSymbol { }
 }
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions
@@ -62,5 +69,27 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         public bool IncludeDocumentAttributes { get; }
         public bool IncludeDocumentText { get; }
+    }
+}
+
+namespace Microsoft.CodeAnalysis.Shared.TestHooks
+{
+    [Shared]
+    [Export(typeof(IAsynchronousOperationListenerProvider))]
+    [Export(typeof(AsynchronousOperationListenerProvider))]
+    internal sealed partial class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
+    {
+        public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
+        public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
+
+        internal static void Enable(bool enable, bool diagnostics)
+        {
+        }
+
+        public IAsynchronousOperationListener GetListener(string featureName) => NullListener;
+
+        internal IEnumerable<string> GetTokens() => [];
+
+        internal Task WaitAllDispatcherOperationAndTasksAsync(Workspace? workspace) => Task.CompletedTask;
     }
 }

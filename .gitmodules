@@ -9,4 +9,4 @@
 	url = https://github.com/NuGet/NuGet.Client.git
 [submodule "external/roslyn"]
 	path = external/roslyn
-	url = https://github.com/mhutch/roslyn.git
+	url = https://github.com/dotnet/roslyn.git
