@@ -79,8 +79,7 @@ export class RoslynLanguageServer {
     /**
      * The regular expression used to find the named pipe key in the LSP server's stdout stream.
      */
-	// FIXME: for some reason the server is returning uppercase PipeName
-    private static readonly namedPipeKeyRegex = /{"PipeName":"[^"]+"}/;
+    private static readonly namedPipeKeyRegex = /{"pipeName":"[^"]+"}/;
 
     /**
      * The timeout for stopping the language server (in ms).
@@ -397,7 +396,7 @@ export class RoslynLanguageServer {
             const socketPromise = namedPipePromise.then(async (pipeConnectionInfo) => {
                 return new Promise<net.Socket>((resolve, reject) => {
                     _channel.appendLine('attempting to connect client to server...');
-                    const socket = net.createConnection(pipeConnectionInfo.PipeName, () => {
+                    const socket = net.createConnection(pipeConnectionInfo.pipeName, () => {
                         _channel.appendLine('client has connected to server');
                         resolve(socket);
                     });

@@ -15,8 +15,7 @@ export interface ShowToastNotificationParams {
 }
 
 export interface NamedPipeInformation {
-	// FIXME: for some reason the server is returning uppercase PipeName
-    PipeName: string;
+    pipeName: string;
 }
 
 export namespace ShowToastNotification {
