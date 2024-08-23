@@ -77,7 +77,7 @@ class MSBuildExpressionCompletionTest
 		// based on MSBuildCompletionSource.{GetExpressionCompletionsAsync,GetAdditionalCompletionsAsync}
 		// eventually we can factor out into a shared method
 
-		string expression = GetIncompleteValue (spineParser, textSource);
+		string expression = spineParser.GetIncompleteValue(textSource);
 		int exprStartPos = caretPos - expression.Length;
 		var triggerState = ExpressionCompletion.GetTriggerState (expression, caretPos - exprStartPos, reason, triggerChar, rr.IsCondition (),
 			out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
@@ -110,45 +110,6 @@ class MSBuildExpressionCompletionTest
 		}
 
 		return ExpressionCompletion.GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, spanLength, parsedDocument, functionTypeProvider, fileSystem, logger);
-	}
-
-	// copied from XmlParserSnapshotExtensions, modified to use ITextSource instead of ITextSnapshot
-	static string GetIncompleteValue (XmlSpineParser spineAtCaret, ITextSource textSource)
-	{
-		int caretPosition = spineAtCaret.Position;
-		var node = spineAtCaret.Spine.Peek ();
-
-		int valueStart;
-		if (node is XText t) {
-			valueStart = t.Span.Start;
-		} else if (node is XElement el && el.IsEnded) {
-			valueStart = el.Span.End;
-		} else {
-			int lineStart = GetLineStart (textSource, caretPosition);
-			valueStart = spineAtCaret.Position - spineAtCaret.CurrentStateLength;
-			if (spineAtCaret.GetAttributeValueDelimiter ().HasValue) {
-				valueStart += 1;
-			}
-			valueStart = Math.Min (Math.Max (valueStart, lineStart), caretPosition);
-		}
-
-		return textSource.GetText (valueStart, caretPosition - valueStart);
-
-		static int GetLineStart (ITextSource textSource, int caretPosition)
-		{
-			if (caretPosition < 1) {
-				return caretPosition;
-			}
-			int lineStart = caretPosition - 1;
-			for (; lineStart >= 0; lineStart--) {
-				switch (textSource[caretPosition]) {
-				case '\r':
-				case '\n':
-					return lineStart + 1;
-				}
-			}
-			return lineStart;
-		}
 	}
 
 	class TestFunctionTypeProvider : IFunctionTypeProvider
