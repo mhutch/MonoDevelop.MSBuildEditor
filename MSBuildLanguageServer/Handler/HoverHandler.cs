@@ -38,10 +38,18 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
 
     public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var msbuildParserService = context.GetRequiredService<LspMSBuildParserService>();
-        var xmlParserService = context.GetRequiredService<LspXmlParserService>();
         var logger = context.GetRequiredService<ILspLogger>();
         var extLogger = logger.ToILogger();
+
+        DisplayElementRenderer CreateRenderer()
+        {
+            var capabilities = context.GetRequiredClientCapabilities();
+            var clientInfo = context.GetRequiredService<IInitializeManager>().TryGetInitializeParams()?.ClientInfo;
+            return new DisplayElementRenderer(extLogger, capabilities, clientInfo, capabilities.TextDocument?.Hover?.ContentFormat);
+        }
+
+        var msbuildParserService = context.GetRequiredService<LspMSBuildParserService>();
+        var xmlParserService = context.GetRequiredService<LspXmlParserService>();
 
         var document = context.GetRequiredDocument();
 
@@ -57,13 +65,6 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
             return null;
         }
 
-        DisplayElementRenderer CreateRenderer()
-        {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-            var formats = clientCapabilities.TextDocument?.Hover?.ContentFormat;
-            return new DisplayElementRenderer(extLogger, clientCapabilities, formats);
-        }
-
         var sourceText = result.XmlParseResult.Text;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         int offset = position.ToOffset (sourceText);
@@ -74,8 +75,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         if(annotations != null && annotations.Count > 0)
         {
             // TODO navigation annotations
-            var renderer = CreateRenderer();
-            return CreateNavigationQuickInfo(renderer, sourceText, annotations);
+            return CreateNavigationQuickInfo(CreateRenderer(), sourceText, annotations);
         }
 
         var functionTypeProvider = new NullFunctionTypeProvider();
@@ -92,9 +92,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         if(rr.ReferenceKind == MSBuildReferenceKind.NuGetID)
         {
             var packageSearchManager = context.GetRequiredLspService<NuGetSearchService>();
-
-            var renderer = CreateRenderer();
-            return await CreateNuGetQuickInfo(renderer, packageSearchManager, logger, sourceText, doc, rr, cancellationToken);
+            return await CreateNuGetQuickInfo(CreateRenderer(), packageSearchManager, logger, sourceText, doc, rr, cancellationToken);
         }
 
         var info = rr.GetResolvedReference(doc, functionTypeProvider);
@@ -103,7 +101,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         }
 
         // don't include the deprecation message, as the validator should have added a warning that will be merged into this tooltip
-        var markdown = await CreateRenderer().GetInfoTooltipElement(sourceText, doc, info, rr, false, cancellationToken);
+        var markdown = await CreateRenderer().GetInfoTooltipElement(sourceText, doc, info, rr, true, cancellationToken);
 
         if(markdown is not null) {
             return CreateHover(rr.ToLspRange(sourceText), markdown);

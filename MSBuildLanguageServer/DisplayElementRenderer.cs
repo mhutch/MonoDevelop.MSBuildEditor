@@ -34,20 +34,29 @@ namespace MonoDevelop.MSBuild.Editor;
 // based on MonoDevelop.MSBuild.Editor/DisplayElementFactory.cs
 partial class DisplayElementRenderer
 {
-    readonly string[]? allowedTags;
-    readonly bool supportsMarkdown, supportsIcons;
     readonly StringBuilder sb = new();
-    readonly ILogger logger;
 
-    public DisplayElementRenderer(ILogger logger, ClientCapabilities clientCapabilities, MarkupKind[]? contentFormats)
+    readonly HashSet<string> allowedTags;
+    readonly bool supportsMarkdown, supportsIcons;
+    readonly ILogger logger;
+    bool supportsTagSpan, supportsTagCode;
+
+    public DisplayElementRenderer(ILogger logger, ClientCapabilities clientCapabilities, ClientInfo? clientInfo, MarkupKind[]? contentFormats)
     {
-        allowedTags = clientCapabilities.General?.Markdown?.AllowedTags;
-        supportsMarkdown = contentFormats?.IndexOf(MarkupKind.Markdown) > -1;
-        supportsIcons = supportsMarkdown; // TODO: detect VS Code
         this.logger = logger;
+
+        allowedTags = clientCapabilities.General?.Markdown?.AllowedTags?.ToHashSet() ?? [];
+        supportsTagSpan = allowedTags.Contains("span");
+        supportsTagCode = allowedTags.Contains("code");
+
+        supportsMarkdown = contentFormats?.IndexOf(MarkupKind.Markdown) > -1;
+
+        supportsIcons = clientInfo?.Name == "vscode";
     }
 
-    void NewBlock()
+    void AppendItalic(string text) => sb.Append($"*{text}*");
+
+    public void NewBlock()
     {
         sb.AppendLine();
         if(supportsMarkdown)
@@ -56,10 +65,10 @@ partial class DisplayElementRenderer
         }
     }
 
-    void AppendItalic(string text) => sb.Append($"*{text}*");
-
-    public async Task<string?> GetInfoTooltipElement(SourceText buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, bool includeDeprecationMessage, CancellationToken token)
+    public async Task<string?> GetInfoTooltipElement(SourceText buffer, MSBuildRootDocument doc, ISymbol info, MSBuildResolveResult rr, bool hideDeprecationMessage, CancellationToken token)
     {
+        sb.Clear();
+
         if(!WriteNameElement(info))
         {
             return null;
@@ -102,7 +111,7 @@ partial class DisplayElementRenderer
         }
         */
 
-        if(includeDeprecationMessage) {
+        if(!hideDeprecationMessage && info.IsDeprecated ()) {
             AddDeprecationElement(info);
         }
 
@@ -169,7 +178,7 @@ partial class DisplayElementRenderer
 
     void AppendColorSpan(KnownColor color, string text)
     {
-        if(supportsMarkdown)
+        if(supportsMarkdown && supportsTagSpan)
         {
             var mappedColor = MapColor(color);
             BeginHexColorSpan(mappedColor);
@@ -187,7 +196,7 @@ partial class DisplayElementRenderer
         // so using <code> or <pre> is the only way to get the editor font.
         // HOWEVER, they both have downside. <pre> is a block element, and is styled with top padding, so looks awful.
         // And the hover widget override's <code>'s background color so if we use it for the signature, it doesn't match styling of other hovers.
-        if(supportsMarkdown)
+        if(supportsMarkdown && supportsTagCode)
         {
             //sb.Append("<pre>");
             sb.Append("<code>");
@@ -209,7 +218,7 @@ partial class DisplayElementRenderer
 
     void EndSignatureBlock()
     {
-        if(supportsMarkdown)
+        if(supportsMarkdown && supportsTagCode)
         {
             //sb.Append("</span>");
             sb.Append("</code>");
@@ -227,7 +236,7 @@ partial class DisplayElementRenderer
         StartSignatureBlock();
 
         // the icon is a font so put it inside the <code> so size matches signature text
-        if (info.GetGlyph(false) is MSBuildGlyph glyph)
+        if (supportsIcons && info.GetGlyph(false) is MSBuildGlyph glyph)
         {
             AppendIcon(glyph);
         }

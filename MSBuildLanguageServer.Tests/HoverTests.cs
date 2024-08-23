@@ -57,7 +57,7 @@ public class HoverTests(ITestOutputHelper testOutputHelper) : AbstractLanguageSe
 
         Assert.NotNull(result);
 
-        var markup = Assert.IsType<LSP.MarkupContent>(result.Contents?.Value);
+        var markup = Assert.IsType<LSP.MarkupContent>(result.Contents.Value);
         var markupValue = markup.Value.Replace("\r\n", "\n");
 
         Assert.Equal("keyword Project\nAn MSBuild project.", markupValue);
