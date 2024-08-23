@@ -94,7 +94,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IEnumerable<ISymbol> GetElementCompletions (this IEnumerable<IMSBuildSchema> schemas,
-			MSBuildElementSyntax languageElement, string elementName)
+			MSBuildElementSyntax? languageElement, string? elementName)
 		{
 			if (languageElement == null) {
 				yield return MSBuildElementSyntax.Project;
@@ -103,6 +103,10 @@ namespace MonoDevelop.MSBuild.Schema
 
 			if (languageElement.Children == null) {
 				yield break;
+			}
+
+			if (elementName is null) {
+				throw new ArgumentNullException (nameof (elementName), $"{elementName} cannot be null when {languageElement} is not null");
 			}
 
 			foreach (var c in languageElement.Children) {
@@ -120,7 +124,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas,
-			MSBuildElementSyntax languageElement, string elementName)
+			MSBuildElementSyntax? languageElement, string? elementName)
 		{
 			if (languageElement == null) {
 				yield return MSBuildElementSyntax.Project;
@@ -129,6 +133,10 @@ namespace MonoDevelop.MSBuild.Schema
 
 			if (languageElement.Children == null) {
 				yield break;
+			}
+
+			if (elementName is null) {
+				throw new ArgumentNullException (nameof (elementName), $"{elementName} cannot be null when {languageElement} is not null");
 			}
 
 			foreach (var c in languageElement.Children) {

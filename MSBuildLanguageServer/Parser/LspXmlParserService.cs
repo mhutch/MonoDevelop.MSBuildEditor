@@ -59,6 +59,7 @@ partial class LspXmlParserService : ILspService
         }
     }
 
+    /// <summary>Gets a task representing a parse result for the specified document state. It may be completed or running.</summary>
     /// <remarks>Returns false if the document was closed</remarks>
     public bool TryGetParseResult(EditorDocumentState document, [NotNullWhen(true)] out Task<XmlParseResult>? task, CancellationToken cancellationToken = default)
     {
@@ -69,6 +70,20 @@ partial class LspXmlParserService : ILspService
         }
 
         task = null;
+        return false;
+    }
+
+    /// <summary>Gets the last completed parse result for the specified document. It may be newer than the specified document state.</summary>
+    /// <remarks>Returns false if the document has not parsed successfully or if the document was closed</remarks>
+    public bool TryGetCompletedParseResult(EditorDocumentState document, [NotNullWhen(true)] out XmlParseResult? lastSuccessfulResult)
+    {
+        if(parsers.TryGetValue(document.Id, out var parser))
+        {
+            lastSuccessfulResult = parser.LastOutput;
+            return lastSuccessfulResult is not null;
+        }
+
+        lastSuccessfulResult = null;
         return false;
     }
 

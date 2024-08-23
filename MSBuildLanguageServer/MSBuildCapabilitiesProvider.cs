@@ -17,6 +17,13 @@ class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
                 Change = TextDocumentSyncKind.Incremental
                 // Save = true, // todo update mtime
             },
+            CompletionProvider = new CompletionOptions {
+                TriggerCharacters = [
+                    "<", // xml tag
+                    // TODO: add more
+                 ],
+                ResolveProvider = true
+            },
             DiagnosticOptions = new DiagnosticOptions { }
         };
         return capabilities;
