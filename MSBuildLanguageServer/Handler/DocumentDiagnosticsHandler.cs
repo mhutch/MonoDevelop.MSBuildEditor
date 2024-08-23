@@ -9,6 +9,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
+using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Analysis;
 
 using Roslyn.LanguageServer.Protocol;
@@ -92,10 +93,17 @@ sealed class DocumentDiagnosticsHandler : ILspServiceDocumentRequestHandler<Docu
 
     static Diagnostic ConvertDiagnostic(MSBuildDiagnostic msbuildDiagnostic, SourceText sourceText)
     {
+        DiagnosticTag[]? diagnosticTags = msbuildDiagnostic.Descriptor.Id switch {
+            CoreDiagnostics.DeprecatedWithMessage_Id => [DiagnosticTag.Deprecated],
+            CoreDiagnostics.RedundantMinimumVersion_Id => [DiagnosticTag.Unnecessary],
+            _ => null
+        };
+
         return new Diagnostic {
             Range = msbuildDiagnostic.Span.ToLspRange(sourceText),
             Message = msbuildDiagnostic.GetFormattedMessageWithTitle(),
             Severity = ConvertSeverity(msbuildDiagnostic.Descriptor.Severity),
+            Tags = diagnosticTags,
             Source = sourceName
             // don't use ID and code, it's generally too long and not useful
             //Code = msbuildDiagnostic.Descriptor.Id,
