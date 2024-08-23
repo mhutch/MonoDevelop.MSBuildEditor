@@ -61,29 +61,8 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			var annotations = GetAnnotationsAtOffset<NavigationAnnotation> (doc, offset);
-			if (annotations is null) {
-				return null;
-			}
-
-			var firstAnnotation = annotations.FirstOrDefault ();
-			if (firstAnnotation != null) {
-				var arr = GetAnnotatedPaths ().ToArray ();
-				if (arr.Length == 0) {
-					return null;
-				}
-				return new MSBuildNavigationResult (arr, firstAnnotation.Span.Start, firstAnnotation.Span.Length);
-			}
-
-			IEnumerable<string> GetAnnotatedPaths ()
-			{
-				foreach (var a in annotations) {
-					if (a.IsSdk) {
-						yield return Path.Combine (a.Path, "Sdk.props");
-						yield return Path.Combine (a.Path, "Sdk.targets");
-					} else {
-						yield return a.Path;
-					}
-				}
+			if (annotations is not null && CreateAnnotationResult (annotations) is { } annotationResult) {
+				return annotationResult;
 			}
 
 			if (rr.ReferenceKind == MSBuildReferenceKind.Item) {
@@ -132,6 +111,32 @@ namespace MonoDevelop.MSBuild.Language
 				.Where (a => !(a is IRegionAnnotation ra) || ra.Span.Contains (offset));
 		}
 
+		static MSBuildNavigationResult? CreateAnnotationResult(IEnumerable<NavigationAnnotation> annotations)
+		{
+			var firstAnnotation = annotations.FirstOrDefault ();
+			if (firstAnnotation is null) {
+				return null;
+			}
+
+			var arr = GetAnnotatedPaths ().ToArray ();
+			if (arr.Length == 0) {
+				return null;
+			}
+			return new MSBuildNavigationResult (arr, firstAnnotation.Span.Start, firstAnnotation.Span.Length);
+
+			IEnumerable<string> GetAnnotatedPaths ()
+			{
+				foreach (var a in annotations) {
+					if (a.IsSdk) {
+						yield return Path.Combine (a.Path, "Sdk.props");
+						yield return Path.Combine (a.Path, "Sdk.targets");
+					} else {
+						yield return a.Path;
+					}
+				}
+			}
+		}
+
 		public static List<MSBuildNavigationResult> ResolveAll (MSBuildRootDocument doc, int offset, int length, ILogger logger)
 		{
 			if (doc.XDocument.RootElement is not XElement rootElement) {
@@ -150,6 +155,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			public List<MSBuildNavigationResult> Navigations { get; } = new ();
 
+
 			protected override void VisitResolvedAttribute (
 				XElement element, XAttribute attribute,
 				MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax,
@@ -158,13 +164,14 @@ namespace MonoDevelop.MSBuild.Language
 				switch (attributeSyntax.SyntaxKind) {
 				case MSBuildSyntaxKind.Project_Sdk:
 				case MSBuildSyntaxKind.Import_Project:
+				case MSBuildSyntaxKind.Import_Sdk:
+				case MSBuildSyntaxKind.Sdk_Name:
 					var annotations = Document.Annotations?.GetMany<NavigationAnnotation> (attribute);
-					if (annotations != null) {
+					if (annotations is not null) {
 						foreach (var group in annotations.GroupBy (a => a.Span.Start)) {
-							var first = group.First ();
-							Navigations.Add (new MSBuildNavigationResult (
-								group.Select (a => a.Path).ToArray (), first.Span.Start, first.Span.Length
-							));
+							if (CreateAnnotationResult (group) is { } result) {
+								Navigations.Add (result);
+							}
 						}
 					}
 					break;
@@ -183,19 +190,12 @@ namespace MonoDevelop.MSBuild.Language
 
 				switch (valueSymbol.ValueKindWithoutModifiers ()) {
 				case MSBuildValueKind.TargetName:
-					foreach (var n in node.WithAllDescendants ()) {
-						if (n is ExpressionText lit && lit.IsPure) {
-							Navigations.Add (new MSBuildNavigationResult (
-								MSBuildReferenceKind.Target, lit.Value, lit.Offset, lit.Length
-							));
-						}
-					}
+					CollectList (MSBuildReferenceKind.Target, node);
 					break;
 				case MSBuildValueKind.File:
 				case MSBuildValueKind.FileOrFolder:
 				case MSBuildValueKind.ProjectFile:
 				case MSBuildValueKind.TaskAssemblyFile:
-				case MSBuildValueKind.Unknown:
 					if (node is ListExpression list) {
 						foreach (var n in list.Nodes) {
 							var p = GetPathFromNode (n, (MSBuildRootDocument)Document, Logger);
@@ -211,6 +211,27 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				}
 			}
+
+			void CollectList (MSBuildReferenceKind kind, ExpressionNode node)
+			{
+				if (node is ListExpression list) {
+					foreach(var child in list.Nodes) {
+						if (child is ExpressionText text && text.IsPure) {
+							Collect (kind, text);
+						}
+					}
+				} else if (node is ExpressionText text && text.IsPure) {
+					Collect (kind, text);
+				}
+			}
+
+			void Collect (MSBuildReferenceKind kind, ExpressionText text)
+			{
+				string value = text.GetUnescapedValue (true, out int offset, out int length);
+				if (length > 0) {
+					Collect (kind, value, offset, length);
+				}
+			}
 		}
 
 		public static MSBuildNavigationResult? GetPathFromNode (ExpressionNode node, MSBuildRootDocument document, ILogger logger)
@@ -218,9 +239,7 @@ namespace MonoDevelop.MSBuild.Language
 			try {
 				var path = MSBuildCompletionExtensions.EvaluateExpressionAsPaths (node, document).FirstOrDefault ();
 				if (path != null && File.Exists (path)) {
-					return new MSBuildNavigationResult (
-						new[] { path }, node.Offset, node.Length
-					);
+					return new MSBuildNavigationResult ([path], node.Offset, node.Length);
 				}
 			} catch (Exception ex) {
 				LogNodePathError (logger, ex);
