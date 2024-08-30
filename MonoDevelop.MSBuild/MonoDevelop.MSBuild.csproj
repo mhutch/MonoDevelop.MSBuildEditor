@@ -60,6 +60,7 @@
   <ItemGroup>
     <EmbeddedResource Update="Evaluation\Imported\Resources\Strings.resx" LogicalName="Microsoft.Build.Utilities.Core.Strings.resources" />
     <EmbeddedResource Update="Evaluation\Imported\Resources\Strings.shared.resx" LogicalName="Microsoft.Build.Utilities.Core.Strings.shared.resources" />
+    <EmbeddedResource Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\Strings.resx" LogicalName="NuGet.Frameworks.Strings.resources" Link="external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\Strings.resx" />
   </ItemGroup>
 
   <!-- https://github.com/dotnet/msbuild/issues/4751-->
