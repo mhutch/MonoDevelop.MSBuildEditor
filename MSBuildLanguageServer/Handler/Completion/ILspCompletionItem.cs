@@ -3,7 +3,7 @@
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 /// <summary>
 /// An object that can be resolved to a completion item

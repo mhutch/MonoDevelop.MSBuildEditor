@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
-
 using Microsoft.CodeAnalysis.Text;
 
+using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -15,12 +14,12 @@ using MonoDevelop.Xml.Parser;
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 record class MSBuildXmlCompletionContext
     (
         XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, int TriggerLineNumber,
-        MSBuildResolveResult ResolveResult, MSBuildRootDocument Document, DisplayElementRenderer Renderer, SourceText SourceText
+        MSBuildResolveResult ResolveResult, MSBuildRootDocument Document, MSBuildCompletionDocsProvider DocsProvider, SourceText SourceText
     )
     : XmlCompletionContext
     (
@@ -47,7 +46,7 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
             if(nodePath[i] is XElement el)
             {
                 elName = el.Name.Name;
-                if (elName is null)
+                if(elName is null)
                 {
                     return TaskCompleted(null);
                 }
@@ -69,10 +68,10 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
         {
             if(el is ItemInfo)
             {
-                items.Add(new MSBuildCompletionItem(context, el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
+                items.Add(new MSBuildCompletionItem(el, XmlCommitKind.SelfClosingElement, context.DocsProvider, includeBracket ? "<" : null));
             } else
             {
-                items.Add(new MSBuildCompletionItem(context, el, XmlCompletionItemKind.Element, includeBracket ? "<" : null));
+                items.Add(new MSBuildCompletionItem(el, XmlCommitKind.Element, context.DocsProvider, includeBracket ? "<" : null));
             }
         }
 
@@ -95,7 +94,7 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
         {
             if(!existingAttributes.ContainsKey(att.Name))
             {
-                items.Add(new MSBuildCompletionItem(context, att, XmlCompletionItemKind.Attribute));
+                items.Add(new MSBuildCompletionItem(att, XmlCommitKind.Attribute, context.DocsProvider));
             }
         }
 
@@ -105,68 +104,5 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
     protected override bool AllowTextContentInElement(MSBuildXmlCompletionContext context)
     {
         return base.AllowTextContentInElement(context);
-    }
-}
-
-class CompletionItemKindExtensions
-{
-    internal static CompletionItemKind GetCompletionItemKind(ISymbol symbol)
-    {
-        return CompletionItemKind.Element;
-    }
-}
-
-class MSBuildCompletionItem(MSBuildXmlCompletionContext context, ISymbol symbol, XmlCompletionItemKind xmlCompletionItemKind, string? prefix = null, string? annotation = null, bool addDescriptionHint = false) : ILspCompletionItem
-{
-    string label => prefix is not null ? prefix + symbol.Name : symbol.Name;
-
-    public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
-
-    public async ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
-    {
-        var item = new CompletionItem { Label = label };
-
-        if(settings.IncludeDeprecatedPropertyOrTag && symbol.IsDeprecated())
-        {
-            settings.SetDeprecated(item);
-        }
-
-        if (settings.IncludeItemKind)
-        {
-            item.Kind = CompletionItemKindExtensions.GetCompletionItemKind(symbol);
-        }
-
-        if(annotation is not null)
-        {
-            item.FilterText = $"{symbol.Name} {annotation}";
-            item.SortText = annotation;
-            if (settings.IncludeLabelDetails)
-            {
-                item.LabelDetails = new CompletionItemLabelDetails { Description = annotation };
-            }
-        } else if(addDescriptionHint)
-        {
-            if (settings.IncludeLabelDetails)
-            {
-                var descriptionHint = DescriptionFormatter.GetCompletionHint(symbol);
-                item.LabelDetails = new CompletionItemLabelDetails { Description = descriptionHint };
-            }
-        }
-
-        if (settings.IncludeDocumentation)
-        {
-            var tooltipContent = await context.Renderer.GetInfoTooltipElement(context.SourceText, context.Document, symbol, context.ResolveResult, false, cancellationToken);
-            if (tooltipContent is not null)
-            {
-                item.Documentation = new MarkupContent {
-                    //Value = "<code>$(symbol-keyword) <span style='color:#569cd6;'>keyword</span> <span style='color:#9CDCFE;'>Choose</span></code>\r\n\r\nGroups When and Otherwise elements", // tooltipContent,
-                    Value = tooltipContent,
-                    Kind = MarkupKind.Markdown
-                };
-            }
-        }
-
-        return item;
-
     }
 }

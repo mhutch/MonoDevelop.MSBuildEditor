@@ -3,7 +3,7 @@
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 /// <summary>
 /// Helper that makes reading client completion capabilities simpler and more performant.
@@ -12,7 +12,7 @@ class CompletionClientCapabilities
 {
     public static CompletionClientCapabilities Create(ClientCapabilities clientCapabilities) => new(clientCapabilities);
 
-    CompletionClientCapabilities (ClientCapabilities clientCapabilities)
+    CompletionClientCapabilities(ClientCapabilities clientCapabilities)
     {
         var completionSetting = clientCapabilities.TextDocument?.Completion;
 

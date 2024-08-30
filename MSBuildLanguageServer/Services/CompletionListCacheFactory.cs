@@ -6,7 +6,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-using MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 

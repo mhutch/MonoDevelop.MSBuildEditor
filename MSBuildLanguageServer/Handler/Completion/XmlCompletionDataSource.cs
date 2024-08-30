@@ -4,13 +4,12 @@
 using System.Diagnostics;
 using System.Reflection.Emit;
 
+using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
-using Roslyn.LanguageServer.Protocol;
-
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 record class XmlCompletionContext(XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, int TriggerLineNumber)
 {
@@ -137,20 +136,20 @@ class XmlCompletionDataSource<TContext> where TContext : XmlCompletionContext
             {
                 continue;
             }
-            
-            yield return new XmlClosingTagCompletionItem (includeBracket, name, el, dedup.Count);
+
+            yield return new XmlClosingTagCompletionItem(includeBracket, name, el, dedup.Count);
         }
     }
 
-    readonly XmlCompletionItem cdataItem = new ("![CDATA[", XmlToLspCompletionItemKind.CData, "XML character data");
-    readonly XmlCompletionItem cdataItemWithBracket = new("<![CDATA[", XmlToLspCompletionItemKind.CData, "XML character data");
-    
-    readonly XmlCompletionItem commentItem = new("!--", XmlToLspCompletionItemKind.Comment, "XML comment");
-    readonly XmlCompletionItem commentItemWithBracket = new("<!--", XmlToLspCompletionItemKind.Comment, "XML comment");
+    readonly XmlCompletionItem cdataItem = new("![CDATA[", XmlToLspCompletionItemKind.CData, "XML character data", XmlCommitKind.CData);
+    readonly XmlCompletionItem cdataItemWithBracket = new("<![CDATA[", XmlToLspCompletionItemKind.CData, "XML character data", XmlCommitKind.CData);
+
+    readonly XmlCompletionItem commentItem = new("!--", XmlToLspCompletionItemKind.Comment, "XML comment", XmlCommitKind.Comment);
+    readonly XmlCompletionItem commentItemWithBracket = new("<!--", XmlToLspCompletionItemKind.Comment, "XML comment", XmlCommitKind.Comment);
 
     //TODO: commit $"?xml version=\"1.0\" encoding=\"{encoding}\" ?>"
-    readonly XmlCompletionItem prologItem = new("?xml", XmlToLspCompletionItemKind.Prolog, "XML prolog");
-    readonly XmlCompletionItem prologItemWithBracket = new("<?xml", XmlToLspCompletionItemKind.Prolog, "XML prolog");
+    readonly XmlCompletionItem prologItem = new("?xml", XmlToLspCompletionItemKind.Prolog, "XML prolog", XmlCommitKind.Prolog);
+    readonly XmlCompletionItem prologItemWithBracket = new("<?xml", XmlToLspCompletionItemKind.Prolog, "XML prolog", XmlCommitKind.Prolog);
 
     readonly XmlEntityCompletionItem[] entityItems = [
         new ("apos", "'"),
@@ -159,108 +158,4 @@ class XmlCompletionDataSource<TContext> where TContext : XmlCompletionContext
         new ("gt", ">"),
         new ("amp", "&"),
     ];
-}
-
-class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDocumentation) : ILspCompletionItem
-{
-    public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
-
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
-    {
-        var item = new CompletionItem { Label = label, Kind = kind };
-
-        if (settings.IncludeDocumentation)
-        {
-            // TODO: strip markdown if client only supports text
-            item.Documentation = markdownDocumentation;
-        }
-
-        return new(item);
-    }
-
-    static CompletionItem CreateItem(string label, CompletionItemKind kind, string markdownDocumentation)
-        => new() { Label = label, Kind = kind, Documentation = CreateMarkdown(markdownDocumentation) };
-
-    static MarkupContent CreateMarkdown(string markdown)
-        => new() { Kind = MarkupKind.Markdown, Value = markdown };
-}
-
-class XmlEntityCompletionItem(string name, string character) : ILspCompletionItem
-{
-    readonly string label = $"&{name};";
-
-    public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
-
-
-    //TODO: need to tweak semicolon insertion for XmlCompletionItemKind.Entity
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
-    {
-        var item = new CompletionItem { Label = label, FilterText = name, Kind = XmlToLspCompletionItemKind.Entity };
-
-        if (settings.IncludeDocumentation)
-        {
-            item.Documentation = $"Escaped '{character}'";
-        };
-
-        return new(item);
-    }
-}
-
-class XmlClosingTagCompletionItem(bool includeBracket, string name, XElement element, int dedupCount) : ILspCompletionItem
-{
-    readonly string label = (includeBracket ? "</" : "/") + name;
-
-    public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
-
-    // TODO: custom insert text, including for multiple closing tags
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
-    {
-        // force these to sort last, they're not very interesting values to browse as these tags are usually already closed
-        string sortText = "ZZZZZZ" + label;
-
-        var item = new CompletionItem { Label = label, Kind = XmlToLspCompletionItemKind.ClosingTag, SortText = sortText };
-
-        if(settings.IncludeDocumentation)
-        {
-            item.Documentation = GetClosingTagDocumentation(element, dedupCount > 1);
-        };
-
-        return new(item);
-    }
-
-
-    static MarkupContent GetClosingTagDocumentation(XElement element, bool isMultiple)
-        => CreateMarkdown(
-            isMultiple
-                ? $"Closing tag for element `{element.Name}`, closing all intermediate elements"
-                : $"Closing tag for element `{element.Name}`"
-            );
-
-    static MarkupContent CreateMarkdown(string markdown) => new() { Kind = MarkupKind.Markdown, Value = markdown };
-}
-
-enum XmlCompletionItemKind
-{
-    Element,
-    SelfClosingElement,
-    Attribute,
-    AttributeValue,
-    CData,
-    Comment,
-    Prolog,
-    Entity,
-    ClosingTag,
-    MultipleClosingTags
-}
-
-/// <summary>
-/// Central location for mapping XML item kinds to <see cref="CompletionItemKind"/> values
-/// </summary>
-class XmlToLspCompletionItemKind
-{
-    public const CompletionItemKind ClosingTag = CompletionItemKind.CloseElement;
-    public const CompletionItemKind Comment = CompletionItemKind.TagHelper;
-    public const CompletionItemKind CData = CompletionItemKind.TagHelper;
-    public const CompletionItemKind Prolog = CompletionItemKind.TagHelper;
-    public const CompletionItemKind Entity = CompletionItemKind.TagHelper;
 }
