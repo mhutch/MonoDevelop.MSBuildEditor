@@ -42,7 +42,8 @@ internal sealed class ExportProviderBuilder
         }
         */
         IEnumerable<string> assemblyPaths = [
-            typeof (MSBuildLanguageServer).Assembly.Location
+            typeof (global::MonoDevelop.MSBuild.Editor.Common.ThisAssembly).Assembly.Location,
+            typeof (global::MSBuildLanguageServer.ThisAssembly).Assembly.Location
             ];
         // END MODIFICATION
 

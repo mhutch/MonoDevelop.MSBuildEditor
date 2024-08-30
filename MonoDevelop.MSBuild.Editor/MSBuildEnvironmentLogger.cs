@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using MonoDevelop.Xml.Editor.Logging;
 
-namespace MonoDevelop.MSBuild.Editor.Completion
+namespace MonoDevelop.MSBuild.Editor
 {
 	/// <summary>
 	/// Shared logger any component can import

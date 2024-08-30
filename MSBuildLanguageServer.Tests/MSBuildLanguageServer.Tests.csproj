@@ -54,8 +54,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer.Tests'))" Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
-    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer.Tests'))" Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
   </ItemGroup>
 
 </Project>

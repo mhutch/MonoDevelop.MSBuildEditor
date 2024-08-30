@@ -90,11 +90,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
-	public static class EditorTestCompositions
-	{
-		public static TestComposition LanguageServerProtocol { get; } = TestComposition.Empty
-			.AddAssemblies (typeof (Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer).Assembly);
+    public static class EditorTestCompositions
+    {
+        public static TestComposition LanguageServerProtocol { get; } = TestComposition.Empty
+            .AddAssemblies(
+                typeof(global::MonoDevelop.MSBuild.Editor.Common.ThisAssembly).Assembly,
+                typeof(global::MSBuildLanguageServer.ThisAssembly).Assembly
+            );
 
-		public static TestComposition LanguageServerProtocolEditorFeatures => LanguageServerProtocol;
-	}
+        public static TestComposition LanguageServerProtocolEditorFeatures => LanguageServerProtocol;
+    }
 }

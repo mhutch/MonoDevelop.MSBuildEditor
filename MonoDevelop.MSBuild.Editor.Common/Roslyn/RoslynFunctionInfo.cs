@@ -71,7 +71,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		public IPropertySymbol Symbol { get; }
 		public override MSBuildValueKind ReturnType => arrayElementType ?? RoslynFunctionTypeProvider.ConvertType (Symbol.Type);
-		public override FunctionParameterInfo [] Parameters => null;
+		public override FunctionParameterInfo [] Parameters => [];
 		public override bool IsProperty => true;
 	}
 }

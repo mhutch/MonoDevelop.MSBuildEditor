@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Utilities;
 
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -15,6 +14,7 @@ using MonoDevelop.MSBuild.Schema;
 using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -51,10 +51,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				CheckHash (document);
 				return itemCheckerTask ??= Task.Run (() =>
 					new SpellChecker (
-						Checksum.Null,
-						document.GetSchemas ().GetItems ().Select (i => new StringSlice (i.Name)))
+						document.GetSchemas ().GetItems ().Select (i => i.Name)
 					)
-;
+				);
+			;
 			}
 		}
 
@@ -64,10 +64,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				CheckHash (document);
 				return propertyCheckerTask ??= Task.Run (() =>
 					new SpellChecker (
-						Checksum.Null,
-						document.GetSchemas ().GetProperties (true).Select (p => new StringSlice (p.Name)))
+						document.GetSchemas ().GetProperties (true).Select (p => p.Name)
 					)
-;
+				);
 			}
 		}
 
@@ -78,9 +77,9 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 				if (!metadataCheckerTasks.TryGetValue (itemName, out var checker)) {
 					metadataCheckerTasks[itemName] = checker = Task.Run (() =>
 						new SpellChecker (
-							Checksum.Null,
-							document.GetSchemas ().GetMetadata (itemName, true).Select (p => new StringSlice (p.Name)))
-						);
+							document.GetSchemas ().GetMetadata (itemName, true).Select (p => p.Name)
+						)
+					);
 				}
 				return checker;
 			}
@@ -96,8 +95,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 						valueKindCheckerTasks[kind] = checker = Task.Run (() =>
 							new SpellChecker (
-								Checksum.Null,
-								knownVals.Select (p => new StringSlice (p.Name)))
+								knownVals.Select (p => p.Name))
 							);
 					}
 					return checker;
@@ -108,8 +106,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 					customTypeCheckerTasks[customType] = checker = Task.Run (() => {
 						var knownVals = customType.Values;
 						return new SpellChecker (
-							Checksum.Null,
-							knownVals.Select (p => new StringSlice (p.Name))
+							knownVals.Select (p => p.Name)
 						);
 					});
 				}
@@ -122,7 +119,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<ItemInfo> GetItems (MSBuildDocument document, SpellChecker checker, string name)
 		{
-			foreach (var match in checker.FindSimilarWords (name)) {
+			var matches = TemporaryArray<string>.Empty;
+			checker.FindSimilarWords (ref matches, name, false);
+
+			foreach (var match in matches) {
 				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
@@ -137,7 +137,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<PropertyInfo> GetProperties (MSBuildDocument document, SpellChecker checker, string name)
 		{
-			foreach (var match in checker.FindSimilarWords (name)) {
+			var matches = TemporaryArray<string>.Empty;
+			checker.FindSimilarWords (ref matches, name, false);
+
+			foreach (var match in matches) {
 				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
@@ -152,7 +155,10 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<MetadataInfo> GetMetadata (MSBuildDocument document, SpellChecker checker, string itemName, string name)
 		{
-			foreach (var match in checker.FindSimilarWords (name)) {
+			var matches = TemporaryArray<string>.Empty;
+			checker.FindSimilarWords (ref matches, name, false);
+
+			foreach (var match in matches) {
 				if (string.Equals (match, name, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
@@ -171,7 +177,11 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			var valueComparer = (customType?.CaseSensitive ?? false) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
 			var knownValDict = knownVals.ToDictionary (v => v.Name, StringComparer.OrdinalIgnoreCase);
-			foreach (var match in checker.FindSimilarWords (name)) {
+
+			var matches = TemporaryArray<string>.Empty;
+			checker.FindSimilarWords (ref matches, name, false);
+
+			foreach (var match in matches) {
 				if (string.Equals (match, name, valueComparer)) {
 					continue;
 				}

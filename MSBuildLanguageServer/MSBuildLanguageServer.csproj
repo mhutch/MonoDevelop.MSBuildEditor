@@ -73,22 +73,12 @@
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/KeyValueLogMessage.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/CountLogAggregator.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Log/AbstractLogAggregator.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.*.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/ObjectPools/*.cs" />
-    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Collections/*.cs" />
-    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/*.cs" />
-    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/IsExternalInit.cs" />
-    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
-    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/CompilerFeatureRequiredAttribute.cs" />
-    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/RequiredMemberAttribute.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/SetsRequiredMembersAttribute.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathUtilities.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathKind.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/TaskExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/ValueTaskExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/TestHooks/IExpeditableDelaySource.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/LspServices/RequestTelemetryScope.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/ResolveCache.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/Completion/CompletionResolveData.cs" />
@@ -121,8 +111,6 @@
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/DocumentChanges/DidCloseHandler.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/SourceHashAlgorithms.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/IDocumentChangeTracker.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/SpecializedTasks.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/FixedSizeArrayBuilder.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/WorkspaceServiceMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/LanguageServiceMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefLanguageServices.cs" />
@@ -131,39 +119,28 @@
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILayeredServiceMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/ILanguageMetadata.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/Workspace/Mef/MefUtilities.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/IDictionaryExtensions.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/ResolveDataCache.cs" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/Handler/ResolveDataCacheFactory.cs" />
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.cs" />
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParser.ParseOperation.cs" />
     <Compile Include="../MonoDevelop.Xml/Editor/Parsing/BackgroundParseService.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/SpecializedTasks.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/KeyValuePairUtil.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer" Alias="RoslynLanguageServer" />
   </ItemGroup>
 
-  <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="../external/roslyn/src/Dependencies/Collections/Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
-
   <ItemGroup>
     <EmbeddedResource Update="../external/roslyn/src/Dependencies/Collections/**/*.resx" GenerateSource="true" />
     <Compile Include="../external/roslyn/src/LanguageServer/Protocol/LanguageServerProtocolResources.Designer.cs" />
     <EmbeddedResource Include="../external/roslyn/src/LanguageServer/Protocol/LanguageServerProtocolResources.resx" LogicalName="Microsoft.CodeAnalysis.LanguageServer.LanguageServerProtocolResources.resources" />
-    <EmbeddedResource Include="../external/roslyn/src/Compilers/Core/Portable/CodeAnalysisResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeAnalysisResources" />
-    <EmbeddedResource Include="../external/roslyn/src/CodeStyle/Core/Analyzers/CodeStyleResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeStyleResources" />
-    <EmbeddedResource Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/CompilerExtensionsResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CompilerExtensionsResources" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer'))"
-      Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
-    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', 'MSBuildLanguageServer'))"
-      Link="roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../MonoDevelop.MSBuild/MonoDevelop.MSBuild.csproj" />
+    <ProjectReference Include="../MonoDevelop.MSBuild.Editor.Common/MonoDevelop.MSBuild.Editor.Common.csproj" />
     <ProjectReference Include="../MonoDevelop.Xml/Core/MonoDevelop.Xml.Core.csproj" />
   </ItemGroup>
 
@@ -177,17 +154,18 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" PrivateAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator " />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource
-      Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
-      StronglyTypedLanguage="CSharp"
-      StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
-      StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
-      Generator="MSBuild:Compile"
-      StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs"
-      LogicalName="%(ClassName).resources" />
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
   </ItemGroup>
 
 </Project>

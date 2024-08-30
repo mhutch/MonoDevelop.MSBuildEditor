@@ -20,10 +20,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return sb.ToString ();
 		}
 
-		// loading the docs from roslyn can be expensive, return a null string and the symbol
-		// this mean callers have to resolver the docs from the symbol themselves. it's a lot
-		// simpler to posh the async logic to the callers than to make all the BaseInfo.Description
+		// loading the docs from roslyn can be expensive, return an empty string and the symbol
+		// this mean callers have to resolve the docs from the symbol themselves. it's a lot
+		// simpler to push the async logic to the callers than to make all the BaseInfo.Description
 		// implementations and usages async
-		public static DisplayText GetDescription (ISymbol symbol) => new DisplayText (null, symbol);
+		public static DisplayText GetDescription (ISymbol symbol) => new DisplayText ("", symbol);
 	}
 }

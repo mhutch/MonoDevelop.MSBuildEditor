@@ -5,6 +5,10 @@ using Microsoft.CodeAnalysis;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
+	/// <summary>
+	/// Allows consumers of <see cref="RoslynFunctionTypeProvider"/> to control how it loads
+	/// assemblies.
+	/// </summary>
 	public interface IRoslynCompilationProvider
 	{
 		MetadataReference CreateReference (string assemblyPath);

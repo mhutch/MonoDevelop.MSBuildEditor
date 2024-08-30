@@ -44,7 +44,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		{
 		}
 
-		public SdkInfo (string name, string version, IList<string> paths)
+		public SdkInfo (string name, string? version, IList<string> paths)
 		{
 			Name = name ?? throw new ArgumentNullException (nameof (name));
 			Version = version;
@@ -52,7 +52,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 		}
 
 		public string Name { get; }
-		public string Version { get; }
+		public string? Version { get; }
 
 		/// <summary>
 		/// The SDK path(s). May be empty e.g. for WorkloadAutoImportPropsLocator, but will not be null.

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
@@ -22,15 +21,9 @@ using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 
 namespace MonoDevelop.MSBuild.Editor.Roslyn
 {
-	[Export (typeof (IFunctionTypeProvider))]
 	partial class RoslynFunctionTypeProvider : IFunctionTypeProvider
 	{
 		readonly ILogger logger;
-
-		[ImportingConstructor]
-		public RoslynFunctionTypeProvider ([Import (AllowDefault = true)] IRoslynCompilationProvider assemblyLoader, MSBuildEnvironmentLogger environmentLogger)
-			: this (assemblyLoader, environmentLogger.Logger)
-		{ }
 
 		public RoslynFunctionTypeProvider (IRoslynCompilationProvider assemblyLoader, ILogger logger)
 		{
@@ -40,9 +33,9 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		public IRoslynCompilationProvider AssemblyLoader { get; }
 
-		readonly object locker = new object ();
-		Compilation compilation;
-		Task compilationLoadTask;
+		readonly object locker = new();
+		Compilation? compilation;
+		Task? compilationLoadTask;
 
 		//we need the reference assembly to get docs
 		static string GetMscorlibReferenceAssembly ()
@@ -94,7 +87,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return Task.WhenAny (compilationLoadTask, Task.Delay (-1, token));
 		}
 
-		public IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
+		public IEnumerable<FunctionInfo>? GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression)
 		{
 			if (triggerExpression is ConcatExpression expression) {
 				triggerExpression = expression.Nodes.Last ();
@@ -240,7 +233,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			bool isArray = (kind & MSBuildValueKind.ListSemicolonOrComma) != 0;
 			kind = kind.WithoutModifiers ();
 
-			ITypeSymbol type = null;
+			ITypeSymbol? type = null;
 
 			if (DotNetTypeMap.FromValueKind (kind) is string dotNetType) {
 				type = compilation?.GetTypeByMetadataName (dotNetType);

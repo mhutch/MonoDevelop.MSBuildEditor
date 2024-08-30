@@ -29,7 +29,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 	abstract class SimpleMSBuildCodeAction : MSBuildCodeAction
 	{
 		public sealed override Task<IEnumerable<MSBuildCodeActionOperation>> ComputeOperationsAsync (CancellationToken cancellationToken)
-			=> Task.FromResult<IEnumerable<MSBuildCodeActionOperation>> (new MSBuildCodeActionOperation[] { CreateOperation () });
+			=> Task.FromResult<IEnumerable<MSBuildCodeActionOperation>> ([CreateOperation ()]);
 
 		protected abstract MSBuildCodeActionOperation CreateOperation ();
 	}

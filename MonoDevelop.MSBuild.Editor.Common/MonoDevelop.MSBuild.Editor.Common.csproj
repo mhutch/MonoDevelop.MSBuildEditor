@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+    <TargetFrameworks>net48;net8.0</TargetFrameworks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1573</NoWarn>
+    <Nullable>enable</Nullable>
+    <!--
+    Makes some of the imported roslyn code compile unmodified.
+    May have other implications but none found so far.
+    -->
+    <DefineConstants>$(DefineConstants);CODE_STYLE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Collections/*.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/SpellChecker.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/ObjectWriterExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/ObjectPools/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Serialization/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Builder.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Edge.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Node.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Serialization.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.InterpolatedStringHandlers.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/EditDistance.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/FixedSizeArrayBuilder.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/IDictionaryExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/WordSimilarityChecker.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/CompilerFeatureRequiredAttribute.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/IsExternalInit.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/KeyValuePairUtil.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NullableAttributes.cs" />
+    <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/RequiredMemberAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+  </ItemGroup>
+
+  <Import Project="../external/roslyn/src/Dependencies/PooledObjects/Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="../external/roslyn/src/Dependencies/Collections/Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="../external/roslyn/src/Dependencies/Collections/**/*.resx" GenerateSource="true" />
+    <EmbeddedResource Include="../external/roslyn/src/Compilers/Core/Portable/CodeAnalysisResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeAnalysisResources" />
+    <EmbeddedResource Include="../external/roslyn/src/CodeStyle/Core/Analyzers/CodeStyleResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CodeStyleResources" />
+    <EmbeddedResource Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/CompilerExtensionsResources.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.CompilerExtensionsResources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="RoslynSpellChecker\" />
+  </ItemGroup>
+
+</Project>

@@ -208,32 +208,33 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		protected override async Task<IList<CompletionItem>> GetAdditionalCompletionsAsync (MSBuildCompletionContext context, CancellationToken token)
 		{
-			if (context.ResolveResult?.ElementSyntax is null || context.ExpressionTriggerReason == ExpressionTriggerReason.Unknown || !IsPossibleExpressionCompletionContext (context.SpineParser)) {
+			if (context.ExpressionTriggerReason == ExpressionTriggerReason.Unknown) {
 				return null;
 			}
 
-			var triggerLocation = context.TriggerLocation;
-			string expression = context.SpineParser.GetIncompleteValue (triggerLocation.Snapshot);
-			int exprStartPos = triggerLocation.Position - expression.Length;
-			var triggerState = GetTriggerState (expression, triggerLocation - exprStartPos, context.ExpressionTriggerReason, context.Trigger.Character, context.ResolveResult.IsCondition (),
-				out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
-				Logger
-			);
-			spanStart = exprStartPos + spanStart;
+			var msbuildTrigger = MSBuildCompletionTrigger.TryCreate (
+				context.SpineParser,
+				context.TriggerLocation.Snapshot.GetTextSource(),
+				context.ExpressionTriggerReason,
+				context.TriggerLocation,
+				context.Trigger.Character,
+				Logger,
+				provider.FunctionTypeProvider,
+				context.ResolveResult, token);
 
-			if (triggerState == TriggerState.None) {
+			if (msbuildTrigger is null) {
 				return null;
 			}
 
 			// used by MSBuildCompletionCommitManager
-			context.Session.Properties.AddProperty (typeof (TriggerState), triggerState);
+			context.Session.Properties.AddProperty (typeof (TriggerState), msbuildTrigger.TriggerState);
 
 			var info = context.ResolveResult.GetElementOrAttributeValueInfo (context.Document);
 			if (info is null || info.ValueKind == MSBuildValueKind.Nothing) {
 				return null;
 			}
 
-			return await GetExpressionCompletionsAsync (context, info, triggerState, listKind, spanLength, triggerExpression, comparandVariables, token);
+			return await GetExpressionCompletionsAsync (context, info, msbuildTrigger, token);
 		}
 
 		async Task<List<CompletionItem>> GetPackageNameCompletions (MSBuildCompletionContext context, string searchQuery, string packageType, CancellationToken token)
@@ -329,64 +330,17 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
-		//FIXME: SDK version completion
-		//FIXME: enumerate SDKs from NuGet
-		Task<List<CompletionItem>> GetSdkCompletions (MSBuildRootDocument doc, CancellationToken token)
-		{
-			return Task.Run (() => {
-				var items = new List<CompletionItem> ();
-				var sdks = new HashSet<string> ();
-
-				foreach (var sdk in doc.Environment.GetRegisteredSdks ()) {
-					if (sdks.Add (sdk.Name)) {
-						items.Add (CreateSdkCompletionItem (sdk));
-					}
-				}
-
-				//FIXME we should be able to cache these
-				doc.Environment.ToolsetProperties.TryGetValue (WellKnownProperties.MSBuildSDKsPath, out var sdksPath);
-				if (sdksPath != null) {
-					AddSdksFromDir (sdksPath);
-				}
-
-				var dotNetSdk = doc.Environment.ResolveSdk (new ("Microsoft.NET.Sdk", null, null), null, null, Logger);
-				if (dotNetSdk?.Path is string sdkPath) {
-					string dotNetSdkPath = Path.GetDirectoryName (Path.GetDirectoryName (sdkPath));
-					if (sdksPath == null || Path.GetFullPath (dotNetSdkPath) != Path.GetFullPath (sdksPath)) {
-						AddSdksFromDir (dotNetSdkPath);
-					}
-				}
-
-				void AddSdksFromDir (string sdkDir)
-				{
-					if (!Directory.Exists (sdkDir)) {
-						return;
-					}
-					foreach (var dir in Directory.GetDirectories (sdkDir)) {
-						string name = Path.GetFileName (dir);
-						var targetsFileExists = File.Exists (Path.Combine (dir, "Sdk", "Sdk.targets"));
-						if (targetsFileExists && sdks.Add (name)) {
-							items.Add (CreateSdkCompletionItem (new SdkInfo (name, null, Path.Combine (dir, name))));
-						}
-					}
-				}
-
-				return items;
-			}, token);
-		}
-
 		async Task<List<CompletionItem>> GetExpressionCompletionsAsync (
 			MSBuildCompletionContext context,
-			ITypedSymbol valueSymbol, TriggerState triggerState, ListKind listKind,
-			int triggerLength, ExpressionNode triggerExpression,
-			IReadOnlyList<ExpressionNode> comparandVariables,
+			ITypedSymbol valueSymbol, MSBuildCompletionTrigger trigger,
 			CancellationToken token)
 		{
 			var doc = context.Document;
-			var rr = context.ResolveResult;
+			var rr = trigger.ResolveResult;
 			var kind = valueSymbol.ValueKind;
+			var triggerState = trigger.TriggerState;
 
-			if (!ValidateListPermitted (listKind, kind)) {
+			if (!ValidateListPermitted (trigger.ListKind, kind)) {
 				return null;
 			}
 
@@ -408,8 +362,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			var items = new List<CompletionItem> ();
 
-			if (comparandVariables != null && isValue) {
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, comparandVariables, Logger)) {
+			if (trigger.ComparandVariables != null && isValue) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, trigger.ComparandVariables, Logger)) {
 					items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
@@ -417,7 +371,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (isValue) {
 				switch (kind) {
 				case MSBuildValueKind.NuGetID:
-					if (triggerExpression is ExpressionText t) {
+					if (trigger.Expression is ExpressionText t) {
 						var packageType = valueSymbol.CustomType?.Values[0].Name;
 						var packageNameItems = await GetPackageNameCompletions (context, t.Value, packageType, token);
 						if (packageNameItems != null) {
@@ -434,7 +388,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					}
 				case MSBuildValueKind.Sdk:
 				case MSBuildValueKind.SdkWithVersion: {
-					var sdkItems = await GetSdkCompletions (doc, token);
+					var sdkItems = SdkCompletion.GetSdkCompletions (doc, Logger, token).Select(s => CreateSdkCompletionItem (s));
 						if (sdkItems != null) {
 							items.AddRange (sdkItems);
 						}
@@ -455,21 +409,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			//TODO: better metadata support
 			if (valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
-				// if it's a list of ints or guids, add an annotation to make it easier to navigate
-				bool addAnnotation = valueSymbol.CustomType.BaseKind switch {
-					MSBuildValueKind.Guid => true,
-					MSBuildValueKind.Int => true,
-					_ => false
-				};
+				bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions (valueSymbol);
 				foreach (var value in valueSymbol.CustomType.Values) {
-					items.Add (CreateCompletionItem (context.DocumentationProvider, value, XmlCompletionItemKind.AttributeValue, annotation: addAnnotation? value.Description.Text : null));
+					items.Add (CreateCompletionItem (context.DocumentationProvider, value, XmlCompletionItemKind.AttributeValue, addDescriptionHint: addDescriptionHint));
 				}
 
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				if (GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, triggerLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
-					bool addDescriptionHint = valueSymbol.IsKindOrDerived (MSBuildValueKind.WarningCode);
+				if (GetCompletionInfos (rr, triggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
+					bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions (valueSymbol);
 					foreach (var ci in completionInfos) {
 						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue, addDescriptionHint: addDescriptionHint));
 					}
@@ -482,52 +431,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 			if (allowExpressions && isValue) {
 				items.Add (CreateSpecialItem ("@(", "Item reference", KnownImages.MSBuildItem, MSBuildCommitItemKind.ItemReference));
-				if (MSBuildCompletionSource.IsMetadataAllowed (triggerExpression, rr)) {
+				if (CompletionHelpers.IsMetadataAllowed (trigger.Expression, rr)) {
 					items.Add (CreateSpecialItem ("%(", "Metadata reference", KnownImages.MSBuildItem, MSBuildCommitItemKind.MetadataReference));
 				}
 			}
 
 			return items;
-		}
-
-		//FIXME: improve logic for determining where metadata is permitted
-		static bool IsMetadataAllowed (ExpressionNode triggerExpression, MSBuildResolveResult rr)
-		{
-			//if any a parent node is an item transform or function, metadata is allowed
-			if (triggerExpression != null) {
-				var node = triggerExpression.Find (triggerExpression.Length);
-				while (node != null) {
-					if (node is ExpressionItemTransform || node is ExpressionItemFunctionInvocation) {
-						return true;
-					}
-					node = node.Parent;
-				}
-			}
-
-			if (rr.AttributeSyntax != null) {
-				switch (rr.AttributeSyntax.SyntaxKind) {
-				// metadata attributes on items can refer to other metadata on the items
-				case MSBuildSyntaxKind.Item_Metadata:
-				// task params can refer to metadata in batched items
-				case MSBuildSyntaxKind.Task_Parameter:
-				// target inputs and outputs can use metadata from each other's items
-				case MSBuildSyntaxKind.Target_Inputs:
-				case MSBuildSyntaxKind.Target_Outputs:
-					return true;
-				//conditions on metadata elements can refer to metadata on the items
-				case MSBuildSyntaxKind.Metadata_Condition:
-					return true;
-				}
-			}
-
-			if (rr.ElementSyntax != null) {
-				switch (rr.ElementSyntax.SyntaxKind) {
-				// metadata elements can refer to other metadata in the items
-				case MSBuildSyntaxKind.Metadata:
-					return true;
-				}
-			}
-			return false;
 		}
 
 		CompletionItem CreateSpecialItem (string text, string description, KnownImages image, MSBuildCommitItemKind kind)
@@ -611,4 +520,5 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ItemReference,
 		MetadataReference
 	}
+
 }
