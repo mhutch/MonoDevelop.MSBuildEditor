@@ -51,7 +51,7 @@ partial class DisplayElementRenderer
 
         supportsMarkdown = contentFormats?.IndexOf(MarkupKind.Markdown) > -1;
 
-        supportsIcons = clientInfo?.Name == "vscode";
+        supportsIcons = clientInfo?.Name == "Visual Studio Code";
     }
 
     void AppendItalic(string text) => sb.Append($"*{text}*");
@@ -81,9 +81,15 @@ partial class DisplayElementRenderer
 
         switch(info.Description.DisplayElement) {
         case IRoslynSymbol symbol:
-            if(await GetDocsXml(symbol, token) is string docsXml)
+            if(await GetDocsXml(symbol, token) is string docsXml && !string.IsNullOrEmpty(docsXml))
             {
-                RenderDocsXmlSummaryElement(docsXml);
+                try
+                {
+                    RenderDocsXmlSummaryElement(docsXml);
+                } catch(Exception ex)
+                {
+                    LogDocsRenderingError(logger, ex);
+                }
             }
             break;
         case null:
@@ -647,4 +653,7 @@ partial class DisplayElementRenderer
 
     [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "Error loading XML docs")]
     static partial void LogDocsLoadingError(ILogger logger, Exception ex);
+
+    [LoggerMessage(EventId = 5, Level = LogLevel.Warning, Message = "Error rendering XML docs")]
+    static partial void LogDocsRenderingError(ILogger logger, Exception ex);
 }
