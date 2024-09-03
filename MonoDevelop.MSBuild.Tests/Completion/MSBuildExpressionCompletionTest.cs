@@ -77,8 +77,13 @@ class MSBuildExpressionCompletionTest
 		// based on MSBuildCompletionSource.{GetExpressionCompletionsAsync,GetAdditionalCompletionsAsync}
 		// eventually we can factor out into a shared method
 
-		string expression = spineParser.GetIncompleteValue(textSource);
-		int exprStartPos = caretPos - expression.Length;
+		// TryGetIncompleteValue may return false while still outputting incomplete values, if it fails due to reaching maximum readahead.
+		// It will also return false and output null values if we're in an element value that only contains whitespace.
+		// In both these cases we can ignore the false return and proceed anyways.
+		spineParser.TryGetIncompleteValue (textSource, out var expression, out var valueSpan);
+		expression ??= "";
+		int exprStartPos = valueSpan?.Start ?? caretPos;
+
 		var triggerState = ExpressionCompletion.GetTriggerState (expression, caretPos - exprStartPos, reason, triggerChar, rr.IsCondition (),
 			out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
 			logger

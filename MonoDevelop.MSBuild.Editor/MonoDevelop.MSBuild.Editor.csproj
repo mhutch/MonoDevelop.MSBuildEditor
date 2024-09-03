@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net8.0</TargetFrameworks>
+    <TargetFramework>net48</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
@@ -26,6 +26,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" ExcludeAssets="runtime" />
+    <!-- fix issue where Microsoft.VisualStudio.Language.Intellisense depends on StreamJsonRpc version not present in public feeds -->
+    <PackageReference Include="StreamJsonRpc" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>

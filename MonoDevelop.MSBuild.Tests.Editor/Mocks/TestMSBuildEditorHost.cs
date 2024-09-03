@@ -51,19 +51,6 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
 			=> throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IDifferenceBufferFactoryService))]
-	class MockDifferenceBufferFactoryService : IDifferenceBufferFactoryService
-	{
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer)
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer, StringDifferenceOptions options, bool disableEditing = false, bool wrapLeftBuffer = true, bool wrapRightBuffer = true) => throw new System.NotImplementedException ();
-
-		public IDifferenceBuffer TryGetDifferenceBuffer (IProjectionBufferBase projectionBuffer) => throw new System.NotImplementedException ();
-	}
-
 	[Export (typeof (IDifferenceViewElementFactory))]
 	class MockDifferenceViewElementFactoryService : IDifferenceViewElementFactory
 	{

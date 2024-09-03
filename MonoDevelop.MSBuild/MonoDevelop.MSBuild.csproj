@@ -33,6 +33,7 @@
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.CodeDom" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier($(TargetFramework)))' != '.NETFramework'" />
     <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="Microsoft.NET.StringTools" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,8 +43,9 @@
     -->
     <PackageReference Include="Microsoft.Build" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" IncludeAssets="compile" PrivateAssets="all" />
-    <!-- this is transitive from Microsoft.Build but it's an impl detail -->
-    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="all" PrivateAssets="all" />
+    <!-- upgrade vulnerable transitive dependencies -->
+    <PackageReference Include="Microsoft.IO.Redist" ExcludeAssets="all" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier($(TargetFramework)))' == '.NETFramework'" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup>

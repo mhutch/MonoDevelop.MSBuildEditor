@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">net48;net8.0</TargetFrameworks>
+    <TargetFramework>net48</TargetFramework>
     <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
   </PropertyGroup>
 
@@ -11,7 +10,6 @@
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Core.Tests\MonoDevelop.Xml.Core.Tests.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor.Tests\MonoDevelop.Xml.Editor.Tests.csproj" />
-    <ProjectReference Include="..\MonoDevelop.Xml\external\MiniEditor\Microsoft.VisualStudio.MiniEditor\Microsoft.VisualStudio.MiniEditor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,16 +18,13 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" NoWarn="NU1701" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" />
   </ItemGroup>
 
 </Project>

@@ -33,8 +33,13 @@ internal record class MSBuildCompletionTrigger(
 
         if(rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && (rr.Attribute is not null || elementSyntax.ValueKind != MSBuildValueKind.Nothing))
         {
-            string expressionText = spine.GetIncompleteValue(textSource);
-            int exprStartPos = offset - expressionText.Length;
+            // TryGetIncompleteValue may return false while still outputting incomplete values, if it fails due to reaching maximum readahead.
+            // It will also return false and output null values if we're in an element value that only contains whitespace.
+            // In both these cases we can ignore the false return and proceed anyways.
+            spine.TryGetIncompleteValue (textSource, out var expressionText, out var valueSpan, cancellationToken: cancellationToken);
+            expressionText ??= "";
+            int exprStartPos = valueSpan?.Start ?? offset;
+
             var triggerState = ExpressionCompletion.GetTriggerState(
                 expressionText,
                 offset - exprStartPos,

@@ -73,8 +73,4 @@
         StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="RoslynSpellChecker\" />
-  </ItemGroup>
-
 </Project>

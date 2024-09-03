@@ -1,0 +1,15 @@
+{
+  "solution": {
+    "path": "MonoDevelop.MSBuildEditor.sln",
+    "projects": [
+      "MSBuildLanguageServer.Tests\\MSBuildLanguageServer.Tests.csproj",
+      "MSBuildLanguageServer\\MSBuildLanguageServer.csproj",
+      "MonoDevelop.MSBuild.Editor.Common\\MonoDevelop.MSBuild.Editor.Common.csproj",
+      "MonoDevelop.MSBuild.Tests\\MonoDevelop.MSBuild.Tests.csproj",
+      "MonoDevelop.MSBuild\\MonoDevelop.MSBuild.csproj",
+      "MonoDevelop.Xml\\Core.Tests\\MonoDevelop.Xml.Core.Tests.csproj",
+      "MonoDevelop.Xml\\Core\\MonoDevelop.Xml.Core.csproj",
+      "XsdSchemaImporter\\XsdSchemaImporter.csproj"
+    ]
+  }
+}

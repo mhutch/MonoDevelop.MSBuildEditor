@@ -181,8 +181,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 					return baseCompletion;
 				}
 
-				string expression = spine.GetIncompleteValue (triggerLocation.Snapshot);
-				int exprStartPos = triggerLocation - expression.Length;
+				// TryGetIncompleteValue may return false while still outputting incomplete values, if it fails due to reaching maximum readahead.
+				// It will also return false and output null values if we're in an element value that only contains whitespace.
+				// In both these cases we can ignore the false return and proceed anyways.
+				spineParser.TryGetIncompleteValue (triggerLocation.Snapshot, out var expression, out var valueSpan, cancellationToken: token);
+				expression ??= "";
+				int exprStartPos = valueSpan?.Start ?? triggerLocation;
+
 				var triggerState = GetTriggerState (
 					expression,
 					triggerLocation - exprStartPos,

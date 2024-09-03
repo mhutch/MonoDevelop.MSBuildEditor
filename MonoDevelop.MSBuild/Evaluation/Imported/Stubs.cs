@@ -13,14 +13,6 @@ using MonoDevelop.MSBuild.Evaluation;
 
 using MonoDevelop.MSBuild;
 
-namespace Microsoft.NET.StringTools
-{
-	internal static class Strings
-	{
-		internal static string WeakIntern (string v) => v;
-	}
-}
-
 namespace Microsoft.Build.Shared.FileSystem
 {
 	internal static class FileSystems
