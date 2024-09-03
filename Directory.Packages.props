@@ -10,17 +10,20 @@
   <ItemGroup>
     <PackageVersion Include="Community.VisualStudio.Toolkit.17" Version="17.0.507" />
     <PackageVersion Include="Markdig.Signed" Version="0.37.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.22.0" />
-    <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
-    <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(RoslynVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="17.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.6.17" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.5.33428.366" />
@@ -32,25 +35,22 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VSEditorNugetVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.5.22" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.6.17" />
     <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.VisualStudio" Version="17.5.1" />
-    <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="3.10.0" />
+    <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="PropertyChanged.SourceGenerator" Version="1.0.8" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.17.11" />
     <PackageVersion Include="System.CodeDom" Version="8.0.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.24209.3" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.24209.3" />
-    <PackageVersion Include="StreamJsonRpc" Version="2.17.11" />
-    <PackageVersion Include="xunit" Version="2.8.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.0" />
+    <PackageVersion Include="xunit" Version="2.8.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" PrivateAssets="all" />
