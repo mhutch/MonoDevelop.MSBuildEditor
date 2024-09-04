@@ -3,7 +3,6 @@
 
 #nullable enable
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,13 +47,13 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			);
 		}
 
-		public static Task<CodeFixesWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '|', CancellationToken cancellationToken = default)
+		public static async Task<CodeFixesWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '|', CancellationToken cancellationToken = default)
 			where T : MSBuildRefactoringProvider, new()
 		{
 			var refactoringService = new MSBuildRefactoringService (new[] { new T () });
 			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker, allowZeroWidthSingleMarker: true);
 
-			return test.GetRefactorings (refactoringService, textView, cancellationToken);
+			return await test.GetRefactorings (refactoringService, textView, cancellationToken);
 		}
 
 		public static ITextView CreateTextViewWithSelection (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker, bool allowZeroWidthSingleMarker = false)
@@ -97,6 +96,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			CancellationToken cancellationToken = default
 			) where T : MSBuildRefactoringProvider, new()
 		{
+			await test.Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 			var ctx = await test.GetRefactorings<T> (documentWithSelection, selectionMarker, cancellationToken);
 			await test.TestCodeFixContext(ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
 		}
@@ -169,6 +169,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			where TAnalyzer : MSBuildAnalyzer, new()
 			where TCodeFix : MSBuildFixProvider, new()
 		{
+			await test.Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 			var ctx = await test.GetCodeFixes<TAnalyzer,TCodeFix> (documentWithSelection, selectionMarker: selectionMarker, cancellationToken: cancellationToken);
 			await test.TestCodeFixContext (ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
 		}
@@ -184,6 +185,10 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			CancellationToken cancellationToken = default
 			)
 		{
+			if (!test.Catalog.JoinableTaskContext.IsOnMainThread) {
+				throw new InvalidOperationException ("Must be on main thread");
+			}
+
 			Assert.That (ctx.CodeFixes, Has.Count.EqualTo (expectedFixCount));
 			Assert.That (ctx.CodeFixes.Select (c => c.Action.Title), Has.One.EqualTo (invokeFixWithTitle));
 

@@ -82,10 +82,9 @@ class ExtractExpressionTests : MSBuildEditorTest
   </Target>
 </Project>");
 
-	async Task TestExtractExpression (string textWithMarkers, int expectedFixCount, string invokeFixWithTitle, string expectedTextAfterInvoke, string typeText, string expectedTextAfterTyping)
+	public Task TestExtractExpression (string textWithMarkers, int expectedFixCount, string invokeFixWithTitle, string expectedTextAfterInvoke, string typeText, string expectedTextAfterTyping)
 	{
-		var context = await this.GetRefactorings<ExtractExpressionRefactoringProvider> (textWithMarkers);
-		await this.TestCodeFixContext (context, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping);
+		return this.TestRefactoring<ExtractExpressionRefactoringProvider> (textWithMarkers, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping);
 	}
 
 	[Test]
