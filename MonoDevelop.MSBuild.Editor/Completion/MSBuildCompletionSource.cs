@@ -57,30 +57,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		{
 			var doc = context.Document;
 
-			// we can't use the LanguageElement from the resolveresult here.
-			// if completion is triggered in an existing element's name, the resolveresult
-			// will be for that element, so completion will be for the element's children
-			// rather than for the element itself.
 			var nodePath = context.NodePath;
-			MSBuildElementSyntax languageElement = null;
-			string elName = null;
-			for (int i = 1; i < nodePath.Count; i++) {
-				if (nodePath[i] is XElement el) {
-					elName = el.Name.Name;
-					languageElement = MSBuildElementSyntax.Get (elName, languageElement);
-					continue;
-				}
-				return TaskCompleted (null);
-			}
-
-			// if we don't have a language element and we're not at root level, we're in an invalid location
-			if (languageElement == null && nodePath.Count > 2) {
+			if (!CompletionHelpers.TryGetElementSyntaxForElementCompletion(nodePath, out MSBuildElementSyntax languageElement, out string elementName)) {
 				return TaskCompleted (null);
 			}
 
 			var items = new List<CompletionItem> ();
 
-			foreach (var el in doc.GetElementCompletions (languageElement, elName)) {
+			foreach (var el in doc.GetElementCompletions (languageElement, elementName)) {
 				if (el is ItemInfo) {
 					items.Add (CreateCompletionItem (context.DocumentationProvider, el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
 				} else {

@@ -3,6 +3,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 
+using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
@@ -11,8 +12,6 @@ using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
-
-using Roslyn.LanguageServer.Protocol;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
@@ -34,37 +33,14 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
     {
         var doc = context.Document;
 
-        // we can't use the LanguageElement from the ResolveResult here.
-        // if completion is triggered in an existing element's name, the ResolveResult
-        // will be for that element, so completion will be for the element's children
-        // rather than for the element itself.
-        var nodePath = context.NodePath;
-        MSBuildElementSyntax? languageElement = null;
-        string? elName = null;
-        for(int i = 1; i < nodePath.Count; i++)
-        {
-            if(nodePath[i] is XElement el)
-            {
-                elName = el.Name.Name;
-                if(elName is null)
-                {
-                    return TaskCompleted(null);
-                }
-                languageElement = MSBuildElementSyntax.Get(elName, languageElement);
-                continue;
-            }
-            return TaskCompleted(null);
-        }
-
-        // if we don't have a language element and we're not at root level, we're in an invalid location
-        if(languageElement == null && nodePath.Count > 2)
-        {
-            return TaskCompleted(null);
-        }
+		var nodePath = context.NodePath;
+		if (!CompletionHelpers.TryGetElementSyntaxForElementCompletion(nodePath, out MSBuildElementSyntax? languageElement, out string? elementName)) {
+			return TaskCompleted(null);
+		}
 
         var items = new List<ILspCompletionItem>();
 
-        foreach(var el in doc.GetElementCompletions(languageElement, elName))
+        foreach(var el in doc.GetElementCompletions(languageElement, elementName))
         {
             if(el is ItemInfo)
             {
@@ -74,6 +50,8 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
                 items.Add(new MSBuildCompletionItem(el, XmlCommitKind.Element, context.DocsProvider, includeBracket ? "<" : null));
             }
         }
+
+        bool allowCData = languageElement != null && languageElement.ValueKind != MSBuildValueKind.Nothing;
 
         return TaskCompleted(items);
     }
@@ -103,6 +81,25 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
 
     protected override bool AllowTextContentInElement(MSBuildXmlCompletionContext context)
     {
-        return base.AllowTextContentInElement(context);
+        // when completing a tag name this is used to determine whether to include CDATA
+        // so we need to base it off the same MSBuildElementSyntax used for completion
+        // TODO: eliminate the duplicate TryGetElementSyntaxForElementCompletion call
+        if(context.XmlTriggerKind == XmlCompletionTrigger.ElementName || context.XmlTriggerKind == XmlCompletionTrigger.Tag)
+        {
+            var nodePath = context.NodePath;
+            if(!CompletionHelpers.TryGetElementSyntaxForElementCompletion(nodePath, out MSBuildElementSyntax? languageElement, out _))
+            {
+                return true;
+            }
+            return languageElement is null || languageElement.ValueKind != MSBuildValueKind.Nothing;
+        }
+
+        // otherwise, it's for entity completion, and the resolveResult is fine
+        if(context.ResolveResult?.ElementSyntax is { } elementSyntax)
+        {
+            return elementSyntax.ValueKind != MSBuildValueKind.Nothing;
+        }
+
+        return true;
     }
 }
