@@ -56,7 +56,6 @@
     <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Frameworks\**\*.cs" Link="external\NuGet.Frameworks\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs;..\external\**\obj\**" />
     <Compile Include="..\external\NuGet.Client\src\NuGet.Core\NuGet.Versioning\**\*.cs" Link="external\NuGet.Versioning\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\AssemblyInfo.cs;..\external\**\obj\**" />
     <Compile Include="..\external\NuGet.Client\build\Shared\**\*.cs" Link="external\NuGet.Shared\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\obj\**;..\external\**\NullableAttributes.cs;..\external\**\IsExternalInit.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools.NuGetSearch\**\*.cs" Link="external\ProjectFileTools.NuGetSearch\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\external\**\obj\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<entry xml:base="http://localhost/Nuget/nuget" xmlns="http://www.w3.org/2005/Atom" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:georss="http://www.georss.org/georss" xmlns:gml="http://www.opengis.net/gml">
+  <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.8.0')</id>
+  <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+  <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.8.0')" />
+  <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.8.0')" />
+  <title type="text">Acme.Common.Logging.AspNetCore</title>
+  <published>2018-11-21T17:31:07Z</published>
+  <updated>2018-11-21T17:31:07Z</updated>
+  <author>
+    <name>Patrick Assuied</name>
+  </author>
+  <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.8.0')/Download" />
+  <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.8.0')/Download" />
+  <m:properties>
+    <d:Id>Acme.Common.Logging.AspNetCore</d:Id>
+    <d:Version>1.8.0</d:Version>
+    <d:NormalizedVersion>1.8.0</d:NormalizedVersion>
+    <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+    <d:Title>Common Logging AspNetCore</d:Title>
+    <d:Authors>Patrick Assuied</d:Authors>
+    <d:Owners>Patrick Assuied</d:Owners>
+    <d:IconUrl m:null="true" />
+    <d:LicenseUrl m:null="true" />
+    <d:ProjectUrl>https://bitbucket.acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+    <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+    <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+    <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+    <d:Description>Common Logging integration within Aspnet core services</d:Description>
+    <d:Summary m:null="true" />
+    <d:ReleaseNotes>## Available in CHANGELOG.md</d:ReleaseNotes>
+    <d:Published m:type="Edm.DateTime">2018-11-21T17:31:07.1944763Z</d:Published>
+    <d:LastUpdated m:type="Edm.DateTime">2018-11-21T17:31:07.1944763Z</d:LastUpdated>
+    <d:Dependencies>Acme.Common.Logging.Configuration:1.8.0:netcoreapp2.0|Microsoft.AspNetCore.Diagnostics:2.0.3:netcoreapp2.0|NLog.Web.AspNetCore:4.5.4:netcoreapp2.0|SourceLink.Copy.PdbFiles:2.8.3:netcoreapp2.0|SourceLink.Create.CommandLine:2.8.3:netcoreapp2.0|Acme.Common.Logging.Configuration:1.8.0:netcoreapp2.1|Microsoft.AspNetCore.Diagnostics:2.1.1:netcoreapp2.1|NLog.Web.AspNetCore:4.5.4:netcoreapp2.1|SourceLink.Copy.PdbFiles:2.8.3:netcoreapp2.1|SourceLink.Create.CommandLine:2.8.3:netcoreapp2.1</d:Dependencies>
+    <d:PackageHash>KP5xJayLLtWJx59wz6rSHW8tvxNY4xp/3eCsqG2QF7wINphpXs+0k2rKLigMWq/6geWptbdXXjJdZXYJUG0EUQ==</d:PackageHash>
+    <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+    <d:PackageSize m:type="Edm.Int64">22002</d:PackageSize>
+    <d:Copyright>Copyright 2016-2018</d:Copyright>
+    <d:Tags xml:space="preserve"> common logging aspnetcore </d:Tags>
+    <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+    <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+    <d:Listed m:type="Edm.Boolean">true</d:Listed>
+    <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+    <d:MinClientVersion m:null="true" />
+    <d:Language m:null="true" />
+  </m:properties>
+</entry>
