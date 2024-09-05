@@ -16,17 +16,9 @@ namespace MonoDevelop.MSBuild.LanguageServer.Tests.Completion;
 public class CompletionTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Fact]
-    public async Task TestGetCompletionAsync()
+    public async Task ResolveCompletionItem()
     {
-        var fsw = new LSP.FileSystemWatcher {
-            GlobPattern = new LSP.RelativePattern {
-                BaseUri = ProtocolConversions.CreateRelativePatternBaseUri("C:\\Users"),
-                Pattern = ".*"
-            }
-        };
-
-        (string documentText, int caretOffset) = TextWithMarkers.ExtractSinglePosition (@"<Pro|ject></Project>", '|');
-        var caretPos = ConvertPosition(caretOffset, documentText);
+        (string documentText, var caret) = TextWithMarkers.ExtractSingleLineColPosition (@"<Pro|ject></Project>", '|');
 
         var capabilities = new LSP.ClientCapabilities {
             TextDocument = new LSP.TextDocumentClientCapabilities {
@@ -45,7 +37,7 @@ public class CompletionTests(ITestOutputHelper testOutputHelper) : AbstractLangu
 
         await testLspServer.OpenDocument(documentUri, documentText);
 
-        var completionList = await testLspServer.GetCompletionList(documentUri, caretPos);
+        var completionList = await testLspServer.GetCompletionList(documentUri, caret.AsLspPosition ());
 
         var firstItem = completionList.Items[0];
         Assert.Equal("Project", firstItem.Label);
@@ -53,24 +45,5 @@ public class CompletionTests(ITestOutputHelper testOutputHelper) : AbstractLangu
 
         var resolved = await testLspServer.ResolveCompletionItem(firstItem);
         Assert.NotNull(resolved.Documentation);
-    }
-
-    static LSP.Position ConvertPosition(int offset, string documentText)
-    {
-        int line = 0, col = 0;
-        for(int i = 0; i < offset; i++)
-        {
-            char ch = documentText[i];
-            if(ch == '\n')
-            {
-                line++;
-                col = 0;
-            }
-            else
-            {
-                col++;
-            }
-        }
-        return new LSP.Position(line, col);
     }
 }

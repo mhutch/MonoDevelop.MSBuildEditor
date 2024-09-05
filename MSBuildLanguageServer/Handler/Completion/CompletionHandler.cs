@@ -81,7 +81,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         var textSource = sourceText.GetTextSource();
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         int offset = position.ToOffset(sourceText);
-        var typedCharacter = offset < 0 ? '\0' : sourceText[offset - 1];
+        var typedCharacter = offset <= 0 ? '\0' : sourceText[offset - 1];
 
         var msbuildParserService = context.GetRequiredService<LspMSBuildParserService>();
         var xmlParserService = context.GetRequiredService<LspXmlParserService>();

@@ -30,7 +30,9 @@
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext+DenyExecutionSynchronizationContext.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
     <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
-    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs" Link="Helpers/MSBuildTestHelpers.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests.Editor/Completion/TestFileSystem.cs" Link="Completion/TestFileSystem.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests.Editor/Completion/TestSchemaProvider.cs" Link="Completion/TestSchemaProvider.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,8 +40,9 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" PrivateAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
   <ItemGroup>
