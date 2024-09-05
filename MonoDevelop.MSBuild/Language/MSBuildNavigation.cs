@@ -212,6 +212,11 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
+			void Collect (MSBuildReferenceKind kind, string name, int offset, int length)
+				=> Navigations.Add (new MSBuildNavigationResult (kind, name, offset, length));
+			void CollectElementName (MSBuildReferenceKind kind, XElement resolvedElement)
+				=> Navigations.Add (new MSBuildNavigationResult (kind, resolvedElement.Name.Name, resolvedElement.NameOffset, resolvedElement.Name.Length));
+
 			void CollectList (MSBuildReferenceKind kind, ExpressionNode node)
 			{
 				if (node is ListExpression list) {
