@@ -156,13 +156,8 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
             logger.LogException(ex);
         }
 
-        if (info is not null)
-        {
-            var markdown = renderer.GetPackageInfoTooltip(packageId, info, info.SourceKind);
-            return CreateHover(rr.ToLspRange (sourceText), markdown);
-        }
-
-        return null;
+        var markdown = renderer.GetPackageInfoTooltip(packageId, info);
+        return CreateHover(rr.ToLspRange (sourceText), markdown);
     }
 
     class NullFunctionTypeProvider : IFunctionTypeProvider

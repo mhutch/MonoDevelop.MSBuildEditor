@@ -521,8 +521,7 @@ partial class DisplayElementRenderer
         }
     }
 
-    // TODO: we should be able to do progress reporting here
-    public string GetPackageInfoTooltip(string packageId, IPackageInfo package, FeedKind feedKind)
+    public string GetPackageInfoTooltip(string packageId, IPackageInfo? package)
     {
         sb.Clear();
 

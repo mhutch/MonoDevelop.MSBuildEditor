@@ -14,12 +14,18 @@ using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Workspace;
+using MonoDevelop.MSBuild.Editor.NuGetSearch;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
+
+using ProjectFileTools.NuGetSearch.Contracts;
+using ProjectFileTools.NuGetSearch.Feeds;
 
 using Roslyn.LanguageServer.Protocol;
 
@@ -111,8 +117,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         if(msbuildTrigger is not null)
         {
             MSBuildRootDocument doc = await GetRootDocument();
-            var items = await GetExpressionCompletionList(context, doc, msbuildTrigger, extLogger, sourceText, functionTypeProvider, fileSystem, cancellationToken).ConfigureAwait(false);
-            return await CompletionRenderer.RenderCompletionItems(context, request.TextDocument, items, cancellationToken).ConfigureAwait(false);
+            return await GetExpressionCompletionList(request, context, doc, msbuildTrigger, extLogger, sourceText, functionTypeProvider, fileSystem, cancellationToken).ConfigureAwait(false);
         }
 
         (XmlCompletionTrigger kind, int spanStart, int spanLength)? xmlTrigger = null;
@@ -174,9 +179,12 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         }
     }
 
-    async static Task<List<ILspCompletionItem>?> GetExpressionCompletionList(
-        RequestContext context, MSBuildRootDocument doc, MSBuildCompletionTrigger trigger,
-        ILogger logger, SourceText sourceText, IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem, CancellationToken token)
+    async static Task<CompletionList?> GetExpressionCompletionList(
+        CompletionParams request, RequestContext context,
+        MSBuildRootDocument doc, MSBuildCompletionTrigger trigger,
+        ILogger logger, SourceText sourceText,
+        IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem,
+        CancellationToken cancellationToken)
     {
         var rr = trigger.ResolveResult;
 
@@ -190,16 +198,14 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             return null;
         }
 
-        var kind = valueSymbol.ValueKind;
+        var kindWithModifiers = valueSymbol.ValueKind;
 
-        if(!ValidateListPermitted(trigger.ListKind, kind))
+        if(!ValidateListPermitted(trigger.ListKind, kindWithModifiers))
         {
             return null;
         }
 
-        bool allowExpressions = kind.AllowsExpressions();
-
-        kind = kind.WithoutModifiers();
+        var kind = kindWithModifiers.WithoutModifiers();
 
         if(kind == MSBuildValueKind.Data || kind == MSBuildValueKind.Nothing)
         {
@@ -213,9 +219,64 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             kind = MSBuildInferredSchema.InferValueKindFromName(valueSymbol);
         }
 
-        bool isValue = trigger.TriggerState == TriggerState.Value;
+        var items = await GetExpressionCompletionItems(doc, trigger, logger, functionTypeProvider, fileSystem, rr, docsProvider, valueSymbol, kind, cancellationToken).ConfigureAwait(false);
 
+        bool isIncomplete = false;
+
+        // TODO: use request.PartialResultToken to report these as they come in
+        if(trigger.TriggerState == TriggerState.Value)
+        {
+            switch(kind)
+            {
+            case MSBuildValueKind.NuGetID:
+            {
+                isIncomplete = true;
+                if(trigger.Expression is ExpressionText t)
+                {
+                    var packageSearchManager = context.GetRequiredLspService<NuGetSearchService>();
+                    var packageType = valueSymbol.CustomType?.Values[0].Name;
+                    var packageNameItems = await GetPackageNameCompletions(t.Value, packageType, doc, packageSearchManager, docsProvider, cancellationToken);
+                    if(packageNameItems != null)
+                    {
+                        items.AddRange(packageNameItems);
+                    }
+                }
+                break;
+            }
+            case MSBuildValueKind.NuGetVersion:
+            {
+                isIncomplete = true;
+                var packageSearchManager = context.GetRequiredLspService<NuGetSearchService>();
+                var packageVersionItems = await GetPackageVersionCompletion(doc, rr, packageSearchManager, docsProvider, cancellationToken);
+                if(packageVersionItems != null)
+                {
+                    items.AddRange(packageVersionItems);
+                }
+                break;
+            }
+            }
+        }
+
+        var renderedList = await CompletionRenderer.RenderCompletionItems(context, request.TextDocument, items, cancellationToken).ConfigureAwait(false);
+
+        if (renderedList is not null)
+        {
+            renderedList.IsIncomplete = isIncomplete;
+        }
+
+        return renderedList;
+    }
+
+    private static async Task<List<ILspCompletionItem>> GetExpressionCompletionItems(
+        MSBuildRootDocument doc, MSBuildCompletionTrigger trigger, ILogger logger,
+        IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem,
+        MSBuildResolveResult rr, MSBuildCompletionDocsProvider docsProvider,
+        ITypedSymbol valueSymbol, MSBuildValueKind kind,
+        CancellationToken cancellationToken)
+    {
         var items = new List<ILspCompletionItem>();
+
+        bool isValue = trigger.TriggerState == TriggerState.Value;
 
         if(trigger.ComparandVariables != null && isValue)
         {
@@ -229,31 +290,10 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         {
             switch(kind)
             {
-            /*
-            case MSBuildValueKind.NuGetID:
-                if(trigger.Expression is ExpressionText t)
-                {
-                    var packageType = valueSymbol.CustomType?.Values[0].Name;
-                    var packageNameItems = await GetPackageNameCompletions(context, t.Value, packageType, token);
-                    if(packageNameItems != null)
-                    {
-                        items.AddRange(packageNameItems);
-                    }
-                }
-                break;
-            case MSBuildValueKind.NuGetVersion:
-            {
-                var packageVersionItems = await GetPackageVersionCompletions(context, token);
-                if(packageVersionItems != null)
-                {
-                    items.AddRange(packageVersionItems);
-                }
-                break;
-            }*/
             case MSBuildValueKind.Sdk:
             case MSBuildValueKind.SdkWithVersion:
             {
-                items.AddRange(SdkCompletion.GetSdkCompletions(doc, logger, token).Select(s => new MSBuildSdkCompletionItem(s, docsProvider)));
+                items.AddRange(SdkCompletion.GetSdkCompletions(doc, logger, cancellationToken).Select(s => new MSBuildSdkCompletionItem(s, docsProvider)));
                 break;
             }
             case MSBuildValueKind.Lcid:
@@ -271,7 +311,8 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         }
 
         //TODO: better metadata support
-        if(valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue)
+        // NOTE: can't just check CustomTypeInfo isn't null, must check kind, as NuGetID stashes the dependency type in the CustomTypeInfo
+        if(kind == MSBuildValueKind.CustomType && valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue)
         {
             bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions(valueSymbol);
             foreach(var value in valueSymbol.CustomType.Values)
@@ -282,7 +323,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         } else
         {
             //FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
-            await functionTypeProvider.EnsureInitialized(token);
+            await functionTypeProvider.EnsureInitialized(cancellationToken);
             if(GetCompletionInfos(rr, trigger.TriggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, functionTypeProvider, fileSystem, logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos)
             {
                 bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions(valueSymbol);
@@ -292,6 +333,8 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
                 }
             }
         }
+
+        bool allowExpressions = valueSymbol.ValueKind.AllowsExpressions();
 
         if(allowExpressions && isValue || trigger.TriggerState == TriggerState.BareFunctionArgumentValue)
         {
@@ -308,28 +351,71 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         }
 
         return items;
-
-        //throw new NotImplementedException();
     }
 
-    /*
-    CompletionItem CreateNuGetCompletionItem(MSBuildCompletionDocumentationProvider documentationProvider, Tuple<string, FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind)
+    static async Task<IList<ILspCompletionItem>?> GetPackageVersionCompletion(MSBuildRootDocument doc, MSBuildResolveResult resolveResult, IPackageSearchManager packageSearchManager, MSBuildCompletionDocsProvider docsProvider, CancellationToken cancellationToken)
     {
-        var kindImage = provider.DisplayElementFactory.GetImageElement(info.Item2);
-        var item = new CompletionItem(info.Item1, this, kindImage);
-        item.AddKind(xmlCompletionItemKind);
-        documentationProvider.AttachDocumentation(item, info);
-        return item;
+        if(!PackageCompletion.TryGetPackageVersionSearchJob(resolveResult, doc, packageSearchManager, out var packageSearchJob, out string? packageId, out string? targetFrameworkSearchParameter))
+        {
+            return null;
+        }
+
+        var results = await packageSearchJob.ToTask(cancellationToken);
+
+        var packageDocsProvider = new PackageCompletionDocsProvider(packageSearchManager, docsProvider, targetFrameworkSearchParameter);
+
+        // FIXME should we deduplicate?
+        // FIXME: this index sort hack won't work when we are returning the results in parts as they come in from the different sources
+        var items = new List<ILspCompletionItem>();
+        var index = results.Count;
+        foreach(var result in results)
+        {
+            items.Add(new OrderedPackageVersionCompletionItem (index--, packageId, result, packageDocsProvider));
+        }
+
+        return items;
     }
 
-    CompletionItem CreateOrderedNuGetCompletionItem(MSBuildCompletionDocumentationProvider documentationProvider, Tuple<string, FeedKind> info, XmlCompletionItemKind xmlCompletionItemKind, int index)
+    static async Task<IList<ILspCompletionItem>> GetPackageNameCompletions(string searchString, string? packageType, MSBuildRootDocument doc, IPackageSearchManager packageSearchManager, MSBuildCompletionDocsProvider docsProvider, CancellationToken cancellationToken)
     {
-        var kindImage = provider.DisplayElementFactory.GetImageElement(info.Item2);
-        string displayText = info.Item1;
-        var item = new CompletionItem(displayText, this, kindImage, ImmutableArray<CompletionFilter>.Empty, string.Empty, displayText, $"_{index:D5}", displayText, ImmutableArray<ImageElement>.Empty);
-        item.AddKind(xmlCompletionItemKind);
-        documentationProvider.AttachDocumentation(item, info);
-        return item;
+        if(string.IsNullOrEmpty(searchString))
+        {
+            return [];
+        }
+
+        var targetFrameworkSearchParameter = doc.GetTargetFrameworkNuGetSearchParameter();
+
+        var packageDocsProvider = new PackageCompletionDocsProvider(packageSearchManager, docsProvider, targetFrameworkSearchParameter);
+
+        var results = await packageSearchManager.SearchPackageNames(searchString.ToLower(), targetFrameworkSearchParameter, packageType).ToTask(cancellationToken);
+
+        return CreateNuGetItemsFromSearchResults(results, packageDocsProvider);
     }
-    */
+
+    static List<ILspCompletionItem> CreateNuGetItemsFromSearchResults(IReadOnlyList<Tuple<string, FeedKind>> results, PackageCompletionDocsProvider packageDocsProvider)
+    {
+        var items = new List<ILspCompletionItem>();
+        var dedup = new HashSet<string>();
+
+        // dedup, preferring nuget -> myget -> local
+        AddItems(FeedKind.NuGet);
+        AddItems(FeedKind.MyGet);
+        AddItems(FeedKind.Local);
+
+        void AddItems(FeedKind kind)
+        {
+            foreach(var result in results)
+            {
+                if(result.Item2 == kind)
+                {
+                    if(dedup.Add(result.Item1))
+                    {
+                        items.Add(new PackageNameCompletionItem (result, packageDocsProvider));
+                    }
+                }
+            }
+        }
+
+        return items;
+    }
 }

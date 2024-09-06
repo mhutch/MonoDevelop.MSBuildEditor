@@ -4,6 +4,8 @@
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 
+using ProjectFileTools.NuGetSearch.Feeds;
+
 using Roslyn.LanguageServer.Protocol;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
@@ -29,6 +31,11 @@ static class MSBuildCompletionItemKind
 
     public const CompletionItemKind NewGuid = CompletionItemKind.Macro;
 
+    // TODO: icons
+    public const CompletionItemKind PackageNuGet = CompletionItemKind.Module;
+    public const CompletionItemKind PackageMyGet = CompletionItemKind.Module;
+    public const CompletionItemKind PackageLocal = CompletionItemKind.Module;
+
     internal static CompletionItemKind GetCompletionItemKind(this ISymbol symbol)
         => symbol switch {
         PropertyInfo => Property,
@@ -37,4 +44,11 @@ static class MSBuildCompletionItemKind
         ConstantSymbol => Constant,
         _ => CompletionItemKind.Element
         };
+
+    internal static CompletionItemKind GetCompletionItemKind(this FeedKind feedKind)
+        => feedKind switch {
+            FeedKind.MyGet => PackageMyGet,
+            FeedKind.Local => PackageLocal,
+            _ => PackageNuGet
+            };
 }

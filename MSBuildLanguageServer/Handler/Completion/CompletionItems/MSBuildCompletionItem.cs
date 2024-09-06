@@ -8,7 +8,11 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 
-class MSBuildCompletionItem(ISymbol symbol, XmlCommitKind xmlCommitKind, MSBuildCompletionDocsProvider docsProvider, string? prefix = null, string? annotation = null, bool addDescriptionHint = false) : ILspCompletionItem
+class MSBuildCompletionItem(
+    ISymbol symbol, XmlCommitKind xmlCommitKind,
+    MSBuildCompletionDocsProvider docsProvider,
+    string? prefix = null, string? annotation = null, string? sortText = null, bool addDescriptionHint = false
+    ) : ILspCompletionItem
 {
     string label => prefix is not null ? prefix + symbol.Name : symbol.Name;
 
@@ -16,7 +20,7 @@ class MSBuildCompletionItem(ISymbol symbol, XmlCommitKind xmlCommitKind, MSBuild
 
     public async ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
     {
-        var item = new CompletionItem { Label = label };
+        var item = new CompletionItem { Label = label, SortText = sortText };
 
         if(settings.IncludeDeprecatedPropertyOrTag && symbol.IsDeprecated())
         {
@@ -31,7 +35,6 @@ class MSBuildCompletionItem(ISymbol symbol, XmlCommitKind xmlCommitKind, MSBuild
         if(annotation is not null)
         {
             item.FilterText = $"{symbol.Name} {annotation}";
-            item.SortText = annotation;
             if(settings.IncludeLabelDetails)
             {
                 item.LabelDetails = new CompletionItemLabelDetails { Description = annotation };
@@ -58,6 +61,5 @@ class MSBuildCompletionItem(ISymbol symbol, XmlCommitKind xmlCommitKind, MSBuild
         }
 
         return item;
-
     }
 }

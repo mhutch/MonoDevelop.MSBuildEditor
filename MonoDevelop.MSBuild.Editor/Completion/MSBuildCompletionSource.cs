@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -264,50 +263,13 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			return items;
 		}
 
-		static bool ItemIsInItemGroup (XElement itemEl) => itemEl.Parent is XElement parent && parent.Name.Equals (MSBuildElementSyntax.ItemGroup.Name, true);
-
-		static XElement GetItemGroupItemFromMetadata (MSBuildResolveResult rr)
-			=> rr.ElementSyntax.SyntaxKind switch {
-				MSBuildSyntaxKind.Item => rr.Element,
-				MSBuildSyntaxKind.Metadata => rr.Element.Parent is XElement parentEl && ItemIsInItemGroup (parentEl)? parentEl : null,
-				_ => null
-			};
-
-		static XAttribute GetIncludeOrUpdateAttribute (XElement item)
-			=> item.Attributes.FirstOrDefault (att => MSBuildElementSyntax.Item.GetAttribute (att)?.SyntaxKind switch {
-				MSBuildSyntaxKind.Item_Include => true,
-				MSBuildSyntaxKind.Item_Update => true,
-				_ => false
-			});
-
 		async Task<List<CompletionItem>> GetPackageVersionCompletions (MSBuildCompletionContext context, CancellationToken token)
 		{
-			if (context.ResolveResult is not MSBuildResolveResult rr || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
+			if (!PackageCompletion.TryGetPackageVersionSearchJob (context.ResolveResult, context.Document, provider.PackageSearchManager, out var packageSearchJob, out _, out _)) {
 				return null;
 			}
 
-			// we can only provide version completions if the item's value type is non-list nugetid
-			var itemInfo = context.Document.GetSchemas ().GetItem (itemEl.Name.Name);
-			if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID)) {
-				return null;
-			}
-
-			var packageType = itemInfo.CustomType?.Values[0].Name;
-
-			var packageId = includeAtt.Value;
-			if (string.IsNullOrEmpty (packageId)) {
-				return null;
-			}
-
-			// check it's a non-list literal value, we can't handle anything else
-			var expr = ExpressionParser.Parse (packageId, ExpressionOptions.ItemsMetadataAndLists);
-			if (expr.NodeKind != ExpressionNodeKind.Text) {
-				return null;
-			}
-
-			var tfm = context.Document.GetTargetFrameworkNuGetSearchParameter ();
-
-			var results = await provider.PackageSearchManager.SearchPackageVersions (packageId.ToLower (), tfm, packageType).ToTask (token);
+			var results = await packageSearchJob.ToTask (token);
 
 			//FIXME should we deduplicate?
 			var items = new List<CompletionItem> ();
@@ -397,7 +359,8 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			//TODO: better metadata support
-			if (valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
+			// NOTE: can't just check CustomTypeInfo isn't null, must check kind, as NuGetID stashes the dependency type in the CustomTypeInfo
+			if (kind == MSBuildValueKind.CustomType && valueSymbol.CustomType != null && valueSymbol.CustomType.Values.Count > 0 && isValue) {
 				bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions (valueSymbol);
 				foreach (var value in valueSymbol.CustomType.Values) {
 					items.Add (CreateCompletionItem (context.DocumentationProvider, value, XmlCompletionItemKind.AttributeValue, addDescriptionHint: addDescriptionHint));

@@ -20,7 +20,6 @@ namespace MonoDevelop.MSBuild.Editor.NuGetSearch;
 class NuGetSearchServiceFactory(IPackageSearchManager packageSearchManager) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new NuGetSearchService (packageSearchManager);
-
 }
 
 class NuGetSearchService(IPackageSearchManager packageSearchManager) : ILspService, IPackageSearchManager

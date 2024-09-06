@@ -29,6 +29,8 @@ internal record class MSBuildCompletionTrigger(
         }
 
         // the resolver may modify the spine, so clone it
+        // NOTE: this resolver uses an empty root document, so it won't resolve symbols correctly.
+        // that's okay, as long as we don't try to use them, and only use the resolved syntax.
         var rr = resolveResult ?? MSBuildResolver.Resolve(spine.Clone(), textSource, MSBuildRootDocument.Empty, functionTypeProvider, logger, cancellationToken);
 
         if(rr?.ElementSyntax is MSBuildElementSyntax elementSyntax && (rr.Attribute is not null || elementSyntax.ValueKind != MSBuildValueKind.Nothing))
@@ -56,7 +58,7 @@ internal record class MSBuildCompletionTrigger(
 
             if(triggerState != ExpressionCompletion.TriggerState.None)
             {
-                return new(rr, triggerState, spanStart, spanLength, expression, expressionText, listKind, comparandVariables);
+                return new(rr, triggerState, exprStartPos + spanStart, spanLength, expression, expressionText, listKind, comparandVariables);
             }
         }
         return null;
