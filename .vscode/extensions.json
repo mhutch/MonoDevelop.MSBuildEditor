@@ -8,5 +8,6 @@
     "ms-dotnettools.csharp",
     "streetsidesoftware.code-spell-checker",
     "editorconfig.editorconfig",
+    "connor4312.esbuild-problem-matchers",
   ]
 }
