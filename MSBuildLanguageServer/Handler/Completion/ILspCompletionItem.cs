@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Roslyn.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
@@ -15,10 +16,17 @@ interface ILspCompletionItem
     /// </summary>
     /// <param name="settings">Provides information about which properties should be included</param>
     /// <returns>A populated <see cref="CompletionItem"/></returns>
-    ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken);
+    ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken);
 
     /// <summary>
     /// Whether this is a match for resolving the requested item.
     /// </summary>
     bool IsMatch(CompletionItem request);
 }
+
+/// <summary>
+/// Information common to rendering many/all items that may be used when rendering the
+/// items upfront or cached and provided later when the item is resolved.
+/// </summary>
+/// <param name="EditRange"></param>
+record struct CompletionRenderContext(LSP.Range EditRange);

@@ -13,7 +13,7 @@ class XmlEntityCompletionItem(string name, string character) : ILspCompletionIte
 
 
     //TODO: need to tweak semicolon insertion for XmlCompletionItemKind.Entity
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
+    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
     {
         var item = new CompletionItem { Label = label, FilterText = name, Kind = XmlToLspCompletionItemKind.Entity };
 

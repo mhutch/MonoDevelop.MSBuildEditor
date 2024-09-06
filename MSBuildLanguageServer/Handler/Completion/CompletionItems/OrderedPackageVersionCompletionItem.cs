@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -19,7 +19,7 @@ class OrderedPackageVersionCompletionItem(
 
     public bool IsMatch(CompletionItem request) => string.Equals(request.Label, packageVersion, StringComparison.Ordinal);
 
-    public async ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
+    public async ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
     {
         var item = new CompletionItem {
             Label = packageVersion,

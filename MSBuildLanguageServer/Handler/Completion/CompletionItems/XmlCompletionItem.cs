@@ -9,7 +9,7 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
 {
     public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
 
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
+    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
     {
         var item = new CompletionItem { Label = label, Kind = kind };
 

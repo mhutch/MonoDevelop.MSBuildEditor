@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MonoDevelop.Xml.Dom;
@@ -14,7 +14,7 @@ class XmlClosingTagCompletionItem(bool includeBracket, string name, XElement ele
     public bool IsMatch(CompletionItem request) => string.Equals(request.Label, label, StringComparison.Ordinal);
 
     // TODO: custom insert text, including for multiple closing tags
-    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CancellationToken cancellationToken)
+    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
     {
         // force these to sort last, they're not very interesting values to browse as these tags are usually already closed
         string sortText = "ZZZZZZ" + label;

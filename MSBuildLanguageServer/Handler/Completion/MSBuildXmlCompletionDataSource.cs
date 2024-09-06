@@ -13,16 +13,18 @@ using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
+using LSP = Roslyn.LanguageServer.Protocol;
+
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 record class MSBuildXmlCompletionContext
     (
-        XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, int TriggerLineNumber,
+        XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, LSP.Range EditRange,
         MSBuildResolveResult ResolveResult, MSBuildRootDocument Document, MSBuildCompletionDocsProvider DocsProvider, SourceText SourceText
     )
     : XmlCompletionContext
     (
-        SpineParser, XmlTriggerKind, TextSource, NodePath, TriggerLineNumber
+        SpineParser, XmlTriggerKind, TextSource, NodePath, EditRange
     )
 {
 }

@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
+using LSP = Roslyn.LanguageServer.Protocol;
+
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(CompletionListCache)), Shared]
@@ -26,4 +28,4 @@ class CompletionListCache : ResolveCache<CompletionListCacheEntry>
     public CompletionListCache() : base(maxCacheSize: 3) { }
 }
 
-record CompletionListCacheEntry(List<ILspCompletionItem> Items) { }
+record CompletionListCacheEntry(List<ILspCompletionItem> Items, CompletionRenderContext Context) { }

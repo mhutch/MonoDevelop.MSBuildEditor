@@ -24,9 +24,14 @@ class CompletionRenderSettings
 #pragma warning disable CS0618 // Type or member is obsolete
         IncludeDeprecatedProperty = !supportsDeprecatedTag && ClientCapabilities.DeprecatedSupport && (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.Deprecated)));
 #pragma warning restore CS0618 // Type or member is obsolete
+
         IncludeTextEdit = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEdit)));
         IncludeInsertText = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertText)));
+        IncludeTextEditText = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEditText)));
         IncludeInsertTextFormat = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertTextFormat)));
+
+        SupportsDataDefault = clientCapabilities.SupportedItemDefaults.Contains(nameof(CompletionListItemDefaults.Data));
+        SupportsEditRange = clientCapabilities.SupportedItemDefaults.Contains(nameof(CompletionListItemDefaults.EditRange));
     }
 
     public CompletionClientCapabilities ClientCapabilities { get; }
@@ -41,10 +46,17 @@ class CompletionRenderSettings
 
     public bool IncludeTextEdit { get; }
 
+    public bool IncludeTextEditText { get; }
+
     public bool IncludeInsertText { get; }
+
     public bool IncludeInsertTextFormat { get; }
 
     public bool SupportsInsertReplaceEdit => ClientCapabilities.InsertReplaceSupport;
+
+    public bool SupportsDataDefault { get; }
+
+    public bool SupportsEditRange { get; }
 
     /// <summary>
     /// Whether the client supports treating <see cref="CompletionItem.InsertText"/> as a snippet

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Composition;
@@ -50,11 +50,18 @@ sealed class CompletionResolveHandler : ILspServiceRequestHandler<CompletionItem
         {
             if(item.IsMatch(request))
             {
-                var renderedItem = await item.Render(renderSettings, cancellationToken).ConfigureAwait(false);
+                var renderedItem = await item.Render(renderSettings, cacheEntry.Context, cancellationToken).ConfigureAwait(false);
+
                 // avoid ambiguity if there are multiple items with the same label and IsMatch didn't distinguish
                 if(!string.Equals(renderedItem.SortText, request.SortText) || !string.Equals(renderedItem.FilterText, request.FilterText))
                 {
                     continue;
+                }
+
+                // if the client doesn't support EditRange, and the item doesn't define a TextEdit, we must add a computed one
+                if(!renderSettings.SupportsEditRange)
+                {
+                    renderedItem.AddEditRangeTextEdit(renderSettings, cacheEntry.Context);
                 }
                 return renderedItem;
             };

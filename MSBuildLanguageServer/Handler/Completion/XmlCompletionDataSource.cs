@@ -1,17 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
-using System.Reflection.Emit;
-
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 
+using LSP = Roslyn.LanguageServer.Protocol;
+
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
-record class XmlCompletionContext(XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, int TriggerLineNumber)
+record class XmlCompletionContext(XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, LSP.Range EditRange)
 {
 }
 
@@ -100,7 +99,7 @@ class XmlCompletionDataSource<TContext> where TContext : XmlCompletionContext
     /// </summary>
     IEnumerable<ILspCompletionItem> GetMiscellaneousTags(TContext context, bool includeBracket)
     {
-        if(context.NodePath.Count == 0 & context.TriggerLineNumber == 0)
+        if(context.NodePath.Count == 0 & context.EditRange.Start.Line == 0)
         {
             yield return includeBracket ? prologItemWithBracket : prologItem;
         }

@@ -142,9 +142,11 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var clientInfo = context.GetRequiredService<IInitializeManager>().TryGetInitializeParams()?.ClientInfo;
 
+            var editRange = sourceText.GetLspRange(xmlTrigger.Value.spanStart, xmlTrigger.Value.spanLength);
+
             var rr = MSBuildResolver.Resolve(spine.Clone(), textSource, MSBuildRootDocument.Empty, null, extLogger, cancellationToken);
             var docsProvider = MSBuildCompletionDocsProvider.Create(extLogger, clientCapabilities, clientInfo, doc, sourceText, rr);
-            var xmlCompletionContext = new MSBuildXmlCompletionContext(spine, xmlTrigger.Value.kind, textSource, nodePath, position.Line, rr, doc, docsProvider, sourceText);
+            var xmlCompletionContext = new MSBuildXmlCompletionContext(spine, xmlTrigger.Value.kind, textSource, nodePath, editRange, rr, doc, docsProvider, sourceText);
             var dataSource = new MSBuildXmlCompletionDataSource();
             return await GetXmlCompletionListAsync(context, dataSource, xmlCompletionContext, request.TextDocument, cancellationToken).ConfigureAwait(false);
         }
@@ -160,7 +162,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
 
         var allItems = subLists.SelectMany(s => s is null ? [] : s);
 
-        return await CompletionRenderer.RenderCompletionItems(context, textDocument, allItems, cancellationToken).ConfigureAwait(false);
+        return await CompletionRenderer.RenderCompletionItems(context, textDocument, allItems, xmlCompletionContext.EditRange, cancellationToken).ConfigureAwait(false);
     }
 
     static Task<MSBuildParseResult>? GetMSBuildParseResult(LspMSBuildParserService msbuildParserService, EditorDocumentState documentState, CancellationToken cancellationToken)
@@ -257,7 +259,13 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             }
         }
 
-        var renderedList = await CompletionRenderer.RenderCompletionItems(context, request.TextDocument, items, cancellationToken).ConfigureAwait(false);
+        var renderedList = await CompletionRenderer.RenderCompletionItems(
+            context,
+            request.TextDocument,
+            items,
+            sourceText.GetLspRange(trigger.SpanStart, trigger.SpanLength),
+            cancellationToken
+            ).ConfigureAwait(false);
 
         if (renderedList is not null)
         {
