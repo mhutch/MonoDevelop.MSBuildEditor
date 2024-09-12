@@ -104,7 +104,8 @@ public class NuGetV2ServiceFeedTests
 
     public static string GetXmlFromTestFile(string filename, [CallerFilePath] string callerFile = null)
     {
-        string path = Path.Combine(Path.GetDirectoryName(callerFile), "TestFiles", filename);
+        var asmDir = Path.GetDirectoryName(typeof(NuGetV2ServiceFeedTests).Assembly.Location);
+        string path = Path.Combine(asmDir, "PackageSearch", "TestFiles", filename);
         return File.ReadAllText(path);
     }
 }

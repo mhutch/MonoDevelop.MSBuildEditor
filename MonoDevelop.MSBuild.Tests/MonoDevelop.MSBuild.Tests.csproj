@@ -22,4 +22,8 @@
     <ProjectReference Include="..\MonoDevelop.Xml\Core.Tests\MonoDevelop.Xml.Core.Tests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="PackageSearch\TestFiles\*.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
