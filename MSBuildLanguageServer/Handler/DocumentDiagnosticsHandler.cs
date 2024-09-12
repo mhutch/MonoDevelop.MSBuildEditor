@@ -55,6 +55,7 @@ sealed class DocumentDiagnosticsHandler : ILspServiceDocumentRequestHandler<Docu
             {
                 // FIXME move this to a service
                 var analyzerDriver = new MSBuildAnalyzerDriver(context.GetRequiredService<ILspLogger> ().ToILogger ());
+                analyzerDriver.AddBuiltInAnalyzers();
                 msbuildDiagnostics = await Task.Run(() => analyzerDriver.Analyze(msbuildDoc, true, cancellationToken), cancellationToken);
             } catch(Exception ex)
             {
