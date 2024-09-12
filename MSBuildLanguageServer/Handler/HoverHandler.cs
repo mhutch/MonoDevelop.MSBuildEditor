@@ -78,7 +78,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
             return CreateNavigationQuickInfo(CreateRenderer(), sourceText, annotations);
         }
 
-        var functionTypeProvider = new NullFunctionTypeProvider();
+        var functionTypeProvider = context.GetRequiredService<FunctionTypeProviderService>().FunctionTypeProvider;
 
         //FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
         await functionTypeProvider.EnsureInitialized(cancellationToken);
