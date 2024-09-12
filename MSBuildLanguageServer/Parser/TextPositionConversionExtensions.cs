@@ -28,6 +28,9 @@ static class TextPositionConversionExtensions
     public static LinePositionSpan ToLinePositionSpan(this XTextSpan span, SourceText sourceText)
         => sourceText.Lines.GetLinePositionSpan(new RoslynTextSpan(span.Start, span.Length));
 
+    public static LSP.Position GetLspPosition(this SourceText sourceText, int offset)
+        => ProtocolConversions.LinePositionToPosition(sourceText.Lines.GetLinePosition(offset));
+
     public static LSP.Range GetLspRange(this SourceText sourceText, int start, int length)
         => ProtocolConversions.TextSpanToRange(new RoslynTextSpan(start, length), sourceText);
 
