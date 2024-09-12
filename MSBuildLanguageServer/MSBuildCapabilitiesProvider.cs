@@ -26,6 +26,7 @@ class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
             },
             DiagnosticOptions = new DiagnosticOptions { },
             DefinitionProvider = new DefinitionOptions { WorkDoneProgress = true },
+            ReferencesProvider = new ReferenceOptions { WorkDoneProgress = true }
         };
         return capabilities;
     }

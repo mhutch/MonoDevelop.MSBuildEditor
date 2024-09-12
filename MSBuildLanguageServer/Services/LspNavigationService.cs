@@ -23,11 +23,51 @@ namespace MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 
 partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserService xmlParserService, ILogger logger) : ILspService
 {
-    public async Task FindReferences(
+    public Task FindReferences(
+        MSBuildParseResult originParseResult,
+        MSBuildReferenceCollectorFactory collectorFactory,
+        BufferedProgress<Location[]> resultReporter,
+        IProgress<WorkDoneProgress>? progress,
+        CancellationToken cancellationToken,
+        Func<FindReferencesResult, bool>? resultFilter = null)
+    {
+        return FindReferencesInternal(
+            originParseResult,
+            ReferencesToLocations,
+            collectorFactory,
+            resultReporter,
+            progress,
+            cancellationToken,
+            resultFilter
+        );
+    }
+
+    public Task FindReferences(
         MSBuildParseResult originParseResult,
         LSP.Range originRange,
         MSBuildReferenceCollectorFactory collectorFactory,
         BufferedProgress<LocationLink[]> resultReporter,
+        IProgress<WorkDoneProgress>? progress,
+        CancellationToken cancellationToken,
+        Func<FindReferencesResult, bool>? resultFilter = null)
+    {
+        return FindReferencesInternal(
+            originParseResult,
+            (filename, sourceText, references) => ReferencesToLocationLinks(filename, sourceText, originRange, references),
+            collectorFactory,
+            resultReporter,
+            progress,
+            cancellationToken,
+            resultFilter
+        );
+    }
+
+
+    async Task FindReferencesInternal<TResult>(
+        MSBuildParseResult originParseResult,
+        Func<string, SourceText, List<FindReferencesResult>, TResult[]> createResults,
+        MSBuildReferenceCollectorFactory collectorFactory,
+        BufferedProgress<TResult[]> resultReporter,
         IProgress<WorkDoneProgress>? progress,
         CancellationToken cancellationToken,
         Func<FindReferencesResult, bool>? resultFilter = null)
@@ -55,7 +95,7 @@ partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserSer
             {
                 var locations = await ProcessSearchJob(
                     originParseResult.MSBuildDocument,
-                    originRange,
+                    createResults,
                     job,
                     openDocuments,
                     collectorFactory,
@@ -96,9 +136,9 @@ partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserSer
         });
     }
 
-    static async Task<LocationLink[]?> ProcessSearchJob(
+    static async Task<TResult[]?> ProcessSearchJob<TResult>(
         MSBuildRootDocument originDocument,
-        LSP.Range originRange,
+        Func<string, SourceText, List<FindReferencesResult>, TResult[]> createResults,
         FindReferencesSearchJob job,
         Dictionary<string, LspEditorDocument> openDocuments,
         MSBuildReferenceCollectorFactory collectorFactory,
@@ -156,7 +196,7 @@ partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserSer
             return null;
         }
 
-        return ReferencesToLocations(references, sourceText, filename, originRange);
+        return createResults(filename, sourceText, references);
     }
 
     static (XDocument document, IReadOnlyList<Xml.Analysis.XmlDiagnostic>? diagnostics) ParseSourceText(SourceText text, XmlRootState stateMachine, CancellationToken cancellationToken)
@@ -171,7 +211,7 @@ partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserSer
         return parser.EndAllNodes();
     }
 
-    static LocationLink[] ReferencesToLocations(List<FindReferencesResult> references, SourceText targetSourceText, string targetFilePath, LSP.Range originRange)
+    static LocationLink[] ReferencesToLocationLinks(string targetFilePath, SourceText targetSourceText, LSP.Range originRange, List<FindReferencesResult> references)
     {
         var targetUri = ProtocolConversions.CreateAbsoluteUri(targetFilePath);
 
@@ -182,6 +222,21 @@ partial class LspNavigationService(LspEditorWorkspace workspace, LspXmlParserSer
                 TargetUri = targetUri,
                 TargetRange = range,
                 TargetSelectionRange = range
+            };
+        }).ToArray();
+
+        return locations;
+    }
+
+    static Location[] ReferencesToLocations(string targetFilePath, SourceText targetSourceText, List<FindReferencesResult> references)
+    {
+        var targetUri = ProtocolConversions.CreateAbsoluteUri(targetFilePath);
+
+        var locations = references.Select(reference => {
+            var range = targetSourceText.GetLspRange(reference.Offset, reference.Length);
+            return new Location {
+                Uri = targetUri,
+                Range = range
             };
         }).ToArray();
 
