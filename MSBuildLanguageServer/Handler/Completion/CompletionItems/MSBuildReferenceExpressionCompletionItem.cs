@@ -26,6 +26,19 @@ class MSBuildReferenceExpressionCompletionItem(string text, string description, 
             };
         }
 
+        if (settings.SupportSnippetFormat && settings.IncludeInsertTextFormat && settings.IncludeTextEdit)
+        {
+            if (settings.IncludeInsertTextFormat)
+            {
+                item.InsertTextFormat = InsertTextFormat.Snippet;
+            }
+            // TODO: calculate whether this would unbalance the expression
+            item.TextEdit = new TextEdit {
+                NewText = $"{text}$0)",
+                Range = ctx.EditRange
+            };
+        }
+
         //TODO: custom commit support. we should be retriggering completion and enabling overtype support for the paren.
         //See MSBuildCompletionCommitManager. TryCommitItemKind
 
