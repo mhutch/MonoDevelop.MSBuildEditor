@@ -285,7 +285,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		class InferredTaskInfo (string name) : TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, null) { }
+		class InferredTaskInfo (string name) : TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, null, null) { }
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
@@ -391,14 +391,14 @@ namespace MonoDevelop.MSBuild.Language
 					parseContext.PropertyCollector
 				);
 
-				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (fullTaskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
+				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (fullTaskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span, evalCtx, parseContext.Logger);
 
 				if (info != null) {
 					Tasks[info.Name] = info;
 					return;
 				} else {
 					// created placeholder task marked as unresolved for analyzers etc
-					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span.Start, null);
+					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span, null);
 					return;
 				}
 			}
@@ -423,7 +423,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span.Start, null, taskParameters);
+			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span, null, taskParameters);
 		}
 
 		void ExtractReferences (MSBuildValueKind kind, ExpressionNode expression)

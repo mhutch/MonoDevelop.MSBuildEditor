@@ -88,7 +88,7 @@ namespace MonoDevelop.MSBuild.Language
 				if (task?.DeclaredInFile != null) {
 					return new MSBuildNavigationResult (
 						MSBuildReferenceKind.Task, task.Name, rr.ReferenceOffset, rr.ReferenceLength,
-						task.DeclaredInFile, task.DeclaredAtOffset
+						task.DeclaredInFile, task.DeclarationSpan
 					);
 				}
 			}
@@ -260,14 +260,14 @@ namespace MonoDevelop.MSBuild.Language
 	{
 		public MSBuildNavigationResult (
 			MSBuildReferenceKind kind, string name, int offset, int length,
-			string? destFile = null, int destOffset = default)
+			string? destFile = null, TextSpan? targetSpan = null)
 		{
 			Kind = kind;
 			Name = name;
 			Offset = offset;
 			Length = length;
 			DestFile = destFile;
-			DestOffset = destOffset;
+			TargetSpan = targetSpan;
 		}
 
 		public MSBuildNavigationResult (string[] paths, int offset, int length)
@@ -284,6 +284,6 @@ namespace MonoDevelop.MSBuild.Language
 		public int Length { get; }
 		public string[]? Paths { get; }
 		public string? DestFile { get; }
-		public int DestOffset { get; }
+		public TextSpan? TargetSpan { get; }
 	}
 }

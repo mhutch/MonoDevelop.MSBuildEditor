@@ -45,7 +45,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 		public TaskInfo? CreateTaskInfo (
 			string typeName, string? assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
-			string declaredInFile, int declaredAtOffset,
+			string declaredInFile, Xml.Dom.TextSpan? declarationSpan,
 			IMSBuildEvaluationContext evaluationContext,
 			ILogger logger)
 		{
@@ -104,7 +104,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				TaskDeclarationKind.Assembly,
 				type.GetFullName (),
 				assemblyName, assemblyFileStr,
-				declaredInFile, declaredAtOffset,
+				declaredInFile, declarationSpan,
 				versionInfo,
 				parameters);
 		}

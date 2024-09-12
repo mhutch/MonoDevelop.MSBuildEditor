@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild.Schema
 	{
 		TaskInfo? CreateTaskInfo (
 			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
-			string declaredInFile, int declaredAtOffset,
+			string declaredInFile, Xml.Dom.TextSpan? declarationSpan,
 			IMSBuildEvaluationContext evaluationContext,
 			ILogger logger);
 	}

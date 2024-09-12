@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Editor.Navigation
 			}
 
 			if (result.DestFile != null) {
-				EditorHost.OpenFile (result.DestFile, result.DestOffset);
+				EditorHost.OpenFile (result.DestFile, result.TargetSpan?.Start ?? 0);
 				return true;
 			}
 

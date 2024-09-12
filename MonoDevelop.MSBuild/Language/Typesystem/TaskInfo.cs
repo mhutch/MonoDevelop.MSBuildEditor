@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// Intrinsic task
 		/// </summary>
 		internal TaskInfo (string name, DisplayText description, TaskParameterInfo[] parameters, string? helpUrl, string? parametersHelpUrl)
-			: this (name, description, TaskDeclarationKind.Intrinsic, null, null, null, null, 0, null, helpUrl: helpUrl)
+			: this (name, description, TaskDeclarationKind.Intrinsic, null, null, null, null, null, null, helpUrl: helpUrl)
 		{
 			this.parameters = new Dictionary<string, TaskParameterInfo> ();
 			foreach (var p in parameters) {
@@ -30,7 +30,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		/// <summary>
 		/// All other kinds of task
 		/// </summary>
-		public TaskInfo (string name, DisplayText description, TaskDeclarationKind declarationKind, string? typeName, string? assemblyName, string? assemblyFile, string? declaredInFile, int declaredAtOffset,
+		public TaskInfo (string name, DisplayText description, TaskDeclarationKind declarationKind, string? typeName, string? assemblyName, string? assemblyFile, string? declaredInFile, Xml.Dom.TextSpan? declarationSpan,
 			SymbolVersionInfo? versionInfo, Dictionary<string, TaskParameterInfo>? parameters = null, string? helpUrl = null, string? parametersHelpUrl = null
 			)
 			: base (name, description)
@@ -40,7 +40,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 			AssemblyName = assemblyName;
 			AssemblyFile = assemblyFile;
 			DeclaredInFile = declaredInFile;
-			DeclaredAtOffset = declaredAtOffset;
+			DeclarationSpan = declarationSpan;
 			VersionInfo = versionInfo;
 			this.parameters = parameters ?? new Dictionary<string, TaskParameterInfo> (StringComparer.OrdinalIgnoreCase);
 			HelpUrl = helpUrl;
@@ -67,7 +67,7 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		public string? AssemblyFile { get; }
 
 		public string? DeclaredInFile { get; }
-		public int DeclaredAtOffset { get; }
+		public Xml.Dom.TextSpan? DeclarationSpan { get; }
 
 		public SymbolVersionInfo? VersionInfo { get; }
 
