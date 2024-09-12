@@ -36,6 +36,8 @@ partial class LspXmlParserService : ILspService
         }
     }
 
+    public XmlRootState StateMachine { get; } = new();
+
     void OnDocumentOpened(object? sender, EditorDocumentEventArgs e) => OnDocumentOpened(e.Document);
 
     void OnDocumentOpened(EditorDocumentState document)

@@ -27,14 +27,9 @@ partial class LspXmlParserService
             DocumentId = documentId;
             this.parserService = parserService;
             this.logger = logger;
-            StateMachine = CreateParserStateMachine();
         }
 
-        protected XmlRootState StateMachine { get; }
-
         public DocumentId DocumentId { get; }
-
-        protected virtual XmlRootState CreateParserStateMachine() => new();
 
         protected override Task<XmlParseResult> StartOperationAsync(
             EditorDocumentState input,
@@ -43,7 +38,7 @@ partial class LspXmlParserService
             CancellationToken token)
         {
             return Task.Run(() => {
-                var parser = new XmlTreeParser(StateMachine);
+                var parser = new XmlTreeParser(parserService.StateMachine);
                 var text = input.Text.Text;
                 var length = text.Length;
                 for(int i = 0; i < length; i++)
@@ -52,7 +47,7 @@ partial class LspXmlParserService
                     token.ThrowIfCancellationRequested();
                 }
                 var (doc, diagnostics) = parser.EndAllNodes();
-                return new XmlParseResult(input, doc, diagnostics, StateMachine);
+                return new XmlParseResult(input, doc, diagnostics, parserService.StateMachine);
             }, token);
         }
 
@@ -71,7 +66,7 @@ partial class LspXmlParserService
         protected override int CompareInputs(EditorDocumentState a, EditorDocumentState b) => a.Text.Version.CompareTo(b.Text.Version);
 
         public XmlSpineParser GetSpineParser(LinePosition point, SourceText text, CancellationToken token = default)
-            => LspXmlParserService.GetSpineParser(StateMachine, LastOutput, point, text, token);
+            => LspXmlParserService.GetSpineParser(parserService.StateMachine, LastOutput, point, text, token);
 
         internal new void StartProcessing(EditorDocumentState document)
         {
