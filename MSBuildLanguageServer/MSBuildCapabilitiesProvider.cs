@@ -19,8 +19,17 @@ class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
             },
             CompletionProvider = new CompletionOptions {
                 TriggerCharacters = [
-                    "<", // xml tag
-                    // TODO: add more
+                    // xml tag
+                    "<",
+                    // attribute quotes
+                    "\"",
+                    "'",
+                    // expressions
+                    "(",
+                    // -> transforms and element values
+                    ">",
+                    // members in property functions
+                    "."
                  ],
                 ResolveProvider = true
             },
