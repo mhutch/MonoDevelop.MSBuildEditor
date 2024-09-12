@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
     <Nullable>enable</Nullable>
+    <RootNamespace>MonoDevelop.MSBuild.Editor</RootNamespace>
     <!--
     Makes some of the imported roslyn code compile unmodified.
     May have other implications but none found so far.
