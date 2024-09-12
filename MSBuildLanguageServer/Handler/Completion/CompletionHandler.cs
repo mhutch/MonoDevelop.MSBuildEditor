@@ -389,10 +389,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
 
     static async Task<IList<ILspCompletionItem>> GetPackageNameCompletions(string searchString, string? packageType, MSBuildRootDocument doc, IPackageSearchManager packageSearchManager, MSBuildCompletionDocsProvider docsProvider, CancellationToken cancellationToken)
     {
-        if(string.IsNullOrEmpty(searchString))
-        {
-            return [];
-        }
+        // NOTE: empty search string is still valid, it populates the list with some basic/placeholder packages
 
         var targetFrameworkSearchParameter = doc.GetTargetFrameworkNuGetSearchParameter();
 
