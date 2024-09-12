@@ -64,7 +64,7 @@ sealed class DocumentDiagnosticsHandler : ILspServiceDocumentRequestHandler<Docu
         }
 
         var convertedXmlDiagnostics = result.XmlParseResult.Diagnostics?.Select(d => ConvertDiagnostic(d, sourceText)) ?? [];
-        var convertedMSBuildDiagnostics = msbuildDoc.Diagnostics.Select(d => ConvertDiagnostic(d, sourceText));
+        var convertedMSBuildDiagnostics = msbuildDiagnostics.Select(d => ConvertDiagnostic(d, sourceText));
 
         return new FullDocumentDiagnosticReport {
             Items = convertedMSBuildDiagnostics.Concat(convertedXmlDiagnostics).ToArray()
