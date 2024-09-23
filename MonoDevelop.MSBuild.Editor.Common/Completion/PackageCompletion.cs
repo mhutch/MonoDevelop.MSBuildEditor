@@ -32,12 +32,12 @@ static class PackageCompletion
 		packageId = null;
 		packageFeedSearchJob = null;
 
-		if (rr is null || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
+		if (rr is null || GetItemGroupItemFromMetadata (rr) is not XElement itemEl || itemEl.Name.Name is not string itemName || GetIncludeOrUpdateAttribute (itemEl) is not XAttribute includeAtt) {
 			return false;
 		}
 
 		// we can only provide version completions if the item's value type is non-list nugetid
-		var itemInfo = doc.GetSchemas ().GetItem (itemEl.Name.Name);
+		var itemInfo = doc.GetSchemas ().GetItem (itemName);
 		if (itemInfo == null || !itemInfo.ValueKind.IsKindOrListOfKind (MSBuildValueKind.NuGetID)) {
 			return false;
 		}
@@ -64,9 +64,9 @@ static class PackageCompletion
 	static bool ItemIsInItemGroup (XElement itemEl) => itemEl.Parent is XElement parent && parent.Name.Equals (MSBuildElementSyntax.ItemGroup.Name, true);
 
 	static XElement? GetItemGroupItemFromMetadata (MSBuildResolveResult rr)
-		=> rr.ElementSyntax.SyntaxKind switch {
+		=> rr.ElementSyntax?.SyntaxKind switch {
 			MSBuildSyntaxKind.Item => rr.Element,
-			MSBuildSyntaxKind.Metadata => rr.Element.Parent is XElement parentEl && ItemIsInItemGroup (parentEl) ? parentEl : null,
+			MSBuildSyntaxKind.Metadata => rr.Element!.Parent is XElement parentEl && ItemIsInItemGroup (parentEl) ? parentEl : null,
 			_ => null
 		};
 

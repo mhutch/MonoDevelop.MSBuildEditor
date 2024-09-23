@@ -75,7 +75,7 @@ internal class CompletionHelpers
 		languageElement = null;
 		elementName = null;
 		for (int i = 1; i < nodePath.Count; i++) {
-			if (nodePath[i] is XElement el) {
+			if (nodePath[i] is XElement el && el.Name.Name is not null) {
 				elementName = el.Name.Name;
 				languageElement = MSBuildElementSyntax.Get (elementName, languageElement);
 				continue;

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.Xml.Logging;
 
 using ISymbol = MonoDevelop.MSBuild.Language.ISymbol;
 
@@ -134,7 +135,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			if (node is ExpressionPropertyFunctionInvocation inv && inv.Target is ExpressionPropertyNode epn) {
 				if (epn is ExpressionClassReference classRef) {
 					var info = GetStaticPropertyFunctionInfo (classRef.Name, inv.Function.Name);
-					return info.ReturnType;
+					return info?.ReturnType ?? MSBuildValueKind.Unknown;
 				}
 
 				//FIXME: maybe this could pass the types along directly instead of constantly converting
@@ -173,7 +174,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		//FIXME: make this lookup cheaper
-		public FunctionInfo GetStaticPropertyFunctionInfo (string className, string name)
+		public FunctionInfo? GetStaticPropertyFunctionInfo (string className, string name)
 		{
 			if (className == null) {
 				return null;
@@ -188,12 +189,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		//FIXME: make this lookup cheaper
-		public FunctionInfo GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
+		public FunctionInfo? GetPropertyFunctionInfo (MSBuildValueKind valueKind, string name)
 		{
 			return Find (GetInstanceFunctions (valueKind, true, true), name);
 		}
 
-		static FunctionInfo Find (IEnumerable<FunctionInfo> functions, string name)
+		static FunctionInfo? Find (IEnumerable<FunctionInfo> functions, string? name)
 		{
 			if (name == null) {
 				return functions.FirstOrDefault (f => f is RoslynPropertyInfo rf && rf.Symbol.IsIndexer);
@@ -202,13 +203,13 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 		}
 
 		//FIXME: make this lookup cheaper
-		public FunctionInfo GetItemFunctionInfo (string name)
+		public FunctionInfo? GetItemFunctionInfo (string name)
 		{
 			return GetItemFunctionNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
 
 		//FIXME: make this lookup cheaper
-		public ClassInfo GetClassInfo (string name)
+		public ClassInfo? GetClassInfo (string name)
 		{
 			return GetClassNameCompletions ().FirstOrDefault (n => n.Name == name);
 		}
@@ -242,8 +243,8 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			// if unresolved, assume it's coerced to string?
 			type ??= compilation?.GetTypeByMetadataName ("System.String");
 
-			if (isArray) {
-				type = compilation.CreateArrayTypeSymbol (type);
+			if (isArray && type is not null) {
+				type = compilation?.CreateArrayTypeSymbol (type);
 			}
 
 			if (type is not null) {
@@ -259,7 +260,12 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 
 			MSBuildValueKind? arrayElementType = null;;
 			if (type is IArrayTypeSymbol arraySymbol) {
-				members = type.BaseType.GetMembers ();
+				Debug.Assert (type.BaseType != null);
+				if (type.BaseType?.GetMembers () is { } arrayMembers) {
+					members = arrayMembers;
+				} else {
+					yield break;
+				}
 				arrayElementType = ConvertType (arraySymbol.ElementType);
 			} else {
 				members = type.GetMembers ();

@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild.Language
 {
 	interface IFunctionTypeProvider
 	{
-		IEnumerable<FunctionInfo> GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression);
+		IEnumerable<FunctionInfo>? GetPropertyFunctionNameCompletions (ExpressionNode triggerExpression);
 		MSBuildValueKind ResolveType (ExpressionPropertyNode node);
 		IEnumerable<FunctionInfo> GetItemFunctionNameCompletions ();
 		IEnumerable<ClassInfo> GetClassNameCompletions ();

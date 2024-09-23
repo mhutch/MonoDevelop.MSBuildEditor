@@ -39,7 +39,7 @@ namespace MonoDevelop.MSBuild.SdkResolution
 			Paths = paths;
 		}
 
-		public SdkInfo (string name, string version, string path)
+		public SdkInfo (string name, string? version, string path)
 			: this (name, version, new[] { path })
 		{
 		}
