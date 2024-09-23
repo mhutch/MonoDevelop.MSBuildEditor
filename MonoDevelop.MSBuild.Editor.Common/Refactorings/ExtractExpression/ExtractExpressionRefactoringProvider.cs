@@ -4,23 +4,26 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 
-[Export (typeof (MSBuildRefactoringProvider))]
-partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
+[Export (typeof (MSBuildCodeActionProvider))]
+partial class ExtractExpressionRefactoringProvider : MSBuildCodeActionProvider
 {
-	public override Task RegisterRefactoringsAsync (MSBuildRefactoringContext context)
+	public override ImmutableArray<MSBuildCodeActionKind> ProducedCodeActionKinds => [ MSBuildCodeActionKind.RefactoringExtract ];
+
+	public override Task RegisterCodeActionsAsync (MSBuildCodeActionContext context)
 	{
-		if (context.SelectedSpan.Length == 0) {
+		if (context.Span.Length == 0 || context.SpanStartElementSyntax is null || context.SpanStartXObject is null) {
 			return Task.CompletedTask;
 		}
 
@@ -28,7 +31,7 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 			return Task.CompletedTask;
 		}
 
-		var span = ExpressionNodeExtraction.GetValidExtractionSpan (context.SelectedSpan, exprCtx.node);
+		var span = ExpressionNodeExtraction.GetValidExtractionSpan (context.Span, exprCtx.node);
 		if (span is not TextSpan s) {
 			return Task.CompletedTask;
 		}
@@ -36,19 +39,19 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 		var expression = exprCtx.text.Substring (s.Start - exprCtx.offset, s.Length);
 
 		bool isFirst = true;
-		foreach (var pt in GetPropertyInsertionPoints (context.ElementSyntax.SyntaxKind, context.XObject)) {
-			context.RegisterRefactoring (new ExtractExpressionAction (expression, s, "MyNewProperty", isFirst ? null : pt.scopeName, pt.span, pt.indentDepth, pt.createGroup));
+		foreach (var pt in GetPropertyInsertionPoints (context.SpanStartElementSyntax.SyntaxKind, context.SpanStartXObject)) {
+			context.RegisterCodeAction (new ExtractExpressionAction (expression, s, "MyNewProperty", isFirst ? null : pt.scopeName, pt.span, pt.indentDepth, pt.createGroup, context));
 			isFirst = false;
 		}
 
 		return Task.CompletedTask;
 	}
 
-	static (ExpressionNode node, string text, int offset)? GetExpressionExtractionContext (MSBuildRefactoringContext context)
+	static (ExpressionNode node, string text, int offset)? GetExpressionExtractionContext (MSBuildCodeActionContext context)
 	{
-		if (context.XObject is XText t) {
-			if (t.Span.Contains (context.SelectedSpan)) {
-				switch (context.ElementSyntax?.SyntaxKind) {
+		if (context.SpanStartXObject is XText t) {
+			if (t.Span.Contains (context.Span)) {
+				switch (context.SpanStartElementSyntax?.SyntaxKind) {
 				case MSBuildSyntaxKind.Property:
 				case MSBuildSyntaxKind.Metadata:
 					return (
@@ -62,9 +65,9 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 			return null;
 		}
 
-		if (context.XObject is XAttribute att) {
-			if (att.Span.Contains (context.SelectedSpan) && att.TryGetValue (out var attVal)) {
-				switch (context.AttributeSyntax?.SyntaxKind) {
+		if (context.SpanStartXObject is XAttribute att) {
+			if (att.Span.Contains (context.Span) && att.TryGetValue (out var attVal)) {
+				switch (context.SpanStartAttributeSyntax?.SyntaxKind) {
 				case MSBuildSyntaxKind.Item_Metadata:
 				case MSBuildSyntaxKind.Item_Include:
 				case MSBuildSyntaxKind.Item_Exclude:
@@ -80,7 +83,7 @@ partial class ExtractExpressionRefactoringProvider : MSBuildRefactoringProvider
 						attVal,
 						att.ValueOffset.Value);
 				default:
-					if ((context.AttributeSyntax?.SyntaxKind & MSBuildSyntaxKind.ConditionAttribute) != 0) {
+					if ((context.SpanStartAttributeSyntax?.SyntaxKind & MSBuildSyntaxKind.ConditionAttribute) != 0) {
 						return (
 							ExpressionParser.ParseCondition (attVal, att.ValueOffset.Value),
 							attVal,

@@ -23,14 +23,15 @@ using MonoDevelop.Xml.Tests.Utils;
 using TextSpan = MonoDevelop.Xml.Dom.TextSpan;
 
 using NUnit.Framework;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 
 namespace MonoDevelop.MSBuild.Tests.Editor
 {
-	readonly record struct CodeFixesWithContext (List<MSBuildCodeFix> CodeFixes, ITextBuffer TextBuffer, ITextView TextView);
+	readonly record struct CodeActionsWithContext (List<MSBuildCodeAction>? CodeActions, ITextBuffer TextBuffer, ITextView TextView);
 
 	static class MSBuildEditorTestExtensions
 	{
-		public static async Task<CodeFixesWithContext> GetRefactorings (this MSBuildEditorTest test, MSBuildRefactoringService refactoringService, ITextView textView, CancellationToken cancellationToken = default)
+		public static async Task<CodeActionsWithContext> GetRefactorings (this MSBuildEditorTest test, MSBuildCodeActionService codeActionService, ITextView textView, CancellationToken cancellationToken = default)
 		{
 			// TODO: use a custom parser provider that constrains the analyzers
 			var buffer = textView.TextBuffer;
@@ -40,17 +41,20 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 
 			var parseResult = await parser.GetOrProcessAsync (buffer.CurrentSnapshot, cancellationToken);
 
+			var sourceText = Microsoft.CodeAnalysis.Text.Extensions.AsText (buffer.CurrentSnapshot);
+			var options = new EditorOptionsReader (textView.Options);
+
 			return new (
-				await refactoringService.GetRefactorings (parseResult, selection, cancellationToken),
+				await codeActionService.GetCodeActions (sourceText, parseResult.MSBuildDocument, new TextSpan (selection.Start, selection.Length), [], options, cancellationToken),
 				buffer,
 				textView
 			);
 		}
 
-		public static async Task<CodeFixesWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '|', CancellationToken cancellationToken = default)
-			where T : MSBuildRefactoringProvider, new()
+		public static async Task<CodeActionsWithContext> GetRefactorings<T> (this MSBuildEditorTest test, string documentWithSelection, char selectionMarker = '|', CancellationToken cancellationToken = default)
+			where T : MSBuildCodeActionProvider, new()
 		{
-			var refactoringService = new MSBuildRefactoringService (new[] { new T () });
+			var refactoringService = new MSBuildCodeActionService (new[] { new T () });
 			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker, allowZeroWidthSingleMarker: true);
 
 			return await test.GetRefactorings (refactoringService, textView, cancellationToken);
@@ -63,7 +67,8 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			var text = parsed.Text;
 			TextSpan selection = parsed.GetMarkedSpan (selectionMarker, allowZeroWidthSingleMarker);
 
-			var textView = test.CreateTextView (text);
+			var textView = test.CreateTextView (text, "foo.csproj");
+			SetDefaultEditorOptions (textView);
 
 			textView.Caret.MoveTo (new SnapshotPoint (textView.TextBuffer.CurrentSnapshot, selection.End));
 
@@ -94,22 +99,21 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			string? expectedTextAfterTyping = null,
 			char selectionMarker = '|',
 			CancellationToken cancellationToken = default
-			) where T : MSBuildRefactoringProvider, new()
+			) where T : MSBuildCodeActionProvider, new()
 		{
 			await test.Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
 			var ctx = await test.GetRefactorings<T> (documentWithSelection, selectionMarker, cancellationToken);
-			await test.TestCodeFixContext(ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
+			await test.TestCodeActionContext(ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
 		}
 
 		// TODO: allow caller to provide a more limited set of analyzers to run
-		public static async Task<CodeFixesWithContext> GetCodeFixes (
+		public static async Task<CodeActionsWithContext> GetCodeActions (
 			this MSBuildEditorTest test,
-			ICollection<MSBuildAnalyzer> analyzers,
-			ICollection<MSBuildFixProvider> codeFixes,
+			IEnumerable<MSBuildAnalyzer> analyzers,
+			IEnumerable<MSBuildCodeActionProvider> codeActionProviders,
 			ITextView textView,
 			SnapshotSpan range,
-			MSBuildDiagnosticSeverity
-			requestedSeverities,
+			IEnumerable<MSBuildCodeActionKind>? requestedKinds = null,
 			bool includeCoreDiagnostics = false,
 			MSBuildSchema? schema = null,
 			ILogger? logger = null,
@@ -118,44 +122,47 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			logger ??= TestLoggerFactory.CreateTestMethodLogger ().RethrowExceptions ();
 
 			var snapshot = textView.TextBuffer.CurrentSnapshot;
-			var diagnostics = MSBuildDocumentTest.GetDiagnostics (snapshot.GetText (), out var parsedDocument, analyzers, includeCoreDiagnostics, logger, schema, cancellationToken: cancellationToken);
+			var parsedDocument = MSBuildDocumentTest.ParseDocumentWithDiagnostics (snapshot.GetText (), analyzers, includeCoreDiagnostics, logger, schema, cancellationToken: cancellationToken);
 
-			var codeFixService = new MSBuildCodeFixService (codeFixes.ToArray ());
-			var fixes = await codeFixService.GetFixes (textView.TextBuffer, parsedDocument, diagnostics, range, requestedSeverities, cancellationToken);
+			var sourceText = Microsoft.CodeAnalysis.Text.Extensions.AsText (range.Snapshot);
+			var options = new EditorOptionsReader (textView.Options);
 
-			return new CodeFixesWithContext (fixes, textView.TextBuffer, textView);
+			var codeActionService = new MSBuildCodeActionService (codeActionProviders.ToArray ());
+			var fixes = await codeActionService.GetCodeActions (sourceText, parsedDocument, new TextSpan(range.Start, range.End), requestedKinds, options, cancellationToken);
+
+			return new CodeActionsWithContext (fixes, textView.TextBuffer, textView);
 		}
 
-		public static Task<CodeFixesWithContext> GetCodeFixes<TAnalyzer,TCodeFix> (
+		public static Task<CodeActionsWithContext> GetCodeActions<TAnalyzer,TCodeFix> (
 			this MSBuildEditorTest test,
 			ITextView textView,
 			SnapshotSpan range,
-			MSBuildDiagnosticSeverity requestedSeverities,
+			IEnumerable<MSBuildCodeActionKind>? requestedKinds = null,
 			ILogger? logger = null,
 			CancellationToken cancellationToken = default
 			)
 			where TAnalyzer : MSBuildAnalyzer, new()
-			where TCodeFix : MSBuildFixProvider, new()
+			where TCodeFix : MSBuildCodeActionProvider, new()
 		{
-			return test.GetCodeFixes ([new TAnalyzer ()], [new TCodeFix ()], textView, range, requestedSeverities, false, null, logger, cancellationToken);
+			return test.GetCodeActions ([new TAnalyzer ()], [new TCodeFix ()], textView, range, requestedKinds, false, null, logger, cancellationToken);
 		}
-		public static Task<CodeFixesWithContext> GetCodeFixes<TAnalyzer, TCodeFix> (
+		public static Task<CodeActionsWithContext> GetCodeActions<TAnalyzer, TCodeFix> (
 			this MSBuildEditorTest test,
 			string documentWithSelection,
-			MSBuildDiagnosticSeverity requestedSeverities = MSBuildDiagnosticSeverity.All,
+			ISet<MSBuildCodeActionKind>? requestedKinds = null,
 			char selectionMarker = '|',
 			ILogger? logger = null,
 			CancellationToken cancellationToken = default
 			)
 			where TAnalyzer : MSBuildAnalyzer, new()
-			where TCodeFix : MSBuildFixProvider, new()
+			where TCodeFix : MSBuildCodeActionProvider, new()
 		{
 			var textView = test.CreateTextViewWithSelection (documentWithSelection, selectionMarker, allowZeroWidthSingleMarker: true);
 
-			return test.GetCodeFixes ([new TAnalyzer ()], [new TCodeFix ()], textView, textView.Selection.SelectedSpans.Single(), requestedSeverities, false, null, logger, cancellationToken);
+			return test.GetCodeActions ([new TAnalyzer ()], [new TCodeFix ()], textView, textView.Selection.SelectedSpans.Single(), requestedKinds, false, null, logger, cancellationToken);
 		}
 
-		public static async Task TestCodeFix<TAnalyzer, TCodeFix> (
+		public static async Task TestCodeFix<TAnalyzer, TCodeAction> (
 			this MSBuildEditorTest test,
 			string documentWithSelection,
 			string invokeFixWithTitle,
@@ -167,16 +174,16 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			CancellationToken cancellationToken = default
 			)
 			where TAnalyzer : MSBuildAnalyzer, new()
-			where TCodeFix : MSBuildFixProvider, new()
+			where TCodeAction : MSBuildCodeActionProvider, new()
 		{
 			await test.Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync ();
-			var ctx = await test.GetCodeFixes<TAnalyzer,TCodeFix> (documentWithSelection, selectionMarker: selectionMarker, cancellationToken: cancellationToken);
-			await test.TestCodeFixContext (ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
+			var ctx = await test.GetCodeActions<TAnalyzer,TCodeAction> (documentWithSelection, selectionMarker: selectionMarker, cancellationToken: cancellationToken);
+			await test.TestCodeActionContext (ctx, invokeFixWithTitle, expectedFixCount, expectedTextAfterInvoke, typeText, expectedTextAfterTyping, cancellationToken);
 		}
 
-		public static async Task TestCodeFixContext (
+		public static async Task TestCodeActionContext (
 			this MSBuildEditorTest test,
-			CodeFixesWithContext ctx,
+			CodeActionsWithContext ctx,
 			string invokeFixWithTitle,
 			int expectedFixCount,
 			string expectedTextAfterInvoke,
@@ -189,21 +196,17 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 				throw new InvalidOperationException ("Must be on main thread");
 			}
 
-			Assert.That (ctx.CodeFixes, Has.Count.EqualTo (expectedFixCount));
-			Assert.That (ctx.CodeFixes.Select (c => c.Action.Title), Has.One.EqualTo (invokeFixWithTitle));
+			Assert.That (ctx.CodeActions, Has.Count.EqualTo (expectedFixCount));
+			Assert.That (ctx.CodeActions.Select (a => a.Title), Has.One.EqualTo (invokeFixWithTitle));
 
-			var fix = ctx.CodeFixes.Single (c => c.Action.Title == invokeFixWithTitle);
+			var action = ctx.CodeActions.Single (a => a.Title == invokeFixWithTitle);
 
-			var operations = await fix.Action.ComputeOperationsAsync (cancellationToken);
+			var workspaceEdit = await action.ComputeOperationsAsync (cancellationToken);
 
-			var options = ctx.TextView.Options;
-			options.SetOptionValue (DefaultOptions.ConvertTabsToSpacesOptionId, true);
-			options.SetOptionValue (DefaultOptions.IndentSizeOptionId, 2);
-			options.SetOptionValue (DefaultOptions.TabSizeOptionId, 2);
+			// TODO: check all edits are for the textView
+			var edits = workspaceEdit.Operations.OfType<MSBuildDocumentEdit> ().SelectMany(d => d.TextEdits).ToList ();
 
-			foreach (var op in operations) {
-				op.Apply (options, ctx.TextBuffer, CancellationToken.None, ctx.TextView);
-			}
+			edits.Apply(ctx.TextBuffer, CancellationToken.None, ctx.TextView);
 
 			Assert.That (
 				ctx.TextBuffer.CurrentSnapshot.GetText (),
@@ -225,6 +228,14 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			Assert.That (
 				ctx.TextBuffer.CurrentSnapshot.GetText (),
 				Is.EqualTo (expectedTextAfterTyping));
+		}
+
+		static void SetDefaultEditorOptions(ITextView textView)
+		{
+			var options = textView.Options;
+			options.SetOptionValue (DefaultOptions.ConvertTabsToSpacesOptionId, true);
+			options.SetOptionValue (DefaultOptions.IndentSizeOptionId, 2);
+			options.SetOptionValue (DefaultOptions.TabSizeOptionId, 2);
 		}
 	}
 }

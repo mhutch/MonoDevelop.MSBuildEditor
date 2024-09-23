@@ -15,7 +15,7 @@ namespace MonoDevelop.MSBuild.Tests;
 
 partial class MSBuildDocumentTest
 {
-	public static MSBuildRootDocument GetParsedDocument (
+	public static MSBuildRootDocument ParseDocument (
 		string source,
 		ILogger logger = null,
 		MSBuildSchema schema = null,

@@ -4,13 +4,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MonoDevelop.MSBuild.Editor.Analysis
+namespace MonoDevelop.MSBuild.Editor.CodeActions
 {
 	static class TaskExtensions
 	{
 		public static T WaitAndGetResult<T> (this Task<T> task, CancellationToken token)
 		{
-			#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
 			task.Wait (token);
 			return task.Result;
 		}

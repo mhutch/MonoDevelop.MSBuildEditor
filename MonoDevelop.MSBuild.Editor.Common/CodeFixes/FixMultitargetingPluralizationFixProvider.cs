@@ -2,30 +2,33 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 
+using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Analyzers;
-using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.CodeFixes
 {
-	[Export (typeof (MSBuildFixProvider))]
-	class FixMultitargetingPluralizationFixProvider : MSBuildFixProvider
+	[Export (typeof (MSBuildCodeActionProvider))]
+	class FixMultitargetingPluralizationFixProvider : MSBuildCodeActionProvider
 	{
 		public override ImmutableArray<string> FixableDiagnosticIds { get; }
-			= ImmutableArray.Create (
+			= [
 				TargetFrameworksOrTargetFrameworkAnalyzer.UseTargetFrameworksForMultipleFrameworksDiagnosticId,
 				TargetFrameworksOrTargetFrameworkAnalyzer.UseTargetFrameworkForSingleFrameworkDiagnosticId,
 				RuntimeIdentifierOrRuntimeIdentifiersAnalyzer.UseRuntimeIdentifiersForMultipleRIDsDiagnosticId,
 				RuntimeIdentifierOrRuntimeIdentifiersAnalyzer.UseRuntimeIdentifierForSingleRIDDiagnosticId
-			);
+			];
 
-		public override Task RegisterCodeFixesAsync (MSBuildFixContext context)
+		public override Task RegisterCodeActionsAsync (MSBuildCodeActionContext context)
 		{
-			foreach (var diag in context.Diagnostics) {
+			foreach (var diag in context.GetMatchingDiagnosticsInSpan (FixableDiagnosticIds)) {
 				var prop = context.XDocument.FindAtOffset (diag.Span.Start) as XElement;
 				if (prop == null || prop.ClosingTag == null || prop.IsSelfClosing) {
 					//FIXME log error?
@@ -41,27 +44,19 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 					_ => throw new InvalidOperationException ()
 				};
 
-				context.RegisterCodeFix (new ChangePropertyNameAction (prop, newName), diag);
+				context.RegisterCodeAction (new ChangePropertyNameAction (prop, newName, context, diag));
 			}
 
 			return Task.CompletedTask;
 		}
 
-		class ChangePropertyNameAction : SimpleMSBuildCodeAction
+		class ChangePropertyNameAction (XElement prop, string newName, MSBuildCodeActionContext context, MSBuildDiagnostic fixesDiagnostic) : MSBuildDocumentEditBuilderCodeAction(context)
 		{
-			readonly XElement prop;
-			readonly string newName;
-
-			public ChangePropertyNameAction (XElement prop, string newName)
-			{
-				this.prop = prop;
-				this.newName = newName;
-			}
-
 			public override string Title => $"Change '{prop.Name}' to '{newName}'";
 
-			protected override MSBuildCodeActionOperation CreateOperation ()
-				=> new EditTextActionOperation ().RenameElement (prop, newName);
+			public override IReadOnlyList<MSBuildDiagnostic> FixesDiagnostics => [ fixesDiagnostic ];
+
+			protected override void BuildEdit (MSBuildDocumentEditBuilder builder, CancellationToken cancellationToken) => builder.RenameElement (prop, newName);
 		}
 	}
 }

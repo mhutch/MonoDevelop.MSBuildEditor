@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#nullable enable
+using System.Threading;
 
-using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Refactorings.ExtractExpression;
 
 partial class ExtractExpressionRefactoringProvider
 {
-	class ExtractExpressionAction : SimpleMSBuildCodeAction
+	class ExtractExpressionAction : MSBuildDocumentEditBuilderCodeAction
 	{
 		readonly string expr;
 		readonly TextSpan sourceSpan;
@@ -20,7 +20,8 @@ partial class ExtractExpressionRefactoringProvider
 		readonly int indentDepth;
 		readonly bool createPropertyGroup;
 
-		public ExtractExpressionAction (string expr, TextSpan sourceSpan, string propertyName, string? scopeName, TextSpan insertionSpan, int indentDepth, bool createPropertyGroup)
+		public ExtractExpressionAction (string expr, TextSpan sourceSpan, string propertyName, string? scopeName, TextSpan insertionSpan, int indentDepth, bool createPropertyGroup, MSBuildCodeActionContext context)
+			: base(context)
 		{
 			this.expr = expr;
 			this.sourceSpan = sourceSpan;
@@ -36,8 +37,9 @@ partial class ExtractExpressionRefactoringProvider
 				? $"Extract expression"
 				: $"Extract expression to {scopeName} scope";
 
-		protected override MSBuildCodeActionOperation CreateOperation ()
-			=> new EditTextActionOperation ()
+		public override MSBuildCodeActionKind Kind => MSBuildCodeActionKind.RefactoringExtract;
+
+		protected override void BuildEdit (MSBuildDocumentEditBuilder builder, CancellationToken cancellationToken) => builder
 			.ReplaceAndSelect (
 				insertionSpan,
 				createPropertyGroup

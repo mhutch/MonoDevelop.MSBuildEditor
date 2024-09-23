@@ -4,30 +4,31 @@
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.Xml.Dom;
 
 namespace MonoDevelop.MSBuild.Editor.Refactorings
 {
-	[Export (typeof (MSBuildRefactoringProvider))]
-	class UseAttributesForMetadataRefactoringProvider : MSBuildRefactoringProvider
+	[Export (typeof (MSBuildCodeActionProvider))]
+	class UseAttributesForMetadataRefactoringProvider : MSBuildCodeActionProvider
 	{
-		public override Task RegisterRefactoringsAsync (MSBuildRefactoringContext context)
+		public override Task RegisterCodeActionsAsync (MSBuildCodeActionContext context)
 		{
-			if (context.SelectedSpan.Length > 0) {
+			if (context.Span.Length > 0 || context.SpanStartXObject is null) {
 				return Task.CompletedTask;
 			}
 
 			XElement itemElement;
-			switch (context.ElementSyntax?.SyntaxKind) {
+			switch (context.SpanStartElementSyntax?.SyntaxKind) {
 			case MSBuildSyntaxKind.Item:
-				itemElement = context.XObject.SelfAndParentsOfType<XElement> ().First ();
+				itemElement = context.SpanStartXObject.SelfAndParentsOfType<XElement> ().First ();
 				break;
 			case MSBuildSyntaxKind.Metadata:
-				itemElement = context.XObject.SelfAndParentsOfType<XElement> ().Skip (1).First ();
+				itemElement = context.SpanStartXObject.SelfAndParentsOfType<XElement> ().Skip (1).First ();
 				break;
 			default:
 				return Task.CompletedTask;
@@ -42,7 +43,7 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 				return Task.CompletedTask;
 			}
 
-			context.RegisterRefactoring (new UseAttributeForMetadataAction (itemElement));
+			context.RegisterCodeAction (new UseAttributeForMetadataAction (itemElement, context));
 
 			return Task.CompletedTask;
 		}
@@ -76,17 +77,11 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 			return foundAny;
 		}
 
-		class UseAttributeForMetadataAction : SimpleMSBuildCodeAction
+		class UseAttributeForMetadataAction(XElement itemElement, MSBuildCodeActionContext context) : MSBuildDocumentEditBuilderCodeAction(context)
 		{
-			readonly XElement itemElement;
-
-			public UseAttributeForMetadataAction (XElement itemElement)
-			{
-				this.itemElement = itemElement;
-			}
-
 			public override string Title => $"Use attributes for metadata";
-			protected override MSBuildCodeActionOperation CreateOperation ()
+
+			protected override void BuildEdit (MSBuildDocumentEditBuilder builder, CancellationToken cancellationToken)
 			{
 				var insertionPoint = (itemElement.Attributes.Last?.Span ?? itemElement.NameSpan).End;
 
@@ -108,11 +103,10 @@ namespace MonoDevelop.MSBuild.Editor.Refactorings
 
 				sb.Append (" />");
 
-				return new EditTextActionOperation ()
-					.Replace (
-						TextSpan.FromBounds (insertionPoint, itemElement.ClosingTag.Span.End),
-						sb.ToString ()
-					);
+				builder.Replace (
+					TextSpan.FromBounds (insertionPoint, itemElement.ClosingTag.Span.End),
+					sb.ToString ()
+				);
 			}
 		}
 	}

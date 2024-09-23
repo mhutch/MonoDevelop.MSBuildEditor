@@ -21,6 +21,7 @@
     <None Include="Evaluation\Imported\Expander.cs" />
     <Compile Include="..\MonoDevelop.Xml\Core\NullabilityAttributes.cs" />
     <Compile Include="..\MonoDevelop.Xml\Core\StringSyntaxAttribute.cs" />
+    <Compile Include="..\MonoDevelop.Xml\Core\IsExternalInit.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.MSBuild.Editor.CodeActions;
+
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	interface IDifferenceViewElementFactory
@@ -54,7 +56,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			_bufferFactory = bufferFactory;
 		}
 
-		public async Task<object> CreateDiffViewAsync (IEnumerable<MSBuildCodeActionOperation> actions, IEditorOptions options, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
+		public async Task<object> CreateDiffViewAsync (IList<MSBuildTextEdit> edits, IEditorOptions options, ITextSnapshot snapshot, IContentType contentType, CancellationToken cancellationToken)
 		{
 			// Create a copy of the left hand buffer (we're going to remove all of the
 			// content we don't care about from it).
@@ -74,9 +76,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			var startingVersion = rightBuffer.CurrentSnapshot;
 
-			foreach (var action in actions) {
-				action.Apply (options, rightBuffer, cancellationToken);
-			}
+			edits.Apply (rightBuffer, cancellationToken);
 
 			var textChanges = startingVersion.Version.Changes;
 			int minPos = startingVersion.Length, maxPos = 0;

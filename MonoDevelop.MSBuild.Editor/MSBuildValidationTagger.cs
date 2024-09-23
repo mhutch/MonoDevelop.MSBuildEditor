@@ -64,7 +64,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 			//FIXME is this correct handling of errors that span multiple spans?
 			foreach (var taggingSpan in spans) {
-				foreach (var diag in parse.Diagnostics) {
+				foreach (var diag in parse.MSBuildDocument.Diagnostics) {
 					var diagSpan = new SnapshotSpan (snapshot, diag.Span.Start, diag.Span.Length);
 
 					//if the parse was from an older snapshot, map the positions into the current snapshot

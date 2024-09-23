@@ -238,7 +238,7 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				new PropertyInfo ("TargetFramework", "", MSBuildValueKind.TargetFramework)
 			};
 
-			var diagnostics = GetDiagnostics (source, out _, schema: schema, includeCoreDiagnostics: true, ignoreDiagnostics: [ CoreDiagnostics.NoTargets ]);
+			var diagnostics = ParseDocumentWithDiagnostics (source, schema: schema, includeCoreDiagnostics: true, ignoreDiagnostics: [ CoreDiagnostics.NoTargets ]).Diagnostics;
 
 			if (diagnosticId is null) {
 				Assert.AreEqual (0, diagnostics.Count);

@@ -4,7 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591;1573</NoWarn>
+    <NoWarn>$(NoWarn);1591;1573;CS8632</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +23,33 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Extensions.TextBufferContainer.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Extensions.SnapshotSourceText.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Implementation/TextBufferFactoryService/ITextBufferCloneService.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/ITextImageHelpers.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/SourceHashAlgorithms.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Shared/Extensions/TextSpanExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/TextChangeRangeExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile
+        Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))"
+        Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource
+        Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))"
+        Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource
+        Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
   </ItemGroup>
 
 </Project>

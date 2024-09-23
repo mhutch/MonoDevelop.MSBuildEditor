@@ -5,7 +5,6 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
-    <Nullable>enable</Nullable>
     <RootNamespace>MonoDevelop.MSBuild.Editor</RootNamespace>
     <!--
     Makes some of the imported roslyn code compile unmodified.
@@ -14,19 +13,17 @@
     <DefineConstants>$(DefineConstants);CODE_STYLE</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <Nullable Condition="$(TargetFramework)=='net48'">annotations</Nullable>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Collections/*.cs" />
     <Compile Include="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/*.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/Core/Portable/Utilities/SpellChecker.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/ObjectWriterExtensions.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/*.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/ObjectPools/*.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Serialization/*.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Builder.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Edge.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Node.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/BKTree.Serialization.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/EditDistance.cs" />

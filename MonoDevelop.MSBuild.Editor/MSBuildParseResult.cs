@@ -12,14 +12,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 {
 	class MSBuildParseResult
 	{
-		public MSBuildParseResult (MSBuildRootDocument msbuildDocument, List<MSBuildDiagnostic> diagnostics, ITextSnapshot snapshot)
+		public MSBuildParseResult (MSBuildRootDocument msbuildDocument, ITextSnapshot snapshot)
 		{
 			MSBuildDocument = msbuildDocument;
 			Snapshot = snapshot;
-			Diagnostics = diagnostics;
 		}
-
-		public List<MSBuildDiagnostic> Diagnostics { get; }
 
 		public MSBuildRootDocument MSBuildDocument { get; }
 
