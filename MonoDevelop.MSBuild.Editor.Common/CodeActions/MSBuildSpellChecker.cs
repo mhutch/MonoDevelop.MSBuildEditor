@@ -61,9 +61,15 @@ static class MSBuildSpellChecker
 	{
 		using var checker = new WordSimilarityChecker (actualName, substringsAreSimilar);
 
-		var results = new Dictionary<string, (TSymbol symbol, double weight)> (StringComparer.Ordinal);
+		var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+
+		var results = new Dictionary<string, (TSymbol symbol, double weight)> (comparer);
 
 		foreach (var candidate in candidates) {
+			// ignore exact matches, they will have come from the inferred schema adding the incorrect value we are fixing
+			if (comparer.Compare (candidate, checker) == 0) {
+				continue;
+			}
 			if (checker.AreSimilar (candidate.Name, out double similarityWeight)) {
 				results.Add (candidate.Name, (candidate, similarityWeight));
 			}
