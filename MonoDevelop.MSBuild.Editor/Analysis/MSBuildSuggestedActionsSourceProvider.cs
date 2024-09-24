@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Logging;
 
@@ -28,8 +29,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			JoinableTaskContext joinableTaskContext,
 			ISuggestedActionCategoryRegistryService2 categoryRegistry,
 			MSBuildParserProvider parserProvider,
-			MSBuildCodeFixService codeFixService,
-			MSBuildRefactoringService refactoringService,
+			MSBuildCodeActionService codeFixService,
 			IEditorLoggerFactory loggerFactory,
 			// allow default because we don't have a Mac version yet
 			[Import (AllowDefault = true)] PreviewChangesService previewService,
@@ -40,8 +40,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			JoinableTaskContext = joinableTaskContext;
 			CategoryRegistry = categoryRegistry;
 			ParserProvider = parserProvider;
-			CodeFixService = codeFixService;
-			RefactoringService = refactoringService;
+			CodeActionService = codeFixService;
 			this.loggerFactory = loggerFactory;
 			PreviewService = previewService;
 			SuggestedActionFactory = suggestedActionFactory;
@@ -51,8 +50,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		public JoinableTaskContext JoinableTaskContext { get; }
 		public ISuggestedActionCategoryRegistryService2 CategoryRegistry { get; }
 		public MSBuildParserProvider ParserProvider { get; }
-		public MSBuildCodeFixService CodeFixService { get; }
-		public MSBuildRefactoringService RefactoringService { get; }
+		public MSBuildCodeActionService CodeActionService { get; }
 		public PreviewChangesService PreviewService { get; }
 		public IMSBuildSuggestedActionFactory SuggestedActionFactory { get; }
 

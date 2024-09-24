@@ -1,0 +1,86 @@
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build VS Code Extension in Background",
+			"dependsOn": [
+				"npm: watch:tsc",
+				"npm: watch:esbuild"
+			],
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "npm: watch:esbuild",
+			"type": "npm",
+			"script": "watch:esbuild",
+			"path": "msbuild-editor-vscode",
+			"group": "build",
+			"problemMatcher": {
+				"base": "$esbuild-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
+			"isBackground": true,
+			"presentation": {
+				"group": "watch",
+				"reveal": "never"
+			}
+		},
+		{
+			"label": "npm: watch:tsc",
+			"type": "npm",
+			"script": "watch:tsc",
+			"path": "msbuild-editor-vscode",
+			"group": "build",
+			"problemMatcher": {
+				"base": "$tsc-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
+			"isBackground": true,
+			"presentation": {
+				"group": "watch",
+				"reveal": "never"
+			}
+		},
+		{
+			"label": "npm: watch-tests",
+			"type": "npm",
+			"script": "watch-tests",
+			"path": "msbuild-editor-vscode",
+			"problemMatcher": {
+				"base": "$tsc-watch",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/msbuild-editor-vscode"
+				]
+			},
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never",
+				"group": "watchers"
+			},
+			"group": "build"
+		},
+		{
+			"label": "Build VS Code Tests in Background",
+			"dependsOn": [
+				"npm: watch",
+				"npm: watch-tests"
+			],
+			"problemMatcher": []
+		}
+	]
+}

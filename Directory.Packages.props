@@ -1,47 +1,66 @@
 <Project>
   <PropertyGroup>
-    <!--
-    We cannot go higher than 17.5.
-    IConnectedSpan gained a new Disconnect() method in 17.6, which MiniEditor cannot implement as it is internal.
-    -->
-    <VSEditorNugetVersion>17.5.279</VSEditorNugetVersion>
+    <RoslynVersion>4.12.0-1.final</RoslynVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Community.VisualStudio.Toolkit.17" Version="17.0.507" />
+    <PackageVersion Include="BasicUndo" Version="0.9.3" />
+    <PackageVersion Include="Community.VisualStudio.Toolkit.17" Version="17.0.522" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
     <PackageVersion Include="Markdig.Signed" Version="0.37.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.22.0" />
-    <PackageVersion Include="Microsoft.Build" Version="17.5.0" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.10.4" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
-    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.5.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.5.33428.366" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
-    <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.5.33428.366" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VSEditorNugetVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.5.22" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.0.51" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageVersion Include="NuGet.VisualStudio" Version="17.5.1" />
-    <PackageVersion Include="NUnit" Version="3.14.0" />
+    <PackageVersion Include="Microsoft.Build" Version="17.10.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.10.4" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.10.37" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.GraphModel" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.10.40152" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="$(RoslynVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Platform.VSEditor" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.10.40171" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.191" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.48" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="17.10.40170" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.11.435" />
+    <PackageVersion Include="Moq" Version="4.20.71" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="17.10.2" />
     <PackageVersion Include="NUnit.Analyzers" Version="3.10.0" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageVersion Include="NUnit" Version="3.14.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="PropertyChanged.SourceGenerator" Version="1.0.8" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.19.27" />
     <PackageVersion Include="System.CodeDom" Version="8.0.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.24209.3" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.0" />
+    <PackageVersion Include="xunit" Version="2.8.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" PrivateAssets="all" />

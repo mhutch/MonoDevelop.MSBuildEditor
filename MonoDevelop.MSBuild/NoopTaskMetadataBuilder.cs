@@ -13,7 +13,7 @@ namespace MonoDevelop.MSBuild
 	{
 		public TaskInfo CreateTaskInfo (
 			string typeName, string assemblyName, ExpressionNode assemblyFile, string assemblyFileStr,
-			string declaredInFile, int declaredAtOffset, IMSBuildEvaluationContext evaluationContext, ILogger logger)
+			string declaredInFile, Xml.Dom.TextSpan? declarationSpan, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
 			return null;
 		}

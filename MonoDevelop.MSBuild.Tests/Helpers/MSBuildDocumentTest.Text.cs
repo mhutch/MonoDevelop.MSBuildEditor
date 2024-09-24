@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 
 using MonoDevelop.MSBuild.Language;
-using MonoDevelop.MSBuild.Util;
 
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
+using MonoDevelop.Xml.Tests.Utils;
 
 namespace MonoDevelop.MSBuild.Tests;
 

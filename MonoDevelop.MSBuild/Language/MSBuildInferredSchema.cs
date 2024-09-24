@@ -91,71 +91,76 @@ namespace MonoDevelop.MSBuild.Language
 			switch (element.SyntaxKind) {
 			case MSBuildSyntaxKind.Item:
 				CollectItem (element.Name, ReferenceUsage.Write);
-				break;
+				goto default;
 			case MSBuildSyntaxKind.Property:
 				CollectProperty (element.Name, ReferenceUsage.Write);
-				break;
+				goto default;
 			case MSBuildSyntaxKind.UsingTask:
 				CollectTaskDefinition ((MSBuildUsingTaskElement)element, parseContext);
-				break;
+				goto default;
 			case MSBuildSyntaxKind.Task:
 				CollectTask (element.Name);
-				break;
+				goto default;
 			case MSBuildSyntaxKind.Target:
 				var target = (MSBuildTargetElement)element;
 				var targetName = target.NameAttribute?.AsConstString ();
 				if (!string.IsNullOrEmpty (targetName)) {
 					CollectTarget (targetName);
 				}
-				break;
+				goto default;
 			case MSBuildSyntaxKind.Parameter:
 				var taskName = ((MSBuildUsingTaskElement)element.Parent.Parent).TaskNameAttribute?.Value;
 				if (taskName is ExpressionText t && !string.IsNullOrEmpty (t.Value)) {
 					CollectTaskParameterDefinition (t.Value, (MSBuildParameterElement)element);
 				}
-				break;
+				goto default;
 			case MSBuildSyntaxKind.Metadata:
+				// <ProjectReference><OutputItemType>
+				if (element.IsElementNamed("OutputItemType") && element.Parent.IsElementNamed("ProjectReference") && element.Value.AsConstString() is string outputItemType) {
+					CollectItem (outputItemType, ReferenceUsage.Write);
+					// skip default, we know it's const and we collected it
+					break;
+				}
 				CollectMetadata (element.Parent.Name, element.Name, ReferenceUsage.Write);
+				goto default;
+			default:
+				if (element.Value != null) {
+					ExtractReferences (GetElementKind (element), element.Value);
+				}
 				break;
 			}
 
-			if (element.Value != null) {
-				ExtractReferences (GetElementKind (element), element.Value);
-			}
 
 			foreach (var att in element.Attributes) {
 				switch (att.SyntaxKind) {
 				case MSBuildSyntaxKind.Item_Metadata:
+					// <ProjectReference OutputItemType=""
+					if (element.IsElementNamed ("ProjectReference") && att.IsNamed ("OutputItemType") && att.AsConstString () is string outputItemType) {
+						CollectItem (outputItemType, ReferenceUsage.Write);
+						break;
+					}
 					CollectMetadata (element.Name, att.Name, ReferenceUsage.Write);
 					goto default;
 				case MSBuildSyntaxKind.Output_ItemName:
+					// <TaskName><Output ItemName=""
 					if (att.AsConstString () is string itemName) {
 						CollectItem (itemName, ReferenceUsage.Write);
+						break;
 					}
-					break;
+					goto default;
 				case MSBuildSyntaxKind.Output_PropertyName:
+					// <TaskName><Output PropertyName=""
 					if (att.AsConstString () is string propertyName) {
 						CollectProperty (propertyName, ReferenceUsage.Write);
+						break;
 					}
-					break;
+					goto default;
 				default:
 					if (att.Value is not null) {
 						MSBuildValueKind attKind = GetAttributeKind (element, att);
 						ExtractReferences (attKind, att.Value);
 					}
 					break;
-				}
-				if (att.Value != null ) {
-					MSBuildValueKind attKind = GetAttributeKind (element, att);
-					ReferenceUsage usage = att.SyntaxKind switch {
-						MSBuildSyntaxKind.Output_ItemName => ReferenceUsage.Write,
-						MSBuildSyntaxKind.Output_PropertyName => ReferenceUsage.Write,
-						_ => ReferenceUsage.Read
-					};
-					ExtractReferences (attKind, att.Value);
-				}
-				if (att.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
-					CollectMetadata (element.Name, att.Name, ReferenceUsage.Write);
 				}
 			}
 
@@ -285,7 +290,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		class InferredTaskInfo (string name) : TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, 0, null) { }
+		class InferredTaskInfo (string name) : TaskInfo (name, null, TaskDeclarationKind.Inferred, null, null, null, null, null, null) { }
 
 		void CollectTaskParameter (string taskName, string parameterName, bool isOutput)
 		{
@@ -391,14 +396,14 @@ namespace MonoDevelop.MSBuild.Language
 					parseContext.PropertyCollector
 				);
 
-				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (fullTaskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span.Start, evalCtx, parseContext.Logger);
+				TaskInfo info = parseContext.TaskBuilder.CreateTaskInfo (fullTaskName, assemblyName, assemblyFile, assemblyFileStr, Filename, element.XElement.Span, evalCtx, parseContext.Logger);
 
 				if (info != null) {
 					Tasks[info.Name] = info;
 					return;
 				} else {
 					// created placeholder task marked as unresolved for analyzers etc
-					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span.Start, null);
+					Tasks[taskName] = new TaskInfo (taskName, null, TaskDeclarationKind.AssemblyUnresolved, fullTaskName, assemblyName, assemblyFileStr, Filename, element.XElement.Span, null);
 					return;
 				}
 			}
@@ -423,7 +428,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span.Start, null, taskParameters);
+			Tasks[taskName] = new TaskInfo (taskName, null, declarationKind, fullTaskName, null, null, Filename, element.XElement.Span, null, taskParameters);
 		}
 
 		void ExtractReferences (MSBuildValueKind kind, ExpressionNode expression)

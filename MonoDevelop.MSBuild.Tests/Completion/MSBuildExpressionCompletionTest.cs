@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
+using MonoDevelop.Xml.Tests.Utils;
 
 using NUnit.Framework;
 
@@ -76,8 +79,13 @@ class MSBuildExpressionCompletionTest
 		// based on MSBuildCompletionSource.{GetExpressionCompletionsAsync,GetAdditionalCompletionsAsync}
 		// eventually we can factor out into a shared method
 
-		string expression = GetIncompleteValue (spineParser, textSource);
-		int exprStartPos = caretPos - expression.Length;
+		// TryGetIncompleteValue may return false while still outputting incomplete values, if it fails due to reaching maximum readahead.
+		// It will also return false and output null values if we're in an element value that only contains whitespace.
+		// In both these cases we can ignore the false return and proceed anyways.
+		spineParser.TryGetIncompleteValue (textSource, out var expression, out var valueSpan);
+		expression ??= "";
+		int exprStartPos = valueSpan?.Start ?? caretPos;
+
 		var triggerState = ExpressionCompletion.GetTriggerState (expression, caretPos - exprStartPos, reason, triggerChar, rr.IsCondition (),
 			out int spanStart, out int spanLength, out ExpressionNode triggerExpression, out var listKind, out IReadOnlyList<ExpressionNode> comparandVariables,
 			logger
@@ -103,50 +111,23 @@ class MSBuildExpressionCompletionTest
 
 		var fileSystem = new TestFilesystem ();
 
+		var options = new EmptyOptionsReader ();
+		bool includePrivateSymbols = options.GetOption (MSBuildCompletionOptions.ShowPrivateSymbols);
+
 		bool isValue = triggerState == ExpressionCompletion.TriggerState.Value;
 		if (comparandVariables != null && isValue) {
-			return ExpressionCompletion.GetComparandCompletions (parsedDocument, fileSystem, comparandVariables, logger);
+			return ExpressionCompletion.GetComparandCompletions (parsedDocument, fileSystem, comparandVariables, logger, includePrivateSymbols);
 		}
 
-		return ExpressionCompletion.GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, spanLength, parsedDocument, functionTypeProvider, fileSystem, logger);
+		return ExpressionCompletion.GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, spanLength, parsedDocument, functionTypeProvider, fileSystem, logger, includePrivateSymbols);
 	}
 
-	// copied from XmlParserSnapshotExtensions, modified to use ITextSource instead of ITextSnapshot
-	static string GetIncompleteValue (XmlSpineParser spineAtCaret, ITextSource textSource)
+	class EmptyOptionsReader : IOptionsReader
 	{
-		int caretPosition = spineAtCaret.Position;
-		var node = spineAtCaret.Spine.Peek ();
-
-		int valueStart;
-		if (node is XText t) {
-			valueStart = t.Span.Start;
-		} else if (node is XElement el && el.IsEnded) {
-			valueStart = el.Span.End;
-		} else {
-			int lineStart = GetLineStart (textSource, caretPosition);
-			valueStart = spineAtCaret.Position - spineAtCaret.CurrentStateLength;
-			if (spineAtCaret.GetAttributeValueDelimiter ().HasValue) {
-				valueStart += 1;
-			}
-			valueStart = Math.Min (Math.Max (valueStart, lineStart), caretPosition);
-		}
-
-		return textSource.GetText (valueStart, caretPosition - valueStart);
-
-		static int GetLineStart (ITextSource textSource, int caretPosition)
+		public bool TryGetOption<T> (Option<T> option, out T value)
 		{
-			if (caretPosition < 1) {
-				return caretPosition;
-			}
-			int lineStart = caretPosition - 1;
-			for (; lineStart >= 0; lineStart--) {
-				switch (textSource[caretPosition]) {
-				case '\r':
-				case '\n':
-					return lineStart + 1;
-				}
-			}
-			return lineStart;
+			value = default;
+			return false;
 		}
 	}
 

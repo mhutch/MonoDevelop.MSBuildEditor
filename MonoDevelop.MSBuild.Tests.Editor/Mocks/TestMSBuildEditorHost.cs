@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text.Projection;
 
 using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Editor.Host;
 
 namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
@@ -51,19 +52,6 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
 			=> throw new System.NotImplementedException ();
 	}
 
-	[Export (typeof (IDifferenceBufferFactoryService))]
-	class MockDifferenceBufferFactoryService : IDifferenceBufferFactoryService
-	{
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer)
-		{
-			throw new System.NotImplementedException ();
-		}
-
-		public IDifferenceBuffer CreateDifferenceBuffer (ITextBuffer leftBaseBuffer, ITextBuffer rightBaseBuffer, StringDifferenceOptions options, bool disableEditing = false, bool wrapLeftBuffer = true, bool wrapRightBuffer = true) => throw new System.NotImplementedException ();
-
-		public IDifferenceBuffer TryGetDifferenceBuffer (IProjectionBufferBase projectionBuffer) => throw new System.NotImplementedException ();
-	}
-
 	[Export (typeof (IDifferenceViewElementFactory))]
 	class MockDifferenceViewElementFactoryService : IDifferenceViewElementFactory
 	{
@@ -73,6 +61,6 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Mocks
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
 	class MockSuggestedActionFactory : IMSBuildSuggestedActionFactory
 	{
-		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeFix fix) => throw new System.NotImplementedException ();
+		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeAction action) => throw new System.NotImplementedException ();
 	}
 }

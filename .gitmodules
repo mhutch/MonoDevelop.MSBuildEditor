@@ -1,9 +1,9 @@
-[submodule "external/ProjFileTools"]
-	path = external/ProjFileTools
-	url = https://github.com/mhutch/ProjFileTools.git
 [submodule "MonoDevelop.Xml"]
 	path = MonoDevelop.Xml
 	url = https://github.com/mhutch/MonoDevelop.Xml.git
 [submodule "external/NuGet.Client"]
 	path = external/NuGet.Client
 	url = https://github.com/NuGet/NuGet.Client.git
+[submodule "external/roslyn"]
+	path = external/roslyn
+	url = https://github.com/dotnet/roslyn.git

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.Xml.Editor.Tests;
 
@@ -24,6 +25,7 @@ namespace MonoDevelop.MSBuild.Tests
 		protected override IEnumerable<string> GetAssembliesToCompose ()
 			=> base.GetAssembliesToCompose ().Concat (new[] {
 				typeof (MSBuildCompletionSource).Assembly.Location,
+				typeof (TaskMetadataBuilder).Assembly.Location,
 				typeof (MSBuildTestEnvironment).Assembly.Location
 			});
 
@@ -31,6 +33,6 @@ namespace MonoDevelop.MSBuild.Tests
 			=> error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
 				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
 				|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
-			;
+				|| base.ShouldIgnoreCompositionError (error);
 	}
 }

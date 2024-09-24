@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -32,7 +34,7 @@ class TestMSBuildFileSystem : TestDirectoryInfo, IMSBuildFileSystem
 
 	public IEnumerable<string> GetFiles (string path) => GetDirectory (path) is TestDirectoryInfo info ? info.GetFiles () : Enumerable.Empty<string> ();
 
-	public TestDirectoryInfo AddTestDirectory ([CallerMemberName] string testName = null)
+	public TestDirectoryInfo AddTestDirectory ([CallerMemberName] string? testName = null)
 	{
 		if (string.IsNullOrEmpty (testName)) {
 			throw new ArgumentException ($"'{nameof (testName)}' cannot be null or empty.", nameof (testName));
@@ -47,11 +49,11 @@ class TestDirectoryInfo
 
 	readonly HashSet<string> files = new ();
 	internal readonly Dictionary<string, TestDirectoryInfo> Directories = new ();
-	readonly string name;
-	readonly TestDirectoryInfo parent;
-	string path = null;
+	readonly string? name;
+	readonly TestDirectoryInfo? parent;
+	string? path = null;
 
-	public TestDirectoryInfo (string name, TestDirectoryInfo parent)
+	public TestDirectoryInfo (string? name, TestDirectoryInfo? parent)
 	{
 		this.name = name;
 		this.parent = parent;
@@ -71,7 +73,7 @@ class TestDirectoryInfo
 
 	public string Combine (string name) => $"{Path}/{name}";
 
-	public TestDirectoryInfo GetDirectory (string path)
+	public TestDirectoryInfo? GetDirectory (string path)
 	{
 		var currentDir = this;
 		bool isFirst = true;
@@ -96,7 +98,7 @@ class TestDirectoryInfo
 				currentDir = RootDir;
 			} else if (!currentDir.Directories.TryGetValue (segment, out var nextDir)) {
 				nextDir = new TestDirectoryInfo (segment, currentDir);
-				currentDir.Directories.Add (nextDir.name, nextDir);
+				currentDir.Directories.Add (nextDir.name!, nextDir);
 				currentDir = nextDir;
 			}
 			isFirst = false;

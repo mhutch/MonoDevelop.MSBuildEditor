@@ -8,7 +8,7 @@
 //
 //  URL: https://raw.githubusercontent.com/dotnet/msbuild/7434b575d12157ef98aeaad3b86c8f235f551c41/src/Shared/ExceptionHandling.cs
 //
-//  CHANGES: None
+//  CHANGES: Commented out XmlSyntaxException check
 
 
 
@@ -164,7 +164,8 @@ namespace Microsoft.Build.Shared
         internal static bool IsXmlException(Exception e)
         {
             return e is XmlException
-                || e is XmlSyntaxException
+// MODIFICATION
+//                || e is XmlSyntaxException
                 || e is XmlSchemaException
                 || e is UriFormatException; // XmlTextReader for example uses this under the covers
         }

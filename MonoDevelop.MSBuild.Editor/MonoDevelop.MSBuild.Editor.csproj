@@ -1,36 +1,55 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net8.0</TargetFrameworks>
+    <TargetFramework>net48</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591;1573</NoWarn>
+    <NoWarn>$(NoWarn);1591;1573;CS8632</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedFileSystem.cs" Link="Exports\ExportedFileSystem.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedNuGetDiskFeedFactory.cs" Link="Exports\ExportedNuGetDiskFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedNuGetV3ServiceFeedFactory.cs" Link="Exports\ExportedNuGetV3ServiceFeedFactory.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedPackageFeedFactorySelector.cs" Link="Exports\ExportedPackageFeedFactorySelector.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedPackageSearchManager.cs" Link="Exports\ExportedPackageSearchManager.cs" />
-    <Compile Include="..\external\ProjFileTools\src\ProjectFileTools\Exports\ExportedWebRequestFactory.cs" Link="Exports\ExportedWebRequestFactory.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\MonoDevelop.MSBuild.Editor.Common\MonoDevelop.MSBuild.Editor.Common.csproj" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" ExcludeAssets="runtime" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" ExcludeAssets="runtime" />
+    <!-- fix issue where Microsoft.VisualStudio.Language.Intellisense depends on StreamJsonRpc version not present in public feeds -->
+    <PackageReference Include="StreamJsonRpc" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Extensions.TextBufferContainer.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Extensions.SnapshotSourceText.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Implementation/TextBufferFactoryService/ITextBufferCloneService.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/ITextImageHelpers.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/SourceHashAlgorithms.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Text/Shared/Extensions/TextSpanExtensions.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/Text/TextChangeRangeExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile
+        Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))"
+        Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource
+        Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))"
+        Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource
+        Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
   </ItemGroup>
 
 </Project>

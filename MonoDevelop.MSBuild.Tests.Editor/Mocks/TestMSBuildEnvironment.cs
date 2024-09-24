@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 
 using Microsoft.Extensions.Logging;
 
-using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.SdkResolution;
 
 namespace MonoDevelop.MSBuild.Tests.Editor.Mocks

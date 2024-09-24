@@ -7,7 +7,9 @@
 #endif
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 
@@ -121,8 +123,6 @@ namespace MonoDevelop.MSBuild.Language
 			return new MSBuildImportResolver (this, filename);
 		}
 
-		static readonly HashSet<string> failedImports = new HashSet<string> ();
-
 		/// <summary>
 		/// Tries to parse an SDK reference from the Project Sdk attribute. Logs failure to the context and adds
 		/// an error to the document if it cannot be parsed.
@@ -195,9 +195,11 @@ namespace MonoDevelop.MSBuild.Language
 		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error reading import candidate '{candidateFilename}'")]
 		static partial void LogErrorReadingImportCandidate (ILogger logger, Exception ex, UserIdentifiableFileName candidateFilename);
 
+		static readonly ConcurrentDictionary<string, object?> failedImports = new ();
+
 		internal void LogCouldNotResolveImport (string importExpr)
 		{
-			if (PreviousRootDocument == null && failedImports.Add (importExpr)) {
+			if (failedImports.TryAdd (importExpr, null)) {
 				LogCouldNotResolveImport (Logger, importExpr);
 			}
 		}

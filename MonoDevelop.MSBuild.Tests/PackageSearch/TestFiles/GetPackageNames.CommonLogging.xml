@@ -1,0 +1,753 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<feed xml:base="http://localhost/Nuget/nuget" xmlns="http://www.w3.org/2005/Atom" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:georss="http://www.georss.org/georss" xmlns:gml="http://www.opengis.net/gml">
+  <id>http://schemas.datacontract.org/2004/07/</id>
+  <title />
+  <updated>2019-07-07T04:48:53Z</updated>
+  <link rel="self" href="http://localhost/Nuget/nuget/Packages" />
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.0.5')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.0.5')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.0.5')" />
+    <title type="text">Acme.Common.Logging.AspNetCore</title>
+    <published>2018-04-09T19:12:53Z</published>
+    <updated>2018-04-09T19:12:53Z</updated>
+    <author>
+      <name>Patrick Assuied</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.0.5')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.0.5')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.AspNetCore</d:Id>
+      <d:Version>1.6.0.5</d:Version>
+      <d:NormalizedVersion>1.6.0.5</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Common Logging AspNetCore</d:Title>
+      <d:Authors>Patrick Assuied</d:Authors>
+      <d:Owners>Patrick Assuied</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://bitbucket.Acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Aspnet core services</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes>
+        ## 1.6.0
+        - Support for .NET core
+      </d:ReleaseNotes>
+      <d:Published m:type="Edm.DateTime">2018-04-09T19:12:53.6418356Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2018-04-09T19:12:53.6418356Z</d:LastUpdated>
+      <d:Dependencies>Acme.Common.Logging.Configuration:1.6.0.5:netcoreapp2.0|Microsoft.AspNetCore.Diagnostics:2.0.2:netcoreapp2.0|NLog.Web.AspNetCore:4.5.1:netcoreapp2.0</d:Dependencies>
+      <d:PackageHash>zclx15xLnnUxm63+IqBWUNCYWAYcHvumBD1CbsXuSpdame0fHPcfv9FlMRodIOHUF9q/yXqkGo/AQTRlMAa88Q==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11395</d:PackageSize>
+      <d:Copyright>Copyright 2016-2018</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging aspnetcore </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.1')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.1')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.1')" />
+    <title type="text">Acme.Common.Logging.AspNetCore</title>
+    <published>2018-05-04T21:45:54Z</published>
+    <updated>2018-05-04T21:45:54Z</updated>
+    <author>
+      <name>Patrick Assuied</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.1')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.AspNetCore',Version='1.6.1')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.AspNetCore</d:Id>
+      <d:Version>1.6.1</d:Version>
+      <d:NormalizedVersion>1.6.1</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Common Logging AspNetCore</d:Title>
+      <d:Authors>Patrick Assuied</d:Authors>
+      <d:Owners>Patrick Assuied</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://bitbucket.Acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Aspnet core services</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes>
+        ## 1.6.0
+        - Support for .NET core
+      </d:ReleaseNotes>
+      <d:Published m:type="Edm.DateTime">2018-05-04T21:45:54.0222438Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2018-05-04T21:45:54.0222438Z</d:LastUpdated>
+      <d:Dependencies>Acme.Common.Logging.Configuration:1.6.1:netcoreapp2.0|Microsoft.AspNetCore.Diagnostics:2.0.2:netcoreapp2.0|NLog.Web.AspNetCore:4.5.1:netcoreapp2.0</d:Dependencies>
+      <d:PackageHash>7uBobOiTDhyz6s4P1Fnzgh1PokLYXU7G5E7nHDIpeCoj1B/f/augtWBBcqpuxv+hyDnGsVtyOxxPqso1Jhk1yw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11399</d:PackageSize>
+      <d:Copyright>Copyright 2016-2018</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging aspnetcore </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.2.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.2.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.2.0')" />
+    <title type="text">Acme.Common.Logging.Configuration</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.2.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.2.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Configuration</d:Id>
+      <d:Version>1.1.2.0</d:Version>
+      <d:NormalizedVersion>1.1.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Configuration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://wiki.Acmeondemand.com/display/PLAT/Acme.Common.Logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging Configuration</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.6754695Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.6754695Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3</d:Dependencies>
+      <d:PackageHash>Cu8qd2sESppuG4hEc3Etlum0S82vhTmDDaLqKHwMfGWuz57sGZkiQyARLEvIDL96eAb4szOslpAYxAhUApuapQ==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">16428</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.0')" />
+    <title type="text">Acme.Common.Logging.Configuration</title>
+    <published>2016-12-12T18:26:29Z</published>
+    <updated>2016-12-12T18:26:29Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Configuration</d:Id>
+      <d:Version>1.1.3.0</d:Version>
+      <d:NormalizedVersion>1.1.3</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Configuration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://wiki.Acmeondemand.com/display/PLAT/Acme.Common.Logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging Configuration</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-12-12T18:26:29.8353212Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-12-12T18:26:29.8353212Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3</d:Dependencies>
+      <d:PackageHash>+Jtb8P8swXBxC8HBqViEyp/0N3+fwoMCPbcTWHeUPOnA93/5P7EopkShQ0XudRK2cMa1LiZf/9AW7HFkNstpqg==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">17319</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.2')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.2')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.2')" />
+    <title type="text">Acme.Common.Logging.Configuration</title>
+    <published>2016-12-29T06:29:44Z</published>
+    <updated>2016-12-29T06:29:44Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.2')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Configuration',Version='1.1.3.2')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Configuration</d:Id>
+      <d:Version>1.1.3.2</d:Version>
+      <d:NormalizedVersion>1.1.3.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Configuration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://wiki.Acmeondemand.com/display/PLAT/Acme.Common.Logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging Configuration</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-12-29T06:29:44.4691432Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-12-29T06:29:44.4701478Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Acme.Configuration:1.0.1.0|Microsoft.AspNet.WebApi.Core:5.2.3</d:Dependencies>
+      <d:PackageHash>N0r+Kg3T294d7uvAP5THOTZcPpuGD30GEev1HGuWXj5eqGH+APRFGvMppfOvyYTcjJfh8HJM8t2hvfXEnJbe8w==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">38607</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.0.2')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.0.2')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.0.2')" />
+    <title type="text">Acme.Common.Logging.Context.Autofac</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.0.2')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.0.2')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Context.Autofac</d:Id>
+      <d:Version>1.0.0.2</d:Version>
+      <d:NormalizedVersion>1.0.0.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Platform Context Autofac integration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration with Platform Context using Autofac</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.6874701Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.6874701Z</d:LastUpdated>
+      <d:Dependencies>Autofac:3.5.2|Common.Logging.NLog41:3.3.1|Acme.Platform.Context.Serialization:1.0.3.0|Acme.Common.Logging.Configuration:1.0.0.2</d:Dependencies>
+      <d:PackageHash>xBSkrpuRVaN4VE6jG1bzrJduetp/ErZm0M5/jEdoAIERLdwN4coAJw2AC5YITxgYUFiVea2RnIBfHk17Qjs6AA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">9482</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging platform context autofac </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.1.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.1.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.1.0')" />
+    <title type="text">Acme.Common.Logging.Context.Autofac</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.1.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.1.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Context.Autofac</d:Id>
+      <d:Version>1.0.1.0</d:Version>
+      <d:NormalizedVersion>1.0.1</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Platform Context Autofac integration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration with Platform Context using Autofac</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.6984711Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.6984711Z</d:LastUpdated>
+      <d:Dependencies>Autofac:3.5.2|Common.Logging.NLog41:3.3.1|Acme.Platform.Context.Serialization:1.0.3.0|Acme.Common.Logging.Configuration:1.0.1.0</d:Dependencies>
+      <d:PackageHash>Q2UiaZF1NLAiRA/pBDZmjock5Rmf1dnE0FkLft8T+/Vkkp1GczNTOYLy99xOJ4XDnk3/oHPYK97N4vfJXA3i2g==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">10537</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging platform context autofac </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.2.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.2.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.2.0')" />
+    <title type="text">Acme.Common.Logging.Context.Autofac</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.2.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.Context.Autofac',Version='1.0.2.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.Context.Autofac</d:Id>
+      <d:Version>1.0.2.0</d:Version>
+      <d:NormalizedVersion>1.0.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging Platform Context Autofac integration</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration with Platform Context using Autofac</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.7144706Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.7154707Z</d:LastUpdated>
+      <d:Dependencies>Autofac:3.5.2|Common.Logging.NLog41:3.3.1|Acme.Platform.Context.Serialization:1.0.3.0|Acme.Common.Logging.Configuration:1.0.2.0</d:Dependencies>
+      <d:PackageHash>7Y/XPZFOSTXFciSKUZfhVGPm/Y6of8+yUVdOLGBRBvUd5dSvbwlhHc8tuMNR/HKczTdeYLtrBalUezv06kyzAQ==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">10540</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging platform context autofac </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.0')" />
+    <title type="text">Acme.Common.Logging.NLog</title>
+    <published>2018-04-09T19:13:01Z</published>
+    <updated>2018-04-09T19:13:01Z</updated>
+    <author>
+      <name>Patrick Assuied</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.NLog</d:Id>
+      <d:Version>4.5.0</d:Version>
+      <d:NormalizedVersion>4.5.0</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging NLog integration for .NET Framework and .NET Standard</d:Title>
+      <d:Authors>Patrick Assuied</d:Authors>
+      <d:Owners>Patrick Assuied</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://bitbucket.Acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging NLog Integration for Acme for .NET Framework and .NET Standard. Port of Common.Logging.NLog until proper .NET standard support is added</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes>
+        ## 4.5.0
+        - Integration with NLog 4.5
+      </d:ReleaseNotes>
+      <d:Published m:type="Edm.DateTime">2018-04-09T19:13:01.2458675Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2018-04-09T19:13:01.2468683Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging:[3.4.1, 4.0.0):net452|NLog:4.5.2:net452|Common.Logging:[3.4.1, 4.0.0):netstandard2.0|NLog:4.5.2:netstandard2.0</d:Dependencies>
+      <d:PackageHash>eMynRZ/yRL/I//UEC9Rhp/YE4pOVekFIPH9r39lYuwS0VTlDjKhRH7zyk+A6jhiRRGTQiNORaXaR8NepTix7fg==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">29293</d:PackageSize>
+      <d:Copyright>Copyright 2016-2018</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration nlog </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.1')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.1')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.1')" />
+    <title type="text">Acme.Common.Logging.NLog</title>
+    <published>2018-06-30T18:10:12Z</published>
+    <updated>2018-06-30T18:10:12Z</updated>
+    <author>
+      <name>Patrick Assuied</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.1')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.1')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.NLog</d:Id>
+      <d:Version>4.5.1</d:Version>
+      <d:NormalizedVersion>4.5.1</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging NLog integration for .NET Framework and .NET Standard</d:Title>
+      <d:Authors>Patrick Assuied</d:Authors>
+      <d:Owners>Patrick Assuied</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://bitbucket.Acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging NLog Integration for Acme for .NET Framework and .NET Standard. Port of Common.Logging.NLog until proper .NET standard support is added</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2018-06-30T18:10:12.0216293Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2018-06-30T18:10:12.0216293Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging:[3.4.1, 4.0.0):net452|NLog:4.5.6:net452|Common.Logging:[3.4.1, 4.0.0):netstandard2.0|NLog:4.5.6:netstandard2.0</d:Dependencies>
+      <d:PackageHash>P7uWjyK1uH48ftn9oI8pSFxfU6e0yzsPDOswYay6wk+q5XTh2mMUjKdNWPy7kee2PrD+8aBLjogQtsEQ8To3Sg==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">29268</d:PackageSize>
+      <d:Copyright>Copyright 2016-2018</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration nlog </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.2')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.2')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.2')" />
+    <title type="text">Acme.Common.Logging.NLog</title>
+    <published>2018-10-25T00:56:28Z</published>
+    <updated>2018-10-25T00:56:28Z</updated>
+    <author>
+      <name>Patrick Assuied</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.2')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.NLog',Version='4.5.2')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.NLog</d:Id>
+      <d:Version>4.5.2</d:Version>
+      <d:NormalizedVersion>4.5.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging NLog integration for .NET Framework and .NET Standard</d:Title>
+      <d:Authors>Patrick Assuied</d:Authors>
+      <d:Owners>Patrick Assuied</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://bitbucket.Acme.com/projects/Acme/repos/Acme-common-logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging NLog Integration for Acme for .NET Framework and .NET Standard. Port of Common.Logging.NLog until proper .NET standard support is added</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2018-10-25T00:56:28.0828448Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2018-10-25T00:56:28.0838453Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging:[3.4.1, 4.0.0):net452|NLog:4.5.6:net452|SourceLink.Copy.PdbFiles:2.8.3:net452|SourceLink.Create.CommandLine:2.8.3:net452|Common.Logging:[3.4.1, 4.0.0):netstandard2.0|NLog:4.5.6:netstandard2.0|SourceLink.Copy.PdbFiles:2.8.3:netstandard2.0|SourceLink.Create.CommandLine:2.8.3:netstandard2.0</d:Dependencies>
+      <d:PackageHash>zcl4j9wMhszI5WmrqxKYJ43as6ZXxfsK+BNmGCm4A60xMH/t6IFVecOBVTUeBnsDx9tJdQGskFzJuSJUU8E9NA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">29768</d:PackageSize>
+      <d:Copyright>Copyright 2016-2018</d:Copyright>
+      <d:Tags xml:space="preserve"> common logging configuration nlog </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">true</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">true</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.0.2')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.0.2')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.0.2')" />
+    <title type="text">Acme.Common.Logging.WebApi</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.0.2')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.0.2')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.WebApi</d:Id>
+      <d:Version>1.0.0.2</d:Version>
+      <d:NormalizedVersion>1.0.0.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging WebApi</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Web API Client</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.8324708Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.8324708Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3|Microsoft.Owin:3.0.1|Acme.Common.Logging.Configuration:1.0.0.2</d:Dependencies>
+      <d:PackageHash>RSZgxyO1i61wl3ZFraJotbWHZ+5LLo/CMeo78inmxW+bKo6EqKZIJq4oLW9g4ucPMngjzy6TPTb7mFcwrEXxuw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">10576</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> configuration contracts </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.1.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.1.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.1.0')" />
+    <title type="text">Acme.Common.Logging.WebApi</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.1.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.1.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.WebApi</d:Id>
+      <d:Version>1.0.1.0</d:Version>
+      <d:NormalizedVersion>1.0.1</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging WebApi</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Web API Client</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.8425001Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.8425001Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3|Microsoft.Owin:3.0.1|Acme.Common.Logging.Configuration:1.0.1.0</d:Dependencies>
+      <d:PackageHash>0T7Nc9XQvY41Hjhs37kjavEuco0sCBrQP8hNIMVEvkAdnajMjLWueJNKGzRKaUpzTzyFCWfx5/ON4QJAolBHzg==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11047</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> configuration contracts </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.2.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.2.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.2.0')" />
+    <title type="text">Acme.Common.Logging.WebApi</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.2.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.2.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.WebApi</d:Id>
+      <d:Version>1.0.2.0</d:Version>
+      <d:NormalizedVersion>1.0.2</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging WebApi</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Web API Client</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.8514712Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.8514712Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3|Microsoft.Owin:3.0.1|Acme.Common.Logging.Configuration:1.0.2.0</d:Dependencies>
+      <d:PackageHash>1NXCMeB/UpKQuFKoilR2bIzYuovOQjaB/der3AgkcO5zbLo/bknGt61Cz/CLztUksOG95A9fO1zegI3NtlTmcA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11095</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> configuration contracts </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.0')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.0')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.0')" />
+    <title type="text">Acme.Common.Logging.WebApi</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.0')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.0')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.WebApi</d:Id>
+      <d:Version>1.0.3.0</d:Version>
+      <d:NormalizedVersion>1.0.3</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging WebApi</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl m:null="true" />
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Web API Client</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.8634725Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.8634725Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3|Microsoft.Owin:3.0.1|Acme.Common.Logging.Configuration:1.0.3.0</d:Dependencies>
+      <d:PackageHash>X9qk+cNFTpaeyM8SewBHHhbTkZPTsue5JmFIzHXvnwM3UgDWCx3wwa1Q83ALzYdJkwuKKPQMWKmGwdsGcUvarw==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11107</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> configuration contracts </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <entry>
+    <id>http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.1')</id>
+    <category term="NuGet.Server.Core.DataServices.ODataPackage" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="edit" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.1')" />
+    <link rel="self" href="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.1')" />
+    <title type="text">Acme.Common.Logging.WebApi</title>
+    <published>2016-11-16T04:09:55Z</published>
+    <updated>2016-11-16T04:09:55Z</updated>
+    <author>
+      <name>Acme OnDemand, Inc.</name>
+    </author>
+    <m:action metadata="http://localhost/Nuget/nuget/$metadata#Container.Download" title="Download" target="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.1')/Download" />
+    <content type="application/zip" src="http://localhost/Nuget/nuget/Packages(Id='Acme.Common.Logging.WebApi',Version='1.0.3.1')/Download" />
+    <m:properties>
+      <d:Id>Acme.Common.Logging.WebApi</d:Id>
+      <d:Version>1.0.3.1</d:Version>
+      <d:NormalizedVersion>1.0.3.1</d:NormalizedVersion>
+      <d:IsPrerelease m:type="Edm.Boolean">false</d:IsPrerelease>
+      <d:Title>Acme Common Logging WebApi</d:Title>
+      <d:Authors>Acme OnDemand, Inc.</d:Authors>
+      <d:Owners>Acme OnDemand, Inc.</d:Owners>
+      <d:IconUrl m:null="true" />
+      <d:LicenseUrl m:null="true" />
+      <d:ProjectUrl>https://wiki.Acmeondemand.com/display/PLAT/Acme.Common.Logging</d:ProjectUrl>
+      <d:DownloadCount m:type="Edm.Int32">-1</d:DownloadCount>
+      <d:RequireLicenseAcceptance m:type="Edm.Boolean">false</d:RequireLicenseAcceptance>
+      <d:DevelopmentDependency m:type="Edm.Boolean">false</d:DevelopmentDependency>
+      <d:Description>Common Logging integration within Web API Client</d:Description>
+      <d:Summary m:null="true" />
+      <d:ReleaseNotes m:null="true" />
+      <d:Published m:type="Edm.DateTime">2016-11-16T04:09:55.8715191Z</d:Published>
+      <d:LastUpdated m:type="Edm.DateTime">2016-11-16T04:09:55.8715191Z</d:LastUpdated>
+      <d:Dependencies>Common.Logging.NLog41:3.3.1|Microsoft.AspNet.WebApi.Core:5.2.3|Microsoft.Owin:3.0.1|Acme.Common.Logging.Configuration:1.0.3.1</d:Dependencies>
+      <d:PackageHash>cKlVcH53vwWV9B2Z71b8BwAcpFEKdA/MSTx7YhLBl71cLJeCu7ODmlDqhWzYLtthZheimN5pv6g1LWfRoiinrA==</d:PackageHash>
+      <d:PackageHashAlgorithm>SHA512</d:PackageHashAlgorithm>
+      <d:PackageSize m:type="Edm.Int64">11125</d:PackageSize>
+      <d:Copyright>Copyright 2016</d:Copyright>
+      <d:Tags xml:space="preserve"> configuration contracts </d:Tags>
+      <d:IsAbsoluteLatestVersion m:type="Edm.Boolean">false</d:IsAbsoluteLatestVersion>
+      <d:IsLatestVersion m:type="Edm.Boolean">false</d:IsLatestVersion>
+      <d:Listed m:type="Edm.Boolean">true</d:Listed>
+      <d:VersionDownloadCount m:type="Edm.Int32">-1</d:VersionDownloadCount>
+      <d:MinClientVersion m:null="true" />
+      <d:Language m:null="true" />
+    </m:properties>
+  </entry>
+  <link rel="next" href="http://localhost/Nuget/nuget/Search()?searchTerm='Common.Logging'&amp;targetFramework=netcoreapp2.0&amp;includePreRelease=false&amp;$skip=100" />
+</feed>

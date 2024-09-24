@@ -22,10 +22,9 @@ namespace MonoDevelop.MSBuild.Tests;
 
 partial class MSBuildDocumentTest
 {
-	public static IList<MSBuildDiagnostic> GetDiagnostics (
+	public static MSBuildRootDocument ParseDocumentWithDiagnostics (
 		string source,
-		out MSBuildRootDocument parsedDocument,
-		ICollection<MSBuildAnalyzer>? analyzers = null,
+		IEnumerable<MSBuildAnalyzer>? analyzers = null,
 		bool includeCoreDiagnostics = false,
 		ILogger? logger = null,
 		MSBuildSchema? schema = null,
@@ -41,11 +40,11 @@ partial class MSBuildDocumentTest
 		// and not relevant when testing diagnostics, as we will get diagnostics for them anyways
 		logger = logger.WithFilter (["LogDidNotFindSdk"]);
 
-		parsedDocument = GetParsedDocument (source, logger, schema, previousDocument, cancellationToken);
+		var parsedDocument = ParseDocument (source, logger, schema, previousDocument, cancellationToken);
 
 		var analyzerDriver = new MSBuildAnalyzerDriver (logger);
 
-		if (analyzers != null && analyzers.Count > 0) {
+		if (analyzers != null && analyzers.Any ()) {
 			analyzerDriver.AddAnalyzers (analyzers);
 		} else if (!includeCoreDiagnostics) {
 			throw new ArgumentException ("Analyzers can only be null or empty if core diagnostics are included", nameof (analyzers));
@@ -55,10 +54,13 @@ partial class MSBuildDocumentTest
 
 		if (actualDiagnostics is not null && ignoreDiagnostics is not null) {
 			var ignoredDiagnosticIds = ignoreDiagnostics.Select (d => d.Id).ToHashSet ();
-			return actualDiagnostics.Where (a => !ignoredDiagnosticIds.Contains (a.Descriptor.Id)).ToList ();
+			actualDiagnostics = actualDiagnostics.Where (a => !ignoredDiagnosticIds.Contains (a.Descriptor.Id)).ToList ();
 		}
 
-		return actualDiagnostics ?? [];
+		parsedDocument.Diagnostics.Clear ();
+		parsedDocument.Diagnostics.AddRange (actualDiagnostics ?? []);
+
+		return parsedDocument;
 	}
 
 	public static void VerifyDiagnostics (string source, MSBuildAnalyzer analyzer, params MSBuildDiagnostic[] expectedDiagnostics)
@@ -95,7 +97,8 @@ partial class MSBuildDocumentTest
 		IEnumerable<MSBuildDiagnosticDescriptor>? ignoreDiagnostics = null
 		)
 	{
-		var actualDiagnostics = GetDiagnostics (source, out parsedDocument, analyzers, includeCoreDiagnostics, logger, schema, previousDocument, ignoreDiagnostics);
+		parsedDocument = ParseDocumentWithDiagnostics (source, analyzers, includeCoreDiagnostics, logger, schema, previousDocument, ignoreDiagnostics);
+		var actualDiagnostics = parsedDocument.Diagnostics;
 
 		var missingDiags = new List<MSBuildDiagnostic> ();
 
@@ -108,7 +111,7 @@ partial class MSBuildDocumentTest
 						Is.EquivalentTo (expectedDiag.Properties ?? Enumerable.Empty<KeyValuePair<string, object>> ())
 						.UsingDictionaryComparer<string, object> ());
 					// checks messageArgs
-					Assert.That (actualDiag.GetFormattedMessage (), Is.EqualTo (expectedDiag.GetFormattedMessage ()));
+					Assert.That (actualDiag.GetFormattedMessageWithTitle (), Is.EqualTo (expectedDiag.GetFormattedMessageWithTitle ()));
 					found = true;
 					actualDiagnostics.RemoveAt (i);
 					break;

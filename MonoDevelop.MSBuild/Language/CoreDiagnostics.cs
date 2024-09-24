@@ -406,14 +406,14 @@ namespace MonoDevelop.MSBuild.Language
 		public const string UnknownValue_Id = nameof(UnknownValue);
 		public static readonly MSBuildDiagnosticDescriptor UnknownValue = new (
 			UnknownValue_Id,
-			"{1} has unknown value",
+			"Unknown value",
 			"{0} `{1}` has unknown value `{2}`",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string HasDefaultValue_Id = nameof(HasDefaultValue);
 		public static readonly MSBuildDiagnosticDescriptor HasDefaultValue = new (
 			HasDefaultValue_Id,
-			"{1} has default value",
+			"Redundant value",
 			"{0} `{1}` has default value `{2}`",
 			MSBuildDiagnosticSeverity.Warning);
 

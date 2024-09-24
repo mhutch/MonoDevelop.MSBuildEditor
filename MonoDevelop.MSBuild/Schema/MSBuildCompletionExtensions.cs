@@ -94,7 +94,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IEnumerable<ISymbol> GetElementCompletions (this IEnumerable<IMSBuildSchema> schemas,
-			MSBuildElementSyntax languageElement, string elementName)
+			MSBuildElementSyntax? languageElement, string? elementName, bool includePrivateSymbols)
 		{
 			if (languageElement == null) {
 				yield return MSBuildElementSyntax.Project;
@@ -105,9 +105,13 @@ namespace MonoDevelop.MSBuild.Schema
 				yield break;
 			}
 
+			if (elementName is null) {
+				throw new ArgumentNullException (nameof (elementName), $"{elementName} cannot be null when {languageElement} is not null");
+			}
+
 			foreach (var c in languageElement.Children) {
 				if (c.IsAbstract) {
-					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName);
+					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName, includePrivateSymbols);
 					if (abstractChildren != null) {
 						foreach (var child in abstractChildren) {
 							yield return child;
@@ -120,7 +124,7 @@ namespace MonoDevelop.MSBuild.Schema
 		}
 
 		public static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas,
-			MSBuildElementSyntax languageElement, string elementName)
+			MSBuildElementSyntax? languageElement, string? elementName, bool includePrivateSymbols)
 		{
 			if (languageElement == null) {
 				yield return MSBuildElementSyntax.Project;
@@ -131,9 +135,13 @@ namespace MonoDevelop.MSBuild.Schema
 				yield break;
 			}
 
+			if (elementName is null) {
+				throw new ArgumentNullException (nameof (elementName), $"{elementName} cannot be null when {languageElement} is not null");
+			}
+
 			foreach (var c in languageElement.Children) {
 				if (c.IsAbstract) {
-					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName);
+					var abstractChildren = GetAbstractChildren (schemas, languageElement.AbstractChild.SyntaxKind, elementName, includePrivateSymbols);
 					if (abstractChildren != null) {
 						foreach (var child in abstractChildren) {
 							yield return child;
@@ -145,15 +153,15 @@ namespace MonoDevelop.MSBuild.Schema
 			}
 		}
 
-		static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName)
+		static IEnumerable<ISymbol> GetAbstractChildren (this IEnumerable<IMSBuildSchema> schemas, MSBuildSyntaxKind kind, string elementName, bool includePrivateSymbols)
 		{
 			switch (kind) {
 			case MSBuildSyntaxKind.Item:
-				return schemas.GetItems ();
+				return schemas.GetItems (includePrivateSymbols);
 			case MSBuildSyntaxKind.Task:
 				return schemas.GetTasks ();
 			case MSBuildSyntaxKind.Property:
-				return schemas.GetProperties (false);
+				return schemas.GetProperties (false, includePrivateSymbols);
 			case MSBuildSyntaxKind.Metadata:
 				return schemas.GetMetadata (elementName, false);
 			}
@@ -171,6 +179,7 @@ namespace MonoDevelop.MSBuild.Schema
 			MSBuildRootDocument doc,
 			IMSBuildFileSystem fileSystem,
 			ILogger logger,
+			bool includePrivateSymbols,
 			MSBuildResolveResult rr = null,
 			ExpressionNode triggerExpression = null,
 			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown)
@@ -187,12 +196,12 @@ namespace MonoDevelop.MSBuild.Schema
 			case MSBuildValueKind.TaskOutputParameterName:
 				return doc.GetTaskParameters (rr.ParentName).Where (p => p.IsOutput).ToList ();
 			case MSBuildValueKind.TargetName:
-				return doc.GetTargets ().ToList ();
+				return doc.GetTargets (includePrivateSymbols).ToList ();
 			case MSBuildValueKind.PropertyName:
 				bool includeReadOnly = rr.AttributeSyntax?.SyntaxKind != MSBuildSyntaxKind.Output_PropertyName;
-				return doc.GetProperties (includeReadOnly).ToList ();
+				return doc.GetProperties (includeReadOnly, includePrivateSymbols).ToList ();
 			case MSBuildValueKind.ItemName:
-				return doc.GetItems ().ToList ();
+				return doc.GetItems (includePrivateSymbols).ToList ();
 			case MSBuildValueKind.TargetFramework:
 				return FrameworkInfoProvider.Instance.GetFrameworksWithShortNames ().ToList ();
 			case MSBuildValueKind.TargetFrameworkIdentifier:

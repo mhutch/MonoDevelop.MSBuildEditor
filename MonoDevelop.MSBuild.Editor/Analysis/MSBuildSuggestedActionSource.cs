@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,11 +12,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Parsing;
 using MonoDevelop.Xml.Logging;
+using MonoDevelop.Xml.Options;
+
+using static Microsoft.CodeAnalysis.Text.Extensions;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
@@ -25,6 +31,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 		readonly ITextView textView;
 		readonly ITextBuffer textBuffer;
 		readonly ILogger logger;
+		readonly IOptionsReader options;
 		MSBuildBackgroundParser parser;
 
 		public MSBuildSuggestedActionSource (MSBuildSuggestedActionsSourceProvider provider, ITextView textView, ITextBuffer textBuffer, ILogger logger)
@@ -35,6 +42,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			this.logger = logger;
 			parser = provider.ParserProvider.GetParser (textBuffer);
 			parser.ParseCompleted += ParseCompleted;
+			options = new VSEditorOptionsReader (textView.Options);
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> e)
@@ -49,48 +57,34 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<SuggestedActionSet> GetSuggestedActionsInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
-			var fixes = GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken).WaitAndGetResult (cancellationToken);
+			var fixes = provider.JoinableTaskContext.Factory.Run (() => GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken));
 			if (fixes == null) {
 				yield break;
 			}
 
 			foreach (var fix in fixes) {
 				yield return new SuggestedActionSet (
-					fix.Category,
-					new ISuggestedAction[] {
+					fix.GetSuggestedActionCategory (),
+					[
 						provider.SuggestedActionFactory.CreateSuggestedAction (provider.PreviewService, textView, textBuffer, fix)
-					});
+					]);
 			}
 		}
 
-		async Task<List<MSBuildCodeFix>> GetSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+		async Task<List<MSBuildCodeAction>> GetSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
+			// FIXME: do we need to grab the selection or will the caller do it for us?
+
 			// grab selection first as we are on the UI thread at this point, and can avoid switching to it later
-			var possibleSelection = TryGetSelectedSpan ();
+			// var possibleSelection = TryGetSelectedSpan ();
 
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
 
-			List<MSBuildCodeFix> actions = null;
+			var sourceText = range.Snapshot.AsText ();
 
-			var severities = CategoriesToSeverity (requestedActionCategories);
-			if (severities != 0) {
-				actions = await provider.CodeFixService.GetFixes (textBuffer, result.MSBuildDocument, result.Diagnostics, range, severities, cancellationToken);
-				for (int i = 0; i < actions.Count; i++) {
-					if (!requestedActionCategories.Contains (actions[i].Category)) {
-						actions.RemoveAt (i);
-						i--;
-					}
-				}
-			}
+			var requestedActionKinds = requestedActionCategories.ToCodeActionKinds ();
 
-			if (possibleSelection is SnapshotSpan selection && requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.Refactoring)) {
-				var refactorings = await provider.RefactoringService.GetRefactorings (result, selection, cancellationToken);
-				if (actions != null) {
-					actions.AddRange (refactorings);
-				} else {
-					actions = refactorings;
-				}
-			}
+			var	actions = await provider.CodeActionService.GetCodeActions (sourceText, result.MSBuildDocument, new Xml.Dom.TextSpan(range.Start, range.Length), requestedActionKinds, options, cancellationToken);
 
 			return actions;
 		}
@@ -113,19 +107,6 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			}
 			return TryGetSelectedSpan ();
 		}
-
-		static MSBuildDiagnosticSeverity CategoriesToSeverity  (ISuggestedActionCategorySet categories)
-		{
-			var severity = MSBuildDiagnosticSeverity.None;
-			if (categories.Contains (PredefinedSuggestedActionCategoryNames.ErrorFix)) {
-				severity |= MSBuildDiagnosticSeverity.Error;
-			}
-			if (categories.Contains (PredefinedSuggestedActionCategoryNames.CodeFix)) {
-				severity |= MSBuildDiagnosticSeverity.Suggestion | MSBuildDiagnosticSeverity.Warning;
-			}
-			return severity;
-		}
-
 
 		public Task<bool> HasSuggestedActionsAsync (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 			=> logger.InvokeAndLogExceptions (() => HasSuggestedActionsAsyncInternal (requestedActionCategories, range, cancellationToken));
@@ -160,27 +141,69 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 			var result = await parser.GetOrProcessAsync (range.Snapshot, cancellationToken);
 
-			var categories = new List<string> ();
+			var sourceText = range.Snapshot.AsText ();
 
-			var requestedSeverities = CategoriesToSeverity (requestedActionCategories);
-			if (requestedSeverities != 0) {
-				var severities = await provider.CodeFixService.GetFixSeverity (textBuffer, result, range, requestedSeverities, cancellationToken);
-				if ((severities & MSBuildDiagnosticSeverity.Error) != 0) {
-					categories.Add (PredefinedSuggestedActionCategoryNames.ErrorFix);
-				}
-				if ((severities & (MSBuildDiagnosticSeverity.Warning | MSBuildDiagnosticSeverity.Suggestion)) != 0) {
-					categories.Add (PredefinedSuggestedActionCategoryNames.CodeFix);
-				}
-			}
+			var requestedKinds = requestedActionCategories.ToCodeActionKinds ();
 
-			if (requestedActionCategories.Contains (PredefinedSuggestedActionCategoryNames.Refactoring)) {
-				possibleSelection ??= await GetSelectedSpanAsync (cancellationToken);
-				if (possibleSelection is SnapshotSpan selection && await provider.RefactoringService.HasRefactorings (result, selection, cancellationToken)) {
-					categories.Add (PredefinedSuggestedActionCategoryNames.Refactoring);
-				}
-			}
+			// TODO: VS only cares about the "most severe" category, as it uses this to determine the icon to show in the margin, so we may be able to short circuit if we check for error level severity
+			var actions = await provider.CodeActionService.GetCodeActions (sourceText, result.MSBuildDocument, new Xml.Dom.TextSpan (range.Start, range.Length), requestedKinds, options, cancellationToken);
 
+			var categories = actions.Select (a => a.GetSuggestedActionCategory ());
+
+			// assume that this filters out duplicates
 			return provider.CategoryRegistry.CreateSuggestedActionCategorySet (categories);
+		}
+	}
+
+	static class SuggestedActionCategorySetExtensions
+	{
+		public static ISet<MSBuildCodeActionKind> ToCodeActionKinds (this ISuggestedActionCategorySet categories)
+		{
+			var result = new HashSet<MSBuildCodeActionKind> ();
+
+			foreach (var category in categories) {
+				switch (category) {
+				case PredefinedSuggestedActionCategoryNames.Any:
+					result.Clear ();
+					return result;
+				case PredefinedSuggestedActionCategoryNames.Refactoring:
+					result.Add (MSBuildCodeActionKind.Refactoring);
+					break;
+				case PredefinedSuggestedActionCategoryNames.CodeFix:
+					result.Add (MSBuildCodeActionKind.CodeFix);
+					break;
+				case PredefinedSuggestedActionCategoryNames.ErrorFix:
+					result.Add (MSBuildCodeActionKind.ErrorFix);
+					break;
+				case PredefinedSuggestedActionCategoryNames.StyleFix:
+					result.Add (MSBuildCodeActionKind.StyleFix);
+					break;
+				default:
+					// TODO: log warning?
+					break;
+				}
+			}
+
+			return result;
+		}
+
+		public static string GetSuggestedActionCategory(this MSBuildCodeAction action)
+		{
+			if (action.GetFixesErrorDiagnostics ()) {
+				return PredefinedSuggestedActionCategoryNames.ErrorFix;
+			}
+
+			return action.Kind switch {
+				MSBuildCodeActionKind.ErrorFix => PredefinedSuggestedActionCategoryNames.ErrorFix,
+				MSBuildCodeActionKind.CodeFix => PredefinedSuggestedActionCategoryNames.CodeFix,
+				MSBuildCodeActionKind.StyleFix => PredefinedSuggestedActionCategoryNames.StyleFix,
+				MSBuildCodeActionKind.Refactoring => PredefinedSuggestedActionCategoryNames.Refactoring,
+				MSBuildCodeActionKind.RefactoringExtract => PredefinedSuggestedActionCategoryNames.Refactoring,
+				MSBuildCodeActionKind.RefactoringInline => PredefinedSuggestedActionCategoryNames.Refactoring,
+				_ => action.FixesDiagnostics.Count > 0
+					? PredefinedSuggestedActionCategoryNames.CodeFix
+					: PredefinedSuggestedActionCategoryNames.Refactoring
+			};
 		}
 	}
 }

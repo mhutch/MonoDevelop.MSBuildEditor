@@ -1,0 +1,12 @@
+{
+  "command.msbuild.reportIssue": "Report an MSBuild Editor issue",
+  "command.msbuild.restartServer": "Restart MSBuild Language Server",
+  "command.msbuild.showOutputWindow": "Show MSBuild output window",
+  "configuration.msbuild.server.dotnetPath": "Specifies the path to a dotnet installation directory to use instead of the default system one. This only influences the dotnet installation to use for hosting the language server itself. Example: \"/home/username/my-custom-dotnet-directory\".",
+  "configuration.msbuild.server.path": "Specifies the absolute path to the server executable. When left empty the version pinned to the MSBuild Editor Extension is used.",
+  "configuration.msbuild.server.startTimeout": "Specifies a timeout (in ms) for the client to successfully start and connect to the language server.",
+  "configuration.msbuild.server.waitForDebugger": "Passes the --debug flag when launching the server to allow a debugger to be attached.",
+  "configuration.msbuild.server.trace": "Sets the logging level for the language server",
+  "configuration.msbuild.server.crashDumpPath": "Sets a folder path where crash dumps are written to if the language server crashes.  Must be writeable by the user.",
+  "configuration.msbuild.server.suppressLspErrorToasts": "Suppresses error toasts from showing up if the server encounters a recoverable error."
+}

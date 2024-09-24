@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer.Tests</RootNamespace>
+    <NoWarn>
+      $(NoWarn);
+      <!--
+      imported roslyn code triggers VS threading analyzer warnings
+      and while disabling them in the editorconfig works for CLI builds, it does not seem to work in VS
+      -->
+      VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD002
+    </NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/AbstractLanguageServerProtocolTests.InitializationOptions.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/TestUtilities/LanguageServer/TestOutputLspLogger.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/AbstractLanguageServerHostTests.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/LanguageServerTestComposition.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestLoggerProvider.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Utilities/TestOutputLogger.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/TestComposition.cs" />
+    <Compile Include="../external/roslyn/src/LanguageServer/Protocol/NoOpLspLogger.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/ITestErrorHandler.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/ExportProviderCache.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/TestExportJoinableTaskContext+DenyExecutionSynchronizationContext.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/CoreTestUtilities/MEF/IDispatcherTaskJoiner.cs" />
+    <Compile Include="../external/roslyn/src/EditorFeatures/Core/Shared/Utilities/IThreadingContext.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests/Helpers/MSBuildTestHelpers.cs" Link="Helpers/MSBuildTestHelpers.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests.Editor/Completion/TestFileSystem.cs" Link="Completion/TestFileSystem.cs" />
+    <Compile Include="../MonoDevelop.MSBuild.Tests.Editor/Completion/TestSchemaProvider.cs" Link="Completion/TestSchemaProvider.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Microsoft.CodeAnalysis.LanguageServer.MSBuildLanguageServer" Alias="RoslynLanguageServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
+    <ProjectReference Include="..\MonoDevelop.Xml\Core.Tests\MonoDevelop.Xml.Core.Tests.csproj" />
+    <ProjectReference Include="..\MSBuildLanguageServer\MSBuildLanguageServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="@(Compile->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('DefiningProjectName', '$(MSBuildProjectName)'))" Link="external/roslyn/$([System.String]::new('%(Identity)').Substring(23))" />
+    <EmbeddedResource Update="@(EmbeddedResource->WithMetadataValue('GenerateSource', 'true'))"
+        StronglyTypedLanguage="CSharp"
+        StronglyTypedClassName="$([System.String]::Copy('%(ClassName)').Substring($([MSBuild]::Add($([System.String]::Copy('%(ClassName)').LastIndexOf('.')), 1))))"
+        StronglyTypedNamespace="$([System.String]::Copy('%(ClassName)').Substring(0, $([System.String]::Copy('%(ClassName)').LastIndexOf('.'))))"
+        Generator="MSBuild:Compile"
+        StronglyTypedFileName="$(IntermediateOutputPath)\%(ClassName).Designer.cs" LogicalName="%(ClassName).resources" />
+  </ItemGroup>
+
+</Project>

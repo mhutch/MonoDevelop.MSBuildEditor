@@ -291,7 +291,7 @@ class MSBuildXsdSchemaReader
 
 		//TODO: read parameters
 
-		return new TaskInfo(name, docMarkup, TaskDeclarationKind.Inferred, null, null, null, null, 0, null);
+		return new TaskInfo(name, docMarkup, TaskDeclarationKind.Inferred, null, null, null, null, null, null);
 	}
 
 	IEnumerable<T> CheckCollection<T>(XmlSchemaObject parent, XmlSchemaObjectCollection collection) where T : XmlSchemaObject

@@ -136,7 +136,7 @@ namespace MonoDevelop.MSBuild.Language
 				break;
 
 			case MSBuildSyntaxKind.Task:
-				ValidateTaskParameters (element, elementSyntax, (MSBuildTaskElement) elementSymbol);
+				ValidateTaskParameters (element, elementSyntax, (TaskInfo) elementSymbol);
 				break;
 
 			case MSBuildSyntaxKind.Property:
@@ -424,10 +424,10 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		void ValidateTaskParameters (XElement element, MSBuildElementSyntax resolvedElement, MSBuildTaskElement taskElement)
+		void ValidateTaskParameters (XElement element, MSBuildElementSyntax resolvedElement, TaskInfo? info)
 		{
-			var taskName = taskElement.TaskName;
-			var info = Document.GetSchemas ().GetTask (taskName);
+			// TODO: the validator should operate on MSBuildTaskElement
+			var taskName = element.Name.Name!; // taskElement.TaskName
 
 			if (info is null || info.DeclarationKind == TaskDeclarationKind.Inferred) {
 				Diagnostics.Add (CoreDiagnostics.TaskNotDefined, element.NameSpan, taskName);
@@ -446,15 +446,19 @@ namespace MonoDevelop.MSBuild.Language
 				}
 			}
 
-			foreach (var att in taskElement.ParameterAttributes) {
-				if (!info.Parameters.TryGetValue (att.Name, out TaskParameterInfo? pi)) {
-					Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, att.XAttribute.NameSpan, taskName, att.Name);
+			// taskElement.ParameterAttributes
+			foreach (var att in element.Attributes) {
+				if (resolvedElement.GetAttribute (att)?.SyntaxKind != MSBuildSyntaxKind.Task_Parameter) {
+					continue;
+				}
+				if (!info.Parameters.TryGetValue (att.Name.Name!, out TaskParameterInfo? pi)) {
+					Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, att.NameSpan, taskName, att.Name);
 					continue;
 				}
 				if (pi.IsRequired) {
 					required.Remove (pi.Name);
-					if (att.Value.IsNullOrEmpty ()) {
-						Diagnostics.Add (CoreDiagnostics.EmptyRequiredTaskParameter, att.XAttribute.NameSpan, taskName, att.Name);
+					if (string.IsNullOrEmpty(att.Value)) {
+						Diagnostics.Add (CoreDiagnostics.EmptyRequiredTaskParameter, att.NameSpan, taskName, att.Name);
 					}
 				}
 			}
@@ -463,20 +467,29 @@ namespace MonoDevelop.MSBuild.Language
 				Diagnostics.Add (CoreDiagnostics.MissingRequiredTaskParameter, element.NameSpan, taskName, r);
 			}
 
-			foreach (var output in taskElement.OutputElements) {
-				if (output.TaskParameterAttribute is not { } paramNameAtt || paramNameAtt.Value.IsNullOrEmpty ()) {
+			// taskElement.OutputElements
+			foreach (var output in element.Elements) {
+				if (output.Name.Name is not string outputName || resolvedElement.GetChild (output.Name.Name)?.SyntaxKind != MSBuildSyntaxKind.Output) {
 					continue;
 				}
+				// output.TaskParameterAttribute
+				if (output.Attributes.Get(AttributeName.TaskParameter, true) is not { } paramNameAtt || string.IsNullOrEmpty(paramNameAtt.Value)) {
+					continue;
+				}
+				string paramName = paramNameAtt.Value;
+				// TODO: add this back when we have the expression from the MSBuildAttribute
+				/*
 				if (paramNameAtt.AsConstString () is not string paramName) {
 					Diagnostics.Add (CoreDiagnostics.UnexpectedExpression, paramNameAtt.GetValueErrorSpan (), "attribute", paramNameAtt.Name);
 					continue;
 				}
+				*/
 				if (!info.Parameters.TryGetValue (paramName, out TaskParameterInfo? pi)) {
-					Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, paramNameAtt.GetValueErrorSpan (), taskName, paramName);
+					Diagnostics.Add (CoreDiagnostics.UnknownTaskParameter, paramNameAtt.ValueSpan!.Value, taskName, paramName);
 					continue;
 				}
 				if (!pi.IsOutput) {
-					Diagnostics.Add (CoreDiagnostics.NonOutputTaskParameter, paramNameAtt.GetValueErrorSpan (), taskName, paramName);
+					Diagnostics.Add (CoreDiagnostics.NonOutputTaskParameter, paramNameAtt.ValueSpan!.Value, taskName, paramName);
 					continue;
 				}
 			}

@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
@@ -31,6 +32,7 @@ class MSBuildCompletionContext : XmlCompletionTriggerContext
 		DocumentationProvider = new MSBuildCompletionDocumentationProvider (this, provider.PackageSearchManager, provider.DisplayElementFactory);
 
 		ExpressionTriggerReason = ConvertTriggerReason (trigger.Reason, trigger.Character);
+		Options = new VSEditorOptionsReader (session.TextView.Options);
 	}
 
 	public override bool IsSupportedTriggerReason => base.IsSupportedTriggerReason || ExpressionTriggerReason != ExpressionTriggerReason.Unknown;
@@ -50,6 +52,7 @@ class MSBuildCompletionContext : XmlCompletionTriggerContext
 	public MSBuildResolveResult ResolveResult { get; private set; }
 	public MSBuildRootDocument Document { get; private set; }
 	public MSBuildCompletionDocumentationProvider DocumentationProvider { get; }
+	public IOptionsReader Options { get; }
 
 	internal static ExpressionTriggerReason ConvertTriggerReason (CompletionTriggerReason reason, char typedChar)
 	{

@@ -128,6 +128,11 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("@(foo->'x', ", ExpressionErrorKind.ExpectingValue)]
 		[TestCase ("@(foo->'x', '", ExpressionErrorKind.IncompleteString)]
 		[TestCase ("@(foo->'x', ''", ExpressionErrorKind.ExpectingRightParen)]
+		// incomplete entities
+		[TestCase ("&", ExpressionErrorKind.IncompleteOrUnsupportedEntity)]
+		[TestCase ("&f", ExpressionErrorKind.IncompleteOrUnsupportedEntity)]
+		[TestCase ("& ", ExpressionErrorKind.IncompleteOrUnsupportedEntity)]
+		[TestCase ("&amp", ExpressionErrorKind.IncompleteOrUnsupportedEntity)]
 		public void TestSimpleError (string expression, ExpressionErrorKind kind)
 		{
 			//the huge baseOffset can expose parser bugs
@@ -178,11 +183,21 @@ namespace MonoDevelop.MSBuild.Tests
 		[TestCase ("$ ")]
 		[TestCase ("@ ")]
 		[TestCase ("% ")]
-		public void TestLiteral (string expression)
+		public void TestLiteral (string expression, string unescaped = null)
 		{
 			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
 			var lit = AssertCast<ExpressionText> (expr);
-			Assert.AreEqual (expression, lit.Value);
+			Assert.AreEqual (unescaped ?? expression, lit.GetUnescapedValue(false, out _, out _));
+		}
+
+		[TestCase ("abc", "abc")]
+		[TestCase ("abc&apos; ", "abc'")]
+		[TestCase ("  abc&apos; ", "abc'")]
+		public void TestLiteralTrimmedAndUnescaped (string expression, string expected)
+		{
+			var expr = ExpressionParser.Parse (expression, ExpressionOptions.Metadata);
+			var lit = AssertCast<ExpressionText> (expr);
+			Assert.AreEqual (expected, lit.GetUnescapedValue (true, out _, out _));
 		}
 
 		[Test]

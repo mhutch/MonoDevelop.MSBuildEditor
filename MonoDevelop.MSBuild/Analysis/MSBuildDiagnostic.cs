@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+#nullable enable
+
 using System.Collections.Immutable;
 using MonoDevelop.Xml.Dom;
 
@@ -13,13 +14,13 @@ namespace MonoDevelop.MSBuild.Analysis
 		public ImmutableDictionary<string, object> Properties { get; }
 		public TextSpan Span { get; }
 
-		readonly object [] messageArgs;
+		readonly object[]? messageArgs;
 
-		public MSBuildDiagnostic (MSBuildDiagnosticDescriptor descriptor, TextSpan span, ImmutableDictionary<string, object> properties = null, object[] messageArgs = null)
+		public MSBuildDiagnostic (MSBuildDiagnosticDescriptor descriptor, TextSpan span, ImmutableDictionary<string, object>? properties = null, object[]? messageArgs = null)
 		{
 			Descriptor = descriptor;
 			Span = span;
-			Properties = properties;
+			Properties = properties ?? ImmutableDictionary<string, object>.Empty;
 			this.messageArgs = messageArgs;
 		}
 
@@ -28,7 +29,6 @@ namespace MonoDevelop.MSBuild.Analysis
 		{
 		}
 
-		public string GetFormattedTitle () => Descriptor.GetFormattedTitle (messageArgs);
-		public string GetFormattedMessage () => Descriptor.GetFormattedMessage (messageArgs);
+		public string GetFormattedMessageWithTitle () => Descriptor.GetFormattedMessageAndTitle (messageArgs);
 	}
 }

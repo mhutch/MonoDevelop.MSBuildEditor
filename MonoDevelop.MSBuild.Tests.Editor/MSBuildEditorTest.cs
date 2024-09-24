@@ -12,6 +12,8 @@ using MonoDevelop.Xml.Editor.Tests;
 using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Analysis;
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Editor.CodeActions;
+using System.Linq;
 
 namespace MonoDevelop.MSBuild.Tests
 {
@@ -29,12 +31,12 @@ namespace MonoDevelop.MSBuild.Tests
 
 	internal static class MSBuildEditorTestExtensions
 	{
-		public static async Task ApplyCodeAction (this ITextView textView, MSBuildCodeAction action, IEditorOptions options = null, CancellationToken cancellationToken = default)
+		public static async Task ApplyCodeAction (this ITextView textView, MSBuildCodeAction action, CancellationToken cancellationToken = default)
 		{
-			var operations = await action.ComputeOperationsAsync (cancellationToken);
-			foreach (var op in operations) {
-				op.Apply (options ?? textView.Options, textView.TextBuffer, cancellationToken, textView);
-			}
+			var workspaceEdit = await action.ComputeOperationsAsync (cancellationToken);
+			// TODO: check all edits are for the textView
+			var edits = workspaceEdit.Operations.OfType<MSBuildDocumentEdit> ().SelectMany(d => d.TextEdits).ToList ();
+			edits.Apply(textView.TextBuffer, cancellationToken, textView);
 		}
 	}
 }

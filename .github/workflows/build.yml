@@ -29,10 +29,6 @@ jobs:
         dotnet-version: |
           8.0.x
 
-    - name: Find MSBuild
-      if: startsWith(matrix.os, 'windows')
-      uses: microsoft/setup-msbuild@v2
-
     - uses: actions/cache@v4
       with:
         path: ${{ env.NUGET_PACKAGES }}
@@ -40,21 +36,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
-    - name: Restore (dotnet)
-      if: startsWith(matrix.os, 'macos')
+    - name: Restore
       run: dotnet restore -p:Configuration=${{ matrix.config }}
 
-    - name: Build (dotnet)
-      if: startsWith(matrix.os, 'macos')
+    - name: Build
       run: dotnet build --no-restore -c ${{ matrix.config }} -p:CreatePackage=true
-
-    - name: Restore (MSBuild)
-      if: startsWith(matrix.os, 'windows')
-      run: msbuild -t:Restore -p:Configuration=${{ matrix.config }}
-
-    - name: Build (MSBuild)
-      if: startsWith(matrix.os, 'windows')
-      run: msbuild MonoDevelop.MSBuildEditor.sln -p:Configuration=${{ matrix.config }}
 
     - name: Test
       run: dotnet test --no-build -c ${{ matrix.config }}
@@ -65,9 +51,9 @@ jobs:
         name: MSBuild Editor Extension Package (VSWin)
         path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/**/*.vsix
 
-    - uses: actions/upload-artifact@v4
-      if: startsWith(matrix.os, 'macos')
-      with:
-        name: MSBuild Editor Extension Package (VSMac)
-        path: MonoDevelop.MSBuildEditor/bin/**/*.mpack
-        if-no-files-found: error
+#    - uses: actions/upload-artifact@v4
+#      if: startsWith(matrix.os, 'macos')
+#      with:
+#        name: MSBuild Editor Extension Package (VSMac)
+#        path: MonoDevelop.MSBuildEditor/bin/**/*.mpack
+#        if-no-files-found: error
