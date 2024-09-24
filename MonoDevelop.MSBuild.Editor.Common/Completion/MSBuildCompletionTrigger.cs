@@ -39,8 +39,18 @@ internal record class MSBuildCompletionTrigger(
             // It will also return false and output null values if we're in an element value that only contains whitespace.
             // In both these cases we can ignore the false return and proceed anyways.
             spine.TryGetIncompleteValue (textSource, out var expressionText, out var valueSpan, cancellationToken: cancellationToken);
+
             expressionText ??= "";
             int exprStartPos = valueSpan?.Start ?? offset;
+
+            // FIXME: triggering currently depends on errors resulting from the expression ending at the caret
+            // so for now we must truncate any readahead that we have obtained
+            if (valueSpan.HasValue) {
+                int truncateBy = exprStartPos + valueSpan.Value.Length - offset;
+                if (truncateBy > 0) {
+                    expressionText = expressionText.Substring(0, expressionText.Length - truncateBy);
+                }
+            }
 
             var triggerState = ExpressionCompletion.GetTriggerState(
                 expressionText,
