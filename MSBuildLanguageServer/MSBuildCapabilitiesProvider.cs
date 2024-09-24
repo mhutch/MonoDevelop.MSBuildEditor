@@ -37,6 +37,20 @@ class MSBuildCapabilitiesProvider : ExperimentalCapabilitiesProvider
             DefinitionProvider = new DefinitionOptions { WorkDoneProgress = true },
             ReferencesProvider = new ReferenceOptions { WorkDoneProgress = true }
         };
+
+        // our code action handler only supports code action literals i.e. returning CodeAction objects not Command objects,
+        // so only register the handler if the client supports code action literals
+        if(clientCapabilities.TextDocument?.CodeAction?.CodeActionLiteralSupport is not null)
+        {
+            capabilities.CodeActionProvider = new CodeActionOptions {
+                CodeActionKinds = [
+                    CodeActionKind.Refactor,
+                    CodeActionKind.QuickFix
+                ],
+                ResolveProvider = true
+            };
+        }
+
         return capabilities;
     }
 }

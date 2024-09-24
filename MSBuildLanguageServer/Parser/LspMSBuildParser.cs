@@ -1,9 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Threading;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
+using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.Xml.Editor.Parsing;
@@ -56,6 +62,24 @@ partial class LspMSBuildParserService
                 {
                     LogUnhandledParserError(ex);
                     doc = MSBuildRootDocument.Empty;
+                }
+
+                if(doc.ProjectElement is not null)
+                {
+                    try
+                    {
+                        // FIXME move this to a service
+                        var analyzerDriver = new MSBuildAnalyzerDriver(service.extLogger);
+                        analyzerDriver.AddBuiltInAnalyzers();
+
+                        var diagnostics = analyzerDriver.Analyze(doc, true, token);
+
+                        doc.Diagnostics.Clear();
+                        doc.Diagnostics.AddRange(diagnostics);
+                    } catch(Exception ex)
+                    {
+                        service.logger.LogException(ex, "Error in analyzer service");
+                    }
                 }
 
                 return new MSBuildParseResult(doc, input);

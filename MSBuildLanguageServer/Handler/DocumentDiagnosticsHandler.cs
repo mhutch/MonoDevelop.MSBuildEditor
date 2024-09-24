@@ -43,37 +43,24 @@ sealed class DocumentDiagnosticsHandler : ILspServiceDocumentRequestHandler<Docu
 
         var result = await parseTask!; // not sure why we need the ! here, TryGetParseResult has NotNullWhen(true)
 
-
         var msbuildDoc = result.MSBuildDocument;
         var sourceText = result.XmlParseResult.Text;
 
-        IEnumerable<MSBuildDiagnostic>? msbuildDiagnostics = msbuildDoc.Diagnostics;
-
-        if(msbuildDoc.ProjectElement is not null)
-        {
-            try
-            {
-                // FIXME move this to a service
-                var analyzerDriver = new MSBuildAnalyzerDriver(context.GetRequiredService<ILspLogger> ().ToILogger ());
-                analyzerDriver.AddBuiltInAnalyzers();
-                msbuildDiagnostics = await Task.Run(() => analyzerDriver.Analyze(msbuildDoc, true, cancellationToken), cancellationToken);
-            } catch(Exception ex)
-            {
-                logger.LogException(ex, "Error in analyzer service");
-            }
-        }
-
-        var convertedXmlDiagnostics = result.XmlParseResult.Diagnostics?.Select(d => ConvertDiagnostic(d, sourceText)) ?? [];
-        var convertedMSBuildDiagnostics = msbuildDiagnostics.Select(d => ConvertDiagnostic(d, sourceText));
+        var convertedXmlDiagnostics = result.XmlParseResult.Diagnostics?.Select(d => d.ToLspDiagnostic (sourceText)) ?? [];
+        var convertedMSBuildDiagnostics = msbuildDoc.Diagnostics.Select(d => d.ToLspDiagnostic (sourceText));
 
         return new FullDocumentDiagnosticReport {
             Items = convertedMSBuildDiagnostics.Concat(convertedXmlDiagnostics).ToArray()
         };
     }
 
+}
+
+static class MSBuildDiagnosticExtensions
+{
     const string sourceName = "msbuild";
 
-    static Diagnostic ConvertDiagnostic(XmlDiagnostic xmlDiagnostic, SourceText sourceText)
+    public static Diagnostic ToLspDiagnostic(this XmlDiagnostic xmlDiagnostic, SourceText sourceText, string sourceName = sourceName)
     {
         return new Diagnostic {
             Range = xmlDiagnostic.Span.ToLspRange(sourceText),
@@ -92,7 +79,7 @@ sealed class DocumentDiagnosticsHandler : ILspServiceDocumentRequestHandler<Docu
         _ => throw new ArgumentException($"Unsupported XmlDiagnosticSeverity '{0}'")
     };
 
-    static Diagnostic ConvertDiagnostic(MSBuildDiagnostic msbuildDiagnostic, SourceText sourceText)
+    public static Diagnostic ToLspDiagnostic(this MSBuildDiagnostic msbuildDiagnostic, SourceText sourceText, string sourceName = sourceName)
     {
         DiagnosticTag[]? diagnosticTags = msbuildDiagnostic.Descriptor.Id switch {
             CoreDiagnostics.DeprecatedWithMessage_Id => [DiagnosticTag.Deprecated],
