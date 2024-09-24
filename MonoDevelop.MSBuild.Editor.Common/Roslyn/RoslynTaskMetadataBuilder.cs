@@ -303,6 +303,10 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			{
 				var name = Path.GetFileNameWithoutExtension (path);
 
+				var objectAsmLocation = typeof (object).Assembly.Location;
+
+				// FIXME: locate reference assemblies for BCL e.g. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.8\ref\net8.0
+
 				//FIXME: we need to bundle the xml docs files for these as they are not shipped beside the assemblies in VS
 				var paths = new List<string> {
 					path,
@@ -310,7 +314,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					Path.Combine (binPath, "Microsoft.Build.Utilities.Core.dll"),
 					Path.Combine (binPath, "Microsoft.Build.Utilities.v4.0.dll"),
 					Path.Combine (binPath, "Microsoft.Build.Utilities.v12.0.dll"),
-					typeof (object).Assembly.Location
+					objectAsmLocation
 				};
 
 				if (name != "Microsoft.Build.Tasks.Core") {
@@ -318,6 +322,14 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 					paths.Add (Path.Combine (binPath, "Microsoft.Build.Tasks.v4.0.dll"));
 					paths.Add (Path.Combine (binPath, "Microsoft.Build.Tasks.v12.0.dll"));
 				}
+
+#if !NETFRAMEWORK
+				var objectAsmDirectory = Path.GetDirectoryName (objectAsmLocation);
+				var systemRuntime = Path.Combine (objectAsmDirectory, "System.Runtime.dll");
+				if (File.Exists(systemRuntime)) {
+					paths.Add (systemRuntime);
+				}
+#endif
 
 				var compilation = CSharpCompilation.Create (
 					"__MSBuildEditorTaskResolver",
