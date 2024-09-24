@@ -8,6 +8,7 @@
 #endif
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Primitives;
@@ -212,26 +213,37 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 			return new TaskParameterInfo (prop.Name, RoslynHelpers.GetDescription (prop), isRequired, isOutput, kind, versionInfo);
 		}
 
-		Dictionary<(string? fileExpr, string? asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblies = new ();
+		readonly ConcurrentDictionary<(string? fileExpr, string? asmName, string declaredInFile), (string, IAssemblySymbol)?> resolvedAssemblyCache = new ();
 
+		// TODO: make this async and store the task in the cache so we don't duplicate work
 		protected (string path, IAssemblySymbol assembly)? GetTaskAssembly (
 			string? assemblyName, ExpressionNode? assemblyFile, string? assemblyFileStr,
 			string declaredInFile, IMSBuildEvaluationContext evaluationContext, ILogger logger)
 		{
 			var key = (assemblyName?.ToLowerInvariant (), assemblyFileStr?.ToLowerInvariant (), declaredInFile.ToLowerInvariant ());
-			if (resolvedAssemblies.TryGetValue (key, out (string, IAssemblySymbol)? r)) {
+			if (resolvedAssemblyCache.TryGetValue (key, out (string, IAssemblySymbol)? r)) {
 				return r;
 			}
+
 			(string, IAssemblySymbol)? taskFile = null;
 			try {
 				taskFile = ResolveTaskFile (assemblyName, assemblyFile, assemblyFileStr, declaredInFile, evaluationContext, logger);
 			} catch (Exception ex) {
-				LogErrorLoadingTasksAssembly (logger, ex, assemblyName, assemblyFileStr, declaredInFile);
+				// avoid reporting the warning multiple times
+				if (!resolvedAssemblyCache.ContainsKey (key)) {
+					LogErrorLoadingTasksAssembly (logger, ex, assemblyName, assemblyFileStr, declaredInFile);
+				}
 			}
-			resolvedAssemblies[key] = taskFile;
+
+			if (!resolvedAssemblyCache.TryAdd(key, taskFile)) {
+				// if it was already added, reuse the cached value and let the GC collect the one we just computed
+				if (resolvedAssemblyCache.TryGetValue(key, out var cachedValue)) {
+					return cachedValue;
+				}
+			}
+
 			return taskFile;
 		}
-
 
 		(string path, IAssemblySymbol compilation)? ResolveTaskFile (
 			string? assemblyName, ExpressionNode? assemblyFile, string? assemblyFileStr,
@@ -277,7 +289,7 @@ namespace MonoDevelop.MSBuild.Editor.Roslyn
 				}
 
 				var result = CreateResult (path);
-				if (resolvedAssemblies is null) {
+				if (resolvedAssemblyCache is null) {
 					CouldNotLoadTasksAssemblyModule (logger, assemblyFileStr, declaredInFile);
 					return null;
 				}
