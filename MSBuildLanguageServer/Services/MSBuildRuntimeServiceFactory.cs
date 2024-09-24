@@ -19,6 +19,8 @@ class MSBuildRuntimeServiceFactory : ILspServiceFactory
     {
     }
 
+    // FIXME: this is currently an extremely expensive service during testing, as re-instantiating it for every test
+    // throws away the workload resolver cache. it's currently responsible for 2/3 of the total LSP test execution time.
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var logger = lspServices.GetRequiredService<ILspLogger>();
