@@ -19,12 +19,14 @@ using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.SdkResolution;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Feeds;
@@ -61,9 +63,11 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				return TaskCompleted (null);
 			}
 
+			var includePrivateSymbols = context.Options.GetOption (MSBuildCompletionOptions.ShowPrivateSymbols);
+
 			var items = new List<CompletionItem> ();
 
-			foreach (var el in doc.GetElementCompletions (languageElement, elementName)) {
+			foreach (var el in doc.GetElementCompletions (languageElement, elementName, includePrivateSymbols)) {
 				if (el is ItemInfo) {
 					items.Add (CreateCompletionItem (context.DocumentationProvider, el, XmlCompletionItemKind.SelfClosingElement, includeBracket ? "<" : null));
 				} else {
@@ -294,6 +298,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			if (!ValidateListPermitted (trigger.ListKind, kind)) {
 				return null;
 			}
+			var includePrivateSymbols = context.Options.GetOption(MSBuildCompletionOptions.ShowPrivateSymbols);
 
 			bool allowExpressions = kind.AllowsExpressions ();
 
@@ -314,7 +319,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var items = new List<CompletionItem> ();
 
 			if (trigger.ComparandVariables != null && isValue) {
-				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, trigger.ComparandVariables, Logger)) {
+				foreach (var ci in ExpressionCompletion.GetComparandCompletions (doc, fileSystem, trigger.ComparandVariables, Logger, includePrivateSymbols)) {
 					items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue));
 				}
 			}
@@ -369,7 +374,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			} else {
 				//FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
 				await provider.FunctionTypeProvider.EnsureInitialized (token);
-				if (GetCompletionInfos (rr, triggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
+				if (GetCompletionInfos (rr, triggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, provider.FunctionTypeProvider, fileSystem, Logger, includePrivateSymbols, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos) {
 					bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions (valueSymbol);
 					foreach (var ci in completionInfos) {
 						items.Add (CreateCompletionItem (context.DocumentationProvider, ci, XmlCompletionItemKind.AttributeValue, addDescriptionHint: addDescriptionHint));

@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Language;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Options;
 
 namespace MonoDevelop.MSBuild.Editor.CodeFixes
 {
@@ -38,6 +40,8 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 
 		public override Task RegisterCodeActionsAsync (MSBuildCodeActionContext context)
 		{
+			var includePrivateSymbols = context.Options.GetOption (MSBuildCompletionOptions.ShowPrivateSymbols);
+
 			foreach (var diag in context.GetMatchingDiagnosticsInSpan (FixableDiagnosticIds)) {
 				var name = (string)diag.Properties[CoreDiagnosticProperty.MisspelledNameOrValue];
 
@@ -51,7 +55,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 				switch (diag.Descriptor.Id) {
 				case CoreDiagnostics.UnreadItem_Id:
 				case CoreDiagnostics.UnwrittenItem_Id:
-					foreach (var item in MSBuildSpellChecker.FindSimilarItems (context.Document, name)) {
+					foreach (var item in MSBuildSpellChecker.FindSimilarItems (context.Document, name, includePrivateSymbols)) {
 						context.RegisterCodeAction (new FixNameAction (spans, name, item.Name, context, diag));
 					}
 					break;
@@ -61,7 +65,7 @@ namespace MonoDevelop.MSBuild.Editor.CodeFixes
 					// NOTE: don't fix writes with readonly properties
 					bool includeReadOnlyProperties = diag.Descriptor.Id == CoreDiagnostics.UnreadProperty_Id;
 
-					foreach (var prop in MSBuildSpellChecker.FindSimilarProperties (context.Document, name, includeReadOnlyProperties)) {
+					foreach (var prop in MSBuildSpellChecker.FindSimilarProperties (context.Document, name, includeReadOnlyProperties, includePrivateSymbols)) {
 						context.RegisterCodeAction (new FixNameAction (spans, name, prop.Name, context, diag));
 					}
 					break;

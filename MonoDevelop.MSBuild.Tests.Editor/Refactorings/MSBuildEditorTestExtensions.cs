@@ -14,16 +14,17 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 using MonoDevelop.MSBuild.Analysis;
+using MonoDevelop.MSBuild.Editor;
 using MonoDevelop.MSBuild.Editor.Analysis;
+using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 using MonoDevelop.Xml.Tests;
 using MonoDevelop.Xml.Tests.Utils;
 
-using TextSpan = MonoDevelop.Xml.Dom.TextSpan;
-
 using NUnit.Framework;
-using MonoDevelop.MSBuild.Editor.CodeActions;
+
+using TextSpan = MonoDevelop.Xml.Dom.TextSpan;
 
 namespace MonoDevelop.MSBuild.Tests.Editor
 {
@@ -42,7 +43,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			var parseResult = await parser.GetOrProcessAsync (buffer.CurrentSnapshot, cancellationToken);
 
 			var sourceText = Microsoft.CodeAnalysis.Text.Extensions.AsText (buffer.CurrentSnapshot);
-			var options = new EditorOptionsReader (textView.Options);
+			var options = new VSEditorOptionsReader (textView.Options);
 
 			return new (
 				await codeActionService.GetCodeActions (sourceText, parseResult.MSBuildDocument, new TextSpan (selection.Start, selection.Length), [], options, cancellationToken),
@@ -125,7 +126,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			var parsedDocument = MSBuildDocumentTest.ParseDocumentWithDiagnostics (snapshot.GetText (), analyzers, includeCoreDiagnostics, logger, schema, cancellationToken: cancellationToken);
 
 			var sourceText = Microsoft.CodeAnalysis.Text.Extensions.AsText (range.Snapshot);
-			var options = new EditorOptionsReader (textView.Options);
+			var options = new VSEditorOptionsReader (textView.Options);
 
 			var codeActionService = new MSBuildCodeActionService (codeActionProviders.ToArray ());
 			var fixes = await codeActionService.GetCodeActions (sourceText, parsedDocument, new TextSpan(range.Start, range.End), requestedKinds, options, cancellationToken);

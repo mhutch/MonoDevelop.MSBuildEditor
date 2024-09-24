@@ -8,6 +8,7 @@ using System.Text;
 
 using Microsoft.CodeAnalysis.Text;
 
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.Xml.Options;
 
 using TextSpan = MonoDevelop.Xml.Dom.TextSpan;

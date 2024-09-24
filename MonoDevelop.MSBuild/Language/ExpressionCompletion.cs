@@ -421,7 +421,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 		}
 
-		public static IEnumerable<ISymbol> GetComparandCompletions (MSBuildRootDocument doc, IMSBuildFileSystem fileSystem, IReadOnlyList<ExpressionNode> variables, ILogger logger)
+		public static IEnumerable<ISymbol> GetComparandCompletions (MSBuildRootDocument doc, IMSBuildFileSystem fileSystem, IReadOnlyList<ExpressionNode> variables, ILogger logger, bool includePrivateSymbols)
 		{
 			var names = new HashSet<string> ();
 			foreach (var variable in variables) {
@@ -451,7 +451,7 @@ namespace MonoDevelop.MSBuild.Language
 					kind = MSBuildInferredSchema.InferValueKindFromName (info);
 				}
 
-				var completionInfos = MSBuildCompletionExtensions.GetValueCompletions (info, doc, fileSystem, logger, kindIfUnknown: kind);
+				var completionInfos = MSBuildCompletionExtensions.GetValueCompletions (info, doc, fileSystem, logger, includePrivateSymbols, kindIfUnknown: kind);
 
 				if (completionInfos != null) {
 					foreach (var ci in completionInfos) {
@@ -476,6 +476,7 @@ namespace MonoDevelop.MSBuild.Language
 			MSBuildRootDocument doc, IFunctionTypeProvider functionTypeProvider,
 			IMSBuildFileSystem fileSystem,
 			ILogger logger,
+			bool includePrivateSymbols,
 			MSBuildValueKind kindIfUnknown = MSBuildValueKind.Unknown
 			)
 		{
@@ -489,16 +490,16 @@ namespace MonoDevelop.MSBuild.Language
 
 			switch (trigger) {
 			case TriggerState.Value:
-				return MSBuildCompletionExtensions.GetValueCompletions (valueSymbol, doc, fileSystem, logger, rr, triggerExpression, kindIfUnknown: kind);
+				return MSBuildCompletionExtensions.GetValueCompletions (valueSymbol, doc, fileSystem, logger, includePrivateSymbols, rr, triggerExpression, kindIfUnknown: kind);
 			case TriggerState.ItemName:
-				return doc.GetItems ();
+				return doc.GetItems (includePrivateSymbols);
 			case TriggerState.MetadataName:
 				return doc.GetMetadata (null, true);
 			case TriggerState.PropertyName:
 				bool includeReadOnly = rr.AttributeSyntax?.SyntaxKind != Syntax.MSBuildSyntaxKind.Output_PropertyName;
-				return doc.GetProperties (includeReadOnly);
+				return doc.GetProperties (includeReadOnly, includePrivateSymbols);
 			case TriggerState.MetadataOrItemName:
-				return ((IEnumerable<ISymbol>)doc.GetItems ()).Concat (doc.GetMetadata (null, true));
+				return ((IEnumerable<ISymbol>)doc.GetItems (includePrivateSymbols)).Concat (doc.GetMetadata (null, true));
 			case TriggerState.DirectorySeparator:
 				return fileSystem.GetFilenameCompletions (kind, doc, triggerExpression, triggerLength, logger, rr);
 			case TriggerState.PropertyFunctionName:

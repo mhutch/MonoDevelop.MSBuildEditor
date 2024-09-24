@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.MSBuild.Tests.Helpers;
 using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Dom;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 using MonoDevelop.Xml.Tests.Utils;
@@ -109,12 +111,24 @@ class MSBuildExpressionCompletionTest
 
 		var fileSystem = new TestFilesystem ();
 
+		var options = new EmptyOptionsReader ();
+		bool includePrivateSymbols = options.GetOption (MSBuildCompletionOptions.ShowPrivateSymbols);
+
 		bool isValue = triggerState == ExpressionCompletion.TriggerState.Value;
 		if (comparandVariables != null && isValue) {
-			return ExpressionCompletion.GetComparandCompletions (parsedDocument, fileSystem, comparandVariables, logger);
+			return ExpressionCompletion.GetComparandCompletions (parsedDocument, fileSystem, comparandVariables, logger, includePrivateSymbols);
 		}
 
-		return ExpressionCompletion.GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, spanLength, parsedDocument, functionTypeProvider, fileSystem, logger);
+		return ExpressionCompletion.GetCompletionInfos (rr, triggerState, valueSymbol, triggerExpression, spanLength, parsedDocument, functionTypeProvider, fileSystem, logger, includePrivateSymbols);
+	}
+
+	class EmptyOptionsReader : IOptionsReader
+	{
+		public bool TryGetOption<T> (Option<T> option, out T value)
+		{
+			value = default;
+			return false;
+		}
 	}
 
 	class TestFunctionTypeProvider : IFunctionTypeProvider

@@ -8,9 +8,11 @@ using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionIte
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Syntax;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -20,8 +22,8 @@ namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 record class MSBuildXmlCompletionContext
     (
         XmlSpineParser SpineParser, XmlCompletionTrigger XmlTriggerKind, ITextSource TextSource, List<XObject> NodePath, LSP.Range EditRange,
-        MSBuildResolveResult ResolveResult, MSBuildRootDocument Document, MSBuildCompletionDocsProvider DocsProvider, SourceText SourceText
-    )
+        MSBuildResolveResult ResolveResult, MSBuildRootDocument Document, MSBuildCompletionDocsProvider DocsProvider, SourceText SourceText,
+        IOptionsReader options)
     : XmlCompletionContext
     (
         SpineParser, XmlTriggerKind, TextSource, NodePath, EditRange
@@ -42,7 +44,9 @@ class MSBuildXmlCompletionDataSource : XmlCompletionDataSource<MSBuildXmlComplet
 
         var items = new List<ILspCompletionItem>();
 
-        foreach(var el in doc.GetElementCompletions(languageElement, elementName))
+        var includePrivateSymbols = context.options.GetOption(MSBuildCompletionOptions.ShowPrivateSymbols);
+
+        foreach(var el in doc.GetElementCompletions(languageElement, elementName, includePrivateSymbols))
         {
             if(el is ItemInfo)
             {

@@ -17,15 +17,15 @@ static class MSBuildSpellChecker
 {
 	const int MAX_RESULTS = 5;
 
-	public static IEnumerable<ItemInfo> FindSimilarItems (MSBuildDocument document, string itemName)
+	public static IEnumerable<ItemInfo> FindSimilarItems (MSBuildDocument document, string itemName, bool includePrivateSymbols)
 	{
-		var items = document.GetSchemas ().GetItems ();
+		var items = document.GetSchemas ().GetItems (includePrivateSymbols);
 		return FindSimilar (items, itemName);
 	}
 
-	public static IEnumerable<PropertyInfo> FindSimilarProperties (MSBuildDocument document, string propertyName, bool includeReadonly)
+	public static IEnumerable<PropertyInfo> FindSimilarProperties (MSBuildDocument document, string propertyName, bool includeReadonly, bool includePrivateSymbols)
 	{
-		var items = document.GetSchemas ().GetProperties (includeReadonly);
+		var items = document.GetSchemas ().GetProperties (includeReadonly, includePrivateSymbols);
 		return FindSimilar (items, propertyName);
 	}
 

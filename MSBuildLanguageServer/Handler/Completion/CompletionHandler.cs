@@ -10,6 +10,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Editor.Completion;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.CodeActions;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
@@ -18,10 +19,12 @@ using MonoDevelop.MSBuild.Editor.NuGetSearch;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Expressions;
 using MonoDevelop.MSBuild.Language.Typesystem;
+using MonoDevelop.MSBuild.Options;
 using MonoDevelop.MSBuild.PackageSearch;
 using MonoDevelop.MSBuild.Schema;
 using MonoDevelop.Xml.Dom;
 using MonoDevelop.Xml.Editor.Completion;
+using MonoDevelop.Xml.Options;
 using MonoDevelop.Xml.Parser;
 
 using ProjectFileTools.NuGetSearch.Contracts;
@@ -111,6 +114,9 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             }
         }
 
+        // TODO: get this from the host
+        var options = new EmptyOptionsReader();
+
         var functionTypeProvider = context.GetRequiredService<FunctionTypeProviderService>().FunctionTypeProvider;
 
         //FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
@@ -120,7 +126,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         if(msbuildTrigger is not null)
         {
             MSBuildRootDocument doc = await GetRootDocument();
-            return await GetExpressionCompletionList(request, context, doc, msbuildTrigger, extLogger, sourceText, functionTypeProvider, fileSystem, cancellationToken).ConfigureAwait(false);
+            return await GetExpressionCompletionList(request, context, doc, msbuildTrigger, extLogger, sourceText, functionTypeProvider, fileSystem, options, cancellationToken).ConfigureAwait(false);
         }
 
         (XmlCompletionTrigger kind, int spanStart, int spanLength)? xmlTrigger = null;
@@ -149,7 +155,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
 
             var rr = MSBuildResolver.Resolve(spine.Clone(), textSource, MSBuildRootDocument.Empty, functionTypeProvider, extLogger, cancellationToken);
             var docsProvider = MSBuildCompletionDocsProvider.Create(extLogger, clientCapabilities, clientInfo, doc, sourceText, rr);
-            var xmlCompletionContext = new MSBuildXmlCompletionContext(spine, xmlTrigger.Value.kind, textSource, nodePath, editRange, rr, doc, docsProvider, sourceText);
+            var xmlCompletionContext = new MSBuildXmlCompletionContext(spine, xmlTrigger.Value.kind, textSource, nodePath, editRange, rr, doc, docsProvider, sourceText, options);
             var dataSource = new MSBuildXmlCompletionDataSource();
             return await GetXmlCompletionListAsync(context, dataSource, xmlCompletionContext, request.TextDocument, cancellationToken).ConfigureAwait(false);
         }
@@ -189,7 +195,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         MSBuildRootDocument doc, MSBuildCompletionTrigger trigger,
         ILogger logger, SourceText sourceText,
         IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem,
-        CancellationToken cancellationToken)
+        EmptyOptionsReader options, CancellationToken cancellationToken)
     {
         var rr = trigger.ResolveResult;
 
@@ -224,7 +230,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             kind = MSBuildInferredSchema.InferValueKindFromName(valueSymbol);
         }
 
-        var items = await GetExpressionCompletionItems(doc, trigger, logger, functionTypeProvider, fileSystem, rr, docsProvider, valueSymbol, kind, cancellationToken).ConfigureAwait(false);
+        var items = await GetExpressionCompletionItems(doc, trigger, logger, functionTypeProvider, fileSystem, rr, docsProvider, valueSymbol, kind, options, cancellationToken).ConfigureAwait(false);
 
         bool isIncomplete = false;
 
@@ -284,15 +290,18 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem,
         MSBuildResolveResult rr, MSBuildCompletionDocsProvider docsProvider,
         ITypedSymbol valueSymbol, MSBuildValueKind kind,
+        IOptionsReader options,
         CancellationToken cancellationToken)
     {
         var items = new List<ILspCompletionItem>();
 
         bool isValue = trigger.TriggerState == TriggerState.Value;
 
+        var includePrivateSymbols = options.GetOption(MSBuildCompletionOptions.ShowPrivateSymbols);
+
         if(trigger.ComparandVariables != null && isValue)
         {
-            foreach(var ci in GetComparandCompletions(doc, fileSystem, trigger.ComparandVariables, logger))
+            foreach(var ci in GetComparandCompletions(doc, fileSystem, trigger.ComparandVariables, logger, includePrivateSymbols))
             {
                 items.Add(new MSBuildCompletionItem(ci, XmlCommitKind.AttributeValue, docsProvider));
             }
@@ -336,7 +345,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         {
             //FIXME: can we avoid awaiting this unless we actually need to resolve a function? need to propagate async downwards
             await functionTypeProvider.EnsureInitialized(cancellationToken);
-            if(GetCompletionInfos(rr, trigger.TriggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, functionTypeProvider, fileSystem, logger, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos)
+            if(GetCompletionInfos(rr, trigger.TriggerState, valueSymbol, trigger.Expression, trigger.SpanLength, doc, functionTypeProvider, fileSystem, logger, includePrivateSymbols, kindIfUnknown: kind) is IEnumerable<ISymbol> completionInfos)
             {
                 bool addDescriptionHint = CompletionHelpers.ShouldAddHintForCompletions(valueSymbol);
                 foreach(var ci in completionInfos)

@@ -41,7 +41,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 			this.logger = logger;
 			parser = provider.ParserProvider.GetParser (textBuffer);
 			parser.ParseCompleted += ParseCompleted;
-			options = new EditorOptionsReader (textView.Options);
+			options = new VSEditorOptionsReader (textView.Options);
 		}
 
 		void ParseCompleted (object sender, ParseCompletedEventArgs<MSBuildParseResult> e)

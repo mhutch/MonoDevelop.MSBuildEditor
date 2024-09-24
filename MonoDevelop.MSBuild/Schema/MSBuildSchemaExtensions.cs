@@ -18,7 +18,7 @@ namespace MonoDevelop.MSBuild.Schema
 {
 	static class MSBuildSchemaExtensions
 	{
-		public static IEnumerable<ItemInfo> GetItems (this IEnumerable<IMSBuildSchema> schemas)
+		public static IEnumerable<ItemInfo> GetItems (this IEnumerable<IMSBuildSchema> schemas, bool includePrivateSymbols)
 		{
 			// prefer items with descriptions, in case items that just add metadata are found first
 			// this means we can't do it lazily. we could defer items without descriptions till
@@ -26,10 +26,9 @@ namespace MonoDevelop.MSBuild.Schema
 			// partially lazy, but probably not worth it
 			var found = new Dictionary<string, ItemInfo> (StringComparer.OrdinalIgnoreCase);
 
-			bool hidePrivateSymbols = !MSBuildHost.Options.ShowPrivateSymbols;
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Items) {
-					if (hidePrivateSymbols && schema.IsPrivate (item.Key)) {
+					if (!includePrivateSymbols && schema.IsPrivate (item.Key)) {
 						continue;
 					}
 					if (!found.TryGetValue (item.Key, out ItemInfo? existing) || (existing.Description.IsEmpty && !item.Value.Description.IsEmpty)) {
@@ -167,7 +166,7 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.GetAllTaskParameterVariants (taskName, parameterName).FirstOrDefault ();
 		}
 
-		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeReadOnly)
+		public static IEnumerable<PropertyInfo> GetProperties (this IEnumerable<IMSBuildSchema> schemas, bool includeReadOnly, bool includePrivateSymbols)
 		{
 			foreach (var prop in MSBuildIntrinsics.Properties.Values) {
 				if (includeReadOnly || !prop.IsReadOnly) {
@@ -175,11 +174,10 @@ namespace MonoDevelop.MSBuild.Schema
 				}
 			}
 
-			bool showPrivateSymbols = MSBuildHost.Options.ShowPrivateSymbols;
 			var names = new HashSet<string> (MSBuildIntrinsics.Properties.Keys, StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var item in schema.Properties) {
-					if ((showPrivateSymbols || !schema.IsPrivate (item.Key)) && names.Add (item.Key)) {
+					if ((!includePrivateSymbols || !schema.IsPrivate (item.Key)) && names.Add (item.Key)) {
 						yield return item.Value;
 					}
 				}
@@ -204,13 +202,12 @@ namespace MonoDevelop.MSBuild.Schema
 			return schemas.GetAllPropertyVariants (name, includeBuiltins).FirstOrDefault ();
 		}
 
-		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas)
+		public static IEnumerable<TargetInfo> GetTargets (this IEnumerable<IMSBuildSchema> schemas, bool includePrivateSymbols)
 		{
-			bool showPrivateSymbols = MSBuildHost.Options.ShowPrivateSymbols;
 			var names = new HashSet<string> (StringComparer.OrdinalIgnoreCase);
 			foreach (var schema in schemas) {
 				foreach (var target in schema.Targets) {
-					if ((showPrivateSymbols || !schema.IsPrivate (target.Key)) && names.Add (target.Key)) {
+					if ((!includePrivateSymbols || !schema.IsPrivate (target.Key)) && names.Add (target.Key)) {
 						yield return target.Value;
 					}
 				}
