@@ -404,6 +404,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		// NOTE: offset must not be beyond the endOffset when calling this method
 		static bool ConsumeXmlName (string buffer, ref int offset, int endOffset)
 		{
+			if (offset == endOffset) {
+				return false;
+			}
+
 			Debug.Assert (offset < endOffset);
 
 			char ch = buffer[offset];
