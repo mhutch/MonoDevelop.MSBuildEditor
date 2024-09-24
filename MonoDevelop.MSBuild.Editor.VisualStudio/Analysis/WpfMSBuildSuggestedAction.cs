@@ -12,27 +12,31 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 using MonoDevelop.MSBuild.Editor.CodeActions;
 
 namespace MonoDevelop.MSBuild.Editor.Analysis
 {
 	[Export (typeof (IMSBuildSuggestedActionFactory))]
-	class WpfMSBuildSuggestedActionFactory : IMSBuildSuggestedActionFactory
+	[method: ImportingConstructor]
+	class WpfMSBuildSuggestedActionFactory(JoinableTaskContext joinableTaskContext) : IMSBuildSuggestedActionFactory
 	{
 		public ISuggestedAction CreateSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeAction action)
-			=> new WpfMSBuildSuggestedAction (previewService, textView, buffer, action);
+			=> new WpfMSBuildSuggestedAction (joinableTaskContext, previewService, textView, buffer, action);
 	}
 
 	class WpfMSBuildSuggestedAction : ISuggestedAction
 	{
+		readonly JoinableTaskContext joinableTaskContext;
 		readonly PreviewChangesService previewService;
 		readonly ITextView textView;
 		readonly ITextBuffer buffer;
 		readonly MSBuildCodeAction action;
 
-		public WpfMSBuildSuggestedAction (PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeAction action)
+		public WpfMSBuildSuggestedAction (JoinableTaskContext joinableTaskContext, PreviewChangesService previewService, ITextView textView, ITextBuffer buffer, MSBuildCodeAction action)
 		{
+			this.joinableTaskContext = joinableTaskContext;
 			this.previewService = previewService;
 			this.textView = textView;
 			this.buffer = buffer;
@@ -76,7 +80,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		public void Invoke (CancellationToken cancellationToken)
 		{
-			var workspaceEdit = action.ComputeOperationsAsync (cancellationToken).WaitAndGetResult (cancellationToken);
+			var workspaceEdit = joinableTaskContext.Factory.Run (() => action.ComputeOperationsAsync (cancellationToken));
 			workspaceEdit.Apply(buffer, cancellationToken, textView);
 		}
 

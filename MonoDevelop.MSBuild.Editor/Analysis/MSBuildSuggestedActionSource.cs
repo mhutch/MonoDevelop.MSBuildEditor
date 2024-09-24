@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 using MonoDevelop.MSBuild.Analysis;
 using MonoDevelop.MSBuild.Editor.CodeActions;
@@ -56,7 +57,7 @@ namespace MonoDevelop.MSBuild.Editor.Analysis
 
 		IEnumerable<SuggestedActionSet> GetSuggestedActionsInternal (ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
 		{
-			var fixes = GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken).WaitAndGetResult (cancellationToken);
+			var fixes = provider.JoinableTaskContext.Factory.Run (() => GetSuggestedActionsAsync (requestedActionCategories, range, cancellationToken));
 			if (fixes == null) {
 				yield break;
 			}
