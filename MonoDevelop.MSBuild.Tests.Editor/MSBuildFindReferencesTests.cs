@@ -11,7 +11,6 @@ using MonoDevelop.MSBuild.Editor.Roslyn;
 using MonoDevelop.MSBuild.Language;
 using MonoDevelop.MSBuild.Language.Typesystem;
 using MonoDevelop.MSBuild.Schema;
-using MonoDevelop.MSBuild.Util;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Tests;
 using MonoDevelop.Xml.Tests.Utils;
@@ -83,7 +82,7 @@ namespace MonoDevelop.MSBuild.Tests
 			{
 				Console.WriteLine ("Locations: ");
 				foreach (var (offset, length, usage) in actual) {
-					Console.WriteLine ($"    ({offset}, {length})='{doc.Substring (offset, length)}'");
+					Console.WriteLine ($"    ({offset}, {length}, {usage})='{doc.Substring (offset, length)}'");
 				}
 			}
 		}
@@ -94,26 +93,41 @@ namespace MonoDevelop.MSBuild.Tests
 			var doc = @"
 <project>
   <itemgroup>
-    <foo />
-    <bar include='@(foo)' condition=""'@(Foo)'!='$(Foo)'"" somemetadata=""@(Foo)"" foo='a' />
+    <+foo+ />
+    <bar include='@(|foo|)' condition=""'@(|Foo|)'!='$(Foo)'"" somemetadata=""@(|Foo|)"" foo='a' />
     <!-- check that the metadata doesn't get flagged -->
-    <bar><foo>@(foo)</foo></bar>
-    <baz include=""@(foo->'%(foo.bar)')"" />
+    <bar><foo>@(|foo|)</foo></bar>
+    <baz include=""@(|foo|->'%(|foo|.bar)')"" />
+    <projectreference outputitemtype=""bar"" />
+    <projectreference outputitemtype=""+foo+"" />
+    <packagereference outputitemtype=""foo"" />
+    <projectreference>
+      <outputitemtype>+Foo+</outputitemtype>
+      <hello>foo</hello>
+      <outputitemtype>bar</outputitemtype>
+    </projectreference>
   </itemgroup>
+  <target name=""x"">
+    <mytask>
+      <output itemname=""+foo+""/>
+    </mytask>
+    <myOtherTask>
+      <output itemname=""bar""/>
+      <output propertyname=""foo""/>
+    </myOtherTask>
+  </target>
 </project>".TrimStart ().Replace ("\r", "");
 
-			var refs = FindReferences (doc, MSBuildReferenceKind.Item, "Foo");
+			var textWithMarkers = TextWithMarkers.Parse (doc, '|', '+');
 
-			AssertLocations (
-				doc, "foo", refs,
-				(29, 3, ReferenceUsage.Write),
-				(56, 3, ReferenceUsage.Read),
-				(76, 3, ReferenceUsage.Read),
-				(109, 3, ReferenceUsage.Read),
-				(199, 3, ReferenceUsage.Read),
-				(236, 3, ReferenceUsage.Read),
-				(244, 3, ReferenceUsage.Read)
-			);
+			var expectedReadSpans = textWithMarkers.GetMarkedSpans ('|').Select (span => (textWithMarkers.Text.Substring (span.Start, span.Length), span.Start, span.Length, ReferenceUsage.Read));
+			var expectedWriteSpans = textWithMarkers.GetMarkedSpans ('+').Select (span => (textWithMarkers.Text.Substring (span.Start, span.Length), span.Start, span.Length, ReferenceUsage.Write));
+
+			var expectedSpans = expectedReadSpans.Concat (expectedWriteSpans).OrderBy (span => span.Start).ToArray();
+
+			var refs = FindReferences (textWithMarkers.Text, MSBuildReferenceKind.Item, "foo");
+
+			AssertLocations (textWithMarkers.Text, refs, expectedSpans);
 		}
 
 		[Test]

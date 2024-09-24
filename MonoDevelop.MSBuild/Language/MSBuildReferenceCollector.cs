@@ -140,16 +140,8 @@ namespace MonoDevelop.MSBuild.Language
 			if ((elementSyntax.SyntaxKind == MSBuildSyntaxKind.Item || elementSyntax.SyntaxKind == MSBuildSyntaxKind.ItemDefinition) && IsMatch (element.Name.Name)) {
 				AddResult (element.NameSpan, ReferenceUsage.Write);
 			}
+
 			base.VisitResolvedElement (element, elementSyntax, elementSymbol);
-		}
-
-		protected override void VisitResolvedAttribute (XElement element, XAttribute attribute, MSBuildElementSyntax elementSyntax, MSBuildAttributeSyntax attributeSyntax, ITypedSymbol elementSymbol, ITypedSymbol attributeSymbol)
-		{
-			if (attributeSyntax.ValueKind == MSBuildValueKind.ItemName.AsLiteral () && attribute.HasNonEmptyValue && IsMatch (attribute.Value)) {
-				AddResult (attribute.ValueSpan.Value, ReferenceUsage.Write);
-			}
-
-			base.VisitResolvedAttribute (element, attribute, elementSyntax, attributeSyntax, elementSymbol, attributeSymbol);
 		}
 
 		protected override void VisitValue (
@@ -158,6 +150,18 @@ namespace MonoDevelop.MSBuild.Language
 			ITypedSymbol elementSymbol, ITypedSymbol? attributeSymbol,
 			string expressionText, ExpressionNode node)
 		{
+			bool isItemNameWrite =
+				// <TaskName><Output ItemName="
+				attributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Output_ItemName ||
+				// <ProjectReference><OutputItemType>
+				(elementSyntax.SyntaxKind == MSBuildSyntaxKind.Metadata && attributeSyntax is null && element.Name.Equals ("OutputItemType", true) && ((element.Parent as XElement)?.Name.Equals ("ProjectReference", true) ?? false)) ||
+				// <ProjectReference OutputItemType="
+				(attributeSyntax?.SyntaxKind == MSBuildSyntaxKind.Item_Metadata && element.Name.Equals ("ProjectReference", true) && (attribute?.Name.Equals ("OutputItemType", true) ?? false));
+
+			if (isItemNameWrite && node is ExpressionText text && text.GetUnescapedValue (true, out var trimmedOffset, out var trimmedLength) is string unescapedText && IsMatch (unescapedText)) {
+				AddResult (trimmedOffset, trimmedLength, ReferenceUsage.Write);
+			}
+
 			foreach (var n in node.WithAllDescendants ()) {
 				switch (n) {
 				case ExpressionItemName ei:
