@@ -147,7 +147,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
 
             var editRange = sourceText.GetLspRange(xmlTrigger.Value.spanStart, xmlTrigger.Value.spanLength);
 
-            var rr = MSBuildResolver.Resolve(spine.Clone(), textSource, MSBuildRootDocument.Empty, null, extLogger, cancellationToken);
+            var rr = MSBuildResolver.Resolve(spine.Clone(), textSource, MSBuildRootDocument.Empty, functionTypeProvider, extLogger, cancellationToken);
             var docsProvider = MSBuildCompletionDocsProvider.Create(extLogger, clientCapabilities, clientInfo, doc, sourceText, rr);
             var xmlCompletionContext = new MSBuildXmlCompletionContext(spine, xmlTrigger.Value.kind, textSource, nodePath, editRange, rr, doc, docsProvider, sourceText);
             var dataSource = new MSBuildXmlCompletionDataSource();
@@ -165,7 +165,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
 
         var allItems = subLists.SelectMany(s => s is null ? [] : s);
 
-        return await CompletionRenderer.RenderCompletionItems(context, textDocument, allItems, xmlCompletionContext.EditRange, cancellationToken).ConfigureAwait(false);
+        return await CompletionRenderer.RenderCompletionItems(context, textDocument, allItems, xmlCompletionContext.SourceText, xmlCompletionContext.EditRange, cancellationToken).ConfigureAwait(false);
     }
 
     static Task<MSBuildParseResult>? GetMSBuildParseResult(LspMSBuildParserService msbuildParserService, EditorDocumentState documentState, CancellationToken cancellationToken)
@@ -266,6 +266,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             context,
             request.TextDocument,
             items,
+            sourceText,
             sourceText.GetLspRange(trigger.SpanStart, trigger.SpanLength),
             cancellationToken
             ).ConfigureAwait(false);

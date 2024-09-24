@@ -9,7 +9,7 @@ class MSBuildReferenceExpressionCompletionItem(string text, string description, 
 {
     public bool IsMatch(CompletionItem request) => string.Equals(text, request.Label, StringComparison.Ordinal);
 
-    public async ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
+    public ValueTask<CompletionItem> Render(CompletionRenderSettings settings, CompletionRenderContext ctx, CancellationToken cancellationToken)
     {
         var item = new CompletionItem { Label = text };
 
@@ -28,10 +28,8 @@ class MSBuildReferenceExpressionCompletionItem(string text, string description, 
 
         if (settings.SupportSnippetFormat && settings.IncludeInsertTextFormat && settings.IncludeTextEdit)
         {
-            if (settings.IncludeInsertTextFormat)
-            {
-                item.InsertTextFormat = InsertTextFormat.Snippet;
-            }
+            item.InsertTextFormat = InsertTextFormat.Snippet;
+
             // TODO: calculate whether this would unbalance the expression
             item.TextEdit = new TextEdit {
                 NewText = $"{text}$0)",
@@ -42,6 +40,6 @@ class MSBuildReferenceExpressionCompletionItem(string text, string description, 
         //TODO: custom commit support. we should be retriggering completion and enabling overtype support for the paren.
         //See MSBuildCompletionCommitManager. TryCommitItemKind
 
-        return item;
+        return ValueTask.FromResult(item);
     }
 }

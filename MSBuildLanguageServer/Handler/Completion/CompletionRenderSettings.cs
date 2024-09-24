@@ -19,6 +19,8 @@ class CompletionRenderSettings
         IncludeLabelDetails = ClientCapabilities.LabelDetailsSupport && (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.LabelDetails)));
         IncludeItemKind = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.Kind));
 
+        IncludeCommitCharacters = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.CommitCharacters));
+
         bool supportsDeprecatedTag = clientCapabilities.TagSupport.Contains(CompletionItemTag.Deprecated);
         IncludeDeprecatedTag = supportsDeprecatedTag && (fullRender || !ClientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.Tags)));
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -63,6 +65,8 @@ class CompletionRenderSettings
     /// when <see cref="CompletionItem.InsertTextFormat"/> is set to <see cref="InsertTextFormat.Snippet"/>.
     /// </summary>
     public bool SupportSnippetFormat => ClientCapabilities.SnippetSupport;
+
+    public bool IncludeCommitCharacters { get; }
 
     public bool IncludeDeprecatedProperty { get; }
 

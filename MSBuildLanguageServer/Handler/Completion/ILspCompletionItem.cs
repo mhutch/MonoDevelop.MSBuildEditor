@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.CodeAnalysis.Text;
+
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -29,4 +31,4 @@ interface ILspCompletionItem
 /// items upfront or cached and provided later when the item is resolved.
 /// </summary>
 /// <param name="EditRange"></param>
-record struct CompletionRenderContext(LSP.Range EditRange);
+record struct CompletionRenderContext(LSP.Range EditRange, SourceText PreTriggerSourceText);
