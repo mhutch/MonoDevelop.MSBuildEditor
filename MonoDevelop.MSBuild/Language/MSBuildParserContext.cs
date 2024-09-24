@@ -7,6 +7,7 @@
 #endif
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -194,21 +195,13 @@ namespace MonoDevelop.MSBuild.Language
 		[LoggerMessage (EventId = 4, Level = LogLevel.Warning, Message = "Error reading import candidate '{candidateFilename}'")]
 		static partial void LogErrorReadingImportCandidate (ILogger logger, Exception ex, UserIdentifiableFileName candidateFilename);
 
-		static readonly HashSet<string> failedImports = new ();
+		static readonly ConcurrentDictionary<string, object?> failedImports = new ();
 
 		internal void LogCouldNotResolveImport (string importExpr)
 		{
-			if (PreviousRootDocument != null || failedImports.Contains (importExpr)) {
-				return;
+			if (failedImports.TryAdd (importExpr, null)) {
+				LogCouldNotResolveImport (Logger, importExpr);
 			}
-
-			lock(failedImports) {
-				if (!failedImports.Add(importExpr)) {
-					return;
-				}
-			}
-
-			LogCouldNotResolveImport (Logger, importExpr);
 		}
 
 		[LoggerMessage (EventId = 5, Level = LogLevel.Debug, Message = "Could not resolve import '{importExpr}'")]
