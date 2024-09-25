@@ -16,17 +16,17 @@ The extension is also available [for Visual Studio](https://marketplace.visualst
 
 MSBuild-specific IntelliSense helps you write your project and target files, with rich contextual completion for MSBuild elements, attributes and expressions.
 
-![Property completion](images/vscode-nowarn-completion.png)
+![Property completion](./images/vscode-nowarn-completion.png)
 
 The completion for `PackageReference` attributes queries NuGet.org as you type, and provides completion for package names and package versions.
 
-![Package reference completion](images/vscode-packageref-completion.png)
+![Package reference completion](./images/vscode-packageref-completion.png)
 
 There's completion for MSBuild expressions, including condition comparisons, property functions and item functions. The editor also supports *Expand Selection* within MSBuild expressions.
 
-![Expression completion](images/vscode-expression-completion.png)
+![Expression completion](./images/vscode-expression-completion.png)
 
-![Condition completion](images/vscode-condition-completion.png)
+![Condition completion](./images/vscode-condition-completion.png)
 
 ### Navigation
 
@@ -34,19 +34,19 @@ You can use the *Go to Definition* command or *Ctrl-Click* to navigate to any im
 
 The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports, including in expressions.
 
-![Find References](images/vscode-find-references.png)
+![Find References](./images/vscode-find-references.png)
 
 ### Quick Info
 
 Quick Info tooltips for items, properties, metadata and values allow you to see their descriptions and expected value types, with deep links into documentation. Tooltips for imports and SDKs show you the paths of the imported files.
 
-![Quick info](images/vscode-quick-info.png)
+![Quick info](./images/vscode-quick-info.png)
 
 ### Validation and Analyzers
 
 The editor validates your document against the MSBuild language and any imported schemas, and shows these errors and warnings as you type.
 
-![Unknown value validation](images/vscode-validation.png)
+![Unknown value validation](./images/vscode-validation.png)
 
 The core validator performs several other diagnostics such as warning about unused symbols, and there is a Roslyn-like analyzer mechanism, and examples of current built-in analyzers include:
 
@@ -57,7 +57,7 @@ The core validator performs several other diagnostics such as warning about unus
 
 The editor supports code fixes for several diagnostics, and has refactorings such as *Extract Expression*.
 
-![Code fix for misspelled property value](images/vscode-code-fix.png)
+![Code fix for misspelled property value](./images/vscode-code-fix.png)
 
 ### Schemas
 
@@ -65,7 +65,7 @@ In addition to the schema inferred from the items, metadata, properties and task
 
 Any targets file can provide a schema 'sidecar', which has the same name as the targets file except with the suffix `.buildschema.json`. The editor will load the sidecar schemas for any targets that it imports. This allows MSBuild targets to provide their own documentation.
 
-![Schema for MSBuild items](images/vscode-schema.png)
+![Schema for MSBuild items](./images/vscode-schema.png)
 
 The extension includes built-in schemas for `Microsoft.Common.targets`, `Microsoft.NET.Sdk`, and other common targets and MSBuild SDKs.
 
