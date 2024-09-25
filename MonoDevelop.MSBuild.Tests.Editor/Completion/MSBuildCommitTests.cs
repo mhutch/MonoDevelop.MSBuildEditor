@@ -20,15 +20,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 			return this.TestCommands (
 				before,
 				after,
-				new Action<IEditorCommandHandlerService>[] {
-					(s) => {
-						//HACK: CommitClosingTagAtEof fails non-deterministically on CI
-						// There is probably some race going on with slower machines not giving completion time to pop up.
-						// So slow the text entry down a bit to see if that helps.
-						System.Threading.Thread.Sleep (50);
-						s.Type (typeChars);
-					}
-				},
+				[ (s) => s.Type (typeChars) ],
 				filename: filename,
 				initialize: (tv) => {
 					tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
