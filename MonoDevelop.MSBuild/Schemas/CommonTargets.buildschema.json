@@ -98,7 +98,7 @@
           "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/package-references-in-project-files#suppressing-nuget-warnings"
         },
         "GeneratePathProperty": {
-          "description": "If enabled, causes an MSBuild property with the path to the root of the PackageReference to be created",
+          "description": "If enabled, causes an MSBuild property with the path to the root of the `PackageReference` to be created",
           "type": "bool",
           "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/package-references-in-project-files#generatepathproperty"
         }
