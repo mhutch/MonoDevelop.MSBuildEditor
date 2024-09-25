@@ -1,71 +1,93 @@
-# msbuild-editor README
+# MSBuild Editor
 
-This is the README for your extension "msbuild-editor". After writing up a brief description, we recommend including the following sections.
+MSBuild Editor is an open-source language service that provides enhanced support for editing MSBuild files in Visual Studio Code. It includes IntelliSense, Quick Info, validation, code fixes, and refactorings, all driven by a powerful and customizable schema-based type system.
+
+⚠️ **The editor is currently in preview. <br>
+📝 Please report bugs and feature requests in the [GitHub repo](https://github.com/mhutch/MonoDevelop.MSBuildEditor/issues).<br>
+🎉 Pull requests are also much appreciated!**
+
+We appreciate your feedback, and it will help guide how the experiment develops and whether the MSBuild Editor becomes an officially supported part of the .NET development experience.
+
+The extension is also available [for Visual Studio](https://marketplace.visualstudio.com/items?itemName=mhutch.MSBuildEditor).
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### IntelliSense
 
-For example if there is an image subfolder under your extension project workspace:
+MSBuild-specific IntelliSense helps you write your project and target files, with rich contextual completion for MSBuild elements, attributes and expressions.
 
-\!\[feature X\]\(images/feature-x.png\)
+![Property completion](images/vscode-nowarn-completion.png)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The completion for `PackageReference` attributes queries NuGet.org as you type, and provides completion for package names and package versions.
+
+![Package reference completion](images/vscode-packageref-completion.png)
+
+There's completion for MSBuild expressions, including condition comparisons, property functions and item functions. The editor also supports *Expand Selection* within MSBuild expressions.
+
+![Expression completion](images/vscode-expression-completion.png)
+
+![Condition completion](images/vscode-condition-completion.png)
+
+### Navigation
+
+You can use the *Go to Definition* command or *Ctrl-Click* to navigate to any import, SDK or filename. If an import has multiple valid ways it can be evaluated, you can navigate to any of them. When navigating to an SDK, you can navigate to any of the `.props` and `.targets` in it.
+
+The *Find References* command can accurately and precisely find all references to items, properties, metadata and tasks throughout your project and its imports, including in expressions.
+
+![Find References](images/vscode-find-references.png)
+
+### Quick Info
+
+Quick Info tooltips for items, properties, metadata and values allow you to see their descriptions and expected value types, with deep links into documentation. Tooltips for imports and SDKs show you the paths of the imported files.
+
+![Quick info](images/vscode-quick-info.png)
+
+### Validation and Analyzers
+
+The editor validates your document against the MSBuild language and any imported schemas, and shows these errors and warnings as you type.
+
+![Unknown value validation](images/vscode-validation.png)
+
+The core validator performs several other diagnostics such as warning about unused symbols, and there is a Roslyn-like analyzer mechanism, and examples of current built-in analyzers include:
+
+* Package references should only pivot on target framework
+* Use `<TargetFramework>` instead of `<TargetFrameworks>` when there is a single value, and vice versa
+
+### Code Fixes and Refactorings
+
+The editor supports code fixes for several diagnostics, and has refactorings such as *Extract Expression*.
+
+![Code fix for misspelled property value](images/vscode-code-fix.png)
+
+### Schemas
+
+In addition to the schema inferred from the items, metadata, properties and tasks used in a project's imports, the extension also defines a json-based MSBuild-specific schema format that can be used to provide documentation, type annotations, allowed values, and other information that is used to provide a richer editing and validation experience.
+
+Any targets file can provide a schema 'sidecar', which has the same name as the targets file except with the suffix `.buildschema.json`. The editor will load the sidecar schemas for any targets that it imports. This allows MSBuild targets to provide their own documentation.
+
+![Schema for MSBuild items](images/vscode-schema.png)
+
+The extension includes built-in schemas for `Microsoft.Common.targets`, `Microsoft.NET.Sdk`, and other common targets and MSBuild SDKs.
+
+### Imports
+
+The extension resolves your project's imports recursively, and scans all the found MSBuild files for items, properties, metadata, targets and tasks to be included in IntelliSense and *Find References*. It attempts to resolve imports as broadly as possible so that IntelliSense and navigation are not dependent on the current evaluated state of your project. It ignoring conditions on imports and attempts to evaluate them with multiple property values. It also has full support for SDKs that are resolved via SDK resolvers.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+If you have the `tintoy.msbuild-project-tools` extension, you must uninstall it. If you have the two extensions
+installed at the same time, their features will conflict.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `msbuild.server.trace`: Change the trace level. You may need to change this to gather more information to submit with a bug report.
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+There are several other settings prefixed with `msbuild.server` that may be useful when debugging the language server.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 2.9.x
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial previews of VS Code port

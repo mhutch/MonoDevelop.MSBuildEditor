@@ -67,7 +67,7 @@ static class MSBuildSpellChecker
 
 		foreach (var candidate in candidates) {
 			// ignore exact matches, they will have come from the inferred schema adding the incorrect value we are fixing
-			if (comparer.Compare (candidate, checker) == 0) {
+			if (comparer.Compare (candidate.Name, actualName) == 0) {
 				continue;
 			}
 			if (checker.AreSimilar (candidate.Name, out double similarityWeight)) {

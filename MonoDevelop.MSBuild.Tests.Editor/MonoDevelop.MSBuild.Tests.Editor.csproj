@@ -5,6 +5,12 @@
     <NUnitDisableSupportAssemblies>true</NUnitDisableSupportAssemblies>
   </PropertyGroup>
 
+  <!-- always build tests on net48, but only try to run tests on net48 when on windows -->
+  <PropertyGroup Condition="'$(TargetFramework)'=='net48' and !$([MSBuild]::IsOSPlatform('Windows'))">
+    <TestProject>False</TestProject>
+    <IsTestProject>False</IsTestProject>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\MonoDevelop.MSBuild.Tests\MonoDevelop.MSBuild.Tests.csproj" />
     <ProjectReference Include="..\MonoDevelop.MSBuild.Editor\MonoDevelop.MSBuild.Editor.csproj" />

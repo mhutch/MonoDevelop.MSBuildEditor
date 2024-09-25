@@ -39,7 +39,7 @@ static class CompletionRenderer
         using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var renderedBuilder);
 
         // If the client doesn't support EditRange, and the item doesn't define a TextEdit, we must add a computed one.
-        // If the client doesn't support resolving the TextEdit in the resovle handler, then we must do this upfront.
+        // If the client doesn't support resolving the TextEdit in the resolve handler, then we must do this upfront.
         bool includeEditRangeTextEdit = !renderSettings.SupportsEditRange && renderSettings.IncludeTextEdit;
 
         // could consider parallelizing this

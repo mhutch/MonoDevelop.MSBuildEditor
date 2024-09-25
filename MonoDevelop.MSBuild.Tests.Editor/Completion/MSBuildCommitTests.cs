@@ -20,7 +20,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 			return this.TestCommands (
 				before,
 				after,
-				new Action<IEditorCommandHandlerService>[] { (s) => s.Type (typeChars) },
+				[ (s) => s.Type (typeChars) ],
 				filename: filename,
 				initialize: (tv) => {
 					tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);

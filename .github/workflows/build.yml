@@ -45,15 +45,32 @@ jobs:
     - name: Test
       run: dotnet test --no-build -c ${{ matrix.config }}
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Install NBGV
+      uses: dotnet/nbgv@master
+      id: nbgv
+
+    - name: Install NPM dependencies
+      working-directory: msbuild-editor-vscode
+      run: npm install
+
+    - name: Pack VSCode Extension
+      working-directory: msbuild-editor-vscode
+      run: npx vsce package --no-git-tag-version --pre-release ${{ steps.nbgv.outputs.NpmPackageVersion }}
+
     - uses: actions/upload-artifact@v4
       if: startsWith(matrix.os, 'windows')
       with:
-        name: MSBuild Editor Extension Package (VSWin)
-        path: MonoDevelop.MSBuild.Editor.VisualStudio/bin/**/*.vsix
+        name: MSBuild Editor VSIX (Visual Studio) ${{ steps.nbgv.outputs.NuGetPackageVersion }}
+        path: artifacts/bin/MonoDevelop.MSBuild.Editor.VisualStudio/${{ matrix.config }}/MonoDevelop.MSBuild.Editor.VisualStudio.${{ steps.nbgv.outputs.Version }}.vsix
+        if-no-files-found: error
 
-#    - uses: actions/upload-artifact@v4
-#      if: startsWith(matrix.os, 'macos')
-#      with:
-#        name: MSBuild Editor Extension Package (VSMac)
-#        path: MonoDevelop.MSBuildEditor/bin/**/*.mpack
-#        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: MSBuild Editor VSIX (VS Code) ${{ steps.nbgv.outputs.NpmPackageVersion }}
+        path: msbuild-editor-vscode/msbuild-editor-${{ steps.nbgv.outputs.NpmPackageVersion }}.vsix
+        if-no-files-found: error
