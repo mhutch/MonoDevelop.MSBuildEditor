@@ -45,11 +45,22 @@ jobs:
     - name: Test
       run: dotnet test --no-build -c ${{ matrix.config }}
 
-    - uses: dotnet/nbgv@master
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Install NBGV
+      uses: dotnet/nbgv@master
       id: nbgv
 
+    - name: Install NPM dependencies
+      working-directory: msbuild-editor-vscode
+      run: npm install
+
     - name: Pack VSCode Extension
-      run: vsce package --no-git-tag-version --pre-release ${{ steps.nbgv.outputs.NpmPackageVersion }}
+      working-directory: msbuild-editor-vscode
+      run: npx vsce package --no-git-tag-version --pre-release ${{ steps.nbgv.outputs.NpmPackageVersion }}
 
     - uses: actions/upload-artifact@v4
       if: startsWith(matrix.os, 'windows')
