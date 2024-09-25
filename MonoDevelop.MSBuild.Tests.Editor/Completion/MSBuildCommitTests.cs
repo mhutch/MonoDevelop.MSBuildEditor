@@ -18,9 +18,9 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 	{
 		async Task TestTypeCommands (string filename, string before, string typeChars, string after)
 		{
-			CommandServiceExtensions.EnableDebugTrace = true;
-			MSBuildCompletionSource.EnableDebugTrace = true;
-			try {
+			//CommandServiceExtensions.EnableDebugTrace = true;
+			//MSBuildCompletionSource.EnableDebugTrace = true;
+			//try {
 				await this.TestCommands (
 					before,
 					after,
@@ -31,10 +31,10 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 						return Task.CompletedTask;
 					}
 				);
-			} finally {
-				CommandServiceExtensions.EnableDebugTrace = false;
-				MSBuildCompletionSource.EnableDebugTrace = false;
-			}
+			//} finally {
+			//	CommandServiceExtensions.EnableDebugTrace = false;
+			//	MSBuildCompletionSource.EnableDebugTrace = false;
+			//}
 		}
 
 		[Test]
