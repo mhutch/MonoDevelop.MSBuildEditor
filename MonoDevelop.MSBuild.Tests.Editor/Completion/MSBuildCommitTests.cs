@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using MonoDevelop.MSBuild.Editor.Completion;
 
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 
@@ -15,18 +16,25 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 	[TestFixture]
 	public class MSBuildCommitTests : MSBuildEditorTest
 	{
-		Task TestTypeCommands (string filename, string before, string typeChars, string after)
+		async Task TestTypeCommands (string filename, string before, string typeChars, string after)
 		{
-			return this.TestCommands (
-				before,
-				after,
-				[ (s) => s.Type (typeChars) ],
-				filename: filename,
-				initialize: (tv) => {
-					tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
-					return Task.CompletedTask;
-				}
-			);
+			CommandServiceExtensions.EnableDebugTrace = true;
+			MSBuildCompletionSource.EnableDebugTrace = true;
+			try {
+				await this.TestCommands (
+					before,
+					after,
+					[ (s) => s.Type (typeChars) ],
+					filename: filename,
+					initialize: (tv) => {
+						tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
+						return Task.CompletedTask;
+					}
+				);
+			} finally {
+				CommandServiceExtensions.EnableDebugTrace = false;
+				MSBuildCompletionSource.EnableDebugTrace = false;
+			}
 		}
 
 		[Test]

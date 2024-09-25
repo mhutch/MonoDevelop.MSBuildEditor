@@ -56,10 +56,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 
 		protected override Task<IList<CompletionItem>> GetElementCompletionsAsync (MSBuildCompletionContext context, bool includeBracket, CancellationToken token)
 		{
+			if (EnableDebugTrace) {
+				LogTrace ($"Entered GetElementCompletionsAsync");
+			}
 			var doc = context.Document;
 
 			var nodePath = context.NodePath;
 			if (!CompletionHelpers.TryGetElementSyntaxForElementCompletion(nodePath, out MSBuildElementSyntax languageElement, out string elementName)) {
+				if (EnableDebugTrace) {
+					LogTrace ($"Exited GetElementCompletionsAsync with no syntax");
+				}
 				return TaskCompleted (null);
 			}
 
@@ -80,6 +86,9 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				items.Add (c);
 			}
 
+			if (EnableDebugTrace) {
+				LogTrace ($"Exited GetElementCompletionsAsync with {items.Count} items");
+			}
 			return TaskCompleted (items);
 		}
 
