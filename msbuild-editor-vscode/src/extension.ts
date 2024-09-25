@@ -28,7 +28,7 @@ export function activate(context: ExtensionContext) {
 			}
 		},
 		serverPathEnvVar: 'MSBUILD_LANGUAGE_SERVER_PATH',
-		bundledServerPath: path.join(context.extensionPath, 'server', 'MSBuildLanguageServer.dll'),
+		bundledServerPath: path.join(context.extensionPath, 'server', 'MSBuildLanguageServer'),
 		commandIdPrefix: 'msbuild'
 	};
 

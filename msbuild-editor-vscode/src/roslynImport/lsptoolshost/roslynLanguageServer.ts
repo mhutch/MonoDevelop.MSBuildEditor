@@ -517,8 +517,12 @@ function getServerPath(platformInfo: PlatformInformation, serverPathEnvVar: stri
 }
 
 function getInstalledServerPath(platformInfo: PlatformInformation, bundledServerPath : string): string {
-    const clientRoot = __dirname;
-    const serverFilePath = path.join(clientRoot, bundledServerPath);
+    let serverFilePath = bundledServerPath;
+
+    if (!path.isAbsolute(serverFilePath)) {
+        const clientRoot = __dirname;
+        serverFilePath = path.join(clientRoot, bundledServerPath);
+    }
 
     let extension = '';
     if (platformInfo.isWindows()) {
