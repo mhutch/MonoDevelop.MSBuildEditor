@@ -17,7 +17,7 @@ namespace MonoDevelop.MSBuild.Analyzers
 		readonly MSBuildDiagnosticDescriptor AppendNoWarn = new (
 			DiagnosticId,
 			"Append NoWarn values to existing value",
-			"When settings the `NoWarn` property, you should append the additional values to the existing value of the property. " +
+			"When setting the `NoWarn` property, you should append the additional values to the existing value of the property. " +
 			"Otherwise, you may accidentally remove existing values.",
 			MSBuildDiagnosticSeverity.Warning
 		);
