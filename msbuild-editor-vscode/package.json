@@ -8,7 +8,7 @@
   "author": {
     "name": "Mikayla Hutchinson"
   },
-  "icon": "images/icon.png",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/mhutch/MonoDevelop.MSBuildEditor.git"
@@ -39,7 +39,9 @@
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
     "publish-server": "dotnet publish ../MSBuildLanguageServer/MSBuildLanguageServer.csproj --configuration Debug --output ./server",
-    "copy-vsix-assets": "cp ../LICENSE . && cp ../art/icon-128.png icon.png"
+    "copy-vsix-assets": "cp ../LICENSE . && cp ../art/icon-128.png icon.png",
+    "vsix-pack": "pwsh -c \"vsce package --baseImagesUrl https://github.com/mhutch/MonoDevelop.MSBuildEditor/raw/HEAD/msbuild-editor-vscode --no-update-package-json --no-git-tag-version --pre-release $(nbgv get-version -v NpmPackageVersion)\"",
+    "vsix-install": "pwsh -c \"npm run vsix-pack && code --install-extension msbuild-editor-$(nbgv get-version -v NpmPackageVersion).vsix\""
   },
   "dependencies": {
     "@vscode/extension-telemetry": "^0.9.0",

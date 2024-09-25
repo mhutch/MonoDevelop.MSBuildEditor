@@ -60,7 +60,7 @@ jobs:
 
     - name: Pack VSCode Extension
       working-directory: msbuild-editor-vscode
-      run: npx vsce package --no-git-tag-version --pre-release ${{ steps.nbgv.outputs.NpmPackageVersion }}
+      run: npm run vsix-pack
 
     - uses: actions/upload-artifact@v4
       if: startsWith(matrix.os, 'windows')

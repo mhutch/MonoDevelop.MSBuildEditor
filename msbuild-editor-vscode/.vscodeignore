@@ -15,4 +15,4 @@ src/**
 # are correct when the README.md is viewed in the repo. however, they
 # are not needed in the vsix as README.md in the generated package
 # has the paths rewritten to https URLs to the GitHub repo
-/images/**
+images/**
