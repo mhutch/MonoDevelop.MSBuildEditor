@@ -41,16 +41,8 @@ static class LspTextExtensions
     public static ITextSource GetTextSource(this SourceText text)
         => new SourceTextTextSource(text);
 
-    // FIXME this is probably inefficient, use it for now but hopefully we can eliminate it
     public static string GetText(this SourceText text, int start, int length)
-    {
-        var sb = new StringBuilder(length);
-        for(; start < start + length; start++)
-        {
-            sb.Append(text[start]);
-        }
-        return sb.ToString();
-    }
+        => text.ToString(new TextSpan(start, length));
 
     class SourceTextTextSource(SourceText text) : ITextSource
     {

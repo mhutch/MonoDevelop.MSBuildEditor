@@ -27,11 +27,14 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
             item.Documentation = CreateMarkdown(markdownDocumentation);
         }
 
+        // NOTE: VS Code does not currently support lazy resolve of TextEdit, so do not do expensive work here
+        // For anything advanced, consider additionalTextEdits, which can be resolved lazily.
         if (settings.IncludeTextEdit)
         {
             ComputeCommit(item, settings, ctx);
         }
 
+        // NOTE: VS Code does not currently support lazy resolve of IncludeCommitCharacters
         if (settings.IncludeCommitCharacters)
         {
             item.CommitCharacters = GetCommitChars(commitKind);
@@ -91,6 +94,7 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
     {
         int offset = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(range.End));
         int max = Math.Min(offset + 5000, sourceText.Length - match.Length - 1);
+
         while(XmlChar.IsWhitespace(sourceText[offset++]))
         {
             if (offset >= max)
@@ -98,7 +102,14 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
                 return false;
             }
         }
-        return offset + match.Length < sourceText.Length && string.Equals(sourceText.GetText(offset, match.Length), match, StringComparison.Ordinal);
+
+        if (offset + match.Length >= sourceText.Length)
+        {
+            return false;
+        }
+
+        var possibleMatch = sourceText.GetText(offset, match.Length);
+        return string.Equals(possibleMatch, match, StringComparison.Ordinal);
     }
 
     void ComputeCommit(CompletionItem item, CompletionRenderSettings settings, CompletionRenderContext ctx)
