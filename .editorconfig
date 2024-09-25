@@ -45,6 +45,10 @@ indent_size = 4
 indent_style = tab
 indent_size = 2
 
+[.github/**.yml]
+indent_style = space
+indent_size = 2
+
 # Dotnet code style settings:
 [*.{cs,vb}]
 
