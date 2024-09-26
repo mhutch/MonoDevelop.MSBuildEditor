@@ -1,10 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+using System.Threading;
 using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 
@@ -15,18 +13,26 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 	[TestFixture]
 	public class MSBuildCommitTests : MSBuildEditorTest
 	{
-		Task TestTypeCommands (string filename, string before, string typeChars, string after)
+		async Task TestTypeCommands (string filename, string before, string typeChars, string after)
 		{
-			return this.TestCommands (
-				before,
-				after,
-				[ (s) => s.Type (typeChars) ],
-				filename: filename,
-				initialize: (tv) => {
-					tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
-					return Task.CompletedTask;
-				}
-			);
+			//CommandServiceExtensions.EnableDebugTrace = true;
+			//MSBuildCompletionSource.EnableDebugTrace = true;
+			//try {
+				await this.TestCommands (
+					before,
+					after,
+					EditorAction.Type (typeChars),
+					filename: filename,
+					initialize: async (tv) => {
+						tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
+						// ensure we have an initial parse before triggering completion
+						await Catalog.MSBuildParserProvider.GetParser (tv.TextBuffer).GetOrProcessAsync (tv.TextBuffer.CurrentSnapshot, CancellationToken.None);
+					}
+				);
+			//} finally {
+			//	CommandServiceExtensions.EnableDebugTrace = false;
+			//	MSBuildCompletionSource.EnableDebugTrace = false;
+			//}
 		}
 
 		[Test]

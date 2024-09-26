@@ -224,7 +224,13 @@ namespace MonoDevelop.MSBuild.Tests.Editor
 			// the refactoring may have left multiple selections sp the user can e.g. type a new name for an extracted property
 			await test.Catalog.JoinableTaskContext.Factory.SwitchToMainThreadAsync (default);
 			var commandService = test.Catalog.CommandServiceFactory.GetService (ctx.TextView);
-			commandService.Type (typeText);
+
+			foreach(var editorAction in EditorAction.Type (typeText)) {
+				editorAction (commandService);
+				// yield to let things catch up
+				// and so we don't block the UI thread between the commands
+				await Task.Delay (20);
+			}
 
 			Assert.That (
 				ctx.TextBuffer.CurrentSnapshot.GetText (),
