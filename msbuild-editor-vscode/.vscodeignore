@@ -5,10 +5,14 @@ node_modules/**
 src/**
 .gitignore
 .yarnrc
-webpack.config.js
-vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
 **/.vscode-test.*
+
+# the images for the README.md are in this directory so the paths
+# are correct when the README.md is viewed in the repo. however, they
+# are not needed in the vsix as README.md in the generated package
+# has the paths rewritten to https URLs to the GitHub repo
+images/**

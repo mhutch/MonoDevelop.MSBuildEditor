@@ -12,6 +12,8 @@ node_modules
 .vscode-test
 dist
 
+# these are copied during vsix packaging
 /msbuild-editor-vscode/LICENSE
 /msbuild-editor-vscode/server
 /msbuild-editor-vscode/*.vsix
+/msbuild-editor-vscode/icon.png
