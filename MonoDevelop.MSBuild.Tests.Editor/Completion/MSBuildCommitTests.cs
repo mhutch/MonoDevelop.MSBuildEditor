@@ -1,11 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.Text.Editor.Commanding;
-using MonoDevelop.MSBuild.Editor.Completion;
 
 using MonoDevelop.Xml.Editor.Tests.Extensions;
 
@@ -24,7 +20,7 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 				await this.TestCommands (
 					before,
 					after,
-					[ (s) => s.Type (typeChars) ],
+					EditorAction.Type (typeChars),
 					filename: filename,
 					initialize: (tv) => {
 						tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
