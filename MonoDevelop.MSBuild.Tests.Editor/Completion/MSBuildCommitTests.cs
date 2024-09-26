@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 using MonoDevelop.Xml.Editor.Tests.Extensions;
@@ -22,9 +23,10 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 					after,
 					EditorAction.Type (typeChars),
 					filename: filename,
-					initialize: (tv) => {
+					initialize: async (tv) => {
 						tv.Options.SetOptionValue ("BraceCompletion/Enabled", true);
-						return Task.CompletedTask;
+						// ensure we have an initial parse before triggering completion
+						await Catalog.MSBuildParserProvider.GetParser (tv.TextBuffer).GetOrProcessAsync (tv.TextBuffer.CurrentSnapshot, CancellationToken.None);
 					}
 				);
 			//} finally {
