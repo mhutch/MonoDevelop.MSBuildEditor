@@ -6,6 +6,7 @@ using System.Text;
 
 namespace MonoDevelop.MSBuild.Language
 {
+	// TODO: move this to MonoDevelop.Xml
 	class XmlEscaping
 	{
 		static readonly Dictionary<string, char> entities = new Dictionary<string, char> {
