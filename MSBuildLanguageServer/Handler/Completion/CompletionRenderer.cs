@@ -3,6 +3,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 using MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 
@@ -10,7 +11,6 @@ using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 using CompletionResolveData = Microsoft.CodeAnalysis.LanguageServer.Handler.Completion.CompletionResolveData;
-using Microsoft.CodeAnalysis.Text;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
@@ -31,8 +31,11 @@ static class CompletionRenderer
 
         var completionListCache = context.GetRequiredService<CompletionListCache>();
 
+        var optionService = context.GetRequiredService<LspOptionsService>();
+        var options = optionService.GetDocumentOptions(textDocument);
+
         var rawItems = new List<ILspCompletionItem>();
-        var renderContext = new CompletionRenderContext(editRange, sourceText);
+        var renderContext = new CompletionRenderContext(editRange, sourceText, options);
         var resultId = completionListCache.UpdateCache(new CompletionListCacheEntry(rawItems, renderContext));
         var resolveData = new CompletionResolveData(resultId, textDocument);
 

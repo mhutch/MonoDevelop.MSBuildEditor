@@ -62,8 +62,8 @@ sealed class CodeActionHandler(MSBuildCodeActionService codeActionService)
         var rawRequestedKinds = request.Context.Only ?? literalSupport.CodeActionKind.ValueSet;
         ISet<MSBuildCodeActionKind> requestedKinds = rawRequestedKinds.GetMSBuildCodeActionKinds();
 
-        // TODO: get options from client
-        var options = new EmptyOptionsReader();
+        var optionService = context.GetRequiredService<LspOptionsService>();
+        var options = optionService.GetDocumentOptions(document.Id);
 
         var fixes = await codeActionService.GetCodeActions(sourceText, msbuildDoc, span, requestedKinds, options, cancellationToken);
 
@@ -152,14 +152,5 @@ sealed class CodeActionHandler(MSBuildCodeActionService codeActionService)
         }
 
         return results;
-    }
-}
-
-class EmptyOptionsReader : IOptionsReader
-{
-    public bool TryGetOption<T>(Option<T> option, out T? value)
-    {
-        value = default;
-        return false;
     }
 }

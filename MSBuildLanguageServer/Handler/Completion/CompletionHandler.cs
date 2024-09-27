@@ -114,8 +114,8 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             }
         }
 
-        // TODO: get this from the host
-        var options = new EmptyOptionsReader();
+        var optionService = context.GetRequiredService<LspOptionsService>();
+        var options = optionService.GetDocumentOptions(document.Id);
 
         var functionTypeProvider = context.GetRequiredService<FunctionTypeProviderService>().FunctionTypeProvider;
 
@@ -195,7 +195,7 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
         MSBuildRootDocument doc, MSBuildCompletionTrigger trigger,
         ILogger logger, SourceText sourceText,
         IFunctionTypeProvider functionTypeProvider, IMSBuildFileSystem fileSystem,
-        EmptyOptionsReader options, CancellationToken cancellationToken)
+        IOptionsReader options, CancellationToken cancellationToken)
     {
         var rr = trigger.ResolveResult;
 

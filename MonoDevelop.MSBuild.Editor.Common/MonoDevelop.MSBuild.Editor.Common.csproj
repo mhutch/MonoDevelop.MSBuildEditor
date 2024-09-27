@@ -36,6 +36,7 @@
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NullableAttributes.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/RequiredMemberAttribute.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/EditorConfig/Parsing/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
