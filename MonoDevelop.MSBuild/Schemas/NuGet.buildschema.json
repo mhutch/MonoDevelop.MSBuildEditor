@@ -130,6 +130,64 @@
       "type": "bool",
       "defaultValue": "false",
       "helpUrl": "https://learn.microsoft.com/nuget/reference/msbuild-targets#restoring-with-msbuild-static-graph-evaluation"
+    },
+    "ManagePackageVersionsCentrally": {
+      "description": "Enables central package management for NuGet packages. This allows defining the versions of NuGet packages in a central `Directory.Packages.props` file instead of in the individual project files.",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/nuget/consume-packages/central-package-management"
+    },
+    "CentralPackageTransitivePinningEnabled": {
+      "description": "Enables transitive pinning for centrally managed packages. This allows controlling the versions of transitive dependencies by implicitly promoting them to top-level dependencies when necessary. ",
+      "type": "bool",
+      "defaultValue": "false",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#transitive-pinning"
+    },
+    "CentralPackageVersionOverrideEnabled": {
+      "description": "Controls whether projects can use the `VersionOverride` property to override the version of a `PackageReference` when central package management is enabled.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#overriding-package-versions"
+    },
+    "NuGetAudit": {
+      "description": "Enables the NuGet restore task to audit packages for known security vulnerabilities.",
+      "type": "bool",
+      "defaultValue": "true",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#configuring-nuget-audit"
+    },
+    "NuGetAuditMode": {
+      "description": "Specifies the mode for the NuGet security audit. The default is `all` in .NET 9.0.100 and later, and `direct` in earlier versions.",
+      "type": {
+        "values": {
+          "all": "Audit all dependencies for security vulnerabilities.",
+          "direct": "Audit direct dependencies only for security vulnerabilities."
+        }
+      },
+      "defaultValue": "all",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#configuring-nuget-audit"
+    },
+    "NuGetAuditLevel": {
+      "description": "The minimum severity level for the NuGet security audit to report.",
+      "type": {
+        "values": {
+          "low": "Report all security vulnerabilities.",
+          "moderate": "Report medium, high and critical severity security vulnerabilities only.",
+          "high": "Report high and critical severity security vulnerabilities only.",
+          "critical": "Report critical severity security vulnerabilities only."
+        }
+      },
+      "defaultValue": "low",
+      "helpUrl": "https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#configuring-nuget-audit"
     }
-  }
+  },
+  "metadata": [
+    {
+      "$appliesTo": [ "PackageReference" ],
+      "VersionOverride": {
+        "description": "When central package management is enabled, this property allows overriding the version of a `PackageReference`, as long as `CentralPackageVersionOverrideEnabled` is not `false`.",
+        "type": "nuget-version",
+        "helpUrl": "https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management#overriding-package-versions"
+      }
+    }
+  ]
 }
