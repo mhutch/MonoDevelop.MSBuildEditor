@@ -30,8 +30,6 @@
 #endif
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 
 //imported from MonoDevelop.Projects.MSBuild.MSBuildProjectService
@@ -39,41 +37,8 @@ namespace MonoDevelop.MSBuild.Util
 {
 	static class MSBuildEscaping
 	{
-		static readonly char[] specialCharacters = { '%', '$', '@', '(', ')', '\'', ';', '?' };
-		static readonly Dictionary<char, string> specialCharactersEscaped;
-		static readonly Dictionary<string, char> specialCharactersUnescaped;
-
-		static MSBuildEscaping ()
-		{
-			specialCharactersEscaped = new Dictionary<char, string> (specialCharacters.Length);
-			specialCharactersUnescaped = new Dictionary<string, char> (specialCharacters.Length);
-			for (int i = 0; i < specialCharacters.Length; ++i) {
-				var escaped = ((int)specialCharacters[i]).ToString ("X");
-				specialCharactersEscaped[specialCharacters[i]] = '%' + escaped;
-				specialCharactersUnescaped[escaped] = specialCharacters[i];
-			}
-		}
-
 		public static string EscapeString (string str)
-		{
-			int i = str.IndexOfAny (specialCharacters);
-			if (i != -1) {
-				var sb = new System.Text.StringBuilder ();
-				int start = 0;
-				while (i != -1) {
-					sb.Append (str, start, i - start);
-					sb.Append (specialCharactersEscaped[str[i]]);
-					if (i >= str.Length)
-						break;
-					start = i + 1;
-					i = str.IndexOfAny (specialCharacters, start);
-				}
-				if (start < str.Length)
-					sb.Append (str, start, str.Length - start);
-				return sb.ToString ();
-			}
-			return str;
-		}
+			=> Microsoft.Build.Shared.EscapingUtilities.Escape (str);
 
 		public static string UnescapePath (string path)
 		{
@@ -83,32 +48,11 @@ namespace MonoDevelop.MSBuild.Util
 			if (!Platform.IsWindows)
 				path = path.Replace ("\\", "/");
 
-			return UnscapeString (path);
+			return UnescapeString (path);
 		}
 
-		public static string UnscapeString (string str)
-		{
-			int i = str.IndexOf ('%');
-			if (i != -1) {
-				var sb = new System.Text.StringBuilder ();
-				int start = 0;
-				while (i != -1) {
-					var sub = str.Substring (i + 1, 2);
-					if (specialCharactersUnescaped.TryGetValue (sub, out char ch)) {
-						sb.Append (str, start, i - start);
-						sb.Append (ch);
-					} else if (int.TryParse (sub, NumberStyles.HexNumber, null, out int c)) {
-						sb.Append (str, start, i - start);
-						sb.Append ((char)c);
-					}
-					start = i + 3;
-					i = str.IndexOf ('%', start);
-				}
-				sb.Append (str, start, str.Length - start);
-				return sb.ToString ();
-			}
-			return str;
-		}
+		public static string UnescapeString (string str)
+			=> Microsoft.Build.Shared.EscapingUtilities.UnescapeAll (str);
 
 		public static string ToMSBuildPath (string absPath, string? baseDirectory = null, bool normalize = true)
 		{

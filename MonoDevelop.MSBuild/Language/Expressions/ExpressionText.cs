@@ -10,10 +10,15 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 	[DebuggerDisplay ("{Value} (IsPure: {IsPure})")]
 	public class ExpressionText : ExpressionNode
 	{
+		/// <summary>
+		/// The raw value of this text, including any whitespace and XML entities and MSBuild escape sequences.
+		/// </summary>
+		// TODO: audit access to this and make sure they should not be calling GetUnescapedValue instead
 		public string Value { get; }
 
 		/// <summary>
-		/// Gets the unescaped value of this text, optionally trimming whitespace.
+		/// Gets the unescaped value of this text, optionally trimming whitespace. This unescapes
+		/// both XML entities and MSBuild %XX escape sequences.
 		/// </summary>
 		/// <param name="trim">Whether to trim leading and trailing whitespace.</param>
 		/// <param name="trimmedOffset">The offset of the text, taking optional trimming into account.</param>
@@ -41,7 +46,11 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				trimmedOffset = start + Offset;
 			}
 
-			return XmlEscaping.UnescapeEntities (value);
+			// TODO: technically there could be escaped whitespace, should we trim it too?
+			var xmlUnescaped = XmlEscaping.UnescapeEntities (value);
+			var msbuildUnescaped = Util.MSBuildEscaping.UnescapeString (xmlUnescaped);
+
+			return msbuildUnescaped;
 		}
 
 		/// <summary>
@@ -49,9 +58,10 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 		/// </summary>
 		public bool IsPure { get; }
 
-		public ExpressionText (int offset, string value, bool isPure) : base (offset, value.Length)
+		// TODO: add ctor that takes unescaped value and audit callers
+		public ExpressionText (int offset, string rawValue, bool isPure) : base (offset, rawValue.Length)
 		{
-			Value = value;
+			Value = rawValue;
 			IsPure = isPure;
 		}
 

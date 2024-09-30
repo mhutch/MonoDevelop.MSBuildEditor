@@ -511,8 +511,15 @@ namespace MonoDevelop.MSBuild.Language
 		public const string InvalidClrType_Id = nameof (InvalidClrType);
 		public static readonly MSBuildDiagnosticDescriptor InvalidClrType = new (
 			InvalidClrType_Id,
-			"Invalid qualified .NET type name",
+			"Invalid .NET type name",
 			"The value `{0}` is not a valid qualified .NET type name string",
+			MSBuildDiagnosticSeverity.Error);
+
+		public const string InvalidCSharpType_Id = nameof (InvalidCSharpType);
+		public static readonly MSBuildDiagnosticDescriptor InvalidCSharpType = new (
+			InvalidCSharpType_Id,
+			"Invalid C# type name",
+			"The value `{0}` is not a valid qualified C# type name string",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string InvalidClrTypeName_Id = nameof (InvalidClrTypeName);
