@@ -103,9 +103,34 @@ namespace MonoDevelop.MSBuild.Language.Typesystem
 		NuGetVersion,
 
 		// .NET namespace and type names
+
+		/// <summary>
+		/// A .NET namespace name, in language-agnostic form.
+		/// </summary>
 		ClrNamespace,
+
+		/// <summary>
+		/// A .NET namespace or qualified type name, in language-agnostic form i.e. C# generic syntax is not allowed,
+		/// but CLR generic syntax <c>A`1[B,C]</c> is allowed.
+		/// </summary>
+		/// <remarks>
+		/// If you need to support C# generic syntax, use <see cref="CSharpType"/> instead.
+		/// </remarks>
 		ClrType,
+
+		/// <summary>
+		/// A .NET unqualified type name. May not include generics of any form. This is typically used for the name of
+		/// a type to be generated at build time.
+		/// </summary>
 		ClrTypeName,
+
+		/// <summary>
+		/// C# namespace or qualified type name. May include generics in C# format e.g. <c>MyNamespace.MyType&lt;int></c>.
+		/// </summary>
+		/// <remarks>
+		/// If you need .NET language-agnostic format, use <see cref="ClrType"/> instead.
+		/// </remarks>
+		CSharpType,
 
 		/// <summary>
 		/// Base type for warning codes. Tools should use a derived custom type to define their warning codes.

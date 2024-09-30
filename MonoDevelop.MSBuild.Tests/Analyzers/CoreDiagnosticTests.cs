@@ -656,5 +656,33 @@ namespace MonoDevelop.MSBuild.Tests.Analyzers
 				ignoreDiagnostics: [CoreDiagnostics.UnwrittenProperty]
 			);
 		}
+
+		[Test]
+		public void InvalidCSharpType ()
+		{
+			var source = TextWithMarkers.Parse (@"<Project>
+<PropertyGroup>
+	<SomeType>|Foo-Bar|</SomeType>
+	<SomeType>System.Collections.Generic.Dictionary%3CMicrosoft.NET.Sdk.WorkloadManifestReader.WorkloadId, Microsoft.NET.Sdk.WorkloadManifestReader.WorkloadDefinition%3E</SomeType>
+</PropertyGroup>
+</Project>", '|');
+
+			var schema = new MSBuildSchema {
+				new PropertyInfo ("SomeType", "", MSBuildValueKind.CSharpType)
+			};
+
+			var spans = source.GetMarkedSpans ('|');
+
+			var expected = new MSBuildDiagnostic (
+				CoreDiagnostics.InvalidCSharpType,
+				spans[0],
+				messageArgs: [ "Foo-Bar" ]
+			);
+
+			VerifyDiagnostics (source.Text, out _,
+				includeCoreDiagnostics: true,
+				expectedDiagnostics: [ expected ],
+				schema: schema);
+		}
 	}
 }

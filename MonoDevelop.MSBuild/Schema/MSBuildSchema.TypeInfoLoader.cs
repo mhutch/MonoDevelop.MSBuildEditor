@@ -146,6 +146,7 @@ partial class MSBuildSchema
 		{ "clr-namespace", MSBuildValueKind.ClrNamespace },
 		{ "clr-type", MSBuildValueKind.ClrType },
 		{ "clr-type-name", MSBuildValueKind.ClrTypeName },
-		{ "warning-code", MSBuildValueKind.WarningCode }
+		{ "csharp-type", MSBuildValueKind.CSharpType },
+		{ "warning-code", MSBuildValueKind.WarningCode },
 	};
 }

@@ -77,8 +77,8 @@
   "items": {
     "Using": {
       "description": "A C# global using to add to the project.",
-      "includeDescription": "The namespace or type identifier to add, e.g. Microsoft.AspNetCore",
-      "type": "clr-namespace",
+      "includeDescription": "The namespace or type identifier to add, e.g. `Microsoft.AspNetCore`",
+      "type": "csharp-type",
       "metadata": {
         "Alias": {
           "description": "Optional alias for the namespace or type.",

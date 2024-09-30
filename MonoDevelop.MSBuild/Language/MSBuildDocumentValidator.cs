@@ -857,20 +857,26 @@ namespace MonoDevelop.MSBuild.Language
 					break;
 				}
 			case MSBuildValueKind.ClrNamespace:
-				if (!IsValidTypeOrNamespace (value, out _)) {
+				if (!TypeNameValidation.IsValidClrNamespace (value)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidClrNamespace, value);
 				}
 				break;
 
 			case MSBuildValueKind.ClrType:
-				if (!IsValidTypeOrNamespace (value, out _)) {
+				if (!TypeNameValidation.IsValidClrTypeOrNamespace (value, out _, out _)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidClrType, value);
 				}
 				break;
 
 			case MSBuildValueKind.ClrTypeName:
-				if (!(IsValidTypeOrNamespace (value, out int componentCount) && componentCount == 1)) {
+				if (!TypeNameValidation.IsValidClrTypeName (value)) {
 					AddErrorWithArgs (CoreDiagnostics.InvalidClrTypeName, value);
+				}
+				break;
+
+			case MSBuildValueKind.CSharpType:
+				if (!TypeNameValidation.IsValidCSharpTypeOrNamespace (value)) {
+					AddErrorWithArgs (CoreDiagnostics.InvalidCSharpType, value);
 				}
 				break;
 			}
@@ -888,18 +894,6 @@ namespace MonoDevelop.MSBuild.Language
 						.Add (DiagnosticProperty.MisspelledValueExpectedType, valueSymbol),
 					args
 				);
-			}
-
-			static bool IsValidTypeOrNamespace (string value, out int componentCount)
-			{
-				string[] components = value.Split ('.');
-				componentCount = components.Length;
-				foreach (var component in components) {
-					if (!System.CodeDom.Compiler.CodeGenerator.IsValidLanguageIndependentIdentifier (component)) {
-						return false;
-					}
-				}
-				return true;
 			}
 		}
 

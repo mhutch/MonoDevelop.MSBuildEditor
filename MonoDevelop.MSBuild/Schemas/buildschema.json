@@ -458,15 +458,19 @@
         },
         {
           "const": "clr-namespace",
-          "description": "A .NET namespace"
+          "description": "A .NET namespace name, in language-agnostic form."
         },
         {
           "const": "clr-type",
-          "description": "A fully qualified .NET type name"
+          "description": "A .NET namespace or qualified type name, in language-agnostic form i.e. C# generic syntax is not allowed, but CLR generic syntax ``A`1[B,C]`` is allowed. If you need to support C# generic syntax, use `csharp-type` instead."
         },
         {
           "const": "clr-type-name",
-          "description": "An unqualified .NET type name"
+          "description": "A .NET unqualified type name. May not include generics of any form. This is typically used for the name of a type to be generated at build time."
+        },
+        {
+          "const": "csharp-type",
+          "description": "C# namespace or qualified type name. May include generics in C# format e.g. `MyNamespace.MyType<int>`. If you need .NET language-agnostic format, use `clr-type` instead."
         },
         {
           "const": "warning-code",
