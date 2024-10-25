@@ -609,50 +609,62 @@ namespace MonoDevelop.MSBuild.Language
 		public const string ItemMustHaveInclude_Id = nameof(ItemMustHaveInclude);
 		public static readonly MSBuildDiagnosticDescriptor ItemMustHaveInclude = new (
 			ItemMustHaveInclude_Id,
-			"Item has no Include, Update or Remove attribute",
-			"Items outside targets must have Include, Update or Remove attribute",
+			"Item has no `Include`, `Update` or `Remove` attribute",
+			"Items outside targets must have one of the `Include`, `Update` or `Remove` attributes",
 			MSBuildDiagnosticSeverity.Error);
 
 		public const string UnwrittenItem_Id = nameof(UnwrittenItem);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenItem = new (
 			UnwrittenItem_Id,
 			"Possible unused or misspelled item",
-			"The item `{0}` does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The referenced item `{0}` does not have a value assigned in this file or in any imported targets, and is not defined in any loaded schema. " +
+			"If the item is expected to be assigned directly via a host such a Visual Studio, it should be added to the appropriate schema. " +
+			"Otherwise, it may be an incorrect or misspelled item name.",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnwrittenProperty_Id = nameof(UnwrittenProperty);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenProperty = new (
 			UnwrittenProperty_Id,
 			"Possible unused or misspelled property",
-			"The property `{0}` does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The referenced property `{0}` does not have a value assigned in this file or in any imported targets, and is not defined in any loaded schema. "+
+			"If the property is expected to be assigned via a CLI argument, environment variable, cross-project target call, or a host such a Visual Studio, it should be added to the appropriate schema. " +
+			"Otherwise, it may be an incorrect or misspelled property name.",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnwrittenMetadata_Id = nameof(UnwrittenMetadata);
 		public static readonly MSBuildDiagnosticDescriptor UnwrittenMetadata = new (
 			UnwrittenMetadata_Id,
 			"Possible unused or misspelled metadata",
-			"The metadata `{0}.{1}` does not have a value assigned and is not referenced in any imported targets or schemas",
+			"The referenced metadata `{0}.{1}` does not have a value assigned in this file or in any imported targets, and is not defined in any loaded schema. " +
+			"If the metadata value is expected to originate from a compiled task or a cross-project target call, it should be added to the appropriate schema. " +
+			"Otherwise, it may be an incorrect or misspelled metadata name.",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadItem_Id = nameof(UnreadItem);
 		public static readonly MSBuildDiagnosticDescriptor UnreadItem = new (
 			UnreadItem_Id,
 			"Possible unused or misspelled item",
-			"The item `{0}` is not used in this file and is not referenced in any imported targets or schemas",
+			"The assigned value for the item `{0}` is not used in this file or in any imported targets, and the item is not defined in any loaded schemas. " +
+			"If the item is expected to be read directly by a host such as Visual Studio, it should be added to the appropriate schema. " +
+			"Otherwise, it may be a redundant assignment or a misspelled item name. ",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadProperty_Id = nameof(UnreadProperty);
 		public static readonly MSBuildDiagnosticDescriptor UnreadProperty = new (
 			UnreadProperty_Id,
 			"Possible unused or misspelled property",
-			"The property `{0}` is not used in this file and is not referenced in any imported targets or schemas",
+			"The assigned value for the property `{0}` is not used in this file or in any imported targets, and the property is not defined in any loaded schema. " +
+			"If the property is expected to be read directly by a host such as Visual Studio, it should be added to the appropriate schema. " +
+			"Otherwise, it may be a redundant assignment or a misspelled property name. ",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string UnreadMetadata_Id = nameof(UnreadMetadata);
 		public static readonly MSBuildDiagnosticDescriptor UnreadMetadata = new (
 			UnreadMetadata_Id,
 			"Possible unused or misspelled metadata",
-			"The metadata `{0}.{1}` is not used in this file and is not referenced in any imported targets or schemas",
+			"The assigned value for the metadata `{0}.{1}` is not used in this file or in any imported targets, and the metadata is not defined in any loaded schema. " +
+			"If the metadata is expected to be read within a task, or by the caller of a target, or by a host such as Visual Studio, it should be added to the appropriate schema. " +
+			"Otherwise, it may be a redundant assignment or a misspelled metadata name.",
 			MSBuildDiagnosticSeverity.Warning);
 
 		public const string PropertyWriteReserved_Id = nameof (PropertyWriteReserved);
