@@ -123,7 +123,7 @@ namespace MonoDevelop.MSBuild.Language
 				ValidateItemAttributes (elementSyntax, element);
 
 				// TODO: reuse the existing resolved symbol
-				if (!IsItemUsed (elementName, ReferenceUsage.Read, out _)) {
+				if (Document.FileKind.IsProject () && !IsItemUsed (elementName, ReferenceUsage.Read, out _)) {
 					Diagnostics.Add (
 						CoreDiagnostics.UnreadItem,
 						element.NameSpan,
@@ -141,7 +141,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			case MSBuildSyntaxKind.Property:
 				// TODO: reuse the existing resolved symbol
-				if (!IsPropertyUsed (elementName, ReferenceUsage.Read, out _)) {
+				if (Document.FileKind.IsProject () && !IsPropertyUsed (elementName, ReferenceUsage.Read, out _)) {
 					Diagnostics.Add (
 						CoreDiagnostics.UnreadProperty,
 						element.NameSpan,
@@ -162,7 +162,7 @@ namespace MonoDevelop.MSBuild.Language
 				}
 
 				// TODO: reuse the existing resolved symbol
-				if (!IsMetadataUsed (metaItem, elementName, ReferenceUsage.Read, out _)) {
+				if (Document.FileKind.IsProject () && !IsMetadataUsed (metaItem, elementName, ReferenceUsage.Read, out _)) {
 					Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
 						element.NameSpan,
@@ -505,7 +505,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (attributeSyntax.SyntaxKind == MSBuildSyntaxKind.Item_Metadata) {
 				// TODO: reuse the existing resolved symbol
-				if (!IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read, out _)) {
+				if (Document.FileKind.IsProject () && !IsMetadataUsed (element.Name.Name, attribute.Name.Name, ReferenceUsage.Read, out _)) {
 					Diagnostics.Add (
 						CoreDiagnostics.UnreadMetadata,
 						attribute.NameSpan,
