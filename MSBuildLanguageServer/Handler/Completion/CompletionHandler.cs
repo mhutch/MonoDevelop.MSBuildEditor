@@ -10,10 +10,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 using MonoDevelop.MSBuild.Editor.Completion;
-using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.CodeActions;
-using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Services.Options;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Workspace;
 using MonoDevelop.MSBuild.Editor.NuGetSearch;
 using MonoDevelop.MSBuild.Language;
@@ -34,7 +33,7 @@ using Roslyn.LanguageServer.Protocol;
 
 using static MonoDevelop.MSBuild.Language.ExpressionCompletion;
 
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CompletionHandler)), Shared]
 [Method(Methods.TextDocumentCompletionName)]
@@ -114,8 +113,8 @@ sealed class CompletionHandler([Import(AllowDefault = true)] IMSBuildFileSystem 
             }
         }
 
-        var optionService = context.GetRequiredService<LspOptionsService>();
-        var options = optionService.GetDocumentOptions(document.Id);
+        var optionService = context.GetRequiredService<LspDocumentOptionsService>();
+        var options = optionService.GetDocumentOptions(document);
 
         var functionTypeProvider = context.GetRequiredService<FunctionTypeProviderService>().FunctionTypeProvider;
 

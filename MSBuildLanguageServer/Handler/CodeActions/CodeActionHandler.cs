@@ -11,6 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 using MonoDevelop.MSBuild.Editor.CodeActions;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Services;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Services.Options;
 using MonoDevelop.Xml.Options;
 
 using Roslyn.LanguageServer.Protocol;
@@ -62,8 +63,8 @@ sealed class CodeActionHandler(MSBuildCodeActionService codeActionService)
         var rawRequestedKinds = request.Context.Only ?? literalSupport.CodeActionKind.ValueSet;
         ISet<MSBuildCodeActionKind> requestedKinds = rawRequestedKinds.GetMSBuildCodeActionKinds();
 
-        var optionService = context.GetRequiredService<LspOptionsService>();
-        var options = optionService.GetDocumentOptions(document.Id);
+        var optionService = context.GetRequiredService<LspDocumentOptionsService>();
+        var options = optionService.GetDocumentOptions(document);
 
         var fixes = await codeActionService.GetCodeActions(sourceText, msbuildDoc, span, requestedKinds, options, cancellationToken);
 

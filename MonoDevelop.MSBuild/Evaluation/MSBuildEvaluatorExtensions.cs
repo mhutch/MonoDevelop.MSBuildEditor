@@ -126,7 +126,8 @@ namespace MonoDevelop.MSBuild.Evaluation
 			switch (expression) {
 			// yield plain text
 			case ExpressionText text:
-				yield return prefix + text.Value;
+				var unescaped = text.GetUnescapedValue (true, out _, out _);
+				yield return prefix + unescaped;
 				yield break;
 
 			// recursively yield evaluated property

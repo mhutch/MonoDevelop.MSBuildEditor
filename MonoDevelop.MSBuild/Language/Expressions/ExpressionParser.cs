@@ -476,6 +476,7 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 
 		// NOTE: this handles the well-known entities and 16-bit numeric character references
 		// FIXME: this should really be a helper in MonoDevelop.Xml.
+		// TODO: move this to MonoDevelop.Xml
 		static bool TryReadEntity (string buffer, ref int offset, int endOffset, out char character)
 		{
 			character = default;
@@ -1002,6 +1003,28 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 				out hasError);
 		}
 
+/*
+		static char ReadCharOrEntity(string buffer, ref int offset, int endOffset)
+		{
+			if (offset > endOffset) {
+				return '\0';
+			}
+
+			char ch = buffer[offset];
+
+			if (ch == '&') {
+				offset++;
+				if (!TryReadEntity (buffer, ref offset, endOffset, out char c)) {
+					return '\0';
+				}
+				return c;
+			}
+
+			offset++;
+			return ch;
+		}
+		*/
+
 		static ExpressionNode ParseMetadata (string buffer, ref int offset, int endOffset, int baseOffset, out bool hasError)
 		{
 			int start = offset - 2;
@@ -1034,6 +1057,9 @@ namespace MonoDevelop.MSBuild.Language.Expressions
 			if (buffer[offset] == '-') {
 				offset++;
 				isNonStandard = true;
+				// TODO: consume &gt entity
+				// if (ch == '&') {
+				//if (TryReadEntity (buffer, ref offset, endOffset, out char c)) {
 				if (offset > endOffset || buffer[offset] != '>') {
 					return new IncompleteExpressionError (
 						baseOffset + offset, offset > endOffset, ExpressionErrorKind.ExpectingRightAngleBracket,

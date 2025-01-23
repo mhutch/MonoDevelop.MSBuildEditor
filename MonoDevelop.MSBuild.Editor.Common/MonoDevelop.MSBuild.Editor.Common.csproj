@@ -36,7 +36,12 @@
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NoThrowStreamDisposer.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/NullableAttributes.cs" />
     <Compile Remove="../external/roslyn/src/Compilers/Core/Portable/InternalUtilities/RequiredMemberAttribute.cs" />
-    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/EditorConfig/Parsing/**/*.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathUtilities.cs" />
+    <Compile Include="../external/roslyn/src/Compilers/Core/Portable/FileSystem/PathKind.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Utilities/EnumerableConditionalWeakTable.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/EditorConfig/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/EditorConfig/Parsing/*.cs" />
+    <Compile Include="../external/roslyn/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/EditorConfig/Parsing/Sections/*.cs" />
   </ItemGroup>
 
   <ItemGroup>

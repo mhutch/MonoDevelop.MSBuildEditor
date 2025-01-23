@@ -11,6 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 using CompletionResolveData = Microsoft.CodeAnalysis.LanguageServer.Handler.Completion.CompletionResolveData;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Services.Options;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion;
 
@@ -31,7 +32,7 @@ static class CompletionRenderer
 
         var completionListCache = context.GetRequiredService<CompletionListCache>();
 
-        var optionService = context.GetRequiredService<LspOptionsService>();
+        var optionService = context.GetRequiredService<LspDocumentOptionsService>();
         var options = optionService.GetDocumentOptions(textDocument);
 
         var rawItems = new List<ILspCompletionItem>();

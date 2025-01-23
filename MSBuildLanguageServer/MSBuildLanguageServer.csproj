@@ -7,6 +7,7 @@
     <RootNamespace>MonoDevelop.MSBuild.Editor.LanguageServer</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Exe</OutputType>
+    <RollForward>LatestMajor</RollForward>
     <!--
     Makes some of the imported roslyn code compile unmodified.
     May have other implications but none found so far.

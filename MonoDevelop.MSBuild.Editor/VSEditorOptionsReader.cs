@@ -22,7 +22,7 @@ class VSEditorOptionsReader (IEditorOptions editorOptions) : IOptionsReader
 		{ TextFormattingOptions.TabSize.Name, DefaultOptions.TabSizeOptionName},
 		{ TextFormattingOptions.TrimTrailingWhitespace.Name, DefaultOptions.TrimTrailingWhiteSpaceOptionName },
 		{ TextFormattingOptions.ConvertTabsToSpaces.Name, DefaultOptions.ConvertTabsToSpacesOptionName },
-		{ MSBuildEditorOptions.ReplicateNewlineCharacter.Name, DefaultOptions.ReplicateNewLineCharacterOptionName },
+		{ MSBuildVSEditorOptions.ReplicateNewlineCharacter.Name, DefaultOptions.ReplicateNewLineCharacterOptionName },
 	};
 
 	public bool TryGetOption<T> (Option<T> option, out T? value)

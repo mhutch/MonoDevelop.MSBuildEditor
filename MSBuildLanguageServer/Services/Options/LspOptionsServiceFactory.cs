@@ -6,23 +6,21 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-using MonoDevelop.MSBuild.Editor.LanguageServer.Services;
+using MonoDevelop.MSBuild.Editor.LanguageServer.Services.Options;
 using MonoDevelop.MSBuild.Editor.LanguageServer.Workspace;
-using MonoDevelop.MSBuild.Schema;
+using MonoDevelop.Xml.Options;
 
-namespace MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
+namespace MonoDevelop.MSBuild.Editor.LanguageServer.Services;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(LspOptionsService)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(LspDocumentOptionsService)), Shared]
 class LspOptionsServiceFactory : ILspServiceFactory
 {
-    ITaskMetadataBuilder taskMetadataBuilder;
-    MSBuildSchemaProvider schemaProvider;
+    readonly IGlobalOptionService globalOptionService;
 
     [ImportingConstructor]
-    public LspOptionsServiceFactory()
+    public LspOptionsServiceFactory(IGlobalOptionService globalOptionService)
     {
-        this.taskMetadataBuilder = taskMetadataBuilder ?? new NoopTaskMetadataBuilder();
-        this.schemaProvider = schemaProvider ?? new MSBuildSchemaProvider();
+        this.globalOptionService = globalOptionService;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
@@ -30,6 +28,6 @@ class LspOptionsServiceFactory : ILspServiceFactory
         var logger = lspServices.GetRequiredService<ILspLogger>();
         var workspace = lspServices.GetRequiredService<LspEditorWorkspace>();
 
-        return new LspOptionsService(logger, workspace);
+        return new LspDocumentOptionsService(logger, workspace, globalOptionService);
     }
 }

@@ -5,9 +5,11 @@ using MonoDevelop.Xml.Options;
 
 namespace MonoDevelop.MSBuild.Options;
 
-class MSBuildEditorOptions
+/// <summary>
+/// Options that map to built-in VS Editor options, but not VS Code
+/// </summary>
+class MSBuildVSEditorOptions
 {
-	// this maps to a VS option
 	/// <summary>
 	/// Whether to replicate the previous line's newline character when inserting a new line.
 	/// If false, then the file's default newline character should be used.

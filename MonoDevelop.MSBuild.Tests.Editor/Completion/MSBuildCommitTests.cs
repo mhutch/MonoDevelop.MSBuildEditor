@@ -63,3 +63,18 @@ namespace MonoDevelop.MSBuild.Tests.Editor.Completion
 			);
 	}
 }
+
+/*
+[AttributeUsage(AttributeTargets.Method|AttributeTargets.Class|AttributeTargets.Assembly, AllowMultiple=false, Inherited=false)]
+public class IgnoreOnGitHubActions(string reason) : NUnitAttribute, NUnit.Framework.Interfaces.IApplyToTest
+{
+	public void ApplyToTest(NUnit.Framework.Internal.Test test)
+	{
+		if (test.RunState != NUnit.Framework.Interfaces.RunState.NotRunnable && Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != null)
+		{
+				test.RunState = NUnit.Framework.Interfaces.RunState.Ignored;
+                test.Properties.Set(NUnit.Framework.Internal.PropertyNames.SkipReason, reason);
+		}
+	}
+}
+*/

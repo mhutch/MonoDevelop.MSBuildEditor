@@ -35,7 +35,7 @@ partial class MSBuildDocumentEditBuilder(string filename)
 
 	static void FixNewLinesAndIndentation (List<Edit> edits, SourceText sourceText, IOptionsReader options, TextFormattingOptionValues textFormat)
 	{
-		var replicateNewLine = options.GetOption(MSBuildEditorOptions.ReplicateNewlineCharacter);
+		var replicateNewLine = options.GetOption(MSBuildVSEditorOptions.ReplicateNewlineCharacter);
 		var defaultNewLine = textFormat.NewLine;
 		var indent = GetIndent (textFormat);
 		string tabString = new (indent.indentChar, indent.charCount);

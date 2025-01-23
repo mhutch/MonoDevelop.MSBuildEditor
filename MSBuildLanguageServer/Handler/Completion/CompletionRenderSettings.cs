@@ -27,10 +27,11 @@ class CompletionRenderSettings
         IncludeDeprecatedProperty = !supportsDeprecatedTag && ClientCapabilities.DeprecatedSupport && (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.Deprecated)));
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        IncludeTextEdit = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEdit)));
-        IncludeInsertText = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertText)));
-        IncludeTextEditText = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEditText)));
-        IncludeInsertTextFormat = (fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertTextFormat)));
+        IncludeTextEdit = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEdit));
+        IncludeInsertText = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertText));
+        IncludeTextEditText = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.TextEditText));
+        IncludeInsertTextFormat = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.InsertTextFormat));
+        IncludeAdditionalTextEdits = fullRender || !clientCapabilities.ResolveSupport.Contains(nameof(CompletionItem.AdditionalTextEdits));
 
         SupportsDataDefault = clientCapabilities.SupportedItemDefaults.Contains(nameof(CompletionListItemDefaults.Data));
         SupportsEditRange = clientCapabilities.SupportedItemDefaults.Contains(nameof(CompletionListItemDefaults.EditRange));
@@ -47,6 +48,8 @@ class CompletionRenderSettings
     public bool IncludeLabelDetails { get; }
 
     public bool IncludeTextEdit { get; }
+
+    public bool IncludeAdditionalTextEdits { get; }
 
     public bool IncludeTextEditText { get; }
 

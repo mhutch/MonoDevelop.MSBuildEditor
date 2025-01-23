@@ -1,15 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Text;
-using System;
-
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServer;
-using MonoDevelop.MSBuild.Editor.LanguageServer.Parser;
-using MonoDevelop.Xml.Parser;
 
 namespace MonoDevelop.MSBuild.Editor.LanguageServer.Handler.Completion.CompletionItems;
 
@@ -28,10 +21,15 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
         }
 
         // NOTE: VS Code does not currently support lazy resolve of TextEdit, so do not do expensive work here
-        // For anything advanced, consider additionalTextEdits, which can be resolved lazily.
+        // For anything advanced, use additionalTextEdits, which can be resolved lazily.
         if (settings.IncludeTextEdit)
         {
             ComputeCommit(item, settings, ctx);
+        }
+
+        if (settings.IncludeAdditionalTextEdits)
+        {
+            ComputeAdditionalEdits(item, settings, ctx);
         }
 
         // NOTE: VS Code does not currently support lazy resolve of IncludeCommitCharacters
@@ -61,77 +59,15 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
             _ => allCommitChars
         };
 
-    static LSP.Range ExtendRangeToConsume(LSP.Range range, SourceText sourceText, char charToConsume)
-    {
-        int offset = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(range.End));
-        if(sourceText.Length > offset && sourceText[offset] == charToConsume)
-        {
-            offset++;
-            return new LSP.Range {
-                Start = range.Start,
-                End = sourceText.GetLspPosition(offset)
-            };
-        }
-        return range;
-    }
-
-    static char GetNextNonWhitespaceChar(LSP.Range range, SourceText sourceText)
-    {
-        int offset = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(range.End));
-        int max = Math.Min(offset + 5000, sourceText.Length);
-        while(offset < max)
-        {
-            char c = sourceText[offset++];
-            if (!XmlChar.IsWhitespace(c))
-            {
-                return c;
-            }
-        }
-        return '\0';
-    }
-
-    static bool MatchNextNonWhitespace(LSP.Range range, SourceText sourceText, string match)
-    {
-        int offset = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(range.End));
-        int max = Math.Min(offset + 5000, sourceText.Length - match.Length - 1);
-
-        while(XmlChar.IsWhitespace(sourceText[offset++]))
-        {
-            if (offset >= max)
-            {
-                return false;
-            }
-        }
-
-        if (offset + match.Length >= sourceText.Length)
-        {
-            return false;
-        }
-
-        var possibleMatch = sourceText.GetText(offset, match.Length);
-        return string.Equals(possibleMatch, match, StringComparison.Ordinal);
-    }
-
     void ComputeCommit(CompletionItem item, CompletionRenderSettings settings, CompletionRenderContext ctx)
     {
         var range = ctx.EditRange;
 
         switch(commitKind)
         {
-        /*
-        // TODO: SelfClosingElement should commit as non-self-closing if the commit char is >
-        // but LSP does not currently let us alter the TextEdit depending on the commit char
-        case XmlCommitKind.SelfClosingElement:
-            item.TextEdit = new TextEdit {
-                NewText = $"{label}/>",
-                Range = ExtendRangeToConsume(range, ctx.PreTriggerSourceText, '>')
-            };
-            // TODO: if the commit char is /, it should be removed
-        }
-        */
         case XmlCommitKind.Attribute:
         {
-            if(!settings.SupportSnippetFormat)
+            if(!ctx.CompletionOptions.InsertEmptyAttributeValue || !settings.SupportSnippetFormat)
             {
                 return;
             }
@@ -139,7 +75,7 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
             // if there's already an = after this, don't try to add one
             // TODO: we should also avoid adding the ="" if the completion char is '=' or ' '
             // we may be able to workaround this by implementing overtype behavior on the VS Code side
-            if(GetNextNonWhitespaceChar(range, ctx.PreTriggerSourceText) == '=')
+            if(ctx.PreTriggerSourceText.GetNextNonWhitespaceChar(range.End) == '=')
             {
                 return;
             }
@@ -149,7 +85,7 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
             // FIXME: get the default attribute quote char from options
             // TODO: the attribute quote char should be detected from the typed quote char: typedChar == '\'' ? '\'' : '"'
 
-            char quoteChar = '"';
+            char quoteChar = ctx.CompletionOptions.QuoteChar;
 
             item.TextEdit = new TextEdit {
                 NewText = $"{label}={quoteChar}$0{quoteChar})",
@@ -161,35 +97,89 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
         }
         case XmlCommitKind.Element:
         {
+            if(!ctx.CompletionOptions.InsertClosingTag) {
+                return;
+            }
+
+            item.TextEditText = $"{label}>";
+
             // TODO: committing with / should make element self closing, but only if this does not cause the span to start with a /
             // as that will prevent matching a closing tag item
             return;
         }
-        case XmlCommitKind.MultipleClosingTags:
-        case XmlCommitKind.ClosingTag:
+        /*
+        // TODO: SelfClosingElement should commit as non-self-closing if the commit char is >
+        // but LSP does not currently let us alter the TextEdit depending on the commit char
+        case XmlCommitKind.SelfClosingElement:
+            item.TextEdit = new TextEdit {
+                NewText = $"{label}/>",
+                Range = ExtendRangeToConsume(range, ctx.PreTriggerSourceText, '>')
+            };
+            // TODO: if the commit char is /, it should be removed
+        }
+        */
+        }
+    }
+
+    void ComputeAdditionalEdits(CompletionItem item, CompletionRenderSettings settings, CompletionRenderContext ctx)
+    {
+        var range = ctx.EditRange;
+
+        switch(commitKind)
         {
-            //ComputeClosingTags(item, settings, ctx);
+        case XmlCommitKind.Element:
+        {
+            if(!ctx.CompletionOptions.InsertClosingTag) {
+                return;
+            }
+
+            // TODO: read-ahead to determine whether we need this closing tag or not
+
+            var closingTag = $"</{label}>";
+
+            // ignore the case where there is a matching closing tag immediately after the completion
+            // TODO: ignoreCase should be part of the completion item data
+            if(ctx.PreTriggerSourceText.MatchNextNonWhitespace(range.End, closingTag, true))
+            {
+                return;
+            }
+
+            item.AdditionalTextEdits = [
+                new TextEdit {
+                    NewText = closingTag,
+                    Range = new LSP.Range {
+                        Start = range.End,
+                        End = range.End
+                    }
+                }
+            ];
+
             return;
         }
         case XmlCommitKind.Comment:
         {
-            if(!settings.SupportSnippetFormat)
-            {
+            if(!ctx.CompletionOptions.InsertClosingTag) {
                 return;
             }
+
             // this should probably be handled with brace matching and a separate undo step
             // but this is better than nothing
 
-            if(MatchNextNonWhitespace(range, ctx.PreTriggerSourceText, "-->"))
+            // TODO: scan-ahead to determine whether we are already in a comment
+            if(ctx.PreTriggerSourceText.MatchNextNonWhitespace(range.End, "-->"))
             {
                 return;
             }
 
-            item.TextEdit = new TextEdit {
-                NewText = $"{label}$0-->",
-                Range = ExtendRangeToConsume(range, ctx.PreTriggerSourceText, '>')
-            };
-            item.InsertTextFormat = InsertTextFormat.Snippet;
+            item.AdditionalTextEdits = [
+                new TextEdit {
+                    NewText = $"-->",
+                    Range = new LSP.Range {
+                        Start = range.End,
+                        End = range.End
+                    }
+                }
+            ];
 
             return;
         }
@@ -201,24 +191,27 @@ class XmlCompletionItem(string label, CompletionItemKind kind, string markdownDo
             }
 
             // this should probably be handled with brace matching and a separate undo step
-            // but this is better than nothing
+            // but this is better than nothing.
+            // maybe we can eventually use an on-type formatter to handle this.
 
-            if(MatchNextNonWhitespace(range, ctx.PreTriggerSourceText, "]]>"))
+            // TODO: scan-ahead to determine whether we are already in a CDATA
+            if(ctx.PreTriggerSourceText.MatchNextNonWhitespace(range.End, "]]>"))
             {
                 return;
             }
 
-            item.TextEdit = new TextEdit {
-                NewText = $"{label}$0]]>",
-                Range = ExtendRangeToConsume(range, ctx.PreTriggerSourceText, '>')
-            };
-            item.InsertTextFormat = InsertTextFormat.Snippet;
+            item.AdditionalTextEdits = [
+                new TextEdit {
+                    NewText = "]]>",
+                    Range = new LSP.Range {
+                        Start = range.End,
+                        End = range.End
+                    }
+                }
+            ];
 
             return;
         }
-        default:
-            // default handling, simple insertion
-            return;
         }
     }
 
