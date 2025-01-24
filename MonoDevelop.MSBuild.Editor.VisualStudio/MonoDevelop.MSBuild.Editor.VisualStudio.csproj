@@ -44,7 +44,7 @@
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="17.5.33428.366" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.6.0-1.final" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.5.33428.388" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.6.2164" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.10.1074-preview2" />
     <PackageReference Include="NuGet.VisualStudio" Version="17.5.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.21.0" />

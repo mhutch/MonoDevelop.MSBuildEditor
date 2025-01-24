@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -164,26 +166,28 @@ class SchemaCommands
 
 	public static ExitCode ValidateSchema (ILoggerFactory loggerFactory, IEnumerable<string> schemaFilesOrDirectories, CancellationToken cancellationToken)
 	{
+		var logger = loggerFactory.CreateLogger (nameof (GenerateSchema));
+
 		var schemaFiles = new List<string> ();
 
 		foreach (var fileOrDirectory in schemaFilesOrDirectories) {
 			if (Directory.Exists (fileOrDirectory)) {
 				var filesInDirectory = Directory.GetFiles (fileOrDirectory, "*.buildschema.json", SearchOption.AllDirectories);
 				if (filesInDirectory.Length == 0) {
-					Console.Error.WriteLine ($"No `*.buildschema.json` files found in directory '{fileOrDirectory}'");
+					logger.LogError ($"No `*.buildschema.json` files found in directory '{fileOrDirectory}'");
 					return ExitCode.NoSchemaFiles;
 				}
 				schemaFiles.AddRange (filesInDirectory);
 			} else if (File.Exists (fileOrDirectory)) {
 				schemaFiles.Add (fileOrDirectory);
 			} else {
-				Console.Error.WriteLine ($"Path'{fileOrDirectory}' is neither a file nor a directory");
+				logger.LogError ($"Path'{fileOrDirectory}' is neither a file nor a directory");
 				return ExitCode.SchemaFileNotFound;
 			}
 		}
 
 		if (!schemaFiles.Any ()) {
-			Console.Error.WriteLine ("No schema files specified");
+			logger.LogError ("No schema files specified");
 			return ExitCode.NoSchemaFiles;
 		}
 
@@ -197,7 +201,7 @@ class SchemaCommands
 					MSBuildSchemaUtils.PrintSchemaErrors (loadErrors);
 				}
 			} catch (FileNotFoundException) {
-				Console.Error.WriteLine ($"Schema file '{schemaFile}' does not exist");
+				logger.LogError ($"Schema file '{schemaFile}' does not exist");
 				return ExitCode.SchemaFileNotFound;
 			}
 		}

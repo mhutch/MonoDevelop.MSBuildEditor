@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using MonoDevelop.MSBuild.Language;
@@ -210,14 +211,8 @@ static class MSBuildSchemaUtils
 		var schemas = new List<MSBuildSchema>();
 
 		foreach (var schemaFile in Directory.GetFiles(schemaDirectory, "*.buildschema.json")) {
-			using var reader = File.OpenText(schemaFile);
-			try {
-				var schema = MSBuildSchema.Load(reader, out var loadErrors, schemaFile);
+			if (TryLoadSchema (schemaFile, out var schema)) {
 				schemas.Add(schema);
-				PrintSchemaErrors(loadErrors);
-			} catch (JsonReaderException jex) {
-				Console.Error.WriteLine($"{Path.GetFileName (schemaFile)}({jex.LineNumber}, {jex.LinePosition}): error: {jex.Message}'");
-				continue;
 			}
 		}
 
@@ -227,6 +222,23 @@ static class MSBuildSchemaUtils
 		}
 
 		return schemas;
+	}
+
+	/// <summary>
+	/// Loads an MSBuild schema from a file, printing any errors to Console.Error.
+	/// </summary>
+	public static bool TryLoadSchema (string schemaFile, [NotNullWhen(true)] out MSBuildSchema? schema)
+	{
+		using var reader = File.OpenText(schemaFile);
+		try {
+			schema = MSBuildSchema.Load(reader, out var loadErrors, schemaFile);
+			PrintSchemaErrors(loadErrors);
+			return true;
+		} catch (JsonReaderException jex) {
+			Console.Error.WriteLine($"{Path.GetFileName (schemaFile)}({jex.LineNumber}, {jex.LinePosition}): error: {jex.Message}'");
+			schema = null;
+			return false;
+		}
 	}
 
 	// this tool will be used when editing the schemas, so check they don't have errors
