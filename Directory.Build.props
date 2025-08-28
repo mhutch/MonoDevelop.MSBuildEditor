@@ -8,5 +8,6 @@
     <NBGV_ThisAssemblyNamespace>$(MSBuildProjectName)</NBGV_ThisAssemblyNamespace>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <UseArtifactsOutput>true</UseArtifactsOutput>
+    <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
 </Project>
