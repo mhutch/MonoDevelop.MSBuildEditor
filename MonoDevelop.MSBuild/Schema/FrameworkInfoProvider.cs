@@ -183,8 +183,8 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (8, 0, "net8.0-maccatalyst", KnownPlatform.MacCatalyst);
 			AddNetCore (8, 0, "net8.0-macos", KnownPlatform.macOS);
 			AddNetCore (8, 0, "net8.0-tvos", KnownPlatform.tvOS);
-			AddNetCore (7, 0, "net8.0-tizen", KnownPlatform.Tizen);
-			AddNetCore (7, 0, "net8.0-browser", KnownPlatform.Browser);
+			AddNetCore (8, 0, "net8.0-tizen", KnownPlatform.Tizen);
+			AddNetCore (8, 0, "net8.0-browser", KnownPlatform.Browser);
 
 			AddNetCore (9, 0, "net9.0");
 			AddNetCore (9, 0, "net9.0-windows", KnownPlatform.Windows);
@@ -193,8 +193,18 @@ namespace MonoDevelop.MSBuild.Schema
 			AddNetCore (9, 0, "net9.0-maccatalyst", KnownPlatform.MacCatalyst);
 			AddNetCore (9, 0, "net9.0-macos", KnownPlatform.macOS);
 			AddNetCore (9, 0, "net9.0-tvos", KnownPlatform.tvOS);
-			AddNetCore (7, 0, "net9.0-tizen", KnownPlatform.Tizen);
-			AddNetCore (7, 0, "net9.0-browser", KnownPlatform.Browser);
+			AddNetCore (9, 0, "net9.0-tizen", KnownPlatform.Tizen);
+			AddNetCore (9, 0, "net9.0-browser", KnownPlatform.Browser);
+
+			AddNetCore (10, 0, "net10.0");
+			AddNetCore (10, 0, "net10.0-windows", KnownPlatform.Windows);
+			AddNetCore (10, 0, "net10.0-android", KnownPlatform.Android);
+			AddNetCore (10, 0, "net10.0-ios", KnownPlatform.iOS);
+			AddNetCore (10, 0, "net10.0-maccatalyst", KnownPlatform.MacCatalyst);
+			AddNetCore (10, 0, "net10.0-macos", KnownPlatform.macOS);
+			AddNetCore (10, 0, "net10.0-tvos", KnownPlatform.tvOS);
+			AddNetCore (10, 0, "net10.0-tizen", KnownPlatform.Tizen);
+			AddNetCore (10, 0, "net10.0-browser", KnownPlatform.Browser);
 
 			AddLegacy (null, FxID.MonoAndroid, 1, 0);
 			AddLegacy (null, FxID.MonoAndroid, 2, 3);
