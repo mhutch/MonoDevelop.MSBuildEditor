@@ -30,8 +30,7 @@ namespace MonoDevelop.MSBuild.Tests
 			});
 
 		protected override bool ShouldIgnoreCompositionError (string error)
-			=> error.Contains ("Microsoft.VisualStudio.Editor.ICommonEditorAssetServiceFactory")
-				|| error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
+			=> error.Contains ("MonoDevelop.MSBuild.Editor.Host.IStreamingFindReferencesPresenter")
 				|| error.Contains ("Microsoft.VisualStudio.Language.Intellisense.ISuggestedActionCategoryRegistryService2")
 				|| base.ShouldIgnoreCompositionError (error);
 	}
